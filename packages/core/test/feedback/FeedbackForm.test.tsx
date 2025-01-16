@@ -7,6 +7,7 @@ import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import type { FeedbackFormProps, FeedbackFormStyles } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockOnFormClose = jest.fn();
+const mockOnAddScreenshot = jest.fn();
 const mockOnSubmitSuccess = jest.fn();
 const mockOnFormSubmitted = jest.fn();
 const mockOnSubmitError = jest.fn();
@@ -28,9 +29,11 @@ jest.mock('@sentry/core', () => ({
 
 const defaultProps: FeedbackFormProps = {
   onFormClose: mockOnFormClose,
+  onAddScreenshot: mockOnAddScreenshot,
   onSubmitSuccess: mockOnSubmitSuccess,
   onFormSubmitted: mockOnFormSubmitted,
   onSubmitError: mockOnSubmitError,
+  addScreenshotButtonLabel: 'Add Screenshot',
   formTitle: 'Feedback Form',
   nameLabel: 'Name Label',
   namePlaceholder: 'Name Placeholder',
@@ -84,6 +87,13 @@ const customStyles: FeedbackFormStyles = {
     color: '#ff0000',
     fontSize: 10,
   },
+  screenshotButton: {
+    backgroundColor: '#00ff00',
+  },
+  screenshotText: {
+    color: '#0000ff',
+    fontSize: 13,
+  },
 };
 
 describe('FeedbackForm', () => {
@@ -107,8 +117,24 @@ describe('FeedbackForm', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('matches the snapshot with default configuration and screenshot button', () => {
+    const { toJSON } = render(<FeedbackForm enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom texts and screenshot button', () => {
+    const { toJSON } = render(<FeedbackForm {...defaultProps} enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom styles and screenshot button', () => {
+    const customStyleProps = {styles: customStyles};
+    const { toJSON } = render(<FeedbackForm {...customStyleProps} enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText, getByTestId } = render(<FeedbackForm {...defaultProps} />);
+    const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<FeedbackForm {...defaultProps} />);
 
     expect(getByText(defaultProps.formTitle)).toBeTruthy();
     expect(getByTestId('sentry-logo')).toBeTruthy(); // default showBranding is true
@@ -118,8 +144,15 @@ describe('FeedbackForm', () => {
     expect(getByPlaceholderText(defaultProps.emailPlaceholder)).toBeTruthy();
     expect(getByText(`${defaultProps.messageLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
+    expect(queryByText(defaultProps.addScreenshotButtonLabel)).toBeNull(); // default false
     expect(getByText(defaultProps.submitButtonLabel)).toBeTruthy();
     expect(getByText(defaultProps.cancelButtonLabel)).toBeTruthy();
+  });
+
+  it('renders attachment button when the enableScreenshot is true', () => {
+    const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
+
+    expect(getByText(defaultProps.addScreenshotButtonLabel)).toBeTruthy();
   });
 
   it('does not render the sentry logo when showBranding is false', () => {
@@ -188,7 +221,7 @@ describe('FeedbackForm', () => {
         message: 'This is a feedback message.',
         name: 'John Doe',
         email: 'john.doe@example.com',
-      });
+      }, undefined);
     });
   });
 
@@ -267,6 +300,16 @@ describe('FeedbackForm', () => {
 
     await waitFor(() => {
       expect(mockOnFormSubmitted).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onAddScreenshot when the screenshot button is pressed', async () => {
+    const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
+
+    fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnAddScreenshot).toHaveBeenCalled();
     });
   });
 

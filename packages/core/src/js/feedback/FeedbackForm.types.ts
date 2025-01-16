@@ -45,6 +45,12 @@ export interface FeedbackGeneralConfiguration {
   showName?: boolean;
 
   /**
+   * This flag determines whether the "Add Screenshot" button is displayed
+   * @default false
+   */
+  enableScreenshot?: boolean;
+
+  /**
    * Fill in email/name input fields with Sentry user context if it exists.
    * The value of the email/name keys represent the properties of your user context.
    */
@@ -114,6 +120,16 @@ export interface FeedbackTextConfiguration {
   isRequiredLabel?: string;
 
   /**
+   * The label for the button that adds a screenshot and renders the image editor
+   */
+  addScreenshotButtonLabel?: string;
+
+  /**
+   * The label for the button that removes a screenshot and hides the image editor
+   */
+  removeScreenshotButtonLabel?: string;
+
+  /**
    * The title of the error dialog
    */
   errorTitle?: string;
@@ -149,6 +165,11 @@ export interface FeedbackCallbacks {
   onFormClose?: () => void;
 
   /**
+   * Callback when a screenshot is added
+   */
+  onAddScreenshot?: (attachFile: (filename: string, data: Uint8Array) => void) => void;
+
+  /**
    * Callback when feedback is successfully submitted
    *
    * After this you'll see a SuccessMessage on the screen for a moment.
@@ -179,6 +200,8 @@ export interface FeedbackFormStyles {
   submitText?: TextStyle;
   cancelButton?: ViewStyle;
   cancelText?: TextStyle;
+  screenshotButton?: ViewStyle;
+  screenshotText?: TextStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
 }
@@ -191,4 +214,6 @@ export interface FeedbackFormState {
   name: string;
   email: string;
   description: string;
+  filename?: string;
+  attachment?: string | Uint8Array;
 }

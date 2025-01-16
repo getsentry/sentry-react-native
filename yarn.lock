@@ -22540,6 +22540,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-image-picker@npm:^7.2.2":
+  version: 7.2.2
+  resolution: "react-native-image-picker@npm:7.2.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 34289e29a28c3f8d869db46fdf5bfdeec8b37221ee4dcd9a63698b106f0097d11f4c40f3a2789c23a728dc94e37e02a0cf61add80aa04ffe60a6cf82115cddea
+  languageName: node
+  linkType: hard
+
 "react-native-is-edge-to-edge@npm:^1.1.6":
   version: 1.1.6
   resolution: "react-native-is-edge-to-edge@npm:1.1.6"
@@ -22607,6 +22617,18 @@ __metadata:
   bin:
     react-native-macos: cli.js
   checksum: c9002ec4d5f115e49fdb5d32fe7edbb9877d5efbd8a8ab7d4487fe4e32097b6bb4318a3e7c8bdde1438ae78ddd0bd479e4c0c3068fd37225ab97daab676b8cc1
+  languageName: node
+  linkType: hard
+
+"react-native-quick-base64@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "react-native-quick-base64@npm:2.1.2"
+  dependencies:
+    base64-js: ^1.5.1
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 46f3b26f48b26978686b0c043336220d681e6a02af5abcf3eb4ab7b9216251d1eb2fac5c559e984d963e93f54bd9f323651daac09762196815558abbd551729b
   languageName: node
   linkType: hard
 
@@ -24281,6 +24303,8 @@ __metadata:
     react: 18.3.1
     react-native: 0.76.3
     react-native-gesture-handler: ^2.21.1
+    react-native-image-picker: ^7.2.2
+    react-native-quick-base64: ^2.1.2
     react-native-reanimated: 3.16.1
     react-native-safe-area-context: 4.14.0
     react-native-screens: 4.1.0

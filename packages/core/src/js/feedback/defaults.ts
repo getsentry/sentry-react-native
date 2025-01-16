@@ -16,6 +16,8 @@ const ERROR_TITLE = 'Error';
 const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
 const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
+const ADD_SCREENSHOT_LABEL = 'Add a screenshot';
+const REMOVE_SCREENSHOT_LABEL = 'Remove screenshot';
 const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.';
 
 export const defaultConfiguration: Partial<FeedbackFormProps> = {
@@ -29,6 +31,11 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
         'Development note',
         'onFormClose callback is not implemented. By default the form is just unmounted.',
       );
+    }
+  },
+  onAddScreenshot: (_: (filename: string, data: Uint8Array) => void) => {
+    if (__DEV__) {
+      Alert.alert('Development note', 'onAddScreenshot callback is not implemented.');
     }
   },
   onSubmitSuccess: () => {
@@ -53,6 +60,7 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   isNameRequired: false,
   showEmail: true,
   showName: true,
+  enableScreenshot: false,
 
   // FeedbackTextConfiguration
   cancelButtonLabel: CANCEL_BUTTON_LABEL,
@@ -69,5 +77,7 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   formError: FORM_ERROR,
   emailError: EMAIL_ERROR,
   successMessageText: SUCCESS_MESSAGE_TEXT,
+  addScreenshotButtonLabel: ADD_SCREENSHOT_LABEL,
+  removeScreenshotButtonLabel: REMOVE_SCREENSHOT_LABEL,
   genericError: GENERIC_ERROR_TEXT,
 };

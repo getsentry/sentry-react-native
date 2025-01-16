@@ -68,6 +68,15 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
+    const attachments = this.state.filename && this.state.attachment
+    ? [
+        {
+          filename: this.state.filename,
+          data: this.state.attachment,
+        },
+      ]
+    : undefined;
+
     const eventId = lastEventId();
     const userFeedback: SendFeedbackParams = {
       message: trimmedDescription,
@@ -78,7 +87,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     try {
       this.setState({ isVisible: false });
-      captureFeedback(userFeedback);
+      captureFeedback(userFeedback, attachments ? { attachments } : undefined);
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
       Alert.alert(text.successMessageText);
       onFormSubmitted();
@@ -89,6 +98,17 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       logger.error(`Feedback form submission failed: ${error}`);
     }
   };
+
+  public onScreenshotButtonPress: () => void = () => {
+    if (!this.state.filename && !this.state.attachment) {
+      const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
+      onAddScreenshot((filename: string, attachement: Uint8Array) => {
+        this.setState({ filename, attachment: attachement });
+      });
+    } else {
+      this.setState({ filename: undefined, attachment: undefined });
+    }
+  }
 
   /**
    * Renders the feedback form screen.
@@ -167,7 +187,15 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 onChangeText={(value) => this.setState({ description: value })}
                 multiline
               />
-
+              {config.enableScreenshot && (
+                <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                  <Text style={styles.screenshotText}>
+                  {!this.state.filename && !this.state.attachment
+                    ? text.addScreenshotButtonLabel
+                    : text.removeScreenshotButtonLabel}
+                  </Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
                 <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
               </TouchableOpacity>
