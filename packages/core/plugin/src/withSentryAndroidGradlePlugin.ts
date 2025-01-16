@@ -63,6 +63,9 @@ export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroi
       autoUploadNativeSymbols = ${autoUploadNativeSymbols}
       includeNativeSources = ${includeNativeSources}
       includeSourceContext = ${includeSourceContext}
+      tracingInstrumentation {
+          enabled = false
+      }
       autoInstallation {
           enabled = false
       }

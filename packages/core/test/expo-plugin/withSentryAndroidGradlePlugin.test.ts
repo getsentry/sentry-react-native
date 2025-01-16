@@ -104,6 +104,9 @@ describe('withSentryAndroidGradlePlugin', () => {
       autoUploadNativeSymbols = true
       includeNativeSources = false
       includeSourceContext = true
+      tracingInstrumentation {
+          enabled = false
+      }
       autoInstallation {
           enabled = false
       }
