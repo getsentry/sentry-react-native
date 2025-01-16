@@ -99,7 +99,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     }
   };
 
-  public addRemoveScreenshot: () => void = () => {
+  public onScreenshotButtonPress: () => void = () => {
     if (!this.state.filename && !this.state.attachment) {
       const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
       onAddScreenshot((filename: string, attachement: Uint8Array) => {
@@ -188,7 +188,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 multiline
               />
               {config.enableScreenshot && (
-                <TouchableOpacity style={styles.screenshotButton} onPress={this.addRemoveScreenshot}>
+                <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
                   <Text style={styles.screenshotText}>
                   {!this.state.filename && !this.state.attachment
                     ? text.addScreenshotButtonLabel
