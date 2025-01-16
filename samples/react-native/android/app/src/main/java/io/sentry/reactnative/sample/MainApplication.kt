@@ -39,7 +39,7 @@ class MainApplication :
         super.onCreate()
         // When the native init is enabled the `autoInitializeNativeSdk`
         // in JS has to be set to `false`
-        // this.initializeSentry()
+        this.initializeSentry()
 
         SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {

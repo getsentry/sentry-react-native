@@ -17,7 +17,36 @@ project.ext.shouldSentryAutoUpload = { ->
 
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
+tasks.register("copySentryJsonConfiguration") {
+    doLast {
+        def configFile = "sentry.options.json"
+        def appRoot = project.rootDir.parentFile ?: project.rootDir
+        def sentryOptionsFile = new File(appRoot, configFile)
+        def androidAssetsDir = new File("$rootDir/app/src/main/assets") // Path to Android assets folder
+
+        if (sentryOptionsFile.exists()) {
+            if (!androidAssetsDir.exists()) {
+                androidAssetsDir.mkdirs()
+            }
+
+            copy {
+                from sentryOptionsFile
+                into androidAssetsDir
+                rename { String fileName -> configFile }
+            }
+            logger.lifecycle("Copied ${configFile} to Android assets")
+        } else {
+            logger.warn("${configFile} not found in app root (${appRoot})")
+        }
+    }
+}
+
 gradle.projectsEvaluated {
+    // Add a task that copies the sentry.options.json file before the build starts
+    tasks.named("preBuild").configure {
+        dependsOn("copySentryJsonConfiguration")
+    }
+
     def releases = extractReleasesInfo()
 
     if (config.flavorAware && config.sentryProperties) {
