@@ -15,15 +15,19 @@ export interface SentryAndroidGradlePluginOptions {
  * Adds the Sentry Android Gradle Plugin to the project.
  * https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#enable-sentry-agp
  */
-export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroidGradlePluginOptions = {}): any {
+export function withSentryAndroidGradlePlugin(
+  config: any,
+  {
+    includeProguardMapping = true,
+    dexguardEnabled = false,
+    autoUploadProguardMapping = true,
+    uploadNativeSymbols = true,
+    autoUploadNativeSymbols = true,
+    includeNativeSources = true,
+    includeSourceContext = false,
+  }: SentryAndroidGradlePluginOptions = {},
+): any {
   const version = '4.14.1';
-  const includeProguardMapping = options.includeProguardMapping ?? true;
-  const dexguardEnabled = options.dexguardEnabled ?? false;
-  const autoUploadProguardMapping = options.autoUploadProguardMapping ?? true;
-  const uploadNativeSymbols = options.uploadNativeSymbols ?? true;
-  const autoUploadNativeSymbols = options.autoUploadNativeSymbols ?? true;
-  const includeNativeSources = options.includeNativeSources ?? true;
-  const includeSourceContext = options.includeSourceContext ?? false;
 
   // Modify android/build.gradle
   const withSentryProjectBuildGradle = (config: any): any => {
