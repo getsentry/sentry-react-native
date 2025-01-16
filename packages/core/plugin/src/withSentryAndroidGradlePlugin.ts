@@ -53,12 +53,22 @@ export function withSentryAndroidGradlePlugin(
         return config;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      projectBuildGradle.modResults.contents = projectBuildGradle.modResults.contents.replace(
-        /dependencies\s*{/,
-        `dependencies {\n        ${dependency}`,
-      );
-
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const updatedContents = projectBuildGradle.modResults.contents.replace(
+          /dependencies\s*{/,
+          `dependencies {\n        ${dependency}`,
+        );
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (updatedContents === projectBuildGradle.modResults.contents) {
+          warnOnce('Failed to inject the dependency. Could not find `dependencies` in build.gradle.');
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          projectBuildGradle.modResults.contents = updatedContents;
+        }
+      } catch (error) {
+        warnOnce(`An error occurred while trying to modify build.gradle`);
+      }
       return projectBuildGradle;
     });
   };

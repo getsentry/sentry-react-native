@@ -85,6 +85,21 @@ describe('withSentryAndroidGradlePlugin', () => {
     );
   });
 
+  it('warnOnce if failed to modify build.gradle', () => {
+    const invalidBuildGradle = `android {}`;
+    const options: SentryAndroidGradlePluginOptions = { enableAndroidGradlePlugin: true };
+
+    (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
+      callback({ modResults: { language: 'groovy', contents: invalidBuildGradle } });
+    });
+
+    withSentryAndroidGradlePlugin(mockConfig, options);
+
+    expect(warnOnce).toHaveBeenCalledWith(
+      'Failed to inject the dependency. Could not find `dependencies` in build.gradle.',
+    );
+  });
+
   it('adds the Sentry plugin configuration to app/build.gradle', () => {
     const options: SentryAndroidGradlePluginOptions = {
       autoUploadProguardMapping: true,
