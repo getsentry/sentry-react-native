@@ -12,15 +12,15 @@
 
 - Adds Sentry Android Gradle Plugin as an experimental expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
 
-  To enable the plugin add the `sentryAndroidGradlePluginVersion` in the `@sentry/react-native/expo` plugin.
-  
+  To enable the plugin add the `enableAndroidGradlePlugin` in the `@sentry/react-native/expo` plugin.
+
   ```js
   "plugins": [
     [
       "@sentry/react-native/expo",
       {
         "experimental_android": {
-          "sentryAndroidGradlePluginVersion": "4.14.1",
+          "enableAndroidGradlePlugin": true,
         }
       }
     ],

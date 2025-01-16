@@ -46,7 +46,7 @@
           "project": "sentry-react-native",
           "organization": "sentry-sdks",
           "experimental_android": {
-            "sentryAndroidGradlePluginVersion": "4.14.1",
+            "enableAndroidGradlePlugin": true,
             "autoUploadProguardMapping": true,
             "uploadNativeSymbols": true,
             "includeNativeSources": true,

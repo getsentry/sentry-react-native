@@ -37,9 +37,9 @@ describe('withSentryAndroidGradlePlugin', () => {
     jest.clearAllMocks();
   });
 
-  it('adds the Sentry plugin to build.gradle', () => {
+  it('adds the Sentry plugin to build.gradle when enableAndroidGradlePlugin is enabled', () => {
     const version = '4.14.1';
-    const options: SentryAndroidGradlePluginOptions = { sentryAndroidGradlePluginVersion: version };
+    const options: SentryAndroidGradlePluginOptions = { enableAndroidGradlePlugin: true };
 
     (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
       const projectBuildGradle = {

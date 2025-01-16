@@ -1,7 +1,7 @@
 import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
 
 export interface SentryAndroidGradlePluginOptions {
-  sentryAndroidGradlePluginVersion?: string;
+  enableAndroidGradlePlugin?: boolean;
   includeProguardMapping?: boolean;
   dexguardEnabled?: boolean;
   autoUploadNativeSymbols?: boolean;
@@ -16,7 +16,7 @@ export interface SentryAndroidGradlePluginOptions {
  * https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#enable-sentry-agp
  */
 export function withSentryAndroidGradlePlugin(config: any, options: SentryAndroidGradlePluginOptions = {}): any {
-  const version = options.sentryAndroidGradlePluginVersion;
+  const version = '4.14.1';
   const includeProguardMapping = options.includeProguardMapping ?? true;
   const dexguardEnabled = options.dexguardEnabled ?? false;
   const autoUploadProguardMapping = options.autoUploadProguardMapping ?? true;

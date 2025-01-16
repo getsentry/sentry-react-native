@@ -30,8 +30,8 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
     } catch (e) {
       warnOnce(`There was a problem with configuring your native Android project: ${e}`);
     }
-    // if `sentryAndroidGradlePluginVersion` is provided configure the Sentry Android Gradle Plugin
-    if (props?.experimental_android && props?.experimental_android?.sentryAndroidGradlePluginVersion) {
+    // if `enableAndroidGradlePlugin` is provided configure the Sentry Android Gradle Plugin
+    if (props?.experimental_android && props?.experimental_android?.enableAndroidGradlePlugin) {
       try {
         cfg = withSentryAndroidGradlePlugin(cfg, props.experimental_android);
       } catch (e) {
