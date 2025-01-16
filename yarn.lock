@@ -22620,6 +22620,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-quick-base64@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "react-native-quick-base64@npm:2.1.2"
+  dependencies:
+    base64-js: ^1.5.1
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 46f3b26f48b26978686b0c043336220d681e6a02af5abcf3eb4ab7b9216251d1eb2fac5c559e984d963e93f54bd9f323651daac09762196815558abbd551729b
+  languageName: node
+  linkType: hard
+
 "react-native-reanimated@npm:3.16.1":
   version: 3.16.1
   resolution: "react-native-reanimated@npm:3.16.1"
@@ -24292,6 +24304,7 @@ __metadata:
     react-native: 0.76.3
     react-native-gesture-handler: ^2.21.1
     react-native-image-picker: ^7.2.2
+    react-native-quick-base64: ^2.1.2
     react-native-reanimated: 3.16.1
     react-native-safe-area-context: 4.14.0
     react-native-screens: 4.1.0
