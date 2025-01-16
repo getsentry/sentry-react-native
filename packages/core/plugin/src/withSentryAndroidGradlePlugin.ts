@@ -1,5 +1,7 @@
 import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
 
+import { warnOnce } from './utils';
+
 export interface SentryAndroidGradlePluginOptions {
   enableAndroidGradlePlugin?: boolean;
   includeProguardMapping?: boolean;
@@ -34,7 +36,8 @@ export function withSentryAndroidGradlePlugin(
     return withProjectBuildGradle(config, (projectBuildGradle: any) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!projectBuildGradle.modResults || !projectBuildGradle.modResults.contents) {
-        throw new Error('android/build.gradle content is missing or undefined.');
+        warnOnce('android/build.gradle content is missing or undefined.');
+        return config;
       }
 
       const dependency = `classpath("io.sentry:sentry-android-gradle-plugin:${version}")`;
@@ -57,7 +60,8 @@ export function withSentryAndroidGradlePlugin(
     return withAppBuildGradle(config, (config: any) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (config.modResults.language !== 'groovy') {
-        throw new Error('Cannot configure Sentry in android/app/build.gradle because it is not in Groovy.');
+        warnOnce('Cannot configure Sentry in android/app/build.gradle because it is not in Groovy.');
+        return config;
       }
       const sentryPlugin = `apply plugin: "io.sentry.android.gradle"`;
       const sentryConfig = `
