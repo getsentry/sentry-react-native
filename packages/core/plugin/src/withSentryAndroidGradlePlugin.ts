@@ -48,13 +48,16 @@ export function withSentryAndroidGradlePlugin(
       const dependency = `classpath("io.sentry:sentry-android-gradle-plugin:${version}")`;
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!projectBuildGradle.modResults.contents.includes(dependency)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        projectBuildGradle.modResults.contents = projectBuildGradle.modResults.contents.replace(
-          /dependencies\s*{/,
-          `dependencies {\n        ${dependency}`,
-        );
+      if (projectBuildGradle.modResults.contents.includes(dependency)) {
+        warnOnce('sentry-android-gradle-plugin dependency in already in android/build.gradle.');
+        return config;
       }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      projectBuildGradle.modResults.contents = projectBuildGradle.modResults.contents.replace(
+        /dependencies\s*{/,
+        `dependencies {\n        ${dependency}`,
+      );
 
       return projectBuildGradle;
     });

@@ -69,6 +69,22 @@ describe('withSentryAndroidGradlePlugin', () => {
     );
   });
 
+  it('warnOnce if the Sentry plugin is already included in build.gradle', () => {
+    const version = '4.14.1';
+    const includedBuildGradle = `dependencies { classpath("io.sentry:sentry-android-gradle-plugin:${version}")}`;
+    const options: SentryAndroidGradlePluginOptions = { enableAndroidGradlePlugin: true };
+
+    (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
+      callback({ modResults: { language: 'groovy', contents: includedBuildGradle } });
+    });
+
+    withSentryAndroidGradlePlugin(mockConfig, options);
+
+    expect(warnOnce).toHaveBeenCalledWith(
+      'sentry-android-gradle-plugin dependency in already in android/build.gradle.',
+    );
+  });
+
   it('adds the Sentry plugin configuration to app/build.gradle', () => {
     const options: SentryAndroidGradlePluginOptions = {
       autoUploadProguardMapping: true,
@@ -79,8 +95,13 @@ describe('withSentryAndroidGradlePlugin', () => {
       includeNativeSources: false,
       includeSourceContext: true,
     };
-
-    // Mock withAppBuildGradle
+    (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
+      const projectBuildGradle = {
+        modResults: { language: 'groovy', contents: mockedBuildGradle },
+      };
+      const modified = callback(projectBuildGradle);
+      return modified;
+    });
     (withAppBuildGradle as jest.Mock).mockImplementation((config, callback) => {
       const appBuildGradle = {
         modResults: { language: 'groovy', contents: mockedAppBuildGradle },
