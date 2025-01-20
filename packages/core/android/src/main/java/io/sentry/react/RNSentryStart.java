@@ -27,9 +27,13 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RNSentryStart {
+public final class RNSentryStart {
 
-  public void startWithOptions(
+  private RNSentryStart() {
+    throw new AssertionError("Utility class should not be instantiated");
+  }
+
+  public static void startWithOptions(
       @NotNull final Context context,
       @NotNull final ReadableMap rnOptions,
       @Nullable Activity currentActivity,
@@ -38,7 +42,7 @@ public class RNSentryStart {
         context, options -> getSentryAndroidOptions(options, rnOptions, currentActivity, logger));
   }
 
-  protected void getSentryAndroidOptions(
+  static void getSentryAndroidOptions(
       @NotNull SentryAndroidOptions options,
       @NotNull ReadableMap rnOptions,
       @Nullable Activity currentActivity,
@@ -184,19 +188,19 @@ public class RNSentryStart {
     setCurrentActivity(currentActivity);
   }
 
-  private void setCurrentActivity(Activity currentActivity) {
+  private static void setCurrentActivity(Activity currentActivity) {
     final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
     if (currentActivity != null) {
       currentActivityHolder.setActivity(currentActivity);
     }
   }
 
-  private boolean isReplayEnabled(SentryReplayOptions replayOptions) {
+  private static boolean isReplayEnabled(SentryReplayOptions replayOptions) {
     return replayOptions.getSessionSampleRate() != null
         || replayOptions.getOnErrorSampleRate() != null;
   }
 
-  private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
+  private static SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
     final SdkVersion replaySdkVersion =
         new SdkVersion(
             RNSentryVersion.REACT_NATIVE_SDK_NAME,
@@ -247,7 +251,7 @@ public class RNSentryStart {
     return androidReplayOptions;
   }
 
-  private void setEventOriginTag(SentryEvent event) {
+  private static void setEventOriginTag(SentryEvent event) {
     // We hardcode native-java as only java events are processed by the Android SDK.
     SdkVersion sdk = event.getSdk();
     if (sdk != null) {
@@ -264,12 +268,12 @@ public class RNSentryStart {
     }
   }
 
-  private void setEventEnvironmentTag(SentryEvent event, String environment) {
+  private static void setEventEnvironmentTag(SentryEvent event, String environment) {
     event.setTag("event.origin", "android");
     event.setTag("event.environment", environment);
   }
 
-  private void addPackages(SentryEvent event, SdkVersion sdk) {
+  private static void addPackages(SentryEvent event, SdkVersion sdk) {
     SdkVersion eventSdk = event.getSdk();
     if (eventSdk != null
         && "sentry.javascript.react-native".equals(eventSdk.getName())

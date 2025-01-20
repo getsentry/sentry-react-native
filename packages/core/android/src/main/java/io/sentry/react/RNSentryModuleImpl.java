@@ -117,14 +117,11 @@ public class RNSentryModuleImpl {
 
   private final @NotNull SentryDateProvider dateProvider;
 
-  private final @NotNull RNSentryStart startSdk;
-
   public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
     packageInfo = getPackageInfo(reactApplicationContext);
     this.reactApplicationContext = reactApplicationContext;
     this.emitNewFrameEvent = createEmitNewFrameEvent();
     this.dateProvider = new SentryAndroidDateProvider();
-    this.startSdk = new RNSentryStart();
   }
 
   private ReactApplicationContext getReactApplicationContext() {
@@ -165,7 +162,7 @@ public class RNSentryModuleImpl {
   }
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
-    startSdk.startWithOptions(
+    RNSentryStart.startWithOptions(
         this.getReactApplicationContext(), rnOptions, getCurrentActivity(), logger);
 
     promise.resolve(true);
