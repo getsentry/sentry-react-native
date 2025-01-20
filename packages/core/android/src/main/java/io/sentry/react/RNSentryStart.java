@@ -7,6 +7,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.JavascriptException;
 import io.sentry.ILogger;
 import io.sentry.Integration;
+import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.SentryReplayOptions;
@@ -31,6 +32,21 @@ public final class RNSentryStart {
 
   private RNSentryStart() {
     throw new AssertionError("Utility class should not be instantiated");
+  }
+
+  public static void startWithOptions(
+      @NotNull final Context context,
+      @NotNull final ReadableMap rnOptions,
+      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
+      @Nullable Activity currentActivity,
+      @NotNull ILogger logger) {
+    Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
+        options -> getSentryAndroidOptions(options, rnOptions, currentActivity, logger);
+
+    RNSentryCompositeOptionsConfiguration compositeConfiguration =
+        new RNSentryCompositeOptionsConfiguration(rnConfigurationOptions, configuration);
+
+    SentryAndroid.init(context, compositeConfiguration);
   }
 
   public static void startWithOptions(

@@ -3,12 +3,13 @@ package io.sentry.react;
 import android.content.Context;
 import com.facebook.react.bridge.ReadableMap;
 import io.sentry.ILogger;
+import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
+import io.sentry.android.core.SentryAndroidOptions;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -26,12 +27,20 @@ public final class RNSentrySDK {
    * Start the Native Android SDK with the provided options
    *
    * @param context Android Context
-   * @param options Map with options
+   * @param configuration configuration options
    */
   public static void init(
-      @NotNull final Context context, @NotNull final Map<String, Object> options) {
-    ReadableMap rnOptions = RNSentryMapConverter.mapToReadableMap(options);
-    RNSentryStart.startWithOptions(context, rnOptions, null, logger);
+      @NotNull final Context context,
+      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
+    try {
+      JSONObject jsonObject = getOptionsFromConfigurationFile(context);
+      ReadableMap rnOptions = RNSentryMapConverter.jsonObjectToReadableMap(jsonObject);
+      RNSentryStart.startWithOptions(context, rnOptions, configuration, null, logger);
+    } catch (Exception e) {
+      logger.log(
+          SentryLevel.ERROR, "Failed to start Sentry with options from configuration file.", e);
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -40,15 +49,7 @@ public final class RNSentrySDK {
    * @param context Android Context
    */
   public static void init(@NotNull final Context context) {
-    try {
-      JSONObject jsonObject = getOptionsFromConfigurationFile(context);
-      ReadableMap rnOptions = RNSentryMapConverter.jsonObjectToReadableMap(jsonObject);
-      RNSentryStart.startWithOptions(context, rnOptions, null, logger);
-    } catch (Exception e) {
-      logger.log(
-          SentryLevel.ERROR, "Failed to start Sentry with options from configuration file.", e);
-      throw new RuntimeException(e);
-    }
+    init(context, options -> {});
   }
 
   private static JSONObject getOptionsFromConfigurationFile(Context context) {
