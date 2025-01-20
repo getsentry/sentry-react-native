@@ -2,8 +2,8 @@
 #import "RNSentryReplay.h"
 #import "RNSentryVersion.h"
 
-#import <Sentry/Sentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
+#import <Sentry/Sentry.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
 @implementation RNSentryStart
