@@ -5,7 +5,7 @@
 SENTRY_NO_INIT
 
 + (void)startWithOptions:(NSDictionary *_Nonnull)javascriptOptions
-                   error:(NSError *_Nonnull *_Nonnull)errorPointer;
+                   error:(NSError *_Nullable *_Nullable)errorPointer;
 
 + (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer;

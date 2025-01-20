@@ -10,7 +10,7 @@
 @implementation RNSentryStart
 
 + (void)startWithOptions:(NSDictionary *_Nonnull)javascriptOptions
-                   error:(NSError *_Nonnull *_Nonnull)errorPointer
+                   error:(NSError *_Nullable*_Nullable)errorPointer
 {
     SentryOptions *options = [self createOptionsWithDictionary:javascriptOptions
                                                          error:errorPointer];
