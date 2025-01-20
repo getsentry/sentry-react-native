@@ -131,6 +131,11 @@ jobs:
         run: |
           npx expo export -p web
 
+      - name: Export Expo
+        working-directory: samples/expo
+        run: |
+          npx expo export
+
       - name: Upload logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
