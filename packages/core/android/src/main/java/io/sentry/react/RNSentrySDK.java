@@ -17,7 +17,6 @@ public final class RNSentrySDK {
   private static final String NAME = "RNSentrySDK";
 
   private static final ILogger logger = new AndroidLogger(NAME);
-  private static final RNSentryStart startSdk = new RNSentryStart();
 
   private RNSentrySDK() {
     throw new AssertionError("Utility class should not be instantiated");
@@ -25,7 +24,7 @@ public final class RNSentrySDK {
 
   private static void startWithOptions(
       @NotNull final Context context, @NotNull final ReadableMap rnOptions) {
-    startSdk.startWithOptions(context, rnOptions, null, logger);
+    RNSentryStart.startWithOptions(context, rnOptions, null, logger);
   }
 
   /**
