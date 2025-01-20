@@ -22,21 +22,16 @@ public final class RNSentrySDK {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
-  private static void startWithOptions(
-      @NotNull final Context context, @NotNull final ReadableMap rnOptions) {
-    RNSentryStart.startWithOptions(context, rnOptions, null, logger);
-  }
-
   /**
    * Start the Native Android SDK with the provided options
    *
    * @param context Android Context
    * @param options Map with options
    */
-  public static void startWithOptions(
+  public static void init(
       @NotNull final Context context, @NotNull final Map<String, Object> options) {
     ReadableMap rnOptions = RNSentryMapConverter.mapToReadableMap(options);
-    startWithOptions(context, rnOptions);
+    RNSentryStart.startWithOptions(context, rnOptions, null, logger);
   }
 
   /**
@@ -44,11 +39,11 @@ public final class RNSentrySDK {
    *
    * @param context Android Context
    */
-  public static void start(@NotNull final Context context) {
+  public static void init(@NotNull final Context context) {
     try {
       JSONObject jsonObject = getOptionsFromConfigurationFile(context);
       ReadableMap rnOptions = RNSentryMapConverter.jsonObjectToReadableMap(jsonObject);
-      startWithOptions(context, rnOptions);
+      RNSentryStart.startWithOptions(context, rnOptions, null, logger);
     } catch (Exception e) {
       logger.log(
           SentryLevel.ERROR, "Failed to start Sentry with options from configuration file.", e);

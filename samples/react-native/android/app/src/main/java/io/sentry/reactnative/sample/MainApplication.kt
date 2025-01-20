@@ -48,7 +48,7 @@ class MainApplication :
     }
 
     private fun initializeSentry() {
-//        RNSentrySDK.startWithOptions(
+//        RNSentrySDK.init(
 //            this,
 //            mapOf(
 //                "dsn" to "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561",
@@ -56,6 +56,6 @@ class MainApplication :
 //            ),
 //        )
 
-        RNSentrySDK.start(this)
+        RNSentrySDK.init(this)
     }
 }
