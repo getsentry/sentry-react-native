@@ -21,7 +21,7 @@
 ### Internal
 
 - Initialize `RNSentryTimeToDisplay` during native module `init` on iOS ([#4443](https://github.com/getsentry/sentry-react-native/pull/4443))
-- Extract iOS native initialization to standalone structures ([#4444](https://github.com/getsentry/sentry-react-native/pull/4444))
+- Extract iOS native initialization to standalone structures ([#4442](https://github.com/getsentry/sentry-react-native/pull/4442))
 
 ### Dependencies
 
