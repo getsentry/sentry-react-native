@@ -40,6 +40,7 @@
 		33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryOnDrawReporter.h; path = ../ios/RNSentryOnDrawReporter.h; sourceTree = "<group>"; };
 		33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryOnDrawReporterTests.m; sourceTree = "<group>"; };
 		339C6C3B2D3EB23B00CA72ED /* RNSentryStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryStartTests.swift; sourceTree = "<group>"; };
+		339C6C3D2D3FA04D00CA72ED /* RNSentryVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryVersion.h; path = ../ios/RNSentryVersion.h; sourceTree = SOURCE_ROOT; };
 		33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryFramesTrackerListenerTests.m; sourceTree = "<group>"; };
 		33AFDFEE2B8D14C200AAB120 /* RNSentryFramesTrackerListenerTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryFramesTrackerListenerTests.h; sourceTree = "<group>"; };
 		33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryDependencyContainerTests.m; sourceTree = "<group>"; };
@@ -122,6 +123,7 @@
 		33AFE0122B8F319000AAB120 /* RNSentry */ = {
 			isa = PBXGroup;
 			children = (
+				339C6C3D2D3FA04D00CA72ED /* RNSentryVersion.h */,
 				333B58AF2D36A7FD000F8D04 /* RNSentrySDK.h */,
 				333B58A92D35BB2D000F8D04 /* RNSentryStart+Test.h */,
 				333B58A82D35BA93000F8D04 /* RNSentryStart.h */,
