@@ -9,7 +9,7 @@
 @implementation RNSentryStart
 
 + (void)startWithOptions:(NSDictionary *_Nonnull)javascriptOptions
-                   error:(NSError *_Nonnull *_Nonnull)errorPointer
+                   error:(NSError *_Nullable *_Nullable)errorPointer
 {
     SentryOptions *options = [self createOptionsWithDictionary:javascriptOptions
                                                          error:errorPointer];
@@ -136,19 +136,16 @@
         }
     };
 
-    if (options.enableAutoPerformanceTracing != nil) {
-        // App Start Hybrid mode doesn't wait for didFinishLaunchNotification and the
-        // didBecomeVisibleNotification as they will be missed when auto initializing from JS
-        // App Start measurements are created right after the tracking starts
-        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode
-            = options.enableAutoPerformanceTracing;
+    // App Start Hybrid mode doesn't wait for didFinishLaunchNotification and the
+    // didBecomeVisibleNotification as they will be missed when auto initializing from JS
+    // App Start measurements are created right after the tracking starts
+    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = options.enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-        // Frames Tracking Hybrid Mode ensures tracking
-        // is enabled without tracing enabled in the native SDK
-        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode
-            = options.enableAutoPerformanceTracing;
+    // Frames Tracking Hybrid Mode ensures tracking
+    // is enabled without tracing enabled in the native SDK
+    PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode
+        = options.enableAutoPerformanceTracing;
 #endif
-    }
 }
 
 + (void)setEventOriginTag:(SentryEvent *)event

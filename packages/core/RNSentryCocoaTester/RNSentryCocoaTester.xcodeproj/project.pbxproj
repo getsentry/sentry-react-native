@@ -11,6 +11,7 @@
 		336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */; };
 		3380C6C42CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3380C6C32CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift */; };
 		33958C692BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */; };
+		339C6C3C2D3EB25100CA72ED /* RNSentryStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339C6C3B2D3EB23B00CA72ED /* RNSentryStartTests.swift */; };
 		33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */; };
 		33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */; };
 		33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.mm */; };
@@ -38,6 +39,8 @@
 		338739072A7D7D2800950DDD /* RNSentryReplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryReplay.h; path = ../ios/RNSentryReplay.h; sourceTree = "<group>"; };
 		33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryOnDrawReporter.h; path = ../ios/RNSentryOnDrawReporter.h; sourceTree = "<group>"; };
 		33958C682BFCF12600AD1FB6 /* RNSentryOnDrawReporterTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryOnDrawReporterTests.m; sourceTree = "<group>"; };
+		339C6C3B2D3EB23B00CA72ED /* RNSentryStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryStartTests.swift; sourceTree = "<group>"; };
+		339C6C3D2D3FA04D00CA72ED /* RNSentryVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryVersion.h; path = ../ios/RNSentryVersion.h; sourceTree = SOURCE_ROOT; };
 		33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryFramesTrackerListenerTests.m; sourceTree = "<group>"; };
 		33AFDFEE2B8D14C200AAB120 /* RNSentryFramesTrackerListenerTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryFramesTrackerListenerTests.h; sourceTree = "<group>"; };
 		33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryDependencyContainerTests.m; sourceTree = "<group>"; };
@@ -91,6 +94,7 @@
 		3360899029524164007C7730 /* RNSentryCocoaTesterTests */ = {
 			isa = PBXGroup;
 			children = (
+				339C6C3B2D3EB23B00CA72ED /* RNSentryStartTests.swift */,
 				332D334A2CDCC8EB00547D76 /* RNSentryCocoaTesterTests-Bridging-Header.h */,
 				332D33492CDCC8E100547D76 /* RNSentryTests.h */,
 				336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */,
@@ -119,6 +123,7 @@
 		33AFE0122B8F319000AAB120 /* RNSentry */ = {
 			isa = PBXGroup;
 			children = (
+				339C6C3D2D3FA04D00CA72ED /* RNSentryVersion.h */,
 				333B58AF2D36A7FD000F8D04 /* RNSentrySDK.h */,
 				333B58A92D35BB2D000F8D04 /* RNSentryStart+Test.h */,
 				333B58A82D35BA93000F8D04 /* RNSentryStart.h */,
@@ -245,6 +250,7 @@
 			files = (
 				AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */,
 				332D33472CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift in Sources */,
+				339C6C3C2D3EB25100CA72ED /* RNSentryStartTests.swift in Sources */,
 				33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */,
 				336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */,
 				33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */,
