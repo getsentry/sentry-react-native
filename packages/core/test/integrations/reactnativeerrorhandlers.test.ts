@@ -144,7 +144,7 @@ describe('ReactNativeErrorHandlers', () => {
       );
       expect(mockEnable).toHaveBeenCalledTimes(1);
       expect((actualSyntheticError as ExtendedError).framesToPop).toBe(3);
-      expect(errorMechanism).toEqual({ handled: false, type: 'onunhandledrejection' } as Mechanism);
+      expect(errorMechanism).toEqual({ handled: true, type: 'onunhandledrejection' } as Mechanism);
     });
   });
 });
