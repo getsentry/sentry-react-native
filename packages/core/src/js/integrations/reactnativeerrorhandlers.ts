@@ -81,6 +81,7 @@ function attachUnhandledRejectionHandler(): void {
         data: { id },
         originalException: error,
         syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
+        mechanism: { handled: true, type: 'onunhandledrejection' },
       });
     },
     onHandled: (id: string) => {
