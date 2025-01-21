@@ -24,12 +24,15 @@
 
 ### Dependencies
 
-- Bump CLI from v2.39.1 to v2.40.0 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2400)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.40.0)
+- Bump CLI from v2.39.1 to v2.41.0 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412), [#4468](https://github.com/getsentry/sentry-react-native/pull/4468))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2410)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.41.0)
 - Bump JavaScript SDK from v8.47.0 to v8.50.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8500)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.50.0)
+- Bump Android SDK from v7.20.0 to v7.20.1 ([#4467](https://github.com/getsentry/sentry-react-native/pull/4467))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7201)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.0...7.20.1)
 
 ### Internal
 
