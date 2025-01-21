@@ -10,6 +10,7 @@ import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } 
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 export * from './sentryMetroSerializer';
 import { withSentryMiddleware } from './metroMiddleware';
+import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 
 enableLogger();
 
@@ -30,6 +31,14 @@ export interface SentryMetroConfigOptions {
    * @default true
    */
   enableSourceContextInDevelopment?: boolean;
+  /**
+   * Load Sentry Options from a file. If `true` it will use the default path.
+   * If `false` it will not load any options from a file. Only options provided in the code will be used.
+   * If `string` it will use the provided path.
+   *
+   * @default '{projectRoot}/sentry.options.json'
+   */
+  optionsFile?: string | boolean;
 }
 
 export interface SentryExpoConfigOptions {
@@ -51,8 +60,12 @@ export function withSentryConfig(
     annotateReactComponents = false,
     includeWebReplay = true,
     enableSourceContextInDevelopment = true,
+    optionsFile = true,
   }: SentryMetroConfigOptions = {},
 ): MetroConfig {
+  // eslint-disable-next-line no-console
+  console.log('withSentryConfig', 'projectRoot', config.projectRoot);
+
   setSentryMetroDevServerEnvFlag();
 
   let newConfig = config;
@@ -67,6 +80,9 @@ export function withSentryConfig(
   }
   if (enableSourceContextInDevelopment) {
     newConfig = withSentryMiddleware(newConfig);
+  }
+  if (optionsFile) {
+    newConfig = withSentryOptionsFromFile(newConfig, optionsFile);
   }
 
   return newConfig;
