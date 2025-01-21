@@ -13,16 +13,27 @@ static NSString *SENTRY_OPTIONS_RESOURCE_TYPE = @"json";
 
 + (void)startWithConfigureOptions:(void (^)(SentryOptions *options))configureOptions
 {
+    NSString *path = [[NSBundle mainBundle] pathForResource:SENTRY_OPTIONS_RESOURCE_NAME
+                                                     ofType:SENTRY_OPTIONS_RESOURCE_TYPE];
+
+    [self start:path configureOptions:configureOptions];
+}
+
++ (void)start:(NSString *)path configureOptions:(void (^)(SentryOptions *options))configureOptions
+{
     NSError *readError = nil;
     NSError *parseError = nil;
     NSError *optionsError = nil;
 
-    NSString *path = [[NSBundle mainBundle] pathForResource:SENTRY_OPTIONS_RESOURCE_NAME
-                                                     ofType:SENTRY_OPTIONS_RESOURCE_TYPE];
-    NSData *content = [NSData dataWithContentsOfFile:path options:0 error:&readError];
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:content
-                                                         options:0
-                                                           error:&parseError];
+    NSData *_Nullable content = nil;
+    if (path != nil) {
+        content = [NSData dataWithContentsOfFile:path options:0 error:&readError];
+    }
+
+    NSDictionary *dict = nil;
+    if (content != nil) {
+        dict = [NSJSONSerialization JSONObjectWithData:content options:0 error:&parseError];
+    }
 
     if (readError != nil) {
         NSLog(@"[RNSentry] Failed to load options from %@, with error: %@", path,
