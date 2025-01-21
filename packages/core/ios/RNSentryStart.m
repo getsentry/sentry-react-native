@@ -4,7 +4,6 @@
 
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/Sentry.h>
-#import <Sentry/SentryGlobalEventProcessor.h>
 #import <Sentry/SentryOptions+HybridSDKs.h>
 
 @implementation RNSentryStart
