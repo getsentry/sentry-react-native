@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,8 +24,17 @@ public final class RNSentryJsonUtils {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
-  public static JSONObject getOptionsFromConfigurationFile(
-      Context context, String fileName, ILogger logger) {
+  /**
+   * Read the configuration file in the Android assets folder and return the options as a
+   * JSONObject.
+   *
+   * @param context Android Context
+   * @param fileName configuration file name
+   * @param logger Sentry logger
+   * @return JSONObject with the configuration options
+   */
+  public static @Nullable JSONObject getOptionsFromConfigurationFile(
+      @NotNull Context context, @NotNull String fileName, @NotNull ILogger logger) {
     try (InputStream inputStream = context.getAssets().open(fileName);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
@@ -46,7 +57,7 @@ public final class RNSentryJsonUtils {
     }
   }
 
-  private static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
+  private static @NotNull Map<String, Object> jsonObjectToMap(@NotNull JSONObject jsonObject) {
     Map<String, Object> map = new HashMap<>();
     Iterator<String> keys = jsonObject.keys();
     while (keys.hasNext()) {
@@ -62,7 +73,7 @@ public final class RNSentryJsonUtils {
     return map;
   }
 
-  private static List<Object> jsonArrayToList(JSONArray jsonArray) {
+  private static @NotNull List<Object> jsonArrayToList(@NotNull JSONArray jsonArray) {
     List<Object> list = new ArrayList<>();
 
     for (int i = 0; i < jsonArray.length(); i++) {
@@ -73,7 +84,7 @@ public final class RNSentryJsonUtils {
     return list;
   }
 
-  private static Object convertValue(Object value) {
+  private static @Nullable Object convertValue(@Nullable Object value) {
     if (value instanceof JSONObject) {
       return jsonObjectToMap((JSONObject) value);
     } else if (value instanceof JSONArray) {
@@ -83,7 +94,16 @@ public final class RNSentryJsonUtils {
     }
   }
 
-  public static ReadableMap jsonObjectToReadableMap(JSONObject jsonObject) {
+  /**
+   * Convert a JSONObject to a ReadableMap
+   *
+   * @param jsonObject JSONObject to convert
+   * @return ReadableMap with the same data as the JSONObject
+   */
+  public static @Nullable ReadableMap jsonObjectToReadableMap(@Nullable JSONObject jsonObject) {
+    if (jsonObject == null) {
+      return null;
+    }
     Map<String, Object> map = jsonObjectToMap(jsonObject);
     return (WritableMap) RNSentryMapConverter.convertToJavaWritable(map);
   }

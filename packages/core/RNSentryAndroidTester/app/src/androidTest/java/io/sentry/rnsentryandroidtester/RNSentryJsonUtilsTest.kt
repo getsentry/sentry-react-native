@@ -36,9 +36,9 @@ class RNSentryJsonUtilsTest {
 
         assertNotNull(result)
         assertTrue(result is JavaOnlyMap)
-        assertEquals("stringValue", result.getString("stringKey"))
-        assertEquals(true, result.getBoolean("booleanKey"))
-        assertEquals(123, result.getInt("intKey"))
+        assertEquals("stringValue", result?.getString("stringKey"))
+        assertEquals(true, result?.getBoolean("booleanKey"))
+        assertEquals(123, result?.getInt("intKey"))
     }
 
     @Test
@@ -80,17 +80,17 @@ class RNSentryJsonUtilsTest {
 
         assertNotNull(result)
         assertTrue(result is JavaOnlyMap)
-        assertEquals("stringValue", result.getString("stringKey"))
-        assertEquals(true, result.getBoolean("booleanKey"))
-        assertEquals(123, result.getInt("intKey"))
-        val nested = result.getMap("nestedKey")
+        assertEquals("stringValue", result?.getString("stringKey"))
+        assertEquals(true, result?.getBoolean("booleanKey"))
+        assertEquals(123, result?.getInt("intKey"))
+        val nested = result?.getMap("nestedKey")
         assertNotNull(nested)
         assertEquals("nestedStringValue", nested?.getString("nestedStringKey"))
         assertEquals(false, nested?.getBoolean("nestedBooleanKey"))
         val deepNestedArray = nested?.getArray("deepNestedArrayKey")
         assertNotNull(deepNestedArray)
         assertEquals("deepNestedArrayValue", deepNestedArray?.getString(0))
-        val array = result.getArray("arrayKey")
+        val array = result?.getArray("arrayKey")
         assertNotNull(array)
         assertEquals("arrayStringValue", array?.getString(0))
         assertEquals(789, array?.getInt(1))
