@@ -381,22 +381,4 @@ class MapConverterTest {
         assertEquals(true, result.getBoolean("booleanKey"))
         assertEquals(123, result.getInt("intKey"))
     }
-
-    @Test
-    fun testMapToReadableMap() {
-        val map =
-            mapOf(
-                "stringKey" to "stringValue",
-                "booleanKey" to true,
-                "intKey" to 123,
-            )
-
-        val result = RNSentryMapConverter.mapToReadableMap(map)
-
-        assertNotNull(result)
-        assertTrue(result is JavaOnlyMap)
-        assertEquals("stringValue", result.getString("stringKey"))
-        assertEquals(true, result.getBoolean("booleanKey"))
-        assertEquals(123, result.getInt("intKey"))
-    }
 }
