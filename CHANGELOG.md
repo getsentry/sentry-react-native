@@ -17,7 +17,7 @@
 
 - Rename `navigation.processing` span to more expressive `Navigation dispatch to screen A mounted/navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
 - Add RN SDK package to `sdk.packages` for Cocoa ([#4381](https://github.com/getsentry/sentry-react-native/pull/4381))
-- Add experimental initialization using `sentry.options.json` and `RNSentrySDK.startWithOptions` method for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+- Add experimental initialization using `sentry.options.json` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
 
 ### Internal
 
