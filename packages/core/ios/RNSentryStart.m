@@ -51,7 +51,8 @@
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
-    // TODO: For Auto Init from JS dev server is resolved automatically, for init from options file dev server has to be specified manually
+    // TODO: For Auto Init from JS dev server is resolved automatically, for init from options file
+    // dev server has to be specified manually
     NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
     sentryOptions.beforeBreadcrumb
         = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
@@ -86,7 +87,8 @@
             sentryOptions.spotlightUrl = spotlightValue;
         } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
             sentryOptions.enableSpotlight = [spotlightValue boolValue];
-            // TODO: For Auto init from JS set automatically for init from options file have to be set manually
+            // TODO: For Auto init from JS set automatically for init from options file have to be
+            // set manually
             id defaultSpotlightUrl = [mutableOptions valueForKey:@"defaultSidecarUrl"];
             if (defaultSpotlightUrl != nil) {
                 sentryOptions.spotlightUrl = defaultSpotlightUrl;
