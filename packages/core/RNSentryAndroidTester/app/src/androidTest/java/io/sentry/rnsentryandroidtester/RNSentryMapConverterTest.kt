@@ -8,11 +8,8 @@ import com.facebook.react.bridge.JavaOnlyArray
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.soloader.SoLoader
 import io.sentry.react.RNSentryMapConverter
-import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -699,23 +696,5 @@ class MapConverterTest {
         expectedMap1.putMap("map", expectedMap2)
 
         assertEquals(actual, expectedMap1)
-    }
-
-    @Test
-    fun testJsonObjectToReadableMap() {
-        val json =
-            JSONObject().apply {
-                put("stringKey", "stringValue")
-                put("booleanKey", true)
-                put("intKey", 123)
-            }
-
-        val result = RNSentryMapConverter.jsonObjectToReadableMap(json)
-
-        assertNotNull(result)
-        assertTrue(result is JavaOnlyMap)
-        assertEquals("stringValue", result.getString("stringKey"))
-        assertEquals(true, result.getBoolean("booleanKey"))
-        assertEquals(123, result.getInt("intKey"))
     }
 }

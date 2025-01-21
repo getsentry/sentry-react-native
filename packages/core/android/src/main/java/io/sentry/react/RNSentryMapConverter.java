@@ -12,14 +12,10 @@ import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public final class RNSentryMapConverter {
   public static final String NAME = "RNSentry.MapConverter";
@@ -187,26 +183,5 @@ public final class RNSentryMapConverter {
     } else {
       logger.log(SentryLevel.ERROR, "Could not convert object" + value);
     }
-  }
-
-  public static ReadableMap jsonObjectToReadableMap(JSONObject jsonObject) {
-    Map<String, Object> map = jsonObjectToMap(jsonObject);
-    return (WritableMap) convertToJavaWritable(map);
-  }
-
-  private static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
-    Map<String, Object> map = new HashMap<>();
-    Iterator<String> keys = jsonObject.keys();
-    while (keys.hasNext()) {
-      String key = keys.next();
-      Object value = null;
-      try {
-        value = jsonObject.get(key);
-      } catch (JSONException e) {
-        throw new RuntimeException(e);
-      }
-      map.put(key, value);
-    }
-    return map;
   }
 }
