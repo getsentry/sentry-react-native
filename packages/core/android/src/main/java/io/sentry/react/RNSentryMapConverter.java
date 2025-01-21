@@ -1,6 +1,7 @@
 package io.sentry.react;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.JavaOnlyArray;
 import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -35,6 +36,25 @@ public final class RNSentryMapConverter {
 
   public interface WritableMapCreator {
     WritableMap create();
+  }
+
+  public static class WritableJavaArrayCreator implements WritableArrayCreator {
+    @Override
+    public WritableArray create() {
+      return new JavaOnlyArray();
+    }
+  }
+
+  public static class WritableJavaMapCreator implements WritableMapCreator {
+    @Override
+    public WritableMap create() {
+      return new JavaOnlyMap();
+    }
+  }
+
+  public static Object convertToJavaWritable(@Nullable Object serialized) {
+    return convertToWritable(
+        serialized, new WritableJavaArrayCreator(), new WritableJavaMapCreator());
   }
 
   public static class WritableNativeArrayCreator implements WritableArrayCreator {
