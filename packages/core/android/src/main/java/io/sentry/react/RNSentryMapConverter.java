@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,21 +29,52 @@ public final class RNSentryMapConverter {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
-  public static Object convertToWritable(@Nullable Object serialized) {
+  public interface WritableArrayCreator {
+    WritableArray create();
+  }
+
+  public interface WritableMapCreator {
+    WritableMap create();
+  }
+
+  public static class WritableNativeArrayCreator implements WritableArrayCreator {
+    @Override
+    public WritableArray create() {
+      return Arguments.createArray();
+    }
+  }
+
+  public static class WritableNativeMapCreator implements WritableMapCreator {
+    @Override
+    public WritableMap create() {
+      return Arguments.createMap();
+    }
+  }
+
+  public static Object convertToNativeWritable(@Nullable Object serialized) {
+    return convertToWritable(
+        serialized, new WritableNativeArrayCreator(), new WritableNativeMapCreator());
+  }
+
+  private static Object convertToWritable(
+      @Nullable Object serialized,
+      @NotNull WritableArrayCreator arrayCreator,
+      @NotNull WritableMapCreator mapCreator) {
     if (serialized instanceof List) {
-      WritableArray writable = Arguments.createArray();
+      WritableArray writable = arrayCreator.create();
       for (Object item : (List<?>) serialized) {
-        addValueToWritableArray(writable, convertToWritable(item));
+        addValueToWritableArray(writable, convertToWritable(item, arrayCreator, mapCreator));
       }
       return writable;
     } else if (serialized instanceof Map) {
-      WritableMap writable = Arguments.createMap();
+      WritableMap writable = mapCreator.create();
       for (Map.Entry<?, ?> entry : ((Map<?, ?>) serialized).entrySet()) {
         Object key = entry.getKey();
         Object value = entry.getValue();
 
         if (key instanceof String) {
-          addValueToWritableMap(writable, (String) key, convertToWritable(value));
+          addValueToWritableMap(
+              writable, (String) key, convertToWritable(value, arrayCreator, mapCreator));
         } else {
           logger.log(SentryLevel.ERROR, "Only String keys are supported in Map.", key);
         }

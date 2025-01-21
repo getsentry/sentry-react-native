@@ -228,7 +228,7 @@ public class RNSentryModuleImpl {
     }
 
     WritableMap mutableMeasurement =
-        (WritableMap) RNSentryMapConverter.convertToWritable(appStartMeasurement);
+        (WritableMap) RNSentryMapConverter.convertToNativeWritable(appStartMeasurement);
     mutableMeasurement.putBoolean("has_fetched", hasFetchedAppStart);
 
     // This is always set to true, as we would only allow an app start fetch to only
@@ -730,7 +730,7 @@ public class RNSentryModuleImpl {
 
     final @NotNull Map<String, Object> serialized =
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
-    final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
+    final @Nullable Object deviceContext = RNSentryMapConverter.convertToNativeWritable(serialized);
     promise.resolve(deviceContext);
   }
 
