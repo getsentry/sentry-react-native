@@ -46,7 +46,7 @@ public final class RNSentryJsonUtils {
     }
   }
 
-  public static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
+  private static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
     Map<String, Object> map = new HashMap<>();
     Iterator<String> keys = jsonObject.keys();
     while (keys.hasNext()) {
@@ -62,7 +62,7 @@ public final class RNSentryJsonUtils {
     return map;
   }
 
-  public static List<Object> jsonArrayToList(JSONArray jsonArray) {
+  private static List<Object> jsonArrayToList(JSONArray jsonArray) {
     List<Object> list = new ArrayList<>();
 
     for (int i = 0; i < jsonArray.length(); i++) {
