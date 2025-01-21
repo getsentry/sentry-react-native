@@ -8,9 +8,12 @@ import io.sentry.SentryLevel;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -54,9 +57,30 @@ public final class RNSentryJsonUtils {
       } catch (JSONException e) {
         throw new RuntimeException(e);
       }
-      map.put(key, value);
+      map.put(key, convertValue(value));
     }
     return map;
+  }
+
+  public static List<Object> jsonArrayToList(JSONArray jsonArray) {
+    List<Object> list = new ArrayList<>();
+
+    for (int i = 0; i < jsonArray.length(); i++) {
+      Object value = jsonArray.opt(i);
+      list.add(convertValue(value));
+    }
+
+    return list;
+  }
+
+  private static Object convertValue(Object value) {
+    if (value instanceof JSONObject) {
+      return jsonObjectToMap((JSONObject) value);
+    } else if (value instanceof JSONArray) {
+      return jsonArrayToList((JSONArray) value);
+    } else {
+      return value; // Primitive type or null
+    }
   }
 
   public static ReadableMap jsonObjectToReadableMap(JSONObject jsonObject) {
