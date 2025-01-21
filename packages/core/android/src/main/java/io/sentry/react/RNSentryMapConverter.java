@@ -48,7 +48,14 @@ public final class RNSentryMapConverter {
     }
   }
 
-  public static Object convertToJavaWritable(@Nullable Object serialized) {
+  /**
+   * Recursively converts serialized objects into a writable format. It transforms nested Java
+   * objects into instances of WritableJavaMap or WritableJavaArray.
+   *
+   * @param serialized the object to convert
+   * @return the converted object to
+   */
+  public static @Nullable Object convertToJavaWritable(@Nullable Object serialized) {
     return convertToWritable(
         serialized, new WritableJavaArrayCreator(), new WritableJavaMapCreator());
   }
@@ -67,12 +74,19 @@ public final class RNSentryMapConverter {
     }
   }
 
-  public static Object convertToNativeWritable(@Nullable Object serialized) {
+  /**
+   * Recursively converts serialized objects into a writable format that RN bridge can use. It
+   * transforms nested Java objects into instances of WritableNativeMap or WritableNativeArray.
+   *
+   * @param serialized the object to convert
+   * @return the converted writable object
+   */
+  public static @Nullable Object convertToNativeWritable(@Nullable Object serialized) {
     return convertToWritable(
         serialized, new WritableNativeArrayCreator(), new WritableNativeMapCreator());
   }
 
-  private static Object convertToWritable(
+  private static @Nullable Object convertToWritable(
       @Nullable Object serialized,
       @NotNull WritableArrayCreator arrayCreator,
       @NotNull WritableMapCreator mapCreator) {
