@@ -34,6 +34,12 @@ public final class RNSentryStart {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
+  public static void startWithConfiguration(
+      @NotNull final Context context,
+      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
+    SentryAndroid.init(context, configuration);
+  }
+
   public static void startWithOptions(
       @NotNull final Context context,
       @NotNull final ReadableMap rnOptions,
