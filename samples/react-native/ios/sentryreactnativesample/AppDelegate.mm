@@ -9,6 +9,7 @@
 #    import <NativeSampleModule.h>
 #endif
 
+#import <RNSentry/RNSentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/Sentry.h>
 
@@ -57,6 +58,11 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
     // When the native init is enabled the `autoInitializeNativeSdk`
     // in JS has to be set to `false`
     // [self initializeSentry];
+    //    [RNSentrySDK startWithConfigureOptions:^(SentryOptions *options) {
+    //        options.dsn =
+    //        @"https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561";
+    //        options.debug = YES;
+    //    }];
 
     self.moduleName = @"sentry-react-native-sample";
     // You can add your custom initial props in the dictionary below.

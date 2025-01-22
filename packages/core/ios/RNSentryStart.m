@@ -8,6 +8,16 @@
 
 @implementation RNSentryStart
 
++ (void)startWithOptions:(NSDictionary *_Nonnull)javascriptOptions
+                   error:(NSError *_Nullable *_Nullable)errorPointer
+{
+    SentryOptions *options = [self createOptionsWithDictionary:javascriptOptions
+                                                         error:errorPointer];
+    [self updateWithReactDefaults:options];
+    [self updateWithReactFinals:options];
+    [self startWithOptions:options];
+}
+
 + (void)startWithOptions:(SentryOptions *)options NS_SWIFT_NAME(start(options:))
 {
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
@@ -27,30 +37,7 @@
 + (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
-    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event)
-    {
-        // We don't want to send an event after startup that came from a Unhandled JS Exception of
-        // react native Because we sent it already before the app crashed.
-        if (nil != event.exceptions.firstObject.type &&
-            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
-                != NSNotFound) {
-            return nil;
-        }
-
-        [self setEventOriginTag:event];
-
-        return event;
-    };
-
     NSMutableDictionary *mutableOptions = [options mutableCopy];
-    [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
-
-    // remove performance traces sample rate and traces sampler since we don't want to synchronize
-    // these configurations to the Native SDKs. The user could tho initialize the SDK manually and
-    // set themselves.
-    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
-    [mutableOptions removeObjectForKey:@"tracesSampler"];
-    [mutableOptions removeObjectForKey:@"enableTracing"];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay updateOptions:mutableOptions];
@@ -63,6 +50,7 @@
     }
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
+    // TODO: Migrate for manual init
     NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
     NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
     sentryOptions.beforeBreadcrumb
@@ -105,20 +93,59 @@
         }
     }
 
-    // Enable the App start and Frames tracking measurements
-    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
-        BOOL enableAutoPerformanceTracing =
-            [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
-        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;
-#endif
-    }
-
-    // Failed requests can only be enabled in one SDK to avoid duplicates
-    sentryOptions.enableCaptureFailedRequests = NO;
-
     return sentryOptions;
+}
+
+/**
+ * This function updates the options with RNSentry defaults. These default can be
+ * overwritten by users during manual native initialization.
+ */
++ (void)updateWithReactDefaults:(SentryOptions *)options
+{
+    // Failed requests are captured only in JS to avoid duplicates
+    options.enableCaptureFailedRequests = NO;
+
+    // Tracing is only enabled in JS to avoid duplicate navigation spans
+    options.tracesSampleRate = nil;
+    options.tracesSampler = nil;
+    options.enableTracing = NO;
+}
+
+/**
+ * This function updates options with changes RNSentry users should not change
+ * and so this is applied after the configureOptions callback during manual native initialization.
+ */
++ (void)updateWithReactFinals:(SentryOptions *)options
+{
+    SentryBeforeSendEventCallback userBeforeSend = options.beforeSend;
+    options.beforeSend = ^SentryEvent *(SentryEvent *event)
+    {
+        // Unhandled JS Exception are processed by the SDK on JS layer
+        // To avoid duplicates we drop them in the native SDKs
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
+                != NSNotFound) {
+            return nil;
+        }
+
+        [self setEventOriginTag:event];
+        if (userBeforeSend == nil) {
+            return event;
+        } else {
+            return userBeforeSend(event);
+        }
+    };
+
+    // App Start Hybrid mode doesn't wait for didFinishLaunchNotification and the
+    // didBecomeVisibleNotification as they will be missed when auto initializing from JS
+    // App Start measurements are created right after the tracking starts
+    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = options.enableAutoPerformanceTracing;
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    // Frames Tracking Hybrid Mode ensures tracking
+    // is enabled without tracing enabled in the native SDK
+    PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode
+        = options.enableAutoPerformanceTracing;
+#endif
 }
 
 + (void)setEventOriginTag:(SentryEvent *)event

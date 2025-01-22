@@ -2,6 +2,7 @@
 #import "RNSentryStart+Test.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
+#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
@@ -12,7 +13,7 @@
 
 @implementation RNSentryInitNativeSdkTests
 
-- (void)testCreateOptionsWithDictionaryRemovesPerformanceProperties
+- (void)testStartWithDictionaryRemovesPerformanceProperties
 {
     NSError *error = nil;
 
@@ -25,9 +26,8 @@
 , @"enableTracing" : @YES,
 }
 ;
-SentryOptions *actualOptions =
-    [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
-
+[RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
+SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
 XCTAssertNotNil(actualOptions, @"Did not create sentry options");
 XCTAssertNil(error, @"Should not pass no error");
 XCTAssertNotNil(
@@ -45,8 +45,8 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions =
-        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
+    SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
