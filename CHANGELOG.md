@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Send Sentry react-native SDK version in the session replay event (#4450)
+
 ### Fixes
 
 - Add mechanism field to unhandled rejection errors ([#4457](https://github.com/getsentry/sentry-react-native/pull/4457))
