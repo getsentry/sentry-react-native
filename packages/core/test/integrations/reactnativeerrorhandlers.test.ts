@@ -1,6 +1,6 @@
 jest.mock('../../src/js/integrations/reactnativeerrorhandlersutils');
 
-import type { ExtendedError, SeverityLevel } from '@sentry/core';
+import type { ExtendedError, Mechanism, SeverityLevel } from '@sentry/core';
 import { setCurrentClient } from '@sentry/core';
 
 import { reactNativeErrorHandlersIntegration } from '../../src/js/integrations/reactnativeerrorhandlers';
@@ -122,6 +122,29 @@ describe('ReactNativeErrorHandlers', () => {
       );
       expect(mockEnable).toHaveBeenCalledTimes(1);
       expect(actualSyntheticError).toBeUndefined();
+    });
+
+    test('unhandled rejected sets error mechanism', async () => {
+      const integration = reactNativeErrorHandlersIntegration();
+      integration.setupOnce();
+
+      const [actualTrackingOptions] = mockEnable.mock.calls[0] || [];
+      actualTrackingOptions?.onUnhandled?.(1, 'Test Error');
+
+      await client.flush();
+      const actualSyntheticError = client.hint?.syntheticException;
+      const errorMechanism = client.event?.exception?.values[0]?.mechanism;
+      expect(mockDisable).not.toHaveBeenCalled();
+      expect(mockEnable).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allRejections: true,
+          onUnhandled: expect.any(Function),
+          onHandled: expect.any(Function),
+        }),
+      );
+      expect(mockEnable).toHaveBeenCalledTimes(1);
+      expect((actualSyntheticError as ExtendedError).framesToPop).toBe(3);
+      expect(errorMechanism).toEqual({ handled: true, type: 'onunhandledrejection' } as Mechanism);
     });
   });
 });
