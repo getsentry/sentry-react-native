@@ -11,6 +11,7 @@ import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 export * from './sentryMetroSerializer';
 import { withSentryMiddleware } from './metroMiddleware';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
+import { MetroCustomSerializer } from './utils';
 
 enableLogger();
 
@@ -63,9 +64,6 @@ export function withSentryConfig(
     optionsFile = true,
   }: SentryMetroConfigOptions = {},
 ): MetroConfig {
-  // eslint-disable-next-line no-console
-  console.log('withSentryConfig', 'projectRoot', config.projectRoot);
-
   setSentryMetroDevServerEnvFlag();
 
   let newConfig = config;
@@ -119,6 +117,10 @@ export function getSentryExpoConfig(
     newConfig = withSentryMiddleware(newConfig);
   }
 
+  if (options.optionsFile ?? true) {
+    newConfig = withSentryOptionsFromFile(newConfig, options.optionsFile ?? true);
+  }
+
   return newConfig;
 }
 
@@ -170,8 +172,6 @@ export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
     },
   };
 }
-
-type MetroCustomSerializer = Required<Required<MetroConfig>['serializer']>['customSerializer'] | undefined;
 
 function withSentryDebugId(config: MetroConfig): MetroConfig {
   const customSerializer = createSentryMetroSerializer(
