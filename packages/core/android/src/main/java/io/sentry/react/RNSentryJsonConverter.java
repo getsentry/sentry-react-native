@@ -14,7 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public final class RNSentryJsonConverter {
+final class RNSentryJsonConverter {
   public static final String NAME = "RNSentry.RNSentryJsonConverter";
 
   private static final ILogger logger = new AndroidLogger(NAME);
@@ -24,7 +24,7 @@ public final class RNSentryJsonConverter {
   }
 
   @Nullable
-  public static WritableMap convertToWritable(@NotNull JSONObject jsonObject) {
+  static WritableMap convertToWritable(@NotNull JSONObject jsonObject) {
     try {
       WritableMap writableMap = new JavaOnlyMap();
       Iterator<String> iterator = jsonObject.keys();
@@ -53,7 +53,7 @@ public final class RNSentryJsonConverter {
   }
 
   @NotNull
-  public static WritableArray convertToWritable(@NotNull JSONArray jsonArray) throws JSONException {
+  static WritableArray convertToWritable(@NotNull JSONArray jsonArray) throws JSONException {
     WritableArray writableArray = new JavaOnlyArray();
     for (int i = 0; i < jsonArray.length(); i++) {
       Object value = jsonArray.get(i);

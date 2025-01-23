@@ -1,4 +1,4 @@
-package io.sentry.rnsentryandroidtester
+package io.sentry.react
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.facebook.react.bridge.WritableArray
