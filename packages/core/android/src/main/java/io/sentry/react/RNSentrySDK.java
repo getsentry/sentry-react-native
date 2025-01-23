@@ -7,9 +7,6 @@ import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.SentryAndroidOptions;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -33,7 +30,8 @@ public final class RNSentrySDK {
       @NotNull final Context context,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
     try {
-      JSONObject jsonObject = getOptionsFromConfigurationFile(context);
+      JSONObject jsonObject =
+          RNSentryJsonUtils.getOptionsFromConfigurationFile(context, CONFIGURATION_FILE, logger);
       ReadableMap rnOptions = RNSentryJsonConverter.convertToWritable(jsonObject);
       RNSentryStart.startWithOptions(context, rnOptions, configuration, null, logger);
     } catch (Exception e) {
@@ -50,28 +48,5 @@ public final class RNSentrySDK {
    */
   public static void init(@NotNull final Context context) {
     init(context, options -> {});
-  }
-
-  private static JSONObject getOptionsFromConfigurationFile(Context context) {
-    try (InputStream inputStream = context.getAssets().open(CONFIGURATION_FILE);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-
-      StringBuilder stringBuilder = new StringBuilder();
-      String line;
-      while ((line = reader.readLine()) != null) {
-        stringBuilder.append(line);
-      }
-      String configFileContent = stringBuilder.toString();
-      return new JSONObject(configFileContent);
-
-    } catch (Exception e) {
-      logger.log(
-          SentryLevel.ERROR,
-          "Failed to read configuration file. Please make sure "
-              + CONFIGURATION_FILE
-              + " exists in the root of your project.",
-          e);
-      return null;
-    }
   }
 }
