@@ -1,7 +1,6 @@
 package io.sentry.react;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
@@ -11,13 +10,9 @@ import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public final class RNSentryMapConverter {
   public static final String NAME = "RNSentry.MapConverter";
@@ -135,38 +130,5 @@ public final class RNSentryMapConverter {
     } else {
       logger.log(SentryLevel.ERROR, "Could not convert object" + value);
     }
-  }
-
-  public static ReadableMap jsonObjectToReadableMap(JSONObject jsonObject) {
-    Map<String, Object> map = jsonObjectToMap(jsonObject);
-    return mapToReadableMap(map);
-  }
-
-  public static ReadableMap mapToReadableMap(Map<String, Object> map) {
-    // We are not directly using `convertToWritable` since `Arguments.createArray()`
-    // fails before bridge initialisation
-    Object[] keysAndValues = new Object[map.size() * 2];
-    int index = 0;
-    for (Map.Entry<String, Object> entry : map.entrySet()) {
-      keysAndValues[index++] = entry.getKey();
-      keysAndValues[index++] = entry.getValue();
-    }
-    return JavaOnlyMap.of(keysAndValues);
-  }
-
-  private static Map<String, Object> jsonObjectToMap(JSONObject jsonObject) {
-    Map<String, Object> map = new HashMap<>();
-    Iterator<String> keys = jsonObject.keys();
-    while (keys.hasNext()) {
-      String key = keys.next();
-      Object value = null;
-      try {
-        value = jsonObject.get(key);
-      } catch (JSONException e) {
-        throw new RuntimeException(e);
-      }
-      map.put(key, value);
-    }
-    return map;
   }
 }

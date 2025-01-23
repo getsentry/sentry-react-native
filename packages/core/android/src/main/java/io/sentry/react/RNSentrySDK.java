@@ -34,7 +34,7 @@ public final class RNSentrySDK {
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
     try {
       JSONObject jsonObject = getOptionsFromConfigurationFile(context);
-      ReadableMap rnOptions = RNSentryMapConverter.jsonObjectToReadableMap(jsonObject);
+      ReadableMap rnOptions = RNSentryJsonConverter.convertToWritable(jsonObject);
       RNSentryStart.startWithOptions(context, rnOptions, configuration, null, logger);
     } catch (Exception e) {
       logger.log(
