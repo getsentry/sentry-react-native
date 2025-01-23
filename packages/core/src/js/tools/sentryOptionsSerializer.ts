@@ -1,10 +1,12 @@
-import * as path from 'path';
+import { logger } from '@sentry/core';
 import * as fs from 'fs';
-import { MetroConfig, Module } from 'metro';
-import { createSet, MetroCustomSerializer, VirtualJSOutput } from './utils';
+import type { MetroConfig, Module } from 'metro';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as countLines from 'metro/src/lib/countLines';
-import { logger } from '@sentry/core';
+import * as path from 'path';
+
+import type { MetroCustomSerializer, VirtualJSOutput } from './utils';
+import { createSet } from './utils';
 
 const DEFAULT_OPTIONS_FILE_NAME = 'sentry.options.json';
 
@@ -23,10 +25,12 @@ export function withSentryOptionsFromFile(config: MetroConfig, optionsFile: stri
     return config;
   }
 
-  const optionsPath =
-    typeof optionsFile === 'string'
-      ? path.join(projectRoot, optionsFile)
-      : path.join(projectRoot, DEFAULT_OPTIONS_FILE_NAME);
+  let optionsPath = path.join(projectRoot, DEFAULT_OPTIONS_FILE_NAME);
+  if (typeof optionsFile === 'string' && path.isAbsolute(optionsFile)) {
+    optionsPath = optionsFile;
+  } else if (typeof optionsFile === 'string') {
+    optionsPath = path.join(projectRoot, optionsFile);
+  }
 
   const originalSerializer = config.serializer?.customSerializer;
   if (!originalSerializer) {
@@ -78,7 +82,7 @@ function createSentryOptionsModule(filePath: string): Module<VirtualJSOutput> | 
   }
 
   const minifiedContent = JSON.stringify(parsedContent);
-  let optionsCode = `var __SENTRY_OPTIONS__=${minifiedContent};`;
+  const optionsCode = `var __SENTRY_OPTIONS__=${minifiedContent};`;
 
   logger.debug(`[@sentry/react-native/metro] Sentry options added to the bundle from file at ${filePath}`);
   return {
