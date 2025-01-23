@@ -30,8 +30,8 @@ export function withSentryOptionsFromFile(config: MetroConfig, optionsFile: stri
 
   const originalSerializer = config.serializer?.customSerializer;
   if (!originalSerializer) {
-    // TODO: this works because we set Debug ID serializer in `withSentryDebugId`
-    // We should use the default serializer if non is provided, for expo we know there always be a default custom serializer
+    // It's okay to bail here because we don't expose this for direct usage, but as part of `withSentryConfig`
+    // If used directly in RN, the user is responsible for providing a custom serializer first, Expo provides serializer in default config
     // eslint-disable-next-line no-console
     console.error(
       '[@sentry/react-native/metro] `config.serializer.customSerializer` is required to load Sentry options from a file',
