@@ -11,7 +11,7 @@ import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 export * from './sentryMetroSerializer';
 import { withSentryMiddleware } from './metroMiddleware';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
-import { MetroCustomSerializer } from './utils';
+import type { MetroCustomSerializer } from './utils';
 
 enableLogger();
 
