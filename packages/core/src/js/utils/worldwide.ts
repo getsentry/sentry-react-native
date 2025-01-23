@@ -3,6 +3,7 @@ import { GLOBAL_OBJ } from '@sentry/core';
 import type { ErrorUtils } from 'react-native/types';
 
 import type { ExpoGlobalObject } from './expoglobalobject';
+import { ReactNativeOptions } from '../options';
 
 /** Internal Global object interface with common and Sentry specific properties */
 export interface ReactNativeInternalGlobal extends InternalGlobal {
@@ -25,6 +26,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   __BUNDLE_START_TIME__?: number;
   nativePerformanceNow?: () => number;
   TextEncoder?: TextEncoder;
+  __SENTRY_OPTIONS__?: ReactNativeOptions;
 }
 
 type TextEncoder = {
