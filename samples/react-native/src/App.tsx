@@ -318,7 +318,6 @@ function App() {
   return (
     <>
       <RootNavigationContainer />
-      <RunningIndicator />
     </>
   );
 }
