@@ -46,8 +46,8 @@ public final class RNSentrySDK {
   }
 
   /**
-   * Start the Native Android SDK with the provided options
-   *
+   * @experimental Start the Native Android SDK with the provided configuration options. Uses as a
+   *     base configurations the `sentry.options.json` configuration file if it exists.
    * @param context Android Context
    * @param configuration configuration options
    */
@@ -58,8 +58,8 @@ public final class RNSentrySDK {
   }
 
   /**
-   * Start the Native Android SDK with options from `sentry.options.json` configuration file
-   *
+   * @experimental Start the Native Android SDK with options from `sentry.options.json`
+   *     configuration file.
    * @param context Android Context
    */
   public static void init(@NotNull final Context context) {
