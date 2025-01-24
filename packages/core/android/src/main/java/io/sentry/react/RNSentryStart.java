@@ -10,6 +10,7 @@ import io.sentry.Integration;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
+import io.sentry.SentryOptions.BeforeSendCallback;
 import io.sentry.SentryReplayOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AnrIntegration;
@@ -37,7 +38,12 @@ final class RNSentryStart {
   static void startWithConfiguration(
       @NotNull final Context context,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
-    SentryAndroid.init(context, configuration);
+    RNSentryCompositeOptionsConfiguration compositeConfiguration =
+        new RNSentryCompositeOptionsConfiguration(
+            RNSentryStart::updateWithReactDefaults,
+            configuration,
+            RNSentryStart::updateWithReactFinals);
+    SentryAndroid.init(context, compositeConfiguration);
   }
 
   static void startWithOptions(
@@ -47,10 +53,12 @@ final class RNSentryStart {
       @NotNull ILogger logger) {
     Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
         options -> getSentryAndroidOptions(options, rnOptions, null, logger);
-
     RNSentryCompositeOptionsConfiguration compositeConfiguration =
-        new RNSentryCompositeOptionsConfiguration(rnConfigurationOptions, configuration);
-
+        new RNSentryCompositeOptionsConfiguration(
+            RNSentryStart::updateWithReactDefaults,
+            rnConfigurationOptions,
+            configuration,
+            RNSentryStart::updateWithReactFinals);
     SentryAndroid.init(context, compositeConfiguration);
   }
 
@@ -59,8 +67,14 @@ final class RNSentryStart {
       @NotNull final ReadableMap rnOptions,
       @Nullable Activity currentActivity,
       @NotNull ILogger logger) {
-    SentryAndroid.init(
-        context, options -> getSentryAndroidOptions(options, rnOptions, currentActivity, logger));
+    Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
+        options -> getSentryAndroidOptions(options, rnOptions, currentActivity, logger);
+    RNSentryCompositeOptionsConfiguration compositeConfiguration =
+        new RNSentryCompositeOptionsConfiguration(
+            RNSentryStart::updateWithReactDefaults,
+            rnConfigurationOptions,
+            RNSentryStart::updateWithReactFinals);
+    SentryAndroid.init(context, compositeConfiguration);
   }
 
   static void getSentryAndroidOptions(
@@ -184,14 +198,6 @@ final class RNSentryStart {
     // we want to ignore it on the native side to avoid sending it twice.
     options.addIgnoredExceptionForType(JavascriptException.class);
 
-    options.setBeforeSend(
-        (event, hint) -> {
-          setEventOriginTag(event);
-          addPackages(event, options.getSdkVersion());
-
-          return event;
-        });
-
     if (rnOptions.hasKey("enableNativeCrashHandling")
         && !rnOptions.getBoolean("enableNativeCrashHandling")) {
       final List<Integration> integrations = options.getIntegrations();
@@ -207,6 +213,42 @@ final class RNSentryStart {
         SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
 
     setCurrentActivity(currentActivity);
+  }
+
+  /**
+   * This function updates the options with RNSentry defaults. These default can be overwritten by
+   * users during manual native initialization.
+   */
+  static void updateWithReactDefaults(@NotNull SentryAndroidOptions options) {
+    // Tracing is only enabled in JS to avoid duplicate navigation spans
+    options.setTracesSampleRate(null);
+    options.setTracesSampler(null);
+    options.setEnableTracing(false);
+  }
+
+  /**
+   * This function updates options with changes RNSentry users should not change and so this is
+   * applied after the configureOptions callback during manual native initialization.
+   */
+  static void updateWithReactFinals(@NotNull SentryAndroidOptions options) {
+    BeforeSendCallback userBeforeSend = options.getBeforeSend();
+    options.setBeforeSend(
+        (event, hint) -> {
+          // Unhandled JS Exception are processed by the SDK on JS layer
+          // To avoid duplicates we drop them in the native SDKs
+          if (event.getExceptions() != null && !event.getExceptions().isEmpty()) {
+            String exType = event.getExceptions().get(0).getType();
+            if (exType != null && exType.contains("Unhandled JS Exception")) {
+              return null; // Skip sending this event
+            }
+          }
+          setEventOriginTag(event);
+          addPackages(event, options.getSdkVersion());
+          if (userBeforeSend != null) {
+            return userBeforeSend.execute(event, hint);
+          }
+          return event;
+        });
   }
 
   private static void setCurrentActivity(Activity currentActivity) {
