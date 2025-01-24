@@ -15,12 +15,17 @@ project.ext.shouldSentryAutoUpload = { ->
   return shouldSentryAutoUploadGeneral() && shouldSentryAutoUploadNative()
 }
 
+project.ext.shouldCopySentryOptionsFile = { -> // If not set, default to true
+    return System.getenv('SENTRY_COPY_OPTIONS_FILE') != 'false'
+}
+
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
 def configFile = "sentry.options.json" // Sentry condiguration file
 def androidAssetsDir = new File("$rootDir/app/src/main/assets") // Path to Android assets folder
 
 tasks.register("copySentryJsonConfiguration") {
+    onlyIf { shouldCopySentryOptionsFile() }
     doLast {
         def appRoot = project.rootDir.parentFile ?: project.rootDir
         def sentryOptionsFile = new File(appRoot, configFile)
@@ -42,6 +47,7 @@ tasks.register("copySentryJsonConfiguration") {
 }
 
 tasks.register("cleanupTemporarySentryJsonConfiguration") {
+    onlyIf { shouldCopySentryOptionsFile() }
     doLast {
         def sentryOptionsFile = new File(androidAssetsDir, configFile)
         if (sentryOptionsFile.exists()) {
