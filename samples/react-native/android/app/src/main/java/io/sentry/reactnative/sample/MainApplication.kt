@@ -11,9 +11,6 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import io.sentry.Hint
-import io.sentry.SentryEvent
-import io.sentry.SentryOptions.BeforeSendCallback
 import io.sentry.react.RNSentrySDK
 
 class MainApplication :
@@ -55,23 +52,6 @@ class MainApplication :
             // Options set here will apply to the Android SDK overriding the ones from `sentry.options.json`
             options.dsn = "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561"
             options.isDebug = true
-
-            options.beforeSend =
-                BeforeSendCallback { event: SentryEvent, hint: Hint? ->
-                    // React native internally throws a JavascriptException
-                    // Since we catch it before that, we don't want to send this one
-                    // because we would send it twice
-                    try {
-                        val ex = event.exceptions!![0]
-                        if (null != ex && ex.type!!.contains("JavascriptException")) {
-                            return@BeforeSendCallback null
-                        }
-                    } catch (ignored: Throwable) {
-                        // We do nothing
-                    }
-
-                    event
-                }
         }
 
         // RNSentrySDK.init(this)
