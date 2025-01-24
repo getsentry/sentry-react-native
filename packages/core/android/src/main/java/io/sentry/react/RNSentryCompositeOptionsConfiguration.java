@@ -4,12 +4,11 @@ import io.sentry.Sentry.OptionsConfiguration;
 import io.sentry.android.core.SentryAndroidOptions;
 import org.jetbrains.annotations.NotNull;
 
-public class RNSentryCompositeOptionsConfiguration
-    implements OptionsConfiguration<SentryAndroidOptions> {
+class RNSentryCompositeOptionsConfiguration implements OptionsConfiguration<SentryAndroidOptions> {
   private final OptionsConfiguration<SentryAndroidOptions> baseConfiguration;
   private final OptionsConfiguration<SentryAndroidOptions> overridingConfiguration;
 
-  public RNSentryCompositeOptionsConfiguration(
+  RNSentryCompositeOptionsConfiguration(
       OptionsConfiguration<SentryAndroidOptions> baseConfiguration,
       OptionsConfiguration<SentryAndroidOptions> overridingConfiguration) {
     this.baseConfiguration = baseConfiguration;

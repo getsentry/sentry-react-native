@@ -28,26 +28,25 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class RNSentryStart {
+final class RNSentryStart {
 
   private RNSentryStart() {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
-  public static void startWithConfiguration(
+  static void startWithConfiguration(
       @NotNull final Context context,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
     SentryAndroid.init(context, configuration);
   }
 
-  public static void startWithOptions(
+  static void startWithOptions(
       @NotNull final Context context,
       @NotNull final ReadableMap rnOptions,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
-      @Nullable Activity currentActivity,
       @NotNull ILogger logger) {
     Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
-        options -> getSentryAndroidOptions(options, rnOptions, currentActivity, logger);
+        options -> getSentryAndroidOptions(options, rnOptions, null, logger);
 
     RNSentryCompositeOptionsConfiguration compositeConfiguration =
         new RNSentryCompositeOptionsConfiguration(rnConfigurationOptions, configuration);
@@ -55,7 +54,7 @@ public final class RNSentryStart {
     SentryAndroid.init(context, compositeConfiguration);
   }
 
-  public static void startWithOptions(
+  static void startWithOptions(
       @NotNull final Context context,
       @NotNull final ReadableMap rnOptions,
       @Nullable Activity currentActivity,

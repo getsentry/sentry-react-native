@@ -1,8 +1,7 @@
-package io.sentry.rnsentryandroidtester
+package io.sentry.react
 
 import io.sentry.Sentry.OptionsConfiguration
 import io.sentry.android.core.SentryAndroidOptions
-import io.sentry.react.RNSentryCompositeOptionsConfiguration
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4

@@ -43,7 +43,7 @@ public final class RNSentrySDK {
         RNSentryStart.startWithConfiguration(context, configuration);
         return;
       }
-      RNSentryStart.startWithOptions(context, rnOptions, configuration, null, logger);
+      RNSentryStart.startWithOptions(context, rnOptions, configuration, logger);
     } catch (Exception e) {
       logger.log(
           SentryLevel.ERROR, "Failed to start Sentry with options from configuration file.", e);
