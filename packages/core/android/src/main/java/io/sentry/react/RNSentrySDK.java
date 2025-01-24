@@ -20,20 +20,14 @@ public final class RNSentrySDK {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
-  /**
-   * Start the Native Android SDK with the provided options
-   *
-   * @param context Android Context
-   * @param configuration configuration options
-   * @param logger logger
-   */
-  public static void init(
+  static void init(
       @NotNull final Context context,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
+      @NotNull String configurationFile,
       @NotNull ILogger logger) {
     try {
       JSONObject jsonObject =
-          RNSentryJsonUtils.getOptionsFromConfigurationFile(context, CONFIGURATION_FILE, logger);
+          RNSentryJsonUtils.getOptionsFromConfigurationFile(context, configurationFile, logger);
       if (jsonObject == null) {
         RNSentryStart.startWithConfiguration(context, configuration);
         return;
@@ -60,7 +54,7 @@ public final class RNSentrySDK {
   public static void init(
       @NotNull final Context context,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
-    init(context, configuration, logger);
+    init(context, configuration, CONFIGURATION_FILE, logger);
   }
 
   /**
@@ -69,6 +63,6 @@ public final class RNSentrySDK {
    * @param context Android Context
    */
   public static void init(@NotNull final Context context) {
-    init(context, options -> {}, logger);
+    init(context, options -> {}, CONFIGURATION_FILE, logger);
   }
 }
