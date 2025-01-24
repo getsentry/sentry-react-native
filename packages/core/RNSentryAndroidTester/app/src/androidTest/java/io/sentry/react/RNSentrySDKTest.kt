@@ -117,8 +117,8 @@ class RNSentrySDKTest {
 
     @Test
     fun failsToInitialiseWithInvalidConfigurationAndDefaultValidJsonFile() {
-        try{
-        RNSentrySDK.init(context, invalidConfig)
+        try {
+            RNSentrySDK.init(context, invalidConfig)
         } catch (e: Exception) {
             assertEquals(INITIALISATION_ERROR, e.message)
         }
