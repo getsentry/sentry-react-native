@@ -68,7 +68,7 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
         {this.props.children}
         {isVisible && (
           <View>
-            <Modal visible={isVisible} transparent animationType="slide" onRequestClose={this._handleClose}>
+            <Modal visible={isVisible} transparent animationType="slide" onRequestClose={this._handleClose} testID="feedback-form-modal">
               <View style={styles.modalBackground}>
                 <FeedbackForm
                   onFormClose={this._handleClose}
