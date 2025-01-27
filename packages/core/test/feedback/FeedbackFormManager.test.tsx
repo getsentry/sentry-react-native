@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Text } from 'react-native';
 
 import { FeedbackFormProvider, showFeedbackForm } from '../../src/js/feedback/FeedbackFormManager';
+import { feedbackIntegration } from '../../src/js/feedback/integration';
 
 jest.mock('../../src/js/feedback/utils', () => ({
   isModalSupported: jest.fn(),
@@ -49,5 +50,24 @@ describe('FeedbackFormManager', () => {
     expect(() => {
       showFeedbackForm();
     }).not.toThrow();
+  });
+
+  it('showFeedbackForm displays the form with the feedbackIntegration options', () => {
+    require('../../src/js/feedback/utils').isModalSupported.mockReturnValue(true);
+    const { getByPlaceholderText, getByText } = render(
+      <FeedbackFormProvider>
+        <Text>App Components</Text>
+      </FeedbackFormProvider>
+    );
+
+    feedbackIntegration({
+      messagePlaceholder: 'Custom Message Placeholder',
+      submitButtonLabel: 'Custom Submit Button',
+    });
+
+    showFeedbackForm();
+
+    expect(getByPlaceholderText('Custom Message Placeholder')).toBeTruthy();
+    expect(getByText('Custom Submit Button')).toBeTruthy();
   });
 });
