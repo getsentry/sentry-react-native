@@ -7,10 +7,8 @@ import { ReactNativeLibraries } from './../utils/rnlibraries';
  */
 export function isModalSupported(): boolean {
   const { major, minor } = ReactNativeLibraries.ReactNativeVersion?.version || {};
-  if (isFabricEnabled() && rnVersion && rnVersion.major === 0 && rnVersion.minor < 71) {
-    return false;
-  }
-  return true;
+  return !(isFabricEnabled() && major === 0 && minor < 71);
+
 }
 
 export const isValidEmail = (email: string): boolean => {
