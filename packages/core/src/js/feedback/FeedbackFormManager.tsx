@@ -50,18 +50,22 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
   public render(): React.ReactNode {
     const { isVisible } = this.state;
 
+    // Wrapping the `Modal` component in a `View` component is necessary to avoid
+    // issues like https://github.com/software-mansion/react-native-reanimated/issues/6035
     return (
       <>
         {this.props.children}
         {isVisible && (
-          <Modal visible={isVisible} transparent animationType="slide">
-            <View style={styles.modalBackground}>
-              <FeedbackForm
-                onFormClose={this._handleClose}
-                onFormSubmitted={this._handleClose}
-              />
-            </View>
-          </Modal>
+          <View>
+            <Modal visible={isVisible} transparent animationType="slide">
+              <View style={styles.modalBackground}>
+                <FeedbackForm
+                  onFormClose={this._handleClose}
+                  onFormSubmitted={this._handleClose}
+                />
+              </View>
+            </Modal>
+          </View>
         )}
       </>
     );
