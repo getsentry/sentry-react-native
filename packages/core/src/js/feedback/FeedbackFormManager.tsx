@@ -1,9 +1,11 @@
+import { logger } from '@sentry/core';
 import * as React from 'react';
 import { Modal, View } from 'react-native';
 
 import { FeedbackForm } from './FeedbackForm';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormStyles } from './FeedbackForm.types';
+import { isModalSupported } from './utils';
 
 class FeedbackFormManager {
   private static _isVisible = false;
@@ -51,6 +53,11 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
    * Renders the feedback form modal.
    */
   public render(): React.ReactNode {
+    if (!isModalSupported()) {
+      logger.error('FeedbackForm Modal is not supported in React Native < 0.71 with Fabric renderer.');
+      return <>{this.props.children}</>;
+    }
+
     const { isVisible } = this.state;
     const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
 
