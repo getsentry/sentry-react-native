@@ -1,7 +1,9 @@
 import * as React from 'react';
-import { Modal, StyleSheet,View } from 'react-native';
+import { Modal, View } from 'react-native';
 
 import { FeedbackForm } from './FeedbackForm';
+import defaultStyles from './FeedbackForm.styles';
+import type { FeedbackFormStyles } from './FeedbackForm.types';
 
 class FeedbackFormManager {
   private static _isVisible = false;
@@ -32,6 +34,7 @@ class FeedbackFormManager {
 
 interface FeedbackFormProviderProps {
   children: React.ReactNode;
+  styles?: FeedbackFormStyles;
 }
 
 class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
@@ -49,6 +52,7 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
    */
   public render(): React.ReactNode {
     const { isVisible } = this.state;
+    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
 
     // Wrapping the `Modal` component in a `View` component is necessary to avoid
     // issues like https://github.com/software-mansion/react-native-reanimated/issues/6035
@@ -84,13 +88,5 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
 const showFeedbackForm = (): void => {
   FeedbackFormManager.show();
 };
-
-const styles = StyleSheet.create({
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-});
 
 export { showFeedbackForm, FeedbackFormProvider };

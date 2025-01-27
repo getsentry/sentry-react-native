@@ -77,6 +77,10 @@ const defaultStyles: FeedbackFormStyles = {
     width: 40,
     height: 40,
   },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+  },
 };
 
 export default defaultStyles;
