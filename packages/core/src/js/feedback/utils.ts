@@ -6,7 +6,7 @@ import { ReactNativeLibraries } from './../utils/rnlibraries';
  * ref: https://github.com/facebook/react-native/issues/33652
  */
 export function isModalSupported(): boolean {
-  const rnVersion = ReactNativeLibraries.ReactNativeVersion?.version;
+  const { major, minor } = ReactNativeLibraries.ReactNativeVersion?.version || {};
   if (isFabricEnabled() && rnVersion && rnVersion.major === 0 && rnVersion.minor < 71) {
     return false;
   }
