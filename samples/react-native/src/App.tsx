@@ -106,6 +106,18 @@ Sentry.init({
           ? false
           : true,
       }),
+      Sentry.feedbackIntegration({
+        styles:{
+          submitButton: {
+            backgroundColor: '#6a1b9a',
+            paddingVertical: 15,
+            borderRadius: 5,
+            alignItems: 'center',
+            marginBottom: 10,
+          },
+        },
+        namePlaceholder: 'Fullname',
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
