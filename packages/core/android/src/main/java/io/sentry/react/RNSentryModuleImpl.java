@@ -85,6 +85,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -996,7 +997,7 @@ public class RNSentryModuleImpl {
     if (eventSdk != null
         && "sentry.javascript.react-native".equals(eventSdk.getName())
         && sdk != null) {
-      List<SentryPackage> sentryPackages = sdk.getPackages();
+      Set<SentryPackage> sentryPackages = sdk.getPackageSet();
       if (sentryPackages != null) {
         for (SentryPackage sentryPackage : sentryPackages) {
           eventSdk.addPackage(sentryPackage.getName(), sentryPackage.getVersion());
