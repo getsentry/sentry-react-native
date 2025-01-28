@@ -803,8 +803,7 @@ public class RNSentryModuleImpl {
             (int) SECONDS.toMicros(1) / profilingTracesHz,
             new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
             executorService,
-            logger,
-            buildInfo);
+            logger);
   }
 
   public WritableMap startProfiling(boolean platformProfilers) {
