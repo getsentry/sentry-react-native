@@ -1004,7 +1004,7 @@ public class RNSentryModuleImpl {
         }
       }
 
-      List<String> integrations = sdk.getIntegrations();
+      Set<String> integrations = sdk.getIntegrationSet();
       if (integrations != null) {
         for (String integration : integrations) {
           eventSdk.addIntegration(integration);
