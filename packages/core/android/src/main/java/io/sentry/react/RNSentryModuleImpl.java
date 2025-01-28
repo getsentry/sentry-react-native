@@ -29,12 +29,12 @@ import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.JavascriptException;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import io.sentry.Breadcrumb;
-import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
+import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
@@ -506,7 +506,7 @@ public class RNSentryModuleImpl {
   }
 
   public void captureReplay(boolean isHardCrash, Promise promise) {
-    Sentry.getCurrentHub().getOptions().getReplayController().captureReplay(isHardCrash);
+    Sentry.getCurrentScopes().getOptions().getReplayController().captureReplay(isHardCrash);
     promise.resolve(getCurrentReplayId());
   }
 
@@ -602,7 +602,7 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    ISerializer serializer = HubAdapter.getInstance().getOptions().getSerializer();
+    ISerializer serializer = ScopesAdapter.getInstance().getOptions().getSerializer();
     final @Nullable byte[] bytes =
         JsonSerializationUtils.bytesFrom(serializer, logger, viewHierarchy);
     if (bytes == null) {
@@ -828,7 +828,7 @@ public class RNSentryModuleImpl {
   }
 
   public WritableMap stopProfiling() {
-    final boolean isDebug = HubAdapter.getInstance().getOptions().isDebug();
+    final boolean isDebug = ScopesAdapter.getInstance().getOptions().isDebug();
     final WritableMap result = new WritableNativeMap();
     File output = null;
     try {
@@ -914,7 +914,7 @@ public class RNSentryModuleImpl {
   }
 
   public void fetchNativeDeviceContexts(Promise promise) {
-    final @NotNull SentryOptions options = HubAdapter.getInstance().getOptions();
+    final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
     final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
     final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
     fetchNativeDeviceContexts(promise, options, context, currentScope);
@@ -951,7 +951,8 @@ public class RNSentryModuleImpl {
   }
 
   public void fetchNativeSdkInfo(Promise promise) {
-    final @Nullable SdkVersion sdkVersion = HubAdapter.getInstance().getOptions().getSdkVersion();
+    final @Nullable SdkVersion sdkVersion =
+        ScopesAdapter.getInstance().getOptions().getSdkVersion();
     if (sdkVersion == null) {
       promise.resolve(null);
     } else {
