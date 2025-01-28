@@ -655,10 +655,6 @@ public class RNSentryModuleImpl {
               if (userKeys.hasKey("ip_address")) {
                 userInstance.setIpAddress(userKeys.getString("ip_address"));
               }
-
-              if (userKeys.hasKey("segment")) {
-                userInstance.setSegment(userKeys.getString("segment"));
-              }
             }
 
             if (userDataKeys != null) {
