@@ -77,7 +77,7 @@ describe('FeedbackFormManager', () => {
 
   it('showFeedbackForm displays the form with the feedbackIntegration options merged with the defaults', () => {
     mockedIsModalSupported.mockReturnValue(true);
-    const { getByPlaceholderText, getByText } = render(
+    const { getByPlaceholderText, getByText, queryByText } = render(
       <FeedbackFormProvider>
         <Text>App Components</Text>
       </FeedbackFormProvider>
@@ -89,7 +89,7 @@ describe('FeedbackFormManager', () => {
 
     showFeedbackForm();
 
-    expect(getByText(defaultConfiguration.submitButtonLabel)).toBeFalsy(); // overridden value
+    expect(queryByText(defaultConfiguration.submitButtonLabel)).toBeFalsy(); // overridden value
     expect(getByText('Custom Submit Button')).toBeTruthy(); // overridden value
     expect(getByPlaceholderText(defaultConfiguration.messagePlaceholder)).toBeTruthy(); // default configuration value
   });
