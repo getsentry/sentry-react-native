@@ -4,7 +4,7 @@ import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps } from './FeedbackForm.types';
 
-export const FEEDBACK_FORM_INTEGRATION_NAME = 'Feedback Form';
+export const FEEDBACK_FORM_INTEGRATION_NAME = 'MobileFeedback';
 
 type FeedbackIntegration = Integration & {
   options: Partial<FeedbackFormProps>;
