@@ -204,6 +204,7 @@ export interface FeedbackFormStyles {
   screenshotText?: TextStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
+  modalBackground?: ViewStyle;
 }
 
 /**
