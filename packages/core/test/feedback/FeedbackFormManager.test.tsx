@@ -5,10 +5,13 @@ import { Text } from 'react-native';
 
 import { FeedbackFormProvider, showFeedbackForm } from '../../src/js/feedback/FeedbackFormManager';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
+import { isModalSupported } from '../../src/js/feedback/utils';
 
 jest.mock('../../src/js/feedback/utils', () => ({
   isModalSupported: jest.fn(),
 }));
+
+const mockedIsModalSupported = isModalSupported as jest.MockedFunction<typeof isModalSupported>;
 
 beforeEach(() => {
   logger.error = jest.fn();
@@ -16,7 +19,7 @@ beforeEach(() => {
 
 describe('FeedbackFormManager', () => {
   it('showFeedbackForm displays the form when FeedbackFormProvider is used', () => {
-    require('../../src/js/feedback/utils').isModalSupported.mockReturnValue(true);
+    mockedIsModalSupported.mockReturnValue(true);
     const { getByText, getByTestId } = render(
       <FeedbackFormProvider>
         <Text>App Components</Text>
@@ -30,7 +33,7 @@ describe('FeedbackFormManager', () => {
   });
 
   it('showFeedbackForm does not display the form when Modal is not available', () => {
-    require('../../src/js/feedback/utils').isModalSupported.mockReturnValue(false);
+    mockedIsModalSupported.mockReturnValue(false);
     const { getByText, queryByTestId } = render(
       <FeedbackFormProvider>
         <Text>App Components</Text>
@@ -53,7 +56,7 @@ describe('FeedbackFormManager', () => {
   });
 
   it('showFeedbackForm displays the form with the feedbackIntegration options', () => {
-    require('../../src/js/feedback/utils').isModalSupported.mockReturnValue(true);
+    mockedIsModalSupported.mockReturnValue(true);
     const { getByPlaceholderText, getByText } = render(
       <FeedbackFormProvider>
         <Text>App Components</Text>
