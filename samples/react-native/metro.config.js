@@ -1,7 +1,7 @@
 const { withSentryConfig } = require('@sentry/react-native/metro');
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
-const { withMonorepo } = require('../utils/metro');
+const { withMonorepo } = require('sentry-react-native-samples-utils/metro');
 
 /**
  * Metro configuration

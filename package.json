@@ -45,12 +45,12 @@
     "packages/core",
     "dev-packages/e2e-tests",
     "dev-packages/type-check",
+    "dev-packages/utils",
     "samples/react-native",
     "samples/react-native-macos",
     "samples/expo",
     "performance-tests/TestAppPlain",
-    "performance-tests/TestAppSentry",
-    "samples/utils"
+    "performance-tests/TestAppSentry"
   ],
   "//": [
     "Appium has a dependency on @xmldom/xmldom@^0.x, which causes chromedrive build to fail yarn install",
