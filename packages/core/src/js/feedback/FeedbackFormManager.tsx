@@ -5,6 +5,7 @@ import { Modal, View } from 'react-native';
 import { FeedbackForm } from './FeedbackForm';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormStyles } from './FeedbackForm.types';
+import { getFeedbackOptions } from './integration';
 import { isModalSupported } from './utils';
 
 class FeedbackFormManager {
@@ -70,7 +71,7 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
           <View>
             <Modal visible={isVisible} transparent animationType="slide" onRequestClose={this._handleClose} testID="feedback-form-modal">
               <View style={styles.modalBackground}>
-                <FeedbackForm
+                <FeedbackForm {...getFeedbackOptions()}
                   onFormClose={this._handleClose}
                   onFormSubmitted={this._handleClose}
                 />
