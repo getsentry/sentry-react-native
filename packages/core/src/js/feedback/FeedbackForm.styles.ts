@@ -86,7 +86,7 @@ const defaultStyles: FeedbackFormStyles = {
     backgroundColor: BACKROUND_COLOR,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    padding: 16,
+    overflow: 'hidden',
     alignSelf: 'stretch',
     height: '92%',
     shadowColor: '#000',
