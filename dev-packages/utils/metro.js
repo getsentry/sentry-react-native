@@ -28,6 +28,8 @@ const withMonorepo = config => {
   const monorepoRoot = path.resolve(projectRoot, '../..');
   const monorepoPackages = getMonorepoPackages(monorepoRoot);
 
+  config.resolver = config.resolver || {};
+
   const blockList = [
     ...((Array.isArray(config.resolver.blockList) && config.resolver.blockList) ||
       (!!config.resolver.blockList && [config.resolver.blockList]) ||
