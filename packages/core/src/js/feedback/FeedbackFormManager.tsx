@@ -1,6 +1,6 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import { Animated, Modal, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Modal, Platform, View } from 'react-native';
 
 import { FeedbackForm } from './FeedbackForm';
 import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackForm.styles';
@@ -95,14 +95,17 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
         {isVisible && (
           <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="slide" onRequestClose={this._handleClose} testID="feedback-form-modal">
-              <View style={modalBackground}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={modalBackground}
+              >
                 <View style={modalSheetContainer}>
                   <FeedbackForm {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
                     />
                 </View>
-              </View>
+              </KeyboardAvoidingView>
             </Modal>
           </Animated.View>
         )}

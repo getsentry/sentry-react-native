@@ -7,6 +7,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
   SafeAreaView,
   ScrollView,
   Text,
@@ -130,7 +131,10 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     return (
     <SafeAreaView style={[styles.container, { padding: 0 }]}>
-      <KeyboardAvoidingView behavior={'padding'} style={[styles.container, { padding: 0 }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={[styles.container, { padding: 0 }]}
+      >
         <ScrollView bounces={false}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
