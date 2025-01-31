@@ -32,12 +32,15 @@
 - Bump CLI from v2.39.1 to v2.41.1 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412), [#4468](https://github.com/getsentry/sentry-react-native/pull/4468), [#4473](https://github.com/getsentry/sentry-react-native/pull/4473))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2411)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.41.1)
-- Bump JavaScript SDK from v8.47.0 to v8.52.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453), [#4480](https://github.com/getsentry/sentry-react-native/pull/4480), [#4491](https://github.com/getsentry/sentry-react-native/pull/4491))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8520)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.52.0)
-- Bump Android SDK from v7.20.0 to v8.0.0 ([#4467](https://github.com/getsentry/sentry-react-native/pull/4467), [#4471](https://github.com/getsentry/sentry-react-native/pull/4471))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#800)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.0...8.0.0)
+- Bump JavaScript SDK from v8.47.0 to v8.52.1 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453), [#4480](https://github.com/getsentry/sentry-react-native/pull/4480), [#4491](https://github.com/getsentry/sentry-react-native/pull/4491), [#4496](https://github.com/getsentry/sentry-react-native/pull/4496))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8521)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.52.1)
+- Bump Android SDK from v7.20.0 to v8.1.0 ([#4467](https://github.com/getsentry/sentry-react-native/pull/4467), [#4471](https://github.com/getsentry/sentry-react-native/pull/4471))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#810)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.0...8.1.0)
+- Bump Cocoa SDK from v8.43.0 to v8.44.0 ([#4495](https://github.com/getsentry/sentry-react-native/pull/4495))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8440)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.43.0...8.44.0)
 
 ## 6.5.0
 
