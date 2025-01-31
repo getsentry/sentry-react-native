@@ -1,9 +1,9 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import { Modal, View } from 'react-native';
+import { Animated, Modal, View } from 'react-native';
 
 import { FeedbackForm } from './FeedbackForm';
-import defaultStyles from './FeedbackForm.styles';
+import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackForm.styles';
 import type { FeedbackFormStyles } from './FeedbackForm.types';
 import { getFeedbackOptions } from './integration';
 import { isModalSupported } from './utils';
@@ -40,14 +40,35 @@ interface FeedbackFormProviderProps {
   styles?: FeedbackFormStyles;
 }
 
+interface FeedbackFormProviderState {
+  isVisible: boolean;
+  backgroundOpacity: Animated.Value;
+}
+
 class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
-  public state = {
+  public state: FeedbackFormProviderState = {
     isVisible: false,
+    backgroundOpacity: new Animated.Value(0),
   };
 
   public constructor(props: FeedbackFormProviderProps) {
     super(props);
     FeedbackFormManager.initialize(this._setVisibilityFunction);
+  }
+
+  /**
+   * Animates the background opacity when the modal is shown.
+   */
+  public componentDidUpdate(_prevProps: any, prevState: FeedbackFormProviderState): void {
+    if (!prevState.isVisible && this.state.isVisible) {
+      Animated.timing(this.state.backgroundOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else if (prevState.isVisible && !this.state.isVisible) {
+      this.state.backgroundOpacity.setValue(0);
+    }
   }
 
   /**
@@ -59,8 +80,12 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
       return <>{this.props.children}</>;
     }
 
-    const { isVisible } = this.state;
-    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
+    const { isVisible, backgroundOpacity } = this.state;
+
+    const backgroundColor = backgroundOpacity.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.9)'],
+    });
 
     // Wrapping the `Modal` component in a `View` component is necessary to avoid
     // issues like https://github.com/software-mansion/react-native-reanimated/issues/6035
@@ -68,10 +93,10 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
       <>
         {this.props.children}
         {isVisible && (
-          <View>
+          <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="slide" onRequestClose={this._handleClose} testID="feedback-form-modal">
-              <View style={styles.modalBackground}>
-                <View style={styles.modalSheetContainer}>
+              <View style={modalBackground}>
+                <View style={modalSheetContainer}>
                   <FeedbackForm {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
@@ -79,7 +104,7 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
                 </View>
               </View>
             </Modal>
-          </View>
+          </Animated.View>
         )}
       </>
     );
