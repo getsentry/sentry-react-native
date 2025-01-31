@@ -1,6 +1,6 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import { Modal, SafeAreaView, View } from 'react-native';
+import { Modal, View } from 'react-native';
 
 import { FeedbackForm } from './FeedbackForm';
 import defaultStyles from './FeedbackForm.styles';
@@ -70,14 +70,14 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
         {isVisible && (
           <View>
             <Modal visible={isVisible} transparent animationType="slide" onRequestClose={this._handleClose} testID="feedback-form-modal">
-              <SafeAreaView style={styles.modalBackground}>
+              <View style={styles.modalBackground}>
                 <View style={styles.modalSheetContainer}>
                   <FeedbackForm {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
                     />
                 </View>
-              </SafeAreaView>
+              </View>
             </Modal>
           </View>
         )}
