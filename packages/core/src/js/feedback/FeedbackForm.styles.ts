@@ -77,24 +77,6 @@ const defaultStyles: FeedbackFormStyles = {
     width: 40,
     height: 40,
   },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-  },
-  modalSheetContainer: {
-    backgroundColor: BACKROUND_COLOR,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    overflow: 'hidden',
-    alignSelf: 'stretch',
-    height: '92%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
 };
 
 export default defaultStyles;
