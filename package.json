@@ -45,6 +45,7 @@
     "packages/core",
     "dev-packages/e2e-tests",
     "dev-packages/type-check",
+    "dev-packages/utils",
     "samples/react-native",
     "samples/react-native-macos",
     "samples/expo",
