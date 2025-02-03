@@ -31,7 +31,9 @@ exports[`FeedbackForm matches the snapshot with custom styles 1`] = `
       ]
     }
   >
-    <RCTScrollView>
+    <RCTScrollView
+      bounces={false}
+    >
       <View>
         <View
           accessibilityState={
@@ -299,7 +301,9 @@ exports[`FeedbackForm matches the snapshot with custom styles and screenshot but
       ]
     }
   >
-    <RCTScrollView>
+    <RCTScrollView
+      bounces={false}
+    >
       <View>
         <View
           accessibilityState={
@@ -617,7 +621,9 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
       ]
     }
   >
-    <RCTScrollView>
+    <RCTScrollView
+      bounces={false}
+    >
       <View>
         <View
           accessibilityState={
@@ -916,7 +922,9 @@ exports[`FeedbackForm matches the snapshot with custom texts and screenshot butt
       ]
     }
   >
-    <RCTScrollView>
+    <RCTScrollView
+      bounces={false}
+    >
       <View>
         <View
           accessibilityState={
@@ -1265,7 +1273,9 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
       ]
     }
   >
-    <RCTScrollView>
+    <RCTScrollView
+      bounces={false}
+    >
       <View>
         <View
           accessibilityState={
@@ -1564,7 +1574,9 @@ exports[`FeedbackForm matches the snapshot with default configuration and screen
       ]
     }
   >
-    <RCTScrollView>
+    <RCTScrollView
+      bounces={false}
+    >
       <View>
         <View
           accessibilityState={
