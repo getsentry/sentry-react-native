@@ -1,3 +1,5 @@
+import type { ViewStyle } from 'react-native';
+
 import type { FeedbackFormStyles } from './FeedbackForm.types';
 
 const PURPLE = 'rgba(88, 74, 192, 1)';
@@ -103,10 +105,33 @@ const defaultStyles: FeedbackFormStyles = {
     width: 40,
     height: 40,
   },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-  },
+};
+
+export const modalWrapper: ViewStyle = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+};
+
+export const modalBackground: ViewStyle = {
+  flex: 1,
+  justifyContent: 'flex-end',
+};
+
+export const modalSheetContainer: ViewStyle = {
+  backgroundColor: '#ffffff',
+  borderTopLeftRadius: 16,
+  borderTopRightRadius: 16,
+  overflow: 'hidden',
+  alignSelf: 'stretch',
+  height: '92%',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: -3 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 5,
 };
 
 export default defaultStyles;
