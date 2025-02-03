@@ -194,10 +194,6 @@ final class RNSentryStart {
           return breadcrumb;
         });
 
-    // React native internally throws a JavascriptException.
-    // we want to ignore it on the native side to avoid sending it twice.
-    options.addIgnoredExceptionForType(JavascriptException.class);
-
     if (rnOptions.hasKey("enableNativeCrashHandling")
         && !rnOptions.getBoolean("enableNativeCrashHandling")) {
       final List<Integration> integrations = options.getIntegrations();
@@ -224,6 +220,10 @@ final class RNSentryStart {
     options.setTracesSampleRate(null);
     options.setTracesSampler(null);
     options.setEnableTracing(false);
+
+    // React native internally throws a JavascriptException.
+    // we want to ignore it on the native side to avoid sending it twice.
+    options.addIgnoredExceptionForType(JavascriptException.class);
   }
 
   /**
@@ -234,14 +234,6 @@ final class RNSentryStart {
     BeforeSendCallback userBeforeSend = options.getBeforeSend();
     options.setBeforeSend(
         (event, hint) -> {
-          // Unhandled JS Exception are processed by the SDK on JS layer
-          // To avoid duplicates we drop them in the native SDKs
-          if (event.getExceptions() != null && !event.getExceptions().isEmpty()) {
-            String exType = event.getExceptions().get(0).getType();
-            if (exType != null && exType.contains("Unhandled JS Exception")) {
-              return null; // Skip sending this event
-            }
-          }
           setEventOriginTag(event);
           addPackages(event, options.getSdkVersion());
           if (userBeforeSend != null) {

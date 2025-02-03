@@ -63,9 +63,9 @@ class RNSentryStartTest {
     }
 
     @Test
-    fun `the JavascriptException is added to the ignoredExceptionsForType list on initialisation`() {
+    fun `the JavascriptException is added to the ignoredExceptionsForType list on with react defaults`() {
         val actualOptions = SentryAndroidOptions()
-        RNSentryStart.getSentryAndroidOptions(actualOptions, JavaOnlyMap.of(), activity, logger)
+        RNSentryStart.updateWithReactDefaults(actualOptions)
         assertTrue(actualOptions.ignoredExceptionsForType.contains(JavascriptException::class.java))
     }
 
