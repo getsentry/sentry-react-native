@@ -1,6 +1,6 @@
 import type { ViewStyle } from 'react-native';
 
-import type { FeedbackFormStyles } from './FeedbackForm.types';
+import type { FeedbackButtonStyles, FeedbackFormStyles } from './FeedbackForm.types';
 
 const PURPLE = 'rgba(88, 74, 192, 1)';
 const FORGROUND_COLOR = '#2b2233';
@@ -71,6 +71,17 @@ const defaultStyles: FeedbackFormStyles = {
     color: FORGROUND_COLOR,
     fontSize: 16,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  sentryLogo: {
+    width: 40,
+    height: 40,
+  },
+};
+
+export const defaultButtonStyles: FeedbackButtonStyles = {
   triggerButton: {
     position: 'absolute',
     bottom: 30,
@@ -96,14 +107,6 @@ const defaultStyles: FeedbackFormStyles = {
     height: 24,
     padding: 2,
     marginEnd: 6,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    width: '100%',
-  },
-  sentryLogo: {
-    width: 40,
-    height: 40,
   },
 };
 

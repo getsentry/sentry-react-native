@@ -2,9 +2,9 @@
 import * as React from 'react';
 import { Image, Text, TouchableOpacity } from 'react-native';
 
-import { defaultConfiguration } from './defaults';
-import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormStyles, FeedbackTextConfiguration } from './FeedbackForm.types';
+import { defaultButtonConfiguration } from './defaults';
+import { defaultButtonStyles } from './FeedbackForm.styles';
+import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackForm.types';
 import { showFeedbackForm } from './FeedbackFormManager';
 import { feedbackIcon } from './icons';
 
@@ -12,13 +12,13 @@ import { feedbackIcon } from './icons';
  * @beta
  * Implements a feedback button that opens the FeedbackForm.
  */
-export class FeedbackButton extends React.Component<FeedbackFormProps> {
+export class FeedbackButton extends React.Component<FeedbackButtonProps> {
   /**
    *
    */
   public render(): React.ReactNode {
-    const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
-    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
+    const text: FeedbackButtonTextConfiguration = { ...defaultButtonConfiguration, ...this.props };
+    const styles: FeedbackButtonStyles = { ...defaultButtonStyles, ...this.props.styles };
 
     return (
       <TouchableOpacity

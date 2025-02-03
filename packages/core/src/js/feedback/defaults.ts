@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 
-import type { FeedbackFormProps } from './FeedbackForm.types';
+import type { FeedbackButtonProps, FeedbackFormProps } from './FeedbackForm.types';
 
 const FORM_TITLE = 'Report a Bug';
 const NAME_PLACEHOLDER = 'Your Name';
@@ -64,10 +64,6 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   enableScreenshot: false,
 
   // FeedbackTextConfiguration
-  triggerLabel: TRIGGER_LABEL,
-  triggerAriaLabel: '',
-
-  // FeedbackTextConfiguration
   cancelButtonLabel: CANCEL_BUTTON_LABEL,
   emailLabel: EMAIL_LABEL,
   emailPlaceholder: EMAIL_PLACEHOLDER,
@@ -85,4 +81,9 @@ export const defaultConfiguration: Partial<FeedbackFormProps> = {
   addScreenshotButtonLabel: ADD_SCREENSHOT_LABEL,
   removeScreenshotButtonLabel: REMOVE_SCREENSHOT_LABEL,
   genericError: GENERIC_ERROR_TEXT,
+};
+
+export const defaultButtonConfiguration: Partial<FeedbackButtonProps> = {
+  triggerLabel: TRIGGER_LABEL,
+  triggerAriaLabel: '',
 };
