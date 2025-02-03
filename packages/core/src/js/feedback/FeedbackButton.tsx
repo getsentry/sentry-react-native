@@ -10,7 +10,7 @@ import { feedbackIcon } from './icons';
 
 /**
  * @beta
- * Implements a feedback button that opens the feedback form screen to Sentry using Sentry.captureFeedback.
+ * Implements a feedback button that opens the FeedbackForm.
  */
 export class FeedbackButton extends React.Component<FeedbackFormProps> {
   /**
