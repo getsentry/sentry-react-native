@@ -82,20 +82,6 @@ final class RNSentryStart {
       @NotNull ReadableMap rnOptions,
       @Nullable Activity currentActivity,
       ILogger logger) {
-    @Nullable SdkVersion sdkVersion = options.getSdkVersion();
-    if (sdkVersion == null) {
-      sdkVersion = new SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
-    } else {
-      sdkVersion.setName(RNSentryVersion.ANDROID_SDK_NAME);
-    }
-    sdkVersion.addPackage(
-        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
-        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
-
-    options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
-    options.setNativeSdkName(RNSentryVersion.NATIVE_SDK_NAME);
-    options.setSdkVersion(sdkVersion);
-
     if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
       options.setDebug(true);
     }
@@ -216,6 +202,20 @@ final class RNSentryStart {
    * users during manual native initialization.
    */
   static void updateWithReactDefaults(@NotNull SentryAndroidOptions options) {
+    @Nullable SdkVersion sdkVersion = options.getSdkVersion();
+    if (sdkVersion == null) {
+      sdkVersion = new SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
+    } else {
+      sdkVersion.setName(RNSentryVersion.ANDROID_SDK_NAME);
+    }
+    sdkVersion.addPackage(
+            RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
+            RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
+
+    options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+    options.setNativeSdkName(RNSentryVersion.NATIVE_SDK_NAME);
+    options.setSdkVersion(sdkVersion);
+
     // Tracing is only enabled in JS to avoid duplicate navigation spans
     options.setTracesSampleRate(null);
     options.setTracesSampler(null);
