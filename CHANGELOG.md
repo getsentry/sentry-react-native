@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Load `optionsFile` into the JS bundle during Metro bundle process ([#4476](https://github.com/getsentry/sentry-react-native/pull/4476)) 
+
 ### Fixes
 
 - Add mechanism field to unhandled rejection errors ([#4457](https://github.com/getsentry/sentry-react-native/pull/4457))
