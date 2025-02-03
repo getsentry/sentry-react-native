@@ -40,7 +40,7 @@ class RNSentryStartTest {
                 "http://localhost:8969/teststream",
             )
         val actualOptions = SentryAndroidOptions()
-        RNSentryStart.getSentryAndroidOptions(actualOptions, options, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(actualOptions, options, logger)
         assert(actualOptions.isEnableSpotlight)
         assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
     }
@@ -49,7 +49,7 @@ class RNSentryStartTest {
     fun `when the spotlight url is passed, the spotlight is enabled for the given url`() {
         val options = JavaOnlyMap.of("spotlight", "http://localhost:8969/teststream")
         val actualOptions = SentryAndroidOptions()
-        RNSentryStart.getSentryAndroidOptions(actualOptions, options, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(actualOptions, options, logger)
         assert(actualOptions.isEnableSpotlight)
         assertEquals("http://localhost:8969/teststream", actualOptions.spotlightConnectionUrl)
     }
@@ -58,14 +58,14 @@ class RNSentryStartTest {
     fun `when the spotlight option is disabled, the spotlight SentryAndroidOption is set to false`() {
         val options = JavaOnlyMap.of("spotlight", false)
         val actualOptions = SentryAndroidOptions()
-        RNSentryStart.getSentryAndroidOptions(actualOptions, options, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(actualOptions, options, logger)
         assertFalse(actualOptions.isEnableSpotlight)
     }
 
     @Test
     fun `the JavascriptException is added to the ignoredExceptionsForType list on with react defaults`() {
         val actualOptions = SentryAndroidOptions()
-        RNSentryStart.updateWithReactDefaults(actualOptions)
+        RNSentryStart.updateWithReactDefaults(actualOptions, activity)
         assertTrue(actualOptions.ignoredExceptionsForType.contains(JavascriptException::class.java))
     }
 
@@ -79,7 +79,7 @@ class RNSentryStartTest {
                 "devServerUrl",
                 "http://localhost:8081",
             )
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         val breadcrumb =
             Breadcrumb().apply {
@@ -103,7 +103,7 @@ class RNSentryStartTest {
                 "devServerUrl",
                 mockDevServerUrl,
             )
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         val breadcrumb =
             Breadcrumb().apply {
@@ -126,7 +126,7 @@ class RNSentryStartTest {
                 "devServerUrl",
                 "http://localhost:8081",
             )
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         val breadcrumb =
             Breadcrumb().apply {
@@ -142,7 +142,7 @@ class RNSentryStartTest {
     @Test
     fun `the breadcrumb is not filtered out when the dev server url and dsn are not passed`() {
         val options = SentryAndroidOptions()
-        RNSentryStart.getSentryAndroidOptions(options, JavaOnlyMap(), activity, logger)
+        RNSentryStart.getSentryAndroidOptions(options, JavaOnlyMap(), logger)
 
         val breadcrumb =
             Breadcrumb().apply {
@@ -159,7 +159,7 @@ class RNSentryStartTest {
     fun `the breadcrumb is not filtered out when the dev server url is not passed and the dsn does not match`() {
         val options = SentryAndroidOptions()
         val rnOptions = JavaOnlyMap.of("dsn", "https://abc@def.ingest.sentry.io/1234567")
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         val breadcrumb =
             Breadcrumb().apply {
@@ -176,7 +176,7 @@ class RNSentryStartTest {
     fun `the breadcrumb is not filtered out when the dev server url does not match and the dsn is not passed`() {
         val options = SentryAndroidOptions()
         val rnOptions = JavaOnlyMap.of("devServerUrl", "http://localhost:8081")
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, activity, logger)
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         val breadcrumb =
             Breadcrumb().apply {
