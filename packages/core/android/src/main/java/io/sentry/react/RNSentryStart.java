@@ -57,7 +57,7 @@ final class RNSentryStart {
         options -> getSentryAndroidOptions(options, rnOptions, logger);
     RNSentryCompositeOptionsConfiguration compositeConfiguration =
         new RNSentryCompositeOptionsConfiguration(
-            defaults, rnConfigurationOptions, configuration, RNSentryStart::updateWithReactFinals);
+            rnConfigurationOptions, defaults, configuration, RNSentryStart::updateWithReactFinals);
     SentryAndroid.init(context, compositeConfiguration);
   }
 
@@ -72,7 +72,7 @@ final class RNSentryStart {
         options -> getSentryAndroidOptions(options, rnOptions, logger);
     RNSentryCompositeOptionsConfiguration compositeConfiguration =
         new RNSentryCompositeOptionsConfiguration(
-            defaults, rnConfigurationOptions, RNSentryStart::updateWithReactFinals);
+            rnConfigurationOptions, defaults, RNSentryStart::updateWithReactFinals);
     SentryAndroid.init(context, compositeConfiguration);
   }
 
