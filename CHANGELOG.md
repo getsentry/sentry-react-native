@@ -13,26 +13,8 @@
 - Send Sentry react-native SDK version in the session replay event (#4450)
 - User Feedback Form Component Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
-  To collect user feedback from inside your application call `Sentry.showFeedbackForm()` or add the `FeedbackForm` component.
-
-  ```jsx
-  import { FeedbackForm } from "@sentry/react-native";
-  ...
-  <FeedbackForm/>
-  ```
-
-### Fixes
-
-- Add mechanism field to unhandled rejection errors ([#4457](https://github.com/getsentry/sentry-react-native/pull/4457))
-- Use proper SDK name for Session Replay tags ([#4428](https://github.com/getsentry/sentry-react-native/pull/4428))
-- Use `makeDsn` from `core` to extract the URL from DSN avoiding unimplemented `URL.protocol` errors ([#4395](https://github.com/getsentry/sentry-react-native/pull/4395))
-
-### Features
-
-- Send Sentry react-native SDK version in the session replay event (#4450)
-- User Feedback Form Component Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
-
-  To collect user feedback from inside your application call `Sentry.showFeedbackForm()` or add the `FeedbackForm` component.
+  To collect user feedback from inside your application call `Sentry.showFeedbackForm()` or add the `FeedbackButton` component.
+  You can also manually integrate the `FeedbackForm` component in your UI.
 
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
@@ -60,9 +42,9 @@
 - Bump CLI from v2.39.1 to v2.41.1 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412), [#4468](https://github.com/getsentry/sentry-react-native/pull/4468), [#4473](https://github.com/getsentry/sentry-react-native/pull/4473))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2411)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.41.1)
-- Bump JavaScript SDK from v8.47.0 to v8.53.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453), [#4480](https://github.com/getsentry/sentry-react-native/pull/4480), [#4491](https://github.com/getsentry/sentry-react-native/pull/4491), [#4496](https://github.com/getsentry/sentry-react-native/pull/4496), [#4497](https://github.com/getsentry/sentry-react-native/pull/4497))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8530)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.53.0)
+- Bump JavaScript SDK from v8.47.0 to v8.52.1 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453), [#4480](https://github.com/getsentry/sentry-react-native/pull/4480), [#4491](https://github.com/getsentry/sentry-react-native/pull/4491), [#4496](https://github.com/getsentry/sentry-react-native/pull/4496))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8521)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.52.1)
 - Bump Android SDK from v7.20.0 to v7.20.1 ([#4467](https://github.com/getsentry/sentry-react-native/pull/4467))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7201)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.0...7.20.1)
