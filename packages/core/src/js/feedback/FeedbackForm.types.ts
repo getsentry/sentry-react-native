@@ -1,15 +1,11 @@
+import type { FeedbackFormData } from '@sentry/core';
 import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
-
-export type Navigation = {
-  navigate: (screen: string, params?: Record<string, unknown>) => void;
-};
 
 /**
  * The props for the feedback form
  */
 export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks {
   styles?: FeedbackFormStyles;
-  navigation?: Navigation;
 }
 
 /**
@@ -47,6 +43,12 @@ export interface FeedbackGeneralConfiguration {
    * Should the name input field be visible? Note: name will still be collected if set via `Sentry.setUser()`
    */
   showName?: boolean;
+
+  /**
+   * This flag determines whether the "Add Screenshot" button is displayed
+   * @default false
+   */
+  enableScreenshot?: boolean;
 
   /**
    * Fill in email/name input fields with Sentry user context if it exists.
@@ -128,6 +130,16 @@ export interface FeedbackTextConfiguration {
   isRequiredLabel?: string;
 
   /**
+   * The label for the button that adds a screenshot and renders the image editor
+   */
+  addScreenshotButtonLabel?: string;
+
+  /**
+   * The label for the button that removes a screenshot and hides the image editor
+   */
+  removeScreenshotButtonLabel?: string;
+
+  /**
    * The title of the error dialog
    */
   errorTitle?: string;
@@ -141,6 +153,11 @@ export interface FeedbackTextConfiguration {
    * The error message when the email is invalid
    */
   emailError?: string;
+
+  /**
+   * Message when there is a generic error
+   */
+  genericError?: string;
 }
 
 /**
@@ -148,9 +165,36 @@ export interface FeedbackTextConfiguration {
  */
 export interface FeedbackCallbacks {
   /**
+   * Callback when form is opened
+   */
+  onFormOpen?: () => void;
+
+  /**
    * Callback when form is closed and not submitted
    */
   onFormClose?: () => void;
+
+  /**
+   * Callback when a screenshot is added
+   */
+  onAddScreenshot?: (attachFile: (filename: string, data: Uint8Array) => void) => void;
+
+  /**
+   * Callback when feedback is successfully submitted
+   *
+   * After this you'll see a SuccessMessage on the screen for a moment.
+   */
+  onSubmitSuccess?: (data: FeedbackFormData) => void;
+
+  /**
+   * Callback when feedback is unsuccessfully submitted
+   */
+  onSubmitError?: (error: Error) => void;
+
+  /**
+   * Callback when the feedback form is submitted successfully, and the SuccessMessage is complete, or dismissed
+   */
+  onFormSubmitted?: () => void;
 }
 
 /**
@@ -169,8 +213,11 @@ export interface FeedbackFormStyles {
   triggerButton?: ViewStyle;
   triggerText?: TextStyle;
   triggerIcon?: ImageStyle;
+  screenshotButton?: ViewStyle;
+  screenshotText?: TextStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
+  modalBackground?: ViewStyle;
 }
 
 /**
@@ -181,4 +228,6 @@ export interface FeedbackFormState {
   name: string;
   email: string;
   description: string;
+  filename?: string;
+  attachment?: string | Uint8Array;
 }

@@ -37,6 +37,8 @@ import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
+import { toByteArray } from 'react-native-quick-base64';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
@@ -104,6 +106,18 @@ Sentry.init({
           ? false
           : true,
       }),
+      Sentry.feedbackIntegration({
+        styles:{
+          submitButton: {
+            backgroundColor: '#6a1b9a',
+            paddingVertical: 15,
+            borderRadius: 5,
+            alignItems: 'center',
+            marginBottom: 10,
+          },
+        },
+        namePlaceholder: 'Fullname',
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -139,6 +153,23 @@ const Stack = isMobileOs
   : createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const handleChooseImage = (attachFile: (filename: string, data: Uint8Array) => void): void => {
+  launchImageLibrary({ mediaType: 'photo', includeBase64: true }, (response) => {
+    if (response.didCancel) {
+      console.log('User cancelled image picker');
+    } else if (response.errorCode) {
+      console.log('ImagePicker Error: ', response.errorMessage);
+    } else if (response.assets && response.assets.length > 0) {
+      const filename = response.assets[0].fileName;
+      const base64String = response.assets[0].base64;
+      const screenShotUint8Array = toByteArray(base64String);
+      if (filename && screenShotUint8Array) {
+        attachFile(filename, screenShotUint8Array);
+      }
+    }
+  });
+};
+
 const ErrorsTabNavigator = Sentry.withProfiler(
   () => {
     return (
@@ -157,7 +188,10 @@ const ErrorsTabNavigator = Sentry.withProfiler(
               {(props) => (
                 <FeedbackForm
                   {...props}
+                  enableScreenshot={true}
+                  onAddScreenshot={handleChooseImage}
                   onFormClose={props.navigation.goBack}
+                  onFormSubmitted={props.navigation.goBack}
                   styles={{
                     submitButton: {
                       backgroundColor: '#6a1b9a',

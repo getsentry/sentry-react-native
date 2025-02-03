@@ -4,9 +4,13 @@ import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
-import type { FeedbackFormProps } from '../../src/js/feedback/FeedbackForm.types';
+import type { FeedbackFormProps, FeedbackFormStyles } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockOnFormClose = jest.fn();
+const mockOnAddScreenshot = jest.fn();
+const mockOnSubmitSuccess = jest.fn();
+const mockOnFormSubmitted = jest.fn();
+const mockOnSubmitError = jest.fn();
 const mockGetUser = jest.fn(() => ({
   email: 'test@example.com',
   name: 'Test User',
@@ -15,6 +19,7 @@ const mockGetUser = jest.fn(() => ({
 jest.spyOn(Alert, 'alert');
 
 jest.mock('@sentry/core', () => ({
+  ...jest.requireActual('@sentry/core'),
   captureFeedback: jest.fn(),
   getCurrentScope: jest.fn(() => ({
     getUser: mockGetUser,
@@ -24,20 +29,71 @@ jest.mock('@sentry/core', () => ({
 
 const defaultProps: FeedbackFormProps = {
   onFormClose: mockOnFormClose,
+  onAddScreenshot: mockOnAddScreenshot,
+  onSubmitSuccess: mockOnSubmitSuccess,
+  onFormSubmitted: mockOnFormSubmitted,
+  onSubmitError: mockOnSubmitError,
+  addScreenshotButtonLabel: 'Add Screenshot',
   formTitle: 'Feedback Form',
-  nameLabel: 'Name',
+  nameLabel: 'Name Label',
   namePlaceholder: 'Name Placeholder',
-  emailLabel: 'Email',
+  emailLabel: 'Email Label',
   emailPlaceholder: 'Email Placeholder',
-  messageLabel: 'Description',
-  messagePlaceholder: 'Description Placeholder',
-  submitButtonLabel: 'Submit',
-  cancelButtonLabel: 'Cancel',
-  isRequiredLabel: '(required)',
+  messageLabel: 'Message Label',
+  messagePlaceholder: 'Message Placeholder',
+  submitButtonLabel: 'Submit Button Label',
+  cancelButtonLabel: 'Cancel Button Label',
+  isRequiredLabel: '(is required label)',
   errorTitle: 'Error',
   formError: 'Please fill out all required fields.',
   emailError: 'The email address is not valid.',
   successMessageText: 'Feedback success',
+  genericError: 'Generic error',
+};
+
+const customStyles: FeedbackFormStyles = {
+  container: {
+    backgroundColor: '#ffffff',
+  },
+  title: {
+    fontSize: 20,
+    color: '#ff0000',
+  },
+  label: {
+    fontSize: 15,
+    color: '#00ff00',
+  },
+  input: {
+    height: 50,
+    borderColor: '#0000ff',
+    fontSize: 13,
+    color: '#000000',
+  },
+  textArea: {
+    height: 50,
+    color: '#00ff00',
+  },
+  submitButton: {
+    backgroundColor: '#ffff00',
+  },
+  submitText: {
+    color: '#ff0000',
+    fontSize: 12,
+  },
+  cancelButton: {
+    paddingVertical: 10,
+  },
+  cancelText: {
+    color: '#ff0000',
+    fontSize: 10,
+  },
+  screenshotButton: {
+    backgroundColor: '#00ff00',
+  },
+  screenshotText: {
+    color: '#0000ff',
+    fontSize: 13,
+  },
 };
 
 describe('FeedbackForm', () => {
@@ -45,8 +101,40 @@ describe('FeedbackForm', () => {
     jest.clearAllMocks();
   });
 
+  it('matches the snapshot with default configuration', () => {
+    const { toJSON } = render(<FeedbackForm/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom texts', () => {
+    const { toJSON } = render(<FeedbackForm {...defaultProps}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom styles', () => {
+    const customStyleProps = {styles: customStyles};
+    const { toJSON } = render(<FeedbackForm {...customStyleProps}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with default configuration and screenshot button', () => {
+    const { toJSON } = render(<FeedbackForm enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom texts and screenshot button', () => {
+    const { toJSON } = render(<FeedbackForm {...defaultProps} enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('matches the snapshot with custom styles and screenshot button', () => {
+    const customStyleProps = {styles: customStyles};
+    const { toJSON } = render(<FeedbackForm {...customStyleProps} enableScreenshot={true}/>);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders correctly', () => {
-    const { getByPlaceholderText, getByText, getByTestId } = render(<FeedbackForm {...defaultProps} />);
+    const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<FeedbackForm {...defaultProps} />);
 
     expect(getByText(defaultProps.formTitle)).toBeTruthy();
     expect(getByTestId('sentry-logo')).toBeTruthy(); // default showBranding is true
@@ -56,8 +144,15 @@ describe('FeedbackForm', () => {
     expect(getByPlaceholderText(defaultProps.emailPlaceholder)).toBeTruthy();
     expect(getByText(`${defaultProps.messageLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
+    expect(queryByText(defaultProps.addScreenshotButtonLabel)).toBeNull(); // default false
     expect(getByText(defaultProps.submitButtonLabel)).toBeTruthy();
     expect(getByText(defaultProps.cancelButtonLabel)).toBeTruthy();
+  });
+
+  it('renders attachment button when the enableScreenshot is true', () => {
+    const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
+
+    expect(getByText(defaultProps.addScreenshotButtonLabel)).toBeTruthy();
   });
 
   it('does not render the sentry logo when showBranding is false', () => {
@@ -126,7 +221,7 @@ describe('FeedbackForm', () => {
         message: 'This is a feedback message.',
         name: 'John Doe',
         email: 'john.doe@example.com',
-      });
+      }, undefined);
     });
   });
 
@@ -144,7 +239,11 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('calls onFormClose when the form is submitted successfully', async () => {
+  it('shows an error message when there is a an error in captureFeedback', async () => {
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Test error');
+    });
+
     const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
@@ -154,7 +253,63 @@ describe('FeedbackForm', () => {
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(mockOnFormClose).toHaveBeenCalled();
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.genericError);
+    });
+  });
+
+  it('calls onSubmitError when there is an error', async () => {
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Test error');
+    });
+
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnSubmitError).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onSubmitSuccess when the form is submitted successfully', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnSubmitSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onFormSubmitted when the form is submitted successfully', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnFormSubmitted).toHaveBeenCalled();
+    });
+  });
+
+  it('calls onAddScreenshot when the screenshot button is pressed', async () => {
+    const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
+
+    fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnAddScreenshot).toHaveBeenCalled();
     });
   });
 

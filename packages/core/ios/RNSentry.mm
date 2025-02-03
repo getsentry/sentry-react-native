@@ -49,6 +49,8 @@
 #    import "RNSentryRNSScreen.h"
 #endif
 
+#import "RNSentryVersion.h"
+
 @interface
 SentrySDK (RNSentry)
 
@@ -59,8 +61,6 @@ SentrySDK (RNSentry)
 @end
 
 static bool hasFetchedAppStart;
-
-static NSString *const nativeSdkName = @"sentry.cocoa.react-native";
 
 @implementation RNSentry {
     bool sentHybridSdkDidBecomeActive;
@@ -78,6 +78,14 @@ static NSString *const nativeSdkName = @"sentry.cocoa.react-native";
     return YES;
 }
 
+- (instancetype)init
+{
+    if (self = [super init]) {
+        _timeToDisplay = [[RNSentryTimeToDisplay alloc] init];
+    }
+    return self;
+}
+
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(initNativeSdk
@@ -93,7 +101,9 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
-    [PrivateSentrySDKOnly setSdkName:nativeSdkName andVersionString:sdkVersion];
+    [PrivateSentrySDKOnly setSdkName:NATIVE_SDK_NAME andVersionString:sdkVersion];
+    [PrivateSentrySDKOnly addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
+                                version:REACT_NATIVE_SDK_PACKAGE_VERSION];
 
     [SentrySDK startWithOptions:sentryOptions];
 
@@ -149,8 +159,6 @@ RCT_EXPORT_METHOD(initNativeSdk
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
-
-    _timeToDisplay = [[RNSentryTimeToDisplay alloc] init];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [RNSentryReplay updateOptions:mutableOptions];
@@ -236,7 +244,7 @@ RCT_EXPORT_METHOD(initNativeSdk
 
         // If the event is from react native, it gets set
         // there and we do not handle it here.
-        if ([sdkName isEqual:nativeSdkName]) {
+        if ([sdkName isEqual:NATIVE_SDK_NAME]) {
             [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
         }
     }

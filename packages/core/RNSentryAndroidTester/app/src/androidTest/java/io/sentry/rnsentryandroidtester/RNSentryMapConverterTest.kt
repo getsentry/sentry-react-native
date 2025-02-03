@@ -1,24 +1,23 @@
 package io.sentry.rnsentryandroidtester
 
+import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.facebook.react.bridge.Arguments
 import com.facebook.soloader.SoLoader
 import io.sentry.react.RNSentryMapConverter
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import android.content.Context;
-import org.junit.Before
 import java.math.BigDecimal
 import java.math.BigInteger
 
 class Unknown
 
-
 @RunWith(AndroidJUnit4::class)
 class MapConverterTest {
-
     @Before
     fun setUp() {
         val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -103,7 +102,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithUnknownValueKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("unknown" to Unknown()))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putNull("unknown")
         assertEquals(expectedMap, actualMap)
     }
@@ -111,7 +110,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithNullKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("null" to null))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putNull("null")
         assertEquals(expectedMap, actualMap)
     }
@@ -119,7 +118,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithBooleanKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("boolean" to true))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putBoolean("boolean", true)
         assertEquals(expectedMap, actualMap)
     }
@@ -127,7 +126,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithDoubleKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("double" to Double.MAX_VALUE))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putDouble("double", Double.MAX_VALUE)
         assertEquals(expectedMap, actualMap)
     }
@@ -135,7 +134,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithIntegerKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("integer" to Integer.MAX_VALUE))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putInt("integer", Integer.MAX_VALUE)
         assertEquals(expectedMap, actualMap)
     }
@@ -143,7 +142,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithByteKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("byte" to Byte.MAX_VALUE))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putInt("byte", Byte.MAX_VALUE.toInt())
         assertEquals(expectedMap, actualMap)
     }
@@ -151,7 +150,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithShortKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("short" to Short.MAX_VALUE))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putInt("short", Short.MAX_VALUE.toInt())
         assertEquals(expectedMap, actualMap)
     }
@@ -159,7 +158,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithFloatKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("float" to Float.MAX_VALUE))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putDouble("float", Float.MAX_VALUE.toDouble())
         assertEquals(expectedMap, actualMap)
     }
@@ -167,7 +166,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithLongKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("long" to Long.MAX_VALUE))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putDouble("long", Long.MAX_VALUE.toDouble())
         assertEquals(expectedMap, actualMap)
     }
@@ -175,7 +174,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithInBigDecimalKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("big_decimal" to BigDecimal.TEN))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putDouble("big_decimal", BigDecimal.TEN.toDouble())
         assertEquals(expectedMap, actualMap)
     }
@@ -183,7 +182,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithBigIntKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("big_int" to BigInteger.TEN))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putDouble("big_int", BigInteger.TEN.toDouble())
         assertEquals(expectedMap, actualMap)
     }
@@ -191,7 +190,7 @@ class MapConverterTest {
     @Test
     fun convertsMapWithStringKey() {
         val actualMap = RNSentryMapConverter.convertToWritable(mapOf("string" to "string"))
-        val expectedMap = Arguments.createMap();
+        val expectedMap = Arguments.createMap()
         expectedMap.putString("string", "string")
         assertEquals(expectedMap, actualMap)
     }
@@ -304,26 +303,32 @@ class MapConverterTest {
 
     @Test
     fun convertsComplexMapCorrectly() {
-        val actual = RNSentryMapConverter.convertToWritable(mapOf(
-            "integer" to Integer.MAX_VALUE,
-            "string" to "string1",
-            "map" to mapOf(
-                "integer" to Integer.MAX_VALUE,
-                "string" to "string2",
-                "map" to mapOf(
-                    "integer" to Integer.MAX_VALUE,
-                    "string" to "string3"
-                )
-            ),
-            "list" to listOf(
-                Integer.MAX_VALUE,
+        val actual =
+            RNSentryMapConverter.convertToWritable(
                 mapOf(
                     "integer" to Integer.MAX_VALUE,
-                    "string" to "string4",
+                    "string" to "string1",
+                    "map" to
+                        mapOf(
+                            "integer" to Integer.MAX_VALUE,
+                            "string" to "string2",
+                            "map" to
+                                mapOf(
+                                    "integer" to Integer.MAX_VALUE,
+                                    "string" to "string3",
+                                ),
+                        ),
+                    "list" to
+                        listOf(
+                            Integer.MAX_VALUE,
+                            mapOf(
+                                "integer" to Integer.MAX_VALUE,
+                                "string" to "string4",
+                            ),
+                            "string5",
+                        ),
                 ),
-                "string5",
-            ),
-        ))
+            )
 
         val expectedMap1 = Arguments.createMap()
         val expectedMap2 = Arguments.createMap()

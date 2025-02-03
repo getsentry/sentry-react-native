@@ -321,7 +321,7 @@ describe('Tests the SDK functionality', () => {
       expect(result).toBeNull();
     });
 
-    it('should filters out dsn breadcrumbs', () => {
+    it('should filter out dsn breadcrumbs', () => {
       (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
 
       const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
@@ -345,21 +345,63 @@ describe('Tests the SDK functionality', () => {
       expect(result).toBeNull();
     });
 
-    it('should keep breadcrumbs matching dsn if the url parsing fails for dsn', () => {
+    it('should filter out dsn breadcrumbs that the ports match', () => {
       (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
 
       const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
         return breadcrumb;
       };
 
-      // Mock the URL constructor to throw an exception for this test case
-      const originalURL = (global as any).URL;
-      jest.spyOn(global as any, 'URL').mockImplementationOnce(() => {
-        throw new Error('Failed to parse DSN URL');
-      });
+      const passedOptions = {
+        dsn: 'https://sentry@selfhosted.app.server:8181/1234567',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'https://selfhosted.app.server:8181/api' },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toBeNull();
+    });
+
+    it('should keep breadcrumbs if the ports do not match', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
 
       const passedOptions = {
-        dsn: 'https://abc@def.ingest.sentry.io/1234567',
+        dsn: 'https://sentry@selfhosted.app.server:8181/1234567',
+        beforeBreadcrumb: mockBeforeBreadcrumb,
+      };
+
+      init(passedOptions);
+
+      const breadcrumb: Breadcrumb = {
+        type: 'http',
+        data: { url: 'https://selfhosted.app.server:8080/api' },
+      };
+
+      const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
+
+      expect(result).toEqual(breadcrumb);
+    });
+
+    it('should keep breadcrumbs if the url parsing fails for dsn', () => {
+      (getDevServer as jest.Mock).mockReturnValue({ url: 'http://localhost:8081' });
+
+      const mockBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint) => {
+        return breadcrumb;
+      };
+
+      const passedOptions = {
+        dsn: 'invalid-dsn',
         beforeBreadcrumb: mockBeforeBreadcrumb,
       };
 
@@ -373,9 +415,6 @@ describe('Tests the SDK functionality', () => {
       const result = usedOptions()?.beforeBreadcrumb!(breadcrumb);
 
       expect(result).toEqual(breadcrumb);
-
-      // Restore the original URL constructor
-      (global as any).URL = originalURL;
     });
 
     it('should keep non dev server or dsn breadcrumbs', () => {

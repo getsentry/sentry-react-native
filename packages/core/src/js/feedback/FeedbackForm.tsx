@@ -19,59 +19,8 @@ import {
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration, Navigation } from './FeedbackForm.types';
-import { feedbackIcon }  from './icons';
-
-let feedbackFormHandler: (() => void) | null = null;
-
-const setFeedbackFormHandler = (handler: () => void): void => {
-  feedbackFormHandler = handler;
-};
-
-const clearFeedbackFormHandler = (): void => {
-  feedbackFormHandler = null;
-};
-
-/**
- * @beta
- * Shows the feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
- * @param navigation The navigation object from React Navigation
- */
-export const showFeedbackForm = (navigation: Navigation): void => {
-  setFeedbackFormHandler(() => {
-    navigation?.navigate?.('FeedbackForm');
-  });
-  if (feedbackFormHandler) {
-    feedbackFormHandler();
-  } else {
-    logger.error('FeedbackForm handler is not set. Please ensure it is initialized.');
-  }
-};
-
-/**
- * @beta
- * Implements a feedback button that opens the feedback form screen to Sentry using Sentry.captureFeedback.
- */
-export class FeedbackButton extends React.Component<FeedbackFormProps> {
-  /**
-   *
-   */
-  public render(): React.ReactNode {
-    const text: FeedbackTextConfiguration = { ...defaultConfiguration, ...this.props };
-    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
-
-    return (
-      <TouchableOpacity
-        style={styles.triggerButton}
-        onPress={() => showFeedbackForm(this.props?.navigation)}
-        accessibilityLabel={text.triggerAriaLabel}
-      >
-        <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon}/>
-        <Text style={styles.triggerText}>{text.triggerLabel}</Text>
-      </TouchableOpacity>
-    );
-  }
-}
+import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
+import { isValidEmail } from './utils';
 
 /**
  * @beta
@@ -100,16 +49,9 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     };
   }
 
-  /**
-   * Clear the handler when the component unmounts
-   */
-  public componentWillUnmount(): void {
-    clearFeedbackFormHandler();
-  }
-
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { onFormClose } = this.props;
+    const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
     const text: FeedbackTextConfiguration = this.props;
 
     const trimmedName = name?.trim();
@@ -121,10 +63,19 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       return;
     }
 
-    if (this.props.shouldValidateEmail && (this.props.isEmailRequired || trimmedEmail.length > 0) && !this._isValidEmail(trimmedEmail)) {
+    if (this.props.shouldValidateEmail && (this.props.isEmailRequired || trimmedEmail.length > 0) && !isValidEmail(trimmedEmail)) {
       Alert.alert(text.errorTitle, text.emailError);
       return;
     }
+
+    const attachments = this.state.filename && this.state.attachment
+    ? [
+        {
+          filename: this.state.filename,
+          data: this.state.attachment,
+        },
+      ]
+    : undefined;
 
     const eventId = lastEventId();
     const userFeedback: SendFeedbackParams = {
@@ -134,12 +85,30 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       associatedEventId: eventId,
     };
 
-    onFormClose();
-    this.setState({ isVisible: false });
-
-    captureFeedback(userFeedback);
-    Alert.alert(text.successMessageText);
+    try {
+      this.setState({ isVisible: false });
+      captureFeedback(userFeedback, attachments ? { attachments } : undefined);
+      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
+      Alert.alert(text.successMessageText);
+      onFormSubmitted();
+    } catch (error) {
+      const errorString = `Feedback form submission failed: ${error}`;
+      onSubmitError(new Error(errorString));
+      Alert.alert(text.errorTitle, text.genericError);
+      logger.error(`Feedback form submission failed: ${error}`);
+    }
   };
+
+  public onScreenshotButtonPress: () => void = () => {
+    if (!this.state.filename && !this.state.attachment) {
+      const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
+      onAddScreenshot((filename: string, attachement: Uint8Array) => {
+        this.setState({ filename, attachment: attachement });
+      });
+    } else {
+      this.setState({ filename: undefined, attachment: undefined });
+    }
+  }
 
   /**
    * Renders the feedback form screen.
@@ -218,7 +187,15 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 onChangeText={(value) => this.setState({ description: value })}
                 multiline
               />
-
+              {config.enableScreenshot && (
+                <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                  <Text style={styles.screenshotText}>
+                  {!this.state.filename && !this.state.attachment
+                    ? text.addScreenshotButtonLabel
+                    : text.removeScreenshotButtonLabel}
+                  </Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
                 <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
               </TouchableOpacity>
@@ -233,9 +210,4 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     </SafeAreaView>
     );
   }
-
-  private _isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    return emailRegex.test(email);
-  };
 }

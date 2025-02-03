@@ -7,6 +7,7 @@ replace({
   files: [
     'packages/core/src/js/version.ts',
     'packages/core/android/src/main/java/io/sentry/react/RNSentryVersion.java',
+    'packages/core/ios/RNSentryVersion.m',
   ],
   from: /\d+\.\d+.\d+(?:-\w+(?:\.\w+)?)?/g,
   to: pjson.version,
