@@ -13,7 +13,8 @@
 - Send Sentry react-native SDK version in the session replay event (#4450)
 - User Feedback Form Component Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
-  To collect user feedback from inside your application call `Sentry.showFeedbackForm()` or add the `FeedbackForm` component.
+  To collect user feedback from inside your application call `Sentry.showFeedbackForm()` or add the `FeedbackButton` component.
+  You can also manually integrate the `FeedbackForm` component in your UI.
 
   ```jsx
   import { FeedbackForm } from "@sentry/react-native";
