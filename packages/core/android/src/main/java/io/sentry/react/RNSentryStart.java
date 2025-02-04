@@ -37,26 +37,20 @@ final class RNSentryStart {
 
   static void startWithConfiguration(
       @NotNull final Context context,
-      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
-      @Nullable RNSentrySDK.SdkInit sdkInit) {
+      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
     Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
         options -> updateWithReactDefaults(options, null);
     RNSentryCompositeOptionsConfiguration compositeConfiguration =
         new RNSentryCompositeOptionsConfiguration(
             defaults, configuration, RNSentryStart::updateWithReactFinals);
-    if (sdkInit != null) {
-      sdkInit.init(context, compositeConfiguration);
-    } else {
-      SentryAndroid.init(context, compositeConfiguration);
-    }
+    SentryAndroid.init(context, compositeConfiguration);
   }
 
   static void startWithOptions(
       @NotNull final Context context,
       @NotNull final ReadableMap rnOptions,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
-      @NotNull ILogger logger,
-      @Nullable RNSentrySDK.SdkInit sdkInit) {
+      @NotNull ILogger logger) {
     Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
         options -> updateWithReactDefaults(options, null);
     Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
@@ -64,11 +58,7 @@ final class RNSentryStart {
     RNSentryCompositeOptionsConfiguration compositeConfiguration =
         new RNSentryCompositeOptionsConfiguration(
             rnConfigurationOptions, defaults, configuration, RNSentryStart::updateWithReactFinals);
-    if (sdkInit != null) {
-      sdkInit.init(context, compositeConfiguration);
-    } else {
-      SentryAndroid.init(context, compositeConfiguration);
-    }
+    SentryAndroid.init(context, compositeConfiguration);
   }
 
   static void startWithOptions(
