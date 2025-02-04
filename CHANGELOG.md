@@ -38,7 +38,6 @@
 
 ### Features
 
-- Send Sentry react-native SDK version in the session replay event (#4450)
 - Send Sentry React Native SDK version in the Session Replay Events on iOS ([#4450](https://github.com/getsentry/sentry-react-native/pull/4450))
 
 ### Fixes
