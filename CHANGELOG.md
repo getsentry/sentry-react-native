@@ -10,7 +10,6 @@
 
 ### Features
 
-- Send Sentry react-native SDK version in the session replay event (#4450)
 - Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
 
   To enable the plugin add the `enableAndroidGradlePlugin` in the `@sentry/react-native/expo` of the Expo application configuration.
@@ -28,6 +27,19 @@
   ```
 
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.53.0 to v8.54.0 ([#4503](https://github.com/getsentry/sentry-react-native/pull/4503))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8540)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.53.0...8.54.0)
+
+## 6.6.0
+
+### Features
+
+- Send Sentry react-native SDK version in the session replay event (#4450)
+- Send Sentry React Native SDK version in the Session Replay Events on iOS ([#4450](https://github.com/getsentry/sentry-react-native/pull/4450))
 
 ### Fixes
 
@@ -49,12 +61,15 @@
 - Bump CLI from v2.39.1 to v2.41.1 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412), [#4468](https://github.com/getsentry/sentry-react-native/pull/4468), [#4473](https://github.com/getsentry/sentry-react-native/pull/4473))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2411)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.41.1)
-- Bump JavaScript SDK from v8.47.0 to v8.52.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453), [#4480](https://github.com/getsentry/sentry-react-native/pull/4480), [#4491](https://github.com/getsentry/sentry-react-native/pull/4491))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8520)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.52.0)
+- Bump JavaScript SDK from v8.47.0 to v8.53.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453), [#4480](https://github.com/getsentry/sentry-react-native/pull/4480), [#4491](https://github.com/getsentry/sentry-react-native/pull/4491), [#4496](https://github.com/getsentry/sentry-react-native/pull/4496), [#4497](https://github.com/getsentry/sentry-react-native/pull/4497))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8530)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.53.0)
 - Bump Android SDK from v7.20.0 to v7.20.1 ([#4467](https://github.com/getsentry/sentry-react-native/pull/4467))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7201)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.0...7.20.1)
+- Bump Cocoa SDK from v8.43.0 to v8.44.0 ([#4495](https://github.com/getsentry/sentry-react-native/pull/4495))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8440)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.43.0...8.44.0)
 
 ## 6.5.0
 
