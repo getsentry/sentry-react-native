@@ -69,32 +69,32 @@ class RNSentrySDKTest {
 
     @Test
     fun initialisesSuccessfullyWithValidConfigurationAndInvalidJsonFile() {
-        RNSentrySDK.init(context, validConfig, INVALID_OPTIONS, logger, null)
+        RNSentrySDK.init(context, validConfig, INVALID_OPTIONS, logger)
         assertTrue(Sentry.isEnabled())
     }
 
     @Test
     fun initialisesSuccessfullyWithValidConfigurationAndMissingJsonFile() {
-        RNSentrySDK.init(context, validConfig, MISSING, logger, null)
+        RNSentrySDK.init(context, validConfig, MISSING, logger)
         assertTrue(Sentry.isEnabled())
     }
 
     @Test
     fun initialisesSuccessfullyWithValidConfigurationAndErrorInParsingJsonFile() {
-        RNSentrySDK.init(context, validConfig, INVALID_JSON, logger, null)
+        RNSentrySDK.init(context, validConfig, INVALID_JSON, logger)
         assertTrue(Sentry.isEnabled())
     }
 
     @Test
     fun initialisesSuccessfullyWithNoConfigurationAndValidJsonFile() {
-        RNSentrySDK.init(context, emptyConfig, VALID_OPTIONS, logger, null)
+        RNSentrySDK.init(context, emptyConfig, VALID_OPTIONS, logger)
         assertTrue(Sentry.isEnabled())
     }
 
     @Test
     fun failsToInitialiseWithNoConfigurationAndInvalidJsonFile() {
         try {
-            RNSentrySDK.init(context, emptyConfig, INVALID_OPTIONS, logger, null)
+            RNSentrySDK.init(context, emptyConfig, INVALID_OPTIONS, logger)
         } catch (e: Exception) {
             assertEquals(INITIALISATION_ERROR, e.message)
         }
@@ -104,7 +104,7 @@ class RNSentrySDKTest {
     @Test
     fun failsToInitialiseWithInvalidConfigAndInvalidJsonFile() {
         try {
-            RNSentrySDK.init(context, invalidConfig, INVALID_OPTIONS, logger, null)
+            RNSentrySDK.init(context, invalidConfig, INVALID_OPTIONS, logger)
         } catch (e: Exception) {
             assertEquals(INITIALISATION_ERROR, e.message)
         }
@@ -114,7 +114,7 @@ class RNSentrySDKTest {
     @Test
     fun failsToInitialiseWithInvalidConfigAndValidJsonFile() {
         try {
-            RNSentrySDK.init(context, invalidConfig, VALID_OPTIONS, logger, null)
+            RNSentrySDK.init(context, invalidConfig, VALID_OPTIONS, logger)
         } catch (e: Exception) {
             assertEquals(INITIALISATION_ERROR, e.message)
         }
@@ -133,36 +133,30 @@ class RNSentrySDKTest {
 
     @Test
     fun defaultsAndFinalsAreSetWithValidJsonFile() {
-        RNSentrySDK.init(context, emptyConfig, VALID_OPTIONS, logger) { _, config ->
-            val actualOptions = SentryAndroidOptions()
-            config.configure(actualOptions)
-            verifyDefaults(actualOptions)
-            verifyFinals(actualOptions)
-            // options file
-            assert(actualOptions.dsn == "https://abcd@efgh.ingest.sentry.io/123456")
-        }
+        RNSentrySDK.init(context, emptyConfig, VALID_OPTIONS, logger)
+        val actualOptions = Sentry.getCurrentHub().options as SentryAndroidOptions
+        verifyDefaults(actualOptions)
+        verifyFinals(actualOptions)
+        // options file
+        assert(actualOptions.dsn == "https://abcd@efgh.ingest.sentry.io/123456")
     }
 
     @Test
     fun defaultsAndFinalsAreSetWithValidConfiguration() {
-        RNSentrySDK.init(context, validConfig, MISSING, logger) { _, config ->
-            val actualOptions = SentryAndroidOptions()
-            config.configure(actualOptions)
-            verifyDefaults(actualOptions)
-            verifyFinals(actualOptions)
-            // configuration
-            assert(actualOptions.dsn == "https://abcd@efgh.ingest.sentry.io/123456")
-        }
+        RNSentrySDK.init(context, validConfig, MISSING, logger)
+        val actualOptions = Sentry.getCurrentHub().options as SentryAndroidOptions
+        verifyDefaults(actualOptions)
+        verifyFinals(actualOptions)
+        // configuration
+        assert(actualOptions.dsn == "https://abcd@efgh.ingest.sentry.io/123456")
     }
 
     @Test
     fun defaultsOverrideOptionsJsonFile() {
-        RNSentrySDK.init(context, emptyConfig, VALID_OPTIONS, logger) { _, config ->
-            val actualOptions = SentryAndroidOptions()
-            config.configure(actualOptions)
-            assertNull(actualOptions.tracesSampleRate)
-            assertEquals(false, actualOptions.enableTracing)
-        }
+        RNSentrySDK.init(context, emptyConfig, VALID_OPTIONS, logger)
+        val actualOptions = Sentry.getCurrentHub().options as SentryAndroidOptions
+        assertNull(actualOptions.tracesSampleRate)
+        assertEquals(false, actualOptions.enableTracing)
     }
 
     @Test
@@ -173,13 +167,11 @@ class RNSentrySDKTest {
                 options.tracesSampleRate = 0.5
                 options.enableTracing = true
             }
-        RNSentrySDK.init(context, validConfig, MISSING, logger) { _, config ->
-            val actualOptions = SentryAndroidOptions()
-            config.configure(actualOptions)
-            assertEquals(0.5, actualOptions.tracesSampleRate)
-            assertEquals(true, actualOptions.enableTracing)
-            assert(actualOptions.dsn == "https://abcd@efgh.ingest.sentry.io/123456")
-        }
+        RNSentrySDK.init(context, validConfig, MISSING, logger)
+        val actualOptions = Sentry.getCurrentHub().options as SentryAndroidOptions
+        assertEquals(0.5, actualOptions.tracesSampleRate)
+        assertEquals(true, actualOptions.enableTracing)
+        assert(actualOptions.dsn == "https://abcd@efgh.ingest.sentry.io/123456")
     }
 
     private fun verifyDefaults(actualOptions: SentryAndroidOptions) {
