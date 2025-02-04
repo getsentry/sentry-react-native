@@ -8,6 +8,7 @@ import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.SentryAndroidOptions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
 public final class RNSentrySDK {
@@ -20,24 +21,30 @@ public final class RNSentrySDK {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
+  /** Passing a custom SDK initializer is intended for internal testing use only. */
+  interface SdkInit {
+    void init(Context context, Sentry.OptionsConfiguration<SentryAndroidOptions> config);
+  }
+
   static void init(
       @NotNull final Context context,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
       @NotNull String configurationFile,
-      @NotNull ILogger logger) {
+      @NotNull ILogger logger,
+      @Nullable SdkInit sdkInit) {
     try {
       JSONObject jsonObject =
           RNSentryJsonUtils.getOptionsFromConfigurationFile(context, configurationFile, logger);
       if (jsonObject == null) {
-        RNSentryStart.startWithConfiguration(context, configuration);
+        RNSentryStart.startWithConfiguration(context, configuration, sdkInit);
         return;
       }
       ReadableMap rnOptions = RNSentryJsonConverter.convertToWritable(jsonObject);
       if (rnOptions == null) {
-        RNSentryStart.startWithConfiguration(context, configuration);
+        RNSentryStart.startWithConfiguration(context, configuration, sdkInit);
         return;
       }
-      RNSentryStart.startWithOptions(context, rnOptions, configuration, logger);
+      RNSentryStart.startWithOptions(context, rnOptions, configuration, logger, sdkInit);
     } catch (Exception e) {
       logger.log(
           SentryLevel.ERROR, "Failed to start Sentry with options from configuration file.", e);
@@ -54,7 +61,7 @@ public final class RNSentrySDK {
   public static void init(
       @NotNull final Context context,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
-    init(context, configuration, CONFIGURATION_FILE, logger);
+    init(context, configuration, CONFIGURATION_FILE, logger, null);
   }
 
   /**
@@ -63,6 +70,6 @@ public final class RNSentrySDK {
    * @param context Android Context
    */
   public static void init(@NotNull final Context context) {
-    init(context, options -> {}, CONFIGURATION_FILE, logger);
+    init(context, options -> {}, CONFIGURATION_FILE, logger, null);
   }
 }
