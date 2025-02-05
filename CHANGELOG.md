@@ -15,6 +15,7 @@
 - Add experimental version of `init` with optional `OptionsConfiguration<SentryAndroidOptions>` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
 - Add initialization using `sentry.options.json` for Apple platforms ([#4447](https://github.com/getsentry/sentry-react-native/pull/4447))
 - Add initialization using `sentry.options.json` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+- Merge options from file with `Sentry.init` options in JS ([#4510](https://github.com/getsentry/sentry-react-native/pull/4510))
 
 ### Internal
 
