@@ -42,6 +42,7 @@ export function unstable_beforeAssetSerializationPlugin({
   return [...addDebugIdModule(premodules, debugIdModule)];
 }
 
+// TODO: deprecate this and afterwards rename to createSentryDebugIdSerializer
 /**
  * Creates a Metro serializer that adds Debug ID module to the plain bundle.
  * The Debug ID module is a virtual module that provides a debug ID in runtime.
