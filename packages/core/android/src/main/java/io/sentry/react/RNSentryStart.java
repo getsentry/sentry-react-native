@@ -7,8 +7,10 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.JavascriptException;
 import io.sentry.ILogger;
 import io.sentry.Integration;
+import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
+import io.sentry.SentryOptions.BeforeSendCallback;
 import io.sentry.SentryReplayOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AnrIntegration;
@@ -27,40 +29,57 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class RNSentryStart {
+final class RNSentryStart {
 
   private RNSentryStart() {
     throw new AssertionError("Utility class should not be instantiated");
   }
 
-  public static void startWithOptions(
+  static void startWithConfiguration(
+      @NotNull final Context context,
+      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration) {
+    Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
+        options -> updateWithReactDefaults(options, null);
+    RNSentryCompositeOptionsConfiguration compositeConfiguration =
+        new RNSentryCompositeOptionsConfiguration(
+            defaults, configuration, RNSentryStart::updateWithReactFinals);
+    SentryAndroid.init(context, compositeConfiguration);
+  }
+
+  static void startWithOptions(
+      @NotNull final Context context,
+      @NotNull final ReadableMap rnOptions,
+      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
+      @NotNull ILogger logger) {
+    Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
+        options -> updateWithReactDefaults(options, null);
+    Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
+        options -> getSentryAndroidOptions(options, rnOptions, logger);
+    RNSentryCompositeOptionsConfiguration compositeConfiguration =
+        new RNSentryCompositeOptionsConfiguration(
+            rnConfigurationOptions, defaults, configuration, RNSentryStart::updateWithReactFinals);
+    SentryAndroid.init(context, compositeConfiguration);
+  }
+
+  static void startWithOptions(
       @NotNull final Context context,
       @NotNull final ReadableMap rnOptions,
       @Nullable Activity currentActivity,
       @NotNull ILogger logger) {
-    SentryAndroid.init(
-        context, options -> getSentryAndroidOptions(options, rnOptions, currentActivity, logger));
+    Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
+        options -> updateWithReactDefaults(options, currentActivity);
+    Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
+        options -> getSentryAndroidOptions(options, rnOptions, logger);
+    RNSentryCompositeOptionsConfiguration compositeConfiguration =
+        new RNSentryCompositeOptionsConfiguration(
+            rnConfigurationOptions, defaults, RNSentryStart::updateWithReactFinals);
+    SentryAndroid.init(context, compositeConfiguration);
   }
 
   static void getSentryAndroidOptions(
       @NotNull SentryAndroidOptions options,
       @NotNull ReadableMap rnOptions,
-      @Nullable Activity currentActivity,
-      ILogger logger) {
-    @Nullable SdkVersion sdkVersion = options.getSdkVersion();
-    if (sdkVersion == null) {
-      sdkVersion = new SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
-    } else {
-      sdkVersion.setName(RNSentryVersion.ANDROID_SDK_NAME);
-    }
-    sdkVersion.addPackage(
-        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
-        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
-
-    options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
-    options.setNativeSdkName(RNSentryVersion.NATIVE_SDK_NAME);
-    options.setSdkVersion(sdkVersion);
-
+      @NotNull ILogger logger) {
     if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
       options.setDebug(true);
     }
@@ -159,18 +178,6 @@ public final class RNSentryStart {
           return breadcrumb;
         });
 
-    // React native internally throws a JavascriptException.
-    // we want to ignore it on the native side to avoid sending it twice.
-    options.addIgnoredExceptionForType(JavascriptException.class);
-
-    options.setBeforeSend(
-        (event, hint) -> {
-          setEventOriginTag(event);
-          addPackages(event, options.getSdkVersion());
-
-          return event;
-        });
-
     if (rnOptions.hasKey("enableNativeCrashHandling")
         && !rnOptions.getBoolean("enableNativeCrashHandling")) {
       final List<Integration> integrations = options.getIntegrations();
@@ -184,8 +191,55 @@ public final class RNSentryStart {
     }
     logger.log(
         SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
+  }
+
+  /**
+   * This function updates the options with RNSentry defaults. These default can be overwritten by
+   * users during manual native initialization.
+   */
+  static void updateWithReactDefaults(
+      @NotNull SentryAndroidOptions options, @Nullable Activity currentActivity) {
+    @Nullable SdkVersion sdkVersion = options.getSdkVersion();
+    if (sdkVersion == null) {
+      sdkVersion = new SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
+    } else {
+      sdkVersion.setName(RNSentryVersion.ANDROID_SDK_NAME);
+    }
+    sdkVersion.addPackage(
+        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
+        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
+
+    options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
+    options.setNativeSdkName(RNSentryVersion.NATIVE_SDK_NAME);
+    options.setSdkVersion(sdkVersion);
+
+    // Tracing is only enabled in JS to avoid duplicate navigation spans
+    options.setTracesSampleRate(null);
+    options.setTracesSampler(null);
+    options.setEnableTracing(false);
+
+    // React native internally throws a JavascriptException.
+    // we want to ignore it on the native side to avoid sending it twice.
+    options.addIgnoredExceptionForType(JavascriptException.class);
 
     setCurrentActivity(currentActivity);
+  }
+
+  /**
+   * This function updates options with changes RNSentry users should not change and so this is
+   * applied after the configureOptions callback during manual native initialization.
+   */
+  static void updateWithReactFinals(@NotNull SentryAndroidOptions options) {
+    BeforeSendCallback userBeforeSend = options.getBeforeSend();
+    options.setBeforeSend(
+        (event, hint) -> {
+          setEventOriginTag(event);
+          addPackages(event, options.getSdkVersion());
+          if (userBeforeSend != null) {
+            return userBeforeSend.execute(event, hint);
+          }
+          return event;
+        });
   }
 
   private static void setCurrentActivity(Activity currentActivity) {

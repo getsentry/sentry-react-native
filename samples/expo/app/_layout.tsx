@@ -10,6 +10,7 @@ import * as Sentry from '@sentry/react-native';
 import { ErrorEvent } from '@sentry/core';
 import { isExpoGo } from '../utils/isExpoGo';
 import { LogBox } from 'react-native';
+import { isWeb } from '../utils/isWeb';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -56,8 +57,10 @@ Sentry.init({
       }),
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
-      Sentry.browserReplayIntegration(),
     );
+    if (isWeb()) {
+      integrations.push(Sentry.browserReplayIntegration());
+    }
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,

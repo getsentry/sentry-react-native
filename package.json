@@ -30,7 +30,7 @@
   "devDependencies": {
     "@expo/swiftlint": "^0.57.1",
     "@naturalcycles/ktlint": "^1.13.0",
-    "@sentry/cli": "2.41.0",
+    "@sentry/cli": "2.41.1",
     "clang-format": "^1.8.0",
     "downlevel-dts": "^0.11.0",
     "google-java-format": "^1.4.0",
@@ -45,6 +45,7 @@
     "packages/core",
     "dev-packages/e2e-tests",
     "dev-packages/type-check",
+    "dev-packages/utils",
     "samples/react-native",
     "samples/react-native-macos",
     "samples/expo",

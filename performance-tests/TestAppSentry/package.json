@@ -1,6 +1,6 @@
 {
   "name": "TestAppSentry",
-  "version": "6.5.0",
+  "version": "6.6.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -8,14 +8,15 @@
     "start": "react-native start"
   },
   "dependencies": {
-    "@sentry/react-native": "6.5.0",
+    "@sentry/react-native": "6.6.0",
     "react": "18.1.0",
     "react-native": "0.70.15"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
-    "metro-react-native-babel-preset": "^0.72.3"
+    "metro-react-native-babel-preset": "^0.72.3",
+    "sentry-react-native-samples-utils": "workspace:^"
   },
   "jest": {
     "preset": "react-native"
