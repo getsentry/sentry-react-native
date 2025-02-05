@@ -8,6 +8,44 @@
 
 ## Unreleased
 
+### Features
+
+- Capture App Start errors and crashes by initializing Sentry from `sentry.options.json` ([#4472](https://github.com/getsentry/sentry-react-native/pull/4472))
+
+  Create `sentry.options.json` in the React Native project root and set options the same as you currently have in `Sentry.init` in JS.
+
+  ```json
+  {
+      "dsn": "https://key@example.io/value",
+  }
+  ```
+
+  Initialize Sentry on the native layers by newly provided native methods.
+
+  ```kotlin
+  import io.sentry.react.RNSentrySDK
+
+  class MainApplication : Application(), ReactApplication {
+      override fun onCreate() {
+          super.onCreate()
+          RNSentrySDK.init(this)
+      }
+  }
+  ```
+
+  ```obj-c
+  #import <RNSentry/RNSentry.h>
+
+  @implementation AppDelegate
+  - (BOOL)application:(UIApplication *)application
+      didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+  {
+      [RNSentrySDK start];
+      return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  }
+  @end
+  ```
+
 ### Changes
 
 - Load `optionsFile` into the JS bundle during Metro bundle process ([#4476](https://github.com/getsentry/sentry-react-native/pull/4476))
