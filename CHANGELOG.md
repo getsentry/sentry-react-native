@@ -8,9 +8,30 @@
 
 ## Unreleased
 
+### Changes
+
+- Load `optionsFile` into the JS bundle during Metro bundle process ([#4476](https://github.com/getsentry/sentry-react-native/pull/4476))
+- Add experimental version of `startWithConfigureOptions` for Apple platforms ([#4444](https://github.com/getsentry/sentry-react-native/pull/4444))
+- Add experimental version of `init` with optional `OptionsConfiguration<SentryAndroidOptions>` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+- Add initialization using `sentry.options.json` for Apple platforms ([#4447](https://github.com/getsentry/sentry-react-native/pull/4447))
+- Add initialization using `sentry.options.json` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+
+### Internal
+
+- Extract iOS native initialization to standalone structures ([#4442](https://github.com/getsentry/sentry-react-native/pull/4442))
+- Extract Android native initialization to standalone structures ([#4445](https://github.com/getsentry/sentry-react-native/pull/4445))
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.53.0 to v8.54.0 ([#4503](https://github.com/getsentry/sentry-react-native/pull/4503))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8540)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.53.0...8.54.0)
+
+## 6.6.0
+
 ### Features
 
-- Load `optionsFile` into the JS bundle during Metro bundle process ([#4476](https://github.com/getsentry/sentry-react-native/pull/4476)) 
+- Send Sentry React Native SDK version in the Session Replay Events on iOS ([#4450](https://github.com/getsentry/sentry-react-native/pull/4450))
 
 ### Fixes
 
@@ -22,28 +43,25 @@
 
 - Rename `navigation.processing` span to more expressive `Navigation dispatch to screen A mounted/navigation cancelled` ([#4423](https://github.com/getsentry/sentry-react-native/pull/4423))
 - Add RN SDK package to `sdk.packages` for Cocoa ([#4381](https://github.com/getsentry/sentry-react-native/pull/4381))
-- Add experimental version of `startWithConfigureOptions` for Apple platforms ([#4444](https://github.com/getsentry/sentry-react-native/pull/4444))
-- Add experimental version of `init` with optional `OptionsConfiguration<SentryAndroidOptions>` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
-- Add initialization using `sentry.options.json` for Apple platforms ([#4447](https://github.com/getsentry/sentry-react-native/pull/4447))
-- Add initialization using `sentry.options.json` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
 
 ### Internal
 
 - Initialize `RNSentryTimeToDisplay` during native module `init` on iOS ([#4443](https://github.com/getsentry/sentry-react-native/pull/4443))
-- Extract iOS native initialization to standalone structures ([#4442](https://github.com/getsentry/sentry-react-native/pull/4442))
-- Extract Android native initialization to standalone structures ([#4445](https://github.com/getsentry/sentry-react-native/pull/4445))
 
 ### Dependencies
 
-- Bump CLI from v2.39.1 to v2.41.0 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412), [#4468](https://github.com/getsentry/sentry-react-native/pull/4468))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2410)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.41.0)
-- Bump JavaScript SDK from v8.47.0 to v8.50.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8500)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.50.0)
+- Bump CLI from v2.39.1 to v2.41.1 ([#4412](https://github.com/getsentry/sentry-react-native/pull/4412), [#4468](https://github.com/getsentry/sentry-react-native/pull/4468), [#4473](https://github.com/getsentry/sentry-react-native/pull/4473))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2411)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.39.1...2.41.1)
+- Bump JavaScript SDK from v8.47.0 to v8.53.0 ([#4421](https://github.com/getsentry/sentry-react-native/pull/4421), [#4449](https://github.com/getsentry/sentry-react-native/pull/4449), [#4453](https://github.com/getsentry/sentry-react-native/pull/4453), [#4480](https://github.com/getsentry/sentry-react-native/pull/4480), [#4491](https://github.com/getsentry/sentry-react-native/pull/4491), [#4496](https://github.com/getsentry/sentry-react-native/pull/4496), [#4497](https://github.com/getsentry/sentry-react-native/pull/4497))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8530)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.47.0...8.53.0)
 - Bump Android SDK from v7.20.0 to v7.20.1 ([#4467](https://github.com/getsentry/sentry-react-native/pull/4467))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7201)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.0...7.20.1)
+- Bump Cocoa SDK from v8.43.0 to v8.44.0 ([#4495](https://github.com/getsentry/sentry-react-native/pull/4495))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8440)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.43.0...8.44.0)
 
 ## 6.5.0
 
