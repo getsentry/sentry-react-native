@@ -19,8 +19,8 @@ import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
-import { NATIVE } from './wrapper';
 import { RN_GLOBAL_OBJ } from './utils/worldwide';
+import { NATIVE } from './wrapper';
 
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
@@ -129,6 +129,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     beforeBreadcrumb: chainedBeforeBreadcrumb,
     initialScope: safeFactory(userOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
   };
+
+  if (!('autoInitializeNativeSdk' in userOptions) && RN_GLOBAL_OBJ.__SENTRY_OPTIONS__) {
+    options.autoInitializeNativeSdk = false;
+  }
+
   if ('tracesSampler' in options) {
     options.tracesSampler = safeTracesSampler(options.tracesSampler);
   }
