@@ -131,6 +131,9 @@ export function init(passedOptions: ReactNativeOptions): void {
   };
 
   if (!('autoInitializeNativeSdk' in userOptions) && RN_GLOBAL_OBJ.__SENTRY_OPTIONS__) {
+    // We expect users to use the file options only in combination with manual native initialization
+    // eslint-disable-next-line no-console
+    console.info('Initializing Sentry JS with the options file. Expecting manual native initialization before JS. Native will not be initialized automatically.');
     options.autoInitializeNativeSdk = false;
   }
 
