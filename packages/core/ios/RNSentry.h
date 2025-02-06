@@ -11,6 +11,9 @@
 #import <Sentry/SentryDebugImageProvider.h>
 #import <Sentry/SentryOptions.h>
 
+// This import exposes public RNSentrySDK start
+#import "RNSentrySDK.h"
+
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
 @interface
@@ -19,11 +22,6 @@ SentrySDK (Private)
 @end
 
 @interface RNSentry : RCTEventEmitter <RCTBridgeModule>
-
-- (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
-                                                  error:(NSError *_Nullable *_Nonnull)errorPointer;
-
-- (void)setEventOriginTag:(SentryEvent *)event;
 
 - (NSDictionary *_Nonnull)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                        symbolicate:(SymbolicateCallbackType)symbolicate;
