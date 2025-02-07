@@ -14,7 +14,9 @@ const config = {};
 const mergedConfig = mergeConfig(getDefaultConfig(__dirname), config);
 
 const sentryConfig = withSentryConfig(mergedConfig, {
-  annotateReactComponents: true,
+  annotateReactComponents: {
+    ignoredComponents: ['BottomTabsNavigator'],
+  },
 });
 
 module.exports = withMonorepo(sentryConfig);

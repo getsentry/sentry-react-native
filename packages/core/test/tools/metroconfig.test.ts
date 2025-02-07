@@ -8,13 +8,21 @@ import {
   withSentryFramesCollapsed,
   withSentryResolver,
 } from '../../src/js/tools/metroconfig';
-import { SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH } from '../../src/js/tools/sentryBabelTransformerUtils';
+import {
+  SENTRY_BABEL_TRANSFORMER_OPTIONS,
+  SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH,
+} from '../../src/js/tools/sentryBabelTransformerUtils';
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
 describe('metroconfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS];
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH];
   });
 
   test('getSentryExpoConfig keeps compatible interface with Expos getDefaultConfig', () => {
@@ -55,18 +63,21 @@ describe('metroconfig', () => {
     test.each([[{}], [{ transformer: {} }], [{ transformer: { hermesParser: true } }]])(
       "does not add babel transformer none is set in the config object '%o'",
       input => {
-        expect(withSentryBabelTransformer(JSON.parse(JSON.stringify(input)))).toEqual(input);
+        expect(withSentryBabelTransformer(JSON.parse(JSON.stringify(input)), {})).toEqual(input);
       },
     );
 
     test('save default babel transformer path to environment variable', () => {
       const defaultBabelTransformerPath = '/default/babel/transformer';
 
-      withSentryBabelTransformer({
-        transformer: {
-          babelTransformerPath: defaultBabelTransformerPath,
+      withSentryBabelTransformer(
+        {
+          transformer: {
+            babelTransformerPath: defaultBabelTransformerPath,
+          },
         },
-      });
+        {},
+      );
 
       expect(process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH]).toBe(defaultBabelTransformerPath);
     });
@@ -74,15 +85,55 @@ describe('metroconfig', () => {
     test('return config with sentry babel transformer path', () => {
       const defaultBabelTransformerPath = 'defaultBabelTransformerPath';
 
-      const config = withSentryBabelTransformer({
-        transformer: {
-          babelTransformerPath: defaultBabelTransformerPath,
+      const config = withSentryBabelTransformer(
+        {
+          transformer: {
+            babelTransformerPath: defaultBabelTransformerPath,
+          },
         },
-      });
+        {},
+      );
 
       expect(config.transformer?.babelTransformerPath).toBe(
         require.resolve('../../src/js/tools/sentryBabelTransformer'),
       );
+    });
+
+    test('save babel transformer options to environment variable', () => {
+      withSentryBabelTransformer(
+        {
+          transformer: {
+            babelTransformerPath: 'path/to/babel/transformer',
+          },
+        },
+        {
+          ignoredComponents: ['MyCustomComponent'],
+        },
+      );
+
+      expect(process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS]).toBe(
+        JSON.stringify({
+          annotateReactComponents: {
+            ignoredComponents: ['MyCustomComponent'],
+          },
+        }),
+      );
+    });
+
+    test('gracefully handle none serializable babel transformer options', () => {
+      withSentryBabelTransformer(
+        {
+          transformer: {
+            babelTransformerPath: 'path/to/babel/transformer',
+          },
+        },
+        {
+          ignoredComponents: ['MyCustomComponent'],
+          nonSerializable: BigInt(1),
+        } as any,
+      );
+
+      expect(process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS]).toBeUndefined();
     });
   });
 

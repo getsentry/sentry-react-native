@@ -8,6 +8,27 @@
 
 ## Unreleased
 
+### Features
+
+- Add `ignoredComponents` option to `annotateReactComponents` to exclude specific components from React component annotations ([#4517](https://github.com/getsentry/sentry-react-native/pull/4517))
+
+  ```js
+  // metro.config.js
+  // for React Native
+  const config = withSentryConfig(mergedConfig, {
+    annotateReactComponents: {
+      ignoredComponents: ['MyCustomComponent']
+    }
+  });
+
+  // for Expo
+  const config = getSentryExpoConfig(__dirname, {
+    annotateReactComponents: {
+      ignoredComponents: ['MyCustomComponent'],
+    },
+  });
+  ```
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.53.0 to v8.54.0 ([#4503](https://github.com/getsentry/sentry-react-native/pull/4503))
