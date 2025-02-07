@@ -274,7 +274,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.sentry.rn.perf-test-app-plain"";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.sentry.rn.perf-test-app-plain";
 				PRODUCT_NAME = TestAppPlain;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -302,7 +302,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.sentry.rn.perf-test-app-plain"";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.sentry.rn.perf-test-app-plain";
 				PRODUCT_NAME = TestAppPlain;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
