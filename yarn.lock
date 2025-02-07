@@ -8064,7 +8064,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@6.6.0, @sentry/react-native@^6.6.0, @sentry/react-native@workspace:packages/core":
+"@sentry/react-native@6.6.0, @sentry/react-native@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
@@ -9773,7 +9773,7 @@ __metadata:
     "@react-native/eslint-config": 0.77.0
     "@react-native/metro-config": 0.77.0
     "@react-native/typescript-config": 0.77.0
-    "@sentry/react-native": ^6.6.0
+    "@sentry/react-native": 6.6.0
     "@types/jest": ^29.5.13
     "@types/react": ^18.2.6
     "@types/react-test-renderer": ^18.0.0
@@ -9783,6 +9783,7 @@ __metadata:
     react: 18.3.1
     react-native: 0.77.0
     react-test-renderer: 18.3.1
+    sentry-react-native-samples-utils: "workspace:^"
     typescript: 5.0.4
   languageName: unknown
   linkType: soft
