@@ -7945,17 +7945,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/babel-plugin-component-annotate@npm:2.20.1":
-  version: 2.20.1
-  resolution: "@sentry/babel-plugin-component-annotate@npm:2.20.1"
-  checksum: 5fecba8c7915693fec811bb06ff0441f28496f6b12e811337a08996a7aa13a13a069c9f9ed28bac95be89d03b422a68d7236ab3376c161edbe051cb0ad2a0193
-  languageName: node
-  linkType: hard
-
-"@sentry/babel-plugin-component-annotate@npm:^2.18.0":
-  version: 2.22.3
-  resolution: "@sentry/babel-plugin-component-annotate@npm:2.22.3"
-  checksum: 8dccbe700ffdd4cbdbcf2466d342fba40b3619aef06aa855205a9fa09707a92e80cb401cd341bed1ebe77d28b96fd11a06a6e78ba12b8045b52201f89cb6eced
+"@sentry/babel-plugin-component-annotate@npm:3.1.2":
+  version: 3.1.2
+  resolution: "@sentry/babel-plugin-component-annotate@npm:3.1.2"
+  checksum: 4e957d44dde3eacc60d6d33d28523fa16775e3c05603defc9268ad7209ce06da9dba50243e637f64cb12d7bb302b46584dd815754805210517a3b4da91af2c91
   languageName: node
   linkType: hard
 
@@ -8127,7 +8120,7 @@ __metadata:
     "@sentry-internal/eslint-config-sdk": 8.54.0
     "@sentry-internal/eslint-plugin-sdk": 8.54.0
     "@sentry-internal/typescript": 8.54.0
-    "@sentry/babel-plugin-component-annotate": 2.20.1
+    "@sentry/babel-plugin-component-annotate": 3.1.2
     "@sentry/browser": 8.54.0
     "@sentry/cli": 2.41.1
     "@sentry/core": 8.54.0
@@ -24578,7 +24571,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.26.0
     "@babel/preset-env": ^7.26.0
-    "@sentry/babel-plugin-component-annotate": ^2.18.0
+    "@sentry/babel-plugin-component-annotate": 3.1.2
     "@sentry/react-native": 6.6.0
     "@types/node": 20.10.4
     "@types/react": ~18.3.12
@@ -24661,7 +24654,7 @@ __metadata:
     "@react-navigation/native": ^7.0.14
     "@react-navigation/native-stack": ^7.2.0
     "@react-navigation/stack": ^7.1.1
-    "@sentry/babel-plugin-component-annotate": ^2.18.0
+    "@sentry/babel-plugin-component-annotate": 3.1.2
     "@sentry/react-native": 6.6.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
