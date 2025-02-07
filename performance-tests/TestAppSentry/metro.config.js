@@ -15,6 +15,9 @@ module.exports = withMonorepo({
       },
     }),
   },
+  resolver: {
+    assetExts: ['png', 'jpg', 'jpeg', 'gif', 'svg'],
+  },
   projectRoot: __dirname,
 });
 
