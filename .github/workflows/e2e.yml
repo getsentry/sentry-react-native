@@ -221,7 +221,7 @@ jobs:
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
 
-      - run: sudo xcode-select -s /Applications/Xcode_15.1.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' && matrix.rn-version == '0.65.3' }}
 
       - run: corepack enable
