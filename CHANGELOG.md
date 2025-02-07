@@ -10,7 +10,6 @@
 
 ### Features
 
-- Send Sentry react-native SDK version in the session replay event (#4450)
 - User Feedback Form Component Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
   To collect user feedback from inside your application call `Sentry.showFeedbackForm()` or add the `FeedbackButton` component.
@@ -21,6 +20,18 @@
   ...
   <FeedbackForm/>
   ```
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.53.0 to v8.54.0 ([#4503](https://github.com/getsentry/sentry-react-native/pull/4503))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8540)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.53.0...8.54.0)
+
+## 6.6.0
+
+### Features
+
+- Send Sentry React Native SDK version in the Session Replay Events on iOS ([#4450](https://github.com/getsentry/sentry-react-native/pull/4450))
 
 ### Fixes
 
