@@ -9,7 +9,9 @@ const config = getSentryExpoConfig(__dirname, {
   // [Web-only]: Enables CSS support in Metro.
   isCSSEnabled: true,
   getDefaultConfig,
-  annotateReactComponents: true,
+  annotateReactComponents: {
+    ignoredComponents: ['BottomTabsNavigator'],
+  },
 });
 
 module.exports = withMonorepo(config);
