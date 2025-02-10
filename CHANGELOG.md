@@ -20,11 +20,33 @@
   <FeedbackForm/>
   ```
 
+- Add `ignoredComponents` option to `annotateReactComponents` to exclude specific components from React component annotations ([#4517](https://github.com/getsentry/sentry-react-native/pull/4517))
+
+  ```js
+  // metro.config.js
+  // for React Native
+  const config = withSentryConfig(mergedConfig, {
+    annotateReactComponents: {
+      ignoredComponents: ['MyCustomComponent']
+    }
+  });
+
+  // for Expo
+  const config = getSentryExpoConfig(__dirname, {
+    annotateReactComponents: {
+      ignoredComponents: ['MyCustomComponent'],
+    },
+  });
+  ```
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.53.0 to v8.54.0 ([#4503](https://github.com/getsentry/sentry-react-native/pull/4503))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8540)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.53.0...8.54.0)
+- Bump `@sentry/babel-plugin-component-annotate` from v2.20.1 to v3.1.2 ([#4516](https://github.com/getsentry/sentry-react-native/pull/4516))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#312)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/2.20.1...3.1.2)
 
 ## 6.6.0
 
