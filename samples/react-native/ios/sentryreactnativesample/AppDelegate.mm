@@ -23,9 +23,9 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // When the native init is enabled the `autoInitializeNativeSdk`
-    // in JS has to be set to `false`
-    // [RNSentrySDK start];
+    if ([self shouldStartSentry]) {
+        [RNSentrySDK start];
+    }
 
     self.moduleName = @"sentry-react-native-sample";
     // You can add your custom initial props in the dictionary below.
@@ -71,6 +71,11 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
     }
 #endif
     return nullptr;
+}
+
+- (BOOL) shouldStartSentry {
+  NSArray<NSString*>* arguments = [[NSProcessInfo processInfo] arguments];
+  return ![arguments containsObject:@"--sentry-disable-native-start"];
 }
 
 @end

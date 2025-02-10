@@ -22463,6 +22463,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-build-config@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "react-native-build-config@npm:0.3.2"
+  checksum: d2095580be7e6662c968bce5d64cc6524b7f34380999756fb9d4ad24a34e3566b203f93e9bc63bd1e0213d28e1e76dae0c0f39b0b65c55528a876e96dd6c5810
+  languageName: node
+  linkType: hard
+
 "react-native-codegen@npm:^0.70.7":
   version: 0.70.7
   resolution: "react-native-codegen@npm:0.70.7"
@@ -22558,6 +22565,16 @@ __metadata:
     react: ">=16.8.1"
     react-native: ">=0.60.0-rc.0 <1.0.x"
   checksum: 5a73cfa27c603a743939c7fbc98fef3eb790dfc1043ecfe60855d30f238c41251ba1a47775cb660b37ef86f96961b5643f6ff48480f0d60efb0235488d43ff05
+  languageName: node
+  linkType: hard
+
+"react-native-launch-arguments@npm:^4.0.4":
+  version: 4.0.4
+  resolution: "react-native-launch-arguments@npm:4.0.4"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 7346af606cedc35c58bdccabd88a8ef9b2b55138accf490fe8291c6d7110679f9125af072eaaf896909554cd54be20e863c987d1ce91c39a2f401a999c7fde9f
   languageName: node
   linkType: hard
 
@@ -24283,7 +24300,9 @@ __metadata:
     prettier: 2.8.8
     react: 18.3.1
     react-native: 0.76.3
+    react-native-build-config: ^0.3.2
     react-native-gesture-handler: ^2.21.1
+    react-native-launch-arguments: ^4.0.4
     react-native-reanimated: 3.16.1
     react-native-safe-area-context: 4.14.0
     react-native-screens: 4.1.0
