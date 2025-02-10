@@ -8,6 +8,7 @@
 
 ## 6.6.0
 
+
 ### Features
 
 - Send Sentry React Native SDK version in the Session Replay Events on iOS ([#4450](https://github.com/getsentry/sentry-react-native/pull/4450))
