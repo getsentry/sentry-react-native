@@ -1,20 +1,18 @@
+const { withSentryConfig } = require('@sentry/react-native/metro');
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+
 const { withMonorepo } = require('sentry-react-native-samples-utils/metro');
 
 /**
- * Metro configuration for React Native
- * https://github.com/facebook/react-native
+ * Metro configuration
+ * https://reactnative.dev/docs/metro
  *
- * @format
+ * @type {import('metro-config').MetroConfig}
  */
-module.exports = withMonorepo({
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
-  },
-  projectRoot: __dirname,
-});
+const config = {};
 
+const mergedConfig = mergeConfig(getDefaultConfig(__dirname), config);
+
+const sentryConfig = withSentryConfig(mergedConfig);
+
+module.exports = withMonorepo(sentryConfig);
