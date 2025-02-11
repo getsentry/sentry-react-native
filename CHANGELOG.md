@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 6.7.0
+## Unreleased
 
 ### Features
 
@@ -19,6 +19,10 @@
   ...
   <FeedbackForm/>
   ```
+
+## 6.7.0
+
+### Features
 
 - Add `ignoredComponents` option to `annotateReactComponents` to exclude specific components from React component annotations ([#4517](https://github.com/getsentry/sentry-react-native/pull/4517))
 
