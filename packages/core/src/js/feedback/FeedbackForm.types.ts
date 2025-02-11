@@ -215,7 +215,7 @@ interface ReactNativeImageLibraryOptions {
   mediaType: any;
 }
 
-interface ImagePicker {
+export interface ImagePicker {
   launchImageLibraryAsync?: (options?: ExpoImageLibraryOptions) => Promise<ImagePickerResponse>;
 
   launchImageLibrary?: (options: ReactNativeImageLibraryOptions) => Promise<ImagePickerResponse>;
