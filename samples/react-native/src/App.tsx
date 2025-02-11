@@ -17,7 +17,6 @@ import Animated, {
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
 
-import { SENTRY_INTERNAL_DSN } from './dsn';
 import ErrorsScreen from './Screens/ErrorsScreen';
 import PerformanceScreen from './Screens/PerformanceScreen';
 import TrackerScreen from './Screens/TrackerScreen';
@@ -31,7 +30,7 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
-import { clearSentryOptionsFromFile, logWithoutTracing, shouldUseAutoStart } from './utils';
+import { logWithoutTracing, shouldUseAutoStart } from './utils';
 import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
@@ -39,10 +38,6 @@ import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environ
 
 /* false by default to avoid issues in e2e tests */
 const ENABLE_RUNNING_INDICATOR = false;
-
-if (shouldUseAutoStart()) {
-  clearSentryOptionsFromFile();
-}
 
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
@@ -58,10 +53,6 @@ const reactNavigationIntegration = Sentry.reactNavigationIntegration({
 });
 
 Sentry.init({
-  // Replace the example DSN below with your own DSN:
-  dsn: SENTRY_INTERNAL_DSN,
-  debug: true,
-  environment: 'dev',
   beforeSend: (event: ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
@@ -77,7 +68,6 @@ Sentry.init({
       didCallNativeInit,
     );
   },
-  enableUserInteractionTracing: true,
   integrations(integrations) {
     integrations.push(
       reactNavigationIntegration,
@@ -113,31 +103,8 @@ Sentry.init({
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
-  enableAutoSessionTracking: true,
-  // For testing, session close when 5 seconds (instead of the default 30) in the background.
-  sessionTrackingIntervalMillis: 30000,
-  // This will capture ALL TRACES and likely use up all your quota
-  enableTracing: true,
-  tracesSampleRate: 1.0,
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
-  attachStacktrace: true,
-  // Attach screenshots to events.
-  attachScreenshot: true,
-  // Attach view hierarchy to events.
-  attachViewHierarchy: true,
-  // Enables capture failed requests in JS and native.
-  enableCaptureFailedRequests: true,
-  // Sets the `release` and `dist` on Sentry events. Make sure this matches EXACTLY with the values on your sourcemaps
-  // otherwise they will not work.
-  // release: 'myapp@1.2.3+1',
-  // dist: `1`,
-  profilesSampleRate: 1.0,
-  replaysSessionSampleRate: 1.0,
-  replaysOnErrorSampleRate: 1.0,
-  spotlight: true,
-  // This should be disabled when manually initializing the native SDK
-  // Note that options from JS are not passed to the native SDKs when initialized manually
-  // autoInitializeNativeSdk: true,
+  autoInitializeNativeSdk: shouldUseAutoStart(),
 });
 
 const Stack = isMobileOs
