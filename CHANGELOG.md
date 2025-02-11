@@ -20,6 +20,10 @@
   <FeedbackForm/>
   ```
 
+## 6.7.0
+
+### Features
+
 - Add `ignoredComponents` option to `annotateReactComponents` to exclude specific components from React component annotations ([#4517](https://github.com/getsentry/sentry-react-native/pull/4517))
 
   ```js
