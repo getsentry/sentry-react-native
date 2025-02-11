@@ -20,8 +20,8 @@ import {
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
-import { isValidEmail } from './utils';
+import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackForm.types';
+import { base64ToUint8Array, isValidEmail } from './utils';
 
 /**
  * @beta
@@ -100,12 +100,38 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     }
   };
 
-  public onScreenshotButtonPress: () => void = () => {
+  public onScreenshotButtonPress: () => void = async () => {
     if (!this.state.filename && !this.state.attachment) {
-      const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
-      onAddScreenshot((filename: string, attachement: Uint8Array) => {
-        this.setState({ filename, attachment: attachement });
-      });
+      const imagePickerConfiguration: ImagePickerConfiguration = this.props;
+      if (imagePickerConfiguration.imagePicker && imagePickerConfiguration.imagePicker.launchImageLibraryAsync) {
+        // expo-image-picker library is available
+        const result = await imagePickerConfiguration.imagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'], base64: true
+        });
+        if (!result.canceled) {
+          const filename = result.assets[0].fileName;
+          const attachement = base64ToUint8Array(result.assets[0].base64);
+          this.setState({ filename, attachment: attachement });
+        }
+      } else if (imagePickerConfiguration.imagePicker && imagePickerConfiguration.imagePicker.launchImageLibrary) {
+        // react-native-image-picker library is available
+        const result = await imagePickerConfiguration.imagePicker.launchImageLibrary({
+          mediaType: 'photo', includeBase64: true
+        });
+        if (!result.didCancel && !result.errorCode) {
+          const filename = result.assets[0].fileName;
+          const attachement = base64ToUint8Array(result.assets[0].base64);
+          this.setState({ filename, attachment: attachement });
+        }
+      } else {
+        logger.warn('No image picker library found. Please provide an image picker library to use this feature.');
+
+        // Defaulting to the onAddScreenshot callback
+        const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
+        onAddScreenshot((filename: string, attachement: Uint8Array) => {
+          this.setState({ filename, attachment: attachement });
+        });
+      }
     } else {
       this.setState({ filename: undefined, attachment: undefined });
     }
@@ -118,6 +144,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const { name, email, description } = this.state;
     const { onFormClose } = this.props;
     const config: FeedbackGeneralConfiguration = this.props;
+    const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
     const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
@@ -191,7 +218,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 onChangeText={(value) => this.setState({ description: value })}
                 multiline
               />
-              {config.enableScreenshot && (
+              {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
                 <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
                   <Text style={styles.screenshotText}>
                   {!this.state.filename && !this.state.attachment

@@ -4,7 +4,11 @@ import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 /**
  * The props for the feedback form
  */
-export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks {
+export interface FeedbackFormProps
+  extends FeedbackGeneralConfiguration,
+    FeedbackTextConfiguration,
+    FeedbackCallbacks,
+    ImagePickerConfiguration {
   styles?: FeedbackFormStyles;
 }
 
@@ -185,6 +189,45 @@ export interface FeedbackCallbacks {
    * Callback when the feedback form is submitted successfully, and the SuccessMessage is complete, or dismissed
    */
   onFormSubmitted?: () => void;
+}
+
+/**
+ * Image Picker configuration interfact matching `expo-image-picker` and `react-native-image-picker`
+ */
+export interface ImagePickerConfiguration {
+  imagePicker?: ImagePicker;
+}
+
+interface ExpoImagePickerResponse {
+  canceled?: boolean;
+  assets?: ImagePickerAsset[];
+}
+
+interface ReactNativeImagePickerResponse {
+  didCancel?: boolean;
+  errorCode?: string;
+  assets?: ImagePickerAsset[];
+}
+
+interface ImagePickerAsset {
+  fileName?: string;
+  base64?: string;
+}
+
+interface ExpoImageLibraryOptions {
+  mediaTypes?: any[];
+  base64?: boolean;
+}
+
+interface ReactNativeImageLibraryOptions {
+  mediaType: any;
+  includeBase64?: boolean;
+}
+
+interface ImagePicker {
+  launchImageLibraryAsync?: (options?: ExpoImageLibraryOptions) => Promise<ExpoImagePickerResponse>;
+
+  launchImageLibrary?: (options: ReactNativeImageLibraryOptions) => Promise<ReactNativeImagePickerResponse>;
 }
 
 /**

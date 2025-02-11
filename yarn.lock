@@ -14686,6 +14686,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-image-loader@npm:~5.0.0":
+  version: 5.0.0
+  resolution: "expo-image-loader@npm:5.0.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 7741b4b926124a1f85e51b0b8c8c9adc37fccf0654eaa0e715cb55cffc716bdc149c0421120f9bec69a69643d3328ec8562899b4aa37a0fdcecfb6fe3cf6f985
+  languageName: node
+  linkType: hard
+
+"expo-image-picker@npm:~16.0.5":
+  version: 16.0.5
+  resolution: "expo-image-picker@npm:16.0.5"
+  dependencies:
+    expo-image-loader: ~5.0.0
+  peerDependencies:
+    expo: "*"
+  checksum: 8391455480d07a2fa785a0246b8eb892d393e64173f4663d77ee26bc497a0f52d9e1690b0fa04094d03ada8cc78aa5477505d870bdcbdb05d5c48c791ddac168
+  languageName: node
+  linkType: hard
+
 "expo-keep-awake@npm:~14.0.1":
   version: 14.0.1
   resolution: "expo-keep-awake@npm:14.0.1"
@@ -22988,18 +23008,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-quick-base64@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "react-native-quick-base64@npm:2.1.2"
-  dependencies:
-    base64-js: ^1.5.1
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 46f3b26f48b26978686b0c043336220d681e6a02af5abcf3eb4ab7b9216251d1eb2fac5c559e984d963e93f54bd9f323651daac09762196815558abbd551729b
-  languageName: node
-  linkType: hard
-
 "react-native-reanimated@npm:3.16.7":
   version: 3.16.7
   resolution: "react-native-reanimated@npm:3.16.7"
@@ -24599,6 +24607,7 @@ __metadata:
     "@types/react": ~18.3.12
     expo: ^52.0.0
     expo-constants: ~17.0.3
+    expo-image-picker: ~16.0.5
     expo-linking: ~7.0.2
     expo-router: ~4.0.5
     expo-status-bar: ~2.0.0
@@ -24695,7 +24704,6 @@ __metadata:
     react-native: 0.77.0
     react-native-gesture-handler: ^2.22.1
     react-native-image-picker: ^7.2.2
-    react-native-quick-base64: ^2.1.2
     react-native-reanimated: 3.16.7
     react-native-safe-area-context: 5.2.0
     react-native-screens: 4.6.0
