@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "6.6.0",
+  "version": "6.7.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -16,7 +16,7 @@
     "set-version": "npx react-native-version --skip-tag --never-amend"
   },
   "dependencies": {
-    "@sentry/react-native": "6.6.0",
+    "@sentry/react-native": "6.7.0",
     "@types/react": "~18.3.12",
     "expo": "^52.0.0",
     "expo-constants": "~17.0.3",
@@ -36,7 +36,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
-    "@sentry/babel-plugin-component-annotate": "^2.18.0",
+    "@sentry/babel-plugin-component-annotate": "^3.1.2",
     "@types/node": "20.10.4",
     "sentry-react-native-samples-utils": "workspace:^"
   },
