@@ -37,6 +37,9 @@ import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 
+/* false by default to avoid issues in e2e tests */
+const ENABLE_RUNNING_INDICATOR = false;
+
 if (shouldUseAutoStart()) {
   clearSentryOptionsFromFile();
 }
@@ -285,6 +288,10 @@ function App() {
 
 function RunningIndicator() {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    return null;
+  }
+
+  if (!ENABLE_RUNNING_INDICATOR) {
     return null;
   }
 
