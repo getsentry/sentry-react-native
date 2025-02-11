@@ -113,6 +113,13 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
             : null;
         if (!launchImageLibrary) {
           logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
+          if (__DEV__) {
+            Alert.alert(
+              'Development note',
+              'No compatible image picker library found. Please provide a compatible version of `expo-image-picker` or `react-native-image-picker`.',
+            );
+          }
+          return;
         }
 
         const result = await launchImageLibrary();
