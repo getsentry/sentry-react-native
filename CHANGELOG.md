@@ -6,6 +6,28 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
+
+  To enable the plugin add the `enableAndroidGradlePlugin` in the `@sentry/react-native/expo` of the Expo application configuration.
+
+  ```js
+  "plugins": [
+    [
+      "@sentry/react-native/expo",
+      {
+        "experimental_android": {
+          "enableAndroidGradlePlugin": true,
+        }
+      }
+    ],
+  ```
+
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
+
 ## 6.7.0
 
 ### Features
@@ -28,26 +50,6 @@
     },
   });
   ```
-
-### Features
-
-- Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
-
-  To enable the plugin add the `enableAndroidGradlePlugin` in the `@sentry/react-native/expo` of the Expo application configuration.
-
-  ```js
-  "plugins": [
-    [
-      "@sentry/react-native/expo",
-      {
-        "experimental_android": {
-          "enableAndroidGradlePlugin": true,
-        }
-      }
-    ],
-  ```
-
-  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
 
 ### Dependencies
 
