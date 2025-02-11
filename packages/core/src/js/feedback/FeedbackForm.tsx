@@ -21,7 +21,7 @@ import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackForm.types';
-import { base64ToUint8Array, isValidEmail } from './utils';
+import { getDataFromUri, isValidEmail } from './utils';
 
 /**
  * @beta
@@ -103,29 +103,30 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   public onScreenshotButtonPress: () => void = async () => {
     if (!this.state.filename && !this.state.attachment) {
       const imagePickerConfiguration: ImagePickerConfiguration = this.props;
-      if (imagePickerConfiguration.imagePicker && imagePickerConfiguration.imagePicker.launchImageLibraryAsync) {
-        // expo-image-picker library is available
-        const result = await imagePickerConfiguration.imagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'], base64: true
-        });
-        if (!result.canceled) {
-          const filename = result.assets[0].fileName;
-          const attachement = base64ToUint8Array(result.assets[0].base64);
-          this.setState({ filename, attachment: attachement });
+      if (imagePickerConfiguration.imagePicker) {
+        const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
+          // expo-image-picker library is available
+          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ["images"] })
+          // react-native-image-picker library is available
+          : imagePickerConfiguration.imagePicker.launchImageLibrary
+            ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: "photo" })
+            : null;
+        if (!launchImageLibrary) {
+          logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
         }
-      } else if (imagePickerConfiguration.imagePicker && imagePickerConfiguration.imagePicker.launchImageLibrary) {
-        // react-native-image-picker library is available
-        const result = await imagePickerConfiguration.imagePicker.launchImageLibrary({
-          mediaType: 'photo', includeBase64: true
-        });
-        if (!result.didCancel && !result.errorCode) {
+
+        const result = await launchImageLibrary();
+        if (result.assets && result.assets.length > 0) {
           const filename = result.assets[0].fileName;
-          const attachement = base64ToUint8Array(result.assets[0].base64);
-          this.setState({ filename, attachment: attachement });
+          const imageUri = result.assets[0].uri;
+          getDataFromUri(imageUri).then((data) => {
+            this.setState({ filename, attachment: data });
+          })
+          .catch((error) => {
+            logger.error("Error:", error);
+          });
         }
       } else {
-        logger.warn('No image picker library found. Please provide an image picker library to use this feature.');
-
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((filename: string, attachement: Uint8Array) => {

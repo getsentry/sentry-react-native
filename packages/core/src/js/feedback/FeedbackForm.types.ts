@@ -198,36 +198,27 @@ export interface ImagePickerConfiguration {
   imagePicker?: ImagePicker;
 }
 
-interface ExpoImagePickerResponse {
-  canceled?: boolean;
-  assets?: ImagePickerAsset[];
-}
-
-interface ReactNativeImagePickerResponse {
-  didCancel?: boolean;
-  errorCode?: string;
+interface ImagePickerResponse {
   assets?: ImagePickerAsset[];
 }
 
 interface ImagePickerAsset {
   fileName?: string;
-  base64?: string;
+  uri?: string;
 }
 
 interface ExpoImageLibraryOptions {
   mediaTypes?: any[];
-  base64?: boolean;
 }
 
 interface ReactNativeImageLibraryOptions {
   mediaType: any;
-  includeBase64?: boolean;
 }
 
 interface ImagePicker {
-  launchImageLibraryAsync?: (options?: ExpoImageLibraryOptions) => Promise<ExpoImagePickerResponse>;
+  launchImageLibraryAsync?: (options?: ExpoImageLibraryOptions) => Promise<ImagePickerResponse>;
 
-  launchImageLibrary?: (options: ReactNativeImageLibraryOptions) => Promise<ReactNativeImagePickerResponse>;
+  launchImageLibrary?: (options: ReactNativeImageLibraryOptions) => Promise<ImagePickerResponse>;
 }
 
 /**

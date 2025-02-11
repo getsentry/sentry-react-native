@@ -14696,13 +14696,13 @@ __metadata:
   linkType: hard
 
 "expo-image-picker@npm:~16.0.5":
-  version: 16.0.5
-  resolution: "expo-image-picker@npm:16.0.5"
+  version: 16.0.6
+  resolution: "expo-image-picker@npm:16.0.6"
   dependencies:
     expo-image-loader: ~5.0.0
   peerDependencies:
     expo: "*"
-  checksum: 8391455480d07a2fa785a0246b8eb892d393e64173f4663d77ee26bc497a0f52d9e1690b0fa04094d03ada8cc78aa5477505d870bdcbdb05d5c48c791ddac168
+  checksum: 448097075ad08c99a9c2857547e36f07e5e491fe5264fe03e77418271f077478a89f1ad462febedb9070013bf90f826b75ad4b2855d98a93593f76ae20c121de
   languageName: node
   linkType: hard
 

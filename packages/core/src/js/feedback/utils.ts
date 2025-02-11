@@ -15,32 +15,25 @@ export const isValidEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 
-/* eslint-disable no-bitwise */
-export const base64ToUint8Array = (base64?: string): Uint8Array | undefined => {
-  if (!base64) return undefined;
+/**
+ * Reads a file from a URI and returns a UInt8Array of its data.
+ * @param uri The file URI.
+ * @returns A Promise resolving to a UInt8Array.
+ */
+export async function getDataFromUri(uri: string): Promise<Uint8Array> {
+  const response = await fetch(uri);
+  const blob = await response.blob();
 
-  const cleanedBase64 = base64.replace(/^data:.*;base64,/, ''); // Remove any prefix before the base64 string
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  const bytes: number[] = [];
-
-  let buffer = 0;
-  let bits = 0;
-
-  for (const char of cleanedBase64) {
-    if (char === '=') break;
-
-    const value = chars.indexOf(char); // Validate each character
-    if (value === -1) return undefined;
-
-    buffer = (buffer << 6) | value; // Shift 6 bits to the left and add the value
-    bits += 6;
-
-    if (bits >= 8) {
-      // Add a byte when we have 8 or more bits
-      bits -= 8;
-      bytes.push((buffer >> bits) & 0xff);
-    }
-  }
-
-  return new Uint8Array(bytes);
-};
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(new Uint8Array(reader.result));
+      } else {
+        reject(new Error('Failed to read file as UInt8Array'));
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(blob);
+  });
+}
