@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Android SDK from v7.20.1 to v7.22.0 ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.x.x/CHANGELOG.md#7220)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...7.22.0)
+
 ## 6.7.0
 
 ### Features
