@@ -106,7 +106,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       if (imagePickerConfiguration.imagePicker) {
         const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
           // expo-image-picker library is available
-          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ["images"] })
+          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] })
           // react-native-image-picker library is available
           : imagePickerConfiguration.imagePicker.launchImageLibrary
             ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: "photo" })

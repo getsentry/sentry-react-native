@@ -208,7 +208,7 @@ interface ImagePickerAsset {
 }
 
 interface ExpoImageLibraryOptions {
-  mediaTypes?: any[];
+  mediaTypes?: 'images'[];
 }
 
 interface ReactNativeImageLibraryOptions {
