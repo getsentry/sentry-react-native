@@ -8,14 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* sentryreactnativesampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* sentryreactnativesampleTests.m */; };
-		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		338BBBC82B614FA10035844C /* NativePlatformSampleModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = 338BBBC62B614FA10035844C /* NativePlatformSampleModule.mm */; };
 		33E2D62A29A7719600B5042B /* RCTAssetsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 33E2D62829A7719600B5042B /* RCTAssetsModule.m */; };
 		5ACADB1A9924EDD0850FACBA /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */; };
 		723FB93385E08A7032AE82F4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 916F55A329D66130A4DFF319 /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		AE27003E2D5CA70600E9562A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE27003D2D5CA70600E9562A /* AppDelegate.swift */; };
+		AED999422D5CB4CE00B4F9C8 /* TurboModuleProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = AED999412D5CB4C800B4F9C8 /* TurboModuleProvider.mm */; };
 		F998F5A3F1731876C4EDA235 /* libPods-sentryreactnativesample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA08EE94AE203638B8C8B74B /* libPods-sentryreactnativesample.a */; };
 /* End PBXBuildFile section */
 
@@ -34,11 +34,8 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* sentryreactnativesampleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = sentryreactnativesampleTests.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* sentryreactnativesample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sentryreactnativesample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = sentryreactnativesample/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = sentryreactnativesample/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = sentryreactnativesample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = sentryreactnativesample/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = sentryreactnativesample/main.m; sourceTree = "<group>"; };
 		338BBBC62B614FA10035844C /* NativePlatformSampleModule.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = NativePlatformSampleModule.mm; path = sentryreactnativesample/NativePlatformSampleModule.mm; sourceTree = "<group>"; };
 		338BBBC72B614FA10035844C /* NativePlatformSampleModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NativePlatformSampleModule.h; path = sentryreactnativesample/NativePlatformSampleModule.h; sourceTree = "<group>"; };
 		33E2D62829A7719600B5042B /* RCTAssetsModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCTAssetsModule.m; path = sentryreactnativesample/RCTAssetsModule.m; sourceTree = "<group>"; };
@@ -49,6 +46,10 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = sentryreactnativesample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample-sentryreactnativesampleTests/Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		916F55A329D66130A4DFF319 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = sentryreactnativesample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AE27003C2D5CA70500E9562A /* sentryreactnativesample-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "sentryreactnativesample-Bridging-Header.h"; sourceTree = "<group>"; };
+		AE27003D2D5CA70600E9562A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AED999412D5CB4C800B4F9C8 /* TurboModuleProvider.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TurboModuleProvider.mm; sourceTree = "<group>"; };
+		AED999432D5CB5DA00B4F9C8 /* TurboModuleProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TurboModuleProvider.h; sourceTree = "<group>"; };
 		AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample-sentryreactnativesampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA08EE94AE203638B8C8B74B /* libPods-sentryreactnativesample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -94,17 +95,18 @@
 		13B07FAE1A68108700A75B9A /* sentryreactnativesample */ = {
 			isa = PBXGroup;
 			children = (
+				AED999432D5CB5DA00B4F9C8 /* TurboModuleProvider.h */,
+				AED999412D5CB4C800B4F9C8 /* TurboModuleProvider.mm */,
 				338BBBC72B614FA10035844C /* NativePlatformSampleModule.h */,
 				338BBBC62B614FA10035844C /* NativePlatformSampleModule.mm */,
 				33E2D62929A7719600B5042B /* RCTAssetsModule.h */,
 				33E2D62829A7719600B5042B /* RCTAssetsModule.m */,
-				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
-				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
-				13B07FB71A68108700A75B9A /* main.m */,
 				916F55A329D66130A4DFF319 /* PrivacyInfo.xcprivacy */,
+				AE27003D2D5CA70600E9562A /* AppDelegate.swift */,
+				AE27003C2D5CA70500E9562A /* sentryreactnativesample-Bridging-Header.h */,
 			);
 			name = sentryreactnativesample;
 			sourceTree = "<group>";
@@ -220,7 +222,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1620;
 					};
 				};
 			};
@@ -423,10 +425,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
-				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				338BBBC82B614FA10035844C /* NativePlatformSampleModule.mm in Sources */,
+				AE27003E2D5CA70600E9562A /* AppDelegate.swift in Sources */,
 				33E2D62A29A7719600B5042B /* RCTAssetsModule.m in Sources */,
+				AED999422D5CB4CE00B4F9C8 /* TurboModuleProvider.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -522,6 +524,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore io.sentry.reactnative.sample";
 				RCT_NEW_ARCH_ENABLED = 1;
+				SWIFT_OBJC_BRIDGING_HEADER = "sentryreactnativesample-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -557,6 +560,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore io.sentry.reactnative.sample";
 				RCT_NEW_ARCH_ENABLED = 1;
+				SWIFT_OBJC_BRIDGING_HEADER = "sentryreactnativesample-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
