@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+
 ### Dependencies
 
 - Bump Android SDK from v7.20.1 to v7.22.0 ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
