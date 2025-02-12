@@ -1,14 +1,26 @@
 /** @type {Detox.DetoxConfig} */
-module.exports = {
-  testRunner: {
-    args: {
-      $0: 'jest',
-      config: 'e2e/jest.config.js',
-    },
-    jest: {
-      setupTimeout: 120000,
-    },
+const testRunnerIos = {
+  args: {
+    $0: 'jest',
+    config: 'e2e/jest.config.ios.js',
   },
+  jest: {
+    setupTimeout: 120000,
+  },
+};
+
+const testRunnerAos = {
+  args: {
+    $0: 'jest',
+    config: 'e2e/jest.config.android.js',
+  },
+  jest: {
+    setupTimeout: 120000,
+  },
+};
+
+module.exports = {
+  testRunner: {},
   apps: {
     'ios.debug': {
       type: 'ios.app',
@@ -62,26 +74,32 @@ module.exports = {
     'ios.sim.debug': {
       device: 'simulator',
       app: 'ios.debug',
+      testRunner: testRunnerIos,
     },
     'ios.sim.release': {
       device: 'simulator',
       app: 'ios.release',
+      testRunner: testRunnerIos,
     },
     'android.att.debug': {
       device: 'attached',
       app: 'android.debug',
+      testRunner: testRunnerAos,
     },
     'android.att.release': {
       device: 'attached',
       app: 'android.release',
+      testRunner: testRunnerAos,
     },
     'android.emu.debug': {
       device: 'emulator',
       app: 'android.debug',
+      testRunner: testRunnerAos,
     },
     'android.emu.release': {
       device: 'emulator',
       app: 'android.release',
+      testRunner: testRunnerAos,
     },
   },
 };

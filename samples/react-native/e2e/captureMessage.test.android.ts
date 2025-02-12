@@ -1,11 +1,12 @@
 import { describe, it, beforeAll, expect } from '@jest/globals';
 import { Envelope } from '@sentry/core';
-import { device, element, by } from 'detox';
+import { device } from 'detox';
 import {
   createSentryServer,
   containingEvent,
 } from './utils/mockedSentryServer';
 import { HEADER, ITEMS } from './utils/types';
+import { tap } from './utils/tap';
 
 describe('Capture message', () => {
   let sentryServer = createSentryServer();
@@ -17,7 +18,7 @@ describe('Capture message', () => {
     await device.launchApp();
 
     const envelopePromise = sentryServer.waitForEnvelope(containingEvent);
-    await element(by.text('Capture message')).tap();
+    await tap('Capture message');
     envelope = await envelopePromise;
   });
 
@@ -32,12 +33,15 @@ describe('Capture message', () => {
 
     expect(item).toEqual([
       {
+        content_type: 'application/json',
         length: expect.any(Number),
         type: 'event',
       },
       expect.objectContaining({
         level: 'info',
-        message: 'Captured message',
+        message: {
+          message: 'Captured message',
+        },
         platform: 'javascript',
       }),
     ]);

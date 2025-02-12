@@ -10,7 +10,10 @@ import {
 export function parseEnvelope(env: string | Uint8Array): Envelope {
   let buffer = typeof env === 'string' ? encodeUTF8(env) : env;
 
-  function readBinary(length: number): Uint8Array {
+  function readBinary(length?: number): Uint8Array {
+    if (!length) {
+      throw new Error('Binary Envelope Items must have a length to be read');
+    }
     const bin = buffer.subarray(0, length);
     // Replace the buffer with the remaining data excluding trailing newline
     buffer = buffer.subarray(length + 1);
@@ -33,15 +36,24 @@ export function parseEnvelope(env: string | Uint8Array): Envelope {
 
   while (buffer.length) {
     const itemHeader = readJson<BaseEnvelopeItemHeaders>();
-    const isBinary =
+    const isBinaryAttachment =
       itemHeader.type === 'attachment' &&
       itemHeader.content_type !== 'application/json';
-    const binaryLength = isBinary ? itemHeader.length : undefined;
+    // TODO: Parse when needed for the tests
+    const isReplayVideo = (itemHeader.type as string) === 'replay_video';
 
-    items.push([
-      itemHeader,
-      binaryLength ? readBinary(binaryLength) : readJson(),
-    ]);
+    try {
+      let item: any = {};
+      if (isReplayVideo || isBinaryAttachment) {
+        item = readBinary(itemHeader.length);
+      } else {
+        item = readJson();
+      }
+      items.push([itemHeader, item]);
+    } catch (e) {
+      console.error(e, 'itemHeader', itemHeader, 'buffer', buffer.toString());
+      throw e;
+    }
   }
 
   return [envelopeHeader, items];

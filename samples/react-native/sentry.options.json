@@ -1,5 +1,5 @@
 {
-  "dsn": "http://key@localhost:8961/123456",
+  "dsn": "http://key@10.0.2.2:8961/123456",
   "debug": true,
   "environment": "dev",
   "enableUserInteractionTracing": true,
