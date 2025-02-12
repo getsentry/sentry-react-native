@@ -212,7 +212,7 @@ interface ExpoImageLibraryOptions {
 }
 
 interface ReactNativeImageLibraryOptions {
-  mediaType: any;
+  mediaType: 'photo';
 }
 
 export interface ImagePicker {
