@@ -1,18 +1,18 @@
 {
-  "dsn": "http://key@10.0.2.2:8961/123456",
+  "dsn": "http://key@localhost:8961/123456",
   "debug": true,
   "environment": "dev",
   "enableUserInteractionTracing": true,
   "enableAutoSessionTracking": true,
   "sessionTrackingIntervalMillis": 30000,
   "enableTracing": true,
-  "tracesSampleRate": 1.0,
+  "tracesSampleRate": 1,
   "attachStacktrace": true,
   "attachScreenshot": true,
   "attachViewHierarchy": true,
   "enableCaptureFailedRequests": true,
-  "profilesSampleRate": 1.0,
-  "replaysSessionSampleRate": 1.0,
-  "replaysOnErrorSampleRate": 1.0,
+  "profilesSampleRate": 1,
+  "replaysSessionSampleRate": 1,
+  "replaysOnErrorSampleRate": 1,
   "spotlight": true
 }
