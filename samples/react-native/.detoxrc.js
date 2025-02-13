@@ -1,5 +1,7 @@
 const process = require('process');
 
+const TEST_TIMEOUT = 10 * 60 * 1000;
+
 /** @type {Detox.DetoxConfig} */
 const testRunnerIos = {
   args: {
@@ -7,7 +9,7 @@ const testRunnerIos = {
     config: 'e2e/jest.config.ios.js',
   },
   jest: {
-    setupTimeout: 120000,
+    setupTimeout: TEST_TIMEOUT,
   },
 };
 
@@ -17,7 +19,7 @@ const testRunnerAos = {
     config: 'e2e/jest.config.android.js',
   },
   jest: {
-    setupTimeout: 120000,
+    setupTimeout: TEST_TIMEOUT,
   },
 };
 
