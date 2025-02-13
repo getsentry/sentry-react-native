@@ -192,7 +192,9 @@ export interface FeedbackCallbacks {
 }
 
 /**
- * Image Picker configuration interfact matching `expo-image-picker` and `react-native-image-picker`
+ * Image Picker configuration interface compatible with:
+ * - `react-native-image-picker`: 7.2, 8.0
+ * - `expo-image-picker`: 16.0`
  */
 export interface ImagePickerConfiguration {
   imagePicker?: ImagePicker;
