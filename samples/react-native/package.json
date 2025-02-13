@@ -53,6 +53,8 @@
     "@react-native/metro-config": "0.76.3",
     "@react-native/typescript-config": "0.76.3",
     "@sentry/babel-plugin-component-annotate": "^2.18.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.1",
     "@types/react": "^18.2.65",
     "@types/react-native-vector-icons": "^6.4.18",
     "@types/react-test-renderer": "^18.0.0",
@@ -60,12 +62,14 @@
     "@typescript-eslint/parser": "^7.18.0",
     "babel-jest": "^29.2.1",
     "babel-plugin-module-resolver": "^5.0.0",
+    "detox": "^20.33.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
     "patch-package": "^8.0.0",
     "prettier": "2.8.8",
     "react-test-renderer": "18.3.1",
     "sentry-react-native-samples-utils": "workspace:^",
+    "ts-jest": "^29.2.5",
     "typescript": "5.0.4"
   },
   "engines": {

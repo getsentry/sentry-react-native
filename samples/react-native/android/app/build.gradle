@@ -139,6 +139,10 @@ android {
         versionCode 39
         versionName "6.7.0-alpha.0"
         buildConfigField "boolean", "SENTRY_DISABLE_NATIVE_START", System.getenv('SENTRY_DISABLE_NATIVE_START') ?: String.valueOf(sentryDisableNativeStart)
+
+        // Detox
+        testBuildType System.getProperty('testBuildType', 'debug')
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     signingConfigs {
@@ -193,11 +197,15 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFile "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro"
         }
     }
 }
 
 dependencies {
+    androidTestImplementation('com.wix:detox:+')
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
