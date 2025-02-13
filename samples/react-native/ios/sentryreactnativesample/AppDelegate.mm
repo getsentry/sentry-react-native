@@ -73,9 +73,10 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
     return nullptr;
 }
 
-- (BOOL) shouldStartSentry {
-  NSArray<NSString*>* arguments = [[NSProcessInfo processInfo] arguments];
-  return ![arguments containsObject:@"--sentry-disable-native-start"];
+- (BOOL)shouldStartSentry
+{
+    NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
+    return ![arguments containsObject:@"--sentry-disable-native-start"];
 }
 
 @end
