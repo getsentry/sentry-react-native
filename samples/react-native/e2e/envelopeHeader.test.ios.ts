@@ -5,7 +5,7 @@ import {
   createSentryServer,
   containingEvent,
 } from './utils/mockedSentryServer';
-import { HEADER, TIMEOUT_10_MINUTES } from './utils/consts';
+import { HEADER } from './utils/consts';
 import { tap } from './utils/tap';
 
 describe('Capture message', () => {
@@ -21,7 +21,7 @@ describe('Capture message', () => {
 
     await tap('Capture message');
     envelope = await envelopePromise;
-  }, TIMEOUT_10_MINUTES);
+  });
 
   afterAll(async () => {
     await sentryServer.close();
