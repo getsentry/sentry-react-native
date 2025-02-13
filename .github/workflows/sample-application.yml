@@ -253,6 +253,16 @@ jobs:
           run-id: 13307975513
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Unzip iOS App Archive
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: unzip ${{ env.IOS_APP_ARCHIVE_PATH }}
+
+      - name: Unzip Android APK
+        if: ${{ matrix.platform == 'android' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
+
       - name: Enable Corepack
         run: |
           npm install -g corepack@0.29.4
