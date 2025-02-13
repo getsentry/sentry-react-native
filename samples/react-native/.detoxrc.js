@@ -58,8 +58,7 @@ module.exports = {
     },
     'ci.ios': {
       type: 'ios.app',
-      binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/sentryreactnativesample.app',
+      binaryPath: 'sentryreactnativesample.app',
     },
   },
   devices: {
