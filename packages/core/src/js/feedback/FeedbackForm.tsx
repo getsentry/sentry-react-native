@@ -17,11 +17,12 @@ import {
   View
 } from 'react-native';
 
+import { NATIVE } from './../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
 import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackForm.types';
-import { getDataFromUri, isValidEmail } from './utils';
+import { isValidEmail } from './utils';
 
 /**
  * @beta
@@ -126,11 +127,15 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
         if (result.assets && result.assets.length > 0) {
           const filename = result.assets[0].fileName;
           const imageUri = result.assets[0].uri;
-          getDataFromUri(imageUri).then((data) => {
-            this.setState({ filename, attachment: data });
+          NATIVE.getDataFromUri(imageUri).then((data) => {
+            if (data != null) {
+              this.setState({ filename, attachment: data });
+            } else {
+              logger.error('Failed to read image data from uri:', imageUri);
+            }
           })
           .catch((error) => {
-            logger.error("Error:", error);
+            logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
           });
         }
       } else {
