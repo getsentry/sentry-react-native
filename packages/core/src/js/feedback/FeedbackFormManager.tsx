@@ -1,6 +1,6 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import { Animated, KeyboardAvoidingView, Modal, Platform, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Modal, PanResponder, Platform } from 'react-native';
 
 import { FeedbackForm } from './FeedbackForm';
 import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackForm.styles';
@@ -43,13 +43,46 @@ interface FeedbackFormProviderProps {
 interface FeedbackFormProviderState {
   isVisible: boolean;
   backgroundOpacity: Animated.Value;
+  panY: Animated.Value;
 }
 
 class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
   public state: FeedbackFormProviderState = {
     isVisible: false,
     backgroundOpacity: new Animated.Value(0),
+    panY: new Animated.Value(0),
   };
+
+  private _panResponder = (Platform.OS === 'android') ?
+    PanResponder.create({ // Disable swiping on Android since it interferes with the platform gestures
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: () => false,
+    }):
+    PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderMove: (_, gestureState) => {
+      if (gestureState.dy > 0) {
+        this.state.panY.setValue(gestureState.dy);
+      }
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dy > 200) { // Close on swipe below a certain threshold
+        Animated.timing(this.state.panY, {
+          toValue: 600,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => {
+          this._handleClose();
+        });
+      } else { // Animate it back to the original position
+        Animated.spring(this.state.panY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+  });
 
   public constructor(props: FeedbackFormProviderProps) {
     super(props);
@@ -99,12 +132,15 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={modalBackground}
               >
-                <View style={modalSheetContainer}>
+                <Animated.View
+                  style={[modalSheetContainer, { transform: [{ translateY: this.state.panY }] }]}
+                  {...this._panResponder.panHandlers}
+                >
                   <FeedbackForm {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
                     />
-                </View>
+                </Animated.View>
               </KeyboardAvoidingView>
             </Modal>
           </Animated.View>
@@ -115,6 +151,9 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
 
   private _setVisibilityFunction = (visible: boolean): void => {
     this.setState({ isVisible: visible });
+    if (visible) {
+      this.state.panY.setValue(0);
+    }
   };
 
   private _handleClose = (): void => {
