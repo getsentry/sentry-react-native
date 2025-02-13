@@ -263,6 +263,9 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
+      - name: Install JS Dependencies
+        run: yarn install
+
       - name: Install Detox
         run: npm install -g detox-cli@20.0.0
 
