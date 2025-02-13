@@ -31,11 +31,15 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
-import { logWithoutTracing } from './utils';
+import { clearSentryOptionsFromFile, logWithoutTracing, shouldUseAutoStart } from './utils';
 import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
+
+if (shouldUseAutoStart()) {
+  clearSentryOptionsFromFile();
+}
 
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
@@ -130,7 +134,7 @@ Sentry.init({
   spotlight: true,
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
-  autoInitializeNativeSdk: true,
+  // autoInitializeNativeSdk: true,
 });
 
 const Stack = isMobileOs

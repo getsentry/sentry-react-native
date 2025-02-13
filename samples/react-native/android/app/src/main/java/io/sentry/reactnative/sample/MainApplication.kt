@@ -37,23 +37,14 @@ class MainApplication :
 
     override fun onCreate() {
         super.onCreate()
-        // When the native init is enabled the `autoInitializeNativeSdk`
-        // in JS has to be set to `false`
-        // this.initializeSentry()
+        if (!BuildConfig.SENTRY_DISABLE_NATIVE_START) {
+            RNSentrySDK.init(this)
+        }
+
         SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
             load()
         }
-    }
-
-    private fun initializeSentry() {
-        RNSentrySDK.init(this) { options ->
-            // Options set here will apply to the Android SDK overriding the ones from `sentry.options.json`
-            options.dsn = "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561"
-            options.isDebug = true
-        }
-
-        // RNSentrySDK.init(this)
     }
 }
