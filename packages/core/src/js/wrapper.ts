@@ -121,7 +121,7 @@ interface SentryNativeWrapper {
   crashedLastRun(): Promise<boolean | null>;
   getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
 
-  getDataFromUri(uri: string): Promise<Uint8Array>;
+  getDataFromUri(uri: string): Promise<Uint8Array | null>;
 }
 
 const EOL = utf8ToBytes('\n');
