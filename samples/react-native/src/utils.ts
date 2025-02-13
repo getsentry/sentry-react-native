@@ -26,12 +26,3 @@ export function shouldUseAutoStart(): boolean {
     return false;
   }
 }
-
-export function clearSentryOptionsFromFile() {
-  (
-    globalThis as {
-      __SENTRY_OPTIONS__?: Record<string, unknown>;
-    }
-  ).__SENTRY_OPTIONS__ = undefined;
-  logWithoutTracing('Sentry options from file cleared.');
-}

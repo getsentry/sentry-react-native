@@ -30,15 +30,11 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
-import { clearSentryOptionsFromFile, logWithoutTracing, shouldUseAutoStart } from './utils';
+import { logWithoutTracing, shouldUseAutoStart } from './utils';
 import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
-
-if (shouldUseAutoStart()) {
-  clearSentryOptionsFromFile();
-}
 
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
@@ -105,7 +101,7 @@ Sentry.init({
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
-  // autoInitializeNativeSdk: true,
+  autoInitializeNativeSdk: shouldUseAutoStart(),
 });
 
 const Stack = isMobileOs
