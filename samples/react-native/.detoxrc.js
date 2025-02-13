@@ -1,6 +1,6 @@
 const process = require('process');
 
-const TEST_TIMEOUT = 10 * 60 * 1000;
+const TEST_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 /** @type {Detox.DetoxConfig} */
 const testRunnerIos = {
