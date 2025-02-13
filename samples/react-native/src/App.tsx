@@ -101,7 +101,7 @@ Sentry.init({
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
-  // autoInitializeNativeSdk: true,
+  autoInitializeNativeSdk: shouldUseAutoStart(),
 });
 
 const Stack = isMobileOs
