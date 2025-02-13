@@ -1,3 +1,5 @@
+const process = require('process');
+
 /** @type {Detox.DetoxConfig} */
 const testRunnerIos = {
   args: {
@@ -49,6 +51,16 @@ module.exports = {
       build:
         'cd android && ./gradlew app:assembleRelease app:assembleAndroidTest -DtestBuildType=release',
     },
+    'ci.android': {
+      type: 'android.apk',
+      binaryPath: 'app.apk',
+      testBinaryPath: 'app-androidTest.apk',
+    },
+    'ci.ios': {
+      type: 'ios.app',
+      binaryPath:
+        'ios/build/Build/Products/Release-iphonesimulator/sentryreactnativesample.app',
+    },
   },
   devices: {
     simulator: {
@@ -67,6 +79,19 @@ module.exports = {
       type: 'android.emulator',
       device: {
         avdName: 'Pixel_9_API_35',
+      },
+    },
+    'ci.emulator': {
+      type: 'android.emulator',
+      device: {
+        avdName: process.env.ANDROID_AVD_NAME,
+      },
+    },
+    'ci.simulator': {
+      type: 'ios.simulator',
+      device: {
+        type: process.env.IOS_DEVICE,
+        os: process.env.IOS_VERSION,
       },
     },
   },
@@ -100,6 +125,16 @@ module.exports = {
       device: 'emulator',
       app: 'android.release',
       testRunner: testRunnerAos,
+    },
+    'ci.android': {
+      device: 'ci.emulator',
+      app: 'ci.android',
+      testRunner: testRunnerAos,
+    },
+    'ci.sim': {
+      device: 'ci.simulator',
+      app: 'ci.ios',
+      testRunner: testRunnerIos,
     },
   },
 };
