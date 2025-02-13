@@ -114,7 +114,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android
         run: |
-          ./scripts/set-aos-dsn.mjs
+          ../scripts/set-aos-dsn.mjs
 
           if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
             perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
@@ -136,7 +136,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios
         run: |
-          ./scripts/set-ios-dsn.mjs
+          ../scripts/set-ios-dsn.mjs
 
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
