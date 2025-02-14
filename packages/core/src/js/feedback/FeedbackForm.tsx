@@ -40,6 +40,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     description: '',
     filename: undefined,
     attachment: undefined,
+    attachmentUri: undefined,
   };
 
   public constructor(props: FeedbackFormProps) {
@@ -59,6 +60,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       description: FeedbackForm._savedState.description || '',
       filename: FeedbackForm._savedState.filename || undefined,
       attachment: FeedbackForm._savedState.attachment || undefined,
+      attachmentUri: FeedbackForm._savedState.attachmentUri || undefined,
     };
   }
 
@@ -141,7 +143,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
           const imageUri = result.assets[0].uri;
           NATIVE.getDataFromUri(imageUri).then((data) => {
             if (data != null) {
-              this.setState({ filename, attachment: data }, this._saveFormState);
+              this.setState({ filename, attachment: data, attachmentUri: imageUri }, this._saveFormState);
             } else {
               logger.error('Failed to read image data from uri:', imageUri);
             }
@@ -154,11 +156,12 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((filename: string, attachement: Uint8Array) => {
-          this.setState({ filename, attachment: attachement }, this._saveFormState);
+          // TODO: Add support for image uri when using onAddScreenshot
+          this.setState({ filename, attachment: attachement, attachmentUri: undefined }, this._saveFormState);
         });
       }
     } else {
-      this.setState({ filename: undefined, attachment: undefined }, this._saveFormState);
+      this.setState({ filename: undefined, attachment: undefined, attachmentUri: undefined }, this._saveFormState);
     }
   }
 
@@ -244,13 +247,21 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 multiline
               />
               {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
-                <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                  <Text style={styles.screenshotText}>
-                  {!this.state.filename && !this.state.attachment
-                    ? text.addScreenshotButtonLabel
-                    : text.removeScreenshotButtonLabel}
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.screenshotContainer}>
+                  {this.state.attachmentUri && (
+                    <Image
+                      source={{ uri: this.state.attachmentUri }}
+                      style={styles.screenshotThumbnail}
+                    />
+                  )}
+                  <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                    <Text style={styles.screenshotText}>
+                      {!this.state.filename && !this.state.attachment
+                        ? text.addScreenshotButtonLabel
+                        : text.removeScreenshotButtonLabel}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
               <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
                 <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
@@ -279,6 +290,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       description: '',
       filename: undefined,
       attachment: undefined,
+      attachmentUri: undefined,
     };
   };
 }
