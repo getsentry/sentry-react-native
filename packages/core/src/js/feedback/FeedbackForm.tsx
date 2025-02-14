@@ -33,6 +33,15 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     ...defaultConfiguration
   }
 
+  private static _savedState: FeedbackFormState = {
+    isVisible: false,
+    name: '',
+    email: '',
+    description: '',
+    filename: undefined,
+    attachment: undefined,
+  };
+
   public constructor(props: FeedbackFormProps) {
     super(props);
 
@@ -45,9 +54,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     this.state = {
       isVisible: true,
-      name: currentUser.useSentryUser.name,
-      email: currentUser.useSentryUser.email,
-      description: '',
+      name: FeedbackForm._savedState.name || currentUser.useSentryUser.name,
+      email: FeedbackForm._savedState.email || currentUser.useSentryUser.email,
+      description: FeedbackForm._savedState.description || '',
+      filename: FeedbackForm._savedState.filename || undefined,
+      attachment: FeedbackForm._savedState.attachment || undefined,
     };
   }
 
@@ -93,6 +104,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
       Alert.alert(text.successMessageText);
       onFormSubmitted();
+      this._clearFormState();
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
@@ -129,7 +141,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
           const imageUri = result.assets[0].uri;
           NATIVE.getDataFromUri(imageUri).then((data) => {
             if (data != null) {
-              this.setState({ filename, attachment: data });
+              this.setState({ filename, attachment: data }, this._saveFormState);
             } else {
               logger.error('Failed to read image data from uri:', imageUri);
             }
@@ -142,11 +154,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((filename: string, attachement: Uint8Array) => {
-          this.setState({ filename, attachment: attachement });
+          this.setState({ filename, attachment: attachement }, this._saveFormState);
         });
       }
     } else {
-      this.setState({ filename: undefined, attachment: undefined });
+      this.setState({ filename: undefined, attachment: undefined }, this._saveFormState);
     }
   }
 
@@ -199,7 +211,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                   style={styles.input}
                   placeholder={text.namePlaceholder}
                   value={name}
-                  onChangeText={(value) => this.setState({ name: value })}
+                  onChangeText={(value) => this.setState({ name: value }, this._saveFormState)}
                 />
               </>
               )}
@@ -215,7 +227,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                   placeholder={text.emailPlaceholder}
                   keyboardType={'email-address' as KeyboardTypeOptions}
                   value={email}
-                  onChangeText={(value) => this.setState({ email: value })}
+                  onChangeText={(value) => this.setState({ email: value }, this._saveFormState)}
                 />
               </>
               )}
@@ -228,7 +240,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 style={[styles.input, styles.textArea]}
                 placeholder={text.messagePlaceholder}
                 value={description}
-                onChangeText={(value) => this.setState({ description: value })}
+                onChangeText={(value) => this.setState({ description: value }, this._saveFormState)}
                 multiline
               />
               {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
@@ -254,4 +266,19 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     </SafeAreaView>
     );
   }
+
+  private _saveFormState = (): void => {
+    FeedbackForm._savedState = { ...this.state };
+  };
+
+  private _clearFormState = (): void => {
+    FeedbackForm._savedState = {
+      isVisible: false,
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+    };
+  };
 }
