@@ -36,6 +36,9 @@ import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 
+/* false by default to avoid issues in e2e tests waiting for the animation end */
+const RUNNING_INDICATOR = false;
+
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
 }
@@ -252,6 +255,10 @@ function App() {
 
 function RunningIndicator() {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    return null;
+  }
+
+  if (!RUNNING_INDICATOR) {
     return null;
   }
 
