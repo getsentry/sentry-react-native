@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
-import type { FeedbackFormProps, FeedbackFormStyles } from '../../src/js/feedback/FeedbackForm.types';
+import type { FeedbackFormProps, FeedbackFormStyles, ImagePicker } from '../../src/js/feedback/FeedbackForm.types';
 
 const mockOnFormClose = jest.fn();
 const mockOnAddScreenshot = jest.fn();
@@ -303,13 +303,47 @@ describe('FeedbackForm', () => {
     });
   });
 
-  it('calls onAddScreenshot when the screenshot button is pressed', async () => {
+  it('calls onAddScreenshot when the screenshot button is pressed and no image picker library is integrated', async () => {
     const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
 
     fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
 
     await waitFor(() => {
       expect(mockOnAddScreenshot).toHaveBeenCalled();
+    });
+  });
+
+  it('calls launchImageLibraryAsync when the expo-image-picker library is integrated', async () => {
+    const mockLaunchImageLibrary = jest.fn().mockResolvedValue({
+      assets: [{ fileName: "mock-image.jpg", uri: "file:///mock/path/image.jpg" }],
+    });
+    const mockImagePicker: jest.Mocked<ImagePicker> = {
+      launchImageLibraryAsync: mockLaunchImageLibrary,
+    };
+
+    const { getByText } = render(<FeedbackForm {...defaultProps} imagePicker={ mockImagePicker } />);
+
+    fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
+
+    await waitFor(() => {
+      expect(mockLaunchImageLibrary).toHaveBeenCalled();
+    });
+  });
+
+  it('calls launchImageLibrary when the react-native-image-picker library is integrated', async () => {
+    const mockLaunchImageLibrary = jest.fn().mockResolvedValue({
+      assets: [{ fileName: "mock-image.jpg", uri: "file:///mock/path/image.jpg" }],
+    });
+    const mockImagePicker: jest.Mocked<ImagePicker> = {
+      launchImageLibrary: mockLaunchImageLibrary,
+    };
+
+    const { getByText } = render(<FeedbackForm {...defaultProps} imagePicker={ mockImagePicker } />);
+
+    fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
+
+    await waitFor(() => {
+      expect(mockLaunchImageLibrary).toHaveBeenCalled();
     });
   });
 

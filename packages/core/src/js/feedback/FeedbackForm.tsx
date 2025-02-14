@@ -17,10 +17,11 @@ import {
   View
 } from 'react-native';
 
+import { NATIVE } from './../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles,FeedbackGeneralConfiguration, FeedbackTextConfiguration } from './FeedbackForm.types';
+import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackForm.types';
 import { isValidEmail } from './utils';
 
 /**
@@ -100,12 +101,50 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     }
   };
 
-  public onScreenshotButtonPress: () => void = () => {
+  public onScreenshotButtonPress: () => void = async () => {
     if (!this.state.filename && !this.state.attachment) {
-      const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
-      onAddScreenshot((filename: string, attachement: Uint8Array) => {
-        this.setState({ filename, attachment: attachement });
-      });
+      const imagePickerConfiguration: ImagePickerConfiguration = this.props;
+      if (imagePickerConfiguration.imagePicker) {
+        const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
+          // expo-image-picker library is available
+          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] })
+          // react-native-image-picker library is available
+          : imagePickerConfiguration.imagePicker.launchImageLibrary
+            ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: 'photo' })
+            : null;
+        if (!launchImageLibrary) {
+          logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
+          if (__DEV__) {
+            Alert.alert(
+              'Development note',
+              'No compatible image picker library found. Please provide a compatible version of `expo-image-picker` or `react-native-image-picker`.',
+            );
+          }
+          return;
+        }
+
+        const result = await launchImageLibrary();
+        if (result.assets && result.assets.length > 0) {
+          const filename = result.assets[0].fileName;
+          const imageUri = result.assets[0].uri;
+          NATIVE.getDataFromUri(imageUri).then((data) => {
+            if (data != null) {
+              this.setState({ filename, attachment: data });
+            } else {
+              logger.error('Failed to read image data from uri:', imageUri);
+            }
+          })
+          .catch((error) => {
+            logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
+          });
+        }
+      } else {
+        // Defaulting to the onAddScreenshot callback
+        const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
+        onAddScreenshot((filename: string, attachement: Uint8Array) => {
+          this.setState({ filename, attachment: attachement });
+        });
+      }
     } else {
       this.setState({ filename: undefined, attachment: undefined });
     }
@@ -118,6 +157,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const { name, email, description } = this.state;
     const { onFormClose } = this.props;
     const config: FeedbackGeneralConfiguration = this.props;
+    const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
     const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
@@ -191,7 +231,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 onChangeText={(value) => this.setState({ description: value })}
                 multiline
               />
-              {config.enableScreenshot && (
+              {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
                 <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
                   <Text style={styles.screenshotText}>
                   {!this.state.filename && !this.state.attachment
