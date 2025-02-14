@@ -442,50 +442,61 @@ exports[`FeedbackForm matches the snapshot with custom styles and screenshot but
             value=""
           />
           <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
             style={
               {
-                "backgroundColor": "#00ff00",
-                "opacity": 1,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "marginBottom": 20,
+                "width": "100%",
               }
             }
           >
-            <Text
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
-                  "color": "#0000ff",
-                  "fontSize": 13,
+                  "backgroundColor": "#00ff00",
+                  "opacity": 1,
                 }
               }
             >
-              Add a screenshot
-            </Text>
+              <Text
+                style={
+                  {
+                    "color": "#0000ff",
+                    "fontSize": 13,
+                  }
+                }
+              >
+                Add a screenshot
+              </Text>
+            </View>
           </View>
           <View
             accessibilityState={
@@ -1085,54 +1096,65 @@ exports[`FeedbackForm matches the snapshot with custom texts and screenshot butt
             value=""
           />
           <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#eee",
-                "borderRadius": 5,
+                "flexDirection": "row",
                 "marginBottom": 20,
-                "opacity": 1,
-                "padding": 15,
+                "width": "100%",
               }
             }
           >
-            <Text
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
-                  "color": "#333",
-                  "fontSize": 16,
+                  "alignItems": "center",
+                  "backgroundColor": "#eee",
+                  "borderRadius": 5,
+                  "flex": 1,
+                  "opacity": 1,
+                  "padding": 15,
                 }
               }
             >
-              Add Screenshot
-            </Text>
+              <Text
+                style={
+                  {
+                    "color": "#333",
+                    "fontSize": 16,
+                  }
+                }
+              >
+                Add Screenshot
+              </Text>
+            </View>
           </View>
           <View
             accessibilityState={
@@ -1737,54 +1759,65 @@ exports[`FeedbackForm matches the snapshot with default configuration and screen
             value=""
           />
           <View
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            accessibilityValue={
-              {
-                "max": undefined,
-                "min": undefined,
-                "now": undefined,
-                "text": undefined,
-              }
-            }
-            accessible={true}
-            collapsable={false}
-            focusable={true}
-            onClick={[Function]}
-            onResponderGrant={[Function]}
-            onResponderMove={[Function]}
-            onResponderRelease={[Function]}
-            onResponderTerminate={[Function]}
-            onResponderTerminationRequest={[Function]}
-            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#eee",
-                "borderRadius": 5,
+                "flexDirection": "row",
                 "marginBottom": 20,
-                "opacity": 1,
-                "padding": 15,
+                "width": "100%",
               }
             }
           >
-            <Text
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
-                  "color": "#333",
-                  "fontSize": 16,
+                  "alignItems": "center",
+                  "backgroundColor": "#eee",
+                  "borderRadius": 5,
+                  "flex": 1,
+                  "opacity": 1,
+                  "padding": 15,
                 }
               }
             >
-              Add a screenshot
-            </Text>
+              <Text
+                style={
+                  {
+                    "color": "#333",
+                    "fontSize": 16,
+                  }
+                }
+              >
+                Add a screenshot
+              </Text>
+            </View>
           </View>
           <View
             accessibilityState={
