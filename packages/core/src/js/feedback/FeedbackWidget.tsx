@@ -21,7 +21,7 @@ import { NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
-import type { FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackWidget.types';
+import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { isValidEmail } from './utils';
 
 /**
