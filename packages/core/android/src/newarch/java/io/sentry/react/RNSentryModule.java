@@ -177,4 +177,9 @@ public class RNSentryModule extends NativeRNSentrySpec {
   public void getNewScreenTimeToDisplay(Promise promise) {
     this.impl.getNewScreenTimeToDisplay(promise);
   }
+
+  @Override
+  public void getDataFromUri(String uri, Promise promise) {
+    this.impl.getDataFromUri(uri, promise);
+  }
 }

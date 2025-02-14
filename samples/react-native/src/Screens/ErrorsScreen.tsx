@@ -221,6 +221,18 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
+          title="Feedback form"
+          onPress={() => {
+            _props.navigation.navigate('FeedbackForm');
+          }}
+        />
+        <Button
+          title="Feedback form (auto)"
+          onPress={() => {
+            Sentry.showFeedbackForm();
+          }}
+        />
+        <Button
           title="Send user feedback"
           onPress={() => {
             setFeedbackVisible(true);
