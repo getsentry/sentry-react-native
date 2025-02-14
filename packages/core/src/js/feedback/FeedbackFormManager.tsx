@@ -8,6 +8,9 @@ import type { FeedbackFormStyles } from './FeedbackForm.types';
 import { getFeedbackOptions } from './integration';
 import { isModalSupported } from './utils';
 
+const PULL_DOWN_CLOSE_THREESHOLD = 200;
+const PULL_DOWN_ANDROID_ACTIVATION_HEIGHT = 150;
+
 class FeedbackFormManager {
   private static _isVisible = false;
   private static _setVisibility: (visible: boolean) => void;
@@ -53,21 +56,22 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
     panY: new Animated.Value(0),
   };
 
-  private _panResponder = (Platform.OS === 'android') ?
-    PanResponder.create({ // Disable swiping on Android since it interferes with the platform gestures
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: () => false,
-    }):
-    PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
+
+  private _panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: (evt, _gestureState) => {
+      // On Android allow pulling down only from the top to avoid breaking native gestures
+      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+    },
+    onMoveShouldSetPanResponder: (evt, _gestureState) => {
+      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+    },
     onPanResponderMove: (_, gestureState) => {
       if (gestureState.dy > 0) {
         this.state.panY.setValue(gestureState.dy);
       }
     },
     onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dy > 200) { // Close on swipe below a certain threshold
+      if (gestureState.dy > PULL_DOWN_CLOSE_THREESHOLD) { // Close on swipe below a certain threshold
         Animated.timing(this.state.panY, {
           toValue: 600,
           duration: 200,
