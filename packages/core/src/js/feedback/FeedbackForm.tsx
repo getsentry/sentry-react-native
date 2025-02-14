@@ -155,9 +155,17 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       } else {
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
-        onAddScreenshot((filename: string, attachement: Uint8Array) => {
-          // TODO: Add support for image uri when using onAddScreenshot
-          this.setState({ filename, attachment: attachement, attachmentUri: undefined }, this._saveFormState);
+        onAddScreenshot((filename: string, fileUri: string) => {
+          NATIVE.getDataFromUri(fileUri).then((data) => {
+            if (data != null) {
+              this.setState({ filename, attachment: data, attachmentUri: fileUri }, this._saveFormState);
+            } else {
+              logger.error('Failed to read image data from uri:', fileUri);
+            }
+          })
+          .catch((error) => {
+            logger.error('Failed to read image data from uri:', fileUri, 'error: ', error);
+          });
         });
       }
     } else {
