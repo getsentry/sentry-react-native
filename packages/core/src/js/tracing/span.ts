@@ -1,6 +1,7 @@
 import type { Client, Scope, Span, StartSpanOptions } from '@sentry/core';
 import {
-  generatePropagationContext,
+  //generatePropagationContext replaced by generateTraceId,
+  generateTraceId,
   getActiveSpan,
   getClient,
   getCurrentScope,
@@ -104,7 +105,8 @@ export const startIdleSpan = (
     return new SentryNonRecordingSpan();
   }
 
-  getCurrentScope().setPropagationContext(generatePropagationContext());
+// TODO: fix replace
+//  getCurrentScope().setPropagationContext(generatePropagationContext());
 
   const span = coreStartIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
   cancelInBackground(client, span);

@@ -155,7 +155,9 @@ function setupErrorUtilsGlobalHandler(): void {
       return;
     }
 
-    void client.flush(client.getOptions().shutdownTimeout || 2000).then(
+    // SEE: https://github.com/getsentry/sentry-javascript/pull/15217
+    // void client.flush(client.getOptions().shutdownTimeout || 2000).then(
+    void client.flush(2000).then(
       () => {
         defaultHandler(error, isFatal);
       },

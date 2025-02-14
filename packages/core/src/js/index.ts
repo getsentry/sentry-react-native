@@ -1,6 +1,5 @@
 export type {
   Breadcrumb,
-  Request,
   SdkInfo,
   Event,
   Exception,
@@ -43,7 +42,6 @@ export {
   getClient,
   setCurrentClient,
   addEventProcessor,
-  metricsDefault as metrics,
   lastEventId,
 } from '@sentry/core';
 
