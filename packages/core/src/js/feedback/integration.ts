@@ -1,16 +1,16 @@
 import type { Integration } from '@sentry/core';
 
-import type { FeedbackFormProps } from './FeedbackForm.types';
+import type { FeedbackWidgetProps } from './FeedbackWidget.types';
 
 export const FEEDBACK_FORM_INTEGRATION_NAME = 'MobileFeedback';
 
 type FeedbackIntegration = Integration & {
-  options: Partial<FeedbackFormProps>;
+  options: Partial<FeedbackWidgetProps>;
 };
 
-let savedOptions: Partial<FeedbackFormProps> = {};
+let savedOptions: Partial<FeedbackWidgetProps> = {};
 
-export const feedbackIntegration = (initOptions: FeedbackFormProps = {}): FeedbackIntegration => {
+export const feedbackIntegration = (initOptions: FeedbackWidgetProps = {}): FeedbackIntegration => {
   savedOptions = initOptions;
 
   return {
@@ -19,4 +19,4 @@ export const feedbackIntegration = (initOptions: FeedbackFormProps = {}): Feedba
   };
 };
 
-export const getFeedbackOptions = (): Partial<FeedbackFormProps> => savedOptions;
+export const getFeedbackOptions = (): Partial<FeedbackWidgetProps> => savedOptions;

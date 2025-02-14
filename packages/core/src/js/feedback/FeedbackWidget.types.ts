@@ -4,12 +4,12 @@ import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 /**
  * The props for the feedback form
  */
-export interface FeedbackFormProps
+export interface FeedbackWidgetProps
   extends FeedbackGeneralConfiguration,
     FeedbackTextConfiguration,
     FeedbackCallbacks,
     ImagePickerConfiguration {
-  styles?: FeedbackFormStyles;
+  styles?: FeedbackWidgetStyles;
 }
 
 /**
@@ -226,7 +226,7 @@ export interface ImagePicker {
 /**
  * The styles for the feedback form
  */
-export interface FeedbackFormStyles {
+export interface FeedbackWidgetStyles {
   container?: ViewStyle;
   title?: TextStyle;
   label?: TextStyle;
@@ -245,7 +245,7 @@ export interface FeedbackFormStyles {
 /**
  * The state of the feedback form
  */
-export interface FeedbackFormState {
+export interface FeedbackWidgetState {
   isVisible: boolean;
   name: string;
   email: string;

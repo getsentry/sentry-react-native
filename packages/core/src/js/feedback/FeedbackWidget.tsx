@@ -17,23 +17,23 @@ import {
   View
 } from 'react-native';
 
-import { NATIVE } from './../wrapper';
+import { NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
-import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackForm.types';
+import defaultStyles from './FeedbackWidget.styles';
+import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { isValidEmail } from './utils';
 
 /**
  * @beta
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
-export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
-  public static defaultProps: Partial<FeedbackFormProps> = {
+export class FeedbackWidget extends React.Component<FeedbackWidgetProps, FeedbackWidgetState> {
+  public static defaultProps: Partial<FeedbackWidgetProps> = {
     ...defaultConfiguration
   }
 
-  public constructor(props: FeedbackFormProps) {
+  public constructor(props: FeedbackWidgetProps) {
     super(props);
 
     const currentUser = {
@@ -159,7 +159,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const config: FeedbackGeneralConfiguration = this.props;
     const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
-    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
+    const styles: FeedbackWidgetStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
       onFormClose();
       this.setState({ isVisible: false });
