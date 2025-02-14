@@ -20,6 +20,7 @@
     "@types/react": "~18.3.12",
     "expo": "^52.0.0",
     "expo-constants": "~17.0.3",
+    "expo-image-picker": "~16.0.5",
     "expo-linking": "~7.0.2",
     "expo-router": "~4.0.5",
     "expo-status-bar": "~2.0.0",

@@ -48,6 +48,7 @@ export interface Spec extends TurboModule {
   captureReplay(isHardCrash: boolean): Promise<string | undefined | null>;
   getCurrentReplayId(): string | undefined | null;
   crashedLastRun(): Promise<boolean | undefined | null>;
+  getDataFromUri(uri: string): Promise<number[]>;
 }
 
 export type NativeStackFrame = {
