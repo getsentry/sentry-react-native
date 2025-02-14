@@ -128,4 +128,3 @@ const showFeedbackWidget = (): void => {
 };
 
 export { showFeedbackWidget, FeedbackWidgetProvider };
-FeedbackWidget
