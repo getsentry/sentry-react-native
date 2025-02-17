@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FeedbackForm matches the snapshot with custom styles 1`] = `
+exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
 <RCTSafeAreaView
   style={
     [
@@ -270,7 +270,7 @@ exports[`FeedbackForm matches the snapshot with custom styles 1`] = `
 </RCTSafeAreaView>
 `;
 
-exports[`FeedbackForm matches the snapshot with custom styles and screenshot button 1`] = `
+exports[`FeedbackWidget matches the snapshot with custom styles and screenshot button 1`] = `
 <RCTSafeAreaView
   style={
     [
@@ -597,7 +597,7 @@ exports[`FeedbackForm matches the snapshot with custom styles and screenshot but
 </RCTSafeAreaView>
 `;
 
-exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
+exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
 <RCTSafeAreaView
   style={
     [
@@ -898,7 +898,7 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
 </RCTSafeAreaView>
 `;
 
-exports[`FeedbackForm matches the snapshot with custom texts and screenshot button 1`] = `
+exports[`FeedbackWidget matches the snapshot with custom texts and screenshot button 1`] = `
 <RCTSafeAreaView
   style={
     [
@@ -1260,7 +1260,7 @@ exports[`FeedbackForm matches the snapshot with custom texts and screenshot butt
 </RCTSafeAreaView>
 `;
 
-exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
+exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
 <RCTSafeAreaView
   style={
     [
@@ -1561,7 +1561,7 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
 </RCTSafeAreaView>
 `;
 
-exports[`FeedbackForm matches the snapshot with default configuration and screenshot button 1`] = `
+exports[`FeedbackWidget matches the snapshot with default configuration and screenshot button 1`] = `
 <RCTSafeAreaView
   style={
     [
