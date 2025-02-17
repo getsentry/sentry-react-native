@@ -1,6 +1,6 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import { Animated, Dimensions, KeyboardAvoidingView, Modal, PanResponder, Platform } from 'react-native';
+import { Animated, Dimensions, Easing, KeyboardAvoidingView, Modal, PanResponder, Platform } from 'react-native';
 
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackWidget.styles';
@@ -10,7 +10,7 @@ import { isModalSupported } from './utils';
 
 const PULL_DOWN_CLOSE_THREESHOLD = 200;
 const PULL_DOWN_ANDROID_ACTIVATION_HEIGHT = 150;
-const SLIDE_ANIMATION_DURATION = 150;
+const SLIDE_ANIMATION_DURATION = 200;
 const BACKGROUND_ANIMATION_DURATION = 200;
 
 class FeedbackWidgetManager {
@@ -104,11 +104,13 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
           toValue: 1,
           duration: BACKGROUND_ANIMATION_DURATION,
           useNativeDriver: true,
+          easing: Easing.in(Easing.quad),
         }),
         Animated.timing(this.state.panY, {
           toValue: 0,
           duration: SLIDE_ANIMATION_DURATION,
           useNativeDriver: true,
+          easing: Easing.in(Easing.quad),
         })
       ]).start(() => {
         logger.info('FeedbackWidgetProvider componentDidUpdate');
@@ -164,22 +166,31 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
   }
 
   private _setVisibilityFunction = (visible: boolean): void => {
-    Animated.parallel([
-      Animated.timing(this.state.panY, {
-        toValue: Dimensions.get('screen').height,
-        duration: SLIDE_ANIMATION_DURATION,
-        useNativeDriver: true,
-      }),
-      Animated.timing(this.state.backgroundOpacity, {
-        toValue: 0,
-        duration: BACKGROUND_ANIMATION_DURATION,
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      // Change of the state unmount the component
-      // which would cancel the animation
+    const updateState = (): void => {
       this.setState({ isVisible: visible });
-    });
+    };
+    if (!visible) {
+      Animated.parallel([
+        Animated.timing(this.state.panY, {
+          toValue: Dimensions.get('screen').height,
+          duration: SLIDE_ANIMATION_DURATION,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.quad),
+        }),
+        Animated.timing(this.state.backgroundOpacity, {
+          toValue: 0,
+          duration: BACKGROUND_ANIMATION_DURATION,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.quad),
+        })
+      ]).start(() => {
+        // Change of the state unmount the component
+        // which would cancel the animation
+        updateState();
+      });
+    } else {
+      updateState();
+    }
   };
 
   private _handleClose = (): void => {
