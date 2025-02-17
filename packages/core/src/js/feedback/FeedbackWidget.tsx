@@ -17,12 +17,13 @@ import {
   View
 } from 'react-native';
 
+import { isWeb } from '../utils/environment';
 import { NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
-import { isValidEmail } from './utils';
+import { base64ToUint8Array, isValidEmail } from './utils';
 
 /**
  * @beta
@@ -123,10 +124,10 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       if (imagePickerConfiguration.imagePicker) {
         const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
           // expo-image-picker library is available
-          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] })
+          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: isWeb() })
           // react-native-image-picker library is available
           : imagePickerConfiguration.imagePicker.launchImageLibrary
-            ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: 'photo' })
+            ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: 'photo', includeBase64: isWeb() })
             : null;
         if (!launchImageLibrary) {
           logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
@@ -141,18 +142,29 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
         const result = await launchImageLibrary();
         if (result.assets && result.assets.length > 0) {
-          const filename = result.assets[0].fileName;
-          const imageUri = result.assets[0].uri;
-          NATIVE.getDataFromUri(imageUri).then((data) => {
+          if (isWeb()) {
+            const filename = result.assets[0].fileName;
+            const imageUri = result.assets[0].uri;
+            const base64 = result.assets[0].base64;
+            const data = base64ToUint8Array(base64);
             if (data != null) {
               this.setState({ filename, attachment: data, attachmentUri: imageUri });
             } else {
-              logger.error('Failed to read image data from uri:', imageUri);
+              logger.error('Failed to read image data on the web');
             }
-          })
-            .catch((error) => {
+          } else {
+            const filename = result.assets[0].fileName;
+            const imageUri = result.assets[0].uri;
+            NATIVE.getDataFromUri(imageUri).then((data) => {
+              if (data != null) {
+                this.setState({ filename, attachment: data, attachmentUri: imageUri });
+              } else {
+                logger.error('Failed to read image data from uri:', imageUri);
+              }
+            }).catch((error) => {
               logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
             });
+          }
         }
       } else {
         // Defaulting to the onAddScreenshot callback
