@@ -155,16 +155,16 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       } else {
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
-        onAddScreenshot((filename: string, fileUri: string) => {
-          NATIVE.getDataFromUri(fileUri).then((data) => {
+        onAddScreenshot((uri: string) => {
+          NATIVE.getDataFromUri(uri).then((data) => {
             if (data != null) {
-              this.setState({ filename, attachment: data, attachmentUri: fileUri });
+              this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
             } else {
-              logger.error('Failed to read image data from uri:', fileUri);
+              logger.error('Failed to read image data from uri:', uri);
             }
           })
           .catch((error) => {
-            logger.error('Failed to read image data from uri:', fileUri, 'error: ', error);
+            logger.error('Failed to read image data from uri:', uri, 'error: ', error);
           });
         });
       }

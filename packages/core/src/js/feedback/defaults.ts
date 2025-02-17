@@ -33,7 +33,7 @@ export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
       );
     }
   },
-  onAddScreenshot: (_: (filename: string, fileUri: string) => void) => {
+  onAddScreenshot: (_: (uri: string) => void) => {
     if (__DEV__) {
       Alert.alert('Development note', 'onAddScreenshot callback is not implemented.');
     }

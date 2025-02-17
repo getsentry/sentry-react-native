@@ -171,7 +171,7 @@ export interface FeedbackCallbacks {
   /**
    * Callback when a screenshot is added
    */
-  onAddScreenshot?: (attachFile: (filename: string, fileUri: string) => void) => void;
+  onAddScreenshot?: (screenshotAdded: (uri: string) => void) => void;
 
   /**
    * Callback when feedback is successfully submitted
