@@ -1,12 +1,15 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import { Animated, KeyboardAvoidingView, Modal, Platform, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Modal, PanResponder, Platform } from 'react-native';
 
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackWidget.styles';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackOptions } from './integration';
 import { isModalSupported } from './utils';
+
+const PULL_DOWN_CLOSE_THREESHOLD = 200;
+const PULL_DOWN_ANDROID_ACTIVATION_HEIGHT = 150;
 
 class FeedbackWidgetManager {
   private static _isVisible = false;
@@ -43,13 +46,46 @@ interface FeedbackWidgetProviderProps {
 interface FeedbackWidgetProviderState {
   isVisible: boolean;
   backgroundOpacity: Animated.Value;
+  panY: Animated.Value;
 }
 
 class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps> {
   public state: FeedbackWidgetProviderState = {
     isVisible: false,
     backgroundOpacity: new Animated.Value(0),
+    panY: new Animated.Value(0),
   };
+
+  private _panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: (evt, _gestureState) => {
+      // On Android allow pulling down only from the top to avoid breaking native gestures
+      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+    },
+    onMoveShouldSetPanResponder: (evt, _gestureState) => {
+      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+    },
+    onPanResponderMove: (_, gestureState) => {
+      if (gestureState.dy > 0) {
+        this.state.panY.setValue(gestureState.dy);
+      }
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dy > PULL_DOWN_CLOSE_THREESHOLD) { // Close on swipe below a certain threshold
+        Animated.timing(this.state.panY, {
+          toValue: 600,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => {
+          this._handleClose();
+        });
+      } else { // Animate it back to the original position
+        Animated.spring(this.state.panY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+  });
 
   public constructor(props: FeedbackWidgetProviderProps) {
     super(props);
@@ -99,12 +135,15 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={modalBackground}
               >
-                <View style={modalSheetContainer}>
+                <Animated.View
+                  style={[modalSheetContainer, { transform: [{ translateY: this.state.panY }] }]}
+                  {...this._panResponder.panHandlers}
+                >
                   <FeedbackWidget {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
                     />
-                </View>
+                </Animated.View>
               </KeyboardAvoidingView>
             </Modal>
           </Animated.View>
@@ -115,6 +154,9 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
 
   private _setVisibilityFunction = (visible: boolean): void => {
     this.setState({ isVisible: visible });
+    if (visible) {
+      this.state.panY.setValue(0);
+    }
   };
 
   private _handleClose = (): void => {
