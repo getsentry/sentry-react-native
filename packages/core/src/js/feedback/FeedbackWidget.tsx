@@ -33,8 +33,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     ...defaultConfiguration
   }
 
-  private static _savedState: FeedbackWidgetState = {
-    isVisible: false,
+  private static _savedState: Omit<FeedbackWidgetState, 'isVisible'> = {
     name: '',
     email: '',
     description: '',
@@ -273,7 +272,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   private _clearFormState = (): void => {
     FeedbackWidget._savedState = {
-      isVisible: false,
       name: '',
       email: '',
       description: '',
