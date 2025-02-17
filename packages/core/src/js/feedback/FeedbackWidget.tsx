@@ -101,7 +101,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     try {
       this.setState({ isVisible: false });
       captureFeedback(userFeedback, attachments ? { attachments } : undefined);
-      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
+      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: attachments });
       Alert.alert(text.successMessageText);
       onFormSubmitted();
       FeedbackWidget._didSubmitForm = true;
