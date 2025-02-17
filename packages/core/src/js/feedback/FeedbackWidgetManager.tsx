@@ -164,10 +164,6 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
   }
 
   private _setVisibilityFunction = (visible: boolean): void => {
-    const updateState = () => {
-      this.setState({ isVisible: visible });
-    };
-
     Animated.parallel([
       Animated.timing(this.state.panY, {
         toValue: Dimensions.get('screen').height,
@@ -180,7 +176,9 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
         useNativeDriver: true,
       })
     ]).start(() => {
-      updateState();
+      // Change of the state unmount the component
+      // which would cancel the animation
+      this.setState({ isVisible: visible });
     });
   };
 
