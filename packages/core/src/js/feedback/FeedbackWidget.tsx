@@ -3,7 +3,6 @@ import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/c
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import {
-  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -23,7 +22,7 @@ import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
-import { base64ToUint8Array, isValidEmail } from './utils';
+import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
 
 /**
  * @beta
@@ -75,12 +74,12 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const trimmedDescription = description?.trim();
 
     if ((this.props.isNameRequired && !trimmedName) || (this.props.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
-      Alert.alert(text.errorTitle, text.formError);
+      feedbackAlertDialog(text.errorTitle, text.formError);
       return;
     }
 
     if (this.props.shouldValidateEmail && (this.props.isEmailRequired || trimmedEmail.length > 0) && !isValidEmail(trimmedEmail)) {
-      Alert.alert(text.errorTitle, text.emailError);
+      feedbackAlertDialog(text.errorTitle, text.emailError);
       return;
     }
 
@@ -107,13 +106,13 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       }
       captureFeedback(userFeedback, attachments ? { attachments } : undefined);
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: attachments });
-      Alert.alert(text.successMessageText);
+      feedbackAlertDialog(text.successMessageText , '');
       onFormSubmitted();
       FeedbackWidget._didSubmitForm = true;
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
-      Alert.alert(text.errorTitle, text.genericError);
+      feedbackAlertDialog(text.errorTitle, text.genericError);
       logger.error(`Feedback form submission failed: ${error}`);
     }
   };
@@ -132,7 +131,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         if (!launchImageLibrary) {
           logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
           if (__DEV__) {
-            Alert.alert(
+            feedbackAlertDialog(
               'Development note',
               'No compatible image picker library found. Please provide a compatible version of `expo-image-picker` or `react-native-image-picker`.',
             );

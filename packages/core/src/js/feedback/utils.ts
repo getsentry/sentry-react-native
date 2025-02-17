@@ -1,3 +1,5 @@
+import { Alert } from 'react-native';
+
 import { isFabricEnabled, isWeb } from '../utils/environment';
 import { ReactNativeLibraries } from './../utils/rnlibraries';
 
@@ -32,4 +34,16 @@ export const base64ToUint8Array = (base64: string): Uint8Array => {
 
   const binaryString = atob(base64);
   return new Uint8Array([...binaryString].map(char => char.charCodeAt(0)));
+};
+
+export const feedbackAlertDialog = (title: string, message: string): void => {
+  /* eslint-disable @typescript-eslint/ban-ts-comment, no-restricted-globals, no-alert, @typescript-eslint/no-unsafe-member-access */
+  // @ts-ignore
+  if (isWeb() && typeof window !== 'undefined') {
+    // @ts-ignore
+    window.alert(`${title}\n${message}`);
+    /* eslint-enable @typescript-eslint/ban-ts-comment, no-restricted-globals, no-alert, @typescript-eslint/no-unsafe-member-access */
+  } else {
+    Alert.alert(title, message);
+  }
 };
