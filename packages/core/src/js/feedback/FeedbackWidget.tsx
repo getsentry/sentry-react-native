@@ -99,7 +99,9 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     };
 
     try {
-      this.setState({ isVisible: false });
+      if (!onFormSubmitted) {
+        this.setState({ isVisible: false });
+      }
       captureFeedback(userFeedback, attachments ? { attachments } : undefined);
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: attachments });
       Alert.alert(text.successMessageText);
@@ -185,8 +187,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const text: FeedbackTextConfiguration = this.props;
     const styles: FeedbackWidgetStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
-      onFormClose();
-      this.setState({ isVisible: false });
+      if (onFormClose) {
+        onFormClose();
+      } else {
+        this.setState({ isVisible: false });
+      }
     }
 
     if (!this.state.isVisible) {
