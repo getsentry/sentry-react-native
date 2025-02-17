@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Text } from 'react-native';
 
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
-import { FeedbackFormProvider, showFeedbackForm } from '../../src/js/feedback/FeedbackFormManager';
+import { FeedbackWidgetProvider, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { isModalSupported } from '../../src/js/feedback/utils';
 
@@ -18,50 +18,50 @@ beforeEach(() => {
   logger.error = jest.fn();
 });
 
-describe('FeedbackFormManager', () => {
-  it('showFeedbackForm displays the form when FeedbackFormProvider is used', () => {
+describe('FeedbackWidgetManager', () => {
+  it('showFeedbackWidget displays the form when FeedbackWidgetProvider is used', () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByText, getByTestId } = render(
-      <FeedbackFormProvider>
+      <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackFormProvider>
+      </FeedbackWidgetProvider>
     );
 
-    showFeedbackForm();
+    showFeedbackWidget();
 
     expect(getByTestId('feedback-form-modal')).toBeTruthy();
     expect(getByText('App Components')).toBeTruthy();
   });
 
-  it('showFeedbackForm does not display the form when Modal is not available', () => {
+  it('showFeedbackWidget does not display the form when Modal is not available', () => {
     mockedIsModalSupported.mockReturnValue(false);
     const { getByText, queryByTestId } = render(
-      <FeedbackFormProvider>
+      <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackFormProvider>
+      </FeedbackWidgetProvider>
     );
 
-    showFeedbackForm();
+    showFeedbackWidget();
 
     expect(queryByTestId('feedback-form-modal')).toBeNull();
     expect(getByText('App Components')).toBeTruthy();
     expect(logger.error).toHaveBeenLastCalledWith(
-      'FeedbackForm Modal is not supported in React Native < 0.71 with Fabric renderer.',
+      'FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.',
     );
   });
 
-  it('showFeedbackForm does not throw an error when FeedbackFormProvider is not used', () => {
+  it('showFeedbackWidget does not throw an error when FeedbackWidgetProvider is not used', () => {
     expect(() => {
-      showFeedbackForm();
+      showFeedbackWidget();
     }).not.toThrow();
   });
 
-  it('showFeedbackForm displays the form with the feedbackIntegration options', () => {
+  it('showFeedbackWidget displays the form with the feedbackIntegration options', () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByPlaceholderText, getByText } = render(
-      <FeedbackFormProvider>
+      <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackFormProvider>
+      </FeedbackWidgetProvider>
     );
 
     feedbackIntegration({
@@ -69,25 +69,25 @@ describe('FeedbackFormManager', () => {
       submitButtonLabel: 'Custom Submit Button',
     });
 
-    showFeedbackForm();
+    showFeedbackWidget();
 
     expect(getByPlaceholderText('Custom Message Placeholder')).toBeTruthy();
     expect(getByText('Custom Submit Button')).toBeTruthy();
   });
 
-  it('showFeedbackForm displays the form with the feedbackIntegration options merged with the defaults', () => {
+  it('showFeedbackWidget displays the form with the feedbackIntegration options merged with the defaults', () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByPlaceholderText, getByText, queryByText } = render(
-      <FeedbackFormProvider>
+      <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackFormProvider>
+      </FeedbackWidgetProvider>
     );
 
     feedbackIntegration({
       submitButtonLabel: 'Custom Submit Button',
     }),
 
-    showFeedbackForm();
+    showFeedbackWidget();
 
     expect(queryByText(defaultConfiguration.submitButtonLabel)).toBeFalsy(); // overridden value
     expect(getByText('Custom Submit Button')).toBeTruthy(); // overridden value

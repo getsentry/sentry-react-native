@@ -17,23 +17,23 @@ import {
   View
 } from 'react-native';
 
-import { NATIVE } from './../wrapper';
+import { NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
-import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackForm.types';
+import defaultStyles from './FeedbackWidget.styles';
+import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { isValidEmail } from './utils';
 
 /**
  * @beta
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
-export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
-  public static defaultProps: Partial<FeedbackFormProps> = {
+export class FeedbackWidget extends React.Component<FeedbackWidgetProps, FeedbackWidgetState> {
+  public static defaultProps: Partial<FeedbackWidgetProps> = {
     ...defaultConfiguration
   }
 
-  private static _savedState: FeedbackFormState = {
+  private static _savedState: FeedbackWidgetState = {
     isVisible: false,
     name: '',
     email: '',
@@ -42,7 +42,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     attachment: undefined,
   };
 
-  public constructor(props: FeedbackFormProps) {
+  public constructor(props: FeedbackWidgetProps) {
     super(props);
 
     const currentUser = {
@@ -54,11 +54,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     this.state = {
       isVisible: true,
-      name: FeedbackForm._savedState.name || currentUser.useSentryUser.name,
-      email: FeedbackForm._savedState.email || currentUser.useSentryUser.email,
-      description: FeedbackForm._savedState.description || '',
-      filename: FeedbackForm._savedState.filename || undefined,
-      attachment: FeedbackForm._savedState.attachment || undefined,
+      name: FeedbackWidget._savedState.name || currentUser.useSentryUser.name,
+      email: FeedbackWidget._savedState.email || currentUser.useSentryUser.email,
+      description: FeedbackWidget._savedState.description || '',
+      filename: FeedbackWidget._savedState.filename || undefined,
+      attachment: FeedbackWidget._savedState.attachment || undefined,
     };
   }
 
@@ -171,7 +171,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const config: FeedbackGeneralConfiguration = this.props;
     const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
-    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
+    const styles: FeedbackWidgetStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
       onFormClose();
       this.setState({ isVisible: false });
@@ -268,11 +268,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   }
 
   private _saveFormState = (): void => {
-    FeedbackForm._savedState = { ...this.state };
+    FeedbackWidget._savedState = { ...this.state };
   };
 
   private _clearFormState = (): void => {
-    FeedbackForm._savedState = {
+    FeedbackWidget._savedState = {
       isVisible: false,
       name: '',
       email: '',

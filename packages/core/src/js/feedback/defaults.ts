@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 
-import type { FeedbackFormProps } from './FeedbackForm.types';
+import type { FeedbackWidgetProps } from './FeedbackWidget.types';
 
 const FORM_TITLE = 'Report a Bug';
 const NAME_PLACEHOLDER = 'Your Name';
@@ -20,7 +20,7 @@ const ADD_SCREENSHOT_LABEL = 'Add a screenshot';
 const REMOVE_SCREENSHOT_LABEL = 'Remove screenshot';
 const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.';
 
-export const defaultConfiguration: Partial<FeedbackFormProps> = {
+export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
   // FeedbackCallbacks
   onFormOpen: () => {
     // Does nothing by default
