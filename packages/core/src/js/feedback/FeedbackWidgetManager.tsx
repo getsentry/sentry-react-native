@@ -2,16 +2,16 @@ import { logger } from '@sentry/core';
 import * as React from 'react';
 import { Animated, KeyboardAvoidingView, Modal, PanResponder, Platform } from 'react-native';
 
-import { FeedbackForm } from './FeedbackForm';
-import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackForm.styles';
-import type { FeedbackFormStyles } from './FeedbackForm.types';
+import { FeedbackWidget } from './FeedbackWidget';
+import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackWidget.styles';
+import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackOptions } from './integration';
 import { isModalSupported } from './utils';
 
 const PULL_DOWN_CLOSE_THREESHOLD = 200;
 const PULL_DOWN_ANDROID_ACTIVATION_HEIGHT = 150;
 
-class FeedbackFormManager {
+class FeedbackWidgetManager {
   private static _isVisible = false;
   private static _setVisibility: (visible: boolean) => void;
 
@@ -38,24 +38,23 @@ class FeedbackFormManager {
   }
 }
 
-interface FeedbackFormProviderProps {
+interface FeedbackWidgetProviderProps {
   children: React.ReactNode;
-  styles?: FeedbackFormStyles;
+  styles?: FeedbackWidgetStyles;
 }
 
-interface FeedbackFormProviderState {
+interface FeedbackWidgetProviderState {
   isVisible: boolean;
   backgroundOpacity: Animated.Value;
   panY: Animated.Value;
 }
 
-class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
-  public state: FeedbackFormProviderState = {
+class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps> {
+  public state: FeedbackWidgetProviderState = {
     isVisible: false,
     backgroundOpacity: new Animated.Value(0),
     panY: new Animated.Value(0),
   };
-
 
   private _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: (evt, _gestureState) => {
@@ -88,15 +87,15 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
     },
   });
 
-  public constructor(props: FeedbackFormProviderProps) {
+  public constructor(props: FeedbackWidgetProviderProps) {
     super(props);
-    FeedbackFormManager.initialize(this._setVisibilityFunction);
+    FeedbackWidgetManager.initialize(this._setVisibilityFunction);
   }
 
   /**
    * Animates the background opacity when the modal is shown.
    */
-  public componentDidUpdate(_prevProps: any, prevState: FeedbackFormProviderState): void {
+  public componentDidUpdate(_prevProps: any, prevState: FeedbackWidgetProviderState): void {
     if (!prevState.isVisible && this.state.isVisible) {
       Animated.timing(this.state.backgroundOpacity, {
         toValue: 1,
@@ -113,7 +112,7 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
    */
   public render(): React.ReactNode {
     if (!isModalSupported()) {
-      logger.error('FeedbackForm Modal is not supported in React Native < 0.71 with Fabric renderer.');
+      logger.error('FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.');
       return <>{this.props.children}</>;
     }
 
@@ -140,7 +139,7 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
                   style={[modalSheetContainer, { transform: [{ translateY: this.state.panY }] }]}
                   {...this._panResponder.panHandlers}
                 >
-                  <FeedbackForm {...getFeedbackOptions()}
+                  <FeedbackWidget {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
                     />
@@ -161,13 +160,13 @@ class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
   };
 
   private _handleClose = (): void => {
-    FeedbackFormManager.hide();
+    FeedbackWidgetManager.hide();
     this.setState({ isVisible: false });
   };
 }
 
-const showFeedbackForm = (): void => {
-  FeedbackFormManager.show();
+const showFeedbackWidget = (): void => {
+  FeedbackWidgetManager.show();
 };
 
-export { showFeedbackForm, FeedbackFormProvider };
+export { showFeedbackWidget, FeedbackWidgetProvider };
