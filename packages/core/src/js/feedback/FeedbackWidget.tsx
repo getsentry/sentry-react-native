@@ -16,7 +16,7 @@ import {
   View
 } from 'react-native';
 
-import { isWeb } from '../utils/environment';
+import { isWeb, notWeb } from '../utils/environment';
 import { NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
@@ -225,9 +225,10 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.container, { padding: 0 }]}
+        enabled={notWeb()}
       >
         <ScrollView bounces={false}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <TouchableWithoutFeedback onPress={notWeb() ? Keyboard.dismiss: undefined}>
             <View style={styles.container}>
               <View style={styles.titleContainer}>
                 <Text style={styles.title}>{text.formTitle}</Text>

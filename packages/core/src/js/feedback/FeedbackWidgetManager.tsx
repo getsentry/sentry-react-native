@@ -2,6 +2,7 @@ import { logger } from '@sentry/core';
 import * as React from 'react';
 import { Animated, Dimensions, Easing, KeyboardAvoidingView, Modal, PanResponder, Platform } from 'react-native';
 
+import { notWeb } from '../utils/environment';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackWidget.styles';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
@@ -61,10 +62,10 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
   private _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: (evt, _gestureState) => {
       // On Android allow pulling down only from the top to avoid breaking native gestures
-      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+      return notWeb() && (Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT);
     },
     onMoveShouldSetPanResponder: (evt, _gestureState) => {
-      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+      return notWeb() && (Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT);
     },
     onPanResponderMove: (_, gestureState) => {
       if (gestureState.dy > 0) {
@@ -147,6 +148,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={modalBackground}
+                enabled={notWeb()}
               >
                 <Animated.View
                   style={[modalSheetContainer, { transform: [{ translateY: this.state.panY }] }]}
