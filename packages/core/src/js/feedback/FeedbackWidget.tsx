@@ -33,6 +33,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     ...defaultConfiguration
   }
 
+  private static _didSubmitForm: boolean = false;
   private static _savedState: Omit<FeedbackWidgetState, 'isVisible'> = {
     name: '',
     email: '',
@@ -103,7 +104,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
       Alert.alert(text.successMessageText);
       onFormSubmitted();
-      this._clearFormState();
+      FeedbackWidget._didSubmitForm = true;
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
@@ -140,7 +141,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           const imageUri = result.assets[0].uri;
           NATIVE.getDataFromUri(imageUri).then((data) => {
             if (data != null) {
-              this.setState({ filename, attachment: data }, this._saveFormState);
+              this.setState({ filename, attachment: data });
             } else {
               logger.error('Failed to read image data from uri:', imageUri);
             }
@@ -153,11 +154,23 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((filename: string, attachement: Uint8Array) => {
-          this.setState({ filename, attachment: attachement }, this._saveFormState);
+          this.setState({ filename, attachment: attachement });
         });
       }
     } else {
-      this.setState({ filename: undefined, attachment: undefined }, this._saveFormState);
+      this.setState({ filename: undefined, attachment: undefined });
+    }
+  }
+
+  /**
+   * Save the state before unmounting the component.
+   */
+  public componentWillUnmount(): void {
+    if (FeedbackWidget._didSubmitForm) {
+      this._clearFormState();
+      FeedbackWidget._didSubmitForm = false;
+    } else {
+      this._saveFormState();
     }
   }
 
@@ -210,7 +223,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                   style={styles.input}
                   placeholder={text.namePlaceholder}
                   value={name}
-                  onChangeText={(value) => this.setState({ name: value }, this._saveFormState)}
+                  onChangeText={(value) => this.setState({ name: value })}
                 />
               </>
               )}
@@ -226,7 +239,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                   placeholder={text.emailPlaceholder}
                   keyboardType={'email-address' as KeyboardTypeOptions}
                   value={email}
-                  onChangeText={(value) => this.setState({ email: value }, this._saveFormState)}
+                  onChangeText={(value) => this.setState({ email: value })}
                 />
               </>
               )}
@@ -239,7 +252,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 style={[styles.input, styles.textArea]}
                 placeholder={text.messagePlaceholder}
                 value={description}
-                onChangeText={(value) => this.setState({ description: value }, this._saveFormState)}
+                onChangeText={(value) => this.setState({ description: value })}
                 multiline
               />
               {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (

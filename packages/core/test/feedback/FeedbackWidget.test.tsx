@@ -355,14 +355,30 @@ describe('FeedbackWidget', () => {
     expect(mockOnFormClose).toHaveBeenCalled();
   });
 
+  it('onUnmount the input is saved and restored when the form reopens', async () => {
+    const { getByPlaceholderText, unmount } = render(<FeedbackWidget {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    unmount();
+    const { queryByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
+
+    expect(queryByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('John Doe');
+    expect(queryByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe('john.doe@example.com');
+    expect(queryByPlaceholderText(defaultProps.messagePlaceholder).props.value).toBe('This is a feedback message.');
+  });
+  
   it('onCancel the input is saved and restored when the form reopens', async () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackWidget {...defaultProps} />);
+    const { getByPlaceholderText, getByText, unmount } = render(<FeedbackWidget {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
     fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
     fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
 
     fireEvent.press(getByText(defaultProps.cancelButtonLabel));
+    unmount();
     const { queryByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
 
     expect(queryByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('John Doe');
@@ -371,13 +387,14 @@ describe('FeedbackWidget', () => {
   });
 
   it('onSubmit the saved input is cleared and not restored when the form reopens', async () => {
-    const { getByPlaceholderText, getByText } = render(<FeedbackWidget {...defaultProps} />);
+    const { getByPlaceholderText, getByText, unmount } = render(<FeedbackWidget {...defaultProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
     fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
     fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
 
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    unmount();
     const { queryByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
 
     expect(queryByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('Test User');
