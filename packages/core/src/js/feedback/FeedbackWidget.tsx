@@ -181,18 +181,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   }
 
   /**
-   * Save the state before unmounting the component.
-   */
-  public componentWillUnmount(): void {
-    if (this._didSubmitForm) {
-      this._clearFormState();
-      this._didSubmitForm = false;
-    } else {
-      this._saveFormState();
-    }
-  }
-
-  /**
    * Renders the feedback form screen.
    */
   public render(): React.ReactNode {
