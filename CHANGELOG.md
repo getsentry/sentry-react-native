@@ -60,11 +60,70 @@
 - Extract iOS native initialization to standalone structures ([#4442](https://github.com/getsentry/sentry-react-native/pull/4442))
 - Extract Android native initialization to standalone structures ([#4445](https://github.com/getsentry/sentry-react-native/pull/4445))
 
+### Features
+
+- Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
+
+  To enable the plugin add the `enableAndroidGradlePlugin` in the `@sentry/react-native/expo` of the Expo application configuration.
+
+  ```js
+  "plugins": [
+    [
+      "@sentry/react-native/expo",
+      {
+        "experimental_android": {
+          "enableAndroidGradlePlugin": true,
+        }
+      }
+    ],
+  ```
+
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
+
+### Fixes
+
+- Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+
+### Dependencies
+
+- Bump Android SDK from v7.20.1 to v7.22.0 ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.x.x/CHANGELOG.md#7220)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...7.22.0)
+- Bump Cocoa SDK from v8.44.0 to v8.45.0 ([#4537](https://github.com/getsentry/sentry-react-native/pull/4537))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8450)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.44.0...8.45.0)
+
+## 6.7.0
+
+### Features
+
+- Add `ignoredComponents` option to `annotateReactComponents` to exclude specific components from React component annotations ([#4517](https://github.com/getsentry/sentry-react-native/pull/4517))
+
+  ```js
+  // metro.config.js
+  // for React Native
+  const config = withSentryConfig(mergedConfig, {
+    annotateReactComponents: {
+      ignoredComponents: ['MyCustomComponent']
+    }
+  });
+
+  // for Expo
+  const config = getSentryExpoConfig(__dirname, {
+    annotateReactComponents: {
+      ignoredComponents: ['MyCustomComponent'],
+    },
+  });
+  ```
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.53.0 to v8.54.0 ([#4503](https://github.com/getsentry/sentry-react-native/pull/4503))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8540)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.53.0...8.54.0)
+- Bump `@sentry/babel-plugin-component-annotate` from v2.20.1 to v3.1.2 ([#4516](https://github.com/getsentry/sentry-react-native/pull/4516))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#312)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/2.20.1...3.1.2)
 
 ## 6.6.0
 

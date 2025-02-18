@@ -4,7 +4,7 @@
     "slug": "sentry-react-native-expo-sample",
     "jsEngine": "hermes",
     "scheme": "sentry-expo-sample",
-    "version": "6.7.0-alpha.0",
+    "version": "6.7.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -44,7 +44,14 @@
         {
           "url": "https://sentry.io/",
           "project": "sentry-react-native",
-          "organization": "sentry-sdks"
+          "organization": "sentry-sdks",
+          "experimental_android": {
+            "enableAndroidGradlePlugin": true,
+            "autoUploadProguardMapping": true,
+            "uploadNativeSymbols": true,
+            "includeNativeSources": true,
+            "includeSourceContext": true,
+          }
         }
       ],
       [
