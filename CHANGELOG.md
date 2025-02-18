@@ -25,6 +25,7 @@
       }
     ],
   ```
+- Sentry Module Collection Script Fails with Spaces in Node Path on iOS ([#4559](https://github.com/getsentry/sentry-react-native/pull/4559))
 
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
 
