@@ -33,7 +33,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     ...defaultConfiguration
   }
 
-  private _didSubmitForm: boolean = false;
   private static _savedState: Omit<FeedbackWidgetState, 'isVisible'> = {
     name: '',
     email: '',
@@ -41,6 +40,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     filename: undefined,
     attachment: undefined,
   };
+
+  private _didSubmitForm: boolean = false;
 
   public constructor(props: FeedbackWidgetProps) {
     super(props);
