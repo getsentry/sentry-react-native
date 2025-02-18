@@ -170,7 +170,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            rn-version: '0.71.1'
+            rn-version: '0.77.1'
             runs-on: macos-14
           - platform: ios
             rn-version: '0.65.3'
