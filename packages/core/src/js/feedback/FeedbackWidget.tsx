@@ -33,7 +33,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     ...defaultConfiguration
   }
 
-  private static _didSubmitForm: boolean = false;
   private static _savedState: Omit<FeedbackWidgetState, 'isVisible'> = {
     name: '',
     email: '',
@@ -42,6 +41,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     attachment: undefined,
     attachmentUri: undefined,
   };
+
+  private _didSubmitForm: boolean = false;
 
   public constructor(props: FeedbackWidgetProps) {
     super(props);
@@ -108,7 +109,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: attachments });
       Alert.alert(text.successMessageText);
       onFormSubmitted();
-      FeedbackWidget._didSubmitForm = true;
+      this._didSubmitForm = true;
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
@@ -179,9 +180,9 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
    * Save the state before unmounting the component.
    */
   public componentWillUnmount(): void {
-    if (FeedbackWidget._didSubmitForm) {
+    if (this._didSubmitForm) {
       this._clearFormState();
-      FeedbackWidget._didSubmitForm = false;
+      this._didSubmitForm = false;
     } else {
       this._saveFormState();
     }
