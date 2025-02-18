@@ -3,6 +3,7 @@
 #import <RCTAppDelegate+Protected.h>
 #import <React/CoreModulesPlugins.h>
 #import <React/RCTBundleURLProvider.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 #import <ReactCommon/RCTTurboModuleManager.h>
 
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -28,6 +29,9 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
     }
 
     self.moduleName = @"sentry-react-native-sample";
+
+    self.dependencyProvider = [RCTAppDependencyProvider new];
+
     // You can add your custom initial props in the dictionary below.
     // They will be passed down to the ViewController used by React
     self.initialProps = @{};

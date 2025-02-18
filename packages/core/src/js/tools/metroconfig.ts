@@ -5,7 +5,10 @@ import * as process from 'process';
 import { env } from 'process';
 
 import { enableLogger } from './enableLogger';
-import { setSentryDefaultBabelTransformerPathEnv } from './sentryBabelTransformerUtils';
+import {
+  setSentryBabelTransformerOptions,
+  setSentryDefaultBabelTransformerPathEnv,
+} from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 export * from './sentryMetroSerializer';
@@ -20,7 +23,11 @@ export interface SentryMetroConfigOptions {
    * Annotates React components with Sentry data.
    * @default false
    */
-  annotateReactComponents?: boolean;
+  annotateReactComponents?:
+    | boolean
+    | {
+        ignoredComponents?: string[];
+      };
   /**
    * Adds the Sentry replay package for web.
    * @default true
@@ -71,7 +78,7 @@ export function withSentryConfig(
   newConfig = withSentryDebugId(newConfig);
   newConfig = withSentryFramesCollapsed(newConfig);
   if (annotateReactComponents) {
-    newConfig = withSentryBabelTransformer(newConfig);
+    newConfig = withSentryBabelTransformer(newConfig, annotateReactComponents);
   }
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
@@ -106,7 +113,7 @@ export function getSentryExpoConfig(
 
   let newConfig = withSentryFramesCollapsed(config);
   if (options.annotateReactComponents) {
-    newConfig = withSentryBabelTransformer(newConfig);
+    newConfig = withSentryBabelTransformer(newConfig, options.annotateReactComponents);
   }
 
   if (options.includeWebReplay === false) {
@@ -147,7 +154,10 @@ function loadExpoMetroConfigModule(): {
 /**
  * Adds Sentry Babel transformer to the Metro config.
  */
-export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
+export function withSentryBabelTransformer(
+  config: MetroConfig,
+  annotateReactComponents: true | { ignoredComponents?: string[] },
+): MetroConfig {
   const defaultBabelTransformerPath = config.transformer && config.transformer.babelTransformerPath;
   logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
 
@@ -162,6 +172,12 @@ export function withSentryBabelTransformer(config: MetroConfig): MetroConfig {
 
   if (defaultBabelTransformerPath) {
     setSentryDefaultBabelTransformerPathEnv(defaultBabelTransformerPath);
+  }
+
+  if (typeof annotateReactComponents === 'object') {
+    setSentryBabelTransformerOptions({
+      annotateReactComponents,
+    });
   }
 
   return {
