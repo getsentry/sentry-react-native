@@ -237,6 +237,8 @@ export interface FeedbackWidgetStyles {
   cancelButton?: ViewStyle;
   cancelText?: TextStyle;
   screenshotButton?: ViewStyle;
+  screenshotContainer?: ViewStyle;
+  screenshotThumbnail?: ImageStyle;
   screenshotText?: TextStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
@@ -252,4 +254,5 @@ export interface FeedbackWidgetState {
   description: string;
   filename?: string;
   attachment?: string | Uint8Array;
+  attachmentUri?: string;
 }

@@ -39,6 +39,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     description: '',
     filename: undefined,
     attachment: undefined,
+    attachmentUri: undefined,
   };
 
   private _didSubmitForm: boolean = false;
@@ -60,6 +61,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       description: FeedbackWidget._savedState.description || '',
       filename: FeedbackWidget._savedState.filename || undefined,
       attachment: FeedbackWidget._savedState.attachment || undefined,
+      attachmentUri: FeedbackWidget._savedState.attachmentUri || undefined,
     };
   }
 
@@ -144,24 +146,25 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           const imageUri = result.assets[0].uri;
           NATIVE.getDataFromUri(imageUri).then((data) => {
             if (data != null) {
-              this.setState({ filename, attachment: data });
+              this.setState({ filename, attachment: data, attachmentUri: imageUri });
             } else {
               logger.error('Failed to read image data from uri:', imageUri);
             }
           })
-          .catch((error) => {
-            logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
-          });
+            .catch((error) => {
+              logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
+            });
         }
       } else {
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((filename: string, attachement: Uint8Array) => {
-          this.setState({ filename, attachment: attachement });
+          // TODO: Add support for image uri when using onAddScreenshot
+          this.setState({ filename, attachment: attachement, attachmentUri: undefined });
         });
       }
     } else {
-      this.setState({ filename: undefined, attachment: undefined });
+      this.setState({ filename: undefined, attachment: undefined, attachmentUri: undefined });
     }
   }
 
@@ -262,13 +265,21 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 multiline
               />
               {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
-                <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                  <Text style={styles.screenshotText}>
-                  {!this.state.filename && !this.state.attachment
-                    ? text.addScreenshotButtonLabel
-                    : text.removeScreenshotButtonLabel}
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.screenshotContainer}>
+                  {this.state.attachmentUri && (
+                    <Image
+                      source={{ uri: this.state.attachmentUri }}
+                      style={styles.screenshotThumbnail}
+                    />
+                  )}
+                  <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                    <Text style={styles.screenshotText}>
+                      {!this.state.filename && !this.state.attachment
+                        ? text.addScreenshotButtonLabel
+                        : text.removeScreenshotButtonLabel}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
               <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
                 <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
@@ -296,6 +307,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       description: '',
       filename: undefined,
       attachment: undefined,
+      attachmentUri: undefined,
     };
   };
 }

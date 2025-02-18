@@ -45,8 +45,20 @@ const defaultStyles: FeedbackWidgetStyles = {
     backgroundColor: '#eee',
     padding: 15,
     borderRadius: 5,
-    marginBottom: 20,
     alignItems: 'center',
+    flex: 1,
+  },
+  screenshotContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+  },
+  screenshotThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 5,
+    marginRight: 10,
   },
   screenshotText: {
     color: '#333',
