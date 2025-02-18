@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 
 import { isFabricEnabled, isWeb } from '../utils/environment';
+import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { ReactNativeLibraries } from './../utils/rnlibraries';
 
 declare global {
@@ -37,12 +38,8 @@ export const base64ToUint8Array = (base64: string): Uint8Array => {
 };
 
 export const feedbackAlertDialog = (title: string, message: string): void => {
-  /* eslint-disable @typescript-eslint/ban-ts-comment, no-restricted-globals, no-alert, @typescript-eslint/no-unsafe-member-access */
-  // @ts-ignore
-  if (isWeb() && typeof window !== 'undefined') {
-    // @ts-ignore
-    window.alert(`${title}\n${message}`);
-    /* eslint-enable @typescript-eslint/ban-ts-comment, no-restricted-globals, no-alert, @typescript-eslint/no-unsafe-member-access */
+  if (isWeb() && typeof RN_GLOBAL_OBJ.alert !== 'undefined') {
+    RN_GLOBAL_OBJ.alert(`${title}\n${message}`);
   } else {
     Alert.alert(title, message);
   }
