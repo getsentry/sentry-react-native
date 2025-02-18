@@ -10,16 +10,33 @@
 
 ### Features
 
-- User Feedback Form Component Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
+- User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
-  To collect user feedback from inside your application call `Sentry.showFeedbackForm()` or add the `FeedbackButton` component.
-  You can also manually integrate the `FeedbackForm` component in your UI.
+  To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`, add the `FeedbackButton` component or add the `FeedbackWidget` component.
 
   ```jsx
-  import { FeedbackForm } from "@sentry/react-native";
+  import { FeedbackWidget } from "@sentry/react-native";
   ...
-  <FeedbackForm/>
+  <FeedbackWidget/>
   ```
+
+- Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
+
+  To enable the plugin add the `enableAndroidGradlePlugin` in the `@sentry/react-native/expo` of the Expo application configuration.
+
+  ```js
+  "plugins": [
+    [
+      "@sentry/react-native/expo",
+      {
+        "experimental_android": {
+          "enableAndroidGradlePlugin": true,
+        }
+      }
+    ],
+  ```
+
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
 
 ### Fixes
 

@@ -4,12 +4,12 @@ import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 /**
  * The props for the feedback form
  */
-export interface FeedbackFormProps
+export interface FeedbackWidgetProps
   extends FeedbackGeneralConfiguration,
     FeedbackTextConfiguration,
     FeedbackCallbacks,
     ImagePickerConfiguration {
-  styles?: FeedbackFormStyles;
+  styles?: FeedbackWidgetStyles;
 }
 
 /**
@@ -186,7 +186,7 @@ export interface FeedbackCallbacks {
   /**
    * Callback when a screenshot is added
    */
-  onAddScreenshot?: (attachFile: (filename: string, data: Uint8Array) => void) => void;
+  onAddScreenshot?: (addScreenshot: (uri: string) => void) => void;
 
   /**
    * Callback when feedback is successfully submitted
@@ -241,7 +241,7 @@ export interface ImagePicker {
 /**
  * The styles for the feedback form
  */
-export interface FeedbackFormStyles {
+export interface FeedbackWidgetStyles {
   container?: ViewStyle;
   title?: TextStyle;
   label?: TextStyle;
@@ -252,6 +252,8 @@ export interface FeedbackFormStyles {
   cancelButton?: ViewStyle;
   cancelText?: TextStyle;
   screenshotButton?: ViewStyle;
+  screenshotContainer?: ViewStyle;
+  screenshotThumbnail?: ImageStyle;
   screenshotText?: TextStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
@@ -276,11 +278,12 @@ export interface FeedbackButtonStyles {
 /**
  * The state of the feedback form
  */
-export interface FeedbackFormState {
+export interface FeedbackWidgetState {
   isVisible: boolean;
   name: string;
   email: string;
   description: string;
   filename?: string;
   attachment?: string | Uint8Array;
+  attachmentUri?: string;
 }

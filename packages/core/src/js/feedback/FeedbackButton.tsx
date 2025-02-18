@@ -3,9 +3,9 @@ import * as React from 'react';
 import { Image, Text, TouchableOpacity } from 'react-native';
 
 import { defaultButtonConfiguration } from './defaults';
-import { defaultButtonStyles } from './FeedbackForm.styles';
-import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackForm.types';
-import { showFeedbackForm } from './FeedbackFormManager';
+import { defaultButtonStyles } from './FeedbackWidget.styles';
+import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackWidget.types';
+import { showFeedbackWidget } from './FeedbackWidgetManager';
 import { feedbackIcon } from './icons';
 
 /**
@@ -23,7 +23,7 @@ export class FeedbackButton extends React.Component<FeedbackButtonProps> {
     return (
       <TouchableOpacity
         style={styles.triggerButton}
-        onPress={() => showFeedbackForm()}
+        onPress={() => showFeedbackWidget()}
         accessibilityLabel={text.triggerAriaLabel}
       >
         <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon}/>

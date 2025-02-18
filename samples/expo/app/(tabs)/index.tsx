@@ -6,6 +6,7 @@ import { reloadAppAsync } from 'expo';
 import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
 import React from 'react';
+import * as WebBrowser from 'expo-web-browser';
 
 const isRunningInExpoGo = Constants.appOwnership === 'expo'
 
@@ -60,7 +61,7 @@ export default function TabOneScreen() {
       <Button
         title="Show feedback form"
         onPress={() => {
-          Sentry.showFeedbackForm();
+          Sentry.showFeedbackWidget();
         }}
       />
       <Button
@@ -90,6 +91,12 @@ export default function TabOneScreen() {
         }}
       />
       <Button title="Reload" onPress={() => reloadAppAsync()} />
+      <Button
+        title="Open WebBrowser"
+        onPress={() => {
+          WebBrowser.openBrowserAsync('https://sentry.io');
+        }}
+      />
     </View>
   );
 }

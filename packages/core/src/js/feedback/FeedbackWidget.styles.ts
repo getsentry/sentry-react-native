@@ -1,13 +1,13 @@
 import type { ViewStyle } from 'react-native';
 
-import type { FeedbackButtonStyles, FeedbackFormStyles } from './FeedbackForm.types';
+import type { FeedbackButtonStyles, FeedbackWidgetStyles } from './FeedbackWidget.types';
 
 const PURPLE = 'rgba(88, 74, 192, 1)';
 const FORGROUND_COLOR = '#2b2233';
 const BACKROUND_COLOR = '#ffffff';
 const BORDER_COLOR = 'rgba(41, 35, 47, 0.13)';
 
-const defaultStyles: FeedbackFormStyles = {
+const defaultStyles: FeedbackWidgetStyles = {
   container: {
     flex: 1,
     padding: 20,
@@ -45,8 +45,20 @@ const defaultStyles: FeedbackFormStyles = {
     backgroundColor: '#eee',
     padding: 15,
     borderRadius: 5,
-    marginBottom: 20,
     alignItems: 'center',
+    flex: 1,
+  },
+  screenshotContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+  },
+  screenshotThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 5,
+    marginRight: 10,
   },
   screenshotText: {
     color: '#333',

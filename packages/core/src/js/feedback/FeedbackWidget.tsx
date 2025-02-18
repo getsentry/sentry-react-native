@@ -17,23 +17,34 @@ import {
   View
 } from 'react-native';
 
-import { NATIVE } from './../wrapper';
+import { NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
-import defaultStyles from './FeedbackForm.styles';
-import type { FeedbackFormProps, FeedbackFormState, FeedbackFormStyles, FeedbackGeneralConfiguration, FeedbackTextConfiguration, ImagePickerConfiguration } from './FeedbackForm.types';
+import defaultStyles from './FeedbackWidget.styles';
+import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { isValidEmail } from './utils';
 
 /**
  * @beta
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
-export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
-  public static defaultProps: Partial<FeedbackFormProps> = {
+export class FeedbackWidget extends React.Component<FeedbackWidgetProps, FeedbackWidgetState> {
+  public static defaultProps: Partial<FeedbackWidgetProps> = {
     ...defaultConfiguration
   }
 
-  public constructor(props: FeedbackFormProps) {
+  private static _savedState: Omit<FeedbackWidgetState, 'isVisible'> = {
+    name: '',
+    email: '',
+    description: '',
+    filename: undefined,
+    attachment: undefined,
+    attachmentUri: undefined,
+  };
+
+  private _didSubmitForm: boolean = false;
+
+  public constructor(props: FeedbackWidgetProps) {
     super(props);
 
     const currentUser = {
@@ -45,9 +56,12 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     this.state = {
       isVisible: true,
-      name: currentUser.useSentryUser.name,
-      email: currentUser.useSentryUser.email,
-      description: '',
+      name: FeedbackWidget._savedState.name || currentUser.useSentryUser.name,
+      email: FeedbackWidget._savedState.email || currentUser.useSentryUser.email,
+      description: FeedbackWidget._savedState.description || '',
+      filename: FeedbackWidget._savedState.filename || undefined,
+      attachment: FeedbackWidget._savedState.attachment || undefined,
+      attachmentUri: FeedbackWidget._savedState.attachmentUri || undefined,
     };
   }
 
@@ -88,11 +102,14 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     };
 
     try {
-      this.setState({ isVisible: false });
+      if (!onFormSubmitted) {
+        this.setState({ isVisible: false });
+      }
       captureFeedback(userFeedback, attachments ? { attachments } : undefined);
-      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: undefined });
+      onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: attachments });
       Alert.alert(text.successMessageText);
       onFormSubmitted();
+      this._didSubmitForm = true;
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
@@ -129,24 +146,45 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
           const imageUri = result.assets[0].uri;
           NATIVE.getDataFromUri(imageUri).then((data) => {
             if (data != null) {
-              this.setState({ filename, attachment: data });
+              this.setState({ filename, attachment: data, attachmentUri: imageUri });
             } else {
               logger.error('Failed to read image data from uri:', imageUri);
             }
           })
-          .catch((error) => {
-            logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
-          });
+            .catch((error) => {
+              logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
+            });
         }
       } else {
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
-        onAddScreenshot((filename: string, attachement: Uint8Array) => {
-          this.setState({ filename, attachment: attachement });
+        onAddScreenshot((uri: string) => {
+          NATIVE.getDataFromUri(uri).then((data) => {
+            if (data != null) {
+              this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
+            } else {
+              logger.error('Failed to read image data from uri:', uri);
+            }
+          })
+          .catch((error) => {
+            logger.error('Failed to read image data from uri:', uri, 'error: ', error);
+          });
         });
       }
     } else {
-      this.setState({ filename: undefined, attachment: undefined });
+      this.setState({ filename: undefined, attachment: undefined, attachmentUri: undefined });
+    }
+  }
+
+  /**
+   * Save the state before unmounting the component.
+   */
+  public componentWillUnmount(): void {
+    if (this._didSubmitForm) {
+      this._clearFormState();
+      this._didSubmitForm = false;
+    } else {
+      this._saveFormState();
     }
   }
 
@@ -159,10 +197,13 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const config: FeedbackGeneralConfiguration = this.props;
     const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
-    const styles: FeedbackFormStyles = { ...defaultStyles, ...this.props.styles };
+    const styles: FeedbackWidgetStyles = { ...defaultStyles, ...this.props.styles };
     const onCancel = (): void => {
-      onFormClose();
-      this.setState({ isVisible: false });
+      if (onFormClose) {
+        onFormClose();
+      } else {
+        this.setState({ isVisible: false });
+      }
     }
 
     if (!this.state.isVisible) {
@@ -232,13 +273,21 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
                 multiline
               />
               {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
-                <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                  <Text style={styles.screenshotText}>
-                  {!this.state.filename && !this.state.attachment
-                    ? text.addScreenshotButtonLabel
-                    : text.removeScreenshotButtonLabel}
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.screenshotContainer}>
+                  {this.state.attachmentUri && (
+                    <Image
+                      source={{ uri: this.state.attachmentUri }}
+                      style={styles.screenshotThumbnail}
+                    />
+                  )}
+                  <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                    <Text style={styles.screenshotText}>
+                      {!this.state.filename && !this.state.attachment
+                        ? text.addScreenshotButtonLabel
+                        : text.removeScreenshotButtonLabel}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
               <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
                 <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
@@ -254,4 +303,19 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     </SafeAreaView>
     );
   }
+
+  private _saveFormState = (): void => {
+    FeedbackWidget._savedState = { ...this.state };
+  };
+
+  private _clearFormState = (): void => {
+    FeedbackWidget._savedState = {
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+      attachmentUri: undefined,
+    };
+  };
 }

@@ -8127,7 +8127,7 @@ __metadata:
     "@sentry/react": 8.54.0
     "@sentry/types": 8.54.0
     "@sentry/utils": 8.54.0
-    "@sentry/wizard": 3.40.0
+    "@sentry/wizard": 3.42.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -8220,9 +8220,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:3.40.0":
-  version: 3.40.0
-  resolution: "@sentry/wizard@npm:3.40.0"
+"@sentry/wizard@npm:3.42.0":
+  version: 3.42.0
+  resolution: "@sentry/wizard@npm:3.42.0"
   dependencies:
     "@clack/core": ^0.3.4
     "@clack/prompts": 0.7.0
@@ -8244,7 +8244,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 002a6d7638ebb40ad3f7ea406570e2f73a77c8e9176d5089f064303624d23e860b0d1f9767f72636588f2e40f00e46267ec7c2610030d642049eaf5865ef7211
+  checksum: 821aac0ffc686ac8ce21f5a07cceb525b31b951555ac2e6a249c36a207193ce44c3ed458184bc06a982a116f2de1ec9fca019bc453e7ad3edb8f9914c6b9a7b5
   languageName: node
   linkType: hard
 
@@ -14826,13 +14826,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-web-browser@npm:~14.0.1":
-  version: 14.0.1
-  resolution: "expo-web-browser@npm:14.0.1"
+"expo-web-browser@npm:^14.0.2":
+  version: 14.0.2
+  resolution: "expo-web-browser@npm:14.0.2"
   peerDependencies:
     expo: "*"
     react-native: "*"
-  checksum: 5290f5cc1c3cccc94b782f460b4fc899c85dc2755c2ea6c6a5790282106f254386fa3af811cb269859b2888b880d97f1f9984cfd17d0f7ca36777f7e7e2ebae2
+  checksum: ee84e87987ec9054cee0d13bee78102ba609c219a8a9c81872be4d115d40f00acd068555d737f42fd0bc9b3fd43774d00108d82eececae18098558ef8a7971f1
   languageName: node
   linkType: hard
 
@@ -24611,7 +24611,7 @@ __metadata:
     expo-linking: ~7.0.2
     expo-router: ~4.0.5
     expo-status-bar: ~2.0.0
-    expo-web-browser: ~14.0.1
+    expo-web-browser: ^14.0.2
     react: 18.3.1
     react-dom: 18.3.1
     react-native: 0.76.1
