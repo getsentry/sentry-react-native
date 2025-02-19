@@ -25067,6 +25067,7 @@ __metadata:
     "@react-navigation/native-stack": ^7.2.0
     "@react-navigation/stack": ^7.1.1
     "@sentry/babel-plugin-component-annotate": ^3.1.2
+    "@sentry/core": 8.54.0
     "@sentry/react-native": 6.7.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18

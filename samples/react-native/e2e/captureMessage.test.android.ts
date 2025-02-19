@@ -1,4 +1,4 @@
-import { describe, it, beforeAll, expect } from '@jest/globals';
+import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
 import { Envelope } from '@sentry/core';
 import { device } from 'detox';
 import {
