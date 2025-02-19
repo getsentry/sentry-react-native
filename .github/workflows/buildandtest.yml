@@ -117,7 +117,7 @@ jobs:
             ${{ github.workspace }}/packages/core/*.tgz
 
   job_type_check:
-    name: Type Check Typescript 5.0
+    name: Type Check Typescript 3.8
     runs-on: ubuntu-latest
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
@@ -138,11 +138,11 @@ jobs:
         with:
           name: dist
           path: packages/core/dist
-      - name: Download ts5.0
+      - name: Download ts3.8
         uses: actions/download-artifact@v4
         with:
-          name: ts5.0
-          path: packages/core/ts5.0
+          name: ts3.8
+          path: packages/core/ts3.8
       - name: Install Global Dependencies
         run: npm i -g add yalc
       - name: Type Check
