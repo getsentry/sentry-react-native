@@ -101,11 +101,6 @@ export const modalWrapper: ViewStyle = {
   bottom: 0,
 };
 
-export const modalBackground: ViewStyle = {
-  flex: 1,
-  justifyContent: 'flex-end',
-};
-
 export const modalSheetContainer: ViewStyle = {
   backgroundColor: '#ffffff',
   borderTopLeftRadius: 16,

@@ -5,12 +5,12 @@ import { Animated, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView
 
 import { notWeb } from '../utils/environment';
 import { FeedbackWidget } from './FeedbackWidget';
-import { modalBackground, modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
+import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackOptions } from './integration';
 import { isModalSupported } from './utils';
 
-const PULL_DOWN_CLOSE_THREESHOLD = 200;
+const PULL_DOWN_CLOSE_THRESHOLD = 200;
 const SLIDE_ANIMATION_DURATION = 200;
 const BACKGROUND_ANIMATION_DURATION = 200;
 
@@ -63,7 +63,6 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
 
   private _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: (_, gestureState) => {
-      // On Android allow pulling down only from the top to avoid breaking native gestures
       return notWeb() && this.state.isScrollAtTop && gestureState.dy > 0;
     },
     onMoveShouldSetPanResponder: (_, gestureState) => {
@@ -75,7 +74,8 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
       }
     },
     onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dy > PULL_DOWN_CLOSE_THREESHOLD) { // Close on swipe below a certain threshold
+      if (gestureState.dy > PULL_DOWN_CLOSE_THRESHOLD) {
+        // Close on swipe below a certain threshold
         Animated.timing(this.state.panY, {
           toValue: Dimensions.get('screen').height,
           duration: SLIDE_ANIMATION_DURATION,
@@ -83,7 +83,8 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
         }).start(() => {
           this._handleClose();
         });
-      } else { // Animate it back to the original position
+      } else {
+        // Animate it back to the original position
         Animated.spring(this.state.panY, {
           toValue: 0,
           useNativeDriver: true,
@@ -145,7 +146,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
       <>
         {this.props.children}
         {isVisible &&
-          <Animated.View style={[modalWrapper, modalBackground, { backgroundColor }]} >
+          <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
               <View style={topSpacer}/>
               <Animated.View
