@@ -6,7 +6,7 @@ export const useEncodePolyfill = (): void => {
     (RN_GLOBAL_OBJ.__SENTRY__ as Partial<(typeof RN_GLOBAL_OBJ)['__SENTRY__']>) = {};
   }
 
-  RN_GLOBAL_OBJ.__SENTRY__.encodePolyfill = encodePolyfill;
+  // RN_GLOBAL_OBJ.__SENTRY__.encodePolyfill = encodePolyfill; // TODO: Recheck this line
 };
 
 export const encodePolyfill = (text: string): Uint8Array => {
