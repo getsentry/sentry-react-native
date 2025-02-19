@@ -429,5 +429,5 @@ function addIntegrationAndForceSetupOnce(integration: Integration): void {
   }
 
   client.addIntegration(integration);
-  integration.setupOnce && integration.setupOnce();
+  integration.setupOnce?.();
 }

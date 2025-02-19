@@ -39,22 +39,28 @@ describe('safe', () => {
       const mockFn = jest.fn();
       const actualSafeFunction = safeTracesSampler(mockFn);
       actualSafeFunction?.({
-        name: 'foo', transactionContext: { name: 'foo' },
+        name: 'foo',
+        transactionContext: { name: 'foo' },
         inheritOrSampleWith: function (fallbackSampleRate: number): number {
           return fallbackSampleRate;
-        }
+        },
       });
       expect(mockFn).toBeCalledTimes(1);
-      expect(mockFn).toBeCalledWith({ name: 'foo', transactionContext: { name: 'foo' }, inheritOrSampleWith: expect.any(Function) });
+      expect(mockFn).toBeCalledWith({
+        name: 'foo',
+        transactionContext: { name: 'foo' },
+        inheritOrSampleWith: expect.any(Function),
+      });
     });
     test('calls given function amd return its result', () => {
       const mockFn = jest.fn(() => 0.5);
       const actualSafeFunction = safeTracesSampler(mockFn);
       const actualResult = actualSafeFunction?.({
-        name: 'foo', transactionContext: { name: 'foo' },
+        name: 'foo',
+        transactionContext: { name: 'foo' },
         inheritOrSampleWith: function (fallbackSampleRate: number): number {
           return fallbackSampleRate;
-        }
+        },
       });
       expect(mockFn).toBeCalledTimes(1);
       expect(actualResult).toBe(0.5);
@@ -69,10 +75,11 @@ describe('safe', () => {
       });
       const actualSafeFunction = safeTracesSampler(mockFn);
       const actualResult = actualSafeFunction?.({
-        name: 'foo', transactionContext: { name: 'foo' },
+        name: 'foo',
+        transactionContext: { name: 'foo' },
         inheritOrSampleWith: function (fallbackSampleRate: number): number {
           return fallbackSampleRate;
-        }
+        },
       });
       expect(mockFn).toBeCalledTimes(1);
       expect(actualResult).toEqual(0);

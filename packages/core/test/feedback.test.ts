@@ -1,4 +1,4 @@
-import type { Envelope, FeedbackItem, Span, UserFeedback } from '@sentry/core';
+import type { Span } from '@sentry/core';
 import {
   addBreadcrumb,
   captureFeedback,
@@ -11,8 +11,6 @@ import {
 } from '@sentry/core';
 
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
-import { EncodeIntoResult } from 'util';
-import { EXPO_DEBUG } from 'expo/metro-config';
 
 describe('captureFeedback', () => {
   beforeEach(() => {
@@ -252,7 +250,7 @@ describe('captureFeedback', () => {
       traceId,
       parentSpanId,
       dsc,
-      sampleRand: 1
+      sampleRand: 1,
     });
 
     const eventId = captureFeedback({
@@ -328,41 +326,40 @@ describe('captureFeedback', () => {
     expect(typeof eventId).toBe('string');
     expect(span).toBeDefined();
 
-    const { spanId, traceId } = span!.spanContext();
-
+    const traceId = span!.spanContext().traceId;
 
     const [[envelope]] = mockTransport.mock.calls;
     expect(mockTransport).toHaveBeenCalledWith(envelope);
 
     expect(envelope).toEqual([
-        {
-          event_id: eventId,
-          sent_at: expect.toBeDateString(),
-        },
+      {
+        event_id: eventId,
+        sent_at: expect.toBeDateString(),
+      },
+      [
         [
-          [
-            { type: 'feedback' },
-            {
-              breadcrumbs: undefined,
-              contexts: {
-                trace: {
-                  trace_id: traceId,
-                  span_id: expect.any(String)
-                },
-                feedback: {
-                  message: 'test',
-                },
+          { type: 'feedback' },
+          {
+            breadcrumbs: undefined,
+            contexts: {
+              trace: {
+                trace_id: traceId,
+                span_id: expect.any(String),
               },
-              level: 'info',
-              environment: 'production',
-              event_id: eventId,
-              timestamp: expect.any(Number),
-              tags: undefined,
-              type: 'feedback',
+              feedback: {
+                message: 'test',
+              },
             },
-          ],
+            level: 'info',
+            environment: 'production',
+            event_id: eventId,
+            timestamp: expect.any(Number),
+            tags: undefined,
+            type: 'feedback',
+          },
         ],
-      ]);
+      ],
+    ]);
   });
 
   it('applies scope data to feedback', async () => {

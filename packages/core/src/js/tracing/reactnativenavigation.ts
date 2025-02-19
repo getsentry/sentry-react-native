@@ -129,7 +129,7 @@ export const reactNativeNavigationIntegration = ({
     }
 
     latestNavigationSpan = startGenericIdleNavigationSpan(
-      tracing && tracing.options.beforeStartSpan
+      tracing?.options.beforeStartSpan
         ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,

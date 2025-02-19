@@ -1,6 +1,6 @@
 import type { Client, Scope, Span, StartSpanOptions } from '@sentry/core';
 import {
-  //generatePropagationContext replaced by generateTraceId,
+  // generatePropagationContext replaced by generateTraceId,
   generateTraceId,
   getActiveSpan,
   getClient,

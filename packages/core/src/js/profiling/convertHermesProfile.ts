@@ -163,7 +163,7 @@ function mapStacks(
     while (currentHermesFrameId !== undefined) {
       const sentryFrameId = hermesStackFrameIdToSentryFrameIdMap.get(currentHermesFrameId);
       sentryFrameId !== undefined && stack.push(sentryFrameId);
-      currentHermesFrameId = hermesStackFrames[currentHermesFrameId] && hermesStackFrames[currentHermesFrameId].parent;
+      currentHermesFrameId = hermesStackFrames[currentHermesFrameId]?.parent;
     }
     stacks.push(stack);
   }

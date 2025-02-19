@@ -99,7 +99,7 @@ function setupErrorUtilsGlobalHandler(): void {
     return;
   }
 
-  const defaultHandler = errorUtils.getGlobalHandler && errorUtils.getGlobalHandler();
+  const defaultHandler = errorUtils.getGlobalHandler?.();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
