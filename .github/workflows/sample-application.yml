@@ -115,17 +115,17 @@ jobs:
           export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
-          ../scripts/set-dsn-aos.mjs
-          ../scripts/build-android.sh -PreactNativeArchitectures=x86
+          ./scripts/set-dsn-aos.mjs
+          ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
 
-          ../scripts/set-dsn-ios.mjs
-          ../scripts/build-ios.sh
+          ./scripts/set-dsn-ios.mjs
+          ./scripts/build-ios.sh
 
       - name: Build macOS App
         if: ${{ matrix.platform == 'macos' }}
