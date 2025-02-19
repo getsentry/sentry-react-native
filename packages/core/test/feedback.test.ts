@@ -297,7 +297,7 @@ describe('captureFeedback', () => {
       getDefaultTestClientOptions({
         dsn: 'https://dsn@ingest.f00.f00/1',
         enableSend: true,
-        enableTracing: true,
+        tracesSampleRate: 1.0,
         // We don't care about transactions here...
         beforeSendTransaction() {
           return null;
@@ -360,7 +360,7 @@ describe('captureFeedback', () => {
       getDefaultTestClientOptions({
         dsn: 'https://dsn@ingest.f00.f00/1',
         enableSend: true,
-        enableTracing: true,
+        tracesSampleRate: 1.0,
         // We don't care about transactions here...
         beforeSendTransaction() {
           return null;

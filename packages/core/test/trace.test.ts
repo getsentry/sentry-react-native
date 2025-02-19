@@ -7,7 +7,7 @@ describe('parentSpanIsAlwaysRootSpan', () => {
 
   it('creates a span as child of root span if parentSpanIsAlwaysRootSpan=true', () => {
     const options = getDefaultTestClientOptions({
-      tracesSampleRate: 1,
+      tracesSampleRate: 1.0,
       parentSpanIsAlwaysRootSpan: true,
     });
     client = new TestClient(options);
@@ -27,7 +27,7 @@ describe('parentSpanIsAlwaysRootSpan', () => {
 
   it('does not creates a span as child of root span if parentSpanIsAlwaysRootSpan=false', () => {
     const options = getDefaultTestClientOptions({
-      tracesSampleRate: 1,
+      tracesSampleRate: 1.0,
       parentSpanIsAlwaysRootSpan: false,
     });
     client = new TestClient(options);
