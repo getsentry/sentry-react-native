@@ -128,7 +128,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
     }
 
     const client = getClient<ReactNativeClient>();
-    const options = client && client.getOptions();
+    const options = client?.getOptions();
 
     const profilesSampleRate =
       options && typeof options.profilesSampleRate === 'number' ? options.profilesSampleRate : undefined;

@@ -36,7 +36,7 @@ export function isExpo(): boolean {
 /** Check if JS runs in Expo Go */
 export function isExpoGo(): boolean {
   const expoConstants = getExpoConstants();
-  return (expoConstants && expoConstants.appOwnership) === 'expo';
+  return expoConstants?.appOwnership === 'expo';
 }
 
 /** Check Expo Go version if available */
@@ -75,11 +75,7 @@ export function notMobileOs(): boolean {
 
 /** Returns Hermes Version if hermes is present in the runtime */
 export function getHermesVersion(): string | undefined {
-  return (
-    RN_GLOBAL_OBJ.HermesInternal &&
-    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties &&
-    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties()['OSS Release Version']
-  );
+  return RN_GLOBAL_OBJ.HermesInternal?.getRuntimeProperties?.()['OSS Release Version'];
 }
 
 /** Returns default environment based on __DEV__ */

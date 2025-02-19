@@ -43,7 +43,7 @@ export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptio
 };
 
 function preprocessEvent(event: Event, hint: EventHint | undefined, client: Client, limit: number, key: string): void {
-  if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
+  if (!event.exception?.values || !hint || !isInstanceOf(hint.originalException, Error)) {
     return;
   }
 
@@ -176,7 +176,7 @@ function exceptionFromAppleStackReturnAddresses(objCException: {
       type: objCException.name,
       value: objCException.message,
       stacktrace: {
-        frames: (nativeStackFrames && nativeStackFrames.frames.reverse()) || [],
+        frames: nativeStackFrames?.frames.reverse() || [],
       },
     },
     appleDebugImages: (nativeStackFrames && (nativeStackFrames.debugMetaImages as DebugImage[])) || [],

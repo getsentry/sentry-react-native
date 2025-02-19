@@ -102,11 +102,5 @@ export function getDefaultSidecarUrl(): string {
 function getHostnameFromString(urlString: string): string | null {
   const regex = /^(?:\w+:)?\/\/([^/:]+)(:\d+)?(.*)$/;
   const matches = urlString.match(regex);
-
-  if (matches && matches[1]) {
-    return matches[1];
-  } else {
-    // Invalid URL format
-    return null;
-  }
+  return matches?.[1] ?? null;
 }
