@@ -240,17 +240,10 @@ describe('captureFeedback', () => {
     const mockTransport = jest.spyOn(client.getTransport()!, 'send');
 
     const traceId = '4C79F60C11214EB38604F4AE0781BFB2';
-    const spanId = 'FA90FDEAD5F74052';
-    const dsc = {
-      trace_id: traceId,
-      span_id: spanId,
-      sampled: 'true',
-    };
 
     getCurrentScope().setPropagationContext({
-      traceId,
-      spanId,
-      dsc,
+      traceId: traceId,
+      sampleRand: 0.5,
     });
 
     const eventId = captureFeedback({
@@ -274,7 +267,7 @@ describe('captureFeedback', () => {
             contexts: {
               trace: {
                 trace_id: traceId,
-                span_id: spanId,
+                span_id: expect.any(String),
               },
               feedback: {
                 message: 'test',

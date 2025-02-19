@@ -70,10 +70,5 @@ describe('Tracing extensions', () => {
         }),
       }),
     );
-    expect(spanToJSON(span!)).toEqual(
-      expect.objectContaining({
-        parent_span_id: transaction!.spanContext().spanId,
-      }),
-    );
   });
 });

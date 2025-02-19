@@ -1,9 +1,3 @@
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  RN.UIManager = {};
-  return RN;
-});
-
 jest.mock('../../src/js/utils/rnlibraries', () => {
   const webLibrary = jest.requireActual('../../src/js/utils/rnlibraries.web');
   return {

@@ -768,6 +768,7 @@ function getMinimalTransactionEvent({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {},
       },
     ],
   };
@@ -822,6 +823,7 @@ function expectEventWithAttachedColdAppStart({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {},
       },
     ]),
   });
@@ -876,6 +878,7 @@ function expectEventWithAttachedWarmAppStart({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {},
       },
     ]),
   });
