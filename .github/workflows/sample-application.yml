@@ -158,8 +158,8 @@ jobs:
         run: |
           zip -j \
             ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
-            app.apk \
-            app-androidTest.apk
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk \
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app-androidTest.apk
 
       - name: Upload iOS APP
         if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
