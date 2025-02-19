@@ -105,8 +105,7 @@ export const startIdleSpan = (
     return new SentryNonRecordingSpan();
   }
 
-// TODO: fix replace
-//  getCurrentScope().setPropagationContext(generatePropagationContext());
+  getCurrentScope().setPropagationContext({ traceId: generateTraceId(), sampleRand: Math.random() });
 
   const span = coreStartIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
   cancelInBackground(client, span);
