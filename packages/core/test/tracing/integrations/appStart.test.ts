@@ -768,6 +768,7 @@ function getMinimalTransactionEvent({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {}
       },
     ],
   };
@@ -822,6 +823,11 @@ function expectEventWithAttachedColdAppStart({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+        },
+
       },
     ]),
   });
@@ -876,6 +882,10 @@ function expectEventWithAttachedWarmAppStart({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+        }
       },
     ]),
   });
