@@ -680,7 +680,7 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
         return userInstance;
     }
 
-    if (![[NSNull null] isEqual:userKeys] || nil != userKeys) {
+    if (!([NSNull null] isEqual:userKeys) && nil != userKeys) {
         NSLog(@"[RNSentry] Method setUser received unexpected type of userKeys.");
     }
 
