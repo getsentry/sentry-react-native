@@ -49,6 +49,15 @@
     XCTAssertNil(actual);
 }
 
+- (void)testEmptyUser
+{
+    SentryUser *expected = [[SentryUser alloc] init];
+    [expected setData:@{}];
+
+    SentryUser *actual = [RNSentry userFrom:@{} otherUserKeys:@{}];
+    XCTAssertTrue([actual isEqualToUser:expected]);
+}
+
 - (void)testInvalidUser
 {
     SentryUser *expected = [[SentryUser alloc] init];
@@ -76,6 +85,22 @@
         @"email" : @ {},
         @"username" : @ {},
         @"segment" : @[],
+    }
+                              otherUserKeys:nil];
+
+    XCTAssertTrue([actual isEqualToUser:expected]);
+}
+
+- (void)testNullValuesUser
+{
+    SentryUser *expected = [[SentryUser alloc] init];
+
+    SentryUser *actual = [RNSentry userFrom:@{
+        @"id" : [NSNull null],
+        @"ip_address" : [NSNull null],
+        @"email" : [NSNull null],
+        @"username" : [NSNull null],
+        @"segment" : [NSNull null],
     }
                               otherUserKeys:nil];
 
