@@ -162,7 +162,7 @@ export function wrap<P extends Record<string, unknown>>(
   const RootApp: React.FC<P> = (appProps) => {
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
-        <ReactNativeProfiler {...profilerProps}>
+        <ReactNativeProfiler {...profilerProps} updateProps={profilerProps.updateProps ?? {}}>
           <RootComponent {...appProps} />
         </ReactNativeProfiler>
       </TouchEventBoundary>
