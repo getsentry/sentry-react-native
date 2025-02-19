@@ -31,6 +31,7 @@
 ### Fixes
 
 - Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+- `Sentry.setUser(null)` doesn't crash on iOS with RN 0.77.1 ([#4569](https://github.com/getsentry/sentry-react-native/pull/4569))
 
 ### Dependencies
 
