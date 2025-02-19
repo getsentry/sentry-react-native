@@ -43,6 +43,9 @@
 - Bump CLI from v2.41.1 to v2.42.1 ([#4563](https://github.com/getsentry/sentry-react-native/pull/4563))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2421)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.1)
+- Bump JavaScript SDK from v8.54.0 to v9.1.0 ([#4528](https://github.com/getsentry/sentry-react-native/pull/4528))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#910)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.1.0)
 
 ## 6.7.0
 
