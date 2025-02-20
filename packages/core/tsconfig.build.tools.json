@@ -14,6 +14,7 @@
     "target": "es6",
     "module": "CommonJS",
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "importHelpers": false
   }
 }
