@@ -42,11 +42,13 @@ const defaultStyles: FeedbackWidgetStyles = {
     color: FOREGROUND_COLOR,
   },
   screenshotButton: {
-    backgroundColor: '#eee',
+    backgroundColor: BACKGROUND_COLOR,
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
     flex: 1,
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
   },
   screenshotContainer: {
     flexDirection: 'row',
@@ -61,7 +63,7 @@ const defaultStyles: FeedbackWidgetStyles = {
     marginRight: 10,
   },
   screenshotText: {
-    color: '#333',
+    color: FOREGROUND_COLOR,
     fontSize: 16,
   },
   submitButton: {
@@ -76,8 +78,12 @@ const defaultStyles: FeedbackWidgetStyles = {
     fontSize: 18,
   },
   cancelButton: {
-    paddingVertical: 15,
+    backgroundColor: BACKGROUND_COLOR,
+    padding: 15,
+    borderRadius: 5,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
   },
   cancelText: {
     color: FOREGROUND_COLOR,
