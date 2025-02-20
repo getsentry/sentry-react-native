@@ -235,7 +235,7 @@ describe('FeedbackWidget', () => {
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.successMessageText);
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.successMessageText, '');
     });
   });
 
