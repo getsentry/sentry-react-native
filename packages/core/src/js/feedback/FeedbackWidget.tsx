@@ -3,13 +3,8 @@ import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/c
 import * as React from 'react';
 import type { KeyboardTypeOptions } from 'react-native';
 import {
-  Alert,
   Image,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -17,12 +12,13 @@ import {
   View
 } from 'react-native';
 
+import { isWeb, notWeb } from '../utils/environment';
 import { NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
-import { isValidEmail } from './utils';
+import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
 
 /**
  * @beta
@@ -75,12 +71,12 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const trimmedDescription = description?.trim();
 
     if ((this.props.isNameRequired && !trimmedName) || (this.props.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
-      Alert.alert(text.errorTitle, text.formError);
+      feedbackAlertDialog(text.errorTitle, text.formError);
       return;
     }
 
     if (this.props.shouldValidateEmail && (this.props.isEmailRequired || trimmedEmail.length > 0) && !isValidEmail(trimmedEmail)) {
-      Alert.alert(text.errorTitle, text.emailError);
+      feedbackAlertDialog(text.errorTitle, text.emailError);
       return;
     }
 
@@ -107,13 +103,13 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       }
       captureFeedback(userFeedback, attachments ? { attachments } : undefined);
       onSubmitSuccess({ name: trimmedName, email: trimmedEmail, message: trimmedDescription, attachments: attachments });
-      Alert.alert(text.successMessageText);
+      feedbackAlertDialog(text.successMessageText , '');
       onFormSubmitted();
       this._didSubmitForm = true;
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
-      Alert.alert(text.errorTitle, text.genericError);
+      feedbackAlertDialog(text.errorTitle, text.genericError);
       logger.error(`Feedback form submission failed: ${error}`);
     }
   };
@@ -124,15 +120,15 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       if (imagePickerConfiguration.imagePicker) {
         const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
           // expo-image-picker library is available
-          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] })
+          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: isWeb() })
           // react-native-image-picker library is available
           : imagePickerConfiguration.imagePicker.launchImageLibrary
-            ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: 'photo' })
+            ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: 'photo', includeBase64: isWeb() })
             : null;
         if (!launchImageLibrary) {
           logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
           if (__DEV__) {
-            Alert.alert(
+            feedbackAlertDialog(
               'Development note',
               'No compatible image picker library found. Please provide a compatible version of `expo-image-picker` or `react-native-image-picker`.',
             );
@@ -142,18 +138,29 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
         const result = await launchImageLibrary();
         if (result.assets && result.assets.length > 0) {
-          const filename = result.assets[0].fileName;
-          const imageUri = result.assets[0].uri;
-          NATIVE.getDataFromUri(imageUri).then((data) => {
+          if (isWeb()) {
+            const filename = result.assets[0].fileName;
+            const imageUri = result.assets[0].uri;
+            const base64 = result.assets[0].base64;
+            const data = base64ToUint8Array(base64);
             if (data != null) {
               this.setState({ filename, attachment: data, attachmentUri: imageUri });
             } else {
-              logger.error('Failed to read image data from uri:', imageUri);
+              logger.error('Failed to read image data on the web');
             }
-          })
-            .catch((error) => {
+          } else {
+            const filename = result.assets[0].fileName;
+            const imageUri = result.assets[0].uri;
+            NATIVE.getDataFromUri(imageUri).then((data) => {
+              if (data != null) {
+                this.setState({ filename, attachment: data, attachmentUri: imageUri });
+              } else {
+                logger.error('Failed to read image data from uri:', imageUri);
+              }
+            }).catch((error) => {
               logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
             });
+          }
         }
       } else {
         // Defaulting to the onAddScreenshot callback
@@ -211,96 +218,87 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     }
 
     return (
-    <SafeAreaView style={[styles.container, { padding: 0 }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.container, { padding: 0 }]}
-      >
-        <ScrollView bounces={false}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>{text.formTitle}</Text>
-                {config.showBranding && (
-                  <Image
-                    source={{ uri: sentryLogo }}
-                    style={styles.sentryLogo}
-                    testID='sentry-logo'
-                  />
-                )}
-              </View>
-
-              {config.showName && (
-              <>
-                <Text style={styles.label}>
-                  {text.nameLabel}
-                  {config.isNameRequired && ` ${text.isRequiredLabel}`}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={text.namePlaceholder}
-                  value={name}
-                  onChangeText={(value) => this.setState({ name: value })}
-                />
-              </>
-              )}
-
-              {config.showEmail && (
-              <>
-                <Text style={styles.label}>
-                  {text.emailLabel}
-                  {config.isEmailRequired && ` ${text.isRequiredLabel}`}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={text.emailPlaceholder}
-                  keyboardType={'email-address' as KeyboardTypeOptions}
-                  value={email}
-                  onChangeText={(value) => this.setState({ email: value })}
-                />
-              </>
-              )}
-
-              <Text style={styles.label}>
-                {text.messageLabel}
-                {` ${text.isRequiredLabel}`}
-              </Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder={text.messagePlaceholder}
-                value={description}
-                onChangeText={(value) => this.setState({ description: value })}
-                multiline
+      <TouchableWithoutFeedback onPress={notWeb() ? Keyboard.dismiss: undefined}>
+        <View style={styles.container}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{text.formTitle}</Text>
+            {config.showBranding && (
+              <Image
+                source={{ uri: sentryLogo }}
+                style={styles.sentryLogo}
+                testID='sentry-logo'
               />
-              {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
-                <View style={styles.screenshotContainer}>
-                  {this.state.attachmentUri && (
-                    <Image
-                      source={{ uri: this.state.attachmentUri }}
-                      style={styles.screenshotThumbnail}
-                    />
-                  )}
-                  <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                    <Text style={styles.screenshotText}>
-                      {!this.state.filename && !this.state.attachment
-                        ? text.addScreenshotButtonLabel
-                        : text.removeScreenshotButtonLabel}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
-                <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
-              </TouchableOpacity>
+            )}
+          </View>
 
-              <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-                <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
+          {config.showName && (
+          <>
+            <Text style={styles.label}>
+              {text.nameLabel}
+              {config.isNameRequired && ` ${text.isRequiredLabel}`}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={text.namePlaceholder}
+              value={name}
+              onChangeText={(value) => this.setState({ name: value })}
+            />
+          </>
+          )}
+
+          {config.showEmail && (
+          <>
+            <Text style={styles.label}>
+              {text.emailLabel}
+              {config.isEmailRequired && ` ${text.isRequiredLabel}`}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={text.emailPlaceholder}
+              keyboardType={'email-address' as KeyboardTypeOptions}
+              value={email}
+              onChangeText={(value) => this.setState({ email: value })}
+            />
+          </>
+          )}
+
+          <Text style={styles.label}>
+            {text.messageLabel}
+            {` ${text.isRequiredLabel}`}
+          </Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder={text.messagePlaceholder}
+            value={description}
+            onChangeText={(value) => this.setState({ description: value })}
+            multiline
+          />
+          {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
+            <View style={styles.screenshotContainer}>
+              {this.state.attachmentUri && (
+                <Image
+                  source={{ uri: this.state.attachmentUri }}
+                  style={styles.screenshotThumbnail}
+                />
+              )}
+              <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                <Text style={styles.screenshotText}>
+                  {!this.state.filename && !this.state.attachment
+                    ? text.addScreenshotButtonLabel
+                    : text.removeScreenshotButtonLabel}
+                </Text>
               </TouchableOpacity>
             </View>
-          </TouchableWithoutFeedback>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          )}
+          <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
+            <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+            <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
     );
   }
 

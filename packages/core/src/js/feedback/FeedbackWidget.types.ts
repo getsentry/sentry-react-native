@@ -222,14 +222,17 @@ interface ImagePickerResponse {
 interface ImagePickerAsset {
   fileName?: string;
   uri?: string;
+  base64?: string;
 }
 
 interface ExpoImageLibraryOptions {
   mediaTypes?: 'images'[];
+  base64?: boolean;
 }
 
 interface ReactNativeImageLibraryOptions {
   mediaType: 'photo';
+  includeBase64?: boolean;
 }
 
 export interface ImagePicker {

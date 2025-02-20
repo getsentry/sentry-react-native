@@ -1,15 +1,16 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import { Animated, Dimensions, Easing, KeyboardAvoidingView, Modal, PanResponder, Platform } from 'react-native';
+import type { NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import { Animated, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
 
+import { notWeb } from '../utils/environment';
 import { FeedbackWidget } from './FeedbackWidget';
-import { modalBackground, modalSheetContainer, modalWrapper } from './FeedbackWidget.styles';
+import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackOptions } from './integration';
 import { isModalSupported } from './utils';
 
-const PULL_DOWN_CLOSE_THREESHOLD = 200;
-const PULL_DOWN_ANDROID_ACTIVATION_HEIGHT = 150;
+const PULL_DOWN_CLOSE_THRESHOLD = 200;
 const SLIDE_ANIMATION_DURATION = 200;
 const BACKGROUND_ANIMATION_DURATION = 200;
 
@@ -49,6 +50,7 @@ interface FeedbackWidgetProviderState {
   isVisible: boolean;
   backgroundOpacity: Animated.Value;
   panY: Animated.Value;
+  isScrollAtTop: boolean;
 }
 
 class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps> {
@@ -56,15 +58,15 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     isVisible: false,
     backgroundOpacity: new Animated.Value(0),
     panY: new Animated.Value(Dimensions.get('screen').height),
+    isScrollAtTop: true,
   };
 
   private _panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: (evt, _gestureState) => {
-      // On Android allow pulling down only from the top to avoid breaking native gestures
-      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+    onStartShouldSetPanResponder: (_, gestureState) => {
+      return notWeb() && this.state.isScrollAtTop && gestureState.dy > 0;
     },
-    onMoveShouldSetPanResponder: (evt, _gestureState) => {
-      return Platform.OS !== 'android' || evt.nativeEvent.pageY < PULL_DOWN_ANDROID_ACTIVATION_HEIGHT;
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return notWeb() && this.state.isScrollAtTop && gestureState.dy > 0;
     },
     onPanResponderMove: (_, gestureState) => {
       if (gestureState.dy > 0) {
@@ -72,7 +74,8 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
       }
     },
     onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dy > PULL_DOWN_CLOSE_THREESHOLD) { // Close on swipe below a certain threshold
+      if (gestureState.dy > PULL_DOWN_CLOSE_THRESHOLD) {
+        // Close on swipe below a certain threshold
         Animated.timing(this.state.panY, {
           toValue: Dimensions.get('screen').height,
           duration: SLIDE_ANIMATION_DURATION,
@@ -80,7 +83,8 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
         }).start(() => {
           this._handleClose();
         });
-      } else { // Animate it back to the original position
+      } else {
+        // Animate it back to the original position
         Animated.spring(this.state.panY, {
           toValue: 0,
           useNativeDriver: true,
@@ -141,29 +145,34 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     return (
       <>
         {this.props.children}
-        {isVisible && (
+        {isVisible &&
           <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
-              <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={modalBackground}
-              >
-                <Animated.View
-                  style={[modalSheetContainer, { transform: [{ translateY: this.state.panY }] }]}
-                  {...this._panResponder.panHandlers}
-                >
+              <View style={topSpacer}/>
+              <Animated.View
+                style={[modalSheetContainer, { transform: [{ translateY: this.state.panY }] }]}
+                {...this._panResponder.panHandlers}>
+                <ScrollView
+                  bounces={false}
+                  keyboardShouldPersistTaps="handled"
+                  automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                  onScroll={this._handleScroll}>
                   <FeedbackWidget {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
-                    />
-                </Animated.View>
-              </KeyboardAvoidingView>
+                  />
+                </ScrollView>
+              </Animated.View>
             </Modal>
           </Animated.View>
-        )}
+        }
       </>
     );
   }
+
+  private _handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>): void => {
+    this.setState({ isScrollAtTop: event.nativeEvent.contentOffset.y <= 0 });
+  };
 
   private _setVisibilityFunction = (visible: boolean): void => {
     const updateState = (): void => {

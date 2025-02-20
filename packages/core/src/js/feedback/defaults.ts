@@ -1,6 +1,5 @@
-import { Alert } from 'react-native';
-
 import type { FeedbackButtonProps, FeedbackWidgetProps } from './FeedbackWidget.types';
+import { feedbackAlertDialog } from './utils';
 
 const FORM_TITLE = 'Report a Bug';
 const NAME_PLACEHOLDER = 'Your Name';
@@ -28,7 +27,7 @@ export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
   },
   onFormClose: () => {
     if (__DEV__) {
-      Alert.alert(
+      feedbackAlertDialog(
         'Development note',
         'onFormClose callback is not implemented. By default the form is just unmounted.',
       );
@@ -36,7 +35,7 @@ export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
   },
   onAddScreenshot: (_: (uri: string) => void) => {
     if (__DEV__) {
-      Alert.alert('Development note', 'onAddScreenshot callback is not implemented.');
+      feedbackAlertDialog('Development note', 'onAddScreenshot callback is not implemented.');
     }
   },
   onSubmitSuccess: () => {
@@ -47,7 +46,7 @@ export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
   },
   onFormSubmitted: () => {
     if (__DEV__) {
-      Alert.alert(
+      feedbackAlertDialog(
         'Development note',
         'onFormSubmitted callback is not implemented. By default the form is just unmounted.',
       );

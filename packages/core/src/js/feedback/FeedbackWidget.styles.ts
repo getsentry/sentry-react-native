@@ -3,15 +3,15 @@ import type { ViewStyle } from 'react-native';
 import type { FeedbackButtonStyles, FeedbackWidgetStyles } from './FeedbackWidget.types';
 
 const PURPLE = 'rgba(88, 74, 192, 1)';
-const FORGROUND_COLOR = '#2b2233';
-const BACKROUND_COLOR = '#ffffff';
+const FOREGROUND_COLOR = '#2b2233';
+const BACKGROUND_COLOR = '#ffffff';
 const BORDER_COLOR = 'rgba(41, 35, 47, 0.13)';
 
 const defaultStyles: FeedbackWidgetStyles = {
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: BACKROUND_COLOR,
+    backgroundColor: BACKGROUND_COLOR,
   },
   title: {
     fontSize: 24,
@@ -19,12 +19,12 @@ const defaultStyles: FeedbackWidgetStyles = {
     marginBottom: 20,
     textAlign: 'left',
     flex: 1,
-    color: FORGROUND_COLOR,
+    color: FOREGROUND_COLOR,
   },
   label: {
     marginBottom: 4,
     fontSize: 16,
-    color: FORGROUND_COLOR,
+    color: FOREGROUND_COLOR,
   },
   input: {
     height: 50,
@@ -34,12 +34,12 @@ const defaultStyles: FeedbackWidgetStyles = {
     paddingHorizontal: 10,
     marginBottom: 15,
     fontSize: 16,
-    color: FORGROUND_COLOR,
+    color: FOREGROUND_COLOR,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
-    color: FORGROUND_COLOR,
+    color: FOREGROUND_COLOR,
   },
   screenshotButton: {
     backgroundColor: '#eee',
@@ -72,7 +72,7 @@ const defaultStyles: FeedbackWidgetStyles = {
     marginBottom: 10,
   },
   submitText: {
-    color: BACKROUND_COLOR,
+    color: BACKGROUND_COLOR,
     fontSize: 18,
   },
   cancelButton: {
@@ -80,7 +80,7 @@ const defaultStyles: FeedbackWidgetStyles = {
     alignItems: 'center',
   },
   cancelText: {
-    color: FORGROUND_COLOR,
+    color: FOREGROUND_COLOR,
     fontSize: 16,
   },
   titleContainer: {
@@ -98,7 +98,7 @@ export const defaultButtonStyles: FeedbackButtonStyles = {
     position: 'absolute',
     bottom: 30,
     right: 30,
-    backgroundColor: BACKROUND_COLOR,
+    backgroundColor: BACKGROUND_COLOR,
     padding: 15,
     borderRadius: 40,
     justifyContent: 'center',
@@ -111,7 +111,7 @@ export const defaultButtonStyles: FeedbackButtonStyles = {
     flexDirection: 'row',
   },
   triggerText: {
-    color: FORGROUND_COLOR,
+    color: FOREGROUND_COLOR,
     fontSize: 18,
   },
   triggerIcon: {
@@ -130,23 +130,22 @@ export const modalWrapper: ViewStyle = {
   bottom: 0,
 };
 
-export const modalBackground: ViewStyle = {
-  flex: 1,
-  justifyContent: 'flex-end',
-};
-
 export const modalSheetContainer: ViewStyle = {
   backgroundColor: '#ffffff',
   borderTopLeftRadius: 16,
   borderTopRightRadius: 16,
   overflow: 'hidden',
   alignSelf: 'stretch',
-  height: '92%',
   shadowColor: '#000',
   shadowOffset: { width: 0, height: -3 },
   shadowOpacity: 0.1,
   shadowRadius: 4,
   elevation: 5,
+  flex: 1,
+};
+
+export const topSpacer: ViewStyle = {
+  height: 64, // magic number
 };
 
 export default defaultStyles;
