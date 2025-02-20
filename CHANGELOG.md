@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 6.8.0
 
 ### Features
 
@@ -36,11 +36,15 @@
     ],
   ```
 
-  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/gradle).
 
 ### Fixes
 
+- Remove `error:` prefix from `collect-modules.sh` to avoid failing iOS builds ([#4570](https://github.com/getsentry/sentry-react-native/pull/4570))
+- Sentry Module Collection Script Fails with Spaces in Node Path on iOS ([#4559](https://github.com/getsentry/sentry-react-native/pull/4559))
 - Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+- `Sentry.setUser(null)` doesn't crash on iOS with RN 0.77.1 ([#4567](https://github.com/getsentry/sentry-react-native/pull/4567))
+- Avoid importing `tslib` in Sentry Metro Plugin ([#4573](https://github.com/getsentry/sentry-react-native/pull/4573))
 
 ### Dependencies
 
@@ -50,6 +54,12 @@
 - Bump Cocoa SDK from v8.44.0 to v8.45.0 ([#4537](https://github.com/getsentry/sentry-react-native/pull/4537))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8450)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.44.0...8.45.0)
+- Bump CLI from v2.41.1 to v2.42.1 ([#4563](https://github.com/getsentry/sentry-react-native/pull/4563))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2421)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.1)
+- Bump Bundler Plugins from v3.1.2 to v3.2.0 ([#4565](https://github.com/getsentry/sentry-react-native/pull/4565))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#320)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.1.2...3.2.0)
 
 ## 6.7.0
 
