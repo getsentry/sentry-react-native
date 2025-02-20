@@ -474,26 +474,50 @@ RCT_EXPORT_METHOD(fetchViewHierarchy
 RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictionary *)userDataKeys)
 {
     [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
-        if (nil == userKeys && nil == userDataKeys) {
-            [scope setUser:nil];
-        } else {
-            SentryUser *userInstance = [[SentryUser alloc] init];
-
-            if (nil != userKeys) {
-                [userInstance setUserId:userKeys[@"id"]];
-                [userInstance setIpAddress:userKeys[@"ip_address"]];
-                [userInstance setEmail:userKeys[@"email"]];
-                [userInstance setUsername:userKeys[@"username"]];
-                [userInstance setSegment:userKeys[@"segment"]];
-            }
-
-            if (nil != userDataKeys) {
-                [userInstance setData:userDataKeys];
-            }
-
-            [scope setUser:userInstance];
-        }
+        [scope setUser:[RNSentry userFrom:userKeys otherUserKeys:userDataKeys]];
     }];
+}
+
++ (SentryUser *_Nullable)userFrom:(NSDictionary *)userKeys
+                    otherUserKeys:(NSDictionary *)userDataKeys
+{
+    // we can safely ignore userDataKeys since if original JS user was null userKeys will be null
+    if ([userKeys isKindOfClass:NSDictionary.class]) {
+        SentryUser *userInstance = [[SentryUser alloc] init];
+
+        id userId = [userKeys valueForKey:@"id"];
+        if ([userId isKindOfClass:NSString.class]) {
+            [userInstance setUserId:userId];
+        }
+        id ipAddress = [userKeys valueForKey:@"ip_address"];
+        if ([ipAddress isKindOfClass:NSString.class]) {
+            [userInstance setIpAddress:ipAddress];
+        }
+        id email = [userKeys valueForKey:@"email"];
+        if ([email isKindOfClass:NSString.class]) {
+            [userInstance setEmail:email];
+        }
+        id username = [userKeys valueForKey:@"username"];
+        if ([username isKindOfClass:NSString.class]) {
+            [userInstance setUsername:username];
+        }
+        id segment = [userKeys valueForKey:@"segment"];
+        if ([segment isKindOfClass:NSString.class]) {
+            [userInstance setSegment:segment];
+        }
+
+        if ([userDataKeys isKindOfClass:NSDictionary.class]) {
+            [userInstance setData:userDataKeys];
+        }
+
+        return userInstance;
+    }
+
+    if (![[NSNull null] isEqual:userKeys] && nil != userKeys) {
+        NSLog(@"[RNSentry] Method setUser received unexpected type of userKeys.");
+    }
+
+    return nil;
 }
 
 RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
