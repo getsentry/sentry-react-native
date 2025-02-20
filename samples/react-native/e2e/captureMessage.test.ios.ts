@@ -1,12 +1,12 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
-import { Envelope } from '@sentry/core';
+import { Envelope, EventItem } from '@sentry/core';
 import { device } from 'detox';
 import {
   createSentryServer,
   containingEvent,
 } from './utils/mockedSentryServer';
-import { HEADER, ITEMS } from './utils/consts';
 import { tap } from './utils/tap';
+import { getItemOfTypeFrom } from './utils/event';
 
 describe('Capture message', () => {
   let sentryServer = createSentryServer();
@@ -27,9 +27,7 @@ describe('Capture message', () => {
   });
 
   it('envelope contains message event', async () => {
-    const item = (envelope[ITEMS] as [{ type?: string }, unknown][]).find(
-      i => i[HEADER].type === 'event',
-    );
+    const item = getItemOfTypeFrom<EventItem>(envelope, 'event');
 
     expect(item).toEqual([
       {
