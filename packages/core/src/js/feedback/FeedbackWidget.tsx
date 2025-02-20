@@ -5,10 +5,6 @@ import type { KeyboardTypeOptions } from 'react-native';
 import {
   Image,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -222,97 +218,87 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     }
 
     return (
-    <SafeAreaView style={[styles.container, { padding: 0 }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.container, { padding: 0 }]}
-        enabled={notWeb()}
-      >
-        <ScrollView bounces={false}>
-          <TouchableWithoutFeedback onPress={notWeb() ? Keyboard.dismiss: undefined}>
-            <View style={styles.container}>
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>{text.formTitle}</Text>
-                {config.showBranding && (
-                  <Image
-                    source={{ uri: sentryLogo }}
-                    style={styles.sentryLogo}
-                    testID='sentry-logo'
-                  />
-                )}
-              </View>
-
-              {config.showName && (
-              <>
-                <Text style={styles.label}>
-                  {text.nameLabel}
-                  {config.isNameRequired && ` ${text.isRequiredLabel}`}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={text.namePlaceholder}
-                  value={name}
-                  onChangeText={(value) => this.setState({ name: value })}
-                />
-              </>
-              )}
-
-              {config.showEmail && (
-              <>
-                <Text style={styles.label}>
-                  {text.emailLabel}
-                  {config.isEmailRequired && ` ${text.isRequiredLabel}`}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={text.emailPlaceholder}
-                  keyboardType={'email-address' as KeyboardTypeOptions}
-                  value={email}
-                  onChangeText={(value) => this.setState({ email: value })}
-                />
-              </>
-              )}
-
-              <Text style={styles.label}>
-                {text.messageLabel}
-                {` ${text.isRequiredLabel}`}
-              </Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder={text.messagePlaceholder}
-                value={description}
-                onChangeText={(value) => this.setState({ description: value })}
-                multiline
+      <TouchableWithoutFeedback onPress={notWeb() ? Keyboard.dismiss: undefined}>
+        <View style={styles.container}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{text.formTitle}</Text>
+            {config.showBranding && (
+              <Image
+                source={{ uri: sentryLogo }}
+                style={styles.sentryLogo}
+                testID='sentry-logo'
               />
-              {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
-                <View style={styles.screenshotContainer}>
-                  {this.state.attachmentUri && (
-                    <Image
-                      source={{ uri: this.state.attachmentUri }}
-                      style={styles.screenshotThumbnail}
-                    />
-                  )}
-                  <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                    <Text style={styles.screenshotText}>
-                      {!this.state.filename && !this.state.attachment
-                        ? text.addScreenshotButtonLabel
-                        : text.removeScreenshotButtonLabel}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
-                <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
-              </TouchableOpacity>
+            )}
+          </View>
 
-              <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-                <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
+          {config.showName && (
+          <>
+            <Text style={styles.label}>
+              {text.nameLabel}
+              {config.isNameRequired && ` ${text.isRequiredLabel}`}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={text.namePlaceholder}
+              value={name}
+              onChangeText={(value) => this.setState({ name: value })}
+            />
+          </>
+          )}
+
+          {config.showEmail && (
+          <>
+            <Text style={styles.label}>
+              {text.emailLabel}
+              {config.isEmailRequired && ` ${text.isRequiredLabel}`}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={text.emailPlaceholder}
+              keyboardType={'email-address' as KeyboardTypeOptions}
+              value={email}
+              onChangeText={(value) => this.setState({ email: value })}
+            />
+          </>
+          )}
+
+          <Text style={styles.label}>
+            {text.messageLabel}
+            {` ${text.isRequiredLabel}`}
+          </Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder={text.messagePlaceholder}
+            value={description}
+            onChangeText={(value) => this.setState({ description: value })}
+            multiline
+          />
+          {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
+            <View style={styles.screenshotContainer}>
+              {this.state.attachmentUri && (
+                <Image
+                  source={{ uri: this.state.attachmentUri }}
+                  style={styles.screenshotThumbnail}
+                />
+              )}
+              <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                <Text style={styles.screenshotText}>
+                  {!this.state.filename && !this.state.attachment
+                    ? text.addScreenshotButtonLabel
+                    : text.removeScreenshotButtonLabel}
+                </Text>
               </TouchableOpacity>
             </View>
-          </TouchableWithoutFeedback>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          )}
+          <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
+            <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+            <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
     );
   }
 
