@@ -7,7 +7,7 @@ thisFilePath=$(dirname "$0")
 
 cd "${thisFilePath}/.."
 
-if [ -z $IOS_DEVICE ]; then
+if [ -z "$IOS_DEVICE" ]; then
   # Get the first booted simulator device type and version
   BOOTED_DEVICE=$(xcrun simctl list devices | grep "Booted" | head -n 1)
 
