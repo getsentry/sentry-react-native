@@ -148,10 +148,11 @@ jobs:
 
       - name: Archive iOS App
         if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           zip -r \
             ${{ github.workspace }}/${{ env.IOS_APP_ARCHIVE_PATH }} \
-            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/sentryreactnativesample.app
+            sentryreactnativesample.app
 
       - name: Archive Android App
         if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
