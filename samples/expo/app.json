@@ -50,7 +50,7 @@
             "autoUploadProguardMapping": true,
             "uploadNativeSymbols": true,
             "includeNativeSources": true,
-            "includeSourceContext": true,
+            "includeSourceContext": true
           }
         }
       ],
