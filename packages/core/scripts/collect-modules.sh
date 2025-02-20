@@ -45,7 +45,7 @@ else
 fi
 
 if ! command -v "$nodePath" >/dev/null 2>&1; then
-  echo >&2 "error: $nodePath not found! Modules won't be collected." \
+  echo "[sentry/collect-modules.sh] $nodePath not found! Modules won't be collected." \
     "Please export NODE_BINARY in 'Build Phase' - 'Bundle React Native code and images'" \
     "to an absolute path of your node binary. Check your node path by 'which node'."
   exit 0 # Don't fail the build but inform about the problem
