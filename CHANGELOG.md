@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 6.8.0
+## Unreleased
 
 ### Features
 
@@ -19,6 +19,10 @@
   ...
   <FeedbackWidget/>
   ```
+
+## 6.8.0
+
+### Features
 
 - Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
 
