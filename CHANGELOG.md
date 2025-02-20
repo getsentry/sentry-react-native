@@ -34,6 +34,7 @@
 - Sentry Module Collection Script Fails with Spaces in Node Path on iOS ([#4559](https://github.com/getsentry/sentry-react-native/pull/4559))
 - Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
 - `Sentry.setUser(null)` doesn't crash on iOS with RN 0.77.1 ([#4567](https://github.com/getsentry/sentry-react-native/pull/4567))
+- Avoid importing `tslib` in Sentry Metro Plugin ([#4573](https://github.com/getsentry/sentry-react-native/pull/4573))
 
 ### Dependencies
 
