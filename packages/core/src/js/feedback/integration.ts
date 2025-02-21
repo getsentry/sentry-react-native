@@ -1,22 +1,27 @@
-import type { Integration } from '@sentry/core';
+import { type Integration, getClient } from '@sentry/core';
 
 import type { FeedbackWidgetProps } from './FeedbackWidget.types';
 
-export const FEEDBACK_FORM_INTEGRATION_NAME = 'MobileFeedback';
+export const MOBILE_FEEDBACK_INTEGRATION_NAME = 'MobileFeedback';
 
 type FeedbackIntegration = Integration & {
   options: Partial<FeedbackWidgetProps>;
 };
 
-let savedOptions: Partial<FeedbackWidgetProps> = {};
-
 export const feedbackIntegration = (initOptions: FeedbackWidgetProps = {}): FeedbackIntegration => {
-  savedOptions = initOptions;
-
   return {
-    name: FEEDBACK_FORM_INTEGRATION_NAME,
-    options: savedOptions,
+    name: MOBILE_FEEDBACK_INTEGRATION_NAME,
+    options: initOptions,
   };
 };
 
-export const getFeedbackOptions = (): Partial<FeedbackWidgetProps> => savedOptions;
+export const getFeedbackOptions = (): Partial<FeedbackWidgetProps> => {
+  const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
+    MOBILE_FEEDBACK_INTEGRATION_NAME,
+  );
+  if (!integration) {
+    return {};
+  }
+
+  return integration.options;
+};

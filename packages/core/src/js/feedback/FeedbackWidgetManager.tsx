@@ -8,6 +8,7 @@ import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackOptions } from './integration';
+import { lazyLoadAutoInjectFeedbackIntegration } from './lazy';
 import { isModalSupported } from './utils';
 
 const PULL_DOWN_CLOSE_THRESHOLD = 200;
@@ -208,6 +209,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
 }
 
 const showFeedbackWidget = (): void => {
+  lazyLoadAutoInjectFeedbackIntegration();
   FeedbackWidgetManager.show();
 };
 
