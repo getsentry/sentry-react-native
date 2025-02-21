@@ -13,24 +13,25 @@ describe('Capture transaction', () => {
   let sentryServer = createSentryServer();
   sentryServer.start();
 
-  let envelope: Envelope;
+  const getErrorsEnvelope = () =>
+    sentryServer.getEnvelope(containingTransactionWithName('Errors'));
+
+  const getTrackerEnvelope = () =>
+    sentryServer.getEnvelope(containingTransactionWithName('Tracker'));
 
   beforeAll(async () => {
     await device.launchApp();
 
     const waitForPerformanceTransaction = sentryServer.waitForEnvelope(
-      containingTransactionWithName('Performance'),
+      containingTransactionWithName('Tracker'), // The last created and sent transaction
     );
 
-    await sleep(1_000);
+    await sleep(500);
     await tap('Performance'); // Bottom tab
-    await sleep(1_000);
+    await sleep(200);
+    await tap('Auto Tracing Example'); // Screen with Full Display
 
     await waitForPerformanceTransaction;
-
-    envelope = sentryServer.getEnvelope(
-      containingTransactionWithName('Errors'), // Sample App Initial Screen
-    );
   });
 
   afterAll(async () => {
@@ -38,7 +39,10 @@ describe('Capture transaction', () => {
   });
 
   it('envelope contains transaction context', async () => {
-    const item = getItemOfTypeFrom<EventItem>(envelope, 'transaction');
+    const item = getItemOfTypeFrom<EventItem>(
+      getErrorsEnvelope(),
+      'transaction',
+    );
 
     expect(item).toEqual([
       expect.objectContaining({
@@ -67,5 +71,147 @@ describe('Capture transaction', () => {
         }),
       }),
     ]);
+  });
+
+  it('contains app start measurements', async () => {
+    const item = getItemOfTypeFrom<EventItem>(
+      getErrorsEnvelope(),
+      'transaction',
+    );
+
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        measurements: expect.objectContaining({
+          app_start_warm: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+          time_to_initial_display: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+        }),
+      }),
+    );
+  });
+
+  it('contains time to initial display measurements', async () => {
+    const item = getItemOfTypeFrom<EventItem>(
+      await getErrorsEnvelope(),
+      'transaction',
+    );
+
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        measurements: expect.objectContaining({
+          time_to_initial_display: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+        }),
+      }),
+    );
+  });
+
+  it('contains JS stall measurements', async () => {
+    const item = getItemOfTypeFrom<EventItem>(
+      await getErrorsEnvelope(),
+      'transaction',
+    );
+
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        measurements: expect.objectContaining({
+          stall_count: {
+            unit: 'none',
+            value: expect.any(Number),
+          },
+          stall_longest_time: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+          stall_total_time: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+        }),
+      }),
+    );
+  });
+
+  it('contains native frames measurements', async () => {
+    const item = getItemOfTypeFrom<EventItem>(
+      getErrorsEnvelope(),
+      'transaction',
+    );
+
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        measurements: expect.objectContaining({
+          frames_frozen: {
+            unit: 'none',
+            value: 0, // Should we force 0 in e2e tests?
+          },
+          frames_slow: {
+            unit: 'none',
+            value: expect.any(Number),
+          },
+          frames_total: {
+            unit: 'none',
+            value: expect.any(Number),
+          },
+        }),
+      }),
+    );
+  });
+
+  it('contains time to display measurements', async () => {
+    const item = getItemOfTypeFrom<EventItem>(
+      getTrackerEnvelope(),
+      'transaction',
+    );
+
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        measurements: expect.objectContaining({
+          time_to_initial_display: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+          time_to_full_display: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+        }),
+      }),
+    );
+  });
+
+  it('contains at least one xhr breadcrumb of request to the tracker endpoint', async () => {
+    const item = getItemOfTypeFrom<EventItem>(
+      getTrackerEnvelope(),
+      'transaction',
+    );
+
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        breadcrumbs: expect.arrayContaining([
+          expect.objectContaining({
+            category: 'xhr',
+            data: {
+              end_timestamp: expect.any(Number),
+              method: 'GET',
+              response_body_size: expect.any(Number),
+              start_timestamp: expect.any(Number),
+              status_code: expect.any(Number),
+              url: expect.stringContaining('api.covid19api.com/summary'),
+            },
+            level: 'info',
+            timestamp: expect.any(Number),
+            type: 'http',
+          }),
+        ]),
+      }),
+    );
   });
 });
