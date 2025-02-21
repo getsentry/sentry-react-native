@@ -6,6 +6,20 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
+
+  To collect user feedback from inside your application call `Sentry.showFeedbackWidget()` or add the `FeedbackWidget` component.
+
+  ```jsx
+  import { FeedbackWidget } from "@sentry/react-native";
+  ...
+  <FeedbackWidget/>
+  ```
+
 ## 6.8.0
 
 ### Features
