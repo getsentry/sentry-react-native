@@ -4,13 +4,15 @@ import * as React from 'react';
 import { Text } from 'react-native';
 
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
-import { FeedbackWidgetProvider, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
+import { FeedbackWidgetProvider, resetFeedbackWidgetManager, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { isModalSupported } from '../../src/js/feedback/utils';
 
 jest.mock('../../src/js/feedback/utils', () => ({
   isModalSupported: jest.fn(),
 }));
+
+const consoleWarnSpy = jest.spyOn(console, 'warn');
 
 const mockedIsModalSupported = isModalSupported as jest.MockedFunction<typeof isModalSupported>;
 
@@ -19,6 +21,12 @@ beforeEach(() => {
 });
 
 describe('FeedbackWidgetManager', () => {
+
+  beforeEach(() => {
+    consoleWarnSpy.mockReset();
+    resetFeedbackWidgetManager();
+  });
+
   it('showFeedbackWidget displays the form when FeedbackWidgetProvider is used', () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByText, getByTestId } = render(
@@ -92,5 +100,27 @@ describe('FeedbackWidgetManager', () => {
     expect(queryByText(defaultConfiguration.submitButtonLabel)).toBeFalsy(); // overridden value
     expect(getByText('Custom Submit Button')).toBeTruthy(); // overridden value
     expect(getByPlaceholderText(defaultConfiguration.messagePlaceholder)).toBeTruthy(); // default configuration value
+  });
+
+  it('showFeedbackWidget warns about missing feedback provider', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+
+    showFeedbackWidget();
+
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith('[Sentry] FeedbackWidget requires `Sentry.wrap(RootComponent)` to be called before `showFeedbackWidget()`.');
+  });
+
+  it('showFeedbackWidget does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+
+    render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    showFeedbackWidget();
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 });

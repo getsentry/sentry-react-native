@@ -22,10 +22,22 @@ class FeedbackWidgetManager {
     this._setVisibility = setVisibility;
   }
 
+  /**
+   * For testing purposes only.
+   */
+  public static reset(): void {
+    this._isVisible = false;
+    this._setVisibility = undefined;
+  }
+
   public static show(): void {
     if (this._setVisibility) {
       this._isVisible = true;
       this._setVisibility(true);
+    } else {
+      // This message should be always shown otherwise it's not possible to use the widget.
+      // eslint-disable-next-line no-console
+      console.warn('[Sentry] FeedbackWidget requires `Sentry.wrap(RootComponent)` to be called before `showFeedbackWidget()`.');
     }
   }
 
@@ -33,6 +45,10 @@ class FeedbackWidgetManager {
     if (this._setVisibility) {
       this._isVisible = false;
       this._setVisibility(false);
+    } else {
+      // This message should be always shown otherwise it's not possible to use the widget.
+      // eslint-disable-next-line no-console
+      console.warn('[Sentry] FeedbackWidget requires `Sentry.wrap(RootComponent)` before interacting with the widget.');
     }
   }
 
@@ -211,4 +227,8 @@ const showFeedbackWidget = (): void => {
   FeedbackWidgetManager.show();
 };
 
-export { showFeedbackWidget, FeedbackWidgetProvider };
+const resetFeedbackWidgetManager = (): void => {
+  FeedbackWidgetManager.reset();
+};
+
+export { showFeedbackWidget, FeedbackWidgetProvider, resetFeedbackWidgetManager };
