@@ -1,10 +1,12 @@
-import { captureFeedback } from '@sentry/core';
+import { captureFeedback, getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert } from 'react-native';
 
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { FeedbackWidgetProps, FeedbackWidgetStyles, ImagePicker } from '../../src/js/feedback/FeedbackWidget.types';
+import { MOBILE_FEEDBACK_INTEGRATION_NAME } from '../../src/js/feedback/integration';
+import { getDefaultTestClientOptions,TestClient } from '../mocks/client';
 
 const mockOnFormClose = jest.fn();
 const mockOnAddScreenshot = jest.fn();
@@ -369,7 +371,7 @@ describe('FeedbackWidget', () => {
     expect(queryByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe('john.doe@example.com');
     expect(queryByPlaceholderText(defaultProps.messagePlaceholder).props.value).toBe('This is a feedback message.');
   });
-  
+
   it('onCancel the input is saved and restored when the form reopens', async () => {
     const { getByPlaceholderText, getByText, unmount } = render(<FeedbackWidget {...defaultProps} />);
 
@@ -400,5 +402,15 @@ describe('FeedbackWidget', () => {
     expect(queryByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('Test User');
     expect(queryByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe('test@example.com');
     expect(queryByPlaceholderText(defaultProps.messagePlaceholder).props.value).toBe('');
+  });
+
+  it('lazyLoadFeedbackIntegration is called when the FeedbackWidget is rendered', () => {
+    const client = new TestClient(getDefaultTestClientOptions());
+    setCurrentClient(client);
+    client.init();
+
+    render(<FeedbackWidget {...defaultProps} />);
+
+    expect(getClient().getIntegrationByName(MOBILE_FEEDBACK_INTEGRATION_NAME)).toBeDefined();
   });
 });
