@@ -155,12 +155,13 @@ export function addDefaultOpForSpanFrom(client: Client): void {
   });
 }
 
-const SPAN_THREAD_ID = 'thread.id';
-const SPAN_THREAD_ID_MAIN = 1;
-const SPAN_THREAD_ID_JAVASCRIPT = 2;
-const SPAN_THREAD_NAME = 'thread.name';
-const SPAN_THREAD_NAME_MAIN = 'main';
-const SPAN_THREAD_NAME_JAVASCRIPT = 'javascript';
+export const SPAN_THREAD_ID = 'thread.id';
+export const SPAN_THREAD_ID_MAIN = 1;
+export const SPAN_THREAD_ID_JAVASCRIPT = 2;
+export const SPAN_THREAD_NAME = 'thread.name';
+export const SPAN_THREAD_NAME_MAIN = 'main';
+export const SPAN_THREAD_NAME_JAVASCRIPT = 'javascript';
+
 const UI_THREAD_PREFIX = 'ui.';
 
 /**

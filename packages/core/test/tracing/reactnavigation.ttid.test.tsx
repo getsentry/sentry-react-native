@@ -16,6 +16,7 @@ import { startSpanManual } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
 import { _setAppStartEndTimestampMs } from '../../src/js/tracing/integrations/appStart';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
+import { SPAN_THREAD_ID, SPAN_THREAD_ID_JAVASCRIPT, SPAN_THREAD_ID_MAIN, SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT,SPAN_THREAD_NAME_MAIN } from '../../src/js/tracing/span';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
@@ -80,6 +81,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'ui.load.initial_display',
                 'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_MAIN,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
@@ -110,6 +113,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'ui.load.initial_display',
                 'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_MAIN,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
@@ -146,6 +151,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'ui.load.initial_display',
                 'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_MAIN,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
@@ -203,6 +210,8 @@ describe('React Navigation - TTID', () => {
                 'sentry.op': 'navigation.processing',
                 'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
                 'sentry.source': 'custom',
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_JAVASCRIPT,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
               },
               description: 'Navigation dispatch to screen New Screen mounted',
               op: 'navigation.processing',
@@ -231,6 +240,8 @@ describe('React Navigation - TTID', () => {
                 'sentry.op': 'navigation.processing',
                 'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
                 'sentry.source': 'custom',
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_JAVASCRIPT,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
               },
               description: 'Navigation dispatch to screen Initial Screen mounted',
               op: 'navigation.processing',
@@ -261,6 +272,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'ui.load.initial_display',
                 'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_MAIN,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
               },
               description: 'Initial Screen initial display',
               op: 'ui.load.initial_display',
@@ -295,6 +308,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'ui.load.full_display',
                 'sentry.origin': SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_MAIN,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
               },
               description: 'Time To Full Display',
               op: 'ui.load.full_display',
@@ -371,6 +386,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'ui.load.initial_display',
                 'sentry.origin': SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
+                [SPAN_THREAD_ID]: SPAN_THREAD_ID_MAIN,
+                [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
               },
               description: 'New Screen initial display',
               op: 'ui.load.initial_display',
