@@ -99,66 +99,39 @@ jobs:
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         working-directory: samples
         run: |
-          [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native/ios
-          [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos/macos
+          [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native
+          [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos
 
-          [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
-          [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
+          [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
+          [[ "${{ matrix.rn-architecture }}" == "new" ]] && export ENABLE_NEW_ARCH=1 || export ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
-          echo "ENABLE_PROD=$ENABLE_PROD"
-          echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
-          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH bundle exec pod install
-          cat Podfile.lock | grep $RN_SENTRY_POD_NAME
+
+          ./scripts/pod-install.sh
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
-          ../scripts/set-aos-dsn.mjs
+          export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
-          if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-            perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
-            echo 'New Architecture enabled'
-          elif [[ ${{ matrix.rn-architecture }} == 'legacy' ]]; then
-              perl -i -pe's/newArchEnabled=true/newArchEnabled=false/g' gradle.properties
-              echo 'Legacy Architecture enabled'
-          else
-              echo 'No changes for architecture: ${{ matrix.rn-architecture }}'
-          fi
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          [[ "${{ matrix.build-type }}" == "production" ]] && TEST_TYPE='release' || TEST_TYPE='debug'
-          echo "Building $TEST_TYPE"
-
-          ./gradlew ":app:assemble$CONFIG" app:assembleAndroidTest -DtestBuildType=$TEST_TYPE -PreactNativeArchitectures=x86
+          ./scripts/set-dsn-aos.mjs
+          ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
-          ../scripts/set-ios-dsn.mjs
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
 
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
-          set -o pipefail && xcodebuild \
-            -workspace sentryreactnativesample.xcworkspace \
-            -configuration "$CONFIG" \
-            -scheme sentryreactnativesample \
-            -sdk 'iphonesimulator' \
-            -destination 'generic/platform=iOS Simulator' \
-            ONLY_ACTIVE_ARCH=yes \
-            -derivedDataPath "$derivedData" \
-            build \
-            | tee xcodebuild.log \
-            | xcbeautify --quieter --is-ci --disable-colored-output
+          ./scripts/set-dsn-ios.mjs
+          ./scripts/build-ios.sh
 
       - name: Build macOS App
         if: ${{ matrix.platform == 'macos' }}
         working-directory: samples/react-native-macos/macos
         run: |
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
@@ -175,8 +148,8 @@ jobs:
 
       - name: Archive iOS App
         if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
-          cd ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/DerivedData/Build/Products/Release-iphonesimulator
           zip -r \
             ${{ github.workspace }}/${{ env.IOS_APP_ARCHIVE_PATH }} \
             sentryreactnativesample.app
@@ -184,12 +157,10 @@ jobs:
       - name: Archive Android App
         if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
         run: |
-          mv ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/app/build/outputs/apk/release/app-release.apk app.apk
-          mv ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk app-androidTest.apk
           zip -j \
             ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
-            app.apk \
-            app-androidTest.apk
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk \
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app-androidTest.apk
 
       - name: Upload iOS APP
         if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
@@ -306,13 +277,14 @@ jobs:
       - name: Run Detox iOS Tests
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: detox test --configuration ci.sim
+        run: yarn test-ios
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
         env:
           # used by Detox ci.android configuration
           ANDROID_AVD_NAME: 'test' # test is default reactivecircus/android-emulator-runner name
+          ANDROID_TYPE: 'android.emulator'
         uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # pin@v2.33.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
@@ -331,4 +303,4 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-          script: detox test --configuration ci.android
+          script: yarn test-android
