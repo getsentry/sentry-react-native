@@ -20,6 +20,8 @@
   <FeedbackWidget/>
   ```
 
+- Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
+
 ## 6.8.0
 
 ### Features
