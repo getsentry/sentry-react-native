@@ -154,3 +154,29 @@ export function addDefaultOpForSpanFrom(client: Client): void {
     }
   });
 }
+
+const SPAN_THREAD_ID = 'thread.id';
+const SPAN_THREAD_ID_MAIN = 1;
+const SPAN_THREAD_ID_JAVASCRIPT = 2;
+const SPAN_THREAD_NAME = 'thread.name';
+const SPAN_THREAD_NAME_MAIN = 'main';
+const SPAN_THREAD_NAME_JAVASCRIPT = 'javascript';
+const UI_THREAD_PREFIX = 'ui.';
+
+/**
+ * Adds thread info to spans.
+ * Ref: https://reactnative.dev/architecture/threading-model
+ */
+export function addThreadInfoToSpan(client: Client): void {
+  client.on('spanStart', (span: Span) => {
+    if (!spanToJSON(span).data?.[SPAN_THREAD_ID]) {
+      if (spanToJSON(span).op?.startsWith(UI_THREAD_PREFIX)) {
+        span.setAttribute(SPAN_THREAD_ID, SPAN_THREAD_ID_MAIN);
+        span.setAttribute(SPAN_THREAD_NAME, SPAN_THREAD_NAME_MAIN);
+      } else {
+        span.setAttribute(SPAN_THREAD_ID, SPAN_THREAD_ID_JAVASCRIPT);
+        span.setAttribute(SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT);
+      }
+    }
+  });
+}
