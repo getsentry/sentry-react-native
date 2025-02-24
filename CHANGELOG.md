@@ -8,6 +8,26 @@
 
 ## Unreleased
 
+### Features
+
+- Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
+
+  To enable the plugin add the `enableAndroidGradlePlugin` in the `@sentry/react-native/expo` of the Expo application configuration.
+
+  ```js
+  "plugins": [
+    [
+      "@sentry/react-native/expo",
+      {
+        "experimental_android": {
+          "enableAndroidGradlePlugin": true,
+        }
+      }
+    ],
+  ```
+
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
+
 ### Fixes
 
 - Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
@@ -17,6 +37,12 @@
 - Bump Android SDK from v7.20.1 to v7.22.0 ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
   - [changelog](https://github.com/getsentry/sentry-java/blob/7.x.x/CHANGELOG.md#7220)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...7.22.0)
+- Bump Cocoa SDK from v8.44.0 to v8.45.0 ([#4537](https://github.com/getsentry/sentry-react-native/pull/4537))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8450)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.44.0...8.45.0)
+- Bump CLI from v2.41.1 to v2.42.1 ([#4563](https://github.com/getsentry/sentry-react-native/pull/4563))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2421)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.1)
 
 ## 6.7.0
 
