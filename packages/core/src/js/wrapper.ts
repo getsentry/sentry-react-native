@@ -120,6 +120,8 @@ interface SentryNativeWrapper {
 
   crashedLastRun(): Promise<boolean | null>;
   getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
+
+  getDataFromUri(uri: string): Promise<Uint8Array | null>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -700,6 +702,19 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.getNewScreenTimeToDisplay();
+  },
+
+  async getDataFromUri(uri: string): Promise<Uint8Array | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+    try {
+      const data: number[] = await RNSentry.getDataFromUri(uri);
+      return new Uint8Array(data);
+    } catch (error) {
+      logger.error('Error:', error);
+      return null;
+    }
   },
 
   /**

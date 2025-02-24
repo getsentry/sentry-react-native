@@ -16,6 +16,7 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
+import { FeedbackWidget } from '@sentry/react-native';
 
 import ErrorsScreen from './Screens/ErrorsScreen';
 import PerformanceScreen from './Screens/PerformanceScreen';
@@ -35,6 +36,7 @@ import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
+import * as ImagePicker from 'react-native-image-picker';
 
 /* false by default to avoid issues in e2e tests waiting for the animation end */
 const RUNNING_INDICATOR = false;
@@ -100,6 +102,19 @@ Sentry.init({
           ? false
           : true,
       }),
+      Sentry.feedbackIntegration({
+        imagePicker: ImagePicker,
+        styles:{
+          submitButton: {
+            backgroundColor: '#6a1b9a',
+            paddingVertical: 15,
+            borderRadius: 5,
+            alignItems: 'center',
+            marginBottom: 10,
+          },
+        },
+        namePlaceholder: 'Fullname',
+      }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -123,6 +138,29 @@ const ErrorsTabNavigator = Sentry.withProfiler(
               component={ErrorsScreen}
               options={{ title: 'Errors' }}
             />
+            <Stack.Screen
+              name="FeedbackWidget"
+              options={{ presentation: 'modal', headerShown: false }}
+            >
+              {(props) => (
+                <FeedbackWidget
+                  {...props}
+                  enableScreenshot={true}
+                  onFormClose={props.navigation.goBack}
+                  onFormSubmitted={props.navigation.goBack}
+                  styles={{
+                    submitButton: {
+                      backgroundColor: '#6a1b9a',
+                      paddingVertical: 15,
+                      borderRadius: 5,
+                      alignItems: 'center',
+                      marginBottom: 10,
+                    },
+                  }}
+                  namePlaceholder={'Fullname'}
+                />
+              )}
+            </Stack.Screen>
           </Stack.Navigator>
         </Provider>
       </GestureHandlerRootView>
