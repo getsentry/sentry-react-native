@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.net.Uri;
 import android.util.SparseIntArray;
 import androidx.core.app.FrameMetricsAggregator;
 import androidx.fragment.app.FragmentActivity;
@@ -58,6 +59,7 @@ import io.sentry.util.JsonSerializationUtils;
 import io.sentry.vendor.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -748,6 +750,39 @@ public class RNSentryModuleImpl {
 
   public String fetchNativePackageName() {
     return packageInfo.packageName;
+  }
+
+  public void getDataFromUri(String uri, Promise promise) {
+    try {
+      Uri contentUri = Uri.parse(uri);
+      try (InputStream is =
+          getReactApplicationContext().getContentResolver().openInputStream(contentUri)) {
+        if (is == null) {
+          String msg = "File not found for uri: " + uri;
+          logger.log(SentryLevel.ERROR, msg);
+          promise.reject(new Exception(msg));
+          return;
+        }
+
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+        int len;
+        while ((len = is.read(buffer)) != -1) {
+          byteBuffer.write(buffer, 0, len);
+        }
+        byte[] byteArray = byteBuffer.toByteArray();
+        WritableArray jsArray = Arguments.createArray();
+        for (byte b : byteArray) {
+          jsArray.pushInt(b & 0xFF);
+        }
+        promise.resolve(jsArray);
+      }
+    } catch (IOException e) {
+      String msg = "Error reading uri: " + uri + ": " + e.getMessage();
+      logger.log(SentryLevel.ERROR, msg);
+      promise.reject(new Exception(msg));
+    }
   }
 
   public void crashedLastRun(Promise promise) {

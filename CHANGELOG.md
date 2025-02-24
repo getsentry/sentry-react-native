@@ -6,6 +6,41 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
+
+  To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`.
+
+  ```js
+  import Sentry from "@sentry/react-native";
+  
+  Sentry.showFeedbackWidget();
+
+  Sentry.wrap(RootComponent);
+  ```
+
+  To change the default options add `Sentry.feedbackIntegration()`.
+
+  ```js
+  import Sentry from "@sentry/react-native";
+  import * as ImagePicker from 'expo-image-picker';
+
+  Sentry.init({
+    integrations: [
+      Sentry.feedbackIntegration({
+        imagePicker: ImagePicker,
+        showName: true,
+        showEmail: true,
+      }),
+    ],
+  });
+  ```
+
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/configuration).
+
 ## 6.8.0
 
 ### Features

@@ -26,6 +26,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   __BUNDLE_START_TIME__?: number;
   nativePerformanceNow?: () => number;
   TextEncoder?: TextEncoder;
+  alert?: (message: string) => void;
   __SENTRY_OPTIONS__?: ReactNativeOptions;
 }
 

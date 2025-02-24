@@ -8135,7 +8135,7 @@ __metadata:
     "@sentry/react": 8.54.0
     "@sentry/types": 8.54.0
     "@sentry/utils": 8.54.0
-    "@sentry/wizard": 3.42.0
+    "@sentry/wizard": 3.42.1
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -8228,9 +8228,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:3.42.0":
-  version: 3.42.0
-  resolution: "@sentry/wizard@npm:3.42.0"
+"@sentry/wizard@npm:3.42.1":
+  version: 3.42.1
+  resolution: "@sentry/wizard@npm:3.42.1"
   dependencies:
     "@clack/core": ^0.3.4
     "@clack/prompts": 0.7.0
@@ -8252,7 +8252,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 821aac0ffc686ac8ce21f5a07cceb525b31b951555ac2e6a249c36a207193ce44c3ed458184bc06a982a116f2de1ec9fca019bc453e7ad3edb8f9914c6b9a7b5
+  checksum: 39b9f7026f93ee5d17997d8e9e8534b3ff9beb2172cac4712790a64fe2e5e6c8853e2b6a331963869b845d268c36536dbbebcab164955c1fd3a964df0b3f2dd6
   languageName: node
   linkType: hard
 
@@ -14912,6 +14912,26 @@ __metadata:
     expo: "*"
     react: "*"
   checksum: 7f504cff563ae865d4138c0c5aa9f71a77d4edfbb3d9decde94691832bc7cb9fb9c27ddd64cfdfe81c63c4486102a79213ff8690c7b4c3973bd4e08e87f184cf
+  languageName: node
+  linkType: hard
+
+"expo-image-loader@npm:~5.0.0":
+  version: 5.0.0
+  resolution: "expo-image-loader@npm:5.0.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 7741b4b926124a1f85e51b0b8c8c9adc37fccf0654eaa0e715cb55cffc716bdc149c0421120f9bec69a69643d3328ec8562899b4aa37a0fdcecfb6fe3cf6f985
+  languageName: node
+  linkType: hard
+
+"expo-image-picker@npm:~16.0.5":
+  version: 16.0.6
+  resolution: "expo-image-picker@npm:16.0.6"
+  dependencies:
+    expo-image-loader: ~5.0.0
+  peerDependencies:
+    expo: "*"
+  checksum: 448097075ad08c99a9c2857547e36f07e5e491fe5264fe03e77418271f077478a89f1ad462febedb9070013bf90f826b75ad4b2855d98a93593f76ae20c121de
   languageName: node
   linkType: hard
 
@@ -23304,6 +23324,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-image-picker@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "react-native-image-picker@npm:8.0.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: d1b90219f4ff77d700307bd3dfc7475463dfe5c1d9dc4da365535075df4baf44d0c411cf9f19a3f83226830ada18ad3728abc2b14f67c77b1f5e146ebbb0bdec
+  languageName: node
+  linkType: hard
+
 "react-native-is-edge-to-edge@npm:^1.1.6":
   version: 1.1.6
   resolution: "react-native-is-edge-to-edge@npm:1.1.6"
@@ -24990,6 +25020,7 @@ __metadata:
     "@types/react": ~18.3.12
     expo: ^52.0.0
     expo-constants: ~17.0.3
+    expo-image-picker: ~16.0.5
     expo-linking: ~7.0.2
     expo-router: ~4.0.5
     expo-status-bar: ~2.0.0
@@ -25088,6 +25119,7 @@ __metadata:
     react-native: 0.77.1
     react-native-build-config: ^0.3.2
     react-native-gesture-handler: ^2.22.1
+    react-native-image-picker: ^8.0.0
     react-native-launch-arguments: ^4.0.4
     react-native-reanimated: 3.16.7
     react-native-safe-area-context: 5.2.0

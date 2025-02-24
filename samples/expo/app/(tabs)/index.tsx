@@ -59,6 +59,12 @@ export default function TabOneScreen() {
         }}
       />
       <Button
+        title="Show feedback form"
+        onPress={() => {
+          Sentry.showFeedbackWidget();
+        }}
+      />
+      <Button
         title="Set Scope Properties"
         onPress={() => {
           setScopeProperties();

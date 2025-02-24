@@ -43,6 +43,7 @@
     "react-native": "0.77.1",
     "react-native-build-config": "^0.3.2",
     "react-native-gesture-handler": "^2.22.1",
+    "react-native-image-picker": "^8.0.0",
     "react-native-launch-arguments": "^4.0.4",
     "react-native-reanimated": "3.16.7",
     "react-native-safe-area-context": "5.2.0",
