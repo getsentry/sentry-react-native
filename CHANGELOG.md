@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Considers the `SENTRY_DISABLE_AUTO_UPLOAD` and `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` environment variables in the configuration of the Sentry Android Gradle Plugin for Expo plugin ([#4583](https://github.com/getsentry/sentry-react-native/pull/4583))
+
 ## 6.9.0
 
 ### Features
@@ -40,10 +46,6 @@
   ```
 
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/configuration).
-
-### Fixes
-
-- Considers the `SENTRY_DISABLE_AUTO_UPLOAD` and `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` environment variables in the configuration of the Sentry Android Gradle Plugin for Expo plugin ([#4583](https://github.com/getsentry/sentry-react-native/pull/4583))
 
 ## 6.8.0
 
