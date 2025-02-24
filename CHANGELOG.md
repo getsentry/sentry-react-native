@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
+
 ## 6.9.0
 
 ### Features
@@ -40,8 +46,6 @@
   ```
 
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/configuration).
-
-- Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
 
 ## 6.8.0
 
