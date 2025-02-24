@@ -1,6 +1,4 @@
-const shouldSentryAutoUploadNative = process.env.SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD !== "true";
-const shouldSentryAutoUploadGeneral = process.env.SENTRY_DISABLE_AUTO_UPLOAD !== "true";
-const shouldSentryAutoUpload = shouldSentryAutoUploadGeneral && shouldSentryAutoUploadNative;
+const { shouldSentryAutoUpload } = require("@sentry/react-native/expo");
 
 module.exports = {
   "expo": {
@@ -51,10 +49,10 @@ module.exports = {
           "organization": "sentry-sdks",
           "experimental_android": {
             "enableAndroidGradlePlugin": true,
-            "autoUploadProguardMapping": shouldSentryAutoUpload,
-            "uploadNativeSymbols": shouldSentryAutoUpload,
-            "includeNativeSources": shouldSentryAutoUpload,
-            "includeSourceContext": shouldSentryAutoUpload
+            "autoUploadProguardMapping": shouldSentryAutoUpload(),
+            "uploadNativeSymbols": shouldSentryAutoUpload(),
+            "includeNativeSources": shouldSentryAutoUpload(),
+            "includeSourceContext": shouldSentryAutoUpload()
           }
         }
       ],
