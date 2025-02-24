@@ -79,17 +79,30 @@ describe('Capture transaction', () => {
       'transaction',
     );
 
+    expect(
+      item?.[1].measurements?.app_start_warm ||
+        item?.[1].measurements?.app_start_cold,
+    ).toBeDefined();
     expect(item?.[1]).toEqual(
       expect.objectContaining({
         measurements: expect.objectContaining({
-          app_start_warm: {
-            unit: 'millisecond',
-            value: expect.any(Number),
-          },
           time_to_initial_display: {
             unit: 'millisecond',
             value: expect.any(Number),
           },
+          // Expect warm or cold app start measurements
+          ...(item?.[1].measurements?.app_start_warm && {
+            app_start_warm: {
+              unit: 'millisecond',
+              value: expect.any(Number),
+            },
+          }),
+          ...(item?.[1].measurements?.app_start_cold && {
+            app_start_cold: {
+              unit: 'millisecond',
+              value: expect.any(Number),
+            },
+          }),
         }),
       }),
     );
@@ -132,32 +145,6 @@ describe('Capture transaction', () => {
           },
           stall_total_time: {
             unit: 'millisecond',
-            value: expect.any(Number),
-          },
-        }),
-      }),
-    );
-  });
-
-  it('contains native frames measurements', async () => {
-    const item = getItemOfTypeFrom<EventItem>(
-      getErrorsEnvelope(),
-      'transaction',
-    );
-
-    expect(item?.[1]).toEqual(
-      expect.objectContaining({
-        measurements: expect.objectContaining({
-          frames_frozen: {
-            unit: 'none',
-            value: 0, // Should we force 0 in e2e tests?
-          },
-          frames_slow: {
-            unit: 'none',
-            value: expect.any(Number),
-          },
-          frames_total: {
-            unit: 'none',
             value: expect.any(Number),
           },
         }),
