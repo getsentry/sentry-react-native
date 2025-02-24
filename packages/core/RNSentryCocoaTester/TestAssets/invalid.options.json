@@ -1,0 +1,5 @@
+{
+    "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+    "environment": "environment-from-invalid-file",
+    "invalid-option": 123
+}

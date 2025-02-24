@@ -63,3 +63,5 @@ yarn-error.log
 .metro-health-check*
 
 *.xcarchive
+*.apk
+**/*.app
