@@ -16,7 +16,7 @@
 
   ```js
   import Sentry from "@sentry/react-native";
-  
+
   Sentry.showFeedbackWidget();
 
   Sentry.wrap(RootComponent);
@@ -40,6 +40,30 @@
   ```
 
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/configuration).
+
+- Adds the ability to consider the `SENTRY_DISABLE_AUTO_UPLOAD` and `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` environment variables in the Sentry Android Gradle Plugin Expo plugin configuration `app.config.js`.
+
+  ```js
+  const { shouldSentryAutoUpload } = require("@sentry/react-native/expo");
+
+  module.exports = {
+    "expo": {
+      "plugins": [
+        [
+          "@sentry/react-native/expo",
+          {
+            "experimental_android": {
+              "enableAndroidGradlePlugin": shouldSentryAutoUpload(),
+              "autoUploadProguardMapping": shouldSentryAutoUpload(),
+              "uploadNativeSymbols": shouldSentryAutoUpload(),
+              "includeNativeSources": shouldSentryAutoUpload(),
+              "includeSourceContext": shouldSentryAutoUpload()
+            }
+          }
+        ],
+    }
+  };
+  ```
 
 ## 6.8.0
 
