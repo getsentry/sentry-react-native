@@ -1,4 +1,4 @@
-/* eslint-disable complexity */
+/* eslint-disable complexity, max-lines */
 import type { Client, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCapturedScopesOnSpan,
@@ -26,6 +26,7 @@ import {
 } from '../ops';
 import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
+import { setMainThreadInfo } from '../span';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
 const INTEGRATION_NAME = 'AppStart';
@@ -384,15 +385,17 @@ function createJSExecutionStartSpan(
 function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeAppStartResponse['spans']): SpanJSON[] {
   return nativeSpans.map(span => {
     if (span.description === 'UIKit init') {
-      return createUIKitSpan(parentSpan, span);
+      return setMainThreadInfo(createUIKitSpan(parentSpan, span));
     }
 
-    return createChildSpanJSON(parentSpan, {
-      description: span.description,
-      start_timestamp: span.start_timestamp_ms / 1000,
-      timestamp: span.end_timestamp_ms / 1000,
-      origin: SPAN_ORIGIN_AUTO_APP_START,
-    });
+    return setMainThreadInfo(
+      createChildSpanJSON(parentSpan, {
+        description: span.description,
+        start_timestamp: span.start_timestamp_ms / 1000,
+        timestamp: span.end_timestamp_ms / 1000,
+        origin: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
   });
 }
 
