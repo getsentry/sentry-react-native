@@ -47,13 +47,3 @@ export function bold(message: string): string {
 }
 
 export { sdkPackage, SDK_PACKAGE_NAME };
-
-/**
- * Defines if the Sentry Native SDK should auto-upload debug symbols based on the environment variables.
- * @returns true if the Sentry Native SDK should auto-upload debug symbols
- */
-export function shouldSentryAutoUpload(): boolean {
-  const shouldSentryAutoUploadNative = process.env.SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD !== 'true';
-  const shouldSentryAutoUploadGeneral = process.env.SENTRY_DISABLE_AUTO_UPLOAD !== 'true';
-  return shouldSentryAutoUploadGeneral && shouldSentryAutoUploadNative;
-}
