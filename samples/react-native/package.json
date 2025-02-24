@@ -16,6 +16,7 @@
     "set-test-dsn-ios": "scripts/set-dsn-ios.mjs",
     "test-android": "scripts/test-android.sh",
     "test-ios": "scripts/test-ios.sh",
+    "test-ios-auto": "scripts/test-ios-auto.sh",
     "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "pod-install-debug-static": "scripts/pod-install-debug-static.sh",
