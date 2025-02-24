@@ -16,7 +16,7 @@
 
   ```js
   import Sentry from "@sentry/react-native";
-
+  
   Sentry.showFeedbackWidget();
 
   Sentry.wrap(RootComponent);
