@@ -1,4 +1,8 @@
-{
+const shouldSentryAutoUploadNative = process.env.SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD !== "true";
+const shouldSentryAutoUploadGeneral = process.env.SENTRY_DISABLE_AUTO_UPLOAD !== "true";
+const shouldSentryAutoUpload = shouldSentryAutoUploadGeneral && shouldSentryAutoUploadNative;
+
+module.exports = {
   "expo": {
     "name": "sentry-react-native-expo-sample",
     "slug": "sentry-react-native-expo-sample",
@@ -47,10 +51,10 @@
           "organization": "sentry-sdks",
           "experimental_android": {
             "enableAndroidGradlePlugin": true,
-            "autoUploadProguardMapping": true,
-            "uploadNativeSymbols": true,
-            "includeNativeSources": true,
-            "includeSourceContext": true
+            "autoUploadProguardMapping": shouldSentryAutoUpload,
+            "uploadNativeSymbols": shouldSentryAutoUpload,
+            "includeNativeSources": shouldSentryAutoUpload,
+            "includeSourceContext": shouldSentryAutoUpload
           }
         }
       ],
@@ -71,4 +75,4 @@
       ]
     ]
   }
-}
+};
