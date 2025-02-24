@@ -1,5 +1,5 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
-import { Envelope, EventItem } from '@sentry/core';
+import { EventItem } from '@sentry/core';
 import { device } from 'detox';
 import {
   createSentryServer,
