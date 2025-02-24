@@ -51,6 +51,7 @@ describe('Capture transaction', () => {
       }),
       expect.objectContaining({
         platform: 'javascript',
+        transaction: 'ErrorsScreen',
         contexts: expect.objectContaining({
           trace: {
             data: {
