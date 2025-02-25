@@ -3,7 +3,7 @@ import { Envelope } from '@sentry/core';
 import { device } from 'detox';
 import {
   createSentryServer,
-  containingEvent,
+  containingEventWithMessage,
 } from './utils/mockedSentryServer';
 import { HEADER } from './utils/consts';
 import { tap } from './utils/tap';
@@ -17,7 +17,9 @@ describe('Capture message', () => {
   beforeAll(async () => {
     await device.launchApp();
 
-    const envelopePromise = sentryServer.waitForEnvelope(containingEvent);
+    const envelopePromise = sentryServer.waitForEnvelope(
+      containingEventWithMessage('Captured message'),
+    );
 
     await tap('Capture message');
     envelope = await envelopePromise;
