@@ -27,6 +27,7 @@ import {
   setRootComponentCreationTimestampMs,
 } from '../../../src/js/tracing/integrations/appStart';
 import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../../../src/js/tracing/origin';
+import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_MAIN } from '../../../src/js/tracing/span';
 import { getTimeOriginMilliseconds } from '../../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../../src/js/utils/worldwide';
 import { NATIVE } from '../../../src/js/wrapper';
@@ -252,6 +253,7 @@ describe('App Start Integration', () => {
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+            [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
           },
         }),
       );
@@ -612,6 +614,7 @@ describe('App Start Integration', () => {
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: appStartRootSpan!.op,
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+            [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
           },
         }),
       );
