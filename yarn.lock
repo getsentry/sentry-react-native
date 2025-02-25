@@ -8179,7 +8179,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sentry/react@npm:9.1.0":
+"@sentry/react@npm:9.1.0, @sentry/react@npm:^9.1.0":
   version: 9.1.0
   resolution: "@sentry/react@npm:9.1.0"
   dependencies:
@@ -24694,6 +24694,8 @@ __metadata:
 "sentry-react-native-type-check@workspace:dev-packages/type-check":
   version: 0.0.0-use.local
   resolution: "sentry-react-native-type-check@workspace:dev-packages/type-check"
+  dependencies:
+    "@sentry/react": ^9.1.0
   languageName: unknown
   linkType: soft
 
