@@ -138,13 +138,13 @@ describe('withSentryAndroidGradlePlugin', () => {
     expect(modifiedGradle.modResults.contents).toContain('apply plugin: "io.sentry.android.gradle"');
     expect(modifiedGradle.modResults.contents).toContain(`
   sentry {
-      autoUploadProguardMapping = true
+      autoUploadProguardMapping = shouldSentryAutoUpload()
       includeProguardMapping = true
       dexguardEnabled = false
-      uploadNativeSymbols = true
-      autoUploadNativeSymbols = true
+      uploadNativeSymbols = shouldSentryAutoUpload()
+      autoUploadNativeSymbols = shouldSentryAutoUpload()
       includeNativeSources = false
-      includeSourceContext = true
+      includeSourceContext = shouldSentryAutoUpload()
       tracingInstrumentation {
           enabled = false
       }
