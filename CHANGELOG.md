@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump CLI from v2.42.1 to v2.42.2 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2422)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.2)
+
 ## 6.9.0
 
 ### Features
