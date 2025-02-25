@@ -9,4 +9,4 @@ cd "${thisFilePath}/.."
 
 "${thisFilePath}/detect-ios-sim.sh"
 
-detox test --configuration ci.sim --app-launch-args="--sentry-disable-native-start"
+detox test --configuration ci.sim.auto --app-launch-args="--sentry-disable-native-start"
