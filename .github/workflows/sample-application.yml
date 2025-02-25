@@ -186,7 +186,7 @@ jobs:
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/${{ matrix.platform }}/*.log
 
   test:
-    name: Test ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: ${{ matrix.job-name }}
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, build]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
@@ -195,16 +195,28 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ios
+          - job-name: 'Test iOS Release Auto Init'
+            platform: ios
             runs-on: macos-15
             rn-architecture: 'new'
             ios-use-frameworks: 'no-frameworks'
             build-type: 'production'
+            test-command: 'yarn test-ios-auto' # tests native auto init from JS
 
-          - platform: android
+          - job-name: 'Test iOS Release Manual Init'
+            platform: ios
+            runs-on: macos-15
+            rn-architecture: 'new'
+            ios-use-frameworks: 'no-frameworks'
+            build-type: 'production'
+            test-command: 'yarn test-ios'
+
+          - job-name: 'Test Android Release Manual Init'
+            platform: android
             runs-on: ubuntu-latest
             rn-architecture: 'new'
             build-type: 'production'
+            test-command: 'yarn test-android'
 
     steps:
       - uses: actions/checkout@v4
@@ -277,7 +289,7 @@ jobs:
       - name: Run Detox iOS Tests
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: yarn test-ios
+        run: ${{ matrix.test-command }}
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
@@ -303,4 +315,4 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-          script: yarn test-android
+          script: ${{ matrix.test-command }}
