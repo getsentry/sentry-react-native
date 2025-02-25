@@ -3,10 +3,6 @@
 # Exit on error and print commands
 set -xe
 
-thisFilePath=$(dirname "$0")
-
-cd "${thisFilePath}/.."
-
 if [ -z "$ANDROID_AVD_NAME" ]; then
   # Get the name of the first booted or connected Android device
   DEVICE_NAME=$(adb devices | grep -w "device" | head -n 1 | cut -f 1)
@@ -38,6 +34,3 @@ if [ -z "$ANDROID_AVD_NAME" ]; then
     echo "Using Android device: $DEVICE_NAME"
   fi
 fi
-
-# Run the tests
-detox test --configuration ci.android

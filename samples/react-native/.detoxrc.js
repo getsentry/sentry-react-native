@@ -1,5 +1,27 @@
 const process = require('process');
 
+const baseConfig = jestConfig => ({
+  testRunner: {
+    args: {
+      $0: 'jest',
+      config: jestConfig,
+    },
+    jest: {
+      setupTimeout: 120000,
+    },
+  },
+});
+
+const androidConfig = () => ({
+  device: 'ci.emulator',
+  app: 'ci.android',
+});
+
+const iosConfig = () => ({
+  device: 'ci.simulator',
+  app: 'ci.ios',
+});
+
 /** @type {Detox.DetoxConfig} */
 module.exports = {
   testRunner: {},
@@ -31,44 +53,21 @@ module.exports = {
     },
   },
   configurations: {
-    'ci.android': {
-      device: 'ci.emulator',
-      app: 'ci.android',
-      testRunner: {
-        args: {
-          $0: 'jest',
-          config: 'e2e/jest.config.android.js',
-        },
-        jest: {
-          setupTimeout: 120000,
-        },
-      },
+    'ci.android.auto': {
+      ...baseConfig('e2e/jest.config.android.auto.js'),
+      ...androidConfig(),
+    },
+    'ci.android.manual': {
+      ...baseConfig('e2e/jest.config.android.manual.js'),
+      ...androidConfig(),
     },
     'ci.sim.auto': {
-      device: 'ci.simulator',
-      app: 'ci.ios',
-      testRunner: {
-        args: {
-          $0: 'jest',
-          config: 'e2e/jest.config.ios.auto.js',
-        },
-        jest: {
-          setupTimeout: 120000,
-        },
-      },
+      ...baseConfig('e2e/jest.config.ios.auto.js'),
+      ...iosConfig(),
     },
     'ci.sim.manual': {
-      device: 'ci.simulator',
-      app: 'ci.ios',
-      testRunner: {
-        args: {
-          $0: 'jest',
-          config: 'e2e/jest.config.ios.manual.js',
-        },
-        jest: {
-          setupTimeout: 120000,
-        },
-      },
+      ...baseConfig('e2e/jest.config.ios.manual.js'),
+      ...iosConfig(),
     },
   },
 };

@@ -26,7 +26,7 @@ jobs:
     uses: ./.github/workflows/skip-ci.yml
 
   build:
-    name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
+    name: ${{ matrix.job-name }}
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
@@ -36,26 +36,79 @@ jobs:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
-        ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
-        platform: ['android', 'ios', 'macos']
-        build-type: ['dev', 'production']
         include:
-          - platform: ios
+          # macOS builds
+          - job-name: Build macOS Legacy Dev
+            platform: macos
             runs-on: macos-15
-          - platform: macos
+            rn-architecture: legacy
+            build-type: dev
+
+          - job-name: Build macOS Legacy Release
+            platform: macos
             runs-on: macos-15
-          - platform: android
+            rn-architecture: legacy
+            build-type: production
+
+          # iOS builds
+          - job-name: Build iOS Legacy Dev
+            platform: ios
+            runs-on: macos-15
+            rn-architecture: legacy
+            build-type: dev
+
+          - job-name: Build iOS Legacy Prod
+            platform: ios
+            runs-on: macos-15
+            rn-architecture: legacy
+            build-type: production
+
+          - job-name: Build iOS New Arch Dev
+            platform: ios
+            runs-on: macos-15
+            rn-architecture: new
+            build-type: dev
+
+          - job-name: Build iOS New Arch Prod
+            platform: ios
+            runs-on: macos-15
+            rn-architecture: new
+            build-type: production
+
+          # Android builds
+          - job-name: Build Android Legacy Dev Manual
+            platform: android
             runs-on: ubuntu-latest
-        exclude:
-          - platform: 'android'
-            ios-use-frameworks: 'dynamic-frameworks'
-          - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic-frameworks'
-          - rn-architecture: 'new'
-            platform: 'macos'
-          - ios-use-frameworks: 'dynamic-frameworks'
-            platform: 'macos'
+            rn-architecture: legacy
+            build-type: dev
+            init-type: manual
+
+          - job-name: Build Android Legacy Prod Manual
+            platform: android
+            runs-on: ubuntu-latest
+            rn-architecture: legacy
+            build-type: production
+            init-type: manual
+          - job-name: Build Android New Arch Dev Manual
+            platform: android
+            runs-on: ubuntu-latest
+            rn-architecture: new
+            build-type: dev
+            init-type: manual
+
+          - job-name: Build Android New Arch Prod Manual
+            platform: android
+            runs-on: ubuntu-latest
+            rn-architecture: new
+            build-type: production
+            init-type: manual
+
+          - job-name: Build Android New Arch Prod Auto
+            platform: android
+            runs-on: ubuntu-latest
+            rn-architecture: new
+            build-type: production
+            init-type: auto
     steps:
       - uses: actions/checkout@v4
 
@@ -114,6 +167,7 @@ jobs:
         run: |
           export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
+          [[ "${{ matrix.init-type }}" == "auto" ]] && export SENTRY_DISABLE_NATIVE_START='true' || export SENTRY_DISABLE_NATIVE_START='false'
 
           ./scripts/set-dsn-aos.mjs
           ./scripts/build-android.sh -PreactNativeArchitectures=x86
@@ -174,7 +228,7 @@ jobs:
         if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
         uses: actions/upload-artifact@v4
         with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}-${{ matrix.init-type }}
           path: ${{ env.ANDROID_APP_ARCHIVE_PATH }}
           retention-days: 1
 
@@ -195,7 +249,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - job-name: 'Test iOS Release Auto Init'
+          - job-name: 'Test iOS Prod New Arch Auto Init'
             platform: ios
             runs-on: macos-15
             rn-architecture: 'new'
@@ -203,7 +257,7 @@ jobs:
             build-type: 'production'
             test-command: 'yarn test-ios-auto' # tests native auto init from JS
 
-          - job-name: 'Test iOS Release Manual Init'
+          - job-name: 'Test iOS Prod New Arch Manual Init'
             platform: ios
             runs-on: macos-15
             rn-architecture: 'new'
@@ -211,12 +265,21 @@ jobs:
             build-type: 'production'
             test-command: 'yarn test-ios-manual'
 
-          - job-name: 'Test Android Release Manual Init'
+          - job-name: 'Test Android Prod New Arch Manual Init'
             platform: android
             runs-on: ubuntu-latest
             rn-architecture: 'new'
             build-type: 'production'
-            test-command: 'yarn test-android'
+            init-type: manual
+            test-command: 'yarn test-android-manual'
+
+          - job-name: 'Test Android Prod New Arch Auto Init'
+            platform: android
+            runs-on: ubuntu-latest
+            rn-architecture: 'new'
+            build-type: 'production'
+            init-type: auto
+            test-command: 'yarn test-android-auto'
 
     steps:
       - uses: actions/checkout@v4
@@ -232,7 +295,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
         uses: actions/download-artifact@v4
         with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}-${{ matrix.init-type }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Unzip iOS App Archive

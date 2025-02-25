@@ -5,7 +5,8 @@ set -e
 
 thisFilePath=$(dirname "$0")
 
-export RN_ARCHITECTURE="new"
-export CONFIG="debug"
+export RN_ARCHITECTURE="legacy"
+export CONFIG="release"
+export SENTRY_DISABLE_NATIVE_START="true"
 
 "${thisFilePath}/build-android.sh"
