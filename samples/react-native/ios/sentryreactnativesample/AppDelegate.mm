@@ -28,6 +28,12 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
         [RNSentrySDK start];
     }
 
+    if ([self shoudCrashOnStart]) {
+        @throw [NSException exceptionWithName:@"CrashOnStart"
+                                       reason:@"This was intentional test crash before JS started."
+                                     userInfo:nil];
+    }
+
     self.moduleName = @"sentry-react-native-sample";
 
     self.dependencyProvider = [RCTAppDependencyProvider new];
@@ -81,6 +87,12 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
 {
     NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
     return ![arguments containsObject:@"--sentry-disable-native-start"];
+}
+
+- (BOOL)shoudCrashOnStart
+{
+    NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
+    return [arguments containsObject:@"--sentry-crash-on-start"];
 }
 
 @end

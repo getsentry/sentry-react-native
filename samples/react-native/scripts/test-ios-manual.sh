@@ -9,4 +9,4 @@ cd "${thisFilePath}/.."
 
 "${thisFilePath}/detect-ios-sim.sh"
 
-detox test --configuration ci.sim
+detox test --configuration ci.sim.manual

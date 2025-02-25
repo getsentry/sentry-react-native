@@ -209,7 +209,7 @@ jobs:
             rn-architecture: 'new'
             ios-use-frameworks: 'no-frameworks'
             build-type: 'production'
-            test-command: 'yarn test-ios'
+            test-command: 'yarn test-ios-manual'
 
           - job-name: 'Test Android Release Manual Init'
             platform: android
