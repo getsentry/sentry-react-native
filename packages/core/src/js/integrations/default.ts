@@ -91,10 +91,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   // hasTracingEnabled from `@sentry/core` only check if tracesSampler or tracesSampleRate keys are present
   // that's different from prev imp here and might lead misconfiguration
   // `tracesSampleRate: undefined` should not enable tracing
-  const hasTracingEnabled =
-    options.enableTracing ||
-    typeof options.tracesSampleRate === 'number' ||
-    typeof options.tracesSampler === 'function';
+  const hasTracingEnabled = typeof options.tracesSampleRate === 'number' || typeof options.tracesSampler === 'function';
   if (hasTracingEnabled && options.enableAppStartTracking) {
     integrations.push(appStartIntegration());
   }

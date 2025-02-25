@@ -116,7 +116,7 @@ export class AsyncExpiringMap<K, V> {
    */
   public ttl(key: K): number | undefined {
     const entry = this._map.get(key);
-    if (entry && entry.expiresAt) {
+    if (entry?.expiresAt) {
       const remainingTime = entry.expiresAt - Date.now();
       return remainingTime > 0 ? remainingTime : 0;
     }

@@ -76,7 +76,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   const options = { ...defaultOptions, ...initOptions };
 
   async function processEvent(event: Event): Promise<Event> {
-    const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
+    const hasException = event.exception?.values?.length > 0;
     if (!hasException) {
       // Event is not an error, will not capture replay
       return event;

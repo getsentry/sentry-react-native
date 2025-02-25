@@ -43,7 +43,7 @@ export class ReactNativeProfiler extends Profiler {
       return;
     }
 
-    client.addIntegration && client.addIntegration(createIntegration(this.name));
+    client.addIntegration?.(createIntegration(this.name));
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     _captureAppStart({ isManual: false });
   }

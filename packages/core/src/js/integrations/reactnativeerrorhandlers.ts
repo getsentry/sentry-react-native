@@ -99,7 +99,7 @@ function setupErrorUtilsGlobalHandler(): void {
     return;
   }
 
-  const defaultHandler = errorUtils.getGlobalHandler && errorUtils.getGlobalHandler();
+  const defaultHandler = errorUtils.getGlobalHandler?.();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
@@ -155,7 +155,8 @@ function setupErrorUtilsGlobalHandler(): void {
       return;
     }
 
-    void client.flush(client.getOptions().shutdownTimeout || 2000).then(
+    // shutdownTimeout was removed: https://github.com/getsentry/sentry-javascript/pull/15217
+    void client.flush(2000).then(
       () => {
         defaultHandler(error, isFatal);
       },
