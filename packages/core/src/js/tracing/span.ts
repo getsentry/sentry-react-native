@@ -155,9 +155,6 @@ export function addDefaultOpForSpanFrom(client: Client): void {
   });
 }
 
-export const SPAN_THREAD_ID = 'thread.id';
-export const SPAN_THREAD_ID_MAIN = 1;
-export const SPAN_THREAD_ID_JAVASCRIPT = 2;
 export const SPAN_THREAD_NAME = 'thread.name';
 export const SPAN_THREAD_NAME_MAIN = 'main';
 export const SPAN_THREAD_NAME_JAVASCRIPT = 'javascript';
@@ -168,8 +165,7 @@ export const SPAN_THREAD_NAME_JAVASCRIPT = 'javascript';
  */
 export function addThreadInfoToSpan(client: Client): void {
   client.on('spanStart', (span: Span) => {
-    if (!spanToJSON(span).data?.[SPAN_THREAD_ID]) {
-      span.setAttribute(SPAN_THREAD_ID, SPAN_THREAD_ID_JAVASCRIPT);
+    if (!spanToJSON(span).data?.[SPAN_THREAD_NAME]) {
       span.setAttribute(SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT);
     }
   });
@@ -180,7 +176,6 @@ export function addThreadInfoToSpan(client: Client): void {
  */
 export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
   spanJSON.data = spanJSON.data || {};
-  spanJSON.data[SPAN_THREAD_ID] = SPAN_THREAD_ID_MAIN;
   spanJSON.data[SPAN_THREAD_NAME] = SPAN_THREAD_NAME_MAIN;
   return spanJSON;
 }

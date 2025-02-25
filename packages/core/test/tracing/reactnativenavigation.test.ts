@@ -32,12 +32,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
 } from '../../src/js/tracing/semanticAttributes';
-import {
-  SPAN_THREAD_ID,
-  SPAN_THREAD_ID_JAVASCRIPT,
-  SPAN_THREAD_NAME,
-  SPAN_THREAD_NAME_JAVASCRIPT,
-} from '../../src/js/tracing/span';
+import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 interface MockEventsRegistry extends EventsRegistry {
@@ -93,7 +88,6 @@ describe('React Native Navigation Instrumentation', () => {
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
               [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
-              [SPAN_THREAD_ID]: SPAN_THREAD_ID_JAVASCRIPT,
               [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
             },
           }),
@@ -139,7 +133,6 @@ describe('React Native Navigation Instrumentation', () => {
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
               [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
-              [SPAN_THREAD_ID]: SPAN_THREAD_ID_JAVASCRIPT,
               [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
             },
           }),
@@ -216,7 +209,6 @@ describe('React Native Navigation Instrumentation', () => {
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
                 [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
-                [SPAN_THREAD_ID]: SPAN_THREAD_ID_JAVASCRIPT,
                 [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
               },
             }),
@@ -306,7 +298,6 @@ describe('React Native Navigation Instrumentation', () => {
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
                 [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
-                [SPAN_THREAD_ID]: SPAN_THREAD_ID_JAVASCRIPT,
                 [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
               },
             }),
@@ -356,7 +347,6 @@ describe('React Native Navigation Instrumentation', () => {
                 [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
                 [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
                 [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
-                [SPAN_THREAD_ID]: SPAN_THREAD_ID_JAVASCRIPT,
                 [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
               },
             }),
