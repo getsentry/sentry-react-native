@@ -3,6 +3,8 @@ declare global {
   interface IDBObjectStore {}
   interface Window {
     fetch: any;
+    setTimeout: any;
+    document: any;
   }
   interface ShadowRoot {}
   interface BufferSource {}
@@ -19,6 +21,7 @@ declare global {
     redirectCount: number;
   }
   interface PerformanceEntry {}
+  interface Performance {}
 }
 import 'react-native';
 
