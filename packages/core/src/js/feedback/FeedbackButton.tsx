@@ -14,7 +14,7 @@ import { feedbackIcon } from './icons';
  */
 export class FeedbackButton extends React.Component<FeedbackButtonProps> {
   /**
-   *
+   * Renders the feedback button.
    */
   public render(): React.ReactNode {
     const text: FeedbackButtonTextConfiguration = { ...defaultButtonConfiguration, ...this.props };
