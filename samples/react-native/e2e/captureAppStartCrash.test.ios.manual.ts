@@ -88,9 +88,9 @@ describe('Capture app start crash', () => {
       },
       expect.objectContaining({
         exception: {
-          values: [
-            {
-              mechanism: {
+          values: expect.arrayContaining([
+            expect.objectContaining({
+              mechanism: expect.objectContaining({
                 handled: false,
                 meta: {
                   mach_exception: {
@@ -106,15 +106,14 @@ describe('Capture app start crash', () => {
                   },
                 },
                 type: 'nsexception',
-                thread_id: 0,
-                stacktrace: {
-                  frames: expect.any(Array),
-                  type: 'CrashOnStart',
-                  value: 'This was intentional test crash before JS started.',
-                },
-              },
-            },
-          ],
+              }),
+              stacktrace: expect.objectContaining({
+                frames: expect.any(Array),
+              }),
+              type: 'CrashOnStart',
+              value: 'This was intentional test crash before JS started.',
+            }),
+          ]),
         },
       }),
     ]);

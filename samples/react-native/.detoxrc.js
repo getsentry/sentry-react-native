@@ -44,13 +44,26 @@ module.exports = {
         },
       },
     },
-    'ci.sim': {
+    'ci.sim.auto': {
       device: 'ci.simulator',
       app: 'ci.ios',
       testRunner: {
         args: {
           $0: 'jest',
-          config: 'e2e/jest.config.ios.js',
+          config: 'e2e/jest.config.ios.auto.js',
+        },
+        jest: {
+          setupTimeout: 120000,
+        },
+      },
+    },
+    'ci.sim.manual': {
+      device: 'ci.simulator',
+      app: 'ci.ios',
+      testRunner: {
+        args: {
+          $0: 'jest',
+          config: 'e2e/jest.config.ios.manual.js',
         },
         jest: {
           setupTimeout: 120000,
