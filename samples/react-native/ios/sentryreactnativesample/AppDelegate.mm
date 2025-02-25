@@ -91,8 +91,8 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
 
 - (BOOL)shoudCrashOnStart
 {
-  NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
-  return [arguments containsObject:@"--sentry-crash-on-start"];
+    NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
+    return [arguments containsObject:@"--sentry-crash-on-start"];
 }
 
 @end
