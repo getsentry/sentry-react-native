@@ -18,6 +18,7 @@ import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
+import { lazyLoadFeedbackIntegration } from './lazy';
 import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
 
 /**
@@ -59,6 +60,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       attachment: FeedbackWidget._savedState.attachment || undefined,
       attachmentUri: FeedbackWidget._savedState.attachmentUri || undefined,
     };
+
+    lazyLoadFeedbackIntegration();
   }
 
   public handleFeedbackSubmit: () => void = () => {

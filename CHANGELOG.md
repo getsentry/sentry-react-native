@@ -10,15 +10,55 @@
 
 ### Features
 
+- Add the `FeedbackButton` component that shows the Feedback Widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
+
+### Dependencies
+
+- Bump Bundler Plugins from v3.2.0 to v3.2.1 ([#4585](https://github.com/getsentry/sentry-react-native/pull/4585))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#321)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.0...3.2.1)
+- Bump CLI from v2.42.1 to v2.42.2 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2422)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.2)
+
+## 6.9.0
+
+### Features
+
 - User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
-  To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`, add the `FeedbackButton` component or add the `FeedbackWidget` component.
+  To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`.
 
-  ```jsx
-  import { FeedbackWidget } from "@sentry/react-native";
-  ...
-  <FeedbackWidget/>
+  ```js
+  import Sentry from "@sentry/react-native";
+
+  Sentry.showFeedbackWidget();
+
+  Sentry.wrap(RootComponent);
   ```
+
+  To change the default options add `Sentry.feedbackIntegration()`.
+
+  ```js
+  import Sentry from "@sentry/react-native";
+  import * as ImagePicker from 'expo-image-picker';
+
+  Sentry.init({
+    integrations: [
+      Sentry.feedbackIntegration({
+        imagePicker: ImagePicker,
+        showName: true,
+        showEmail: true,
+      }),
+    ],
+  });
+  ```
+
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/configuration).
+
+## 6.8.0
+
+### Features
 
 - Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
 
@@ -36,11 +76,15 @@
     ],
   ```
 
-  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/gradle).
 
 ### Fixes
 
+- Remove `error:` prefix from `collect-modules.sh` to avoid failing iOS builds ([#4570](https://github.com/getsentry/sentry-react-native/pull/4570))
+- Sentry Module Collection Script Fails with Spaces in Node Path on iOS ([#4559](https://github.com/getsentry/sentry-react-native/pull/4559))
 - Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+- `Sentry.setUser(null)` doesn't crash on iOS with RN 0.77.1 ([#4567](https://github.com/getsentry/sentry-react-native/pull/4567))
+- Avoid importing `tslib` in Sentry Metro Plugin ([#4573](https://github.com/getsentry/sentry-react-native/pull/4573))
 
 ### Dependencies
 
@@ -50,6 +94,12 @@
 - Bump Cocoa SDK from v8.44.0 to v8.45.0 ([#4537](https://github.com/getsentry/sentry-react-native/pull/4537))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8450)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.44.0...8.45.0)
+- Bump CLI from v2.41.1 to v2.42.1 ([#4563](https://github.com/getsentry/sentry-react-native/pull/4563))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2421)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.1)
+- Bump Bundler Plugins from v3.1.2 to v3.2.0 ([#4565](https://github.com/getsentry/sentry-react-native/pull/4565))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#320)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.1.2...3.2.0)
 
 ## 6.7.0
 

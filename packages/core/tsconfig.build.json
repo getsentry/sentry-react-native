@@ -27,6 +27,7 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "strictBindCallApply": true,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "importHelpers": false
   }
 }
