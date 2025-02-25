@@ -23,7 +23,7 @@ export const customStyles: FeedbackButtonStyles = {
   },
 };
 
-describe('FeedbackWidget', () => {
+describe('FeedbackButton', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });

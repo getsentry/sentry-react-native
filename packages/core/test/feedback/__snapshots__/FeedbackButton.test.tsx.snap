@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
+exports[`FeedbackButton matches the snapshot with custom styles 1`] = `
 <View
   accessibilityLabel=""
   accessibilityState={
@@ -64,7 +64,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
 </View>
 `;
 
-exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
+exports[`FeedbackButton matches the snapshot with custom texts 1`] = `
 <View
   accessibilityLabel=""
   accessibilityState={
@@ -145,7 +145,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
 </View>
 `;
 
-exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
+exports[`FeedbackButton matches the snapshot with default configuration 1`] = `
 <View
   accessibilityLabel=""
   accessibilityState={
