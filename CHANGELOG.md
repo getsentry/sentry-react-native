@@ -47,6 +47,18 @@
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2421)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.1)
 
+
+### Major Changes
+
+- Remove autoSessionTracking option
+- Remove `enableTracing` Instead, set  tracesSampleRate: 0 to disable, or a higher value to enable it.
+- Remove `getCurrentHub()`, `Hub`, and `getCurrentHubShim()`
+- Remove `spanId` from propagation `context`
+- Remove metrics API
+- Remove `transactionContext` from `samplingContext`
+- Remove deprecated `Request` type
+- Remove `@sentry/utils` package, the exports were moved to `@sentry/core`
+
 ## 6.7.0
 
 ### Features
