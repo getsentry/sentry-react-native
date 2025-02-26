@@ -94,6 +94,27 @@ export function containingEvent(envelope: Envelope) {
   return envelope[1].some(item => itemHeaderIsType(item[0], 'event'));
 }
 
+export function containingEventWithAndroidMessage(message: string) {
+  return (envelope: Envelope) =>
+    envelope[1].some(
+      item =>
+        itemHeaderIsType(item[0], 'event') &&
+        itemBodyIsEvent(item[1]) &&
+        item[1].message &&
+        (item[1].message as unknown as { message: string }).message === message,
+    );
+}
+
+export function containingEventWithMessage(message: string) {
+  return (envelope: Envelope) =>
+    envelope[1].some(
+      item =>
+        itemHeaderIsType(item[0], 'event') &&
+        itemBodyIsEvent(item[1]) &&
+        item[1].message === message,
+    );
+}
+
 export function containingTransactionWithName(name: string) {
   return (envelope: Envelope) =>
     envelope[1].some(
