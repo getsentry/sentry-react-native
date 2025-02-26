@@ -255,17 +255,24 @@ describe('User Interaction Tracing', () => {
     });
 
     test('do not start UI event transaction if active transaction on scope', () => {
+
+      const placeholderCallback: (span: Span, finish: () => void) => void = (span, finish) => {
+          // @ts-expect-error
+          expect(span._name).toBe('activeTransactionOnScope');
+
+          expect(span).toBe(getActiveSpan());
+
+        startUserInteractionSpan(mockedUserInteractionId);
+
+          expect(span).toBe(getActiveSpan());
+
+          finish();
+        };
+
       const activeTransaction = startSpanManual(
         { name: 'activeTransactionOnScope', scope: getCurrentScope() },
-        (span: Span) => span,
+        placeholderCallback
       );
-      expect(activeTransaction).toBeDefined();
-      // TODO: Still required?
-      // expect(activeTransaction).toBe(getActiveSpan());
-
-      startUserInteractionSpan(mockedUserInteractionId);
-      // TODO: Still required?
-      // expect(activeTransaction).toBe(getActiveSpan());
     });
 
     test('UI event transaction is canceled when routing transaction starts', () => {

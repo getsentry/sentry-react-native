@@ -37,7 +37,7 @@ import { base64StringFromByteArray, utf8ToBytes } from './vendor';
  */
 export function getRNSentryModule(): Spec | undefined {
   return isTurboModuleEnabled()
-    ? ReactNativeLibraries?.TurboModuleRegistry.get<Spec>('RNSentry')
+    ? ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry')
     : NativeModules.RNSentry;
 }
 
