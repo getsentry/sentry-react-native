@@ -63,17 +63,33 @@ jobs:
             rn-architecture: legacy
             build-type: production
 
-          - job-name: Build iOS New Arch Dev
+          - job-name: Build iOS New Arch Dev Static
             platform: ios
             runs-on: macos-15
             rn-architecture: new
             build-type: dev
+            ios-use-frameworks: 'no-frameworks'
 
-          - job-name: Build iOS New Arch Prod
+          - job-name: Build iOS New Arch Prod Static
             platform: ios
             runs-on: macos-15
             rn-architecture: new
             build-type: production
+            ios-use-frameworks: 'no-frameworks'
+
+          - job-name: Build iOS New Arch Dev Dynamic
+            platform: ios
+            runs-on: macos-15
+            rn-architecture: new
+            build-type: dev
+            ios-use-frameworks: 'dynamic-frameworks'
+
+          - job-name: Build iOS New Arch Prod Dynamic
+            platform: ios
+            runs-on: macos-15
+            rn-architecture: new
+            build-type: production
+            ios-use-frameworks: 'dynamic-frameworks'
 
           # Android builds
           - job-name: Build Android Legacy Dev Manual
@@ -89,6 +105,7 @@ jobs:
             rn-architecture: legacy
             build-type: production
             init-type: manual
+
           - job-name: Build Android New Arch Dev Manual
             platform: android
             runs-on: ubuntu-latest
