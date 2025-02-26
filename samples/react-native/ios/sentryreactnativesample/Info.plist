@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>The Photo Library Access is required for attaching images/screenshots from the users&apos; library to a user feedback form.</string>
+	<string>The Photo Library Access is required for attaching images/screenshots to a user feedback form.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
