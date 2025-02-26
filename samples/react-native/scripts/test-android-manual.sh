@@ -7,6 +7,7 @@ thisFilePath=$(dirname "$0")
 
 cd "${thisFilePath}/.."
 
-source "${thisFilePath}/detect-ios-sim.sh"
+source "${thisFilePath}/detect-aos-emu.sh"
 
-detox test --configuration ci.sim.manual
+# Run the tests
+detox test --configuration ci.android.manual
