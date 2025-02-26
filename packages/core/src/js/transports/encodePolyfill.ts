@@ -1,6 +1,7 @@
+import { SDK_VERSION } from '@sentry/core';
+
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { utf8ToBytes } from '../vendor';
-import { SDK_VERSION } from '@sentry/core';
 
 export const useEncodePolyfill = (): void => {
   if (!RN_GLOBAL_OBJ.__SENTRY__) {
