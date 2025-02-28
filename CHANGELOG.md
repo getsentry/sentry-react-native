@@ -27,6 +27,10 @@
 
 ## 6.9.0
 
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
+
 ### Features
 
 - User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
@@ -61,6 +65,10 @@
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/configuration).
 
 ## 6.8.0
+
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
 
 ### Features
 
@@ -107,6 +115,10 @@
 
 ## 6.7.0
 
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
+
 ### Features
 
 - Add `ignoredComponents` option to `annotateReactComponents` to exclude specific components from React component annotations ([#4517](https://github.com/getsentry/sentry-react-native/pull/4517))
@@ -138,6 +150,10 @@
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/2.20.1...3.1.2)
 
 ## 6.6.0
+
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
 
 ### Features
 
@@ -174,6 +190,10 @@
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.43.0...8.44.0)
 
 ## 6.5.0
+
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
 
 ### Features
 
