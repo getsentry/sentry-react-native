@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+- runFlow: utils/launchTestAppClear.yml
+- tapOn: "Feedback"
+- extendedWaitUntil:
+    visible:
+      id: "sentry-logo"
+    timeout: 1_000
+- assertVisible:
+    id: "form-title"
+- assertVisible:
+    id: "name-label"
+- assertVisible:
+    id: "email-label"
+- assertVisible:
+    id: "message-label"
+- assertVisible:
+    id: "submit-button"
+- assertVisible:
+    id: "cancel-button"
