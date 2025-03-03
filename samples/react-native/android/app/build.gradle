@@ -138,7 +138,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 41
         versionName "6.9.0"
-        buildConfigField "boolean", "SENTRY_DISABLE_NATIVE_START", System.getenv('SENTRY_DISABLE_NATIVE_START') ?: String.valueOf(sentryDisableNativeStart)
 
         // Detox
         testBuildType System.getProperty('testBuildType', 'debug')
