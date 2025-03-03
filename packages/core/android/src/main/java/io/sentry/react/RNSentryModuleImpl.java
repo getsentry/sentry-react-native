@@ -239,9 +239,6 @@ public class RNSentryModuleImpl {
     if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
       options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
     }
-    if (rnOptions.hasKey("shutdownTimeout")) {
-      options.setShutdownTimeoutMillis(rnOptions.getInt("shutdownTimeout"));
-    }
     if (rnOptions.hasKey("enableNdkScopeSync")) {
       options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
     }
