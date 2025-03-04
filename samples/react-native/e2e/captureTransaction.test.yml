@@ -1,10 +1,10 @@
 appId: io.sentry.reactnative.sample
 ---
-- launchApp
+- launchApp:
     # We expect cold start
     clearState: true
     stopApp: true
-    launchArgs:
+    arguments:
       isE2ETest: true
 
 # For unknown reasons tapOn: "Performance" does not work on iOS

@@ -181,11 +181,9 @@ jobs:
         if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
         run: |
           mv ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/app/build/outputs/apk/release/app-release.apk app.apk
-          mv ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk app-androidTest.apk
           zip -j \
             ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
-            app.apk \
-            app-androidTest.apk
+            app.apk
 
       - name: Upload iOS APP
         if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
@@ -302,7 +300,7 @@ jobs:
       - name: Run Detox iOS Tests
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: detox test --configuration ci.sim
+        run: yarn test-ios
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
@@ -327,4 +325,4 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-          script: detox test --configuration ci.android
+          script: yarn test-android
