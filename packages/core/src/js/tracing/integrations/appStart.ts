@@ -1,5 +1,5 @@
 /* eslint-disable complexity, max-lines */
-import type { Client, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
+import type { Client, Event, Integration, Span, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCapturedScopesOnSpan,
   getClient,
@@ -17,7 +17,7 @@ import {
 } from '../../measurements';
 import type { NativeAppStartResponse } from '../../NativeRNSentry';
 import type { ReactNativeClientOptions } from '../../options';
-import { convertSpanToTransaction, setEndTimeValue } from '../../utils/span';
+import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
 import {
   APP_START_COLD as APP_START_COLD_OP,
@@ -137,16 +137,18 @@ export const appStartIntegration = ({
   let _client: Client | undefined = undefined;
   let isEnabled = true;
   let appStartDataFlushed = false;
+  let firstStartedActiveRootSpanId: string | undefined = undefined;
 
   const setup = (client: Client): void => {
     _client = client;
-    const clientOptions = client.getOptions() as ReactNativeClientOptions;
+    const { enableAppStartTracking } = client.getOptions() as ReactNativeClientOptions;
 
-    const { enableAppStartTracking } = clientOptions;
     if (!enableAppStartTracking) {
       isEnabled = false;
       logger.warn('[AppStart] App start tracking is disabled.');
     }
+
+    client.on('spanStart', recordFirstStartedActiveRootSpanId);
   };
 
   const afterAllSetup = (_client: Client): void => {
@@ -166,6 +168,27 @@ export const appStartIntegration = ({
     await attachAppStartToTransactionEvent(event as TransactionEvent);
 
     return event;
+  };
+
+  const recordFirstStartedActiveRootSpanId = (rootSpan: Span): void => {
+    if (firstStartedActiveRootSpanId) {
+      return;
+    }
+
+    if (!isRootSpan(rootSpan)) {
+      return;
+    }
+
+    setFirstStartedActiveRootSpanId(rootSpan.spanContext().spanId);
+  };
+
+  /**
+   * For testing purposes only.
+   * @private
+   */
+  const setFirstStartedActiveRootSpanId = (spanId: string | undefined): void => {
+    firstStartedActiveRootSpanId = spanId;
+    logger.debug('[AppStart] First started active root span id recorded.', firstStartedActiveRootSpanId);
   };
 
   async function captureStandaloneAppStart(): Promise<void> {
@@ -213,8 +236,20 @@ export const appStartIntegration = ({
       return;
     }
 
+    if (!firstStartedActiveRootSpanId) {
+      logger.warn('[AppStart] No first started active root span id recorded. Can not attach app start.');
+      return;
+    }
+
     if (!event.contexts || !event.contexts.trace) {
       logger.warn('[AppStart] Transaction event is missing trace context. Can not attach app start.');
+      return;
+    }
+
+    if (firstStartedActiveRootSpanId !== event.contexts.trace.span_id) {
+      logger.warn(
+        '[AppStart] First started active root span id does not match the transaction event span id. Can not attached app start.',
+      );
       return;
     }
 
@@ -333,7 +368,8 @@ export const appStartIntegration = ({
     afterAllSetup,
     processEvent,
     captureStandaloneAppStart,
-  };
+    setFirstStartedActiveRootSpanId,
+  } as AppStartIntegration;
 };
 
 function setSpanDurationAsMeasurementOnTransactionEvent(event: TransactionEvent, label: string, span: SpanJSON): void {
