@@ -138,10 +138,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 41
         versionName "6.9.0"
-
-        // Detox
-        testBuildType System.getProperty('testBuildType', 'debug')
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     signingConfigs {
