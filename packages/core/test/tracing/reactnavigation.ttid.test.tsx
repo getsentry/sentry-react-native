@@ -367,6 +367,7 @@ describe('React Navigation - TTID', () => {
     });
 
     test('idle transaction should cancel the ttid span if new frame not received', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
       mockedNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
