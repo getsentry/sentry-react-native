@@ -2,7 +2,7 @@
 
 <!-- prettier-ignore-start -->
 > [!IMPORTANT]
-> If you are upgrading to the `6.x` versions of the Sentry React Native SDK from `5.x` or below,
+> If you are upgrading to the `7.x` versions of the Sentry React Native SDK from `6.x` or below,
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
