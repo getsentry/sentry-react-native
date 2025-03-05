@@ -769,6 +769,35 @@ RCT_EXPORT_METHOD(captureReplay
 #endif
 }
 
+RCT_EXPORT_METHOD(getDataFromUri
+                  : (NSString *_Nonnull)uri resolve
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    NSURL *fileURL = [NSURL URLWithString:uri];
+    if (![fileURL isFileURL]) {
+        reject(@"SentryReactNative", @"The provided URI is not a valid file:// URL", nil);
+        return;
+    }
+    NSError *error = nil;
+    NSData *fileData = [NSData dataWithContentsOfURL:fileURL options:0 error:&error];
+    if (error || !fileData) {
+        reject(@"SentryReactNative", @"Failed to read file data", error);
+        return;
+    }
+    NSMutableArray *byteArray = [NSMutableArray arrayWithCapacity:fileData.length];
+    const unsigned char *bytes = (const unsigned char *)fileData.bytes;
+
+    for (NSUInteger i = 0; i < fileData.length; i++) {
+        [byteArray addObject:@(bytes[i])];
+    }
+    resolve(byteArray);
+#else
+    resolve(nil);
+#endif
+}
+
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED

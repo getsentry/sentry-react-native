@@ -185,29 +185,20 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Add attachment"
           onPress={() => {
-            Sentry.configureScope(scope => {
+            const scope = Sentry.getGlobalScope();
+            scope.addAttachment({
+              data: 'Attachment content',
+              filename: 'attachment.txt',
+              contentType: 'text/plain',
+            });
+            if (data) {
               scope.addAttachment({
-                data: 'Attachment content',
-                filename: 'attachment.txt',
-                contentType: 'text/plain',
+                data,
+                filename: 'logo.png',
+                contentType: 'image/png',
               });
-              if (data) {
-                scope.addAttachment({
-                  data,
-                  filename: 'logo.png',
-                  contentType: 'image/png',
-                });
-              }
-              console.log('Sentry attachment added.');
-            });
-          }}
-        />
-        <Button
-          title="Get attachments"
-          onPress={async () => {
-            Sentry.configureScope(scope => {
-              console.log('Attachments:', scope.getAttachments());
-            });
+            }
+            console.log('Sentry attachment added.');
           }}
         />
         <Button
@@ -218,6 +209,18 @@ const ErrorsScreen = (_props: Props) => {
             } catch (error) {
               //ignore the error, it will be send to Sentry automatically
             }
+          }}
+        />
+        <Button
+          title="Feedback form"
+          onPress={() => {
+            _props.navigation.navigate('FeedbackWidget');
+          }}
+        />
+        <Button
+          title="Feedback form (auto)"
+          onPress={() => {
+            Sentry.showFeedbackWidget();
           }}
         />
         <Button
