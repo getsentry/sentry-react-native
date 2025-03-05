@@ -2,20 +2,57 @@ appId: ${APP_ID}
 jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
-- tapOn: "Feedback"
+
+# Open feedback widget
+- tapOn: 'Feedback'
+
+# Assert that all feedback form elements are visible
 - extendedWaitUntil:
     visible:
-      id: "sentry-logo"
+      id: 'sentry-logo'
     timeout: 1_000
 - assertVisible:
-    id: "form-title"
+    id: 'form-title'
 - assertVisible:
-    id: "name-label"
+    id: 'name-label'
 - assertVisible:
-    id: "email-label"
+    id: 'name-input'
 - assertVisible:
-    id: "message-label"
+    id: 'email-label'
 - assertVisible:
-    id: "submit-button"
+    id: 'email-input'
 - assertVisible:
-    id: "cancel-button"
+    id: 'message-label'
+- assertVisible:
+    id: 'message-input'
+- assertVisible:
+    id: 'submit-button'
+- assertVisible:
+    id: 'cancel-button'
+
+# Close and repopen feedback widget
+- tapOn:
+    id: 'cancel-button'
+- tapOn: 'Feedback'
+- extendedWaitUntil:
+    visible:
+      id: 'sentry-logo'
+    timeout: 1_000
+
+# Fill out feedback form
+- tapOn:
+    id: 'name-input'
+- inputText: 'John Doe'
+- tapOn:
+    id: 'email-input'
+- inputText: 'test@email.com'
+- tapOn:
+    id: 'message-input'
+- inputText: 'This is a test feedback message from CI e2e tests'
+
+# Submit feedback
+- hideKeyboard
+- tapOn:
+    id: 'submit-button'
+- assertVisible: 'Thank you for your report!'
+- tapOn: 'OK'
