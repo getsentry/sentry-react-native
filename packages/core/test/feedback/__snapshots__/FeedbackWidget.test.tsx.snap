@@ -41,6 +41,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
           "fontSize": 20,
         }
       }
+      testID="form-title"
     >
       Report a Bug
     </Text>
@@ -66,6 +67,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         "fontSize": 15,
       }
     }
+    testID="name-label"
   >
     Name
   </Text>
@@ -80,6 +82,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         "height": 50,
       }
     }
+    testID="name-input"
     value="Test User"
   />
   <Text
@@ -89,6 +92,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         "fontSize": 15,
       }
     }
+    testID="email-label"
   >
     Email
   </Text>
@@ -104,6 +108,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         "height": 50,
       }
     }
+    testID="email-input"
     value="test@example.com"
   />
   <Text
@@ -113,6 +118,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         "fontSize": 15,
       }
     }
+    testID="message-label"
   >
     Description
      (required)
@@ -135,6 +141,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         },
       ]
     }
+    testID="message-input"
     value=""
   />
   <View
@@ -179,6 +186,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
           "fontSize": 12,
         }
       }
+      testID="submit-button"
     >
       Send Bug Report
     </Text>
@@ -225,6 +233,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
           "fontSize": 10,
         }
       }
+      testID="cancel-button"
     >
       Cancel
     </Text>
@@ -273,6 +282,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
           "fontSize": 20,
         }
       }
+      testID="form-title"
     >
       Report a Bug
     </Text>
@@ -298,6 +308,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         "fontSize": 15,
       }
     }
+    testID="name-label"
   >
     Name
   </Text>
@@ -312,6 +323,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         "height": 50,
       }
     }
+    testID="name-input"
     value="Test User"
   />
   <Text
@@ -321,6 +333,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         "fontSize": 15,
       }
     }
+    testID="email-label"
   >
     Email
   </Text>
@@ -336,6 +349,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         "height": 50,
       }
     }
+    testID="email-input"
     value="test@example.com"
   />
   <Text
@@ -345,6 +359,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         "fontSize": 15,
       }
     }
+    testID="message-label"
   >
     Description
      (required)
@@ -367,6 +382,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         },
       ]
     }
+    testID="message-input"
     value=""
   />
   <View
@@ -421,6 +437,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
             "fontSize": 13,
           }
         }
+        testID="screenshot-button"
       >
         Add a screenshot
       </Text>
@@ -468,6 +485,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
           "fontSize": 12,
         }
       }
+      testID="submit-button"
     >
       Send Bug Report
     </Text>
@@ -514,6 +532,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
           "fontSize": 10,
         }
       }
+      testID="cancel-button"
     >
       Cancel
     </Text>
@@ -568,6 +587,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
           "textAlign": "left",
         }
       }
+      testID="form-title"
     >
       Feedback Form
     </Text>
@@ -594,6 +614,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         "marginBottom": 4,
       }
     }
+    testID="name-label"
   >
     Name Label
   </Text>
@@ -612,6 +633,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         "paddingHorizontal": 10,
       }
     }
+    testID="name-input"
     value="Test User"
   />
   <Text
@@ -622,6 +644,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         "marginBottom": 4,
       }
     }
+    testID="email-label"
   >
     Email Label
   </Text>
@@ -641,6 +664,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         "paddingHorizontal": 10,
       }
     }
+    testID="email-input"
     value="test@example.com"
   />
   <Text
@@ -651,6 +675,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         "marginBottom": 4,
       }
     }
+    testID="message-label"
   >
     Message Label
      (is required label)
@@ -678,6 +703,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         },
       ]
     }
+    testID="message-input"
     value=""
   />
   <View
@@ -726,6 +752,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
           "fontSize": 18,
         }
       }
+      testID="submit-button"
     >
       Submit Button Label
     </Text>
@@ -777,6 +804,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
           "fontSize": 16,
         }
       }
+      testID="cancel-button"
     >
       Cancel Button Label
     </Text>
@@ -831,6 +859,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
           "textAlign": "left",
         }
       }
+      testID="form-title"
     >
       Feedback Form
     </Text>
@@ -857,6 +886,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         "marginBottom": 4,
       }
     }
+    testID="name-label"
   >
     Name Label
   </Text>
@@ -875,6 +905,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         "paddingHorizontal": 10,
       }
     }
+    testID="name-input"
     value="Test User"
   />
   <Text
@@ -885,6 +916,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         "marginBottom": 4,
       }
     }
+    testID="email-label"
   >
     Email Label
   </Text>
@@ -904,6 +936,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         "paddingHorizontal": 10,
       }
     }
+    testID="email-input"
     value="test@example.com"
   />
   <Text
@@ -914,6 +947,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         "marginBottom": 4,
       }
     }
+    testID="message-label"
   >
     Message Label
      (is required label)
@@ -941,6 +975,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         },
       ]
     }
+    testID="message-input"
     value=""
   />
   <View
@@ -1001,6 +1036,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
             "fontSize": 16,
           }
         }
+        testID="screenshot-button"
       >
         Add Screenshot
       </Text>
@@ -1052,6 +1088,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
           "fontSize": 18,
         }
       }
+      testID="submit-button"
     >
       Submit Button Label
     </Text>
@@ -1103,6 +1140,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
           "fontSize": 16,
         }
       }
+      testID="cancel-button"
     >
       Cancel Button Label
     </Text>
@@ -1157,6 +1195,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
           "textAlign": "left",
         }
       }
+      testID="form-title"
     >
       Report a Bug
     </Text>
@@ -1183,6 +1222,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         "marginBottom": 4,
       }
     }
+    testID="name-label"
   >
     Name
   </Text>
@@ -1201,6 +1241,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         "paddingHorizontal": 10,
       }
     }
+    testID="name-input"
     value="Test User"
   />
   <Text
@@ -1211,6 +1252,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         "marginBottom": 4,
       }
     }
+    testID="email-label"
   >
     Email
   </Text>
@@ -1230,6 +1272,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         "paddingHorizontal": 10,
       }
     }
+    testID="email-input"
     value="test@example.com"
   />
   <Text
@@ -1240,6 +1283,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         "marginBottom": 4,
       }
     }
+    testID="message-label"
   >
     Description
      (required)
@@ -1267,6 +1311,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         },
       ]
     }
+    testID="message-input"
     value=""
   />
   <View
@@ -1315,6 +1360,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
           "fontSize": 18,
         }
       }
+      testID="submit-button"
     >
       Send Bug Report
     </Text>
@@ -1366,6 +1412,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
           "fontSize": 16,
         }
       }
+      testID="cancel-button"
     >
       Cancel
     </Text>
@@ -1420,6 +1467,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
           "textAlign": "left",
         }
       }
+      testID="form-title"
     >
       Report a Bug
     </Text>
@@ -1446,6 +1494,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         "marginBottom": 4,
       }
     }
+    testID="name-label"
   >
     Name
   </Text>
@@ -1464,6 +1513,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         "paddingHorizontal": 10,
       }
     }
+    testID="name-input"
     value="Test User"
   />
   <Text
@@ -1474,6 +1524,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         "marginBottom": 4,
       }
     }
+    testID="email-label"
   >
     Email
   </Text>
@@ -1493,6 +1544,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         "paddingHorizontal": 10,
       }
     }
+    testID="email-input"
     value="test@example.com"
   />
   <Text
@@ -1503,6 +1555,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         "marginBottom": 4,
       }
     }
+    testID="message-label"
   >
     Description
      (required)
@@ -1530,6 +1583,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         },
       ]
     }
+    testID="message-input"
     value=""
   />
   <View
@@ -1590,6 +1644,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
             "fontSize": 16,
           }
         }
+        testID="screenshot-button"
       >
         Add a screenshot
       </Text>
@@ -1641,6 +1696,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
           "fontSize": 18,
         }
       }
+      testID="submit-button"
     >
       Send Bug Report
     </Text>
@@ -1692,6 +1748,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
           "fontSize": 16,
         }
       }
+      testID="cancel-button"
     >
       Cancel
     </Text>
