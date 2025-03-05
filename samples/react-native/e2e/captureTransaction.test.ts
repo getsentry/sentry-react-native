@@ -7,6 +7,7 @@ import {
 
 import { getItemOfTypeFrom } from './utils/event';
 import { maestro } from './utils/maestro';
+import { isAndroid, isIOS } from './utils/environment';
 
 describe('Capture transaction', () => {
   let sentryServer = createSentryServer();
@@ -72,39 +73,44 @@ describe('Capture transaction', () => {
     ]);
   });
 
-  it('contains app start measurements', async () => {
+  it('contains cold app start measurements', async () => {
     const item = getItemOfTypeFrom<EventItem>(
       getErrorsEnvelope(),
       'transaction',
     );
 
-    expect(
-      item?.[1].measurements?.app_start_warm ||
-        item?.[1].measurements?.app_start_cold,
-    ).toBeDefined();
-    expect(item?.[1]).toEqual(
-      expect.objectContaining({
-        measurements: expect.objectContaining({
-          time_to_initial_display: {
-            unit: 'millisecond',
-            value: expect.any(Number),
-          },
-          // Expect warm or cold app start measurements
-          ...(item?.[1].measurements?.app_start_warm && {
-            app_start_warm: {
+    if (isIOS()) {
+      expect(item?.[1]).toEqual(
+        expect.objectContaining({
+          measurements: expect.objectContaining({
+            time_to_initial_display: {
               unit: 'millisecond',
               value: expect.any(Number),
             },
-          }),
-          ...(item?.[1].measurements?.app_start_cold && {
             app_start_cold: {
               unit: 'millisecond',
               value: expect.any(Number),
             },
           }),
         }),
-      }),
-    );
+      );
+    } else if (isAndroid()) {
+      // TMP: Until the cold app start is fixed on Android
+      expect(item?.[1]).toEqual(
+        expect.objectContaining({
+          measurements: expect.objectContaining({
+            time_to_initial_display: {
+              unit: 'millisecond',
+              value: expect.any(Number),
+            },
+            app_start_warm: {
+              unit: 'millisecond',
+              value: expect.any(Number),
+            },
+          }),
+        }),
+      );
+    }
   });
 
   it('contains time to initial display measurements', async () => {

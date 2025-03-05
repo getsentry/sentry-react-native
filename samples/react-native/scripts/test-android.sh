@@ -22,4 +22,4 @@ else
 fi
 
 # Run the tests
-npx jest --config e2e/jest.config.js
+npx jest --config e2e/jest.config.android.js
