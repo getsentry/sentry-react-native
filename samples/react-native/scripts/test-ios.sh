@@ -1,16 +1,18 @@
 #!/bin/bash
 
+set -e -x # exit on error, print commands
+
 # Get current directory
 thisFileDirPath=$(dirname "$0")
 reactProjectRootPath="$(cd "$thisFileDirPath/.." && pwd)"
 
-maybeAppPath="${reactProjectRootPath}/*.app"
+maybeAppPath=$(find "${reactProjectRootPath}" -maxdepth 1 -name "*.app")
 
 # Check if any APP files exist
-app_count=$(ls -1 "${maybeAppPath}" 2>/dev/null | wc -l)
+app_count=$(echo "$maybeAppPath" | wc -l)
 
 if [ $app_count -eq 1 ]; then
-  app_file=$(ls "${maybeAppPath}")
+  app_file="${maybeAppPath}"
   echo "Installing $app_file..."
   xcrun simctl install booted "$app_file"
 elif [ $app_count -gt 1 ]; then

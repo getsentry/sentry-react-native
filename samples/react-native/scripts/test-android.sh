@@ -1,17 +1,19 @@
 #!/bin/bash
 
+set -e -x # exit on error, print commands
+
 # Get current directory
 thisFileDirPath=$(dirname "$0")
 reactProjectRootPath="$(cd "$thisFileDirPath/.." && pwd)"
 
-maybeApkPath="${reactProjectRootPath}/*.apk"
+maybeApkPath=$(find "${reactProjectRootPath}" -maxdepth 1 -name "*.apk")
 
 # Check if any APK files exist
-apk_count=$(ls -1 "${maybeApkPath}" 2>/dev/null | wc -l)
+apk_count=$(echo "$maybeApkPath" | wc -l)
 
 if [ $apk_count -eq 1 ]; then
   # Force install single APK using adb
-  apk_file=$(ls "${maybeApkPath}")
+  apk_file="${maybeApkPath}"
   echo "Installing $apk_file..."
   adb install -r "$apk_file"
 elif [ $apk_count -gt 1 ]; then
