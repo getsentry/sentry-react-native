@@ -39,7 +39,7 @@
 + (NSString *_Nullable)getCurrentScreenFrom:(NSDictionary<NSString *, id> *_Nonnull)dict
 {
     NSString *_Nullable maybeCategory = [dict valueForKey:@"category"];
-    if (![maybeCategory isEqualToString:@"navigation"]) {
+    if ([maybeCategory isKindOfClass:[NSString class]] && ![maybeCategory isEqualToString:@"navigation"]) {
         return nil;
     }
 
