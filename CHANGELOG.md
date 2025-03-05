@@ -19,12 +19,15 @@
 
 ### Dependencies
 
-- Bump Bundler Plugins from v3.2.0 to v3.2.1 ([#4585](https://github.com/getsentry/sentry-react-native/pull/4585))
-  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#321)
-  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.0...3.2.1)
+- Bump Bundler Plugins from v3.2.0 to v3.2.2 ([#4585](https://github.com/getsentry/sentry-react-native/pull/4585), [#4620](https://github.com/getsentry/sentry-react-native/pull/4620))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#322)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.0...3.2.2)
 - Bump CLI from v2.42.1 to v2.42.2 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2422)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.2)
+- Bump Cocoa SDK from v8.45.0 to v8.46.0 ([#4621](https://github.com/getsentry/sentry-react-native/pull/4621))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8460)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.46.0)
 
 ## 6.9.0
 
