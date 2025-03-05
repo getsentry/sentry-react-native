@@ -1,6 +1,7 @@
 name: "🐞 Bug Report"
 description: "Tell us about something that's not working the way we (probably) intend."
 labels: ["Platform: React-Native", "Type: 🪲 Bug"]
+type: Bug
 body:
   - type: dropdown
     id: environment
