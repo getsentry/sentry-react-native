@@ -31,7 +31,7 @@
     "react-native": "0.77.1",
     "react-native-gesture-handler": "^2.24.0",
     "react-native-image-picker": "^8.0.0",
-    "react-native-reanimated": "3.16.7",
+    "react-native-reanimated": "3.17.1",
     "react-native-safe-area-context": "5.2.0",
     "react-native-screens": "4.8.0",
     "react-native-svg": "^15.11.1",
