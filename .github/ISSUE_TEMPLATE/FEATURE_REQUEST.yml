@@ -1,0 +1,37 @@
+name: 💡 Feature Request
+description: Tell us about a problem our SDK could solve but doesn't.
+labels: ['Platform: React-Native', 'enhancement']
+type: Feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem could Sentry solve that it doesn't?
+      placeholder: |-
+        I want to make whirled peas, but Sentry doesn't blend.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Solution Brainstorm
+      description: We know you have bright ideas to share ... share away, friend.
+      placeholder: |-
+        Add a blender to Sentry.
+
+  - type: dropdown
+    id: submit-a-pr
+    attributes:
+      label: Are you willing to submit a PR?
+      description: We accept contributions!
+      options:
+        - 'Yes'
+        - 'No'
+
+  - type: markdown
+    attributes:
+      value: |-
+        ## Thanks 🙏
+        Check our [triage docs](https://open.sentry.io/triage/) for what to expect next.
