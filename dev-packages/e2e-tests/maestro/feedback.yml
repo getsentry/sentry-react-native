@@ -39,16 +39,40 @@ jsEngine: graaljs
       id: 'sentry-logo'
     timeout: 1_000
 
-# Fill out feedback form
+# Fill out name field
 - tapOn:
     id: 'name-input'
 - inputText: 'John Doe'
+
+# Fill out email field with a non valid email
 - tapOn:
     id: 'email-input'
-- inputText: 'test@email.com'
+- inputText: 'test invalid email'
+
+# Try to submit feedback and verify required field validation error
+- hideKeyboard
+- tapOn:
+    id: 'submit-button'
+- assertVisible: 'Please fill out all required fields.'
+- tapOn: 'OK'
+
+# Fill out feedback form required message field
 - tapOn:
     id: 'message-input'
 - inputText: 'This is a test feedback message from CI e2e tests'
+
+# Try to submit feedback and verify email validation error
+- hideKeyboard
+- tapOn:
+    id: 'submit-button'
+- assertVisible: 'Please enter a valid email address.'
+- tapOn: 'OK'
+
+# Fill out email field with a valid email
+- tapOn:
+    id: 'email-input'
+- eraseText
+- inputText: 'test@email.com'
 
 # Submit feedback
 - hideKeyboard
@@ -56,3 +80,6 @@ jsEngine: graaljs
     id: 'submit-button'
 - assertVisible: 'Thank you for your report!'
 - tapOn: 'OK'
+
+# Verify feedback form is closed and the home screen is visible
+- assertVisible: 'Welcome to React Native'
