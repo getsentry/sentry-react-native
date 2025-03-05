@@ -128,7 +128,7 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && TEST_TYPE='release' || TEST_TYPE='debug'
           echo "Building $TEST_TYPE"
 
-          ./gradlew ":app:assemble$CONFIG" app:assembleAndroidTest -DtestBuildType=$TEST_TYPE -PreactNativeArchitectures=x86
+          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
 
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
