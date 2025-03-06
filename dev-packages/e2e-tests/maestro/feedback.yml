@@ -51,6 +51,9 @@ jsEngine: graaljs
 
 # Try to submit feedback and verify required field validation error
 - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: 'submit-button'
 - tapOn:
     id: 'submit-button'
 - assertVisible: 'Please fill out all required fields.'
@@ -63,6 +66,9 @@ jsEngine: graaljs
 
 # Try to submit feedback and verify email validation error
 - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: 'submit-button'
 - tapOn:
     id: 'submit-button'
 - assertVisible: 'Please enter a valid email address.'
@@ -76,6 +82,9 @@ jsEngine: graaljs
 
 # Submit feedback
 - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: 'submit-button'
 - tapOn:
     id: 'submit-button'
 - assertVisible: 'Thank you for your report!'
