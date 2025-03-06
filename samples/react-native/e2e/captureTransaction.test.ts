@@ -73,7 +73,7 @@ describe('Capture transaction', () => {
     ]);
   });
 
-  it('contains cold app start measurements', async () => {
+  it('contains app start measurements', async () => {
     const item = getItemOfTypeFrom<EventItem>(
       getErrorsEnvelope(),
       'transaction',
