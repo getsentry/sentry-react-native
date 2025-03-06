@@ -11,7 +11,7 @@ maybeApkPath=$(find "${reactProjectRootPath}" -maxdepth 1 -name "*.apk")
 # Check if any APK files exist
 apk_count=$(echo "$maybeApkPath" | wc -l)
 
-if [ $apk_count -eq 1 ]; then
+if [ -n "$maybeApkPath" ] && [ $apk_count -eq 1 ]; then
   # Force install single APK using adb
   apk_file="${maybeApkPath}"
   echo "Installing $apk_file..."

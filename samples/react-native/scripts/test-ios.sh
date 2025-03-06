@@ -11,7 +11,7 @@ maybeAppPath=$(find "${reactProjectRootPath}" -maxdepth 1 -name "*.app")
 # Check if any APP files exist
 app_count=$(echo "$maybeAppPath" | wc -l)
 
-if [ $app_count -eq 1 ]; then
+if [ -n "$maybeAppPath" ] && [ $app_count -eq 1 ]; then
   app_file="${maybeAppPath}"
   echo "Installing $app_file..."
   xcrun simctl install booted "$app_file"
