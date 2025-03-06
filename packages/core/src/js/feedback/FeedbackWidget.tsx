@@ -230,19 +230,21 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 source={{ uri: sentryLogo }}
                 style={styles.sentryLogo}
                 testID='sentry-logo'
+                accessibilityLabel='Sentry logo'
               />
             )}
           </View>
 
           {config.showName && (
           <>
-            <Text style={styles.label} testID='name-label'>
+            <Text style={styles.label} testID='name-label' accessibilityLabel={text.nameLabel}>
               {text.nameLabel}
               {config.isNameRequired && ` ${text.isRequiredLabel}`}
             </Text>
             <TextInput
               style={styles.input}
               testID='name-input'
+              accessibilityLabel={text.namePlaceholder}
               placeholder={text.namePlaceholder}
               value={name}
               onChangeText={(value) => this.setState({ name: value })}
@@ -252,13 +254,14 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
           {config.showEmail && (
           <>
-            <Text style={styles.label} testID='email-label'>
+            <Text style={styles.label} testID='email-label' accessibilityLabel={text.emailLabel}>
               {text.emailLabel}
               {config.isEmailRequired && ` ${text.isRequiredLabel}`}
             </Text>
             <TextInput
               style={styles.input}
               testID='email-input'
+              accessibilityLabel={text.emailPlaceholder}
               placeholder={text.emailPlaceholder}
               keyboardType={'email-address' as KeyboardTypeOptions}
               value={email}
@@ -267,13 +270,14 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           </>
           )}
 
-          <Text style={styles.label} testID='message-label'>
+          <Text style={styles.label} testID='message-label' accessibilityLabel={text.messageLabel}>
             {text.messageLabel}
             {` ${text.isRequiredLabel}`}
           </Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             testID='message-input'
+            accessibilityLabel={text.messagePlaceholder}
             placeholder={text.messagePlaceholder}
             value={description}
             onChangeText={(value) => this.setState({ description: value })}
@@ -286,10 +290,13 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                   source={{ uri: this.state.attachmentUri }}
                   style={styles.screenshotThumbnail}
                   testID='screenshot-thumbnail'
+                  accessibilityLabel='Screenshot thumbnail'
                 />
               )}
               <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                <Text style={styles.screenshotText} testID='screenshot-button'>
+                <Text style={styles.screenshotText} testID='screenshot-button' accessibilityLabel={!this.state.filename && !this.state.attachment
+                    ? text.addScreenshotButtonLabel
+                    : text.removeScreenshotButtonLabel}>
                   {!this.state.filename && !this.state.attachment
                     ? text.addScreenshotButtonLabel
                     : text.removeScreenshotButtonLabel}
@@ -298,11 +305,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             </View>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
-            <Text style={styles.submitText} testID='submit-button'>{text.submitButtonLabel}</Text>
+            <Text style={styles.submitText} testID='submit-button' accessibilityLabel={text.submitButtonLabel}>{text.submitButtonLabel}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-            <Text style={styles.cancelText} testID='cancel-button'>{text.cancelButtonLabel}</Text>
+            <Text style={styles.cancelText} testID='cancel-button' accessibilityLabel={text.cancelButtonLabel}>{text.cancelButtonLabel}</Text>
           </TouchableOpacity>
         </View>
       </TouchableWithoutFeedback>
