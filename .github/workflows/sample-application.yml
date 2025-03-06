@@ -275,15 +275,6 @@ jobs:
       - name: Install JS Dependencies
         run: yarn install
 
-      - name: Install Detox
-        run: npm install -g detox-cli@20.0.0
-
-      - name: Install Apple Simulator Utilities
-        if: ${{ matrix.platform == 'ios' }}
-        run: |
-          brew tap wix/brew
-          brew install applesimutils
-
       - name: Setup KVM
         if: ${{ matrix.platform == 'android' }}
         shell: bash
@@ -296,23 +287,20 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
+      - name: Boot ${{ env.IOS_DEVICE }} with iOS ${{ env.IOS_VERSION }}
+        uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
         if: ${{ matrix.platform == 'ios' }}
         with:
-          # the same envs are used by Detox ci.sim configuration
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
 
-      - name: Run Detox iOS Tests
+      - name: Run iOS Tests
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: yarn test-ios
 
-      - name: Run tests on Android
+      - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
         if: ${{ matrix.platform == 'android' }}
-        env:
-          # used by Detox ci.android configuration
-          ANDROID_AVD_NAME: 'test' # test is default reactivecircus/android-emulator-runner name
         uses: reactivecircus/android-emulator-runner@62dbb605bba737720e10b196cb4220d374026a6d # pin@v2.33.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
