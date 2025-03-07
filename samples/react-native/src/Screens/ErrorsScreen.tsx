@@ -185,29 +185,20 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Add attachment"
           onPress={() => {
-            Sentry.configureScope(scope => {
+            const scope = Sentry.getGlobalScope();
+            scope.addAttachment({
+              data: 'Attachment content',
+              filename: 'attachment.txt',
+              contentType: 'text/plain',
+            });
+            if (data) {
               scope.addAttachment({
-                data: 'Attachment content',
-                filename: 'attachment.txt',
-                contentType: 'text/plain',
+                data,
+                filename: 'logo.png',
+                contentType: 'image/png',
               });
-              if (data) {
-                scope.addAttachment({
-                  data,
-                  filename: 'logo.png',
-                  contentType: 'image/png',
-                });
-              }
-              console.log('Sentry attachment added.');
-            });
-          }}
-        />
-        <Button
-          title="Get attachments"
-          onPress={async () => {
-            Sentry.configureScope(scope => {
-              console.log('Attachments:', scope.getAttachments());
-            });
+            }
+            console.log('Sentry attachment added.');
           }}
         />
         <Button

@@ -7946,10 +7946,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/babel-plugin-component-annotate@npm:3.2.1":
-  version: 3.2.1
-  resolution: "@sentry/babel-plugin-component-annotate@npm:3.2.1"
-  checksum: 59b6d569da60ba681b55e5482b249952a67c20d83e1f264e1c553433131fdf24c7a9c40b376a9a5f3faeddc091bdade7dbc9d3dbbfb6cb8a6a091db0a2f63e69
+"@sentry/babel-plugin-component-annotate@npm:3.2.2":
+  version: 3.2.2
+  resolution: "@sentry/babel-plugin-component-annotate@npm:3.2.2"
+  checksum: 76e5ad6ff2d9184c3eec43c608f0c3c3ef8f9b9f51ebf9cfefe1e35f8c235fb46a6890932408098cb28687fed780a28c870d648e0e30e12b73e0fa03a295648e
   languageName: node
   linkType: hard
 
@@ -8052,22 +8052,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/cli@npm:^1.77.3":
-  version: 1.77.3
-  resolution: "@sentry/cli@npm:1.77.3"
-  dependencies:
-    https-proxy-agent: "npm:^5.0.0"
-    mkdirp: "npm:^0.5.5"
-    node-fetch: "npm:^2.6.7"
-    progress: "npm:^2.0.3"
-    proxy-from-env: "npm:^1.1.0"
-    which: "npm:^2.0.2"
-  bin:
-    sentry-cli: bin/sentry-cli
-  checksum: 193a144c5b449d5c0ea709d7c5678da3f1daa15f31aefa7de40197ed1152fef7c2a0abe168ce2447f1cc2f6eed6fdbcdaa5f20dc4502f8987d656d3e5e87fe99
-  languageName: node
-  linkType: hard
-
 "@sentry/core@npm:7.119.2":
   version: 7.119.2
   resolution: "@sentry/core@npm:7.119.2"
@@ -8121,14 +8105,14 @@ __metadata:
     "@sentry-internal/eslint-config-sdk": 8.54.0
     "@sentry-internal/eslint-plugin-sdk": 8.54.0
     "@sentry-internal/typescript": 8.54.0
-    "@sentry/babel-plugin-component-annotate": 3.2.1
+    "@sentry/babel-plugin-component-annotate": 3.2.2
     "@sentry/browser": 8.54.0
     "@sentry/cli": 2.42.2
     "@sentry/core": 8.54.0
     "@sentry/react": 8.54.0
     "@sentry/types": 8.54.0
     "@sentry/utils": 8.54.0
-    "@sentry/wizard": 3.42.1
+    "@sentry/wizard": 4.1.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -8221,22 +8205,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:3.42.1":
-  version: 3.42.1
-  resolution: "@sentry/wizard@npm:3.42.1"
+"@sentry/wizard@npm:4.1.0":
+  version: 4.1.0
+  resolution: "@sentry/wizard@npm:4.1.0"
   dependencies:
     "@clack/core": ^0.3.4
     "@clack/prompts": 0.7.0
-    "@sentry/cli": ^1.77.3
     "@sentry/node": ^7.119.2
     axios: 1.7.4
     chalk: ^2.4.1
     glob: 9.3.5
     inquirer: ^6.2.0
-    lodash: ^4.17.15
     magicast: ^0.2.10
     opn: ^5.4.0
-    r2: ^2.0.1
     read-env: ^1.3.0
     recast: ^0.23.3
     semver: ^7.5.3
@@ -8245,7 +8226,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 39b9f7026f93ee5d17997d8e9e8534b3ff9beb2172cac4712790a64fe2e5e6c8853e2b6a331963869b845d268c36536dbbebcab164955c1fd3a964df0b3f2dd6
+  checksum: 3bc2f6cc11ac1e7771277e27682bc1d95eb5dec2ae88f3428db0f5ea3fbf3368b83bcd920c8aa91fa63c1c71ad4e7acb16fdff3e3eebb8e1bfe92aebb474f884
   languageName: node
   linkType: hard
 
@@ -11645,13 +11626,6 @@ __metadata:
   version: 1.0.30001680
   resolution: "caniuse-lite@npm:1.0.30001680"
   checksum: 2641d2b18c5ab0a6663cb350c5adc81e5ede1a7677d1c7518a8053ada87bf6f206419e1820a2608f76fa5e4f7bea327cbe47df423783e571569a88c0ea645270
-  languageName: node
-  linkType: hard
-
-"caseless@npm:^0.12.0":
-  version: 0.12.0
-  resolution: "caseless@npm:0.12.0"
-  checksum: b43bd4c440aa1e8ee6baefee8063b4850fd0d7b378f6aabc796c9ec8cb26d27fb30b46885350777d9bd079c5256c0e1329ad0dc7c2817e0bb466810ebb353751
   languageName: node
   linkType: hard
 
@@ -17255,13 +17229,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-typedarray@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "is-typedarray@npm:1.0.0"
-  checksum: 3508c6cd0a9ee2e0df2fa2e9baabcdc89e911c7bd5cf64604586697212feec525aa21050e48affb5ffc3df20f0f5d2e2cf79b08caa64e1ccc9578e251763aef7
-  languageName: node
-  linkType: hard
-
 "is-unicode-supported@npm:*":
   version: 2.0.0
   resolution: "is-unicode-supported@npm:2.0.0"
@@ -20553,7 +20520,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mkdirp@npm:^0.5.1, mkdirp@npm:^0.5.5, mkdirp@npm:~0.5.1":
+"mkdirp@npm:^0.5.1, mkdirp@npm:~0.5.1":
   version: 0.5.6
   resolution: "mkdirp@npm:0.5.6"
   dependencies:
@@ -20866,7 +20833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.0.0-alpha.8, node-fetch@npm:^2.2.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.6, node-fetch@npm:^2.6.7":
+"node-fetch@npm:^2.2.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.6, node-fetch@npm:^2.6.7":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:
@@ -22692,17 +22659,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"r2@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "r2@npm:2.0.1"
-  dependencies:
-    caseless: "npm:^0.12.0"
-    node-fetch: "npm:^2.0.0-alpha.8"
-    typedarray-to-buffer: "npm:^3.1.2"
-  checksum: 0f683fdda0720d189d91acb65f0632c0713798a6036116d3f2f2155e1a2cc5c347e095ec8514f11c2d3bcb63bc6487833efc4f8b9cb5636d0c100c76d2992815
-  languageName: node
-  linkType: hard
-
 "range-parser@npm:~1.2.1":
   version: 1.2.1
   resolution: "range-parser@npm:1.2.1"
@@ -22880,9 +22836,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-gesture-handler@npm:^2.22.1":
-  version: 2.22.1
-  resolution: "react-native-gesture-handler@npm:2.22.1"
+"react-native-gesture-handler@npm:^2.24.0":
+  version: 2.24.0
+  resolution: "react-native-gesture-handler@npm:2.24.0"
   dependencies:
     "@egjs/hammerjs": ^2.0.17
     hoist-non-react-statics: ^3.3.0
@@ -22890,7 +22846,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 31be1a30d35b20dc72426147b3c5b8a2bf23a4666a4208208c423baec098850564e8cb555d360b87435ffe65a4f51f84e5471bf2140979c84589bd787cf5cfe0
+  checksum: 65abaeef68180fee2811d01d88ff50c231a91faca05279222fcaaa55349e758b68a7d6a9ac3eddfb1887f6b4c4790ac195b99989f1ad8a2a1f3f3bdff3ba0a76
   languageName: node
   linkType: hard
 
@@ -22939,7 +22895,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-is-edge-to-edge@npm:^1.1.6":
+"react-native-is-edge-to-edge@npm:1.1.6, react-native-is-edge-to-edge@npm:^1.1.6":
   version: 1.1.6
   resolution: "react-native-is-edge-to-edge@npm:1.1.6"
   peerDependencies:
@@ -23009,9 +22965,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-reanimated@npm:3.16.7":
-  version: 3.16.7
-  resolution: "react-native-reanimated@npm:3.16.7"
+"react-native-reanimated@npm:3.17.1":
+  version: 3.17.1
+  resolution: "react-native-reanimated@npm:3.17.1"
   dependencies:
     "@babel/plugin-transform-arrow-functions": ^7.0.0-0
     "@babel/plugin-transform-class-properties": ^7.0.0-0
@@ -23024,11 +22980,12 @@ __metadata:
     "@babel/preset-typescript": ^7.16.7
     convert-source-map: ^2.0.0
     invariant: ^2.2.4
+    react-native-is-edge-to-edge: 1.1.6
   peerDependencies:
     "@babel/core": ^7.0.0-0
     react: "*"
     react-native: "*"
-  checksum: 108095709cd7a3effc5b5d276d94e161b399bd2d06e32140834168a0051545401bb09228071447e5925571da3f86f335d2a82c76751cdae07f66faf50b25c97f
+  checksum: fd05040a3fc6a8f4efb387657c0cd6c314e5e6b50f859e127d6891d8f81c65b020ddcf78615aa0074b4e134e450d38c40db916c544e1e2efa26c50c82815607d
   languageName: node
   linkType: hard
 
@@ -23095,16 +23052,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:4.6.0":
-  version: 4.6.0
-  resolution: "react-native-screens@npm:4.6.0"
+"react-native-screens@npm:4.8.0":
+  version: 4.8.0
+  resolution: "react-native-screens@npm:4.8.0"
   dependencies:
     react-freeze: ^1.0.0
     warn-once: ^0.1.0
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 9bb769165954e3be8aea76a4ee85d3dacd45358df994eed0b1979235d37c16d0900186c7f358e25f9dffad454c578ada44620b2828416fd7fe98a78a2eef562e
+  checksum: fcc52ed02adb8ea41d07f7c269696279107a3c991b720aecec0ec2a272557a541d119963d63c45b24dd6a00d6f284b688705f55e79d7f44d8583a2299376ab21
   languageName: node
   linkType: hard
 
@@ -24602,7 +24559,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.26.0
     "@babel/preset-env": ^7.26.0
-    "@sentry/babel-plugin-component-annotate": 3.2.1
+    "@sentry/babel-plugin-component-annotate": 3.2.2
     "@sentry/react-native": 6.9.0
     "@types/node": 20.10.4
     "@types/react": ~18.3.12
@@ -24686,7 +24643,7 @@ __metadata:
     "@react-navigation/native": ^7.0.14
     "@react-navigation/native-stack": ^7.2.0
     "@react-navigation/stack": ^7.1.1
-    "@sentry/babel-plugin-component-annotate": 3.2.1
+    "@sentry/babel-plugin-component-annotate": 3.2.2
     "@sentry/react-native": 6.9.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
@@ -24703,11 +24660,11 @@ __metadata:
     prettier: 2.8.8
     react: 18.3.1
     react-native: 0.77.1
-    react-native-gesture-handler: ^2.22.1
+    react-native-gesture-handler: ^2.24.0
     react-native-image-picker: ^8.0.0
-    react-native-reanimated: 3.16.7
+    react-native-reanimated: 3.17.1
     react-native-safe-area-context: 5.2.0
-    react-native-screens: 4.6.0
+    react-native-screens: 4.8.0
     react-native-svg: ^15.11.1
     react-native-vector-icons: ^10.2.0
     react-native-webview: ^13.13.2
@@ -26629,15 +26586,6 @@ __metadata:
     is-typed-array: "npm:^1.1.13"
     possible-typed-array-names: "npm:^1.0.0"
   checksum: f0315e5b8f0168c29d390ff410ad13e4d511c78e6006df4a104576844812ee447fcc32daab1f3a76c9ef4f64eff808e134528b5b2439de335586b392e9750e5c
-  languageName: node
-  linkType: hard
-
-"typedarray-to-buffer@npm:^3.1.2":
-  version: 3.1.5
-  resolution: "typedarray-to-buffer@npm:3.1.5"
-  dependencies:
-    is-typedarray: "npm:^1.0.0"
-  checksum: 99c11aaa8f45189fcfba6b8a4825fd684a321caa9bd7a76a27cf0c7732c174d198b99f449c52c3818107430b5f41c0ccbbfb75cb2ee3ca4a9451710986d61a60
   languageName: node
   linkType: hard
 
