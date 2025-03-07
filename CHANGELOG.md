@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add the `FeedbackButton` component that shows the Feedback Widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
 - Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
 
 ### Fixes
