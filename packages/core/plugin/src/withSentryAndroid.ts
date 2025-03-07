@@ -1,11 +1,15 @@
+import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
-import { withAppBuildGradle, withDangerousMod } from 'expo/config-plugins';
+import { withAppBuildGradle, withDangerousMod, withMainApplication } from 'expo/config-plugins';
 import * as path from 'path';
 
 import { warnOnce, writeSentryPropertiesTo } from './utils';
 
-export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties: string) => {
-  const cfg = withAppBuildGradle(config, config => {
+export const withSentryAndroid: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
+  config,
+  { sentryProperties, useNativeInit = false },
+) => {
+  const appBuildGradleCfg = withAppBuildGradle(config, config => {
     if (config.modResults.language === 'groovy') {
       config.modResults.contents = modifyAppBuildGradle(config.modResults.contents);
     } else {
@@ -13,7 +17,10 @@ export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties
     }
     return config;
   });
-  return withDangerousMod(cfg, [
+
+  const mainApplicationCfg = useNativeInit ? modifyMainApplication(appBuildGradleCfg) : appBuildGradleCfg;
+
+  return withDangerousMod(mainApplicationCfg, [
     'android',
     config => {
       writeSentryPropertiesTo(path.resolve(config.modRequest.projectRoot, 'android'), sentryProperties);
@@ -48,4 +55,51 @@ export function modifyAppBuildGradle(buildGradle: string): string {
   const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle")`;
 
   return buildGradle.replace(pattern, match => `${applyFrom}\n\n${match}`);
+}
+
+export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
+  return withMainApplication(config, async config => {
+    if (!config.modResults || !config.modResults.path) {
+      warnOnce('Skipping MainApplication modification because the file does not exist.');
+      return config;
+    }
+
+    const fileName = config.modResults.path.split('/').pop();
+
+    if (config.modResults.contents.includes('RNSentrySDK.init')) {
+      warnOnce(`Your '${fileName}' already contains 'RNSentrySDK.init'.`);
+      return config;
+    }
+
+    if (config.modResults.language === 'java') {
+      if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK;')) {
+        // Insert import statement after package declaration
+        config.modResults.contents = config.modResults.contents.replace(
+          /(package .*;\n\n?)/,
+          `$1import io.sentry.react.RNSentrySDK;\n`,
+        );
+      }
+      // Add RNSentrySDK.init
+      config.modResults.contents = config.modResults.contents.replace(
+        'super.onCreate();',
+        `super.onCreate();\nRNSentrySDK.init(this);`,
+      );
+    } else {
+      // Kotlin
+      if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK')) {
+        // Insert import statement after package declaration
+        config.modResults.contents = config.modResults.contents.replace(
+          /(package .*\n\n?)/,
+          `$1import io.sentry.react.RNSentrySDK\n`,
+        );
+      }
+      // Add RNSentrySDK.init
+      config.modResults.contents = config.modResults.contents.replace(
+        'super.onCreate()',
+        `super.onCreate()\nRNSentrySDK.init(this)`,
+      );
+    }
+
+    return config;
+  });
 }

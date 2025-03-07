@@ -12,6 +12,7 @@ interface PluginProps {
   project?: string;
   authToken?: string;
   url?: string;
+  useNativeInit?: boolean;
   experimental_android?: SentryAndroidGradlePluginOptions;
 }
 
@@ -26,7 +27,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   let cfg = config;
   if (sentryProperties !== null) {
     try {
-      cfg = withSentryAndroid(cfg, sentryProperties);
+      cfg = withSentryAndroid(cfg, { sentryProperties, useNativeInit: props?.useNativeInit });
     } catch (e) {
       warnOnce(`There was a problem with configuring your native Android project: ${e}`);
     }
