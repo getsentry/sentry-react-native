@@ -1,6 +1,7 @@
+import type { ExpoConfig } from '@expo/config-types';
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
-import { withDangerousMod, withXcodeProject } from 'expo/config-plugins';
+import { withAppDelegate, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import * as path from 'path';
 
 import { warnOnce, writeSentryPropertiesTo } from './utils';
@@ -12,8 +13,11 @@ const SENTRY_REACT_NATIVE_XCODE_PATH =
 const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH =
   "`${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
-export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: string) => {
-  const cfg = withXcodeProject(config, config => {
+export const withSentryIOS: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
+  config,
+  { sentryProperties, useNativeInit = false },
+) => {
+  const xcodeProjectCfg = withXcodeProject(config, config => {
     const xcodeProject: XcodeProject = config.modResults;
 
     const sentryBuildPhase = xcodeProject.pbxItemByComment(
@@ -36,7 +40,9 @@ export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: st
     return config;
   });
 
-  return withDangerousMod(cfg, [
+  const appDelegateCfc = useNativeInit ? modifyAppDelegate(xcodeProjectCfg) : xcodeProjectCfg;
+
+  return withDangerousMod(appDelegateCfc, [
     'ios',
     config => {
       writeSentryPropertiesTo(path.resolve(config.modRequest.projectRoot, 'ios'), sentryProperties);
@@ -78,4 +84,51 @@ export function addSentryWithBundledScriptsToBundleShellScript(script: string): 
     // eslint-disable-next-line no-useless-escape
     (match: string) => `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} ${match}`,
   );
+}
+
+export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
+  return withAppDelegate(config, async config => {
+    if (!config.modResults || !config.modResults.path) {
+      warnOnce('Skipping AppDelegate modification because the file does not exist.');
+      return config;
+    }
+
+    const fileName = config.modResults.path.split('/').pop();
+
+    if (config.modResults.language === 'swift') {
+      if (config.modResults.contents.includes('RNSentrySDK.start()')) {
+        warnOnce(`Your '${fileName}' already contains 'RNSentrySDK.start()'.`);
+        return config;
+      }
+      if (!config.modResults.contents.includes('import RNSentrySDK')) {
+        // Insert import statement after UIKit import
+        config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentrySDK\n`);
+      }
+      // Add RNSentrySDK.start() at the beginning of application method
+      config.modResults.contents = config.modResults.contents.replace(
+        /(func application\([^)]*\) -> Bool \{)/s, // Match method signature even if split across multiple lines
+        `$1\n    RNSentrySDK.start()`,
+      );
+    } else {
+      // Objective-C
+      if (config.modResults.contents.includes('[RNSentrySDK start]')) {
+        warnOnce(`Your '${fileName}' already contains '[RNSentrySDK start]'.`);
+        return config;
+      }
+      if (!config.modResults.contents.includes('#import <RNSentry/RNSentry.h>')) {
+        // Add import after AppDelegate.h
+        config.modResults.contents = config.modResults.contents.replace(
+          /(#import "AppDelegate.h"\n)/,
+          `$1#import <RNSentry/RNSentry.h>\n`,
+        );
+      }
+      // Add [RNSentrySDK start] at the beginning of application:didFinishLaunchingWithOptions method
+      config.modResults.contents = config.modResults.contents.replace(
+        /(- \(BOOL\)application:[\s\S]*?didFinishLaunchingWithOptions:[\s\S]*?\{)/s,
+        `$1\n    [RNSentrySDK start];`,
+      );
+    }
+
+    return config;
+  });
 }

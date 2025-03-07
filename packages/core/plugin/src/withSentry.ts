@@ -40,7 +40,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
       }
     }
     try {
-      cfg = withSentryIOS(cfg, sentryProperties);
+      cfg = withSentryIOS(cfg, { sentryProperties, useNativeInit: props?.useNativeInit });
     } catch (e) {
       warnOnce(`There was a problem with configuring your native iOS project: ${e}`);
     }
