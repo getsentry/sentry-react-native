@@ -11,6 +11,19 @@
 ### Features
 
 - Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
+
+  This feature is opt-out to enable it set `useNativeInit` to `true` in your `@sentry/react-native/expo` plugin configuration.
+
+  ```js
+  "plugins": [
+    [
+      "@sentry/react-native/expo",
+      {
+        "useNativeInit": true
+      }
+    ],
+  ```
+
 - User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
   To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`.
