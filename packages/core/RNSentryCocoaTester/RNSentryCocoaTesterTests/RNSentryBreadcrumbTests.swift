@@ -54,6 +54,12 @@ final class RNSentryBreadcrumbTests: XCTestCase {
         XCTAssertNil(actual)
     }
 
+    func testNullForNonStringCategory() {
+        let map: [String: Any] = ["category": false]
+        let actual = RNSentryBreadcrumb.getCurrentScreen(from: map)
+        XCTAssertNil(actual)
+    }
+
     func testNullForNonNavigationCategory() {
         let map: [String: Any] = ["category": "unknown"]
         let actual = RNSentryBreadcrumb.getCurrentScreen(from: map)
