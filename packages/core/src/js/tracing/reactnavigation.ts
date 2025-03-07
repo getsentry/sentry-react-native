@@ -33,6 +33,7 @@ import {
 } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import { setSpanDurationAsMeasurementOnSpan } from './utils';
+import { getAppRegistryIntegration } from '../integrations/appRegistry';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -118,7 +119,22 @@ export const reactNavigationIntegration = ({
 
     if (initialStateHandled) {
       // We create an initial state here to ensure a transaction gets created before the first route mounts.
+      // This assumes that the Sentry.init() call is made before the first route mounts.
+      // If this is not the case, the first transaction will be nameless 'Route Changed'
       return undefined;
+    }
+
+    const appRegistryIntegration = getAppRegistryIntegration(client);
+    if (appRegistryIntegration) {
+      appRegistryIntegration.onRunApplication(() => {
+        if (initialStateHandled) {
+          // To avoid conflict with the initial transaction we check if it was already handled.
+          // This ensures runApplication calls after the initial start are correctly traced.
+          // This is used for example when Activity is (re)started on Android.
+          logger.log('[ReactNavigationIntegration] Starting new idle navigation span based on runApplication call.');
+          startIdleNavigationSpan();
+        }
+      });
     }
 
     startIdleNavigationSpan();
@@ -133,24 +149,30 @@ export const reactNavigationIntegration = ({
     initialStateHandled = true;
   };
 
-  const registerNavigationContainer = (navigationContainerRef: unknown): void => {
+  const registerNavigationContainer = (maybeNewNavigationContainer: unknown): void => {
     /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
 
       Explanation: If the user triggers a fast refresh on the file that the instrumentation is
       initialized in, it will initialize a new instance and will cause undefined behavior.
      */
     if (RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
-      logger.log(
-        `${INTEGRATION_NAME} Instrumentation already exists, but register has been called again, doing nothing.`,
-      );
-      return undefined;
+      logger.log(`${INTEGRATION_NAME} Instrumentation already exists, but registering again...`);
+      // return undefined;
     }
 
-    if (isPlainObject(navigationContainerRef) && 'current' in navigationContainerRef) {
-      navigationContainer = navigationContainerRef.current as NavigationContainer;
+    let newNavigationContainer: NavigationContainer | undefined;
+    if (isPlainObject(maybeNewNavigationContainer) && 'current' in maybeNewNavigationContainer) {
+      newNavigationContainer = maybeNewNavigationContainer.current as NavigationContainer;
     } else {
-      navigationContainer = navigationContainerRef as NavigationContainer;
+      newNavigationContainer = maybeNewNavigationContainer as NavigationContainer;
     }
+
+    if (navigationContainer === newNavigationContainer) {
+      logger.log(`${INTEGRATION_NAME} Navigation container ref is the same as the one already registered.`);
+      return;
+    }
+    navigationContainer = newNavigationContainer as NavigationContainer;
+
     if (!navigationContainer) {
       logger.warn(`${INTEGRATION_NAME} Received invalid navigation container ref!`);
       return undefined;

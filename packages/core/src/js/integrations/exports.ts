@@ -20,6 +20,7 @@ export { nativeFramesIntegration, createNativeFramesIntegrations } from '../trac
 export { stallTrackingIntegration } from '../tracing/integrations/stalltracking';
 export { userInteractionIntegration } from '../tracing/integrations/userInteraction';
 export { createReactNativeRewriteFrames } from './rewriteframes';
+export { appRegistryIntegration } from './appRegistry';
 
 export {
   breadcrumbsIntegration,
