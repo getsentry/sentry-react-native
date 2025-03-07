@@ -100,13 +100,13 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         warnOnce(`Your '${fileName}' already contains 'RNSentrySDK.start()'.`);
         return config;
       }
-      if (!config.modResults.contents.includes('import RNSentrySDK')) {
+      if (!config.modResults.contents.includes('import RNSentry')) {
         // Insert import statement after UIKit import
-        config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentrySDK\n`);
+        config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
       }
       // Add RNSentrySDK.start() at the beginning of application method
       config.modResults.contents = config.modResults.contents.replace(
-        /(func application\([^)]*\) -> Bool \{)/s, // Match method signature even if split across multiple lines
+        /(func application\([^)]*\) -> Bool \{)/s,
         `$1\n    RNSentrySDK.start()`,
       );
     } else {
@@ -124,8 +124,8 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       }
       // Add [RNSentrySDK start] at the beginning of application:didFinishLaunchingWithOptions method
       config.modResults.contents = config.modResults.contents.replace(
-        /(- \(BOOL\)application:[\s\S]*?didFinishLaunchingWithOptions:[\s\S]*?\{)/s,
-        `$1\n    [RNSentrySDK start];`,
+        /(- \(BOOL\)application:[\s\S]*?didFinishLaunchingWithOptions:[\s\S]*?\{\n)(\s*)/s,
+        `$1$2[RNSentrySDK start];\n$2`,
       );
     }
 

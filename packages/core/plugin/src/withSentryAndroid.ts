@@ -81,8 +81,8 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       }
       // Add RNSentrySDK.init
       config.modResults.contents = config.modResults.contents.replace(
-        'super.onCreate();',
-        `super.onCreate();\nRNSentrySDK.init(this);`,
+        /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
+        `$1\n$2RNSentrySDK.init(this);\n$2`,
       );
     } else {
       // Kotlin
@@ -95,8 +95,8 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       }
       // Add RNSentrySDK.init
       config.modResults.contents = config.modResults.contents.replace(
-        'super.onCreate()',
-        `super.onCreate()\nRNSentrySDK.init(this)`,
+        /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
+        `$1\n$2RNSentrySDK.init(this)\n$2`,
       );
     }
 
