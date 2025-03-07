@@ -21,6 +21,74 @@ interface MockedExpoConfig extends ExpoConfig {
   };
 }
 
+const objcContents = `#import "AppDelegate.h"
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  self.moduleName = @"main";
+
+  // You can add your custom initial props in the dictionary below.
+  // They will be passed down to the ViewController used by React Native.
+  self.initialProps = @{};
+
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+@end
+`;
+
+const objcExpected = `#import "AppDelegate.h"
+#import <RNSentry/RNSentry.h>
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  [RNSentrySDK start];
+  self.moduleName = @"main";
+
+  // You can add your custom initial props in the dictionary below.
+  // They will be passed down to the ViewController used by React Native.
+  self.initialProps = @{};
+
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+@end
+`;
+
+const swiftContents = `import React
+import React_RCTAppDelegate
+import ReactAppDependencyProvider
+import UIKit
+
+@main
+class AppDelegate: RCTAppDelegate {
+  override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    self.moduleName = "sentry-react-native-sample"
+    self.dependencyProvider = RCTAppDependencyProvider()
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}`;
+
+const swiftExpected = `import React
+import React_RCTAppDelegate
+import ReactAppDependencyProvider
+import UIKit
+import RNSentry
+
+@main
+class AppDelegate: RCTAppDelegate {
+  override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    RNSentrySDK.start()
+    self.moduleName = "sentry-react-native-sample"
+    self.dependencyProvider = RCTAppDependencyProvider()
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}`;
+
 describe('modifyAppDelegate', () => {
   let config: MockedExpoConfig;
 
@@ -32,8 +100,7 @@ describe('modifyAppDelegate', () => {
       slug: 'test',
       modResults: {
         path: 'samples/react-native/ios/AppDelegate.swift',
-        contents:
-          'import UIKit\n\noverride func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {',
+        contents: swiftContents,
         language: 'swift',
       },
     };
@@ -71,19 +138,20 @@ describe('modifyAppDelegate', () => {
   it('should modify a Swift file by adding the RNSentrySDK import and start', async () => {
     const result = (await modifyAppDelegate(config)) as MockedExpoConfig;
 
-    expect(result.modResults.contents).toContain('import RNSentrySDK');
+    expect(result.modResults.contents).toContain('import RNSentry');
     expect(result.modResults.contents).toContain('RNSentrySDK.start()');
+    expect(result.modResults.contents).toBe(swiftExpected);
   });
 
   it('should modify an Objective-C file by adding the RNSentrySDK import and start', async () => {
     config.modResults.language = 'objc';
-    config.modResults.contents =
-      '#import "AppDelegate.h"\n\n- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {';
+    config.modResults.contents = objcContents;
 
     const result = (await modifyAppDelegate(config)) as MockedExpoConfig;
 
     expect(result.modResults.contents).toContain('#import <RNSentry/RNSentry.h>');
     expect(result.modResults.contents).toContain('[RNSentrySDK start];');
+    expect(result.modResults.contents).toBe(objcExpected);
   });
 
   it('should insert import statements only once in an Swift project', async () => {
