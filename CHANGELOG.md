@@ -18,6 +18,7 @@
 - Attach App Start spans to the first created not the first processed root span ([#4618](https://github.com/getsentry/sentry-react-native/pull/4618))
 - Use route name instead of route key for current route tracking ([#4631](https://github.com/getsentry/sentry-react-native/pull/4631))
   - Using key caused user interaction transaction names to contain route hash in the name.
+- Handle non-string category in getCurrentScreen on iOS ([#4629](https://github.com/getsentry/sentry-react-native/pull/4629))
 
 ### Dependencies
 
