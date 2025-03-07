@@ -28,6 +28,10 @@
 
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
 
+### Changes
+
+Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](https://github.com/getsentry/sentry-react-native/pull/4636))
+
 ### Fixes
 
 - Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))

@@ -255,7 +255,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -289,7 +289,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -319,7 +319,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
           ]),
           measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
