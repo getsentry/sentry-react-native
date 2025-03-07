@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
 - User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
   To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`.
