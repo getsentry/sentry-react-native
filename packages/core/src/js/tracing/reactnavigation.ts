@@ -14,6 +14,7 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
+import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
 import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
@@ -33,7 +34,6 @@ import {
 } from './span';
 import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
 import { setSpanDurationAsMeasurementOnSpan } from './utils';
-import { getAppRegistryIntegration } from '../integrations/appRegistry';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;

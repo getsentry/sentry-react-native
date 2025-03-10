@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-import { Platform, TurboModuleRegistry, AppRegistry } from 'react-native';
+import { AppRegistry,Platform, TurboModuleRegistry } from 'react-native';
 
 import type * as ReactNative from '../vendor/react-native';
 import type { ReactNativeLibrariesInterface } from './rnlibrariesinterface';

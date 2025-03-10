@@ -5,6 +5,7 @@ import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
 import {
+  appRegistryIntegration,
   appStartIntegration,
   breadcrumbsIntegration,
   browserApiErrorsIntegration,
@@ -34,7 +35,6 @@ import {
   stallTrackingIntegration,
   userInteractionIntegration,
   viewHierarchyIntegration,
-  appRegistryIntegration,
 } from './exports';
 
 /**

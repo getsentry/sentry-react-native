@@ -105,7 +105,7 @@ public class RNSentryModuleImpl {
   private FrameMetricsAggregator frameMetricsAggregator = null;
   private boolean androidXAvailable;
 
-  private static boolean hasFetchedAppStart;
+  private static long lastStartTimestampMs = -1;
 
   // 700ms to constitute frozen frames.
   private static final int FROZEN_FRAME_THRESHOLD = 700;
@@ -433,30 +433,42 @@ public class RNSentryModuleImpl {
   public void fetchNativeAppStart(Promise promise) {
     fetchNativeAppStart(
         promise,
+        AppStartMetrics.getInstance(),
         InternalSentrySdk.getAppStartMeasurement(),
-        logger,
-        AppStartMetrics.getInstance().isAppLaunchedInForeground());
+        logger);
   }
 
   protected void fetchNativeAppStart(
       Promise promise,
-      final Map<String, Object> appStartMeasurement,
-      ILogger logger,
-      boolean isAppLaunchedInForeground) {
-    if (!isAppLaunchedInForeground) {
+      final AppStartMetrics metrics,
+      final Map<String, Object> metricsDataBag,
+      ILogger logger) {
+    if (!metrics.isAppLaunchedInForeground()) {
       logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground.");
       promise.resolve(null);
       return;
     }
 
     WritableMap mutableMeasurement =
-        (WritableMap) RNSentryMapConverter.convertToWritable(appStartMeasurement);
-    mutableMeasurement.putBoolean("has_fetched", hasFetchedAppStart);
+        (WritableMap) RNSentryMapConverter.convertToWritable(metricsDataBag);
 
-    // This is always set to true, as we would only allow an app start fetch to only
-    // happen once in the case of a JS bundle reload, we do not want it to be
-    // instrumented again.
-    hasFetchedAppStart = true;
+    long currentStartTimestampMs = metrics.getAppStartTimeSpan().getStartTimestampMs();
+    mutableMeasurement.putBoolean("has_fetched", lastStartTimestampMs > 0 && lastStartTimestampMs == currentStartTimestampMs);
+
+    if (lastStartTimestampMs < 0) {
+      logger.log(SentryLevel.DEBUG, "App Start data reported to the RN layer for the first time.");
+    } else {
+      logger.log(SentryLevel.DEBUG, "App Start data updated, reporting to the RN layer again.");
+    }
+
+    // When activity is destroyed but the application process is kept alive
+    // the next activity creation is considered warm start.
+    // The app start metrics will be updated by the the Android SDK.
+    // To let the RN JS layer know these are new start data we compare the start timestamps.
+    lastStartTimestampMs = currentStartTimestampMs;
+
+    // Clears start metrics, making them ready for recording warm app start
+    metrics.onAppStartSpansSent();
 
     promise.resolve(mutableMeasurement);
   }

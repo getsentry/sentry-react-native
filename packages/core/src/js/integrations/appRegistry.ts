@@ -1,6 +1,8 @@
-import { ReactNativeLibraries } from '../utils/rnlibraries';
+import type { Client, Integration} from '@sentry/core';
+import { getClient, logger } from '@sentry/core';
+
 import { fillTyped } from '../utils/fill';
-import { Client, getClient, Integration } from '@sentry/core';
+import { ReactNativeLibraries } from '../utils/rnlibraries';
 
 export const INTEGRATION_NAME = 'appRegistryIntegration';
 
@@ -15,6 +17,10 @@ export const appRegistryIntegration = (): Integration & {
       patchAppRegistryRunApplication(callbacks);
     },
     onRunApplication: (callback: () => void) => {
+      if (callbacks.includes(callback)) {
+        logger.debug('[AppRegistryIntegration] Callback already registered.');
+        return;
+      }
       callbacks.push(callback);
     },
   };

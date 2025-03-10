@@ -11,6 +11,7 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
+import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
@@ -28,7 +29,6 @@ import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../ori
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { setMainThreadInfo } from '../span';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
-import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 
 const INTEGRATION_NAME = 'AppStart';
 
@@ -160,10 +160,18 @@ export const appStartIntegration = ({
     afterAllSetupCalled = true;
 
     // TODO: automatically set standalone based on the presence of the native layer navigation integration
+
     const appRegistryIntegration = getAppRegistryIntegration(client);
     appRegistryIntegration?.onRunApplication(() => {
-      logger.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
-      appStartDataFlushed = false;
+      if (appStartDataFlushed) {
+        logger.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
+        appStartDataFlushed = false;
+        firstStartedActiveRootSpanId = undefined;
+      } else {
+        logger.log(
+          '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
+        );
+      }
     });
   };
 
@@ -244,7 +252,7 @@ export const appStartIntegration = ({
 
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
     if (appStartDataFlushed) {
-      // App start data is only relevant for the first transaction
+      // App start data is only relevant for the first transaction of the app run
       return;
     }
 
@@ -409,19 +417,25 @@ function createJSExecutionStartSpan(
     return undefined;
   }
 
+  const bundleStartTimestampSeconds = bundleStartTimestampMs / 1000;
+  if (bundleStartTimestampSeconds < parentSpan.start_timestamp) {
+    logger.warn('Bundle start timestamp is before the app start span start timestamp. Skipping JS execution span.');
+    return undefined;
+  }
+
   if (!rootComponentCreationTimestampMs) {
     logger.warn('Missing the root component first constructor call timestamp.');
     return createChildSpanJSON(parentSpan, {
       description: 'JS Bundle Execution Start',
-      start_timestamp: bundleStartTimestampMs / 1000,
-      timestamp: bundleStartTimestampMs / 1000,
+      start_timestamp: bundleStartTimestampSeconds,
+      timestamp: bundleStartTimestampSeconds,
       origin: SPAN_ORIGIN_AUTO_APP_START,
     });
   }
 
   return createChildSpanJSON(parentSpan, {
     description: 'JS Bundle Execution Before React Root',
-    start_timestamp: bundleStartTimestampMs / 1000,
+    start_timestamp: bundleStartTimestampSeconds,
     timestamp: rootComponentCreationTimestampMs / 1000,
     origin: isRootComponentCreationTimestampMsManual ? SPAN_ORIGIN_MANUAL_APP_START : SPAN_ORIGIN_AUTO_APP_START,
   });
@@ -431,20 +445,22 @@ function createJSExecutionStartSpan(
  * Adds native spans to the app start span.
  */
 function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeAppStartResponse['spans']): SpanJSON[] {
-  return nativeSpans.map(span => {
-    if (span.description === 'UIKit init') {
-      return setMainThreadInfo(createUIKitSpan(parentSpan, span));
-    }
+  return nativeSpans
+    .filter(span => span.start_timestamp_ms / 1000 >= parentSpan.start_timestamp)
+    .map(span => {
+      if (span.description === 'UIKit init') {
+        return setMainThreadInfo(createUIKitSpan(parentSpan, span));
+      }
 
-    return setMainThreadInfo(
-      createChildSpanJSON(parentSpan, {
-        description: span.description,
-        start_timestamp: span.start_timestamp_ms / 1000,
-        timestamp: span.end_timestamp_ms / 1000,
-        origin: SPAN_ORIGIN_AUTO_APP_START,
-      }),
-    );
-  });
+      return setMainThreadInfo(
+        createChildSpanJSON(parentSpan, {
+          description: span.description,
+          start_timestamp: span.start_timestamp_ms / 1000,
+          timestamp: span.end_timestamp_ms / 1000,
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+        }),
+      );
+    });
 }
 
 /**
