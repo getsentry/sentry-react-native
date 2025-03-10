@@ -240,17 +240,17 @@ describe('captureFeedback', () => {
     const mockTransport = jest.spyOn(client.getTransport()!, 'send');
 
     const traceId = '4C79F60C11214EB38604F4AE0781BFB2';
-    const spanId = 'FA90FDEAD5F74052';
+    const parentSpanId = 'FA90FDEAD5F74052';
     const dsc = {
       trace_id: traceId,
-      span_id: spanId,
       sampled: 'true',
     };
 
     getCurrentScope().setPropagationContext({
       traceId,
-      spanId,
+      parentSpanId,
       dsc,
+      sampleRand: 1,
     });
 
     const eventId = captureFeedback({
@@ -261,10 +261,13 @@ describe('captureFeedback', () => {
 
     expect(typeof eventId).toBe('string');
 
-    expect(mockTransport).toHaveBeenCalledWith([
+    const [[envelope]] = mockTransport.mock.calls;
+    expect(mockTransport).toHaveBeenCalledWith(envelope);
+
+    expect(envelope).toEqual([
       {
         event_id: eventId,
-        sent_at: expect.any(String),
+        sent_at: expect.toBeDateString(),
       },
       [
         [
@@ -274,7 +277,8 @@ describe('captureFeedback', () => {
             contexts: {
               trace: {
                 trace_id: traceId,
-                span_id: spanId,
+                parent_span_id: parentSpanId,
+                span_id: expect.any(String),
               },
               feedback: {
                 message: 'test',
@@ -297,7 +301,7 @@ describe('captureFeedback', () => {
       getDefaultTestClientOptions({
         dsn: 'https://dsn@ingest.f00.f00/1',
         enableSend: true,
-        enableTracing: true,
+        tracesSampleRate: 1.0,
         // We don't care about transactions here...
         beforeSendTransaction() {
           return null;
@@ -322,12 +326,15 @@ describe('captureFeedback', () => {
     expect(typeof eventId).toBe('string');
     expect(span).toBeDefined();
 
-    const { spanId, traceId } = span!.spanContext();
+    const traceId = span!.spanContext().traceId;
 
-    expect(mockTransport).toHaveBeenCalledWith([
+    const [[envelope]] = mockTransport.mock.calls;
+    expect(mockTransport).toHaveBeenCalledWith(envelope);
+
+    expect(envelope).toEqual([
       {
         event_id: eventId,
-        sent_at: expect.any(String),
+        sent_at: expect.toBeDateString(),
       },
       [
         [
@@ -337,7 +344,7 @@ describe('captureFeedback', () => {
             contexts: {
               trace: {
                 trace_id: traceId,
-                span_id: spanId,
+                span_id: expect.any(String),
               },
               feedback: {
                 message: 'test',
@@ -360,7 +367,7 @@ describe('captureFeedback', () => {
       getDefaultTestClientOptions({
         dsn: 'https://dsn@ingest.f00.f00/1',
         enableSend: true,
-        enableTracing: true,
+        tracesSampleRate: 1.0,
         // We don't care about transactions here...
         beforeSendTransaction() {
           return null;

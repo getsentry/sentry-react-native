@@ -129,7 +129,7 @@ export const cancelInBackground = (client: Client, span: Span): void => {
     client.on('spanEnd', (endedSpan: Span) => {
       if (endedSpan === span) {
         logger.debug(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
-        subscription && subscription.remove && subscription.remove();
+        subscription?.remove?.();
       }
     });
 };
