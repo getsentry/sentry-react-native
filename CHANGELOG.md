@@ -11,6 +11,7 @@
 ### Features
 
 - Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
+- Exposed `getDataFromUri` as a public API to retrieve data from a URI ([#4638](https://github.com/getsentry/sentry-react-native/pull/4638))
 
 ### Fixes
 

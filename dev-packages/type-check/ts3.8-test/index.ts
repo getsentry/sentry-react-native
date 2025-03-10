@@ -20,6 +20,11 @@ declare global {
   }
   interface PerformanceEntry {}
 }
+
+declare module 'react-native' {
+  export interface TurboModule {}
+}
+
 import 'react-native';
 
 // we need to import the SDK to ensure tsc check the types

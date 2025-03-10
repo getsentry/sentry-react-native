@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import { isWeb, notWeb } from '../utils/environment';
-import { NATIVE } from '../wrapper';
+import { getDataFromUri } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
@@ -154,7 +154,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           } else {
             const filename = result.assets[0].fileName;
             const imageUri = result.assets[0].uri;
-            NATIVE.getDataFromUri(imageUri).then((data) => {
+            getDataFromUri(imageUri).then((data) => {
               if (data != null) {
                 this.setState({ filename, attachment: data, attachmentUri: imageUri });
               } else {
@@ -169,7 +169,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((uri: string) => {
-          NATIVE.getDataFromUri(uri).then((data) => {
+          getDataFromUri(uri).then((data) => {
             if (data != null) {
               this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
             } else {

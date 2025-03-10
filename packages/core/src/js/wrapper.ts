@@ -804,3 +804,12 @@ export const NATIVE: SentryNativeWrapper = {
   nativeIsReady: false,
   platform: Platform.OS,
 };
+
+/**
+ * Fethces the data from the given uri in Uint8Array format.
+ * @param uri string
+ * @returns Uint8Array | null
+ */
+export async function getDataFromUri(uri: string): Promise<Uint8Array | null> {
+  return NATIVE.getDataFromUri(uri);
+}
