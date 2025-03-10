@@ -157,7 +157,6 @@ export const reactNavigationIntegration = ({
      */
     if (RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
       logger.log(`${INTEGRATION_NAME} Instrumentation already exists, but registering again...`);
-      // return undefined;
     }
 
     let newNavigationContainer: NavigationContainer | undefined;
