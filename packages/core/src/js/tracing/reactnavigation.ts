@@ -150,13 +150,12 @@ export const reactNavigationIntegration = ({
   };
 
   const registerNavigationContainer = (maybeNewNavigationContainer: unknown): void => {
-    /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
-
-      Explanation: If the user triggers a fast refresh on the file that the instrumentation is
-      initialized in, it will initialize a new instance and will cause undefined behavior.
-     */
     if (RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
-      logger.log(`${INTEGRATION_NAME} Instrumentation already exists, but registering again...`);
+      logger.debug(`${INTEGRATION_NAME} Instrumentation already exists, but registering again...`);
+      // In the past we have not allowed re-registering the navigation container to avoid unexpected behavior.
+      // But this doesn't work for Android and re-recreating application main activity.
+      // Where new navigation container is created and the old one is discarded. We need to re-register to
+      // trace the new navigation container navigation.
     }
 
     let newNavigationContainer: NavigationContainer | undefined;
