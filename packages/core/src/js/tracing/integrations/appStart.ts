@@ -28,6 +28,7 @@ import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../ori
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
 import { setMainThreadInfo } from '../span';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
+import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 
 const INTEGRATION_NAME = 'AppStart';
 
@@ -137,6 +138,7 @@ export const appStartIntegration = ({
   let _client: Client | undefined = undefined;
   let isEnabled = true;
   let appStartDataFlushed = false;
+  let afterAllSetupCalled = false;
   let firstStartedActiveRootSpanId: string | undefined = undefined;
 
   const setup = (client: Client): void => {
@@ -151,8 +153,18 @@ export const appStartIntegration = ({
     client.on('spanStart', recordFirstStartedActiveRootSpanId);
   };
 
-  const afterAllSetup = (_client: Client): void => {
+  const afterAllSetup = (client: Client): void => {
+    if (afterAllSetupCalled) {
+      return;
+    }
+    afterAllSetupCalled = true;
+
     // TODO: automatically set standalone based on the presence of the native layer navigation integration
+    const appRegistryIntegration = getAppRegistryIntegration(client);
+    appRegistryIntegration?.onRunApplication(() => {
+      logger.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
+      appStartDataFlushed = false;
+    });
   };
 
   const processEvent = async (event: Event): Promise<Event> => {

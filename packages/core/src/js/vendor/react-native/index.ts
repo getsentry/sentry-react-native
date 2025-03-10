@@ -82,3 +82,7 @@ export type ReactNativeVersion = {
     prerelease?: string | null | undefined;
   };
 };
+
+export type AppRegistry = {
+  runApplication: (appKey: string, appParameters: any) => void;
+};

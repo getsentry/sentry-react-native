@@ -34,6 +34,7 @@ import {
   stallTrackingIntegration,
   userInteractionIntegration,
   viewHierarchyIntegration,
+  appRegistryIntegration,
 } from './exports';
 
 /**
@@ -111,6 +112,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(userInteractionIntegration());
   }
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
+    integrations.push(appRegistryIntegration());
     integrations.push(reactNativeTracingIntegration());
   }
   if (options.enableCaptureFailedRequests) {
