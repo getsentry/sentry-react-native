@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+- Bump Android SDK from v7.22.0 to v7.22.1([#4643](https://github.com/getsentry/sentry-react-native/pull/4643))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.x.x/CHANGELOG.md#7221)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.0...7.22.1)
+
 ## 6.9.0
 
 ### Features
@@ -16,7 +22,7 @@
 
   ```js
   import Sentry from "@sentry/react-native";
-  
+
   Sentry.showFeedbackWidget();
 
   Sentry.wrap(RootComponent);
