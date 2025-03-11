@@ -12,6 +12,7 @@ import {
 } from '@sentry/core';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
+import * as AppRegistry from '../../src/js/integrations/appRegistry';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
@@ -33,7 +34,6 @@ import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
-import * as AppRegistry from '../../src/js/integrations/appRegistry';
 
 const dummyRoute = {
   name: 'Route',

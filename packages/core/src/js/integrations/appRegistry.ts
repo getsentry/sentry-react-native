@@ -4,7 +4,7 @@ import { getClient, logger } from '@sentry/core';
 import { fillTyped } from '../utils/fill';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 
-export const INTEGRATION_NAME = 'appRegistryIntegration';
+export const INTEGRATION_NAME = 'AppRegistry';
 
 export const appRegistryIntegration = (): Integration & {
   onRunApplication: (callback: () => void) => void;
