@@ -11,6 +11,7 @@
 ### Features
 
 - Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
+- Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641))
 
 ### Fixes
 
