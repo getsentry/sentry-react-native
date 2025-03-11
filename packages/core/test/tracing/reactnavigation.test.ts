@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SentrySpan } from '@sentry/core';
 import type { Event, Measurements, StartSpanOptions } from '@sentry/core';
-import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient } from '@sentry/core';
+import {
+  getActiveSpan,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  setCurrentClient,
+  spanToJSON,
+} from '@sentry/core';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
@@ -26,6 +33,7 @@ import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+import * as AppRegistry from '../../src/js/integrations/appRegistry';
 
 const dummyRoute = {
   name: 'Route',
@@ -54,6 +62,7 @@ describe('ReactNavigationInstrumentation', () => {
   let mockNavigation: ReturnType<typeof createMockNavigationAndAttachTo>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
 
     getCurrentScope().clear();
@@ -328,6 +337,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
+      expect(mockNavigationContainer.addListener).toHaveBeenCalledTimes(2);
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
@@ -339,15 +349,22 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
+      expect(mockNavigationContainer.addListener).toHaveBeenCalledTimes(2);
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
       expect(mockNavigationContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
-    test('does not register navigation container if there is an existing one', () => {
-      RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
-
+    test('does not register navigation container if the existing one is already registered', () => {
       const instrumentation = reactNavigationIntegration();
+
       const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer({
+        current: mockNavigationContainer,
+      });
+
+      // Reset mocks after the first registration
+      jest.resetAllMocks();
+
       instrumentation.registerNavigationContainer({
         current: mockNavigationContainer,
       });
@@ -355,7 +372,48 @@ describe('ReactNavigationInstrumentation', () => {
       expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
 
       expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
-      expect(mockNavigationContainer.addListener).not.toHaveBeenCalled();
+    });
+
+    test('does register navigation container if received a new reference', () => {
+      const instrumentation = reactNavigationIntegration();
+      const refHolder: { current: MockNavigationContainer | undefined } = { current: undefined };
+      const firstContainer = new MockNavigationContainer();
+      const secondContainer = new MockNavigationContainer();
+
+      refHolder.current = firstContainer;
+      instrumentation.registerNavigationContainer(refHolder);
+
+      refHolder.current = secondContainer;
+      instrumentation.registerNavigationContainer(refHolder);
+
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
+
+      expect(firstContainer.addListener).toHaveBeenCalledTimes(2);
+      expect(firstContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
+      expect(firstContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
+
+      expect(secondContainer.addListener).toHaveBeenCalledTimes(2);
+      expect(secondContainer.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
+      expect(secondContainer.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
+    });
+
+    test('does not register navigation container if received a new holder with the same reference', () => {
+      const instrumentation = reactNavigationIntegration();
+      const container = new MockNavigationContainer();
+
+      instrumentation.registerNavigationContainer({
+        current: container,
+      });
+
+      instrumentation.registerNavigationContainer({
+        current: container,
+      });
+
+      expect(RN_GLOBAL_OBJ.__sentry_rn_v5_registered).toBe(true);
+
+      expect(container.addListener).toHaveBeenCalledTimes(2);
+      expect(container.addListener).toHaveBeenNthCalledWith(1, '__unsafe_action__', expect.any(Function));
+      expect(container.addListener).toHaveBeenNthCalledWith(2, 'state', expect.any(Function));
     });
 
     test('works if routing instrumentation setup is after navigation registration', async () => {
@@ -370,6 +428,75 @@ describe('ReactNavigationInstrumentation', () => {
       await jest.runOnlyPendingTimersAsync();
 
       expect(mockTransaction['_sampled']).not.toBe(false);
+    });
+
+    test('after all setup registers for runApplication calls', async () => {
+      const mockedOnRunApplication = jest.fn();
+      const mockedGetAppRegistryIntegration = jest.spyOn(AppRegistry, 'getAppRegistryIntegration').mockReturnValue({
+        onRunApplication: mockedOnRunApplication,
+        name: 'appRegistryIntegrationMocked',
+      });
+
+      const instrumentation = reactNavigationIntegration();
+
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer(mockNavigationContainer);
+
+      instrumentation.afterAllSetup(client);
+      await jest.runOnlyPendingTimersAsync();
+
+      expect(getActiveSpan()).toBeUndefined();
+      expect(mockedGetAppRegistryIntegration).toHaveBeenCalledOnce();
+      expect(mockedOnRunApplication).toHaveBeenCalledOnce();
+
+      const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+      runApplicationCallback();
+
+      const span = getActiveSpan();
+      expect(span).toBeDefined();
+      expect(spanToJSON(span)).toEqual(
+        expect.objectContaining({
+          description: DEFAULT_NAVIGATION_SPAN_NAME,
+          op: 'navigation',
+        }),
+      );
+    });
+
+    test('runApplication calls are ignored when the initial state is not handled', async () => {
+      // This avoid starting a new navigation span when the application run was called before
+      // before the first navigation container is registered.
+
+      const mockedOnRunApplication = jest.fn();
+      const mockedGetAppRegistryIntegration = jest.spyOn(AppRegistry, 'getAppRegistryIntegration').mockReturnValue({
+        onRunApplication: mockedOnRunApplication,
+        name: 'appRegistryIntegrationMocked',
+      });
+
+      reactNavigationIntegration().afterAllSetup(client);
+      await jest.runOnlyPendingTimersAsync(); // Flushes the initial navigation span
+
+      expect(getActiveSpan()).toBeUndefined();
+      expect(mockedGetAppRegistryIntegration).toHaveBeenCalledOnce();
+      expect(mockedOnRunApplication).toHaveBeenCalledOnce();
+
+      const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+      runApplicationCallback();
+
+      const span = getActiveSpan();
+      expect(span).toBeUndefined();
+    });
+
+    test('handles graceful missing app registry integration', async () => {
+      // This avoid starting a new navigation span when the application run was called before
+      // before the first navigation container is registered.
+
+      const mockedGetAppRegistryIntegration = jest
+        .spyOn(AppRegistry, 'getAppRegistryIntegration')
+        .mockReturnValue(undefined);
+
+      reactNavigationIntegration().afterAllSetup(client);
+
+      expect(mockedGetAppRegistryIntegration).toHaveBeenCalledOnce();
     });
   });
 

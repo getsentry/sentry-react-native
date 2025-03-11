@@ -124,18 +124,15 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
-    const appRegistryIntegration = getAppRegistryIntegration(client);
-    if (appRegistryIntegration) {
-      appRegistryIntegration.onRunApplication(() => {
-        if (initialStateHandled) {
-          // To avoid conflict with the initial transaction we check if it was already handled.
-          // This ensures runApplication calls after the initial start are correctly traced.
-          // This is used for example when Activity is (re)started on Android.
-          logger.log('[ReactNavigationIntegration] Starting new idle navigation span based on runApplication call.');
-          startIdleNavigationSpan();
-        }
-      });
-    }
+    getAppRegistryIntegration(client)?.onRunApplication(() => {
+      if (initialStateHandled) {
+        // To avoid conflict with the initial transaction we check if it was already handled.
+        // This ensures runApplication calls after the initial start are correctly traced.
+        // This is used for example when Activity is (re)started on Android.
+        logger.log('[ReactNavigationIntegration] Starting new idle navigation span based on runApplication call.');
+        startIdleNavigationSpan();
+      }
+    });
 
     startIdleNavigationSpan();
 
