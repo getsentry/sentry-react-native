@@ -1,4 +1,4 @@
-import type { Client, Integration} from '@sentry/core';
+import type { Client, Integration } from '@sentry/core';
 import { getClient, logger } from '@sentry/core';
 
 import { fillTyped } from '../utils/fill';
@@ -26,7 +26,7 @@ export const appRegistryIntegration = (): Integration & {
   };
 };
 
-export const patchAppRegistryRunApplication = (callbacks: (() => void)[]) => {
+export const patchAppRegistryRunApplication = (callbacks: (() => void)[]): void => {
   const { AppRegistry } = ReactNativeLibraries;
 
   fillTyped(AppRegistry, 'runApplication', originalRunApplication => {
