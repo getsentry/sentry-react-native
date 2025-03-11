@@ -61,7 +61,6 @@ describe('Capture transaction', () => {
               'sentry.origin': 'auto.app.start',
               'sentry.sample_rate': 1,
               'sentry.source': 'component',
-              'thread.name': 'javascript',
             },
             op: 'ui.load',
             origin: 'auto.app.start',
