@@ -161,8 +161,7 @@ export const appStartIntegration = ({
 
     // TODO: automatically set standalone based on the presence of the native layer navigation integration
 
-    const appRegistryIntegration = getAppRegistryIntegration(client);
-    appRegistryIntegration?.onRunApplication(() => {
+    getAppRegistryIntegration(client)?.onRunApplication(() => {
       if (appStartDataFlushed) {
         logger.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
         appStartDataFlushed = false;
@@ -308,6 +307,17 @@ export const appStartIntegration = ({
     if (!__DEV__ && appStartDurationMs >= MAX_APP_START_DURATION_MS) {
       // Dev builds can have long app start waiting over minute for the first bundle to be produced
       logger.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
+      return;
+    }
+
+    if (appStartDurationMs < 0) {
+      // This can happen when MainActivity on Android is recreated,
+      // and the app start end timestamp is not updated, for example
+      // due to missing `Sentry.wrap(RootComponent)` call.
+      logger.warn(
+        '[AppStart] Last recorded app start end timestamp is before the app start timestamp.',
+        'This is usually caused by missing `Sentry.wrap(RootComponent)` call.',
+      );
       return;
     }
 

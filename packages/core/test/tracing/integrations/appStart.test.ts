@@ -1,4 +1,4 @@
-import type { ErrorEvent, Event, SpanJSON, TransactionEvent } from '@sentry/core';
+import type { ErrorEvent, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCurrentScope,
   getGlobalScope,
@@ -31,6 +31,7 @@ import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_MAIN } from '../../../src/js/tracing
 import { getTimeOriginMilliseconds } from '../../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../../src/js/utils/worldwide';
 import { NATIVE } from '../../../src/js/wrapper';
+import { mockAppRegistryIntegration } from '../../mocks/appRegistryIntegrationMock';
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
 import { mockFunction } from '../../testutils';
 
@@ -690,6 +691,53 @@ describe('App Start Integration', () => {
       );
     });
 
+    it('run application before initial app start is flushed is ignored, app start is attached only once', async () => {
+      const { mockedOnRunApplication } = mockAppRegistryIntegration();
+      mockAppStart({ cold: true });
+
+      const event = getMinimalTransactionEvent();
+      const integration = setupIntegration();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(event.contexts?.trace?.span_id);
+
+      const registerAppStartCallback = mockedOnRunApplication.mock.calls[0][0];
+      registerAppStartCallback();
+
+      const actualFirstEvent = await processEventWithIntegration(integration, event);
+      const actualSecondEvent = await processEventWithIntegration(integration, getMinimalTransactionEvent());
+
+      expect(actualFirstEvent.measurements[APP_START_COLD_MEASUREMENT]).toBeDefined();
+      expect(actualSecondEvent.measurements).toBeUndefined();
+    });
+
+    it('run application after initial app start is flushed allows attaching app start to the next root span', async () => {
+      const { mockedOnRunApplication } = mockAppRegistryIntegration();
+      mockAppStart({ cold: true });
+
+      const firstEvent = getMinimalTransactionEvent();
+      const integration = setupIntegration();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      const actualFirstEvent = await processEventWithIntegration(integration, firstEvent);
+
+      const registerAppStartCallback = mockedOnRunApplication.mock.calls[0][0];
+      registerAppStartCallback();
+
+      mockAppStart({ cold: false });
+      const secondEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
+      const actualSecondEvent = await processEventWithIntegration(integration, secondEvent);
+
+      expect(actualFirstEvent.measurements[APP_START_COLD_MEASUREMENT]).toBeDefined();
+      expect(actualSecondEvent.measurements[APP_START_WARM_MEASUREMENT]).toBeDefined();
+    });
+
+    it('Does not add app start span if app start end timestamp is before app start timestamp', async () => {
+      mockAppStart({ cold: true, appStartEndTimestampMs: Date.now() - 1000 });
+
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
+      expect(actualEvent.measurements).toBeUndefined();
+    });
+
     it('Does not add app start span twice', async () => {
       const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
 
@@ -730,10 +778,22 @@ describe('App Start Integration', () => {
   });
 });
 
-function processEvent(event: Event): PromiseLike<Event | null> | Event | null {
+function setupIntegration() {
+  const client = new TestClient(getDefaultTestClientOptions());
   const integration = appStartIntegration();
-  (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(event.contexts?.trace?.span_id);
+  integration.afterAllSetup(client);
+
+  return integration;
+}
+
+function processEventWithIntegration(integration: Integration, event: Event) {
   return integration.processEvent(event, {}, new TestClient(getDefaultTestClientOptions()));
+}
+
+function processEvent(event: Event): PromiseLike<Event | null> | Event | null {
+  const integration = setupIntegration();
+  (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(event.contexts?.trace?.span_id);
+  return processEventWithIntegration(integration, event);
 }
 
 async function captureStandAloneAppStart(): Promise<PromiseLike<Event | null> | Event | null> {
@@ -995,12 +1055,14 @@ function mockAppStart({
   has_fetched = false,
   enableNativeSpans = false,
   customNativeSpans = [],
+  appStartEndTimestampMs = undefined,
 }: {
   cold?: boolean;
   has_fetched?: boolean;
   enableNativeSpans?: boolean;
   customNativeSpans?: NativeAppStartResponse['spans'];
-}) {
+  appStartEndTimestampMs?: number;
+} = {}) {
   const timeOriginMilliseconds = Date.now();
   const appStartTimeMilliseconds = timeOriginMilliseconds - 100;
   const mockAppStartResponse: NativeAppStartResponse = {
@@ -1019,7 +1081,7 @@ function mockAppStart({
       : [],
   };
 
-  _setAppStartEndTimestampMs(timeOriginMilliseconds);
+  _setAppStartEndTimestampMs(appStartEndTimestampMs || timeOriginMilliseconds);
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 

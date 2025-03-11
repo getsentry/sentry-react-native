@@ -1,4 +1,5 @@
 import { getOriginalFunction } from '@sentry/core';
+
 import { appRegistryIntegration } from '../../src/js/integrations/appRegistry';
 import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 

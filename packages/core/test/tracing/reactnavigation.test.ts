@@ -12,7 +12,6 @@ import {
 } from '@sentry/core';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
-import * as AppRegistry from '../../src/js/integrations/appRegistry';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
@@ -30,6 +29,7 @@ import {
 } from '../../src/js/tracing/semanticAttributes';
 import { DEFAULT_NAVIGATION_SPAN_NAME, SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
+import { mockAppRegistryIntegration } from '../mocks/appRegistryIntegrationMock';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
@@ -431,11 +431,7 @@ describe('ReactNavigationInstrumentation', () => {
     });
 
     test('after all setup registers for runApplication calls', async () => {
-      const mockedOnRunApplication = jest.fn();
-      const mockedGetAppRegistryIntegration = jest.spyOn(AppRegistry, 'getAppRegistryIntegration').mockReturnValue({
-        onRunApplication: mockedOnRunApplication,
-        name: 'appRegistryIntegrationMocked',
-      });
+      const { mockedGetAppRegistryIntegration, mockedOnRunApplication } = mockAppRegistryIntegration();
 
       const instrumentation = reactNavigationIntegration();
 
@@ -466,11 +462,7 @@ describe('ReactNavigationInstrumentation', () => {
       // This avoid starting a new navigation span when the application run was called before
       // before the first navigation container is registered.
 
-      const mockedOnRunApplication = jest.fn();
-      const mockedGetAppRegistryIntegration = jest.spyOn(AppRegistry, 'getAppRegistryIntegration').mockReturnValue({
-        onRunApplication: mockedOnRunApplication,
-        name: 'appRegistryIntegrationMocked',
-      });
+      const { mockedGetAppRegistryIntegration, mockedOnRunApplication } = mockAppRegistryIntegration();
 
       reactNavigationIntegration().afterAllSetup(client);
       await jest.runOnlyPendingTimersAsync(); // Flushes the initial navigation span
@@ -490,9 +482,8 @@ describe('ReactNavigationInstrumentation', () => {
       // This avoid starting a new navigation span when the application run was called before
       // before the first navigation container is registered.
 
-      const mockedGetAppRegistryIntegration = jest
-        .spyOn(AppRegistry, 'getAppRegistryIntegration')
-        .mockReturnValue(undefined);
+      const { mockedGetAppRegistryIntegration, mockedOnRunApplication } = mockAppRegistryIntegration();
+      mockedOnRunApplication.mockReturnValue(undefined);
 
       reactNavigationIntegration().afterAllSetup(client);
 
