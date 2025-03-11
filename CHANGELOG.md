@@ -8,7 +8,14 @@
 
 ## Unreleased
 
-- Bump Android SDK from v7.22.0 to v7.22.1([#4643](https://github.com/getsentry/sentry-react-native/pull/4643))
+### Fixes
+
+- Fixes missing Cold Start measurements by bumping the Android SDK version to v7.22.1 ([#4643](https://github.com/getsentry/sentry-react-native/pull/4643))
+- Attach App Start spans to the first created not the first processed root span ([#4618](https://github.com/getsentry/sentry-react-native/pull/4618), [#4644](https://github.com/getsentry/sentry-react-native/pull/4644))
+
+### Dependencies
+
+- Bump Android SDK from v7.22.0 to v7.22.1 ([#4643](https://github.com/getsentry/sentry-react-native/pull/4643))
   - [changelog](https://github.com/getsentry/sentry-java/blob/7.x.x/CHANGELOG.md#7221)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.22.0...7.22.1)
 
