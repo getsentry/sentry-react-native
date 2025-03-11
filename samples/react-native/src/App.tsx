@@ -18,7 +18,6 @@ import Animated, {
 import * as Sentry from '@sentry/react-native';
 import { FeedbackWidget } from '@sentry/react-native';
 
-import { SENTRY_INTERNAL_DSN } from './dsn';
 import ErrorsScreen from './Screens/ErrorsScreen';
 import PerformanceScreen from './Screens/PerformanceScreen';
 import TrackerScreen from './Screens/TrackerScreen';
@@ -32,12 +31,15 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
-import { logWithoutTracing } from './utils';
+import { getDsn, logWithoutTracing } from './utils';
 import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 import * as ImagePicker from 'react-native-image-picker';
+
+/* false by default to avoid issues in e2e tests waiting for the animation end */
+const RUNNING_INDICATOR = false;
 
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
@@ -54,7 +56,7 @@ const reactNavigationIntegration = Sentry.reactNavigationIntegration({
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
-  dsn: SENTRY_INTERNAL_DSN,
+  dsn: getDsn(),
   debug: true,
   environment: 'dev',
   beforeSend: (event: ErrorEvent) => {
@@ -248,6 +250,7 @@ function BottomTabsNavigator() {
                 name={focused ? 'bug' : 'bug-outline'}
                 size={size}
                 color={color}
+                testID="errors-tab-icon"
               />
             ),
           }}
@@ -263,6 +266,7 @@ function BottomTabsNavigator() {
                 name={focused ? 'speedometer' : 'speedometer-outline'}
                 size={size}
                 color={color}
+                testID="performance-tab-icon"
               />
             ),
           }}
@@ -280,6 +284,7 @@ function BottomTabsNavigator() {
                 }
                 size={size}
                 color={color}
+                testID="playground-tab-icon"
               />
             ),
           }}
@@ -319,6 +324,10 @@ function App() {
 
 function RunningIndicator() {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    return null;
+  }
+
+  if (!RUNNING_INDICATOR) {
     return null;
   }
 
