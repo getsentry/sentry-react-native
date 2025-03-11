@@ -7,7 +7,6 @@ import {
 
 import { getItemOfTypeFrom } from './utils/event';
 import { maestro } from './utils/maestro';
-import { isAndroid, isIOS } from './utils/environment';
 
 describe('Capture transaction', () => {
   let sentryServer = createSentryServer();
