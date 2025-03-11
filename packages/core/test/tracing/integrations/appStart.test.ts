@@ -33,6 +33,10 @@ import { NATIVE } from '../../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
 import { mockFunction } from '../../testutils';
 
+type AppStartIntegrationTest = ReturnType<typeof appStartIntegration> & {
+  setFirstStartedActiveRootSpanId: (spanId: string | undefined) => void;
+};
+
 let dateNowSpy: jest.SpyInstance;
 
 jest.mock('../../../src/js/wrapper', () => {
@@ -689,7 +693,10 @@ describe('App Start Integration', () => {
       const integration = appStartIntegration();
       const client = new TestClient(getDefaultTestClientOptions());
 
-      const actualEvent = await integration.processEvent(getMinimalTransactionEvent(), {}, client);
+      const firstEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      const actualEvent = await integration.processEvent(firstEvent, {}, client);
       expect(actualEvent).toEqual(
         expectEventWithAttachedColdAppStart({ timeOriginMilliseconds, appStartTimeMilliseconds }),
       );
@@ -722,6 +729,7 @@ describe('App Start Integration', () => {
 
 function processEvent(event: Event): PromiseLike<Event | null> | Event | null {
   const integration = appStartIntegration();
+  (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(event.contexts?.trace?.span_id);
   return integration.processEvent(event, {}, new TestClient(getDefaultTestClientOptions()));
 }
 
