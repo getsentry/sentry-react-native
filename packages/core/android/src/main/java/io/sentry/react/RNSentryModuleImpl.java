@@ -12,7 +12,6 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.util.SparseIntArray;
-
 import androidx.annotation.VisibleForTesting;
 import androidx.core.app.FrameMetricsAggregator;
 import androidx.fragment.app.FragmentActivity;
@@ -107,8 +106,7 @@ public class RNSentryModuleImpl {
   private FrameMetricsAggregator frameMetricsAggregator = null;
   private boolean androidXAvailable;
 
-  @VisibleForTesting
-  static long lastStartTimestampMs = -1;
+  @VisibleForTesting static long lastStartTimestampMs = -1;
 
   // 700ms to constitute frozen frames.
   private static final int FROZEN_FRAME_THRESHOLD = 700;
@@ -453,9 +451,9 @@ public class RNSentryModuleImpl {
         (WritableMap) RNSentryMapConverter.convertToWritable(metricsDataBag);
 
     long currentStartTimestampMs = metrics.getAppStartTimeSpan().getStartTimestampMs();
-    boolean hasFetched = lastStartTimestampMs > 0 && lastStartTimestampMs == currentStartTimestampMs;
-    mutableMeasurement.putBoolean(
-        "has_fetched", hasFetched);
+    boolean hasFetched =
+        lastStartTimestampMs > 0 && lastStartTimestampMs == currentStartTimestampMs;
+    mutableMeasurement.putBoolean("has_fetched", hasFetched);
 
     if (lastStartTimestampMs < 0) {
       logger.log(SentryLevel.DEBUG, "App Start data reported to the RN layer for the first time.");
