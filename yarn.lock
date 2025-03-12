@@ -8112,7 +8112,7 @@ __metadata:
     "@sentry/react": 8.54.0
     "@sentry/types": 8.54.0
     "@sentry/utils": 8.54.0
-    "@sentry/wizard": 4.1.0
+    "@sentry/wizard": 4.2.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -8205,9 +8205,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:4.1.0":
-  version: 4.1.0
-  resolution: "@sentry/wizard@npm:4.1.0"
+"@sentry/wizard@npm:4.2.0":
+  version: 4.2.0
+  resolution: "@sentry/wizard@npm:4.2.0"
   dependencies:
     "@clack/core": ^0.3.4
     "@clack/prompts": 0.7.0
@@ -8226,7 +8226,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 3bc2f6cc11ac1e7771277e27682bc1d95eb5dec2ae88f3428db0f5ea3fbf3368b83bcd920c8aa91fa63c1c71ad4e7acb16fdff3e3eebb8e1bfe92aebb474f884
+  checksum: 5d8b7235c1d729426792ec259e21d992e5023d95fdd5f02567354ba8798c085c3da13fe99354f64989f06816911daab249ab9f8df6bc2a0dae066fb48a313faf
   languageName: node
   linkType: hard
 
@@ -8692,7 +8692,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^29.5.13":
+"@types/jest@npm:^29.5.13, @types/jest@npm:^29.5.14":
   version: 29.5.14
   resolution: "@types/jest@npm:29.5.14"
   dependencies:
@@ -8838,6 +8838,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.19.2"
   checksum: 69d03cf607197b40775e10c57f26a30e2a7f4f108a29ef147db145227686021c26f696efbb5ff077831a7febe647c3374f725eed8e33442fc11230da9e895dda
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.13.1":
+  version: 22.13.1
+  resolution: "@types/node@npm:22.13.1"
+  dependencies:
+    undici-types: ~6.20.0
+  checksum: a0759e4bedc3fe892c3ddef5fa9cb5251f9c5b24defc1a389438ea3b5b727c481c1a9bc94bae4ecc7426c89ad293cd66633d163da1ab14d74d358cbec9e1ce31
   languageName: node
   linkType: hard
 
@@ -22915,6 +22924,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-launch-arguments@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "react-native-launch-arguments@npm:4.1.0"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 719b6cbfb0bb77152b94f0f96c30a90847b9ade4908936435d2c2024e81d2538968a9225457d443f84513e72487565c7b31472307db37292640ffb2a77315e3e
+  languageName: node
+  linkType: hard
+
 "react-native-macos@npm:0.73.34":
   version: 0.73.34
   resolution: "react-native-macos@npm:0.73.34"
@@ -24644,7 +24663,10 @@ __metadata:
     "@react-navigation/native-stack": ^7.2.0
     "@react-navigation/stack": ^7.1.1
     "@sentry/babel-plugin-component-annotate": 3.2.2
+    "@sentry/core": 8.54.0
     "@sentry/react-native": 6.9.0
+    "@types/jest": ^29.5.14
+    "@types/node": ^22.13.1
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
     "@types/react-test-renderer": ^18.0.0
@@ -24662,6 +24684,7 @@ __metadata:
     react-native: 0.77.1
     react-native-gesture-handler: ^2.24.0
     react-native-image-picker: ^8.0.0
+    react-native-launch-arguments: ^4.1.0
     react-native-reanimated: 3.17.1
     react-native-safe-area-context: 5.2.0
     react-native-screens: 4.8.0
@@ -24672,6 +24695,7 @@ __metadata:
     react-test-renderer: 18.3.1
     redux: ^4.2.1
     sentry-react-native-samples-utils: "workspace:^"
+    ts-jest: ^29.2.5
     typescript: 5.0.4
   languageName: unknown
   linkType: soft
@@ -26249,7 +26273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.1.1":
+"ts-jest@npm:^29.1.1, ts-jest@npm:^29.2.5":
   version: 29.2.5
   resolution: "ts-jest@npm:29.2.5"
   dependencies:
@@ -26757,6 +26781,13 @@ __metadata:
   version: 6.19.8
   resolution: "undici-types@npm:6.19.8"
   checksum: de51f1b447d22571cf155dfe14ff6d12c5bdaec237c765085b439c38ca8518fc360e88c70f99469162bf2e14188a7b0bcb06e1ed2dc031042b984b0bb9544017
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.20.0":
+  version: 6.20.0
+  resolution: "undici-types@npm:6.20.0"
+  checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
   languageName: node
   linkType: hard
 
