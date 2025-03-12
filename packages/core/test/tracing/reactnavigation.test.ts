@@ -519,7 +519,7 @@ describe('ReactNavigationInstrumentation', () => {
       expect(mockSetCurrentRoute).not.toHaveBeenCalled();
     });
 
-    test('setCurrentRoute is not called when navigation is finishes', async () => {
+    test('setCurrentRoute is not called when navigation finishes', async () => {
       mockSetCurrentRoute.mockClear();
       mockNavigation.finishAppStartNavigation();
       jest.runOnlyPendingTimers();
