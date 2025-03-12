@@ -20,7 +20,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE,
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
 } from '../../src/js/tracing/semanticAttributes';
-import { DEFAULT_NAVIGATION_SPAN_NAME } from '../../src/js/tracing/span';
+import { DEFAULT_NAVIGATION_SPAN_NAME, SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
@@ -83,6 +83,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
               [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
+              [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
             },
           }),
         }),
@@ -192,6 +193,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
               [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
+              [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
             },
           }),
         }),
@@ -229,6 +231,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
               [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
+              [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
             },
           }),
         }),
@@ -268,6 +271,7 @@ describe('ReactNavigationInstrumentation', () => {
               [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
               [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
               [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
+              [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
             },
           }),
         }),
