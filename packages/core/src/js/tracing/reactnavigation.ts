@@ -326,7 +326,7 @@ export const reactNavigationIntegration = ({
       },
     });
 
-    tracing?.setCurrentRoute(route.key);
+    tracing?.setCurrentRoute(route.name);
 
     pushRecentRouteKey(route.key);
     latestRoute = route;
