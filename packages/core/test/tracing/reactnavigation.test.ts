@@ -461,6 +461,73 @@ describe('ReactNavigationInstrumentation', () => {
     });
   });
 
+  describe('setCurrentRoute', () => {
+    let mockSetCurrentRoute: jest.Mock;
+
+    beforeEach(() => {
+      mockSetCurrentRoute = jest.fn();
+      const rnTracingIntegration = reactNativeTracingIntegration();
+      rnTracingIntegration.setCurrentRoute = mockSetCurrentRoute;
+
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+      });
+      mockNavigation = createMockNavigationAndAttachTo(rNavigation);
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, rnTracingIntegration],
+        enableAppStartTracking: false,
+      });
+
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      jest.runOnlyPendingTimers();
+    });
+
+    test('setCurrentRoute is called with route name after navigation', async () => {
+      expect(mockSetCurrentRoute).toHaveBeenCalledWith('Initial Screen');
+
+      mockSetCurrentRoute.mockClear();
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+
+      expect(mockSetCurrentRoute).toHaveBeenCalledWith('New Screen');
+
+      mockSetCurrentRoute.mockClear();
+      mockNavigation.navigateToSecondScreen();
+      jest.runOnlyPendingTimers();
+
+      expect(mockSetCurrentRoute).toHaveBeenCalledWith('Second Screen');
+
+      mockSetCurrentRoute.mockClear();
+      mockNavigation.navigateToInitialScreen();
+      jest.runOnlyPendingTimers();
+
+      expect(mockSetCurrentRoute).toHaveBeenCalledWith('Initial Screen');
+    });
+
+    test('setCurrentRoute is not called when navigation is cancelled', async () => {
+      mockSetCurrentRoute.mockClear();
+      mockNavigation.emitCancelledNavigation();
+      jest.runOnlyPendingTimers();
+
+      expect(mockSetCurrentRoute).not.toHaveBeenCalled();
+    });
+
+    test('setCurrentRoute is not called when navigation finishes', async () => {
+      mockSetCurrentRoute.mockClear();
+      mockNavigation.finishAppStartNavigation();
+      jest.runOnlyPendingTimers();
+
+      expect(mockSetCurrentRoute).not.toHaveBeenCalled();
+    });
+  });
+
   function setupTestClient(
     setupOptions: {
       beforeSpanStart?: (options: StartSpanOptions) => StartSpanOptions;
