@@ -7966,66 +7966,66 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/cli-darwin@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli-darwin@npm:2.42.2"
+"@sentry/cli-darwin@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli-darwin@npm:2.42.3"
   conditions: os=darwin
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm64@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli-linux-arm64@npm:2.42.2"
+"@sentry/cli-linux-arm64@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli-linux-arm64@npm:2.42.3"
   conditions: (os=linux | os=freebsd) & cpu=arm64
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli-linux-arm@npm:2.42.2"
+"@sentry/cli-linux-arm@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli-linux-arm@npm:2.42.3"
   conditions: (os=linux | os=freebsd) & cpu=arm
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-i686@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli-linux-i686@npm:2.42.2"
+"@sentry/cli-linux-i686@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli-linux-i686@npm:2.42.3"
   conditions: (os=linux | os=freebsd) & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-x64@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli-linux-x64@npm:2.42.2"
+"@sentry/cli-linux-x64@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli-linux-x64@npm:2.42.3"
   conditions: (os=linux | os=freebsd) & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-i686@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli-win32-i686@npm:2.42.2"
+"@sentry/cli-win32-i686@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli-win32-i686@npm:2.42.3"
   conditions: os=win32 & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-x64@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli-win32-x64@npm:2.42.2"
+"@sentry/cli-win32-x64@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli-win32-x64@npm:2.42.3"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli@npm:2.42.2":
-  version: 2.42.2
-  resolution: "@sentry/cli@npm:2.42.2"
+"@sentry/cli@npm:2.42.3":
+  version: 2.42.3
+  resolution: "@sentry/cli@npm:2.42.3"
   dependencies:
-    "@sentry/cli-darwin": 2.42.2
-    "@sentry/cli-linux-arm": 2.42.2
-    "@sentry/cli-linux-arm64": 2.42.2
-    "@sentry/cli-linux-i686": 2.42.2
-    "@sentry/cli-linux-x64": 2.42.2
-    "@sentry/cli-win32-i686": 2.42.2
-    "@sentry/cli-win32-x64": 2.42.2
+    "@sentry/cli-darwin": 2.42.3
+    "@sentry/cli-linux-arm": 2.42.3
+    "@sentry/cli-linux-arm64": 2.42.3
+    "@sentry/cli-linux-i686": 2.42.3
+    "@sentry/cli-linux-x64": 2.42.3
+    "@sentry/cli-win32-i686": 2.42.3
+    "@sentry/cli-win32-x64": 2.42.3
     https-proxy-agent: ^5.0.0
     node-fetch: ^2.6.7
     progress: ^2.0.3
@@ -8048,7 +8048,7 @@ __metadata:
       optional: true
   bin:
     sentry-cli: bin/sentry-cli
-  checksum: a22e4ff4a8c1891cc89028871f64f05eb4376033dba2f1ffdf0b946e4e6493a99807d640ea9580623e1c75ba181c295c93a51d00148ad45bb9343e68c2e42f90
+  checksum: b4fc919bed45ba08b9acc2533f83dbec9247e4143fcdc255669675f9b181f5ee535f7f136b478b8a2cae6d7613b1afe652fd5260607da0b32a3fb3ee085be3c7
   languageName: node
   linkType: hard
 
@@ -8107,7 +8107,7 @@ __metadata:
     "@sentry-internal/typescript": 8.54.0
     "@sentry/babel-plugin-component-annotate": 3.2.2
     "@sentry/browser": 8.54.0
-    "@sentry/cli": 2.42.2
+    "@sentry/cli": 2.42.3
     "@sentry/core": 8.54.0
     "@sentry/react": 8.54.0
     "@sentry/types": 8.54.0
@@ -24720,7 +24720,7 @@ __metadata:
   dependencies:
     "@expo/swiftlint": ^0.57.1
     "@naturalcycles/ktlint": ^1.13.0
-    "@sentry/cli": 2.42.2
+    "@sentry/cli": 2.42.3
     clang-format: ^1.8.0
     downlevel-dts: ^0.11.0
     google-java-format: ^1.4.0
