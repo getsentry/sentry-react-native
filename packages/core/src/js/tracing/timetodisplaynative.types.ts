@@ -8,4 +8,5 @@ export interface RNSentryOnDrawReporterProps {
   onDrawNextFrame: (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }) => void;
   initialDisplay?: boolean;
   fullDisplay?: boolean;
+  spanId?: string;
 }

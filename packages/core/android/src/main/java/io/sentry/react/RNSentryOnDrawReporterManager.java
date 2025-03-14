@@ -57,6 +57,11 @@ public class RNSentryOnDrawReporterManager
     view.setFullDisplay(fullDisplay);
   }
 
+  @ReactProp(name = "spanId")
+  public void setSpanId(RNSentryOnDrawReporterView view, String spanId) {
+    view.setSpanId(spanId);
+  }
+
   public Map getExportedCustomBubblingEventTypeConstants() {
     return MapBuilder.builder()
         .put(
@@ -75,12 +80,19 @@ public class RNSentryOnDrawReporterManager
     private final @Nullable Runnable emitFullDisplayEvent;
     private final @Nullable BuildInfoProvider buildInfo;
 
+    private boolean isFullDisplay;
+    private boolean isInitialDisplay;
+    private @Nullable String spanId;
+
     public RNSentryOnDrawReporterView(@NotNull Context context) {
       super(context);
       reactContext = null;
       buildInfo = null;
       emitInitialDisplayEvent = null;
       emitFullDisplayEvent = null;
+      isFullDisplay = false;
+      isInitialDisplay = false;
+      spanId = null;
     }
 
     public RNSentryOnDrawReporterView(
@@ -90,9 +102,17 @@ public class RNSentryOnDrawReporterManager
       buildInfo = buildInfoProvider;
       emitInitialDisplayEvent = () -> emitDisplayEvent("initialDisplay");
       emitFullDisplayEvent = () -> emitDisplayEvent("fullDisplay");
+      isFullDisplay = false;
+      isInitialDisplay = false;
+      spanId = null;
+    }
+
+    public void setSpanId(@Nullable String spanId) {
+      this.spanId = spanId;
     }
 
     public void setFullDisplay(boolean fullDisplay) {
+      isFullDisplay = fullDisplay;
       if (!fullDisplay) {
         return;
       }
@@ -102,6 +122,7 @@ public class RNSentryOnDrawReporterManager
     }
 
     public void setInitialDisplay(boolean initialDisplay) {
+      isInitialDisplay = initialDisplay;
       if (!initialDisplay) {
         return;
       }
@@ -155,6 +176,7 @@ public class RNSentryOnDrawReporterManager
                 + " null.");
         return;
       }
+      setSpanId(null);
       reactContext
           .getJSModule(RCTEventEmitter.class)
           .receiveEvent(getId(), "onDrawNextFrameView", event);

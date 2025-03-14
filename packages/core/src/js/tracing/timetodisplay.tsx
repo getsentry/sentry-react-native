@@ -34,12 +34,17 @@ export type TimeToDisplayProps = {
  */
 export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElement {
   const activeSpan = getActiveSpan();
-  if (activeSpan) {
-    manualInitialDisplaySpans.set(activeSpan, true);
-    startTimeToInitialDisplaySpan();
+  if (!activeSpan) {
+    return null;
   }
 
-  return <TimeToDisplay initialDisplay={props.record}>{props.children}</TimeToDisplay>;
+  manualInitialDisplaySpans.set(activeSpan, true);
+  const span = startTimeToInitialDisplaySpan();
+  if (!span) {
+    return null;
+  }
+
+  return <TimeToDisplay initialDisplay={props.record} spanId={spanToJSON(span).span_id}>{props.children}</TimeToDisplay>;
 }
 
 /**
@@ -50,14 +55,22 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
  * <TimeToInitialDisplay record />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
-  startTimeToFullDisplaySpan();
-  return <TimeToDisplay fullDisplay={props.record}>{props.children}</TimeToDisplay>;
+  const span = startTimeToFullDisplaySpan();
+  if (!span) {
+    return null;
+  }
+
+  return <TimeToDisplay fullDisplay={props.record} spanId={spanToJSON(span).span_id}>{props.children}</TimeToDisplay>;
 }
 
 function TimeToDisplay(props: {
   children?: React.ReactNode;
   initialDisplay?: boolean;
   fullDisplay?: boolean;
+  /**
+   * To which span this TimeToDisplay belongs to.
+   */
+  spanId?: string;
 }): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
   const isNewArchitecture = isTurboModuleEnabled();
@@ -78,7 +91,9 @@ function TimeToDisplay(props: {
       <RNSentryOnDrawReporter
         onDrawNextFrame={onDraw}
         initialDisplay={props.initialDisplay}
-        fullDisplay={props.fullDisplay} />
+        fullDisplay={props.fullDisplay}
+        spanId={props.spanId}
+      />
       {props.children}
     </>
   );
