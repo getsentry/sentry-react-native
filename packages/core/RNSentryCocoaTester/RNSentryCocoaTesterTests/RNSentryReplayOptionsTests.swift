@@ -48,13 +48,15 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 6)
+        XCTAssertEqual(replayOptions.count, 8)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["maskAllImages"])
         XCTAssertNotNil(replayOptions["maskAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
         XCTAssertNotNil(replayOptions["sdkInfo"])
+        XCTAssertNotNil(replayOptions["enableExperimentalViewRenderer"])
+        XCTAssertNotNil(replayOptions["enableFastViewRendering"])
     }
 
     func testSessionSampleRate() {
