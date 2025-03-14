@@ -40,7 +40,7 @@ describe('safe', () => {
       const actualSafeFunction = safeTracesSampler(mockFn);
       const expectedInheritOrSampleWith = function (fallbackSampleRate: number): number {
         return fallbackSampleRate;
-      }
+      };
       actualSafeFunction?.({
         name: 'foo',
         transactionContext: { name: 'foo' },

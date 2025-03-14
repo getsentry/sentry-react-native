@@ -1,4 +1,5 @@
-import { getCurrentScope, Span, spanToJSON, startSpanManual } from '@sentry/core';
+import type { Span } from '@sentry/core';
+import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
 
 import { reactNativeTracingIntegration } from '../../src/js';
 import { type TestClient, setupTestClient } from '../mocks/client';
@@ -55,7 +56,6 @@ describe('Tracing extensions', () => {
   });
 
   test('transaction start span passes correct values to the child', async () => {
-
     let childSpan: Span = undefined;
     const transaction = startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, _span => {
       childSpan = startSpanManual({ name: 'child', scope: getCurrentScope() }, __span => __span);
