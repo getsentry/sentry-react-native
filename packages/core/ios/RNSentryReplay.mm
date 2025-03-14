@@ -27,6 +27,8 @@
         @"errorSampleRate" : options[@"replaysOnErrorSampleRate"] ?: [NSNull null],
         @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
         @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
+        @"enableExperimentalViewRenderer" : replayOptions[@"enableExperimentalViewRenderer"] ?: [NSNull null],
+        @"enableFastViewRendering" : replayOptions[@"enableFastViewRendering"] ?: [NSNull null],
         @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
         @"sdkInfo" :
             @ { @"name" : REACT_NATIVE_SDK_NAME, @"version" : REACT_NATIVE_SDK_PACKAGE_VERSION }
