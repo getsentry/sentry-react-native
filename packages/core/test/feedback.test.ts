@@ -261,10 +261,7 @@ describe('captureFeedback', () => {
 
     expect(typeof eventId).toBe('string');
 
-    const [[envelope]] = mockTransport.mock.calls;
-    expect(mockTransport).toHaveBeenCalledWith(envelope);
-
-    expect(envelope).toEqual([
+    expect(mockTransport).toHaveBeenCalledWith([
       {
         event_id: eventId,
         sent_at: expect.toBeDateString(),
@@ -328,10 +325,7 @@ describe('captureFeedback', () => {
 
     const traceId = span!.spanContext().traceId;
 
-    const [[envelope]] = mockTransport.mock.calls;
-    expect(mockTransport).toHaveBeenCalledWith(envelope);
-
-    expect(envelope).toEqual([
+    expect(mockTransport).toHaveBeenCalledWith([
       {
         event_id: eventId,
         sent_at: expect.toBeDateString(),

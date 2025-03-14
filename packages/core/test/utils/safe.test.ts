@@ -38,18 +38,19 @@ describe('safe', () => {
     test('calls given function with correct args', () => {
       const mockFn = jest.fn();
       const actualSafeFunction = safeTracesSampler(mockFn);
+      const expectedInheritOrSampleWith = function (fallbackSampleRate: number): number {
+        return fallbackSampleRate;
+      }
       actualSafeFunction?.({
         name: 'foo',
         transactionContext: { name: 'foo' },
-        inheritOrSampleWith: function (fallbackSampleRate: number): number {
-          return fallbackSampleRate;
-        },
+        inheritOrSampleWith: expectedInheritOrSampleWith,
       });
       expect(mockFn).toBeCalledTimes(1);
       expect(mockFn).toBeCalledWith({
         name: 'foo',
         transactionContext: { name: 'foo' },
-        inheritOrSampleWith: expect.any(Function),
+        inheritOrSampleWith: expectedInheritOrSampleWith,
       });
     });
     test('calls given function amd return its result', () => {

@@ -8153,7 +8153,7 @@ __metadata:
     eslint-plugin-react-native: ^3.8.1
     expo: ^52.0.0
     expo-module-scripts: 3.1.0
-    jest: ^29.7.0
+    jest: ^29.6.2
     jest-environment-jsdom: ^29.6.2
     jest-extended: ^4.0.2
     madge: ^6.1.0
@@ -18025,7 +18025,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29.6.3, jest@npm:^29.7.0":
+"jest@npm:^29.6.2, jest@npm:^29.6.3, jest@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest@npm:29.7.0"
   dependencies:
