@@ -295,7 +295,7 @@ export const appStartIntegration = ({
     const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
     const appStartSpanJSON: SpanJSON = createSpanJSON({
       op,
-      description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
+      description: appStart.type === 'cold' ? 'Cold Start' : 'Warm Start',
       start_timestamp: appStartTimestampSeconds,
       timestamp: appStartEndTimestampSeconds,
       trace_id: event.contexts.trace.trace_id,
