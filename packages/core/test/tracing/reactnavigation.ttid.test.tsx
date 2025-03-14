@@ -589,6 +589,55 @@ describe('React Navigation - TTID', () => {
     });
   });
 
+  describe('ttid for preloaded/seen routes', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      (notWeb as jest.Mock).mockReturnValue(true);
+      (isHermesEnabled as jest.Mock).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should add ttid span and measurement for already seen route', () => {
+      const sut = createTestedInstrumentation({
+        enableTimeToInitialDisplay: true,
+        ignoreEmptyBackNavigationTransactions: false,
+        enableTimeToInitialDisplayForPreloadedRoutes: true,
+      });
+      transportSendMock = initSentry(sut).transportSendMock;
+
+      mockedNavigation = createMockNavigationAndAttachTo(sut);
+
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+      mockedNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+      mockedNavigation.navigateToInitialScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              op: 'ui.load.initial_display',
+              description: 'Initial Screen initial display',
+            }),
+          ]),
+          measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
+            time_to_initial_display: {
+              value: expect.any(Number),
+              unit: 'millisecond',
+            },
+          }),
+        }),
+      );
+    });
+  });
+
   function getSpanDurationMs(transaction: TransactionEvent, op: string): number | undefined {
     const ttidSpan = transaction.spans?.find(span => span.op === op);
     if (!ttidSpan) {
@@ -603,10 +652,13 @@ describe('React Navigation - TTID', () => {
     return (spanJSON.timestamp - spanJSON.start_timestamp) * 1000;
   }
 
-  function createTestedInstrumentation(options?: { enableTimeToInitialDisplay?: boolean }) {
+  function createTestedInstrumentation(options?: {
+    enableTimeToInitialDisplay?: boolean
+    enableTimeToInitialDisplayForPreloadedRoutes?: boolean
+    ignoreEmptyBackNavigationTransactions?: boolean
+  }) {
     const sut = Sentry.reactNavigationIntegration({
       ...options,
-      ignoreEmptyBackNavigationTransactions: true, // default true
     });
     return sut;
   }
