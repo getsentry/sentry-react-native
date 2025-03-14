@@ -4,6 +4,7 @@ import { addExceptionMechanism, captureException, getClient, getCurrentScope, lo
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
+import { ReactNativeClientOptions } from '../options';
 
 const INTEGRATION_NAME = 'ReactNativeErrorHandlers';
 
@@ -155,8 +156,7 @@ function setupErrorUtilsGlobalHandler(): void {
       return;
     }
 
-    // shutdownTimeout was removed: https://github.com/getsentry/sentry-javascript/pull/15217
-    void client.flush(2000).then(
+    void client.flush((client.getOptions() as ReactNativeClientOptions).shutdownTimeout || 2000).then(
       () => {
         defaultHandler(error, isFatal);
       },
