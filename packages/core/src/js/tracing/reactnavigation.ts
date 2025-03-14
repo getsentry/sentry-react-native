@@ -62,6 +62,14 @@ interface ReactNavigationIntegrationOptions {
    * @default true
    */
   ignoreEmptyBackNavigationTransactions: boolean;
+
+  /**
+   * Enabled measuring Time to Initial Display for routes that are already loaded in memory.
+   * (a.k.a., Routes that the navigation integration has already seen.)
+   *
+   * @default false
+   */
+  enableTimeToInitialDisplayForPreloadedRoutes: boolean;
 }
 
 /**
@@ -76,6 +84,7 @@ export const reactNavigationIntegration = ({
   routeChangeTimeoutMs = 1_000,
   enableTimeToInitialDisplay = false,
   ignoreEmptyBackNavigationTransactions = true,
+  enableTimeToInitialDisplayForPreloadedRoutes = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -268,16 +277,19 @@ export const reactNavigationIntegration = ({
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
-    const latestTtidSpan =
-      !routeHasBeenSeen &&
-      enableTimeToInitialDisplay &&
-      startTimeToInitialDisplaySpan({
+    const startTtidForNewRoute = enableTimeToInitialDisplay && !routeHasBeenSeen;
+    const startTtidForAllRoutes = enableTimeToInitialDisplay && enableTimeToInitialDisplayForPreloadedRoutes;
+
+    let latestTtidSpan: Span | undefined = undefined;
+    if (startTtidForNewRoute || startTtidForAllRoutes) {
+      latestTtidSpan = startTimeToInitialDisplaySpan({
         name: `${route.name} initial display`,
         isAutoInstrumented: true,
       });
+    }
 
     const navigationSpanWithTtid = latestNavigationSpan;
-    if (!routeHasBeenSeen && latestTtidSpan) {
+    if (latestTtidSpan) {
       newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
         const activeSpan = getActiveSpan();
         if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
