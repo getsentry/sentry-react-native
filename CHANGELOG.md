@@ -51,7 +51,7 @@
 ### Major Changes
 
 - Remove autoSessionTracking option
-- Remove `enableTracing` Instead, set  tracesSampleRate: 0 to disable, or a higher value to enable it.
+- Remove `enableTracing`. Instead, set `tracesSampleRate` to a value greater than `zero` to `enable tracing`, `0` to keep tracing integrations active without sampling, or `undefined` to disable the performance integration.
 - Remove `getCurrentHub()`, `Hub`, and `getCurrentHubShim()`
 - Remove `spanId` from propagation `context`
 - Remove metrics API
