@@ -6,7 +6,7 @@ import { isTurboModuleEnabled } from '../utils/environment';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
 import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
-import { setSpanDurationAsMeasurement } from './utils';
+import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
 
 let nativeComponentMissingLogged = false;
 
@@ -206,14 +206,26 @@ function onDrawNextFrame(event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): 
   }
 }
 
-function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
-  const span = startTimeToInitialDisplaySpan();
+/**
+ *
+ */
+export function updateInitialDisplaySpan(
+  frameTimestampSeconds: number,
+  {
+    activeSpan = getActiveSpan(),
+    span = startTimeToInitialDisplaySpan(),
+  }: {
+    activeSpan?: Span;
+    /**
+     * Time to initial display span to update.
+     */
+    span?: Span;
+  } = {}): void {
   if (!span) {
     logger.warn(`[TimeToDisplay] No span found or created, possibly performance is disabled.`);
     return;
   }
 
-  const activeSpan = getActiveSpan();
   if (!activeSpan) {
     logger.warn(`[TimeToDisplay] No active span found to attach ui.load.initial_display to.`);
     return;
@@ -239,7 +251,7 @@ function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
     updateFullDisplaySpan(frameTimestampSeconds, span);
   }
 
-  setSpanDurationAsMeasurement('time_to_initial_display', span);
+  setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
 }
 
 function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {

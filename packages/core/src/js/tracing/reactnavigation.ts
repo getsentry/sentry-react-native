@@ -32,8 +32,7 @@ import {
   getDefaultIdleNavigationSpanOptions,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
-import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
-import { setSpanDurationAsMeasurementOnSpan } from './utils';
+import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan, updateInitialDisplaySpan } from './timetodisplay';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -297,9 +296,10 @@ export const reactNavigationIntegration = ({
           return;
         }
 
-        latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
-        latestTtidSpan.end(newFrameTimestampInSeconds);
-        setSpanDurationAsMeasurementOnSpan('time_to_initial_display', latestTtidSpan, navigationSpanWithTtid);
+        updateInitialDisplaySpan(newFrameTimestampInSeconds, {
+          activeSpan: navigationSpanWithTtid,
+          span: latestTtidSpan,
+        });
       });
     }
 
