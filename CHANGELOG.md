@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Upgrading from 6.x to 7.0
+
+Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
+
+Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
+
 ### Features
 
 - Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
@@ -38,6 +44,9 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 
 ### Dependencies
 
+- Bump JavaScript SDK from v8.54.0 to v9.1.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.1.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.1.0)
 - Bump Android SDK from v7.20.1 to v8.3.0 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#830)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.3.0)
@@ -47,6 +56,39 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 - Bump CLI from v2.41.1 to v2.42.1 ([#4563](https://github.com/getsentry/sentry-react-native/pull/4563))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2421)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.1)
+
+
+### Major Changes
+
+- `ip addresses` is only collected when `sendDefaultPii`: `true`
+- Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
+- `shutdownTimeout` moved from `core` to `@sentry/react-native`
+- `hasTracingEnabled` was renamed to `hasSpansEnabled`
+- You can no longer drop spans or return null on `beforeSendSpan` hook
+
+### Removed types
+
+- TransactionNamingScheme
+- Request
+- Scope (prefer using the Scope class)
+
+### Other removed items.
+
+- `autoSessionTracking` from options.
+  To enable session tracking, ensure that `enableAutoSessionTracking` is enabled.
+
+- `enableTracing`. Instead, set `tracesSampleRate` to a value greater than `zero` to `enable tracing`, `0` to keep tracing integrations active without sampling, or `undefined` to disable the performance integration.
+
+- `getCurrentHub()`, `Hub`, and `getCurrentHubShim()`
+- `spanId` from propagation `context`
+- metrics API
+- `transactionContext` from `samplingContext`
+- `@sentry/utils` package, the exports were moved to `@sentry/core`
+- Standalone `Client` interface & deprecate `BaseClient`
+
+## Other Changes
+
+- Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
 
 ## 6.7.0
 

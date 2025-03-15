@@ -35,7 +35,7 @@ export function withSentryAndroidGradlePlugin(
   const withSentryProjectBuildGradle = (config: any): any => {
     return withProjectBuildGradle(config, (projectBuildGradle: any) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!projectBuildGradle.modResults || !projectBuildGradle.modResults.contents) {
+      if (!projectBuildGradle.modResults?.contents) {
         warnOnce('android/build.gradle content is missing or undefined.');
         return config;
       }
