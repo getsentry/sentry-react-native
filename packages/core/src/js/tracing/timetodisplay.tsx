@@ -55,22 +55,14 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
  * <TimeToInitialDisplay record />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
-  const span = startTimeToFullDisplaySpan();
-  if (!span) {
-    return null;
-  }
-
-  return <TimeToDisplay fullDisplay={props.record} spanId={spanToJSON(span).span_id}>{props.children}</TimeToDisplay>;
+  startTimeToFullDisplaySpan();
+  return <TimeToDisplay fullDisplay={props.record}>{props.children}</TimeToDisplay>;
 }
 
 function TimeToDisplay(props: {
   children?: React.ReactNode;
   initialDisplay?: boolean;
   fullDisplay?: boolean;
-  /**
-   * To which span this TimeToDisplay belongs to.
-   */
-  spanId?: string;
 }): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
   const isNewArchitecture = isTurboModuleEnabled();
@@ -92,7 +84,6 @@ function TimeToDisplay(props: {
         onDrawNextFrame={onDraw}
         initialDisplay={props.initialDisplay}
         fullDisplay={props.fullDisplay}
-        spanId={props.spanId}
       />
       {props.children}
     </>
