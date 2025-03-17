@@ -144,10 +144,9 @@ export function startTimeToFullDisplaySpan(
     name?: string,
     timeoutMs?: number,
     isAutoInstrumented?: boolean
-  } = {
-    timeoutMs: 30_000,
-  },
+  } = {},
 ): Span | undefined {
+  const { timeoutMs = 30_000 } = options;
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
     logger.warn(`[TimeToDisplay] No active span found to attach ui.load.full_display to.`);
@@ -186,7 +185,7 @@ export function startTimeToFullDisplaySpan(
     fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
     setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
     logger.warn(`[TimeToDisplay] Full display span deadline_exceeded.`);
-  }, options.timeoutMs);
+  }, timeoutMs);
 
   fill(fullDisplaySpan, 'end', (originalEnd: Span['end']) => (endTimestamp?: Parameters<Span['end']>[0]) => {
     clearTimeout(timeout);
