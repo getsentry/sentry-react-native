@@ -7,7 +7,6 @@ import {
 
 import { getItemOfTypeFrom } from './utils/event';
 import { maestro } from './utils/maestro';
-import { isAndroid, isIOS } from './utils/environment';
 
 describe('Capture transaction', () => {
   let sentryServer = createSentryServer();
@@ -79,38 +78,20 @@ describe('Capture transaction', () => {
       'transaction',
     );
 
-    if (isIOS()) {
-      expect(item?.[1]).toEqual(
-        expect.objectContaining({
-          measurements: expect.objectContaining({
-            time_to_initial_display: {
-              unit: 'millisecond',
-              value: expect.any(Number),
-            },
-            app_start_cold: {
-              unit: 'millisecond',
-              value: expect.any(Number),
-            },
-          }),
+    expect(item?.[1]).toEqual(
+      expect.objectContaining({
+        measurements: expect.objectContaining({
+          time_to_initial_display: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
+          app_start_cold: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
         }),
-      );
-    } else if (isAndroid()) {
-      // TMP: Until the cold app start is fixed on Android
-      expect(item?.[1]).toEqual(
-        expect.objectContaining({
-          measurements: expect.objectContaining({
-            time_to_initial_display: {
-              unit: 'millisecond',
-              value: expect.any(Number),
-            },
-            app_start_warm: {
-              unit: 'millisecond',
-              value: expect.any(Number),
-            },
-          }),
-        }),
-      );
-    }
+      }),
+    );
   });
 
   it('contains time to initial display measurements', async () => {

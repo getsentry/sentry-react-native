@@ -37,6 +37,7 @@ import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 import * as ImagePicker from 'react-native-image-picker';
+import SpaceflightNewsScreen from './Screens/SpaceflightNewsScreen';
 
 /* false by default to avoid issues in e2e tests waiting for the animation end */
 const RUNNING_INDICATOR = false;
@@ -81,6 +82,7 @@ Sentry.init({
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeoutMs: 5_000,
+        traceFetch: false, // Creates duplicate span for axios requests
       }),
       Sentry.httpClientIntegration({
         // These options are effective only in JS.
@@ -207,6 +209,10 @@ const PerformanceTabNavigator = Sentry.withProfiler(
               name="PerformanceScreen"
               component={PerformanceScreen}
               options={{ title: 'Performance' }}
+            />
+            <Stack.Screen
+              name="SpaceflightNewsScreen"
+              component={SpaceflightNewsScreen}
             />
             <Stack.Screen name="Tracker" component={TrackerScreen} />
             <Stack.Screen

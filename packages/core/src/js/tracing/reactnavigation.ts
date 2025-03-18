@@ -14,6 +14,7 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
+import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
 import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
@@ -118,8 +119,20 @@ export const reactNavigationIntegration = ({
 
     if (initialStateHandled) {
       // We create an initial state here to ensure a transaction gets created before the first route mounts.
+      // This assumes that the Sentry.init() call is made before the first route mounts.
+      // If this is not the case, the first transaction will be nameless 'Route Changed'
       return undefined;
     }
+
+    getAppRegistryIntegration(client)?.onRunApplication(() => {
+      if (initialStateHandled) {
+        // To avoid conflict with the initial transaction we check if it was already handled.
+        // This ensures runApplication calls after the initial start are correctly traced.
+        // This is used for example when Activity is (re)started on Android.
+        logger.log('[ReactNavigationIntegration] Starting new idle navigation span based on runApplication call.');
+        startIdleNavigationSpan();
+      }
+    });
 
     startIdleNavigationSpan();
 
@@ -133,24 +146,28 @@ export const reactNavigationIntegration = ({
     initialStateHandled = true;
   };
 
-  const registerNavigationContainer = (navigationContainerRef: unknown): void => {
-    /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
-
-      Explanation: If the user triggers a fast refresh on the file that the instrumentation is
-      initialized in, it will initialize a new instance and will cause undefined behavior.
-     */
+  const registerNavigationContainer = (maybeNewNavigationContainer: unknown): void => {
     if (RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
-      logger.log(
-        `${INTEGRATION_NAME} Instrumentation already exists, but register has been called again, doing nothing.`,
-      );
-      return undefined;
+      logger.debug(`${INTEGRATION_NAME} Instrumentation already exists, but registering again...`);
+      // In the past we have not allowed re-registering the navigation container to avoid unexpected behavior.
+      // But this doesn't work for Android and re-recreating application main activity.
+      // Where new navigation container is created and the old one is discarded. We need to re-register to
+      // trace the new navigation container navigation.
     }
 
-    if (isPlainObject(navigationContainerRef) && 'current' in navigationContainerRef) {
-      navigationContainer = navigationContainerRef.current as NavigationContainer;
+    let newNavigationContainer: NavigationContainer | undefined;
+    if (isPlainObject(maybeNewNavigationContainer) && 'current' in maybeNewNavigationContainer) {
+      newNavigationContainer = maybeNewNavigationContainer.current as NavigationContainer;
     } else {
-      navigationContainer = navigationContainerRef as NavigationContainer;
+      newNavigationContainer = maybeNewNavigationContainer as NavigationContainer;
     }
+
+    if (navigationContainer === newNavigationContainer) {
+      logger.log(`${INTEGRATION_NAME} Navigation container ref is the same as the one already registered.`);
+      return;
+    }
+    navigationContainer = newNavigationContainer as NavigationContainer;
+
     if (!navigationContainer) {
       logger.warn(`${INTEGRATION_NAME} Received invalid navigation container ref!`);
       return undefined;
@@ -309,7 +326,7 @@ export const reactNavigationIntegration = ({
       },
     });
 
-    tracing?.setCurrentRoute(route.key);
+    tracing?.setCurrentRoute(route.name);
 
     pushRecentRouteKey(route.key);
     latestRoute = route;

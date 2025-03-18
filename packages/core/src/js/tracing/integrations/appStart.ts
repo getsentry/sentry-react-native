@@ -11,6 +11,7 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
+import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
@@ -137,6 +138,7 @@ export const appStartIntegration = ({
   let _client: Client | undefined = undefined;
   let isEnabled = true;
   let appStartDataFlushed = false;
+  let afterAllSetupCalled = false;
   let firstStartedActiveRootSpanId: string | undefined = undefined;
 
   const setup = (client: Client): void => {
@@ -151,8 +153,25 @@ export const appStartIntegration = ({
     client.on('spanStart', recordFirstStartedActiveRootSpanId);
   };
 
-  const afterAllSetup = (_client: Client): void => {
+  const afterAllSetup = (client: Client): void => {
+    if (afterAllSetupCalled) {
+      return;
+    }
+    afterAllSetupCalled = true;
+
     // TODO: automatically set standalone based on the presence of the native layer navigation integration
+
+    getAppRegistryIntegration(client)?.onRunApplication(() => {
+      if (appStartDataFlushed) {
+        logger.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
+        appStartDataFlushed = false;
+        firstStartedActiveRootSpanId = undefined;
+      } else {
+        logger.log(
+          '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
+        );
+      }
+    });
   };
 
   const processEvent = async (event: Event): Promise<Event> => {
@@ -232,7 +251,7 @@ export const appStartIntegration = ({
 
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
     if (appStartDataFlushed) {
-      // App start data is only relevant for the first transaction
+      // App start data is only relevant for the first transaction of the app run
       return;
     }
 
@@ -288,6 +307,17 @@ export const appStartIntegration = ({
     if (!__DEV__ && appStartDurationMs >= MAX_APP_START_DURATION_MS) {
       // Dev builds can have long app start waiting over minute for the first bundle to be produced
       logger.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
+      return;
+    }
+
+    if (appStartDurationMs < 0) {
+      // This can happen when MainActivity on Android is recreated,
+      // and the app start end timestamp is not updated, for example
+      // due to missing `Sentry.wrap(RootComponent)` call.
+      logger.warn(
+        '[AppStart] Last recorded app start end timestamp is before the app start timestamp.',
+        'This is usually caused by missing `Sentry.wrap(RootComponent)` call.',
+      );
       return;
     }
 
@@ -397,19 +427,25 @@ function createJSExecutionStartSpan(
     return undefined;
   }
 
+  const bundleStartTimestampSeconds = bundleStartTimestampMs / 1000;
+  if (bundleStartTimestampSeconds < parentSpan.start_timestamp) {
+    logger.warn('Bundle start timestamp is before the app start span start timestamp. Skipping JS execution span.');
+    return undefined;
+  }
+
   if (!rootComponentCreationTimestampMs) {
     logger.warn('Missing the root component first constructor call timestamp.');
     return createChildSpanJSON(parentSpan, {
       description: 'JS Bundle Execution Start',
-      start_timestamp: bundleStartTimestampMs / 1000,
-      timestamp: bundleStartTimestampMs / 1000,
+      start_timestamp: bundleStartTimestampSeconds,
+      timestamp: bundleStartTimestampSeconds,
       origin: SPAN_ORIGIN_AUTO_APP_START,
     });
   }
 
   return createChildSpanJSON(parentSpan, {
     description: 'JS Bundle Execution Before React Root',
-    start_timestamp: bundleStartTimestampMs / 1000,
+    start_timestamp: bundleStartTimestampSeconds,
     timestamp: rootComponentCreationTimestampMs / 1000,
     origin: isRootComponentCreationTimestampMsManual ? SPAN_ORIGIN_MANUAL_APP_START : SPAN_ORIGIN_AUTO_APP_START,
   });
@@ -419,20 +455,22 @@ function createJSExecutionStartSpan(
  * Adds native spans to the app start span.
  */
 function convertNativeSpansToSpanJSON(parentSpan: SpanJSON, nativeSpans: NativeAppStartResponse['spans']): SpanJSON[] {
-  return nativeSpans.map(span => {
-    if (span.description === 'UIKit init') {
-      return setMainThreadInfo(createUIKitSpan(parentSpan, span));
-    }
+  return nativeSpans
+    .filter(span => span.start_timestamp_ms / 1000 >= parentSpan.start_timestamp)
+    .map(span => {
+      if (span.description === 'UIKit init') {
+        return setMainThreadInfo(createUIKitSpan(parentSpan, span));
+      }
 
-    return setMainThreadInfo(
-      createChildSpanJSON(parentSpan, {
-        description: span.description,
-        start_timestamp: span.start_timestamp_ms / 1000,
-        timestamp: span.end_timestamp_ms / 1000,
-        origin: SPAN_ORIGIN_AUTO_APP_START,
-      }),
-    );
-  });
+      return setMainThreadInfo(
+        createChildSpanJSON(parentSpan, {
+          description: span.description,
+          start_timestamp: span.start_timestamp_ms / 1000,
+          timestamp: span.end_timestamp_ms / 1000,
+          origin: SPAN_ORIGIN_AUTO_APP_START,
+        }),
+      );
+    });
 }
 
 /**
