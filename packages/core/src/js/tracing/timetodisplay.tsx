@@ -306,6 +306,27 @@ export function createTimeToFullDisplay({
    */
   useFocusEffect: (callback: () => void) => void
 }) {
+  return createTimeToDisplay({ useFocusEffect, Component: TimeToFullDisplay });
+}
+
+export function createTimeToInitialDisplay({
+  useFocusEffect,
+}: {
+  useFocusEffect: (callback: () => void) => void
+}) {
+  return createTimeToDisplay({ useFocusEffect, Component: TimeToInitialDisplay });
+}
+
+function createTimeToDisplay({
+  useFocusEffect,
+  Component,
+}: {
+  /**
+   * `@react-navigation/native` useFocusEffect hook.
+   */
+  useFocusEffect: (callback: () => void) => void;
+  Component: typeof TimeToFullDisplay | typeof TimeToInitialDisplay;
+}) {
   return (props: TimeToDisplayProps) => {
     const [focused, setFocused] = useState(false);
 
@@ -316,6 +337,6 @@ export function createTimeToFullDisplay({
         };
     });
 
-    return <TimeToFullDisplay {...props} record={focused && props.record} />;
+    return <Component {...props} record={focused && props.record} />;
   };
 }

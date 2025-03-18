@@ -80,6 +80,7 @@ export {
   startIdleSpan,
   getDefaultIdleNavigationSpanOptions,
   createTimeToFullDisplay,
+  createTimeToInitialDisplay,
 } from './tracing';
 
 export type { TimeToDisplayProps } from './tracing';
