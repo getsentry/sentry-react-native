@@ -38,7 +38,7 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 
 ### Dependencies
 
-- Bump Android SDK from v7.20.1 to v8.4.0 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490))
+- Bump Android SDK from v7.20.1 to v8.4.0 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4663](https://github.com/getsentry/sentry-react-native/pull/4663))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#840)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.4.0)
 - Bump Cocoa SDK from v8.44.0 to v8.45.0 ([#4537](https://github.com/getsentry/sentry-react-native/pull/4537))
