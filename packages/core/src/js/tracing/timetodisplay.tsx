@@ -1,5 +1,5 @@
 import type { Span,StartSpanOptions  } from '@sentry/core';
-import { fill, getActiveSpan, getSpanDescendants, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
+import { fill, getActiveSpan, getSpanDescendants, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan, uuid4 } from '@sentry/core';
 import * as React from 'react';
 
 import { isTurboModuleEnabled } from '../utils/environment';
@@ -7,6 +7,7 @@ import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISP
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
 import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
+import { useState } from 'react';
 
 let nativeComponentMissingLogged = false;
 
@@ -295,4 +296,26 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   logger.debug(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span updated with end timestamp.`);
 
   setSpanDurationAsMeasurement('time_to_full_display', span);
+}
+
+export function createTimeToFullDisplay({
+  useFocusEffect,
+}: {
+  /**
+   * `@react-navigation/native` useFocusEffect hook.
+   */
+  useFocusEffect: (callback: () => void) => void
+}) {
+  return (props: TimeToDisplayProps) => {
+    const [focused, setFocused] = useState(false);
+
+    useFocusEffect(() => {
+        setFocused(true);
+        return () => {
+          setFocused(false);
+        };
+    });
+
+    return <TimeToFullDisplay {...props} record={focused && props.record} />;
+  };
 }

@@ -18,6 +18,7 @@ export function createSentryServer({ port = 8961 } = {}): {
   close: () => Promise<void>;
   start: () => void;
   getEnvelope: (predicate: (envelope: Envelope) => boolean) => Envelope;
+  getAllEnvelopes: (predicate: (envelope: Envelope) => boolean) => Envelope[];
 } {
   const nextRequestCallbacks: (typeof onNextRequestCallback)[] = [];
   let onNextRequestCallback: (request: RecordedRequest) => void = (
@@ -55,6 +56,12 @@ export function createSentryServer({ port = 8961 } = {}): {
     });
   });
 
+  const getAllEnvelopes = (predicate: (envelope: Envelope) => boolean) => {
+    return requests
+      .filter(request => request.envelope && predicate(request.envelope))
+      .map(request => request.envelope);
+  };
+
   return {
     start: () => {
       server.listen(port);
@@ -82,16 +89,14 @@ export function createSentryServer({ port = 8961 } = {}): {
       });
     },
     getEnvelope: (predicate: (envelope: Envelope) => boolean) => {
-      const envelope = requests.find(
-        request => request.envelope && predicate(request.envelope),
-      )?.envelope;
-
+      const [envelope] = getAllEnvelopes(predicate);
       if (!envelope) {
         throw new Error('Envelope not found');
       }
 
       return envelope;
     },
+    getAllEnvelopes,
   };
 }
 
@@ -129,6 +134,22 @@ export function containingTransactionWithName(name: string) {
         item[1].transaction &&
         item[1].transaction.includes(name),
     );
+}
+
+export function takeSecond(predicate: (envelope: Envelope) => boolean) {
+  const take = 2;
+  let counter = 0;
+  return (envelope: Envelope) => {
+    if (predicate(envelope)) {
+      counter++;
+    }
+
+    if (counter === take) {
+      return true;
+    }
+
+    return false;
+  };
 }
 
 export function itemBodyIsEvent(itemBody: EnvelopeItem[1]): itemBody is Event {

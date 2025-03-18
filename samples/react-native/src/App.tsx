@@ -52,7 +52,7 @@ const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   enableTimeToInitialDisplay: isMobileOs,
-  ignoreEmptyBackNavigationTransactions: true,
+  ignoreEmptyBackNavigationTransactions: false,
   enableTimeToInitialDisplayForPreloadedRoutes: true,
 });
 
@@ -144,7 +144,7 @@ Sentry.init({
   // otherwise they will not work.
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
-  profilesSampleRate: 1.0,
+  // profilesSampleRate: 1.0,
   replaysSessionSampleRate: 1.0,
   replaysOnErrorSampleRate: 1.0,
   spotlight: true,
