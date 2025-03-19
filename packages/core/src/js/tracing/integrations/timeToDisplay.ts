@@ -31,9 +31,8 @@ export const timeToDisplayIntegration = (): Integration => {
       event.spans = event.spans || [];
 
       const ttidEndTimestampSeconds = await NATIVE.popTimeToDisplayFor(`ttid-${rootSpanId}`);
-      let ttidSpan: SpanJSON | undefined;
+      let ttidSpan: SpanJSON | undefined = event.spans?.find(span => span.op === UI_LOAD_INITIAL_DISPLAY);
       if (ttidEndTimestampSeconds) {
-        ttidSpan = event.spans?.find(span => span.op === UI_LOAD_INITIAL_DISPLAY);
         if (ttidSpan && ttidSpan.status && ttidSpan.status !== 'ok') {
           ttidSpan.status = 'ok';
           ttidSpan.timestamp = ttidEndTimestampSeconds;
@@ -56,19 +55,22 @@ export const timeToDisplayIntegration = (): Integration => {
       // TODO: Should we trim it to 30s a.k.a max timeout?
       const ttfdEndTimestampSeconds = await NATIVE.popTimeToDisplayFor(`ttfd-${rootSpanId}`);
       let ttfdSpan: SpanJSON | undefined;
-      if (ttfdEndTimestampSeconds) {
+      if (ttfdEndTimestampSeconds && ttidSpan) {
         ttfdSpan = event.spans?.find(span => span.op === UI_LOAD_FULL_DISPLAY);
+        const ttfdAdjustedEndTimestampSeconds =
+          ttidSpan?.timestamp && ttfdEndTimestampSeconds < ttidSpan.timestamp
+            ? ttidSpan.timestamp
+            : ttfdEndTimestampSeconds;
         if (ttfdSpan && ttfdSpan.status && ttfdSpan.status !== 'ok') {
           ttfdSpan.status = 'ok';
-          ttfdSpan.timestamp = ttfdEndTimestampSeconds;
+          ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
           logger.debug(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);
         } else {
           ttfdSpan = createSpanJSON({
             op: UI_LOAD_FULL_DISPLAY,
-            description: 'NEW Time To Full Display',
+            description: 'Time To Full Display',
             start_timestamp: transactionStartTimestampSeconds,
-            timestamp:
-              ttfdEndTimestampSeconds < ttidEndTimestampSeconds ? ttidEndTimestampSeconds : ttfdEndTimestampSeconds,
+            timestamp: ttfdAdjustedEndTimestampSeconds,
             origin: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
             parent_span_id: rootSpanId,
             // TODO: Add data

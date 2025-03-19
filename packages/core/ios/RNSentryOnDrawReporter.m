@@ -1,4 +1,5 @@
 #import "RNSentryOnDrawReporter.h"
+#import "RNSentryTimeToDisplay.h"
 
 #if SENTRY_HAS_UIKIT
 
@@ -9,7 +10,7 @@
 RCT_EXPORT_MODULE(RNSentryOnDrawReporter)
 RCT_EXPORT_VIEW_PROPERTY(initialDisplay, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
-RCT_EXPORT_VIEW_PROPERTY(parentSpanId, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(parentSpanId, NSString)
 
 - (UIView *)view
 {
@@ -19,20 +20,24 @@ RCT_EXPORT_VIEW_PROPERTY(parentSpanId, BOOL)
 
 @end
 
-@implementation RNSentryOnDrawReporterView
+@implementation RNSentryOnDrawReporterView {
+    BOOL isListening;
+}
 
 - (instancetype)init
 {
     self = [super init];
     if (self) {
         RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
+            self->isListening = NO;
+
             if (self->_fullDisplay) {
-                RNSentryTimeToDisplay.putTimeToDisplayFor([@"ttfd-" stringByAppendingString:self->_parentSpanId], newFrameTimestampInSeconds);
+                [RNSentryTimeToDisplay putTimeToDisplayFor: [@"ttfd-" stringByAppendingString:self->_parentSpanId] value: newFrameTimestampInSeconds];
                 return;
             }
 
             if (self->_initialDisplay) {
-                RNSentryTimeToDisplay.putTimeToDisplayFor([@"ttid-" stringByAppendingString:self->_parentSpanId], newFrameTimestampInSeconds);
+                [RNSentryTimeToDisplay putTimeToDisplayFor: [@"ttid-" stringByAppendingString:self->_parentSpanId] value: newFrameTimestampInSeconds];
                 return;
             }
         };
@@ -46,7 +51,10 @@ RCT_EXPORT_VIEW_PROPERTY(parentSpanId, BOOL)
 - (void)didSetProps:(NSArray<NSString *> *)changedProps
 {
     if ((_fullDisplay || _initialDisplay) && [_parentSpanId isKindOfClass:[NSString class]]) {
-        [_framesListener startListening];
+        if (!isListening) {
+            [_framesListener startListening];
+            isListening = YES;
+        }
     }
 }
 
