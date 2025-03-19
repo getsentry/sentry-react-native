@@ -45,7 +45,7 @@ export interface MobileReplayOptions {
   enableExperimentalViewRenderer?: boolean;
 
   /**
-   * Enables up to 5x faster but incommpelte view rendering used by the Session Replay integration on iOS.
+   * Enables up to 5x faster but incomplete view rendering used by the Session Replay integration on iOS.
    *
    * Enabling this flag will reduce the amount of time it takes to render each frame of the session replay on the main thread, therefore reducing
    * interruptions and visual lag.
