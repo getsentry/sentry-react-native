@@ -33,6 +33,7 @@ import {
   sdkInfoIntegration,
   spotlightIntegration,
   stallTrackingIntegration,
+  timeToDisplayIntegration,
   userInteractionIntegration,
   viewHierarchyIntegration,
 } from './exports';
@@ -115,6 +116,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(appRegistryIntegration());
     integrations.push(reactNativeTracingIntegration());
   }
+  integrations.push(timeToDisplayIntegration());
   if (options.enableCaptureFailedRequests) {
     integrations.push(httpClientIntegration());
   }

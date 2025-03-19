@@ -13,9 +13,9 @@
 @interface RNSentryOnDrawReporterView : UIView
 
 @property (nonatomic, strong) RNSentryFramesTrackerListener *framesListener;
-@property (nonatomic, copy) RCTBubblingEventBlock onDrawNextFrame;
 @property (nonatomic) bool fullDisplay;
 @property (nonatomic) bool initialDisplay;
+@property (nonatomic, copy) NSString *parentSpanId;
 @property (nonatomic, weak) RNSentryOnDrawReporter *delegate;
 
 @end

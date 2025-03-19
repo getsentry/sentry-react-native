@@ -7,9 +7,9 @@
 @implementation RNSentryOnDrawReporter
 
 RCT_EXPORT_MODULE(RNSentryOnDrawReporter)
-RCT_EXPORT_VIEW_PROPERTY(onDrawNextFrame, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(initialDisplay, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(parentSpanId, BOOL)
 
 - (UIView *)view
 {
@@ -27,18 +27,12 @@ RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
     if (self) {
         RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
             if (self->_fullDisplay) {
-                self.onDrawNextFrame(@{
-                    @"newFrameTimestampInSeconds" : newFrameTimestampInSeconds,
-                    @"type" : @"fullDisplay"
-                });
+                RNSentryTimeToDisplay.putTimeToDisplayFor([@"ttfd-" stringByAppendingString:self->_parentSpanId], newFrameTimestampInSeconds);
                 return;
             }
 
             if (self->_initialDisplay) {
-                self.onDrawNextFrame(@{
-                    @"newFrameTimestampInSeconds" : newFrameTimestampInSeconds,
-                    @"type" : @"initialDisplay"
-                });
+                RNSentryTimeToDisplay.putTimeToDisplayFor([@"ttid-" stringByAppendingString:self->_parentSpanId], newFrameTimestampInSeconds);
                 return;
             }
         };
@@ -51,7 +45,7 @@ RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
 
 - (void)didSetProps:(NSArray<NSString *> *)changedProps
 {
-    if (_fullDisplay || _initialDisplay) {
+    if ((_fullDisplay || _initialDisplay) && [_parentSpanId isKindOfClass:[NSString class]]) {
         [_framesListener startListening];
     }
 }

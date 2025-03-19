@@ -717,6 +717,14 @@ public class RNSentryModuleImpl {
         });
   }
 
+  public void popTimeToDisplayFor(String screenId, Promise promise) {
+    if (screenId != null) {
+      promise.resolve(RNSentryTimeToDisplay.popTimeToDisplayFor(screenId));
+    } else {
+      promise.resolve(RNSentryTimeToDisplay.popAnonymousTimeToDisplay());
+    }
+  }
+
   public void setExtra(String key, String extra) {
     if (key == null || extra == null) {
       logger.log(

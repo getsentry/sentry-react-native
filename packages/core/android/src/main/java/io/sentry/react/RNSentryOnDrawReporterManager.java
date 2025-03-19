@@ -57,12 +57,9 @@ public class RNSentryOnDrawReporterManager
     view.setFullDisplay(fullDisplay);
   }
 
-  public Map getExportedCustomBubblingEventTypeConstants() {
-    return MapBuilder.builder()
-        .put(
-            "onDrawNextFrameView",
-            MapBuilder.of("phasedRegistrationNames", MapBuilder.of("bubbled", "onDrawNextFrame")))
-        .build();
+  @ReactProp(name = "parentSpanId")
+  public void setParentSpanId(RNSentryOnDrawReporterView view, String parentSpanId) {
+    view.setParentSpanId(parentSpanId);
   }
 
   public static class RNSentryOnDrawReporterView extends View {
@@ -71,16 +68,16 @@ public class RNSentryOnDrawReporterManager
 
     private final @Nullable ReactApplicationContext reactContext;
     private final @NotNull SentryDateProvider dateProvider = new SentryAndroidDateProvider();
-    private final @Nullable Runnable emitInitialDisplayEvent;
-    private final @Nullable Runnable emitFullDisplayEvent;
     private final @Nullable BuildInfoProvider buildInfo;
+
+    private boolean isInitialDisplay = false;
+    private boolean isFullDisplay = false;
+    private @Nullable String parentSpanId = null;
 
     public RNSentryOnDrawReporterView(@NotNull Context context) {
       super(context);
       reactContext = null;
       buildInfo = null;
-      emitInitialDisplayEvent = null;
-      emitFullDisplayEvent = null;
     }
 
     public RNSentryOnDrawReporterView(
@@ -88,35 +85,37 @@ public class RNSentryOnDrawReporterManager
       super(context);
       reactContext = context;
       buildInfo = buildInfoProvider;
-      emitInitialDisplayEvent = () -> emitDisplayEvent("initialDisplay");
-      emitFullDisplayEvent = () -> emitDisplayEvent("fullDisplay");
     }
 
     public void setFullDisplay(boolean fullDisplay) {
-      if (!fullDisplay) {
-        return;
-      }
-
-      logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register full display event emitter.");
-      registerForNextDraw(emitFullDisplayEvent);
+      isFullDisplay = fullDisplay;
+      registerForNextDraw();
     }
 
     public void setInitialDisplay(boolean initialDisplay) {
-      if (!initialDisplay) {
-        return;
-      }
-
-      logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register initial display event emitter.");
-      registerForNextDraw(emitInitialDisplayEvent);
+      isInitialDisplay = initialDisplay;
+      registerForNextDraw();
     }
 
-    private void registerForNextDraw(@Nullable Runnable emitter) {
-      if (emitter == null) {
-        logger.log(
-            SentryLevel.ERROR,
-            "[TimeToDisplay] Won't emit next frame drawn event, emitter is null.");
+    public void setParentSpanId(@Nullable String parentSpanId) {
+      this.parentSpanId = parentSpanId;
+      registerForNextDraw();
+    }
+
+    private void registerForNextDraw() {
+      if (parentSpanId == null) {
         return;
       }
+
+      if (isInitialDisplay) {
+        logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register initial display event emitter.");
+      } else if (isFullDisplay) {
+        logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register full display event emitter.");
+      } else {
+        logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Not ready, missing displayType prop.");
+        return;
+      }
+
       if (buildInfo == null) {
         logger.log(
             SentryLevel.ERROR,
@@ -138,26 +137,23 @@ public class RNSentryOnDrawReporterManager
         return;
       }
 
-      FirstDrawDoneListener.registerForNextDraw(activity, emitter, buildInfo);
-    }
+      FirstDrawDoneListener.registerForNextDraw(activity, () -> {
+        final Double now = dateProvider.now().nanoTimestamp() / 1e9;
+        if (parentSpanId == null) {
+          logger.log(
+                  SentryLevel.ERROR,
+                  "[TimeToDisplay] parentSpanId removed before frame was rendered.");
+          return;
+        }
 
-    private void emitDisplayEvent(String type) {
-      final SentryDate endDate = dateProvider.now();
-
-      WritableMap event = Arguments.createMap();
-      event.putString("type", type);
-      event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
-
-      if (reactContext == null) {
-        logger.log(
-            SentryLevel.ERROR,
-            "[TimeToDisplay] Recorded next frame draw but can't emit the event, reactContext is"
-                + " null.");
-        return;
-      }
-      reactContext
-          .getJSModule(RCTEventEmitter.class)
-          .receiveEvent(getId(), "onDrawNextFrameView", event);
+        if (isInitialDisplay) {
+          RNSentryTimeToDisplay.putTimeToDisplayFor("ttid-" + parentSpanId, now);
+        } else if (isFullDisplay) {
+          RNSentryTimeToDisplay.putTimeToDisplayFor("ttfd-" + parentSpanId, now);
+        } else {
+          logger.log(SentryLevel.DEBUG, "[TimeToDisplay] display type removed before frame was rendered.");
+        }
+      }, buildInfo);
     }
   }
 }

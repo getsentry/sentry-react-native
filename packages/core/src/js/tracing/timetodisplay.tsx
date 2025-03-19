@@ -37,10 +37,10 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
   const activeSpan = getActiveSpan();
   if (activeSpan) {
     manualInitialDisplaySpans.set(activeSpan, true);
-    startTimeToInitialDisplaySpan();
   }
 
-  return <TimeToDisplay initialDisplay={props.record}>{props.children}</TimeToDisplay>;
+  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  return <TimeToDisplay initialDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
 }
 
 /**
@@ -51,14 +51,16 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
  * <TimeToInitialDisplay record />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
-  startTimeToFullDisplaySpan();
-  return <TimeToDisplay fullDisplay={props.record}>{props.children}</TimeToDisplay>;
+  const activeSpan = getActiveSpan();
+  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  return <TimeToDisplay fullDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
 }
 
 function TimeToDisplay(props: {
   children?: React.ReactNode;
   initialDisplay?: boolean;
   fullDisplay?: boolean;
+  parentSpanId?: string;
 }): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
   const isNewArchitecture = isTurboModuleEnabled();
@@ -72,14 +74,12 @@ function TimeToDisplay(props: {
     }, 0);
   }
 
-  const onDraw = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => onDrawNextFrame(event);
-
   return (
     <>
       <RNSentryOnDrawReporter
-        onDrawNextFrame={onDraw}
         initialDisplay={props.initialDisplay}
-        fullDisplay={props.fullDisplay} />
+        fullDisplay={props.fullDisplay}
+        parentSpanId={props.parentSpanId} />
       {props.children}
     </>
   );
@@ -195,16 +195,6 @@ export function startTimeToFullDisplaySpan(
   }
 
   return fullDisplaySpan;
-}
-
-function onDrawNextFrame(event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void {
-  logger.debug(`[TimeToDisplay] onDrawNextFrame: ${JSON.stringify(event.nativeEvent)}`);
-  if (event.nativeEvent.type === 'fullDisplay') {
-    return updateFullDisplaySpan(event.nativeEvent.newFrameTimestampInSeconds);
-  }
-  if (event.nativeEvent.type === 'initialDisplay') {
-    return updateInitialDisplaySpan(event.nativeEvent.newFrameTimestampInSeconds);
-  }
 }
 
 /**
