@@ -721,7 +721,7 @@ public class RNSentryModuleImpl {
     if (screenId != null) {
       promise.resolve(RNSentryTimeToDisplay.popTimeToDisplayFor(screenId));
     } else {
-      promise.resolve(RNSentryTimeToDisplay.popAnonymousTimeToDisplay());
+      promise.resolve(null);
     }
   }
 
