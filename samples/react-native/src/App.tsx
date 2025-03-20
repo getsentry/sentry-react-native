@@ -96,6 +96,8 @@ Sentry.init({
         maskAllImages: true,
         maskAllVectors: true,
         maskAllText: true,
+        enableExperimentalViewRenderer: true,
+        enableFastViewRendering: true,
       }),
       Sentry.appStartIntegration({
         standalone: false,
