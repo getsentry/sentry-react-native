@@ -5,6 +5,7 @@ import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
 import { isExpoGo, notWeb } from '../utils/environment';
 import {
+  appRegistryIntegration,
   appStartIntegration,
   breadcrumbsIntegration,
   browserApiErrorsIntegration,
@@ -111,6 +112,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(userInteractionIntegration());
   }
   if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
+    integrations.push(appRegistryIntegration());
     integrations.push(reactNativeTracingIntegration());
   }
   if (options.enableCaptureFailedRequests) {
