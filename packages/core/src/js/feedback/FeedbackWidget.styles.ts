@@ -1,17 +1,13 @@
 import type { ViewStyle } from 'react-native';
 
+import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackButtonStyles, FeedbackWidgetStyles } from './FeedbackWidget.types';
-
-const PURPLE = 'rgba(88, 74, 192, 1)';
-const FOREGROUND_COLOR = '#2b2233';
-const BACKGROUND_COLOR = '#ffffff';
-const BORDER_COLOR = 'rgba(41, 35, 47, 0.13)';
 
 const defaultStyles: FeedbackWidgetStyles = {
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: BACKGROUND_COLOR,
+    backgroundColor: getTheme().BACKGROUND_COLOR,
   },
   title: {
     fontSize: 24,
@@ -19,36 +15,36 @@ const defaultStyles: FeedbackWidgetStyles = {
     marginBottom: 20,
     textAlign: 'left',
     flex: 1,
-    color: FOREGROUND_COLOR,
+    color: getTheme().FOREGROUND_COLOR,
   },
   label: {
     marginBottom: 4,
     fontSize: 16,
-    color: FOREGROUND_COLOR,
+    color: getTheme().FOREGROUND_COLOR,
   },
   input: {
     height: 50,
-    borderColor: BORDER_COLOR,
+    borderColor: getTheme().BORDER_COLOR,
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 15,
     fontSize: 16,
-    color: FOREGROUND_COLOR,
+    color: getTheme().FOREGROUND_COLOR,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
-    color: FOREGROUND_COLOR,
+    color: getTheme().FOREGROUND_COLOR,
   },
   screenshotButton: {
-    backgroundColor: BACKGROUND_COLOR,
+    backgroundColor: getTheme().BACKGROUND_COLOR,
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
     flex: 1,
     borderWidth: 1,
-    borderColor: BORDER_COLOR,
+    borderColor: getTheme().BORDER_COLOR,
   },
   screenshotContainer: {
     flexDirection: 'row',
@@ -63,30 +59,30 @@ const defaultStyles: FeedbackWidgetStyles = {
     marginRight: 10,
   },
   screenshotText: {
-    color: FOREGROUND_COLOR,
+    color: getTheme().FOREGROUND_COLOR,
     fontSize: 16,
   },
   submitButton: {
-    backgroundColor: PURPLE,
+    backgroundColor: getTheme().BRANDING,
     paddingVertical: 15,
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 10,
   },
   submitText: {
-    color: BACKGROUND_COLOR,
+    color: getTheme().BACKGROUND_COLOR,
     fontSize: 18,
   },
   cancelButton: {
-    backgroundColor: BACKGROUND_COLOR,
+    backgroundColor: getTheme().BACKGROUND_COLOR,
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: BORDER_COLOR,
+    borderColor: getTheme().BORDER_COLOR,
   },
   cancelText: {
-    color: FOREGROUND_COLOR,
+    color: getTheme().FOREGROUND_COLOR,
     fontSize: 16,
   },
   titleContainer: {
@@ -96,6 +92,7 @@ const defaultStyles: FeedbackWidgetStyles = {
   sentryLogo: {
     width: 40,
     height: 40,
+    tintColor: getTheme().SENTRY_LOGO_COLOR,
   },
 };
 
@@ -104,20 +101,20 @@ export const defaultButtonStyles: FeedbackButtonStyles = {
     position: 'absolute',
     bottom: 30,
     right: 30,
-    backgroundColor: BACKGROUND_COLOR,
+    backgroundColor: getTheme().BACKGROUND_COLOR,
     padding: 15,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: BORDER_COLOR,
+    shadowColor: getTheme().BORDER_COLOR,
     shadowOffset: { width: 1, height: 2 },
     shadowOpacity: 0.5,
     shadowRadius: 3,
     flexDirection: 'row',
   },
   triggerText: {
-    color: FOREGROUND_COLOR,
+    color: getTheme().FOREGROUND_COLOR,
     fontSize: 18,
   },
   triggerIcon: {
@@ -125,6 +122,7 @@ export const defaultButtonStyles: FeedbackButtonStyles = {
     height: 24,
     padding: 2,
     marginEnd: 6,
+    tintColor: getTheme().SENTRY_LOGO_COLOR,
   },
 };
 
@@ -137,7 +135,7 @@ export const modalWrapper: ViewStyle = {
 };
 
 export const modalSheetContainer: ViewStyle = {
-  backgroundColor: '#ffffff',
+  backgroundColor: getTheme().BACKGROUND_COLOR,
   borderTopLeftRadius: 16,
   borderTopRightRadius: 16,
   overflow: 'hidden',
