@@ -6,7 +6,6 @@ import axios from 'axios';
 import { ArticleCard } from '../components/ArticleCard';
 import type { Article } from '../types/api';
 import { useFocusEffect } from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
 
 const ITEMS_PER_PAGE = 2; // Small limit to create more spans
 const AUTO_LOAD_LIMIT = 1; // One auto load at the end of the list then shows button
