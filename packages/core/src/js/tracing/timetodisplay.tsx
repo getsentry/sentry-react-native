@@ -1,13 +1,12 @@
 import type { Span,StartSpanOptions  } from '@sentry/core';
-import { fill, getActiveSpan, getSpanDescendants, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan, uuid4 } from '@sentry/core';
+import { fill, getActiveSpan, getSpanDescendants, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import * as React from 'react';
+import { useState } from 'react';
 
 import { isTurboModuleEnabled } from '../utils/environment';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
-import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
-import { useState } from 'react';
 
 let nativeComponentMissingLogged = false;
 
@@ -298,6 +297,9 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   setSpanDurationAsMeasurement('time_to_full_display', span);
 }
 
+/**
+ * Creates a new TimeToFullDisplay component which triggers the full display recording every time the component is focused.
+ */
 export function createTimeToFullDisplay({
   useFocusEffect,
 }: {
@@ -305,15 +307,18 @@ export function createTimeToFullDisplay({
    * `@react-navigation/native` useFocusEffect hook.
    */
   useFocusEffect: (callback: () => void) => void
-}) {
+}): React.ComponentType<TimeToDisplayProps> {
   return createTimeToDisplay({ useFocusEffect, Component: TimeToFullDisplay });
 }
 
+/**
+ * Creates a new TimeToInitialDisplay component which triggers the initial display recording every time the component is focused.
+ */
 export function createTimeToInitialDisplay({
   useFocusEffect,
 }: {
   useFocusEffect: (callback: () => void) => void
-}) {
+}): React.ComponentType<TimeToDisplayProps> {
   return createTimeToDisplay({ useFocusEffect, Component: TimeToInitialDisplay });
 }
 
@@ -326,8 +331,8 @@ function createTimeToDisplay({
    */
   useFocusEffect: (callback: () => void) => void;
   Component: typeof TimeToFullDisplay | typeof TimeToInitialDisplay;
-}) {
-  return (props: TimeToDisplayProps) => {
+}): React.ComponentType<TimeToDisplayProps> {
+  const TimeToDisplayWrapper = (props: TimeToDisplayProps): React.ReactElement => {
     const [focused, setFocused] = useState(false);
 
     useFocusEffect(() => {
@@ -339,4 +344,7 @@ function createTimeToDisplay({
 
     return <Component {...props} record={focused && props.record} />;
   };
+
+  TimeToDisplayWrapper.displayName = `TimeToDisplayWrapper`;
+  return TimeToDisplayWrapper;
 }
