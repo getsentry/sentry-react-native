@@ -116,7 +116,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(appRegistryIntegration());
     integrations.push(reactNativeTracingIntegration());
   }
-  integrations.push(timeToDisplayIntegration());
+  if (hasTracingEnabled) {
+    integrations.push(timeToDisplayIntegration());
+  }
   if (options.enableCaptureFailedRequests) {
     integrations.push(httpClientIntegration());
   }
