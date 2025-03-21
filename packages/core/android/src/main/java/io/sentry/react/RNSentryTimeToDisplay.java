@@ -15,7 +15,7 @@ public final class RNSentryTimeToDisplay {
 
   private static final int ENTRIES_MAX_SIZE = 50;
   private static final Map<String, Double> screenIdToRenderDuration =
-      new LinkedHashMap<>(ENTRIES_MAX_SIZE + 1, 0.75f, true) {
+      new LinkedHashMap<String, Double>(ENTRIES_MAX_SIZE + 1, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Double> eldest) {
           return size() > ENTRIES_MAX_SIZE;

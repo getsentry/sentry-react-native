@@ -3,30 +3,28 @@ package io.sentry.react;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
 import io.sentry.ILogger;
-import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
 import io.sentry.SentryLevel;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.internal.util.FirstDrawDoneListener;
-import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class RNSentryOnDrawReporterManager
     extends SimpleViewManager<RNSentryOnDrawReporterManager.RNSentryOnDrawReporterView> {
 
   public static final String REACT_CLASS = "RNSentryOnDrawReporter";
+  public static final String TTID_PREFIX = "ttid-";
+  public static final String TTFD_PREFIX = "ttfd-";
   private final @NotNull ReactApplicationContext mCallerContext;
 
   public RNSentryOnDrawReporterManager(ReactApplicationContext reactContext) {
@@ -72,6 +70,7 @@ public class RNSentryOnDrawReporterManager
 
     private boolean isInitialDisplay = false;
     private boolean isFullDisplay = false;
+    private boolean spanIdUsed = false;
     private @Nullable String parentSpanId = null;
 
     public RNSentryOnDrawReporterView(@NotNull Context context) {
@@ -87,25 +86,49 @@ public class RNSentryOnDrawReporterManager
       buildInfo = buildInfoProvider;
     }
 
-    public void setFullDisplay(boolean fullDisplay) {
-      isFullDisplay = fullDisplay;
-      registerForNextDraw();
+    @TestOnly
+    public RNSentryOnDrawReporterView(
+        @NotNull Context context,
+        @NotNull ReactApplicationContext reactContext,
+        @NotNull BuildInfoProvider buildInfoProvider) {
+      super(context);
+      this.reactContext = reactContext;
+      buildInfo = buildInfoProvider;
     }
 
-    public void setInitialDisplay(boolean initialDisplay) {
-      isInitialDisplay = initialDisplay;
-      registerForNextDraw();
+    public void setFullDisplay(boolean newIsFullDisplay) {
+      if (newIsFullDisplay != isFullDisplay) {
+        isFullDisplay = newIsFullDisplay;
+        processPropsChanged();
+      }
     }
 
-    public void setParentSpanId(@Nullable String parentSpanId) {
-      this.parentSpanId = parentSpanId;
-      registerForNextDraw();
+    public void setInitialDisplay(boolean newIsInitialDisplay) {
+      if (newIsInitialDisplay != isInitialDisplay) {
+        isInitialDisplay = newIsInitialDisplay;
+        processPropsChanged();
+      }
     }
 
-    private void registerForNextDraw() {
+    public void setParentSpanId(@Nullable String newParentSpanId) {
+      if (!Objects.equals(newParentSpanId, parentSpanId)) {
+        parentSpanId = newParentSpanId;
+        spanIdUsed = false;
+        processPropsChanged();
+      }
+    }
+
+    private void processPropsChanged() {
       if (parentSpanId == null) {
         return;
       }
+      if (spanIdUsed) {
+        logger.log(
+            SentryLevel.DEBUG,
+            "[TimeToDisplay] Already recorded time to display for spanId: " + parentSpanId);
+        return;
+      }
+      spanIdUsed = true;
 
       if (isInitialDisplay) {
         logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register initial display event emitter.");
@@ -137,23 +160,35 @@ public class RNSentryOnDrawReporterManager
         return;
       }
 
-      FirstDrawDoneListener.registerForNextDraw(activity, () -> {
-        final Double now = dateProvider.now().nanoTimestamp() / 1e9;
-        if (parentSpanId == null) {
-          logger.log(
+      registerForNextDraw(
+          activity,
+          () -> {
+            final Double now = dateProvider.now().nanoTimestamp() / 1e9;
+            if (parentSpanId == null) {
+              logger.log(
                   SentryLevel.ERROR,
                   "[TimeToDisplay] parentSpanId removed before frame was rendered.");
-          return;
-        }
+              return;
+            }
 
-        if (isInitialDisplay) {
-          RNSentryTimeToDisplay.putTimeToDisplayFor("ttid-" + parentSpanId, now);
-        } else if (isFullDisplay) {
-          RNSentryTimeToDisplay.putTimeToDisplayFor("ttfd-" + parentSpanId, now);
-        } else {
-          logger.log(SentryLevel.DEBUG, "[TimeToDisplay] display type removed before frame was rendered.");
-        }
-      }, buildInfo);
+            if (isInitialDisplay) {
+              RNSentryTimeToDisplay.putTimeToDisplayFor(TTID_PREFIX + parentSpanId, now);
+            } else if (isFullDisplay) {
+              RNSentryTimeToDisplay.putTimeToDisplayFor(TTFD_PREFIX + parentSpanId, now);
+            } else {
+              logger.log(
+                  SentryLevel.DEBUG,
+                  "[TimeToDisplay] display type removed before frame was rendered.");
+            }
+          },
+          buildInfo);
+    }
+
+    protected void registerForNextDraw(
+        final @NotNull Activity activity,
+        final @NotNull Runnable callback,
+        final @NotNull BuildInfoProvider buildInfo) {
+      FirstDrawDoneListener.registerForNextDraw(activity, callback, buildInfo);
     }
   }
 }
