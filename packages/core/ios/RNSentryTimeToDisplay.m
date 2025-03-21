@@ -10,19 +10,22 @@
 static const int ENTRIES_MAX_SIZE = 50;
 static NSMutableDictionary<NSString *, NSNumber *> *screenIdToRenderDuration;
 
-+ (void)initialize {
++ (void)initialize
+{
     if (self == [RNSentryTimeToDisplay class]) {
         screenIdToRenderDuration = [[NSMutableDictionary alloc] init];
     }
 }
 
-+ (NSNumber *)popTimeToDisplayFor:(NSString *)screenId {
++ (NSNumber *)popTimeToDisplayFor:(NSString *)screenId
+{
     NSNumber *value = screenIdToRenderDuration[screenId];
     [screenIdToRenderDuration removeObjectForKey:screenId];
     return value;
 }
 
-+ (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value {
++ (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
+{
     // Remove oldest entry if at max size
     if (screenIdToRenderDuration.count >= ENTRIES_MAX_SIZE) {
         NSString *firstKey = screenIdToRenderDuration.allKeys.firstObject;

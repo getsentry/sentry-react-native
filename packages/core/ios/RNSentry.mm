@@ -962,7 +962,7 @@ RCT_EXPORT_METHOD(getNewScreenTimeToDisplay
 }
 
 RCT_EXPORT_METHOD(popTimeToDisplayFor
-                  : (NSString*)key resolver
+                  : (NSString *)key resolver
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject)
 {

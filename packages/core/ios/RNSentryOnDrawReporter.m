@@ -28,19 +28,8 @@ RCT_EXPORT_VIEW_PROPERTY(parentSpanId, NSString)
 {
     self = [super init];
     if (self) {
-        RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-            self->isListening = NO;
-
-            if (self->_fullDisplay) {
-                [RNSentryTimeToDisplay putTimeToDisplayFor: [@"ttfd-" stringByAppendingString:self->_parentSpanId] value: newFrameTimestampInSeconds];
-                return;
-            }
-
-            if (self->_initialDisplay) {
-                [RNSentryTimeToDisplay putTimeToDisplayFor: [@"ttid-" stringByAppendingString:self->_parentSpanId] value: newFrameTimestampInSeconds];
-                return;
-            }
-        };
+        _spanIdUsed = NO;
+        RNSentryEmitNewFrameEvent emitNewFrameEvent = [self createEmitNewFrameEvent];
         _framesListener = [[RNSentryFramesTrackerListener alloc]
             initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
                         andEventEmitter:emitNewFrameEvent];
@@ -48,12 +37,48 @@ RCT_EXPORT_VIEW_PROPERTY(parentSpanId, NSString)
     return self;
 }
 
+- (RNSentryEmitNewFrameEvent)createEmitNewFrameEvent
+{
+    return ^(NSNumber *newFrameTimestampInSeconds) {
+        self->isListening = NO;
+
+        if (self->_fullDisplay) {
+            [RNSentryTimeToDisplay
+                putTimeToDisplayFor:[@"ttfd-" stringByAppendingString:self->_parentSpanId]
+                              value:newFrameTimestampInSeconds];
+            return;
+        }
+
+        if (self->_initialDisplay) {
+            [RNSentryTimeToDisplay
+                putTimeToDisplayFor:[@"ttid-" stringByAppendingString:self->_parentSpanId]
+                              value:newFrameTimestampInSeconds];
+            return;
+        }
+    };
+}
+
 - (void)didSetProps:(NSArray<NSString *> *)changedProps
 {
-    if ((_fullDisplay || _initialDisplay) && [_parentSpanId isKindOfClass:[NSString class]]) {
-        if (!isListening) {
-            [_framesListener startListening];
+    if (![_parentSpanId isKindOfClass:[NSString class]]) {
+        _previousParentSpanId = nil;
+        return;
+    }
+
+    if ([_parentSpanId isEqualToString:_previousParentSpanId] && _spanIdUsed) {
+        _previousInitialDisplay = _initialDisplay;
+        _previousFullDisplay = _fullDisplay;
+        return;
+    }
+
+    _previousParentSpanId = _parentSpanId;
+    _spanIdUsed = NO;
+
+    if (_fullDisplay || _initialDisplay) {
+        if (!isListening && !_spanIdUsed) {
+            _spanIdUsed = YES;
             isListening = YES;
+            [_framesListener startListening];
         }
     }
 }
