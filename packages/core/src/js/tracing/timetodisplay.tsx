@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { isTurboModuleEnabled } from '../utils/environment';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
+import type { RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
 
 let nativeComponentMissingLogged = false;
