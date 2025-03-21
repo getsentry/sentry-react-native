@@ -18,6 +18,7 @@ export default function NewsScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [autoLoadCount, setAutoLoadCount] = useState(0);
+  // const [recordTimeToFullDisplay, setRecordTimeToFullDisplay] = useState(false);
 
   const fetchArticles = async (pageNumber: number, refresh = false) => {
     try {
@@ -47,9 +48,23 @@ export default function NewsScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      if (articles.length) {
+        console.log('Articles are already loaded');
+        return;
+      }
+
       fetchArticles(1, true);
-    }, [])
+    }, [articles])
   );
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     setRecordTimeToFullDisplay(articles.length > 0);
+  //     return () => {
+  //       setRecordTimeToFullDisplay(false);
+  //     };
+  //   }, [articles])
+  // );
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
@@ -106,6 +121,7 @@ export default function NewsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* <Sentry.TimeToFullDisplay record={recordTimeToFullDisplay} /> */}
       <FlashList
         data={articles}
         renderItem={({ item }) => <ArticleCard article={item} />}

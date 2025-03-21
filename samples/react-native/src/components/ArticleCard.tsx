@@ -2,14 +2,18 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
 import type { Article } from '../types/api';
 import * as Sentry from '@sentry/react-native';
+import { useFocusEffect } from '@react-navigation/native';
+
 interface ArticleCardProps {
   article: Article;
 }
 
+const TimeToFullDisplay = Sentry.createTimeToFullDisplay({useFocusEffect});
+
 export function ArticleCard({ article }: ArticleCardProps) {
   return (
     <View>
-      <Sentry.TimeToFullDisplay record={true} />
+      <TimeToFullDisplay record={true} />
       <Sentry.Profiler name="ArticleCard">
         <Pressable style={styles.card}>
           <Image source={{ uri: article.image_url }} style={styles.image} />

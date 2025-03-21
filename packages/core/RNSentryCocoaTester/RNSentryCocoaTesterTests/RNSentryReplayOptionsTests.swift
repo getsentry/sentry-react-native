@@ -48,13 +48,15 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 6)
+        XCTAssertEqual(replayOptions.count, 8)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["maskAllImages"])
         XCTAssertNotNil(replayOptions["maskAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
         XCTAssertNotNil(replayOptions["sdkInfo"])
+        XCTAssertNotNil(replayOptions["enableExperimentalViewRenderer"])
+        XCTAssertNotNil(replayOptions["enableFastViewRendering"])
     }
 
     func testSessionSampleRate() {
@@ -163,6 +165,88 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
+    }
+    
+    func testEnableExperimentalViewRendererDefault() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertFalse(actualOptions.sessionReplay.enableExperimentalViewRenderer)
+    }
+    
+    func testEnableExperimentalViewRendererTrue() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableExperimentalViewRenderer": true ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
+    }
+    
+    func testEnableExperimentalViewRendererFalse() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableExperimentalViewRenderer": false ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertFalse(actualOptions.sessionReplay.enableExperimentalViewRenderer)
+    }
+    
+    func testEnableFastViewRenderingDefault() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
+    }
+    
+    func testEnableFastViewRenderingTrue() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableFastViewRendering": true ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertTrue(actualOptions.sessionReplay.enableFastViewRendering)
+    }
+    
+    func testEnableFastViewRenderingFalse() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableFastViewRendering": false ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
 
 }
