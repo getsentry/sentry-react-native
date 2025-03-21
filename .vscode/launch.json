@@ -5,15 +5,14 @@
           "name": "Jest Tests",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/Users/krystofwoldrich/.nvm/versions/node/v20.18.2/bin/node",
-          "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/core/node_modules/jest/bin/jest.js"],
-          "args": ["--runInBand", "-t", "ttfd span duration and measurement should equal ttid from ttfd is called earlier than ttid"],
-          "cwd": "${workspaceRoot}/packages/core",
+          "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/node_modules/jest/bin/jest.js"],
+          "args": ["--runInBand", "-t", ""],
+          "cwd": "${workspaceRoot}",
           "console": "integratedTerminal",
           "internalConsoleOptions": "neverOpen",
           "outputCapture": "std",
           "sourceMaps": true,
-          "smartStep": false
+          "smartStep": true
         },
 
     ]
