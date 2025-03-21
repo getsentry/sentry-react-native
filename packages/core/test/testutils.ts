@@ -62,6 +62,10 @@ export const createMockTransport = (): MockInterface<Transport> => {
   };
 };
 
+export const nowInSeconds = (): number => {
+  return Date.now() / 1000;
+};
+
 export const secondAgoTimestampMs = (): number => {
   return new Date(Date.now() - 1000).getTime();
 };

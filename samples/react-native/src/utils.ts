@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 import { LaunchArguments } from 'react-native-launch-arguments';
+import * as Sentry from '@sentry/react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { SENTRY_INTERNAL_DSN } from './dsn';
 
@@ -28,3 +30,7 @@ export const getDsn = () => {
   }
   return SENTRY_INTERNAL_DSN;
 };
+
+export const TimeToFullDisplay = Sentry.createTimeToFullDisplay({
+  useFocusEffect,
+});

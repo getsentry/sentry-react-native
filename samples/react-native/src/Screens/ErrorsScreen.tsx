@@ -19,6 +19,7 @@ import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
+import { TimeToFullDisplay } from '../utils';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -46,6 +47,7 @@ const ErrorsScreen = (_props: Props) => {
     <>
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
+        <TimeToFullDisplay record={true} />
         <Button
           title="Capture message"
           onPress={() => {

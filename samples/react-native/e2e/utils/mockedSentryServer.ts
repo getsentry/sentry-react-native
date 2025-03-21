@@ -125,6 +125,10 @@ export function containingEventWithMessage(message: string) {
     );
 }
 
+export function containingTransaction(envelope: Envelope) {
+  return envelope[1].some(item => itemHeaderIsType(item[0], 'transaction'));
+}
+
 export function containingTransactionWithName(name: string) {
   return (envelope: Envelope) =>
     envelope[1].some(

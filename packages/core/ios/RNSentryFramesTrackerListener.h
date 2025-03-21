@@ -8,12 +8,16 @@
 
 typedef void (^RNSentryEmitNewFrameEvent)(NSNumber *newFrameTimestampInSeconds);
 
-@interface RNSentryFramesTrackerListener : NSObject <SentryFramesTrackerListener>
+@protocol RNSentryFramesTrackerListenerProtocol <SentryFramesTrackerListener>
+
+- (void)startListening;
+
+@end
+
+@interface RNSentryFramesTrackerListener : NSObject <RNSentryFramesTrackerListenerProtocol>
 
 - (instancetype)initWithSentryFramesTracker:(SentryFramesTracker *)framesTracker
                             andEventEmitter:(RNSentryEmitNewFrameEvent)emitNewFrameEvent;
-
-- (void)startListening;
 
 @property (strong, nonatomic) SentryFramesTracker *framesTracker;
 @property (strong, nonatomic) RNSentryEmitNewFrameEvent emitNewFrameEvent;

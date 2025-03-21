@@ -17,6 +17,7 @@ import {
 import SvgGraphic from '../components/SvgGraphic';
 import { StackNavigationProp } from '@react-navigation/stack';
 import * as Sentry from '@sentry/react-native';
+import { TimeToFullDisplay } from '../utils';
 
 const multilineText = `This
 is
@@ -33,6 +34,7 @@ interface Props {
 const PlaygroundScreen = (props: Props) => {
   return (
     <SafeAreaView style={styles.container}>
+      <TimeToFullDisplay record={true} />
       <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
         <ScrollView>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
