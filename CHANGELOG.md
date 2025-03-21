@@ -22,6 +22,21 @@
   });
   ```
 
+- Add experimental flags `enableExperimentalViewRenderer` and `enableFastViewRendering` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        enableExperimentalViewRenderer: true,
+        enableFastViewRendering: true,
+      }),
+    ],
+  });
+  ```
+
 ### Fixes
 
 - Considers the `SENTRY_DISABLE_AUTO_UPLOAD` and `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` environment variables in the configuration of the Sentry Android Gradle Plugin for Expo plugin ([#4583](https://github.com/getsentry/sentry-react-native/pull/4583))
@@ -34,12 +49,15 @@
 - Bump Bundler Plugins from v3.2.0 to v3.2.2 ([#4585](https://github.com/getsentry/sentry-react-native/pull/4585), [#4620](https://github.com/getsentry/sentry-react-native/pull/4620))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#322)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.0...3.2.2)
-- Bump CLI from v2.42.1 to v2.42.3 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586), [#4655](https://github.com/getsentry/sentry-react-native/pull/4655))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2423)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.3)
+- Bump CLI from v2.42.1 to v2.42.4 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586), [#4655](https://github.com/getsentry/sentry-react-native/pull/4655), [#4671](https://github.com/getsentry/sentry-react-native/pull/4671))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2424)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.4)
 - Bump Cocoa SDK from v8.45.0 to v8.48.0 ([#4621](https://github.com/getsentry/sentry-react-native/pull/4621), [#4651](https://github.com/getsentry/sentry-react-native/pull/4651), [#4662](https://github.com/getsentry/sentry-react-native/pull/4662))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8480)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.48.0)
+- Bump Android SDK from v7.22.1 to v7.22.4 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7224)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.4)
 
 ## 6.9.1
 
