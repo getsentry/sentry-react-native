@@ -16,7 +16,7 @@ import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
 import * as React from "react";
 import * as TestRenderer from 'react-test-renderer';
 
-import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timetodisplay';
+import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplay';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME , SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';

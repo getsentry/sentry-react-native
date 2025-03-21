@@ -21,7 +21,7 @@ export { stallTrackingIntegration } from '../tracing/integrations/stalltracking'
 export { userInteractionIntegration } from '../tracing/integrations/userInteraction';
 export { createReactNativeRewriteFrames } from './rewriteframes';
 export { appRegistryIntegration } from './appRegistry';
-export { timeToDisplayIntegration } from '../tracing/integrations/timetodisplay';
+export { timeToDisplayIntegration } from '../tracing/integrations/timeToDisplay';
 
 export {
   breadcrumbsIntegration,
