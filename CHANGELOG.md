@@ -58,6 +58,9 @@
 - Bump Android SDK from v7.22.1 to v7.22.4 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7224)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.4)
+- Bump JavaScript SDK from v8.54.0 to v9.8.0 ([#4615](https://github.com/getsentry/sentry-react-native/pull/4615))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#980)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.8.0)
 
 ## 6.9.1
 
