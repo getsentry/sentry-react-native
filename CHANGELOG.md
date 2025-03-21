@@ -47,7 +47,7 @@
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8480)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.48.0)
 - Bump Android SDK from v7.22.1 to v7.22.4 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#830)
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7224)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.4)
 
 ## 6.9.1
