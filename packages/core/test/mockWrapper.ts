@@ -60,7 +60,7 @@ const NATIVE: MockInterface<NativeType> = {
   crashedLastRun: jest.fn(),
   getNewScreenTimeToDisplay: jest.fn().mockResolvedValue(42),
   getDataFromUri: jest.fn(),
-  popTimeToDisplayFor: jest.fn().mockResolvedValue(42),
+  popTimeToDisplayFor: jest.fn(),
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);
@@ -85,6 +85,7 @@ NATIVE.initNativeReactNavigationNewFrameTracking.mockReturnValue(Promise.resolve
 NATIVE.captureReplay.mockResolvedValue(null);
 NATIVE.getCurrentReplayId.mockReturnValue(null);
 NATIVE.crashedLastRun.mockResolvedValue(false);
+NATIVE.popTimeToDisplayFor.mockResolvedValue(null);
 
 export const getRNSentryModule = jest.fn();
 

@@ -88,6 +88,8 @@ function TimeToDisplay(props: {
  * Starts a new span for the initial display.
  *
  * Returns current span if already exists in the currently active span.
+ *
+ * @deprecated Use `<TimeToInitialDisplay record={boolean}/>` component instead.
  */
 export function startTimeToInitialDisplaySpan(
   options?: Omit<StartSpanOptions, 'op' | 'name'> & {
@@ -132,6 +134,8 @@ export function startTimeToInitialDisplaySpan(
  * Starts a new span for the full display.
  *
  * Returns current span if already exists in the currently active span.
+ *
+ * @deprecated Use `<TimeToFullDisplay record={boolean}/>` component instead.
  */
 export function startTimeToFullDisplaySpan(
   options: Omit<StartSpanOptions, 'op' | 'name'> & {
