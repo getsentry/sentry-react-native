@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import type { Client, Integration, Span } from '@sentry/core';
+import type { Client, Integration, Span, Event } from '@sentry/core';
 import {
   addBreadcrumb,
   getActiveSpan,
@@ -92,7 +92,6 @@ export const reactNavigationIntegration = ({
   registerNavigationContainer: (navigationContainerRef: unknown) => void;
 } => {
   let navigationContainer: NavigationContainer | undefined;
-  let newScreenFrameEventEmitter: SentryEventEmitterFallback | undefined;
 
   let tracing: ReactNativeTracingIntegration | undefined;
   let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = defaultIdleOptions;
@@ -106,8 +105,6 @@ export const reactNavigationIntegration = ({
   let recentRouteKeys: string[] = [];
 
   if (enableTimeToInitialDisplay) {
-    newScreenFrameEventEmitter = createSentryFallbackEventEmitter();
-    newScreenFrameEventEmitter.initAsync();
     NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
       logger.error(`${INTEGRATION_NAME} Failed to initialize native new frame tracking: ${reason}`);
     });
@@ -276,32 +273,6 @@ export const reactNavigationIntegration = ({
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
-    const startTtidForNewRoute = enableTimeToInitialDisplay && !routeHasBeenSeen;
-    const startTtidForAllRoutes = enableTimeToInitialDisplay && enableTimeToInitialDisplayForPreloadedRoutes;
-
-    let latestTtidSpan: Span | undefined = undefined;
-    if (startTtidForNewRoute || startTtidForAllRoutes) {
-      latestTtidSpan = startTimeToInitialDisplaySpan({
-        name: `${route.name} initial display`,
-        isAutoInstrumented: true,
-      });
-    }
-
-    const navigationSpanWithTtid = latestNavigationSpan;
-    if (latestTtidSpan) {
-      newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
-        const activeSpan = getActiveSpan();
-        if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
-          logger.warn('[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.');
-          return;
-        }
-
-        updateInitialDisplaySpan(newFrameTimestampInSeconds, {
-          activeSpan: navigationSpanWithTtid,
-          span: latestTtidSpan,
-        });
-      });
-    }
 
     navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${route.name} mounted`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
@@ -377,9 +348,34 @@ export const reactNavigationIntegration = ({
     }
   };
 
+  const processEvent = async (event: Event): Promise<Event> => {
+    if (event.type !== 'transaction') {
+      return event;
+    }
+
+    if (!enableTimeToInitialDisplay) {
+      return event;
+    }
+
+    const rootSpanId = event.contexts.trace.span_id;
+    if (!rootSpanId) {
+      return event;
+    }
+
+    //TODO: Retrieve the time to initial display
+
+    // Pop automatic initial display timestamp
+    // Pop backup initial display timestamp
+
+    // Check if the transaction has been seen before
+
+    return event;
+  };
+
   return {
     name: INTEGRATION_NAME,
     afterAllSetup,
+    processEvent,
     registerNavigationContainer,
   };
 };
