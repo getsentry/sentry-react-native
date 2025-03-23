@@ -123,6 +123,8 @@ interface SentryNativeWrapper {
 
   getDataFromUri(uri: string): Promise<Uint8Array | null>;
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
+
+  setActiveSpanId(spanId: string): void;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -728,6 +730,20 @@ export const NATIVE: SentryNativeWrapper = {
     } catch (error) {
       logger.error('Error:', error);
       return null;
+    }
+  },
+
+  setActiveSpanId(spanId): void {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return undefined;
+    }
+
+    try {
+      // TODO: call native
+      return undefined;
+    } catch (error) {
+      logger.error('Error:', error);
+      return undefined;
     }
   },
 
