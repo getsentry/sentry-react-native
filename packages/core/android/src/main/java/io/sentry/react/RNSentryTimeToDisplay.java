@@ -8,6 +8,7 @@ import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 public final class RNSentryTimeToDisplay {
 
@@ -22,8 +23,25 @@ public final class RNSentryTimeToDisplay {
         }
       };
 
+  /**
+   * The active span id that is used to attribute the time to display to the active span in case of
+   * a screen navigation where native time to display is not available to assign the span id
+   * received from JS.
+   */
+  private static @Nullable String activeSpanId = null;
+
+  public static void setActiveSpanId(@Nullable String spanId) {
+    activeSpanId = spanId;
+  }
+
   public static Double popTimeToDisplayFor(String screenId) {
     return screenIdToRenderDuration.remove(screenId);
+  }
+
+  public static void putTimeToInitialDisplayForActiveSpan(Double value) {
+    if (activeSpanId != null) {
+      putTimeToDisplayFor("ttid-navigation-" + activeSpanId, value);
+    }
   }
 
   public static void putTimeToDisplayFor(String screenId, Double value) {

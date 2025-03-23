@@ -739,8 +739,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     try {
-      // TODO: call native
-      return undefined;
+      RNSentry.setActiveSpanId(spanId);
     } catch (error) {
       logger.error('Error:', error);
       return undefined;

@@ -1,8 +1,7 @@
 /* eslint-disable max-lines */
-import type { Client, Integration, Span, Event } from '@sentry/core';
+import type { Client, Event, Integration, Span } from '@sentry/core';
 import {
   addBreadcrumb,
-  getActiveSpan,
   getClient,
   isPlainObject,
   logger,
@@ -15,13 +14,11 @@ import {
 } from '@sentry/core';
 
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
-import type { NewFrameEvent } from '../utils/sentryeventemitter';
-import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
-import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { UI_LOAD_INITIAL_DISPLAY } from './ops';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
@@ -34,9 +31,7 @@ import {
   SPAN_THREAD_NAME_JAVASCRIPT,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
-import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan, updateInitialDisplaySpan } from './timetodisplay';
 import { createSpanJSON } from './utils';
-import { UI_LOAD_INITIAL_DISPLAY } from './ops';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -227,7 +222,7 @@ export const reactNavigationIntegration = ({
     }
 
     if (enableTimeToInitialDisplay) {
-      NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId)
+      NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId);
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation dispatch to navigation cancelled or screen mounted',
@@ -377,7 +372,7 @@ export const reactNavigationIntegration = ({
     const ttidFallbackTimestampSeconds = event.contexts?.trace?.data?.['route.initial_display_fallback'];
     if (ttidFallbackTimestampSeconds) {
       // TODO: check
-      delete event.contexts?.trace?.data?.['route.initial_display_fallback']
+      delete event.contexts?.trace?.data?.['route.initial_display_fallback'];
     }
 
     const hasBeenSeen = event.contexts?.trace?.data?.['route.has_been_seen'];
@@ -407,7 +402,7 @@ export const reactNavigationIntegration = ({
       event.spans = event.spans ?? [];
       event.spans.push(ttidSpan);
     }
-  }
+  };
 
   const processEvent = async (event: Event): Promise<Event> => {
     await addAutomaticTimeToInitialDisplay(event);

@@ -9,12 +9,19 @@
 
 static const int ENTRIES_MAX_SIZE = 50;
 static NSMutableDictionary<NSString *, NSNumber *> *screenIdToRenderDuration;
+static NSString *activeSpanId;
 
 + (void)initialize
 {
     if (self == [RNSentryTimeToDisplay class]) {
         screenIdToRenderDuration = [[NSMutableDictionary alloc] init];
+        activeSpanId = nil;
     }
+}
+
++ (void)setActiveSpanId:(NSString *)spanId
+{
+    activeSpanId = spanId;
 }
 
 + (NSNumber *)popTimeToDisplayFor:(NSString *)screenId
@@ -22,6 +29,14 @@ static NSMutableDictionary<NSString *, NSNumber *> *screenIdToRenderDuration;
     NSNumber *value = screenIdToRenderDuration[screenId];
     [screenIdToRenderDuration removeObjectForKey:screenId];
     return value;
+}
+
++ (void)putTimeToInitialDisplayForActiveSpan:(NSNumber *)value
+{
+    if (activeSpanId != nil) {
+        NSString *prefixedSpanId = [@"ttid-navigation-" stringByAppendingString:activeSpanId];
+        [self putTimeToDisplayFor:prefixedSpanId value:value];
+    }
 }
 
 + (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
