@@ -43,7 +43,7 @@
 - Handle non-string category in getCurrentScreen on iOS ([#4629](https://github.com/getsentry/sentry-react-native/pull/4629))
 - Use route name instead of route key for current route tracking ([#4650](https://github.com/getsentry/sentry-react-native/pull/4650))
   - Using key caused user interaction transaction names to contain route hash in the name.
-- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
+- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
 
 ### Dependencies
 
