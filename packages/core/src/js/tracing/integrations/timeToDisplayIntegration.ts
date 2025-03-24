@@ -40,7 +40,7 @@ export const timeToDisplayIntegration = (): Integration => {
     name: INTEGRATION_NAME,
     afterAllSetup(client) {
       enableTimeToInitialDisplayForPreloadedRoutes =
-        getReactNavigationIntegration(client).options.enableTimeToInitialDisplayForPreloadedRoutes;
+        getReactNavigationIntegration(client)?.options.enableTimeToInitialDisplayForPreloadedRoutes ?? false;
     },
     processEvent: async event => {
       if (event.type !== 'transaction') {
@@ -186,9 +186,12 @@ async function addAutomaticTimeToInitialDisplay({
     return undefined;
   }
 
+  const viewNames = event.contexts?.app?.view_names;
+  const screenName = Array.isArray(viewNames) ? viewNames[0] : viewNames;
+
   const ttidSpan = createSpanJSON({
     op: UI_LOAD_INITIAL_DISPLAY,
-    description: 'Time To Initial Display',
+    description: screenName ? `${screenName} initial display` : 'Time To Initial Display',
     start_timestamp: transactionStartTimestampSeconds,
     timestamp: ttidTimestampSeconds,
     origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,

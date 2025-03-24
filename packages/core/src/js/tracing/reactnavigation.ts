@@ -376,6 +376,8 @@ interface NavigationContainer {
 /**
  *
  */
-export function getReactNavigationIntegration(client: Client): ReturnType<typeof reactNavigationIntegration> {
-  return client.getIntegrationByName(INTEGRATION_NAME) as ReturnType<typeof reactNavigationIntegration>;
+export function getReactNavigationIntegration(
+  client: Client,
+): ReturnType<typeof reactNavigationIntegration> | undefined {
+  return client.getIntegrationByName<ReturnType<typeof reactNavigationIntegration>>(INTEGRATION_NAME);
 }
