@@ -13,12 +13,27 @@
 - Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
 - Exposed `getDataFromUri` as a public API to retrieve data from a URI ([#4638](https://github.com/getsentry/sentry-react-native/pull/4638))
 - Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641))
-- Add support for measuring Time to Initial Display for already seen routes ([#4661](https://github.com/getsentry/sentry-react-native/pull/4661))
+- Add support for measuring Time to Initial Display for already seen routes ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
   - Introduce `enableTimeToInitialDisplayForPreloadedRoutes` option to the React Navigation integration.
 
   ```js
   Sentry.reactNavigationIntegration({
     enableTimeToInitialDisplayForPreloadedRoutes: true,
+  });
+  ```
+
+- Add experimental flags `enableExperimentalViewRenderer` and `enableFastViewRendering` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        enableExperimentalViewRenderer: true,
+        enableFastViewRendering: true,
+      }),
+    ],
   });
   ```
 
@@ -28,19 +43,22 @@
 - Handle non-string category in getCurrentScreen on iOS ([#4629](https://github.com/getsentry/sentry-react-native/pull/4629))
 - Use route name instead of route key for current route tracking ([#4650](https://github.com/getsentry/sentry-react-native/pull/4650))
   - Using key caused user interaction transaction names to contain route hash in the name.
-- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4662](https://github.com/getsentry/sentry-react-native/pull/4662))
+- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
 
 ### Dependencies
 
 - Bump Bundler Plugins from v3.2.0 to v3.2.2 ([#4585](https://github.com/getsentry/sentry-react-native/pull/4585), [#4620](https://github.com/getsentry/sentry-react-native/pull/4620))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#322)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.0...3.2.2)
-- Bump CLI from v2.42.1 to v2.42.3 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586), [#4655](https://github.com/getsentry/sentry-react-native/pull/4655))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2423)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.3)
-- Bump Cocoa SDK from v8.45.0 to v8.47.0 ([#4621](https://github.com/getsentry/sentry-react-native/pull/4621), [#4651](https://github.com/getsentry/sentry-react-native/pull/4651))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8470)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.47.0)
+- Bump CLI from v2.42.1 to v2.42.4 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586), [#4655](https://github.com/getsentry/sentry-react-native/pull/4655), [#4671](https://github.com/getsentry/sentry-react-native/pull/4671))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2424)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.4)
+- Bump Cocoa SDK from v8.45.0 to v8.48.0 ([#4621](https://github.com/getsentry/sentry-react-native/pull/4621), [#4651](https://github.com/getsentry/sentry-react-native/pull/4651), [#4662](https://github.com/getsentry/sentry-react-native/pull/4662))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8480)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.48.0)
+- Bump Android SDK from v7.22.1 to v7.22.4 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7224)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.4)
 
 ## 6.9.1
 
