@@ -351,6 +351,28 @@ describe('React Navigation - TTID', () => {
       expect(getSpanDurationMs(transaction, 'ui.load.initial_display')).toEqual(transaction.measurements?.time_to_initial_display?.value);
     });
 
+    test('ttfd span duration and measurement should equal ttid from ttfd is called earlier than ttid', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      TestRenderer.render(<TimeToFullDisplay record />);
+      emitNativeFullDisplayEvent();
+      mockedEventEmitter.emitNewFrameEvent();
+
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      const ttfdSpanDuration = getSpanDurationMs(transaction, 'ui.load.full_display');
+      const ttidSpanDuration = getSpanDurationMs(transaction, 'ui.load.initial_display');
+      expect(ttfdSpanDuration).toBeDefined();
+      expect(ttidSpanDuration).toBeDefined();
+      expect(ttfdSpanDuration).toEqual(ttidSpanDuration);
+
+      expect(transaction.measurements?.time_to_full_display?.value).toBeDefined();
+      expect(transaction.measurements?.time_to_initial_display?.value).toBeDefined();
+      expect(transaction.measurements?.time_to_full_display?.value).toEqual(transaction.measurements?.time_to_initial_display?.value);
+    });
+
     test('ttfd span duration and measurement should equal for application start up', () => {
       mockedNavigation.finishAppStartNavigation();
       mockedEventEmitter.emitNewFrameEvent();
