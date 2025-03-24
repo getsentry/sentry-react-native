@@ -53,7 +53,7 @@ static NSUInteger screenIdCurrentIndex;
         [screenIdToRenderDuration setObject:value forKey:screenId];
         screenIdAge[screenIdCurrentIndex] = screenId;
 
-        // Update circular index
+        // Update circular index, point to the new oldest
         screenIdCurrentIndex = (screenIdCurrentIndex + 1) % TIME_TO_DISPLAY_ENTRIES_MAX_SIZE;
     }
 }
