@@ -3,7 +3,7 @@ import { Appearance } from 'react-native';
 import { getFeedbackDarkTheme, getFeedbackLightTheme } from './integration';
 
 /**
- *
+ * Get the theme for the feedback widget based on the current color scheme
  */
 export function getTheme(): FeedbackWidgetTheme {
   const colorScheme = Appearance.getColorScheme();
