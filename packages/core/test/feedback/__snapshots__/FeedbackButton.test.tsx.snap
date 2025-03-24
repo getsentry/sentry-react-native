@@ -32,8 +32,24 @@ exports[`FeedbackButton matches the snapshot with custom styles 1`] = `
   onStartShouldSetResponder={[Function]}
   style={
     {
+      "alignItems": "center",
       "backgroundColor": "#ffffff",
+      "borderRadius": 40,
+      "bottom": 30,
+      "elevation": 5,
+      "flexDirection": "row",
+      "justifyContent": "center",
       "opacity": 1,
+      "padding": 15,
+      "position": "absolute",
+      "right": 30,
+      "shadowColor": "rgba(41, 35, 47, 0.13)",
+      "shadowOffset": {
+        "height": 2,
+        "width": 1,
+      },
+      "shadowOpacity": 0.5,
+      "shadowRadius": 3,
     }
   }
 >
@@ -56,6 +72,7 @@ exports[`FeedbackButton matches the snapshot with custom styles 1`] = `
     style={
       {
         "color": "#ff0000",
+        "fontSize": 18,
       }
     }
   >
