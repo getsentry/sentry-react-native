@@ -238,7 +238,6 @@ const ErrorsScreen = (_props: Props) => {
         ) : null}
         <View style={styles.mainViewBottomWhiteSpace} />
       </ScrollView>
-      <Sentry.FeedbackButton/>
     </>
   );
 };
@@ -274,7 +273,6 @@ const styles = StyleSheet.create({
   },
   mainViewBottomWhiteSpace: {
     marginTop: 32,
-    marginBottom: 75,
   },
 });
 

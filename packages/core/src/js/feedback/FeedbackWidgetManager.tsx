@@ -4,10 +4,11 @@ import type { NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import { Animated, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
 
 import { notWeb } from '../utils/environment';
+import { FeedbackButton } from './FeedbackButton';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
-import { getFeedbackOptions } from './integration';
+import { getFeedbackButtonOptions, getFeedbackOptions } from './integration';
 import { lazyLoadAutoInjectFeedbackIntegration } from './lazy';
 import { isModalSupported } from './utils';
 
@@ -183,6 +184,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
             </Modal>
           </Animated.View>
         }
+        {getFeedbackButtonOptions().showFeedbackButton && <FeedbackButton {...getFeedbackButtonOptions()}/>}
       </>
     );
   }
