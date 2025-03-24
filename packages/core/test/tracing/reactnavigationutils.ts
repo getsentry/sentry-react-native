@@ -1,17 +1,24 @@
 import type { NavigationRoute, reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
+import type { UnsafeAction } from '../../src/js/vendor/react-navigation/types';
+
+const navigationAction: UnsafeAction = {
+  data: {
+    action: {
+      type: 'NAVIGATE',
+    },
+    noop: false,
+    stack: undefined,
+  },
+};
 
 export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavigationIntegration>) {
   const mockedNavigationContained = mockNavigationContainer();
   const mockedNavigation = {
     emitCancelledNavigation: () => {
-      mockedNavigationContained.listeners['__unsafe_action__']({
-        // this object is not used by the instrumentation
-      });
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
     },
     navigateToNewScreen: () => {
-      mockedNavigationContained.listeners['__unsafe_action__']({
-        // this object is not used by the instrumentation
-      });
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
       mockedNavigationContained.currentRoute = {
         key: 'new_screen',
         name: 'New Screen',
@@ -21,9 +28,7 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
       });
     },
     navigateToSecondScreen: () => {
-      mockedNavigationContained.listeners['__unsafe_action__']({
-        // this object is not used by the instrumentation
-      });
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
       mockedNavigationContained.currentRoute = {
         key: 'second_screen',
         name: 'Second Screen',
@@ -33,9 +38,7 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
       });
     },
     navigateToInitialScreen: () => {
-      mockedNavigationContained.listeners['__unsafe_action__']({
-        // this object is not used by the instrumentation
-      });
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
       mockedNavigationContained.currentRoute = {
         key: 'initial_screen',
         name: 'Initial Screen',
@@ -49,6 +52,12 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
         key: 'initial_screen',
         name: 'Initial Screen',
       };
+      mockedNavigationContained.listeners['state']({
+        // this object is not used by the instrumentation
+      });
+    },
+    emitWithStateChange: (action: UnsafeAction) => {
+      mockedNavigationContained.listeners['__unsafe_action__'](action);
       mockedNavigationContained.listeners['state']({
         // this object is not used by the instrumentation
       });

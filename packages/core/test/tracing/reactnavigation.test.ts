@@ -210,6 +210,41 @@ describe('ReactNavigationInstrumentation', () => {
     );
   });
 
+  test('navigation action not ', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
+
+    mockNavigation.navigateToNewScreen();
+    jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+    await client.flush();
+
+    const actualEvent = client.event;
+    expect(actualEvent).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'New Screen',
+        contexts: expect.objectContaining({
+          trace: expect.objectContaining({
+            data: {
+              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'New Screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'new_screen',
+              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Initial Screen',
+              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'initial_screen',
+              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
+              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
+              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
+              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
+              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
+              [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
+            },
+          }),
+        }),
+      }),
+    );
+  });
+
   test('transaction has correct metadata after multiple navigations', async () => {
     setupTestClient();
     jest.runOnlyPendingTimers(); // Flush the init transaction
@@ -579,6 +614,47 @@ describe('ReactNavigationInstrumentation', () => {
     });
   });
 
+  [true, false].forEach(useDispatchedActionData => {
+    describe(`test actions which should not create a navigation span when useDispatchedActionData is ${useDispatchedActionData}`, () => {
+      beforeEach(async () => {
+        setupTestClient({ useDispatchedActionData });
+        await jest.runOnlyPendingTimersAsync(); // Flushes the initial navigation span
+        client.event = undefined;
+      });
+
+      test(`noop does ${useDispatchedActionData ? 'not' : ''}create a navigation span`, async () => {
+        mockNavigation.emitWithStateChange({
+          data: {
+            action: {
+              type: 'UNKNOWN',
+            },
+            noop: true,
+            stack: undefined,
+          },
+        });
+        await jest.runOnlyPendingTimersAsync();
+        expect(client.event === undefined).toBe(useDispatchedActionData);
+      });
+
+      test.each(['PRELOAD', 'SET_PARAMS', 'OPEN_DRAWER', 'CLOSE_DRAWER', 'TOGGLE_DRAWER'])(
+        `%s does ${useDispatchedActionData ? 'not' : ''}create a navigation span`,
+        async actionType => {
+          mockNavigation.emitWithStateChange({
+            data: {
+              action: {
+                type: actionType,
+              },
+              noop: false,
+              stack: undefined,
+            },
+          });
+          await jest.runOnlyPendingTimersAsync();
+          expect(client.event === undefined).toBe(useDispatchedActionData);
+        },
+      );
+    });
+  });
+
   describe('setCurrentRoute', () => {
     let mockSetCurrentRoute: jest.Mock;
 
@@ -649,10 +725,12 @@ describe('ReactNavigationInstrumentation', () => {
   function setupTestClient(
     setupOptions: {
       beforeSpanStart?: (options: StartSpanOptions) => StartSpanOptions;
+      useDispatchedActionData?: boolean;
     } = {},
   ) {
     const rNavigation = reactNavigationIntegration({
       routeChangeTimeoutMs: 200,
+      useDispatchedActionData: setupOptions.useDispatchedActionData,
     });
     mockNavigation = createMockNavigationAndAttachTo(rNavigation);
 
