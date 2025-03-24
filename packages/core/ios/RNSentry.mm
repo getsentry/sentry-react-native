@@ -288,7 +288,6 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
 - (void)initFramesTracking
 {
 #if SENTRY_HAS_UIKIT
-
     RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
         [RNSentryTimeToDisplay putTimeToInitialDisplayForActiveSpan:newFrameTimestampInSeconds];
     };
@@ -965,10 +964,10 @@ RCT_EXPORT_METHOD(popTimeToDisplayFor
     resolve([RNSentryTimeToDisplay popTimeToDisplayFor:key]);
 }
 
-RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(bool, setActiveSpanId : (NSString *)spanId)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)spanId)
 {
     [RNSentryTimeToDisplay setActiveSpanId:spanId];
-    return YES; // The return ensures that the method is synchronous
+    return @YES; // The return ensures that the method is synchronous
 }
 
 @end

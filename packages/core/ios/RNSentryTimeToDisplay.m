@@ -94,8 +94,7 @@ static NSString *activeSpanId;
 - (void)handleDisplayLink:(CADisplayLink *)link
 {
     // Get the current time
-    NSTimeInterval currentTime =
-        [[NSDate date] timeIntervalSince1970] * 1000.0; // Convert to milliseconds
+    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
 
     // Ensure the callback is valid and pass the current time back
     if (resolveBlock) {

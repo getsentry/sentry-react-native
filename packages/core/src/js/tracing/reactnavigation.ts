@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import type { Client, Event, Integration, Span } from '@sentry/core';
+import type { Client, Integration, Span } from '@sentry/core';
 import {
   addBreadcrumb,
   getClient,
@@ -17,9 +17,9 @@ import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
+import { addTimeToInitialDisplayFallback } from './integrations/timeToDisplayIntegration';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
-import { UI_LOAD_INITIAL_DISPLAY } from './ops';
-import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY } from './origin';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
@@ -27,11 +27,8 @@ import {
   DEFAULT_NAVIGATION_SPAN_NAME,
   defaultIdleOptions,
   getDefaultIdleNavigationSpanOptions,
-  SPAN_THREAD_NAME,
-  SPAN_THREAD_NAME_JAVASCRIPT,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
-import { createSpanJSON } from './utils';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -89,6 +86,7 @@ export const reactNavigationIntegration = ({
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
   registerNavigationContainer: (navigationContainerRef: unknown) => void;
+  options: ReactNavigationIntegrationOptions;
 } => {
   let navigationContainer: NavigationContainer | undefined;
 
@@ -222,7 +220,7 @@ export const reactNavigationIntegration = ({
     }
 
     if (enableTimeToInitialDisplay) {
-      NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId);
+      NATIVE.setActiveSpanId(latestNavigationSpan?.spanContext().spanId);
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation dispatch to navigation cancelled or screen mounted',
@@ -261,6 +259,8 @@ export const reactNavigationIntegration = ({
       );
       return undefined;
     }
+
+    addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
 
     if (previousRoute && previousRoute.key === route.key) {
       logger.debug(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
@@ -348,72 +348,16 @@ export const reactNavigationIntegration = ({
     }
   };
 
-  const addAutomaticTimeToInitialDisplay = async (event: Event): Promise<void> => {
-    if (event.type !== 'transaction') {
-      return undefined;
-    }
-
-    if (!enableTimeToInitialDisplay) {
-      return undefined;
-    }
-
-    const rootSpanId = event.contexts.trace.span_id;
-    if (!rootSpanId) {
-      return undefined;
-    }
-
-    const transactionStartTimestampSeconds = event.start_timestamp;
-    if (!transactionStartTimestampSeconds) {
-      return undefined;
-    }
-
-    // TODO: pass rootSpanId to native
-    const ttidNativeTimestampSeconds = await NATIVE.popTimeToDisplayFor(`ttid-navigation-${rootSpanId}`);
-    const ttidFallbackTimestampSeconds = event.contexts?.trace?.data?.['route.initial_display_fallback'];
-    if (ttidFallbackTimestampSeconds) {
-      // TODO: check
-      delete event.contexts?.trace?.data?.['route.initial_display_fallback'];
-    }
-
-    const hasBeenSeen = event.contexts?.trace?.data?.['route.has_been_seen'];
-    if (hasBeenSeen && !enableTimeToInitialDisplayForPreloadedRoutes) {
-      return undefined;
-    }
-
-    const hasTtid = !!event.measurements?.['time_to_initial_display'];
-    if (hasTtid) {
-      logger.debug(`[${INTEGRATION_NAME}] Transaction already has time to initial display.`);
-      return undefined;
-    }
-
-    const ttidTimestampSeconds = ttidNativeTimestampSeconds ?? ttidFallbackTimestampSeconds;
-    if (ttidTimestampSeconds) {
-      const ttidSpan = createSpanJSON({
-        op: UI_LOAD_INITIAL_DISPLAY,
-        description: 'Time To Initial Display',
-        start_timestamp: transactionStartTimestampSeconds,
-        timestamp: ttidTimestampSeconds,
-        origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
-        parent_span_id: rootSpanId,
-        data: {
-          [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
-        },
-      });
-      event.spans = event.spans ?? [];
-      event.spans.push(ttidSpan);
-    }
-  };
-
-  const processEvent = async (event: Event): Promise<Event> => {
-    await addAutomaticTimeToInitialDisplay(event);
-    return event;
-  };
-
   return {
     name: INTEGRATION_NAME,
     afterAllSetup,
-    processEvent,
     registerNavigationContainer,
+    options: {
+      routeChangeTimeoutMs,
+      enableTimeToInitialDisplay,
+      ignoreEmptyBackNavigationTransactions,
+      enableTimeToInitialDisplayForPreloadedRoutes,
+    },
   };
 };
 
@@ -427,4 +371,11 @@ export interface NavigationRoute {
 interface NavigationContainer {
   addListener: (type: string, listener: () => void) => void;
   getCurrentRoute: () => NavigationRoute;
+}
+
+/**
+ *
+ */
+export function getReactNavigationIntegration(client: Client): ReturnType<typeof reactNavigationIntegration> {
+  return client.getIntegrationByName(INTEGRATION_NAME) as ReturnType<typeof reactNavigationIntegration>;
 }
