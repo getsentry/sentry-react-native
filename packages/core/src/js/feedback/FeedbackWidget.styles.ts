@@ -63,7 +63,7 @@ const defaultStyles: FeedbackWidgetStyles = {
     fontSize: 16,
   },
   submitButton: {
-    backgroundColor: getTheme().branding,
+    backgroundColor: getTheme().accent,
     paddingVertical: 15,
     borderRadius: 5,
     alignItems: 'center',

@@ -8,25 +8,28 @@ export const MOBILE_FEEDBACK_INTEGRATION_NAME = 'MobileFeedback';
 type FeedbackIntegration = Integration & {
   options: Partial<FeedbackWidgetProps>;
   buttonOptions: Partial<FeedbackButtonProps>;
-  lightTheme: Partial<FeedbackWidgetTheme>;
-  darkTheme: Partial<FeedbackWidgetTheme>;
+  colorScheme?: 'system' | 'light' | 'dark';
+  themeLight: Partial<FeedbackWidgetTheme>;
+  themeDark: Partial<FeedbackWidgetTheme>;
 };
 
 export const feedbackIntegration = (
   initOptions: FeedbackWidgetProps & {
     buttonOptions?: FeedbackButtonProps;
-    lightTheme?: Partial<FeedbackWidgetTheme>;
-    darkTheme?: Partial<FeedbackWidgetTheme>;
+    colorScheme?: 'system' | 'light' | 'dark';
+    themeLight?: Partial<FeedbackWidgetTheme>;
+    themeDark?: Partial<FeedbackWidgetTheme>;
   } = {},
 ): FeedbackIntegration => {
-  const { buttonOptions, lightTheme, darkTheme, ...widgetOptions } = initOptions;
+  const { buttonOptions, colorScheme, themeLight: lightTheme, themeDark: darkTheme, ...widgetOptions } = initOptions;
 
   return {
     name: MOBILE_FEEDBACK_INTEGRATION_NAME,
     options: widgetOptions,
     buttonOptions: buttonOptions || {},
-    lightTheme: lightTheme || {},
-    darkTheme: darkTheme || {},
+    colorScheme: colorScheme || 'system',
+    themeLight: lightTheme || {},
+    themeDark: darkTheme || {},
   };
 };
 
@@ -52,6 +55,17 @@ export const getFeedbackButtonOptions = (): Partial<FeedbackButtonProps> => {
   return integration.buttonOptions;
 };
 
+export const getColorScheme = (): 'system' | 'light' | 'dark' => {
+  const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
+    MOBILE_FEEDBACK_INTEGRATION_NAME,
+  );
+  if (!integration) {
+    return 'system';
+  }
+
+  return integration.colorScheme;
+};
+
 export const getFeedbackLightTheme = (): Partial<FeedbackWidgetTheme> => {
   const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
     MOBILE_FEEDBACK_INTEGRATION_NAME,
@@ -60,7 +74,7 @@ export const getFeedbackLightTheme = (): Partial<FeedbackWidgetTheme> => {
     return {};
   }
 
-  return integration.lightTheme;
+  return integration.themeLight;
 };
 
 export const getFeedbackDarkTheme = (): Partial<FeedbackWidgetTheme> => {
@@ -71,5 +85,5 @@ export const getFeedbackDarkTheme = (): Partial<FeedbackWidgetTheme> => {
     return {};
   }
 
-  return integration.darkTheme;
+  return integration.themeDark;
 };
