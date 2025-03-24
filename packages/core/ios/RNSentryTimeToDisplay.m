@@ -7,14 +7,20 @@
     RCTResponseSenderBlock resolveBlock;
 }
 
-static const int ENTRIES_MAX_SIZE = 50;
 static NSMutableDictionary<NSString *, NSNumber *> *screenIdToRenderDuration;
+static NSMutableArray<NSString *> *screenIdAge;
+static NSUInteger screenIdCurrentIndex;
+
 static NSString *activeSpanId;
 
 + (void)initialize
 {
     if (self == [RNSentryTimeToDisplay class]) {
-        screenIdToRenderDuration = [[NSMutableDictionary alloc] init];
+        screenIdToRenderDuration =
+            [[NSMutableDictionary alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
+        screenIdAge = [[NSMutableArray alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
+        screenIdCurrentIndex = 0;
+
         activeSpanId = nil;
     }
 }
@@ -41,12 +47,32 @@ static NSString *activeSpanId;
 
 + (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
 {
-    // Remove oldest entry if at max size
-    if (screenIdToRenderDuration.count >= ENTRIES_MAX_SIZE) {
-        NSString *firstKey = screenIdToRenderDuration.allKeys.firstObject;
-        [screenIdToRenderDuration removeObjectForKey:firstKey];
+    if (!screenId)
+        return;
+
+    // If key already exists, just update the value,
+    // this should never happen as TTD is recorded once per navigation
+    // We avoid updating the age to avoid the age array shift
+    if ([screenIdToRenderDuration objectForKey:screenId]) {
+        [screenIdToRenderDuration setObject:value forKey:screenId];
+        return;
     }
-    screenIdToRenderDuration[screenId] = value;
+
+    // If we haven't reached capacity yet, just append
+    if (screenIdAge.count < TIME_TO_DISPLAY_ENTRIES_MAX_SIZE) {
+        [screenIdToRenderDuration setObject:value forKey:screenId];
+        [screenIdAge addObject:screenId];
+    } else {
+        // Remove oldest entry, in most case will already be removed by pop
+        NSString *oldestKey = screenIdAge[screenIdCurrentIndex];
+        [screenIdToRenderDuration removeObjectForKey:oldestKey];
+
+        [screenIdToRenderDuration setObject:value forKey:screenId];
+        screenIdAge[screenIdCurrentIndex] = screenId;
+
+        // Update circular index, point to the new oldest
+        screenIdCurrentIndex = (screenIdCurrentIndex + 1) % TIME_TO_DISPLAY_ENTRIES_MAX_SIZE;
+    }
 }
 
 // Rename requestAnimationFrame to getTimeToDisplay

@@ -38,13 +38,17 @@
   });
   ```
 
+### Changes
+
+- TTID and TTFD use native getters instead od events to pass timestamps to the JS layer ([#4669](https://github.com/getsentry/sentry-react-native/pull/4669))
+
 ### Fixes
 
 - Considers the `SENTRY_DISABLE_AUTO_UPLOAD` and `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` environment variables in the configuration of the Sentry Android Gradle Plugin for Expo plugin ([#4583](https://github.com/getsentry/sentry-react-native/pull/4583))
 - Handle non-string category in getCurrentScreen on iOS ([#4629](https://github.com/getsentry/sentry-react-native/pull/4629))
 - Use route name instead of route key for current route tracking ([#4650](https://github.com/getsentry/sentry-react-native/pull/4650))
   - Using key caused user interaction transaction names to contain route hash in the name.
-- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4662](https://github.com/getsentry/sentry-react-native/pull/4662))
+- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
 
 ### Dependencies
 

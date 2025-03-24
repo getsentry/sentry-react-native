@@ -14,7 +14,7 @@ public final class RNSentryTimeToDisplay {
 
   private RNSentryTimeToDisplay() {}
 
-  private static final int ENTRIES_MAX_SIZE = 50;
+  public static final int ENTRIES_MAX_SIZE = 50;
   private static final Map<String, Double> screenIdToRenderDuration =
       new LinkedHashMap<String, Double>(ENTRIES_MAX_SIZE + 1, 0.75f, true) {
         @Override

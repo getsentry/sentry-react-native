@@ -15,6 +15,7 @@
 		33AFDFF12B8D15E500AAB120 /* RNSentryDependencyContainerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFF02B8D15E500AAB120 /* RNSentryDependencyContainerTests.m */; };
 		33DEDFEA2D8DBE67006066E4 /* RNSentryOnDrawReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFE92D8DBE5B006066E4 /* RNSentryOnDrawReporterTests.swift */; };
 		33DEDFED2D8DC825006066E4 /* RNSentryOnDrawReporter+Test.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFEC2D8DC820006066E4 /* RNSentryOnDrawReporter+Test.mm */; };
+		33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */; };
 		33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.mm */; };
 		AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */; };
 		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
@@ -47,6 +48,7 @@
 		33DEDFEB2D8DC800006066E4 /* RNSentryOnDrawReporter+Test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentryOnDrawReporter+Test.h"; sourceTree = "<group>"; };
 		33DEDFEC2D8DC820006066E4 /* RNSentryOnDrawReporter+Test.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "RNSentryOnDrawReporter+Test.mm"; sourceTree = "<group>"; };
 		33DEDFEE2D8DD431006066E4 /* RNSentryTimeToDisplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryTimeToDisplay.h; path = ../ios/RNSentryTimeToDisplay.h; sourceTree = SOURCE_ROOT; };
+		33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryTimeToDisplayTests.swift; sourceTree = "<group>"; };
 		33F58ACF2977037D008F60EA /* RNSentryTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = RNSentryTests.mm; sourceTree = "<group>"; };
 		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 		3360899029524164007C7730 /* RNSentryCocoaTesterTests */ = {
 			isa = PBXGroup;
 			children = (
+				33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */,
 				33DEDFEC2D8DC820006066E4 /* RNSentryOnDrawReporter+Test.mm */,
 				33DEDFEB2D8DC800006066E4 /* RNSentryOnDrawReporter+Test.h */,
 				33DEDFE92D8DBE5B006066E4 /* RNSentryOnDrawReporterTests.swift */,
@@ -257,6 +260,7 @@
 				33DEDFED2D8DC825006066E4 /* RNSentryOnDrawReporter+Test.mm in Sources */,
 				33F58AD02977037D008F60EA /* RNSentryTests.mm in Sources */,
 				3339C4812D6625570088EB3A /* RNSentryUserTests.mm in Sources */,
+				33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */,
 				3380C6C42CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift in Sources */,
 				33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */,
 			);

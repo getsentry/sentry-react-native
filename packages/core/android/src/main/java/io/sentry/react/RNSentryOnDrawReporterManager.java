@@ -128,7 +128,6 @@ public class RNSentryOnDrawReporterManager
             "[TimeToDisplay] Already recorded time to display for spanId: " + parentSpanId);
         return;
       }
-      spanIdUsed = true;
 
       if (isInitialDisplay) {
         logger.log(SentryLevel.DEBUG, "[TimeToDisplay] Register initial display event emitter.");
@@ -160,6 +159,7 @@ public class RNSentryOnDrawReporterManager
         return;
       }
 
+      spanIdUsed = true;
       registerForNextDraw(
           activity,
           () -> {

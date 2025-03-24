@@ -48,6 +48,24 @@ class RNSentryOnDrawReporterTest {
     }
 
     @Test
+    fun `when parentSpanId and timeToFullDisplay are set the next render timestamp is saved - reversed order`() {
+        val reporter = createTestRNSentryOnDrawReporterView()
+        reporter.setParentSpanId(SPAN_ID)
+        reporter.setFullDisplay(true)
+
+        assertNotNull(RNSentryTimeToDisplay.popTimeToDisplayFor(TTFD_PREFIX + SPAN_ID))
+    }
+
+    @Test
+    fun `when parentSpanId and timeToInitialDisplay are set the next render timestamp is saved - reversed order`() {
+        val reporter = createTestRNSentryOnDrawReporterView()
+        reporter.setParentSpanId(SPAN_ID)
+        reporter.setInitialDisplay(true)
+
+        assertNotNull(RNSentryTimeToDisplay.popTimeToDisplayFor(TTID_PREFIX + SPAN_ID))
+    }
+
+    @Test
     fun `when display flag and parentSpanId changes the next full display render is saved`() {
         val reporter = createTestRNSentryOnDrawReporterView()
         reporter.setFullDisplay(true)
