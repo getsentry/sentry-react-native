@@ -1,11 +1,15 @@
 import { Appearance } from 'react-native';
 
+import { getFeedbackDarkTheme, getFeedbackLightTheme } from './integration';
+
 /**
  *
  */
 export function getTheme(): FeedbackWidgetTheme {
   const colorScheme = Appearance.getColorScheme();
-  return colorScheme === 'dark' ? DarkTheme : LightTheme;
+  const lightTheme = { ...LightTheme, ...getFeedbackLightTheme() };
+  const darkTheme = { ...DarkTheme, ...getFeedbackDarkTheme() };
+  return colorScheme === 'dark' ? darkTheme : lightTheme;
 }
 
 export interface FeedbackWidgetTheme {
