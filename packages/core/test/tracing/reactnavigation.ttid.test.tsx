@@ -24,7 +24,6 @@ import { MOCK_DSN } from '../mockDsn';
 import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
 import type { MockedSentryEventEmitterFallback } from '../utils/mockedSentryeventemitterfallback';
 import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
-// import { // mockRecordedFullDisplayAt, // mockRecordedInitialDisplayAt } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';

@@ -8,6 +8,8 @@ interface ArticleCardProps {
   article: Article;
 }
 
+const TimeToFullDisplay = Sentry.createTimeToFullDisplay({useFocusEffect});
+
 export function ArticleCard({ article }: ArticleCardProps) {
   return (
     <View>
