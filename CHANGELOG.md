@@ -22,6 +22,7 @@
   });
   ```
 
+- Add `createTimeToInitialDisplay({useFocusEffect})` and `createTimeToFullDisplay({useFocusEffect})` to allow record full display on screen focus ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
 - Add experimental flags `enableExperimentalViewRenderer` and `enableFastViewRendering` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
 
   ```js
