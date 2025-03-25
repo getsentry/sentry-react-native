@@ -18,7 +18,6 @@ import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import type { UnsafeAction } from '../vendor/react-navigation/types';
 import { NATIVE } from '../wrapper';
-import { addTimeToInitialDisplayFallback } from './integrations/timeToDisplayIntegration';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
@@ -30,6 +29,7 @@ import {
   getDefaultIdleNavigationSpanOptions,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
+import { addTimeToInitialDisplayFallback } from './timeToDisplayFallback';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
