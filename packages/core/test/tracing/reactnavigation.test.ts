@@ -397,8 +397,8 @@ describe('ReactNavigationInstrumentation', () => {
         current: mockNavigationContainer,
       });
 
-      // Reset mocks after the first registration
-      jest.resetAllMocks();
+      // Clear mocks after the first registration
+      jest.clearAllMocks();
 
       instrumentation.registerNavigationContainer({
         current: mockNavigationContainer,
@@ -618,7 +618,7 @@ describe('ReactNavigationInstrumentation', () => {
     describe(`test actions which should not create a navigation span when useDispatchedActionData is ${useDispatchedActionData}`, () => {
       beforeEach(async () => {
         setupTestClient({ useDispatchedActionData });
-        await jest.runOnlyPendingTimersAsync(); // Flushes the initial navigation span
+        await jest.runOnlyPendingTimers(); // Flushes the initial navigation span
         client.event = undefined;
       });
 
@@ -633,6 +633,8 @@ describe('ReactNavigationInstrumentation', () => {
           },
         });
         await jest.runOnlyPendingTimersAsync();
+        await client.flush();
+
         expect(client.event === undefined).toBe(useDispatchedActionData);
       });
 
@@ -649,11 +651,56 @@ describe('ReactNavigationInstrumentation', () => {
             },
           });
           await jest.runOnlyPendingTimersAsync();
+          await client.flush();
+
           expect(client.event === undefined).toBe(useDispatchedActionData);
         },
       );
     });
   });
+
+  test('noop does not remove the previous navigation span from scope', async () => {
+    setupTestClient({ useDispatchedActionData: true });
+    await jest.runOnlyPendingTimers(); // Flushes the initial navigation span
+
+    mockNavigation.emitNavigationWithoutStateChange();
+    const activeSpan = getActiveSpan();
+
+    mockNavigation.emitWithoutStateChange({
+      data: {
+        action: {
+          type: 'UNKNOWN',
+        },
+        noop: true,
+        stack: undefined,
+      },
+    });
+
+    expect(getActiveSpan()).toBe(activeSpan);
+  });
+
+  test.each(['PRELOAD', 'SET_PARAMS', 'OPEN_DRAWER', 'CLOSE_DRAWER', 'TOGGLE_DRAWER'])(
+    '%s does not remove the previous navigation span from scope',
+    async actionType => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers(); // Flushes the initial navigation span
+
+      mockNavigation.emitNavigationWithoutStateChange();
+      const activeSpan = getActiveSpan();
+
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: {
+            type: actionType,
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+
+      expect(getActiveSpan()).toBe(activeSpan);
+    },
+  );
 
   describe('setCurrentRoute', () => {
     let mockSetCurrentRoute: jest.Mock;

@@ -211,12 +211,6 @@ export const reactNavigationIntegration = ({
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
    */
   const startIdleNavigationSpan = (unknownEvent?: unknown): void => {
-    if (latestNavigationSpan) {
-      logger.log(`${INTEGRATION_NAME} A transaction was detected that turned out to be a noop, discarding.`);
-      _discardLatestTransaction();
-      clearStateChangeTimeout();
-    }
-
     const event = unknownEvent as UnsafeAction | undefined;
     if (useDispatchedActionData && event?.data.noop) {
       logger.debug(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
@@ -238,6 +232,12 @@ export const reactNavigationIntegration = ({
     ) {
       logger.debug(`${INTEGRATION_NAME} Navigation action is ${navigationActionType}, not starting navigation span.`);
       return;
+    }
+
+    if (latestNavigationSpan) {
+      logger.log(`${INTEGRATION_NAME} A transaction was detected that turned out to be a noop, discarding.`);
+      _discardLatestTransaction();
+      clearStateChangeTimeout();
     }
 
     latestNavigationSpan = startGenericIdleNavigationSpan(
