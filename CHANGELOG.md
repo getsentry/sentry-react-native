@@ -12,7 +12,7 @@
 
 - Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
 - Exposed `getDataFromUri` as a public API to retrieve data from a URI ([#4638](https://github.com/getsentry/sentry-react-native/pull/4638))
-- Add experimental flags `enableExperimentalViewRenderer` and `enableFastViewRendering` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
+- Add `enableExperimentalViewRenderer` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
 
   ```js
   import * as Sentry from '@sentry/react-native';
@@ -21,7 +21,6 @@
     integrations: [
       Sentry.mobileReplayIntegration({
         enableExperimentalViewRenderer: true,
-        enableFastViewRendering: true,
       }),
     ],
   });
