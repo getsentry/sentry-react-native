@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "6.9.1",
+  "version": "6.10.0",
   "private": true,
   "scripts": {
     "postinstall": "patch-package",
@@ -28,7 +28,7 @@
     "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.1",
     "@sentry/core": "8.54.0",
-    "@sentry/react-native": "6.9.1",
+    "@sentry/react-native": "6.10.0",
     "delay": "^6.0.0",
     "react": "18.3.1",
     "react-native": "0.77.1",
