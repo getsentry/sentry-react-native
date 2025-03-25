@@ -1,37 +1,19 @@
 import type { Event, Integration, SpanJSON } from '@sentry/core';
 import { logger } from '@sentry/core';
 
-import { AsyncExpiringMap } from '../../utils/AsyncExpiringMap';
 import { NATIVE } from '../../wrapper';
 import { UI_LOAD_FULL_DISPLAY, UI_LOAD_INITIAL_DISPLAY } from '../ops';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../origin';
 import { getReactNavigationIntegration } from '../reactnavigation';
 import { SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN } from '../semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../span';
+import { getTimeToInitialDisplayFallback } from '../timeToDisplayFallback';
 import { createSpanJSON } from '../utils';
+
 export const INTEGRATION_NAME = 'TimeToDisplay';
 
 const TIME_TO_DISPLAY_TIMEOUT_MS = 30_000;
-const TIME_TO_DISPLAY_FALLBACK_TTL_MS = 60_000;
 const isDeadlineExceeded = (durationMs: number): boolean => durationMs > TIME_TO_DISPLAY_TIMEOUT_MS;
-
-const spanIdToTimeToInitialDisplayFallback: AsyncExpiringMap<string, number | undefined | null> = new AsyncExpiringMap({
-  ttl: TIME_TO_DISPLAY_FALLBACK_TTL_MS,
-});
-
-export const addTimeToInitialDisplayFallback = (
-  spanId: string,
-  timestampSeconds: Promise<number | undefined | null>,
-): void => {
-  spanIdToTimeToInitialDisplayFallback.set(spanId, timestampSeconds);
-};
-
-/**
- * Exported for testing purposes only.
- */
-export const getTimeToInitialDisplayFallback = async (spanId: string): Promise<number | undefined> => {
-  return spanIdToTimeToInitialDisplayFallback.get(spanId);
-};
 
 export const timeToDisplayIntegration = (): Integration => {
   let enableTimeToInitialDisplayForPreloadedRoutes = false;
