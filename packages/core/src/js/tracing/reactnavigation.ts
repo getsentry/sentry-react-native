@@ -16,12 +16,13 @@ import {
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import type { UnsafeAction } from '../vendor/react-navigation/types';
 import { NATIVE } from '../wrapper';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
-import { SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
+import { SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import {
   DEFAULT_NAVIGATION_SPAN_NAME,
   defaultIdleOptions,
@@ -65,6 +66,13 @@ interface ReactNavigationIntegrationOptions {
    * @default false
    */
   enableTimeToInitialDisplayForPreloadedRoutes: boolean;
+
+  /**
+   * Whether to use the dispatched action data to populate the transaction metadata.
+   *
+   * @default false
+   */
+  useDispatchedActionData: boolean;
 }
 
 /**
@@ -80,6 +88,7 @@ export const reactNavigationIntegration = ({
   enableTimeToInitialDisplay = false,
   ignoreEmptyBackNavigationTransactions = true,
   enableTimeToInitialDisplayForPreloadedRoutes = false,
+  useDispatchedActionData = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -201,7 +210,30 @@ export const reactNavigationIntegration = ({
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
    */
-  const startIdleNavigationSpan = (): void => {
+  const startIdleNavigationSpan = (unknownEvent?: unknown): void => {
+    const event = unknownEvent as UnsafeAction | undefined;
+    if (useDispatchedActionData && event?.data.noop) {
+      logger.debug(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
+      return;
+    }
+
+    const navigationActionType = useDispatchedActionData ? event?.data.action.type : undefined;
+    if (
+      useDispatchedActionData &&
+      [
+        // Process common actions
+        'PRELOAD',
+        'SET_PARAMS',
+        // Drawer actions
+        'OPEN_DRAWER',
+        'CLOSE_DRAWER',
+        'TOGGLE_DRAWER',
+      ].includes(navigationActionType)
+    ) {
+      logger.debug(`${INTEGRATION_NAME} Navigation action is ${navigationActionType}, not starting navigation span.`);
+      return;
+    }
+
     if (latestNavigationSpan) {
       logger.log(`${INTEGRATION_NAME} A transaction was detected that turned out to be a noop, discarding.`);
       _discardLatestTransaction();
@@ -215,6 +247,7 @@ export const reactNavigationIntegration = ({
       idleSpanOptions,
     );
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
+    latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, navigationActionType);
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
@@ -357,6 +390,7 @@ export const reactNavigationIntegration = ({
       enableTimeToInitialDisplay,
       ignoreEmptyBackNavigationTransactions,
       enableTimeToInitialDisplayForPreloadedRoutes,
+      useDispatchedActionData,
     },
   };
 };
@@ -369,7 +403,7 @@ export interface NavigationRoute {
 }
 
 interface NavigationContainer {
-  addListener: (type: string, listener: () => void) => void;
+  addListener: (type: string, listener: (event?: unknown) => void) => void;
   getCurrentRoute: () => NavigationRoute;
 }
 
