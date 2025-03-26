@@ -6,7 +6,7 @@ import { Text } from 'react-native';
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
 import { FeedbackWidgetProvider, hideFeedbackButton,resetFeedbackButtonManager, resetFeedbackWidgetManager, showFeedbackButton, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
-import { AUTO_INJECT_FEEDBACK_INTEGRATION_NAME } from '../../src/js/feedback/lazy';
+import { AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME,AUTO_INJECT_FEEDBACK_INTEGRATION_NAME } from '../../src/js/feedback/lazy';
 import { isModalSupported } from '../../src/js/feedback/utils';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
@@ -197,5 +197,11 @@ describe('FeedbackButtonManager', () => {
     showFeedbackButton();
 
     expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('showFeedbackButton adds the feedbackIntegration to the client', () => {
+    showFeedbackButton();
+
+    expect(getClient().getIntegrationByName(AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME)).toBeDefined();
   });
 });

@@ -9,7 +9,7 @@ import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackButtonOptions, getFeedbackOptions } from './integration';
-import { lazyLoadAutoInjectFeedbackIntegration } from './lazy';
+import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration } from './lazy';
 import { isModalSupported } from './utils';
 
 const PULL_DOWN_CLOSE_THRESHOLD = 200;
@@ -259,6 +259,7 @@ const resetFeedbackWidgetManager = (): void => {
 };
 
 const showFeedbackButton = (): void => {
+  lazyLoadAutoInjectFeedbackButtonIntegration();
   FeedbackButtonManager.show();
 };
 
