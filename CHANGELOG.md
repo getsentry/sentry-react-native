@@ -10,7 +10,7 @@
 
 ### Features
 
-- Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641))
+- Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641), [#4695](https://github.com/getsentry/sentry-react-native/pull/4695))
 - Add `createTimeToInitialDisplay({useFocusEffect})` and `createTimeToFullDisplay({useFocusEffect})` to allow record full display on screen focus ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
 - Add support for measuring Time to Initial Display for already seen routes ([#4661](https://github.com/getsentry/sentry-react-native/pull/4661))
   - Introduce `enableTimeToInitialDisplayForPreloadedRoutes` option to the React Navigation integration.
