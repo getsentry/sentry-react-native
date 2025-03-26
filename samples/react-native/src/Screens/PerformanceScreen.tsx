@@ -12,6 +12,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { Text } from 'react-native';
+import { TimeToFullDisplay } from '../utils';
 
 interface Props {
   navigation: StackNavigationProp<any, 'PerformanceScreen'>;
@@ -40,6 +41,7 @@ const PerformanceScreen = (props: Props) => {
     <>
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
+        <TimeToFullDisplay record={true} />
         <Button
           title="Open Spaceflight News"
           onPress={() => {

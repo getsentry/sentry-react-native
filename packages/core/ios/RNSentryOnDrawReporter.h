@@ -12,11 +12,15 @@
 
 @interface RNSentryOnDrawReporterView : UIView
 
-@property (nonatomic, strong) RNSentryFramesTrackerListener *framesListener;
-@property (nonatomic, copy) RCTBubblingEventBlock onDrawNextFrame;
+@property (nonatomic, strong) id<RNSentryFramesTrackerListenerProtocol> framesListener;
 @property (nonatomic) bool fullDisplay;
 @property (nonatomic) bool initialDisplay;
+@property (nonatomic) bool spanIdUsed;
+@property (nonatomic, copy) NSString *parentSpanId;
 @property (nonatomic, weak) RNSentryOnDrawReporter *delegate;
+@property (nonatomic) bool previousFullDisplay;
+@property (nonatomic) bool previousInitialDisplay;
+@property (nonatomic, copy) NSString *previousParentSpanId;
 
 @end
 

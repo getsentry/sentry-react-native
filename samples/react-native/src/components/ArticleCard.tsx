@@ -2,13 +2,11 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
 import type { Article } from '../types/api';
 import * as Sentry from '@sentry/react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { TimeToFullDisplay } from '../utils';
 
 interface ArticleCardProps {
   article: Article;
 }
-
-const TimeToFullDisplay = Sentry.createTimeToFullDisplay({useFocusEffect});
 
 export function ArticleCard({ article }: ArticleCardProps) {
   return (

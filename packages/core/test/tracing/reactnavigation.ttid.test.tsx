@@ -1,5 +1,5 @@
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
-import { timestampInSeconds } from '@sentry/core';
+import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'
 import * as React from "react";
 
@@ -21,9 +21,9 @@ import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
-import { secondInFutureTimestampMs } from '../testutils';
+import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
 import type { MockedSentryEventEmitterFallback } from '../utils/mockedSentryeventemitterfallback';
-import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './mockedtimetodisplaynative';
+import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
@@ -286,7 +286,11 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
 
       TestRenderer.render(<TimeToFullDisplay record />);
-      emitNativeFullDisplayEvent();
+      mockRecordedTimeToDisplay({
+        ttfd: {
+          [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+        },
+      });
 
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
@@ -356,7 +360,11 @@ describe('React Navigation - TTID', () => {
 
       mockedNavigation.navigateToNewScreen();
       TestRenderer.render(<TimeToFullDisplay record />);
-      emitNativeFullDisplayEvent();
+      mockRecordedTimeToDisplay({
+        ttfd: {
+          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds() - 1,
+        },
+      });
       mockedEventEmitter.emitNewFrameEvent();
 
       jest.runOnlyPendingTimers(); // Flush navigation transaction
@@ -378,7 +386,11 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
 
       TestRenderer.render(<TimeToFullDisplay record />);
-      emitNativeFullDisplayEvent();
+      mockRecordedTimeToDisplay({
+        ttfd: {
+          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+        },
+      });
 
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
@@ -481,7 +493,11 @@ describe('React Navigation - TTID', () => {
 
       mockedEventEmitter.emitNewFrameEvent();
       timeToDisplayComponent.update(<TimeToInitialDisplay record />);
-      emitNativeInitialDisplayEvent(manualInitialDisplayEndTimestampMs);
+      mockRecordedTimeToDisplay({
+        ttid: {
+          [spanToJSON(getActiveSpan()!).span_id!]: manualInitialDisplayEndTimestampMs / 1_000,
+        },
+      });
 
       jest.runOnlyPendingTimers(); // Flush transaction
 
@@ -515,7 +531,7 @@ describe('React Navigation - TTID', () => {
 
       // Initialized too late auto instrumentation finished before manual
       TestRenderer.render(<TimeToInitialDisplay record />);
-      emitNativeInitialDisplayEvent(secondInFutureTimestampMs());
+      // mockRecordedInitialDisplayAt(secondInFutureTimestampMs());
 
       jest.runOnlyPendingTimers(); // Flush transaction
 
@@ -703,6 +719,7 @@ function initSentry(sut: ReturnType<typeof Sentry.reactNavigationIntegration>): 
     integrations: [
       sut,
       Sentry.reactNativeTracingIntegration(),
+      Sentry.timeToDisplayIntegration(),
     ],
     transport: () => ({
       send: transportSendMock.mockResolvedValue({}),
