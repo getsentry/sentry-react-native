@@ -10,9 +10,8 @@
 
 ### Features
 
-- Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
-- Exposed `getDataFromUri` as a public API to retrieve data from a URI ([#4638](https://github.com/getsentry/sentry-react-native/pull/4638))
 - Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641))
+- Add `createTimeToInitialDisplay({useFocusEffect})` and `createTimeToFullDisplay({useFocusEffect})` to allow record full display on screen focus ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
 - Add support for measuring Time to Initial Display for already seen routes ([#4661](https://github.com/getsentry/sentry-react-native/pull/4661))
   - Introduce `enableTimeToInitialDisplayForPreloadedRoutes` option to the React Navigation integration.
 
@@ -22,8 +21,32 @@
   });
   ```
 
-- Add `createTimeToInitialDisplay({useFocusEffect})` and `createTimeToFullDisplay({useFocusEffect})` to allow record full display on screen focus ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
-- Add experimental flags `enableExperimentalViewRenderer` and `enableFastViewRendering` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
+- Add `useDispatchedActionData` option to the React Navigation integration to filter out navigation actions that should not create spans ([#4684](https://github.com/getsentry/sentry-react-native/pull/4684))
+  - For example `PRELOAD`, `SET_PARAMS`, `TOGGLE_DRAWER` and others.
+
+  ```js
+  Sentry.reactNavigationIntegration({
+    useDispatchedActionData: true,
+  });
+  ```
+
+### Fixes
+
+- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
+
+### Changes
+
+- Change `gradle.projectsEvaluated` to `project.afterEvaluate` in the Sentry Gradle Plugin to fix tasks not being created when using `--configure-on-demand` ([#4687](https://github.com/getsentry/sentry-react-native/pull/4687))
+- Remove `SENTRY_FORCE_FOREGROUND` from Xcode Scripts as the underlying `--force-foreground` Sentry CLI is no-op since v2.37.0 ([#4689](https://github.com/getsentry/sentry-react-native/pull/4689))
+- TTID and TTFD use native getters instead od events to pass timestamps to the JS layer ([#4669](https://github.com/getsentry/sentry-react-native/pull/4669), [#4681](https://github.com/getsentry/sentry-react-native/pull/4681))
+
+## 6.10.0
+
+### Features
+
+- Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
+- Exposed `getDataFromUri` as a public API to retrieve data from a URI ([#4638](https://github.com/getsentry/sentry-react-native/pull/4638))
+- Add `enableExperimentalViewRenderer` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
 
   ```js
   import * as Sentry from '@sentry/react-native';
@@ -32,18 +55,8 @@
     integrations: [
       Sentry.mobileReplayIntegration({
         enableExperimentalViewRenderer: true,
-        enableFastViewRendering: true,
       }),
     ],
-  });
-  ```
-
-- Add `useDispatchedActionData` option to the React Navigation integration to filter out navigation actions that should not create spans ([#4684](https://github.com/getsentry/sentry-react-native/pull/4684))
-  - For example `PRELOAD`, `SET_PARAMS`, `TOGGLE_DRAWER` and others.
-
-  ```js
-  Sentry.reactNavigationIntegration({
-    useDispatchedActionData: true,
   });
   ```
 
@@ -70,9 +83,9 @@
 - Bump Cocoa SDK from v8.45.0 to v8.48.0 ([#4621](https://github.com/getsentry/sentry-react-native/pull/4621), [#4651](https://github.com/getsentry/sentry-react-native/pull/4651), [#4662](https://github.com/getsentry/sentry-react-native/pull/4662))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8480)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.48.0)
-- Bump Android SDK from v7.22.1 to v7.22.4 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7224)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.4)
+- Bump Android SDK from v7.22.1 to v7.22.5 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675), [#4683](https://github.com/getsentry/sentry-react-native/pull/4683))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7225)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.5)
 
 ## 6.9.1
 
