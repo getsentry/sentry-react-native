@@ -2,6 +2,7 @@ import { logger } from '@sentry/core';
 import * as React from 'react';
 import type { HostComponent, ViewProps } from 'react-native';
 import { UIManager, View } from 'react-native';
+
 import { isExpoGo } from '../utils/environment';
 
 const NativeComponentRegistry: {

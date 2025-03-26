@@ -2,9 +2,9 @@ import * as React from 'react';
 import type { HostComponent } from 'react-native';
 import { UIManager, View } from 'react-native';
 
+import { isExpoGo } from '../utils/environment';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import type { RNSentryOnDrawReporterProps } from './timetodisplaynative.types';
-import { isExpoGo } from '../utils/environment';
 
 const RNSentryOnDrawReporterClass = 'RNSentryOnDrawReporter';
 
