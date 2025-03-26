@@ -6,6 +6,26 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641))
+- Add support for measuring Time to Initial Display for already seen routes ([#4661](https://github.com/getsentry/sentry-react-native/pull/4661))
+  - Introduce `enableTimeToInitialDisplayForPreloadedRoutes` option to the React Navigation integration.
+
+  ```js
+  Sentry.reactNavigationIntegration({
+    enableTimeToInitialDisplayForPreloadedRoutes: true,
+  });
+  ```
+
+- Add `createTimeToInitialDisplay({useFocusEffect})` and `createTimeToFullDisplay({useFocusEffect})` to allow record full display on screen focus ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
+
+### Fixes
+
+- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
+
 ## 6.10.0
 
 ### Features
@@ -44,7 +64,7 @@
 - Bump Cocoa SDK from v8.45.0 to v8.48.0 ([#4621](https://github.com/getsentry/sentry-react-native/pull/4621), [#4651](https://github.com/getsentry/sentry-react-native/pull/4651), [#4662](https://github.com/getsentry/sentry-react-native/pull/4662))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8480)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.48.0)
-- Bump Android SDK from v7.22.1 to v7.22.5 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675), ([#4685](https://github.com/getsentry/sentry-react-native/pull/4685)))
+- Bump Android SDK from v7.22.1 to v7.22.5 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675), [#4683](https://github.com/getsentry/sentry-react-native/pull/4683))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7225)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.5)
 

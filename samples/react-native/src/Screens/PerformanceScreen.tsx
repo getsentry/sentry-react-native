@@ -41,6 +41,12 @@ const PerformanceScreen = (props: Props) => {
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
         <Button
+          title="Open Spaceflight News"
+          onPress={() => {
+            props.navigation.navigate('SpaceflightNewsScreen');
+          }}
+        />
+        <Button
           title="Auto Tracing Example"
           onPress={() => {
             props.navigation.navigate('Tracker');

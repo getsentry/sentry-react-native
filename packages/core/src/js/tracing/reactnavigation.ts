@@ -14,6 +14,7 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
+import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import type { NewFrameEvent } from '../utils/sentryeventemitter';
 import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
 import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
@@ -31,8 +32,7 @@ import {
   getDefaultIdleNavigationSpanOptions,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
-import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
-import { setSpanDurationAsMeasurementOnSpan } from './utils';
+import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan, updateInitialDisplaySpan } from './timetodisplay';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -61,6 +61,14 @@ interface ReactNavigationIntegrationOptions {
    * @default true
    */
   ignoreEmptyBackNavigationTransactions: boolean;
+
+  /**
+   * Enabled measuring Time to Initial Display for routes that are already loaded in memory.
+   * (a.k.a., Routes that the navigation integration has already seen.)
+   *
+   * @default false
+   */
+  enableTimeToInitialDisplayForPreloadedRoutes: boolean;
 }
 
 /**
@@ -75,6 +83,7 @@ export const reactNavigationIntegration = ({
   routeChangeTimeoutMs = 1_000,
   enableTimeToInitialDisplay = false,
   ignoreEmptyBackNavigationTransactions = true,
+  enableTimeToInitialDisplayForPreloadedRoutes = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -118,8 +127,20 @@ export const reactNavigationIntegration = ({
 
     if (initialStateHandled) {
       // We create an initial state here to ensure a transaction gets created before the first route mounts.
+      // This assumes that the Sentry.init() call is made before the first route mounts.
+      // If this is not the case, the first transaction will be nameless 'Route Changed'
       return undefined;
     }
+
+    getAppRegistryIntegration(client)?.onRunApplication(() => {
+      if (initialStateHandled) {
+        // To avoid conflict with the initial transaction we check if it was already handled.
+        // This ensures runApplication calls after the initial start are correctly traced.
+        // This is used for example when Activity is (re)started on Android.
+        logger.log('[ReactNavigationIntegration] Starting new idle navigation span based on runApplication call.');
+        startIdleNavigationSpan();
+      }
+    });
 
     startIdleNavigationSpan();
 
@@ -133,24 +154,28 @@ export const reactNavigationIntegration = ({
     initialStateHandled = true;
   };
 
-  const registerNavigationContainer = (navigationContainerRef: unknown): void => {
-    /* We prevent duplicate routing instrumentation to be initialized on fast refreshes
-
-      Explanation: If the user triggers a fast refresh on the file that the instrumentation is
-      initialized in, it will initialize a new instance and will cause undefined behavior.
-     */
+  const registerNavigationContainer = (maybeNewNavigationContainer: unknown): void => {
     if (RN_GLOBAL_OBJ.__sentry_rn_v5_registered) {
-      logger.log(
-        `${INTEGRATION_NAME} Instrumentation already exists, but register has been called again, doing nothing.`,
-      );
-      return undefined;
+      logger.debug(`${INTEGRATION_NAME} Instrumentation already exists, but registering again...`);
+      // In the past we have not allowed re-registering the navigation container to avoid unexpected behavior.
+      // But this doesn't work for Android and re-recreating application main activity.
+      // Where new navigation container is created and the old one is discarded. We need to re-register to
+      // trace the new navigation container navigation.
     }
 
-    if (isPlainObject(navigationContainerRef) && 'current' in navigationContainerRef) {
-      navigationContainer = navigationContainerRef.current as NavigationContainer;
+    let newNavigationContainer: NavigationContainer | undefined;
+    if (isPlainObject(maybeNewNavigationContainer) && 'current' in maybeNewNavigationContainer) {
+      newNavigationContainer = maybeNewNavigationContainer.current as NavigationContainer;
     } else {
-      navigationContainer = navigationContainerRef as NavigationContainer;
+      newNavigationContainer = maybeNewNavigationContainer as NavigationContainer;
     }
+
+    if (navigationContainer === newNavigationContainer) {
+      logger.log(`${INTEGRATION_NAME} Navigation container ref is the same as the one already registered.`);
+      return;
+    }
+    navigationContainer = newNavigationContainer as NavigationContainer;
+
     if (!navigationContainer) {
       logger.warn(`${INTEGRATION_NAME} Received invalid navigation container ref!`);
       return undefined;
@@ -251,16 +276,19 @@ export const reactNavigationIntegration = ({
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
-    const latestTtidSpan =
-      !routeHasBeenSeen &&
-      enableTimeToInitialDisplay &&
-      startTimeToInitialDisplaySpan({
+    const startTtidForNewRoute = enableTimeToInitialDisplay && !routeHasBeenSeen;
+    const startTtidForAllRoutes = enableTimeToInitialDisplay && enableTimeToInitialDisplayForPreloadedRoutes;
+
+    let latestTtidSpan: Span | undefined = undefined;
+    if (startTtidForNewRoute || startTtidForAllRoutes) {
+      latestTtidSpan = startTimeToInitialDisplaySpan({
         name: `${route.name} initial display`,
         isAutoInstrumented: true,
       });
+    }
 
     const navigationSpanWithTtid = latestNavigationSpan;
-    if (!routeHasBeenSeen && latestTtidSpan) {
+    if (latestTtidSpan) {
       newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
         const activeSpan = getActiveSpan();
         if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
@@ -268,9 +296,10 @@ export const reactNavigationIntegration = ({
           return;
         }
 
-        latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
-        latestTtidSpan.end(newFrameTimestampInSeconds);
-        setSpanDurationAsMeasurementOnSpan('time_to_initial_display', latestTtidSpan, navigationSpanWithTtid);
+        updateInitialDisplaySpan(newFrameTimestampInSeconds, {
+          activeSpan: navigationSpanWithTtid,
+          span: latestTtidSpan,
+        });
       });
     }
 
