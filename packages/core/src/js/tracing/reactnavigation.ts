@@ -374,7 +374,7 @@ interface NavigationContainer {
 }
 
 /**
- *
+ * Returns React Navigation integration of the given client.
  */
 export function getReactNavigationIntegration(
   client: Client,
