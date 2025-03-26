@@ -163,6 +163,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     return (
       <>
         {this.props.children}
+        {getFeedbackButtonOptions().showFeedbackButton && <FeedbackButton {...getFeedbackButtonOptions()}/>}
         {isVisible &&
           <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
@@ -184,7 +185,6 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
             </Modal>
           </Animated.View>
         }
-        {getFeedbackButtonOptions().showFeedbackButton && <FeedbackButton {...getFeedbackButtonOptions()}/>}
       </>
     );
   }
