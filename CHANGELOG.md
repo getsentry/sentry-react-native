@@ -49,6 +49,7 @@
 - Use route name instead of route key for current route tracking ([#4650](https://github.com/getsentry/sentry-react-native/pull/4650))
   - Using key caused user interaction transaction names to contain route hash in the name.
 - Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
+- Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
 
 ### Dependencies
 

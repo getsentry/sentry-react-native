@@ -24,7 +24,9 @@ REACT_NATIVE_XCODE=$1
 [[ "$AUTO_RELEASE" == false ]] && [[ -z "$BUNDLE_COMMAND" || "$BUNDLE_COMMAND" != "ram-bundle" ]] && NO_AUTO_RELEASE="--no-auto-release"
 ARGS="$NO_AUTO_RELEASE $SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_RN_XCODE_EXTRA_ARGS"
 
-REACT_NATIVE_XCODE_WITH_SENTRY="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $ARGS \"$REACT_NATIVE_XCODE\""
+REACT_NATIVE_XCODE_WITH_SENTRY="\"$SENTRY_CLI_EXECUTABLE\" react-nativeee xcode $ARGS \"$REACT_NATIVE_XCODE\""
+
+exitCode=0
 
 if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
   # 'warning:' triggers a warning in Xcode, 'error:' triggers an error
@@ -35,6 +37,7 @@ if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
   else
     echo "error: sentry-cli - To disable source maps auto upload, set SENTRY_DISABLE_AUTO_UPLOAD=true in your environment variables. Or to allow failing upload, set SENTRY_ALLOW_FAILURE=true"
     echo "error: sentry-cli - $SENTRY_XCODE_COMMAND_OUTPUT"
+    exitCode=1
   fi
   set -x -e # re-enable
 else
@@ -48,3 +51,5 @@ fi
 if [ -f "$SENTRY_COLLECT_MODULES" ]; then
   /bin/sh "$SENTRY_COLLECT_MODULES"
 fi
+
+exit $exitCode
