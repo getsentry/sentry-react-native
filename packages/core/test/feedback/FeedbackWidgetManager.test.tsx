@@ -151,7 +151,7 @@ describe('FeedbackButtonManager', () => {
   });
 
   it('showFeedbackButton displays the button when FeedbackWidgetProvider is used', () => {
-    const { findByText } = render(
+    const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
       </FeedbackWidgetProvider>
@@ -159,11 +159,11 @@ describe('FeedbackButtonManager', () => {
 
     showFeedbackButton();
 
-    expect(findByText('Report a Bug')).toBeTruthy();
+    expect(getByText('Report a Bug')).toBeTruthy();
   });
 
   it('hideFeedbackButton hides the button', () => {
-    const { findByText } = render(
+    const { queryByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
       </FeedbackWidgetProvider>
@@ -172,7 +172,7 @@ describe('FeedbackButtonManager', () => {
     showFeedbackButton();
     hideFeedbackButton();
 
-    expect(findByText('Report a Bug')).toBeNull
+    expect(queryByText('Report a Bug')).toBeNull
   });
 
   it('showFeedbackButton does not throw an error when FeedbackWidgetProvider is not used', () => {
@@ -184,7 +184,7 @@ describe('FeedbackButtonManager', () => {
   it('showFeedbackButton warns about missing feedback provider', () => {
     showFeedbackButton();
 
-    expect(consoleWarnSpy).toHaveBeenLastCalledWith(`[Sentry] FeedbackButton requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackWidget()'.`);
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith(`[Sentry] FeedbackButton requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackButton()'.`);
   });
 
   it('showFeedbackButton does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {

@@ -43,7 +43,7 @@ abstract class FeedbackManager {
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
       // eslint-disable-next-line no-console
-      console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackWidget()'.`);
+      console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' to be called before 'show${this._feedbackComponentName}()'.`);
     }
   }
 
