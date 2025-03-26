@@ -29,6 +29,7 @@
 ### Changes
 
 - Change `gradle.projectsEvaluated` to `project.afterEvaluate` in the Sentry Gradle Plugin to fix tasks not being created when using `--configure-on-demand` ([#4687](https://github.com/getsentry/sentry-react-native/pull/4687))
+- Remove `SENTRY_FORCE_FOREGROUND` from Xcode Scripts as the underlying `--force-foreground` Sentry CLI is no-op since v2.37.0 ([#4689](https://github.com/getsentry/sentry-react-native/pull/4689))
 
 ## 6.10.0
 
