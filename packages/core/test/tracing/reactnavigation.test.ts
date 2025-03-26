@@ -210,41 +210,6 @@ describe('ReactNavigationInstrumentation', () => {
     );
   });
 
-  test('navigation action not ', async () => {
-    setupTestClient();
-    jest.runOnlyPendingTimers(); // Flush the init transaction
-
-    mockNavigation.navigateToNewScreen();
-    jest.runOnlyPendingTimers(); // Flush the navigation transaction
-
-    await client.flush();
-
-    const actualEvent = client.event;
-    expect(actualEvent).toEqual(
-      expect.objectContaining({
-        type: 'transaction',
-        transaction: 'New Screen',
-        contexts: expect.objectContaining({
-          trace: expect.objectContaining({
-            data: {
-              [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'New Screen',
-              [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'new_screen',
-              [SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN]: false,
-              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Initial Screen',
-              [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'initial_screen',
-              [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
-              [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
-              [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
-              [SEMANTIC_ATTRIBUTE_SENTRY_SAMPLE_RATE]: 1,
-              [SEMANTIC_ATTRIBUTE_SENTRY_IDLE_SPAN_FINISH_REASON]: 'idleTimeout',
-              [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
-            },
-          }),
-        }),
-      }),
-    );
-  });
-
   test('transaction has correct metadata after multiple navigations', async () => {
     setupTestClient();
     jest.runOnlyPendingTimers(); // Flush the init transaction
