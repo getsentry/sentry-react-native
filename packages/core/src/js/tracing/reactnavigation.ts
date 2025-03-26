@@ -2,7 +2,6 @@
 import type { Client, Integration, Span } from '@sentry/core';
 import {
   addBreadcrumb,
-  getActiveSpan,
   getClient,
   isPlainObject,
   logger,
@@ -15,9 +14,6 @@ import {
 } from '@sentry/core';
 
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
-import type { NewFrameEvent } from '../utils/sentryeventemitter';
-import type { SentryEventEmitterFallback } from '../utils/sentryeventemitterfallback';
-import { createSentryFallbackEventEmitter } from '../utils/sentryeventemitterfallback';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
@@ -32,7 +28,7 @@ import {
   getDefaultIdleNavigationSpanOptions,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
-import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan, updateInitialDisplaySpan } from './timetodisplay';
+import { addTimeToInitialDisplayFallback } from './timeToDisplayFallback';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -90,9 +86,9 @@ export const reactNavigationIntegration = ({
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
   registerNavigationContainer: (navigationContainerRef: unknown) => void;
+  options: ReactNavigationIntegrationOptions;
 } => {
   let navigationContainer: NavigationContainer | undefined;
-  let newScreenFrameEventEmitter: SentryEventEmitterFallback | undefined;
 
   let tracing: ReactNativeTracingIntegration | undefined;
   let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = defaultIdleOptions;
@@ -106,8 +102,6 @@ export const reactNavigationIntegration = ({
   let recentRouteKeys: string[] = [];
 
   if (enableTimeToInitialDisplay) {
-    newScreenFrameEventEmitter = createSentryFallbackEventEmitter();
-    newScreenFrameEventEmitter.initAsync();
     NATIVE.initNativeReactNavigationNewFrameTracking().catch((reason: unknown) => {
       logger.error(`${INTEGRATION_NAME} Failed to initialize native new frame tracking: ${reason}`);
     });
@@ -226,6 +220,7 @@ export const reactNavigationIntegration = ({
     }
 
     if (enableTimeToInitialDisplay) {
+      NATIVE.setActiveSpanId(latestNavigationSpan?.spanContext().spanId);
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation dispatch to navigation cancelled or screen mounted',
@@ -265,6 +260,8 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
+    addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
+
     if (previousRoute && previousRoute.key === route.key) {
       logger.debug(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
       pushRecentRouteKey(route.key);
@@ -276,32 +273,6 @@ export const reactNavigationIntegration = ({
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
-    const startTtidForNewRoute = enableTimeToInitialDisplay && !routeHasBeenSeen;
-    const startTtidForAllRoutes = enableTimeToInitialDisplay && enableTimeToInitialDisplayForPreloadedRoutes;
-
-    let latestTtidSpan: Span | undefined = undefined;
-    if (startTtidForNewRoute || startTtidForAllRoutes) {
-      latestTtidSpan = startTimeToInitialDisplaySpan({
-        name: `${route.name} initial display`,
-        isAutoInstrumented: true,
-      });
-    }
-
-    const navigationSpanWithTtid = latestNavigationSpan;
-    if (latestTtidSpan) {
-      newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
-        const activeSpan = getActiveSpan();
-        if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
-          logger.warn('[ReactNavigationInstrumentation] Detected manual instrumentation for the current active span.');
-          return;
-        }
-
-        updateInitialDisplaySpan(newFrameTimestampInSeconds, {
-          activeSpan: navigationSpanWithTtid,
-          span: latestTtidSpan,
-        });
-      });
-    }
 
     navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${route.name} mounted`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
@@ -381,6 +352,12 @@ export const reactNavigationIntegration = ({
     name: INTEGRATION_NAME,
     afterAllSetup,
     registerNavigationContainer,
+    options: {
+      routeChangeTimeoutMs,
+      enableTimeToInitialDisplay,
+      ignoreEmptyBackNavigationTransactions,
+      enableTimeToInitialDisplayForPreloadedRoutes,
+    },
   };
 };
 
@@ -394,4 +371,13 @@ export interface NavigationRoute {
 interface NavigationContainer {
   addListener: (type: string, listener: () => void) => void;
   getCurrentRoute: () => NavigationRoute;
+}
+
+/**
+ * Returns React Navigation integration of the given client.
+ */
+export function getReactNavigationIntegration(
+  client: Client,
+): ReturnType<typeof reactNavigationIntegration> | undefined {
+  return client.getIntegrationByName<ReturnType<typeof reactNavigationIntegration>>(INTEGRATION_NAME);
 }

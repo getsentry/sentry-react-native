@@ -11,6 +11,8 @@ static NSMutableDictionary<NSString *, NSNumber *> *screenIdToRenderDuration;
 static NSMutableArray<NSString *> *screenIdAge;
 static NSUInteger screenIdCurrentIndex;
 
+static NSString *activeSpanId;
+
 + (void)initialize
 {
     if (self == [RNSentryTimeToDisplay class]) {
@@ -18,7 +20,14 @@ static NSUInteger screenIdCurrentIndex;
             [[NSMutableDictionary alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
         screenIdAge = [[NSMutableArray alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
         screenIdCurrentIndex = 0;
+
+        activeSpanId = nil;
     }
+}
+
++ (void)setActiveSpanId:(NSString *)spanId
+{
+    activeSpanId = spanId;
 }
 
 + (NSNumber *)popTimeToDisplayFor:(NSString *)screenId
@@ -26,6 +35,14 @@ static NSUInteger screenIdCurrentIndex;
     NSNumber *value = screenIdToRenderDuration[screenId];
     [screenIdToRenderDuration removeObjectForKey:screenId];
     return value;
+}
+
++ (void)putTimeToInitialDisplayForActiveSpan:(NSNumber *)value
+{
+    if (activeSpanId != nil) {
+        NSString *prefixedSpanId = [@"ttid-navigation-" stringByAppendingString:activeSpanId];
+        [self putTimeToDisplayFor:prefixedSpanId value:value];
+    }
 }
 
 + (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
@@ -77,8 +94,7 @@ static NSUInteger screenIdCurrentIndex;
 - (void)handleDisplayLink:(CADisplayLink *)link
 {
     // Get the current time
-    NSTimeInterval currentTime =
-        [[NSDate date] timeIntervalSince1970] * 1000.0; // Convert to milliseconds
+    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
 
     // Ensure the callback is valid and pass the current time back
     if (resolveBlock) {

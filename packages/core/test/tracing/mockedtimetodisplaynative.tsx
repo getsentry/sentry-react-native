@@ -15,9 +15,19 @@ export function setMockedNativeComponentExists(value: boolean): void {
  *  [spanId]: timestampInSeconds,
  * }
  */
-export function mockRecordedTimeToDisplay({ ttid = {}, ttfd = {} }: { ttid?: Record<string, number>, ttfd?: Record<string, number> }): void {
+export function mockRecordedTimeToDisplay({
+  ttidNavigation = {},
+  ttid = {},
+  ttfd = {},
+}: {
+  'ttidNavigation'?: Record<string, number>,
+  ttid?: Record<string, number>,
+  ttfd?: Record<string, number>,
+}): void {
   NATIVE.popTimeToDisplayFor.mockImplementation((key: string) => {
-    if (key.startsWith('ttid-')) {
+    if (key.startsWith('ttid-navigation-')) {
+      return Promise.resolve(ttidNavigation[key.substring(16)]);
+    } else if (key.startsWith('ttid-')) {
       return Promise.resolve(ttid[key.substring(5)]);
     } else if (key.startsWith('ttfd-')) {
       return Promise.resolve(ttfd[key.substring(5)]);
