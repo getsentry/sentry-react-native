@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
 import type { Article } from '../types/api';
 import * as Sentry from '@sentry/react-native';
+import { TimeToFullDisplay } from '../utils';
+
 interface ArticleCardProps {
   article: Article;
 }
@@ -9,7 +11,7 @@ interface ArticleCardProps {
 export function ArticleCard({ article }: ArticleCardProps) {
   return (
     <View>
-      <Sentry.TimeToFullDisplay record={true} />
+      <TimeToFullDisplay record={true} />
       <Sentry.Profiler name="ArticleCard">
         <Pressable style={styles.card}>
           <Image source={{ uri: article.image_url }} style={styles.image} />

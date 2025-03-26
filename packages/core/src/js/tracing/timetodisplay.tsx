@@ -1,12 +1,12 @@
 import type { Span,StartSpanOptions  } from '@sentry/core';
 import { fill, getActiveSpan, getSpanDescendants, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import * as React from 'react';
+import { useState } from 'react';
 
 import { isTurboModuleEnabled } from '../utils/environment';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
-import type {RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
-import { setSpanDurationAsMeasurement } from './utils';
+import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
 
 let nativeComponentMissingLogged = false;
 
@@ -36,10 +36,10 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
   const activeSpan = getActiveSpan();
   if (activeSpan) {
     manualInitialDisplaySpans.set(activeSpan, true);
-    startTimeToInitialDisplaySpan();
   }
 
-  return <TimeToDisplay initialDisplay={props.record}>{props.children}</TimeToDisplay>;
+  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  return <TimeToDisplay initialDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
 }
 
 /**
@@ -50,14 +50,16 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
  * <TimeToInitialDisplay record />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
-  startTimeToFullDisplaySpan();
-  return <TimeToDisplay fullDisplay={props.record}>{props.children}</TimeToDisplay>;
+  const activeSpan = getActiveSpan();
+  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  return <TimeToDisplay fullDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
 }
 
 function TimeToDisplay(props: {
   children?: React.ReactNode;
   initialDisplay?: boolean;
   fullDisplay?: boolean;
+  parentSpanId?: string;
 }): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
   const isNewArchitecture = isTurboModuleEnabled();
@@ -71,14 +73,12 @@ function TimeToDisplay(props: {
     }, 0);
   }
 
-  const onDraw = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => onDrawNextFrame(event);
-
   return (
     <>
       <RNSentryOnDrawReporter
-        onDrawNextFrame={onDraw}
         initialDisplay={props.initialDisplay}
-        fullDisplay={props.fullDisplay} />
+        fullDisplay={props.fullDisplay}
+        parentSpanId={props.parentSpanId} />
       {props.children}
     </>
   );
@@ -88,6 +88,8 @@ function TimeToDisplay(props: {
  * Starts a new span for the initial display.
  *
  * Returns current span if already exists in the currently active span.
+ *
+ * @deprecated Use `<TimeToInitialDisplay record={boolean}/>` component instead.
  */
 export function startTimeToInitialDisplaySpan(
   options?: Omit<StartSpanOptions, 'op' | 'name'> & {
@@ -132,6 +134,8 @@ export function startTimeToInitialDisplaySpan(
  * Starts a new span for the full display.
  *
  * Returns current span if already exists in the currently active span.
+ *
+ * @deprecated Use `<TimeToFullDisplay record={boolean}/>` component instead.
  */
 export function startTimeToFullDisplaySpan(
   options: Omit<StartSpanOptions, 'op' | 'name'> & {
@@ -196,24 +200,26 @@ export function startTimeToFullDisplaySpan(
   return fullDisplaySpan;
 }
 
-function onDrawNextFrame(event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void {
-  logger.debug(`[TimeToDisplay] onDrawNextFrame: ${JSON.stringify(event.nativeEvent)}`);
-  if (event.nativeEvent.type === 'fullDisplay') {
-    return updateFullDisplaySpan(event.nativeEvent.newFrameTimestampInSeconds);
-  }
-  if (event.nativeEvent.type === 'initialDisplay') {
-    return updateInitialDisplaySpan(event.nativeEvent.newFrameTimestampInSeconds);
-  }
-}
-
-function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
-  const span = startTimeToInitialDisplaySpan();
+/**
+ *
+ */
+export function updateInitialDisplaySpan(
+  frameTimestampSeconds: number,
+  {
+    activeSpan = getActiveSpan(),
+    span = startTimeToInitialDisplaySpan(),
+  }: {
+    activeSpan?: Span;
+    /**
+     * Time to initial display span to update.
+     */
+    span?: Span;
+  } = {}): void {
   if (!span) {
     logger.warn(`[TimeToDisplay] No span found or created, possibly performance is disabled.`);
     return;
   }
 
-  const activeSpan = getActiveSpan();
   if (!activeSpan) {
     logger.warn(`[TimeToDisplay] No active span found to attach ui.load.initial_display to.`);
     return;
@@ -239,7 +245,7 @@ function updateInitialDisplaySpan(frameTimestampSeconds: number): void {
     updateFullDisplaySpan(frameTimestampSeconds, span);
   }
 
-  setSpanDurationAsMeasurement('time_to_initial_display', span);
+  setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
 }
 
 function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
@@ -283,4 +289,56 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   logger.debug(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span updated with end timestamp.`);
 
   setSpanDurationAsMeasurement('time_to_full_display', span);
+}
+
+/**
+ * Creates a new TimeToFullDisplay component which triggers the full display recording every time the component is focused.
+ */
+export function createTimeToFullDisplay({
+  useFocusEffect,
+}: {
+  /**
+   * `@react-navigation/native` useFocusEffect hook.
+   */
+  useFocusEffect: (callback: () => void) => void
+}): React.ComponentType<TimeToDisplayProps> {
+  return createTimeToDisplay({ useFocusEffect, Component: TimeToFullDisplay });
+}
+
+/**
+ * Creates a new TimeToInitialDisplay component which triggers the initial display recording every time the component is focused.
+ */
+export function createTimeToInitialDisplay({
+  useFocusEffect,
+}: {
+  useFocusEffect: (callback: () => void) => void
+}): React.ComponentType<TimeToDisplayProps> {
+  return createTimeToDisplay({ useFocusEffect, Component: TimeToInitialDisplay });
+}
+
+function createTimeToDisplay({
+  useFocusEffect,
+  Component,
+}: {
+  /**
+   * `@react-navigation/native` useFocusEffect hook.
+   */
+  useFocusEffect: (callback: () => void) => void;
+  Component: typeof TimeToFullDisplay | typeof TimeToInitialDisplay;
+}): React.ComponentType<TimeToDisplayProps> {
+  const TimeToDisplayWrapper = (props: TimeToDisplayProps): React.ReactElement => {
+    const [focused, setFocused] = useState(false);
+
+    useFocusEffect(() => {
+        setFocused(true);
+        return () => {
+          setFocused(false);
+        };
+    });
+
+    return <Component {...props} record={focused && props.record} />;
+  };
+
+  TimeToDisplayWrapper.displayName = `TimeToDisplayWrapper`;
+  return TimeToDisplayWrapper;
 }

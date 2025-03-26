@@ -32,8 +32,7 @@ import {
   getDefaultIdleNavigationSpanOptions,
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
-import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan } from './timetodisplay';
-import { setSpanDurationAsMeasurementOnSpan } from './utils';
+import { manualInitialDisplaySpans, startTimeToInitialDisplaySpan, updateInitialDisplaySpan } from './timetodisplay';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -62,6 +61,14 @@ interface ReactNavigationIntegrationOptions {
    * @default true
    */
   ignoreEmptyBackNavigationTransactions: boolean;
+
+  /**
+   * Enabled measuring Time to Initial Display for routes that are already loaded in memory.
+   * (a.k.a., Routes that the navigation integration has already seen.)
+   *
+   * @default false
+   */
+  enableTimeToInitialDisplayForPreloadedRoutes: boolean;
 }
 
 /**
@@ -76,6 +83,7 @@ export const reactNavigationIntegration = ({
   routeChangeTimeoutMs = 1_000,
   enableTimeToInitialDisplay = false,
   ignoreEmptyBackNavigationTransactions = true,
+  enableTimeToInitialDisplayForPreloadedRoutes = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -268,16 +276,19 @@ export const reactNavigationIntegration = ({
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
-    const latestTtidSpan =
-      !routeHasBeenSeen &&
-      enableTimeToInitialDisplay &&
-      startTimeToInitialDisplaySpan({
+    const startTtidForNewRoute = enableTimeToInitialDisplay && !routeHasBeenSeen;
+    const startTtidForAllRoutes = enableTimeToInitialDisplay && enableTimeToInitialDisplayForPreloadedRoutes;
+
+    let latestTtidSpan: Span | undefined = undefined;
+    if (startTtidForNewRoute || startTtidForAllRoutes) {
+      latestTtidSpan = startTimeToInitialDisplaySpan({
         name: `${route.name} initial display`,
         isAutoInstrumented: true,
       });
+    }
 
     const navigationSpanWithTtid = latestNavigationSpan;
-    if (!routeHasBeenSeen && latestTtidSpan) {
+    if (latestTtidSpan) {
       newScreenFrameEventEmitter?.onceNewFrame(({ newFrameTimestampInSeconds }: NewFrameEvent) => {
         const activeSpan = getActiveSpan();
         if (activeSpan && manualInitialDisplaySpans.has(activeSpan)) {
@@ -285,9 +296,10 @@ export const reactNavigationIntegration = ({
           return;
         }
 
-        latestTtidSpan.setStatus({ code: SPAN_STATUS_OK });
-        latestTtidSpan.end(newFrameTimestampInSeconds);
-        setSpanDurationAsMeasurementOnSpan('time_to_initial_display', latestTtidSpan, navigationSpanWithTtid);
+        updateInitialDisplaySpan(newFrameTimestampInSeconds, {
+          activeSpan: navigationSpanWithTtid,
+          span: latestTtidSpan,
+        });
       });
     }
 

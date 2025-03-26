@@ -47,8 +47,13 @@ export default function NewsScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      if (articles.length) {
+        console.log('Articles are already loaded');
+        return;
+      }
+
       fetchArticles(1, true);
-    }, [])
+    }, [articles])
   );
 
   const handleLoadMore = () => {
