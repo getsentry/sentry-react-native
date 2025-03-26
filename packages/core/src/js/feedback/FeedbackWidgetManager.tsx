@@ -16,9 +16,13 @@ const PULL_DOWN_CLOSE_THRESHOLD = 200;
 const SLIDE_ANIMATION_DURATION = 200;
 const BACKGROUND_ANIMATION_DURATION = 200;
 
-class FeedbackWidgetManager {
-  private static _isVisible = false;
-  private static _setVisibility: (visible: boolean) => void;
+abstract class FeedbackManager {
+  protected static _isVisible = false;
+  protected static _setVisibility: (visible: boolean) => void;
+
+  protected static get _feedbackComponentName(): string {
+    throw new Error('Subclasses must override feedbackComponentName');
+  }
 
   public static initialize(setVisibility: (visible: boolean) => void): void {
     this._setVisibility = setVisibility;
@@ -39,7 +43,7 @@ class FeedbackWidgetManager {
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
       // eslint-disable-next-line no-console
-      console.warn('[Sentry] FeedbackWidget requires `Sentry.wrap(RootComponent)` to be called before `showFeedbackWidget()`.');
+      console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackWidget()'.`);
     }
   }
 
@@ -50,12 +54,24 @@ class FeedbackWidgetManager {
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
       // eslint-disable-next-line no-console
-      console.warn('[Sentry] FeedbackWidget requires `Sentry.wrap(RootComponent)` before interacting with the widget.');
+      console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' before interacting with the widget.`);
     }
   }
 
   public static isFormVisible(): boolean {
     return this._isVisible;
+  }
+}
+
+class FeedbackWidgetManager extends FeedbackManager {
+  protected static get _feedbackComponentName(): string {
+    return 'FeedbackWidget';
+  }
+}
+
+class FeedbackButtonManager extends FeedbackManager {
+  protected static get _feedbackComponentName(): string {
+    return 'FeedbackButton';
   }
 }
 
@@ -65,6 +81,7 @@ interface FeedbackWidgetProviderProps {
 }
 
 interface FeedbackWidgetProviderState {
+  isButtonVisible: boolean;
   isVisible: boolean;
   backgroundOpacity: Animated.Value;
   panY: Animated.Value;
@@ -73,6 +90,7 @@ interface FeedbackWidgetProviderState {
 
 class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps> {
   public state: FeedbackWidgetProviderState = {
+    isButtonVisible: false,
     isVisible: false,
     backgroundOpacity: new Animated.Value(0),
     panY: new Animated.Value(Dimensions.get('screen').height),
@@ -113,6 +131,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
 
   public constructor(props: FeedbackWidgetProviderProps) {
     super(props);
+    FeedbackButtonManager.initialize(this._setButtonVisibilityFunction);
     FeedbackWidgetManager.initialize(this._setVisibilityFunction);
   }
 
@@ -151,7 +170,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
       return <>{this.props.children}</>;
     }
 
-    const { isVisible, backgroundOpacity } = this.state;
+    const { isButtonVisible, isVisible, backgroundOpacity } = this.state;
 
     const backgroundColor = backgroundOpacity.interpolate({
       inputRange: [0, 1],
@@ -163,7 +182,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     return (
       <>
         {this.props.children}
-        {getFeedbackButtonOptions().showFeedbackButton && <FeedbackButton {...getFeedbackButtonOptions()}/>}
+        {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()}/>}
         {isVisible &&
           <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
@@ -221,6 +240,10 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     }
   };
 
+  private _setButtonVisibilityFunction = (visible: boolean): void => {
+    this.setState({ isButtonVisible: visible });
+  };
+
   private _handleClose = (): void => {
     FeedbackWidgetManager.hide();
   };
@@ -235,4 +258,16 @@ const resetFeedbackWidgetManager = (): void => {
   FeedbackWidgetManager.reset();
 };
 
-export { showFeedbackWidget, FeedbackWidgetProvider, resetFeedbackWidgetManager };
+const showFeedbackButton = (): void => {
+  FeedbackButtonManager.show();
+};
+
+const hideFeedbackButton = (): void => {
+  FeedbackButtonManager.hide();
+};
+
+const resetFeedbackButtonManager = (): void => {
+  FeedbackButtonManager.reset();
+};
+
+export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, FeedbackWidgetProvider, resetFeedbackButtonManager, resetFeedbackWidgetManager };

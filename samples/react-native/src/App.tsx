@@ -125,7 +125,6 @@ Sentry.init({
         },
         namePlaceholder: 'Fullname',
         buttonOptions: {
-          showFeedbackButton: true,
           styles: {
             triggerButton: {
               marginBottom: 75, // Place above the tab bar
