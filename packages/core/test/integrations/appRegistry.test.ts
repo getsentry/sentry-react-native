@@ -1,18 +1,22 @@
 import { getOriginalFunction } from '@sentry/core';
 
+import * as Environment from '../../src/js/utils/environment';
 import { appRegistryIntegration } from '../../src/js/integrations/appRegistry';
 import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 
+const originalAppRegistry = ReactNativeLibraries.AppRegistry;
 const originalRunApplication = ReactNativeLibraries.AppRegistry.runApplication;
 
 describe('AppRegistry Integration', () => {
   let mockedRunApplication: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockedRunApplication = jest.spyOn(ReactNativeLibraries.AppRegistry, 'runApplication').mockImplementation(jest.fn());
   });
 
   afterEach(() => {
+    ReactNativeLibraries.AppRegistry = originalAppRegistry;
     ReactNativeLibraries.AppRegistry.runApplication = originalRunApplication;
   });
 
@@ -56,5 +60,21 @@ describe('AppRegistry Integration', () => {
     ReactNativeLibraries.AppRegistry.runApplication('test-app', {});
 
     expect(mockedCallback).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not patch app registry on web', async () => {
+    jest.spyOn(Environment, 'isWeb').mockReturnValue(true);
+    const integration = appRegistryIntegration();
+
+    integration.setupOnce();
+
+    expect(ReactNativeLibraries.AppRegistry.runApplication).toBe(mockedRunApplication);
+  });
+
+  it('does not crash if AppRegistry is not available', async () => {
+    ReactNativeLibraries.AppRegistry = undefined;
+    const integration = appRegistryIntegration();
+
+    integration.setupOnce();
   });
 });
