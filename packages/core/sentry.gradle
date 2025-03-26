@@ -3,7 +3,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-project.ext.shouldSentryAutoUploadNative = { -> 
+project.ext.shouldSentryAutoUploadNative = { ->
   return System.getenv('SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD') != 'true'
 }
 
@@ -17,7 +17,9 @@ project.ext.shouldSentryAutoUpload = { ->
 
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
-gradle.projectsEvaluated {
+// gradle.projectsEvaluated doesn't work with --configure-on-demand
+// the task are create too late and not executed
+project.afterEvaluate {
     def releases = extractReleasesInfo()
 
     if (config.flavorAware && config.sentryProperties) {
