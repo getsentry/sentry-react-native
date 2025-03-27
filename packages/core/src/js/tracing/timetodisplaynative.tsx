@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { HostComponent } from 'react-native';
 import { UIManager, View } from 'react-native';
 
+import { isExpoGo } from '../utils/environment';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import type { RNSentryOnDrawReporterProps } from './timetodisplaynative.types';
 
@@ -29,7 +30,7 @@ let RNSentryOnDrawReporter: HostComponent<RNSentryOnDrawReporterProps> | typeof 
  */
 export const getRNSentryOnDrawReporter = (): typeof RNSentryOnDrawReporter => {
   if (!RNSentryOnDrawReporter) {
-    RNSentryOnDrawReporter = nativeComponentExists && ReactNativeLibraries.ReactNative?.requireNativeComponent
+    RNSentryOnDrawReporter = !isExpoGo() && nativeComponentExists && ReactNativeLibraries.ReactNative?.requireNativeComponent
       ? ReactNativeLibraries.ReactNative.requireNativeComponent(RNSentryOnDrawReporterClass)
       : RNSentryOnDrawReporterNoop;
   }

@@ -182,4 +182,9 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   public void getNewScreenTimeToDisplay(Promise promise) {
     this.impl.getNewScreenTimeToDisplay(promise);
   }
+
+  @ReactMethod
+  public boolean setActiveSpanId(String spanId) {
+    return this.impl.setActiveSpanId(spanId);
+  }
 }

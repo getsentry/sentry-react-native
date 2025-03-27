@@ -16,3 +16,5 @@ export const SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME = 'previous_route.name';
 export const SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY = 'previous_route.key';
 export const SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_ID = 'previous_route.component_id';
 export const SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_TYPE = 'previous_route.component_type';
+export const SEMANTIC_ATTRIBUTE_TIME_TO_INITIAL_DISPLAY_FALLBACK = 'route.initial_display_fallback';
+export const SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE = 'navigation.action_type';

@@ -187,4 +187,9 @@ public class RNSentryModule extends NativeRNSentrySpec {
   public void popTimeToDisplayFor(String key, Promise promise) {
     this.impl.popTimeToDisplayFor(key, promise);
   }
+
+  @Override
+  public boolean setActiveSpanId(String spanId) {
+    return this.impl.setActiveSpanId(spanId);
+  }
 }
