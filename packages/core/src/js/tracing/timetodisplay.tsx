@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { isTurboModuleEnabled } from '../utils/environment';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
-import type { RNSentryOnDrawNextFrameEvent } from './timetodisplaynative.types';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
 
 let nativeComponentMissingLogged = false;
@@ -37,10 +36,10 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
   const activeSpan = getActiveSpan();
   if (activeSpan) {
     manualInitialDisplaySpans.set(activeSpan, true);
-    startTimeToInitialDisplaySpan();
   }
 
-  return <TimeToDisplay initialDisplay={props.record}>{props.children}</TimeToDisplay>;
+  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  return <TimeToDisplay initialDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
 }
 
 /**
@@ -51,14 +50,16 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
  * <TimeToInitialDisplay record />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
-  startTimeToFullDisplaySpan();
-  return <TimeToDisplay fullDisplay={props.record}>{props.children}</TimeToDisplay>;
+  const activeSpan = getActiveSpan();
+  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  return <TimeToDisplay fullDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
 }
 
 function TimeToDisplay(props: {
   children?: React.ReactNode;
   initialDisplay?: boolean;
   fullDisplay?: boolean;
+  parentSpanId?: string;
 }): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
   const isNewArchitecture = isTurboModuleEnabled();
@@ -72,14 +73,12 @@ function TimeToDisplay(props: {
     }, 0);
   }
 
-  const onDraw = (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void => onDrawNextFrame(event);
-
   return (
     <>
       <RNSentryOnDrawReporter
-        onDrawNextFrame={onDraw}
         initialDisplay={props.initialDisplay}
-        fullDisplay={props.fullDisplay} />
+        fullDisplay={props.fullDisplay}
+        parentSpanId={props.parentSpanId} />
       {props.children}
     </>
   );
@@ -89,6 +88,8 @@ function TimeToDisplay(props: {
  * Starts a new span for the initial display.
  *
  * Returns current span if already exists in the currently active span.
+ *
+ * @deprecated Use `<TimeToInitialDisplay record={boolean}/>` component instead.
  */
 export function startTimeToInitialDisplaySpan(
   options?: Omit<StartSpanOptions, 'op' | 'name'> & {
@@ -133,6 +134,8 @@ export function startTimeToInitialDisplaySpan(
  * Starts a new span for the full display.
  *
  * Returns current span if already exists in the currently active span.
+ *
+ * @deprecated Use `<TimeToFullDisplay record={boolean}/>` component instead.
  */
 export function startTimeToFullDisplaySpan(
   options: Omit<StartSpanOptions, 'op' | 'name'> & {
@@ -195,16 +198,6 @@ export function startTimeToFullDisplaySpan(
   }
 
   return fullDisplaySpan;
-}
-
-function onDrawNextFrame(event: { nativeEvent: RNSentryOnDrawNextFrameEvent }): void {
-  logger.debug(`[TimeToDisplay] onDrawNextFrame: ${JSON.stringify(event.nativeEvent)}`);
-  if (event.nativeEvent.type === 'fullDisplay') {
-    return updateFullDisplaySpan(event.nativeEvent.newFrameTimestampInSeconds);
-  }
-  if (event.nativeEvent.type === 'initialDisplay') {
-    return updateInitialDisplaySpan(event.nativeEvent.newFrameTimestampInSeconds);
-  }
 }
 
 /**

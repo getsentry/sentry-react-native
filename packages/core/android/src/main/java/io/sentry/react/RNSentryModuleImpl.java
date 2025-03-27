@@ -29,7 +29,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.JavascriptException;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import io.sentry.Breadcrumb;
 import io.sentry.HubAdapter;
 import io.sentry.ILogger;
@@ -154,11 +153,7 @@ public class RNSentryModuleImpl {
   private @NotNull Runnable createEmitNewFrameEvent() {
     return () -> {
       final SentryDate endDate = dateProvider.now();
-      WritableMap event = Arguments.createMap();
-      event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
-      getReactApplicationContext()
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-          .emit("rn_sentry_new_frame", event);
+      RNSentryTimeToDisplay.putTimeToInitialDisplayForActiveSpan(endDate.nanoTimestamp() / 1e9);
     };
   }
 
@@ -715,6 +710,19 @@ public class RNSentryModuleImpl {
         scope -> {
           scope.clearBreadcrumbs();
         });
+  }
+
+  public void popTimeToDisplayFor(String screenId, Promise promise) {
+    if (screenId != null) {
+      promise.resolve(RNSentryTimeToDisplay.popTimeToDisplayFor(screenId));
+    } else {
+      promise.resolve(null);
+    }
+  }
+
+  public boolean setActiveSpanId(@Nullable String spanId) {
+    RNSentryTimeToDisplay.setActiveSpanId(spanId);
+    return true; // The return ensure RN executes the code synchronously
   }
 
   public void setExtra(String key, String extra) {

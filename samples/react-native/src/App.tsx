@@ -54,6 +54,7 @@ const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: isMobileOs,
   ignoreEmptyBackNavigationTransactions: false,
   enableTimeToInitialDisplayForPreloadedRoutes: true,
+  useDispatchedActionData: true,
 });
 
 Sentry.init({

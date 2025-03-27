@@ -4,6 +4,7 @@ import {
   createSentryServer,
   containingTransactionWithName,
   takeSecond,
+  containingTransaction,
 } from './utils/mockedSentryServer';
 
 import { getItemOfTypeFrom } from './utils/event';
@@ -13,13 +14,14 @@ describe('Capture Spaceflight News Screen Transaction', () => {
   let sentryServer = createSentryServer();
   sentryServer.start();
 
-  let envelopes: Envelope[] = [];
+  let newsEnvelopes: Envelope[] = [];
+  let allTransactionEnvelopes: Envelope[] = [];
 
-  const getFirstTransactionEnvelopeItem = () =>
-    getItemOfTypeFrom<EventItem>(envelopes[0], 'transaction');
+  const getFirstNewsEventItem = () =>
+    getItemOfTypeFrom<EventItem>(newsEnvelopes[0], 'transaction');
 
-  const getSecondTransactionEnvelopeItem = () =>
-    getItemOfTypeFrom<EventItem>(envelopes[1], 'transaction');
+  const getSecondNewsEventItem = () =>
+    getItemOfTypeFrom<EventItem>(newsEnvelopes[1], 'transaction');
 
   beforeAll(async () => {
     const containingNewsScreen = containingTransactionWithName(
@@ -33,7 +35,10 @@ describe('Capture Spaceflight News Screen Transaction', () => {
 
     await waitForSpaceflightNewsTx;
 
-    envelopes = sentryServer.getAllEnvelopes(containingNewsScreen);
+    newsEnvelopes = sentryServer.getAllEnvelopes(containingNewsScreen);
+    allTransactionEnvelopes = sentryServer.getAllEnvelopes(
+      containingTransaction,
+    );
   });
 
   afterAll(async () => {
@@ -41,22 +46,20 @@ describe('Capture Spaceflight News Screen Transaction', () => {
   });
 
   it('first received new screen transaction was created before the second visit', async () => {
-    const first = getFirstTransactionEnvelopeItem();
-    const second = getSecondTransactionEnvelopeItem();
+    const first = getFirstNewsEventItem();
+    const second = getSecondNewsEventItem();
 
     expect(first?.[1].timestamp).toBeDefined();
     expect(second?.[1].timestamp).toBeDefined();
     expect(first![1].timestamp!).toBeLessThan(second![1].timestamp!);
   });
 
-  it('contains time to display measurements on the first visit', async () => {
-    expectToContainTimeToDisplayMeasurements(getFirstTransactionEnvelopeItem());
-  });
-
-  it('contains time to display measurements on the second visit', async () => {
-    expectToContainTimeToDisplayMeasurements(
-      getSecondTransactionEnvelopeItem(),
-    );
+  it('all transaction envelopes have time to display measurements', async () => {
+    allTransactionEnvelopes.forEach(envelope => {
+      expectToContainTimeToDisplayMeasurements(
+        getItemOfTypeFrom<EventItem>(envelope, 'transaction'),
+      );
+    });
   });
 
   function expectToContainTimeToDisplayMeasurements(
@@ -79,7 +82,7 @@ describe('Capture Spaceflight News Screen Transaction', () => {
   }
 
   it('contains at least one xhr breadcrumb of request to the news endpoint', async () => {
-    const item = getFirstTransactionEnvelopeItem();
+    const item = getFirstNewsEventItem();
 
     expect(item?.[1]).toEqual(
       expect.objectContaining({

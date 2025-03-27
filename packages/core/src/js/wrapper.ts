@@ -122,6 +122,9 @@ interface SentryNativeWrapper {
   getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
 
   getDataFromUri(uri: string): Promise<Uint8Array | null>;
+  popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
+
+  setActiveSpanId(spanId: string): void;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -714,6 +717,32 @@ export const NATIVE: SentryNativeWrapper = {
     } catch (error) {
       logger.error('Error:', error);
       return null;
+    }
+  },
+
+  popTimeToDisplayFor(key: string): Promise<number | undefined | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return Promise.resolve(null);
+    }
+
+    try {
+      return RNSentry.popTimeToDisplayFor(key);
+    } catch (error) {
+      logger.error('Error:', error);
+      return null;
+    }
+  },
+
+  setActiveSpanId(spanId): void {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return undefined;
+    }
+
+    try {
+      RNSentry.setActiveSpanId(spanId);
+    } catch (error) {
+      logger.error('Error:', error);
+      return undefined;
     }
   },
 
