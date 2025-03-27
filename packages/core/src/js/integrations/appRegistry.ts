@@ -1,6 +1,7 @@
 import type { Client, Integration } from '@sentry/core';
 import { getClient, logger } from '@sentry/core';
 
+import { isWeb } from '../utils/environment';
 import { fillTyped } from '../utils/fill';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 
@@ -14,6 +15,10 @@ export const appRegistryIntegration = (): Integration & {
   return {
     name: INTEGRATION_NAME,
     setupOnce: () => {
+      if (isWeb()) {
+        return;
+      }
+
       patchAppRegistryRunApplication(callbacks);
     },
     onRunApplication: (callback: () => void) => {
@@ -28,6 +33,9 @@ export const appRegistryIntegration = (): Integration & {
 
 export const patchAppRegistryRunApplication = (callbacks: (() => void)[]): void => {
   const { AppRegistry } = ReactNativeLibraries;
+  if (!AppRegistry) {
+    return;
+  }
 
   fillTyped(AppRegistry, 'runApplication', originalRunApplication => {
     return (...args) => {
