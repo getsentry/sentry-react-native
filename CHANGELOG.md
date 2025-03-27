@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Bundler Plugins from v3.2.2 to v3.2.3 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#323)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.2.3)
+
 ## 6.11.0-beta.0
 
 ### Features
