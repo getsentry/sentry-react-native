@@ -155,6 +155,21 @@ export interface FeedbackTextConfiguration {
 }
 
 /**
+ * The FeedbackButton text labels that can be customized
+ */
+export interface FeedbackButtonTextConfiguration {
+  /**
+   * The label for the Feedback widget button that opens the dialog
+   */
+  triggerLabel?: string;
+
+  /**
+   * The aria label for the Feedback widget button that opens the dialog
+   */
+  triggerAriaLabel?: string;
+}
+
+/**
  * The public callbacks available for the feedback integration
  */
 export interface FeedbackCallbacks {
@@ -245,6 +260,22 @@ export interface FeedbackWidgetStyles {
   screenshotText?: TextStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
+}
+
+/**
+ * The props for the feedback button
+ */
+export interface FeedbackButtonProps extends FeedbackButtonTextConfiguration {
+  styles?: FeedbackButtonStyles;
+}
+
+/**
+ * The styles for the feedback button
+ */
+export interface FeedbackButtonStyles {
+  triggerButton?: ViewStyle;
+  triggerText?: TextStyle;
+  triggerIcon?: ImageStyle;
 }
 
 /**

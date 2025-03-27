@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Adds the `FeedbackButton` component that shows the Feedback Widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
+
 ## 6.11.0-beta.0
 
 ### Features
