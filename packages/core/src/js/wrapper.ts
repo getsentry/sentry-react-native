@@ -122,6 +122,7 @@ interface SentryNativeWrapper {
   getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
 
   getDataFromUri(uri: string): Promise<Uint8Array | null>;
+  popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -711,6 +712,19 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       const data: number[] = await RNSentry.getDataFromUri(uri);
       return new Uint8Array(data);
+    } catch (error) {
+      logger.error('Error:', error);
+      return null;
+    }
+  },
+
+  popTimeToDisplayFor(key: string): Promise<number | undefined | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return Promise.resolve(null);
+    }
+
+    try {
+      return RNSentry.popTimeToDisplayFor(key);
     } catch (error) {
       logger.error('Error:', error);
       return null;

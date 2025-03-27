@@ -1,5 +1,8 @@
-import { getActiveSpan, getCurrentScope, getGlobalScope, getIsolationScope, getSpanDescendants, logger , setCurrentClient, spanToJSON, startSpanManual} from '@sentry/core';
+import { getCurrentScope, getGlobalScope, getIsolationScope, logger , setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
 jest.spyOn(logger, 'warn');
+
+import * as mockWrapper from '../mockWrapper';
+jest.mock('../../src/js/wrapper', () => mockWrapper);
 
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
@@ -13,12 +16,15 @@ import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
 import * as React from "react";
 import * as TestRenderer from 'react-test-renderer';
 
+import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
+import { SPAN_THREAD_NAME , SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
-import { secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
-import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './mockedtimetodisplaynative';
+import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
+
+const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } = mockedtimetodisplaynative;
 
 jest.useFakeTimers({advanceTimers: true});
 
@@ -26,6 +32,7 @@ describe('TimeToDisplay', () => {
   let client: TestClient;
 
   beforeEach(() => {
+    clearMockedOnDrawReportedProps();
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
@@ -33,7 +40,13 @@ describe('TimeToDisplay', () => {
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
     });
-    client = new TestClient(options);
+    client = new TestClient({
+      ...options,
+      integrations: [
+        ...options.integrations,
+        timeToDisplayIntegration(),
+      ],
+    });
     setCurrentClient(client);
     client.init();
   });
@@ -43,20 +56,21 @@ describe('TimeToDisplay', () => {
   });
 
   test('creates manual initial display', async () => {
-    const [testSpan, activeSpan] = startSpanManual(
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
        (activeSpan: Span | undefined) => {
-        const testSpan = startTimeToInitialDisplaySpan();
+        startTimeToInitialDisplaySpan();
         TestRenderer.create(<TimeToInitialDisplay record={true} />);
-
-        emitNativeInitialDisplayEvent();
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+        });
 
         activeSpan?.end();
-
-        return [testSpan, activeSpan];
       },
     );
 
@@ -64,28 +78,33 @@ describe('TimeToDisplay', () => {
     await client.flush();
 
     expectInitialDisplayMeasurementOnSpan(client.event!);
-    expectFinishedInitialDisplaySpan(testSpan, activeSpan);
-    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
+    expectFinishedInitialDisplaySpan(client.event!);
+    expect(getMockedOnDrawReportedProps()[0]!.parentSpanId).toEqual(client.event!.contexts!.trace!.span_id);
   });
 
   test('creates manual full display', async () => {
-    const [testSpan, activeSpan] = startSpanManual(
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
       (activeSpan: Span | undefined) => {
         startTimeToInitialDisplaySpan();
-        const testSpan = startTimeToFullDisplaySpan();
+        startTimeToFullDisplaySpan();
 
         TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        emitNativeInitialDisplayEvent();
-
         TestRenderer.create(<TimeToFullDisplay record={true} />);
-        emitNativeFullDisplayEvent();
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+          ttfd: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+        });
 
         activeSpan?.end();
-        return [testSpan, activeSpan];
       },
     );
 
@@ -93,67 +112,13 @@ describe('TimeToDisplay', () => {
     await client.flush();
 
     expectFullDisplayMeasurementOnSpan(client.event!);
-    expectFinishedFullDisplaySpan(testSpan, activeSpan);
-    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
-  });
-
-  test('creates initial display span on first component render', async () => {
-    const [testSpan, activeSpan] = startSpanManual(
-      {
-        name: 'Root Manual Span',
-        startTime: secondAgoTimestampMs(),
-      },
-       (activeSpan: Span | undefined) => {
-        const renderer = TestRenderer.create(<TimeToInitialDisplay record={false} />);
-        const testSpan = getInitialDisplaySpan(activeSpan);
-
-        renderer.update(<TimeToInitialDisplay record={true} />);
-        emitNativeInitialDisplayEvent();
-
-        activeSpan?.end();
-        return [testSpan, activeSpan];
-      },
-    );
-
-    await jest.runOnlyPendingTimersAsync();
-    await client.flush();
-
-    expectInitialDisplayMeasurementOnSpan(client.event!);
-    expectFinishedInitialDisplaySpan(testSpan, activeSpan);
-    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
-  });
-
-  test('creates full display span on first component render', async () => {
-    const [testSpan, activeSpan] = startSpanManual(
-      {
-        name: 'Root Manual Span',
-        startTime: secondAgoTimestampMs(),
-      },
-      (activeSpan: Span | undefined) => {
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        emitNativeInitialDisplayEvent();
-
-        const renderer = TestRenderer.create(<TimeToFullDisplay record={false} />);
-        const testSpan = getFullDisplaySpan(getActiveSpan());
-
-        renderer.update(<TimeToFullDisplay record={true} />);
-        emitNativeFullDisplayEvent();
-
-        activeSpan?.end();
-        return [testSpan, activeSpan];
-      },
-    );
-
-    await jest.runOnlyPendingTimersAsync();
-    await client.flush();
-
-    expectFullDisplayMeasurementOnSpan(client.event!);
-    expectFinishedFullDisplaySpan(testSpan, activeSpan);
-    expect(spanToJSON(testSpan!).start_timestamp).toEqual(spanToJSON(activeSpan!).start_timestamp);
+    expectFinishedFullDisplaySpan(client.event!);
+    expect(getMockedOnDrawReportedProps()[0]!.parentSpanId).toEqual(client.event!.contexts!.trace!.span_id);
+    expect(getMockedOnDrawReportedProps()[1]!.parentSpanId).toEqual(client.event!.contexts!.trace!.span_id);
   });
 
   test('does not create full display when initial display is missing', async () => {
-    const [activeSpan] = startSpanManual(
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
@@ -162,10 +127,13 @@ describe('TimeToDisplay', () => {
         startTimeToFullDisplaySpan();
         TestRenderer.create(<TimeToFullDisplay record={true} />);
 
-        emitNativeFullDisplayEvent();
+        mockRecordedTimeToDisplay({
+          ttfd: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+        });
 
         activeSpan?.end();
-        return [activeSpan];
       },
     );
 
@@ -175,11 +143,13 @@ describe('TimeToDisplay', () => {
     expectNoInitialDisplayMeasurementOnSpan(client.event!);
     expectNoFullDisplayMeasurementOnSpan(client.event!);
 
-    expectNoTimeToDisplaySpans(activeSpan);
+    expectNoTimeToDisplaySpans(client.event!);
+
+    expect(getMockedOnDrawReportedProps()[0]!.parentSpanId).toEqual(client.event!.contexts!.trace!.span_id);
   });
 
   test('creates initial display for active span without initial display span', async () => {
-    const [activeSpan] = startSpanManual(
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
@@ -187,10 +157,13 @@ describe('TimeToDisplay', () => {
       (activeSpan: Span | undefined) => {
         TestRenderer.create(<TimeToInitialDisplay record={true} />);
 
-        emitNativeInitialDisplayEvent();
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+        });
 
         activeSpan?.end();
-        return [activeSpan];
       },
     );
 
@@ -198,11 +171,12 @@ describe('TimeToDisplay', () => {
     await client.flush();
 
     expectInitialDisplayMeasurementOnSpan(client.event!);
-    expectFinishedInitialDisplaySpan(getInitialDisplaySpan(activeSpan), activeSpan);
+    expectFinishedInitialDisplaySpan(client.event!);
+    expect(getMockedOnDrawReportedProps()[0]!.parentSpanId).toEqual(client.event!.contexts!.trace!.span_id);
   });
 
   test('creates full display for active span without full display span', async () => {
-    const [activeSpan] = startSpanManual(
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
@@ -212,13 +186,18 @@ describe('TimeToDisplay', () => {
         startTimeToFullDisplaySpan();
 
         TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        emitNativeInitialDisplayEvent();
-
         TestRenderer.create(<TimeToFullDisplay record={true} />);
-        emitNativeFullDisplayEvent();
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+          ttfd: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+        });
 
         activeSpan?.end();
-        return [activeSpan];
       },
     );
 
@@ -226,11 +205,13 @@ describe('TimeToDisplay', () => {
     await client.flush();
 
     expectFullDisplayMeasurementOnSpan(client.event!);
-    expectFinishedFullDisplaySpan(getFullDisplaySpan(activeSpan), activeSpan);
+    expectFinishedFullDisplaySpan(client.event!);
+    expect(getMockedOnDrawReportedProps()[0]!.parentSpanId).toEqual(client.event!.contexts!.trace!.span_id);
+    expect(getMockedOnDrawReportedProps()[1]!.parentSpanId).toEqual(client.event!.contexts!.trace!.span_id);
   });
 
   test('cancels full display spans longer than 30s', async () => {
-    const [activeSpan] = startSpanManual(
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
@@ -240,23 +221,26 @@ describe('TimeToDisplay', () => {
         startTimeToFullDisplaySpan();
 
         TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        emitNativeInitialDisplayEvent();
-
         TestRenderer.create(<TimeToFullDisplay record={true} />);
-        // native event is not emitted
 
-        jest.advanceTimersByTime(40_000);
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+          },
+          ttfd: {
+            [spanToJSON(activeSpan!).span_id!]: nowInSeconds() + 40,
+          },
+        });
 
         activeSpan?.end();
-        return [activeSpan];
       },
     );
 
     await jest.runOnlyPendingTimersAsync();
     await client.flush();
 
-    expectFinishedInitialDisplaySpan(getInitialDisplaySpan(activeSpan), activeSpan);
-    expectDeadlineExceededFullDisplaySpan(getFullDisplaySpan(activeSpan), activeSpan);
+    expectFinishedInitialDisplaySpan(client.event!);
+    expectDeadlineExceededFullDisplaySpan(client.event!);
 
     expectInitialDisplayMeasurementOnSpan(client.event!);
     expectFullDisplayMeasurementOnSpan(client.event!);
@@ -267,120 +251,46 @@ describe('TimeToDisplay', () => {
   test('full display which ended before initial display is extended to initial display end', async () => {
     const fullDisplayEndTimestampMs = secondInFutureTimestampMs();
     const initialDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;
-    const [initialDisplaySpan, fullDisplaySpan, activeSpan] = startSpanManual(
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
       (activeSpan: Span | undefined) => {
-        const initialDisplaySpan = startTimeToInitialDisplaySpan();
-        const fullDisplaySpan = startTimeToFullDisplaySpan();
+        startTimeToInitialDisplaySpan();
+        startTimeToFullDisplaySpan();
 
         const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
-        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs);
 
         timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
-        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs + 10);
-        emitNativeInitialDisplayEvent(initialDisplayEndTimestampMs);
+
+        mockRecordedTimeToDisplay({
+          ttfd: {
+            [spanToJSON(activeSpan!).span_id!]: fullDisplayEndTimestampMs / 1_000,
+          },
+          ttid: {
+            [spanToJSON(activeSpan!).span_id!]: initialDisplayEndTimestampMs / 1_000,
+          },
+        });
 
         activeSpan?.end();
-        return [initialDisplaySpan, fullDisplaySpan, activeSpan];
       },
     );
 
     await jest.runOnlyPendingTimersAsync();
     await client.flush();
 
-    expectFinishedInitialDisplaySpan(initialDisplaySpan, activeSpan);
-    expectFinishedFullDisplaySpan(fullDisplaySpan, activeSpan);
+    expectFinishedInitialDisplaySpan(client.event!);
+    expectFinishedFullDisplaySpan(client.event!);
 
     expectInitialDisplayMeasurementOnSpan(client.event!);
     expectFullDisplayMeasurementOnSpan(client.event!);
 
-    expect(spanToJSON(initialDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
-    expect(spanToJSON(fullDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
-  });
-
-  test('full display which ended before but processed after initial display is extended to initial display end', async () => {
-    const fullDisplayEndTimestampMs = secondInFutureTimestampMs();
-    const initialDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;
-    const [initialDisplaySpan, fullDisplaySpan, activeSpan] = startSpanManual(
-      {
-        name: 'Root Manual Span',
-        startTime: secondAgoTimestampMs(),
-      },
-      (activeSpan: Span | undefined) => {
-        const initialDisplaySpan = startTimeToInitialDisplaySpan();
-        const fullDisplaySpan = startTimeToFullDisplaySpan();
-
-        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
-        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true} /></>);
-
-        emitNativeInitialDisplayEvent(initialDisplayEndTimestampMs);
-        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs);
-
-        activeSpan?.end();
-        return [initialDisplaySpan, fullDisplaySpan, activeSpan];
-      },
-    );
-
-    await jest.runOnlyPendingTimersAsync();
-    await client.flush();
-
-    expectFinishedInitialDisplaySpan(initialDisplaySpan, activeSpan);
-    expectFinishedFullDisplaySpan(fullDisplaySpan, activeSpan);
-
-    expectInitialDisplayMeasurementOnSpan(client.event!);
-    expectFullDisplayMeasurementOnSpan(client.event!);
-
-    expect(spanToJSON(initialDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
-    expect(spanToJSON(fullDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
-  });
-
-  test('consequent renders do not update display end', async () => {
-    const initialDisplayEndTimestampMs = secondInFutureTimestampMs();
-    const fullDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;
-    const [initialDisplaySpan, fullDisplaySpan, activeSpan] = startSpanManual(
-      {
-        name: 'Root Manual Span',
-        startTime: secondAgoTimestampMs(),
-      },
-      (activeSpan: Span | undefined) => {
-        const initialDisplaySpan = startTimeToInitialDisplaySpan();
-        const fullDisplaySpan = startTimeToFullDisplaySpan();
-
-        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={false}/></>);
-        emitNativeInitialDisplayEvent(initialDisplayEndTimestampMs);
-
-        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={false}/></>);
-        emitNativeInitialDisplayEvent(fullDisplayEndTimestampMs + 10);
-
-        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
-        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs);
-
-        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
-        emitNativeFullDisplayEvent(fullDisplayEndTimestampMs + 20);
-
-        activeSpan?.end();
-        return [initialDisplaySpan, fullDisplaySpan, activeSpan];
-      },
-    );
-
-    await jest.runOnlyPendingTimersAsync();
-    await client.flush();
-
-    expectFinishedInitialDisplaySpan(initialDisplaySpan, activeSpan);
-    expectFinishedFullDisplaySpan(fullDisplaySpan, activeSpan);
-
-    expectInitialDisplayMeasurementOnSpan(client.event!);
-    expectFullDisplayMeasurementOnSpan(client.event!);
-
-    expect(spanToJSON(initialDisplaySpan!).timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
-    expect(spanToJSON(fullDisplaySpan!).timestamp).toEqual(fullDisplayEndTimestampMs / 1_000);
+    expect(getInitialDisplaySpanJSON(client.event!.spans!)!.timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
+    expect(getFullDisplaySpanJSON(client.event!.spans!)!.timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
   });
 
   test('should not log a warning if native component exists and not in new architecture', async () => {
-
     (isTurboModuleEnabled as jest.Mock).mockReturnValue(false);
 
     TestRenderer.create(<TimeToInitialDisplay record={true} />);
@@ -390,7 +300,6 @@ describe('TimeToDisplay', () => {
   });
 
   test('should log a warning if in new architecture', async () => {
-
     (isTurboModuleEnabled as jest.Mock).mockReturnValue(true);
     TestRenderer.create(<TimeToInitialDisplay record={true} />);
     await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
@@ -400,62 +309,65 @@ describe('TimeToDisplay', () => {
   });
 });
 
-function getInitialDisplaySpan(span?: Span) {
-  return getSpanDescendants(span!)?.find(s => spanToJSON(s).op === 'ui.load.initial_display');
+function getInitialDisplaySpanJSON(spans: SpanJSON[]) {
+  return spans.find(s => s.op === 'ui.load.initial_display');
 }
 
-function getFullDisplaySpan(span?: Span) {
-  return getSpanDescendants(span!)?.find(s => spanToJSON(s).op === 'ui.load.full_display');
+function getFullDisplaySpanJSON(spans: SpanJSON[]) {
+  return spans.find(s => s.op === 'ui.load.full_display');
 }
 
-function expectFinishedInitialDisplaySpan(actualSpan?: Span, expectedParentSpan?: Span) {
-  expect(spanToJSON(actualSpan!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
+function expectFinishedInitialDisplaySpan(event: Event) {
+  expect(getInitialDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.initial_display",
       [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
+      [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
     description: 'Time To Initial Display',
     op: 'ui.load.initial_display',
-    parent_span_id: expectedParentSpan ? spanToJSON(expectedParentSpan).span_id : undefined,
-    start_timestamp: expect.any(Number),
+    parent_span_id: event.contexts.trace.span_id,
+    start_timestamp: event.start_timestamp,
     status: 'ok',
     timestamp: expect.any(Number),
   }));
 }
 
-function expectFinishedFullDisplaySpan(actualSpan?: Span, expectedParentSpan?: Span) {
-  expect(spanToJSON(actualSpan!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
+function expectFinishedFullDisplaySpan(event: Event) {
+  expect(getFullDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.full_display",
       [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
+      [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
     description: 'Time To Full Display',
     op: 'ui.load.full_display',
-    parent_span_id: expectedParentSpan ? spanToJSON(expectedParentSpan).span_id : undefined,
-    start_timestamp: expect.any(Number),
+    parent_span_id: event.contexts.trace.span_id,
+    start_timestamp: event.start_timestamp,
     status: 'ok',
     timestamp: expect.any(Number),
   }));
 }
 
 
-function expectDeadlineExceededFullDisplaySpan(actualSpan?: Span, expectedParentSpan?: Span) {
-  expect(spanToJSON(actualSpan!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
+function expectDeadlineExceededFullDisplaySpan(event: Event) {
+  expect(getFullDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.full_display",
       [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
+      [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
     description: 'Time To Full Display',
     op: 'ui.load.full_display',
-    parent_span_id: expectedParentSpan ? spanToJSON(expectedParentSpan).span_id : undefined,
-    start_timestamp: expect.any(Number),
+    parent_span_id: event.contexts.trace.span_id,
+    start_timestamp: event.start_timestamp,
     status: 'deadline_exceeded',
     timestamp: expect.any(Number),
   }));
 }
 
-function expectNoTimeToDisplaySpans(span?: Span) {
-  expect(getSpanDescendants(span!).map(spanToJSON)).toEqual(expect.not.arrayContaining<SpanJSON[]>([
+function expectNoTimeToDisplaySpans(event: Event) {
+  expect(event.spans).toEqual(expect.not.arrayContaining<SpanJSON[]>([
     expect.objectContaining<Partial<SpanJSON>>({ op: 'ui.load.initial_display' }),
     expect.objectContaining<Partial<SpanJSON>>({ op: 'ui.load.full_display' }),
   ]));

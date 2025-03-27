@@ -266,7 +266,6 @@ export interface FeedbackWidgetStyles {
  * The props for the feedback button
  */
 export interface FeedbackButtonProps extends FeedbackButtonTextConfiguration {
-  showFeedbackButton?: boolean;
   styles?: FeedbackButtonStyles;
 }
 

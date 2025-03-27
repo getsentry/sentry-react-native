@@ -52,7 +52,8 @@ const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   enableTimeToInitialDisplay: isMobileOs,
-  ignoreEmptyBackNavigationTransactions: true,
+  ignoreEmptyBackNavigationTransactions: false,
+  enableTimeToInitialDisplayForPreloadedRoutes: true,
 });
 
 Sentry.init({
@@ -124,7 +125,6 @@ Sentry.init({
         },
         namePlaceholder: 'Fullname',
         buttonOptions: {
-          showFeedbackButton: true,
           styles: {
             triggerButton: {
               marginBottom: 75, // Place above the tab bar

@@ -1,5 +1,5 @@
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
-import { timestampInSeconds } from '@sentry/core';
+import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'
 import * as React from "react";
 
@@ -21,9 +21,9 @@ import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
-import { secondInFutureTimestampMs } from '../testutils';
+import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
 import type { MockedSentryEventEmitterFallback } from '../utils/mockedSentryeventemitterfallback';
-import { emitNativeFullDisplayEvent, emitNativeInitialDisplayEvent } from './mockedtimetodisplaynative';
+import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
@@ -286,7 +286,11 @@ describe('React Navigation - TTID', () => {
       mockedEventEmitter.emitNewFrameEvent();
 
       TestRenderer.render(<TimeToFullDisplay record />);
-      emitNativeFullDisplayEvent();
+      mockRecordedTimeToDisplay({
+        ttfd: {
+          [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+        },
+      });
 
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
@@ -351,12 +355,42 @@ describe('React Navigation - TTID', () => {
       expect(getSpanDurationMs(transaction, 'ui.load.initial_display')).toEqual(transaction.measurements?.time_to_initial_display?.value);
     });
 
+    test('ttfd span duration and measurement should equal ttid from ttfd is called earlier than ttid', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      TestRenderer.render(<TimeToFullDisplay record />);
+      mockRecordedTimeToDisplay({
+        ttfd: {
+          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds() - 1,
+        },
+      });
+      mockedEventEmitter.emitNewFrameEvent();
+
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      const ttfdSpanDuration = getSpanDurationMs(transaction, 'ui.load.full_display');
+      const ttidSpanDuration = getSpanDurationMs(transaction, 'ui.load.initial_display');
+      expect(ttfdSpanDuration).toBeDefined();
+      expect(ttidSpanDuration).toBeDefined();
+      expect(ttfdSpanDuration).toEqual(ttidSpanDuration);
+
+      expect(transaction.measurements?.time_to_full_display?.value).toBeDefined();
+      expect(transaction.measurements?.time_to_initial_display?.value).toBeDefined();
+      expect(transaction.measurements?.time_to_full_display?.value).toEqual(transaction.measurements?.time_to_initial_display?.value);
+    });
+
     test('ttfd span duration and measurement should equal for application start up', () => {
       mockedNavigation.finishAppStartNavigation();
       mockedEventEmitter.emitNewFrameEvent();
 
       TestRenderer.render(<TimeToFullDisplay record />);
-      emitNativeFullDisplayEvent();
+      mockRecordedTimeToDisplay({
+        ttfd: {
+          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+        },
+      });
 
       jest.runOnlyPendingTimers(); // Flush ttid transaction
 
@@ -459,7 +493,11 @@ describe('React Navigation - TTID', () => {
 
       mockedEventEmitter.emitNewFrameEvent();
       timeToDisplayComponent.update(<TimeToInitialDisplay record />);
-      emitNativeInitialDisplayEvent(manualInitialDisplayEndTimestampMs);
+      mockRecordedTimeToDisplay({
+        ttid: {
+          [spanToJSON(getActiveSpan()!).span_id!]: manualInitialDisplayEndTimestampMs / 1_000,
+        },
+      });
 
       jest.runOnlyPendingTimers(); // Flush transaction
 
@@ -493,7 +531,7 @@ describe('React Navigation - TTID', () => {
 
       // Initialized too late auto instrumentation finished before manual
       TestRenderer.render(<TimeToInitialDisplay record />);
-      emitNativeInitialDisplayEvent(secondInFutureTimestampMs());
+      // mockRecordedInitialDisplayAt(secondInFutureTimestampMs());
 
       jest.runOnlyPendingTimers(); // Flush transaction
 
@@ -589,6 +627,55 @@ describe('React Navigation - TTID', () => {
     });
   });
 
+  describe('ttid for preloaded/seen routes', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      (notWeb as jest.Mock).mockReturnValue(true);
+      (isHermesEnabled as jest.Mock).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should add ttid span and measurement for already seen route', () => {
+      const sut = createTestedInstrumentation({
+        enableTimeToInitialDisplay: true,
+        ignoreEmptyBackNavigationTransactions: false,
+        enableTimeToInitialDisplayForPreloadedRoutes: true,
+      });
+      transportSendMock = initSentry(sut).transportSendMock;
+
+      mockedNavigation = createMockNavigationAndAttachTo(sut);
+
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+      mockedNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+      mockedNavigation.navigateToInitialScreen();
+      mockedEventEmitter.emitNewFrameEvent();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              op: 'ui.load.initial_display',
+              description: 'Initial Screen initial display',
+            }),
+          ]),
+          measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
+            time_to_initial_display: {
+              value: expect.any(Number),
+              unit: 'millisecond',
+            },
+          }),
+        }),
+      );
+    });
+  });
+
   function getSpanDurationMs(transaction: TransactionEvent, op: string): number | undefined {
     const ttidSpan = transaction.spans?.find(span => span.op === op);
     if (!ttidSpan) {
@@ -603,10 +690,13 @@ describe('React Navigation - TTID', () => {
     return (spanJSON.timestamp - spanJSON.start_timestamp) * 1000;
   }
 
-  function createTestedInstrumentation(options?: { enableTimeToInitialDisplay?: boolean }) {
+  function createTestedInstrumentation(options?: {
+    enableTimeToInitialDisplay?: boolean
+    enableTimeToInitialDisplayForPreloadedRoutes?: boolean
+    ignoreEmptyBackNavigationTransactions?: boolean
+  }) {
     const sut = Sentry.reactNavigationIntegration({
       ...options,
-      ignoreEmptyBackNavigationTransactions: true, // default true
     });
     return sut;
   }
@@ -629,6 +719,7 @@ function initSentry(sut: ReturnType<typeof Sentry.reactNavigationIntegration>): 
     integrations: [
       sut,
       Sentry.reactNativeTracingIntegration(),
+      Sentry.timeToDisplayIntegration(),
     ],
     transport: () => ({
       send: transportSendMock.mockResolvedValue({}),

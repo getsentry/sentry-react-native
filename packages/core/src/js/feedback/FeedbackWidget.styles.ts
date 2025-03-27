@@ -112,6 +112,8 @@ export const defaultButtonStyles: FeedbackButtonStyles = {
     shadowOpacity: 0.5,
     shadowRadius: 3,
     flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
   },
   triggerText: {
     color: getTheme().foreground,

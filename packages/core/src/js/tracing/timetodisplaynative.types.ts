@@ -5,7 +5,7 @@ export interface RNSentryOnDrawNextFrameEvent {
 
 export interface RNSentryOnDrawReporterProps {
   children?: React.ReactNode;
-  onDrawNextFrame: (event: { nativeEvent: RNSentryOnDrawNextFrameEvent }) => void;
   initialDisplay?: boolean;
   fullDisplay?: boolean;
+  parentSpanId?: string;
 }
