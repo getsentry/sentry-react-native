@@ -2,7 +2,21 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 
 describe('CustomMask', () => {
   beforeEach(() => {
+    jest.mock('../../src/js/utils/environment', () => ({
+      isExpoGo: () => false,
+    }));
     jest.resetModules();
+  });
+
+  it('returns a fallback when isExpoGo is true', () => {
+    jest.mock('../../src/js/utils/environment', () => ({
+      isExpoGo: () => true,
+    }));
+
+    const { Mask, Unmask, MaskFallback, UnmaskFallback } = require('../../src/js/replay/CustomMask');
+
+    expect(Mask).toBe(MaskFallback);
+    expect(Unmask).toBe(UnmaskFallback);
   });
 
   it('returns a fallback when native view manager is missing', () => {
