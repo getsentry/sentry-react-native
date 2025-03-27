@@ -14,16 +14,45 @@ export function getTheme(): FeedbackWidgetTheme {
 }
 
 export interface FeedbackWidgetTheme {
-  accent: string;
+  /**
+   * Background color for surfaces
+   */
   background: string;
+
+  /**
+   * Foreground color (i.e. text color)
+   */
   foreground: string;
-  border: string;
+
+  /**
+   * Foreground color for accented elements
+   */
+  accentForeground?: string;
+
+  /**
+   * Background color for accented elements
+   */
+  accentBackground?: string;
+
+  /**
+   * Border color
+   */
+  border?: string;
+
+  /**
+   * Color for feedback icon
+   */
   feedbackIcon?: string;
+
+  /**
+   * Color for Sentry logo
+   */
   sentryLogo?: string;
 }
 
 export const LightTheme: FeedbackWidgetTheme = {
-  accent: 'rgba(88, 74, 192, 1)',
+  accentBackground: 'rgba(88, 74, 192, 1)',
+  accentForeground: '#ffffff',
   foreground: '#2b2233',
   background: '#ffffff',
   border: 'rgba(41, 35, 47, 0.13)',
@@ -32,7 +61,8 @@ export const LightTheme: FeedbackWidgetTheme = {
 };
 
 export const DarkTheme: FeedbackWidgetTheme = {
-  accent: 'rgba(88, 74, 192, 1)',
+  accentBackground: 'rgba(88, 74, 192, 1)',
+  accentForeground: '#ffffff',
   foreground: '#ebe6ef',
   background: '#29232f',
   border: 'rgba(235, 230, 239, 0.15)',

@@ -63,14 +63,14 @@ const defaultStyles: FeedbackWidgetStyles = {
     fontSize: 16,
   },
   submitButton: {
-    backgroundColor: getTheme().accent,
+    backgroundColor: getTheme().accentBackground,
     paddingVertical: 15,
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 10,
   },
   submitText: {
-    color: getTheme().background,
+    color: getTheme().accentForeground,
     fontSize: 18,
   },
   cancelButton: {
@@ -113,7 +113,7 @@ export const defaultButtonStyles: FeedbackButtonStyles = {
     shadowRadius: 3,
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: BORDER_COLOR,
+    borderColor: getTheme().border,
   },
   triggerText: {
     color: getTheme().foreground,
