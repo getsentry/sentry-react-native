@@ -33,10 +33,12 @@ export const feedbackIntegration = (
   };
 };
 
+const _getClientIntegration = (): FeedbackIntegration => {
+  return getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(MOBILE_FEEDBACK_INTEGRATION_NAME);
+};
+
 export const getFeedbackOptions = (): Partial<FeedbackWidgetProps> => {
-  const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
-    MOBILE_FEEDBACK_INTEGRATION_NAME,
-  );
+  const integration = _getClientIntegration();
   if (!integration) {
     return {};
   }
@@ -45,9 +47,7 @@ export const getFeedbackOptions = (): Partial<FeedbackWidgetProps> => {
 };
 
 export const getFeedbackButtonOptions = (): Partial<FeedbackButtonProps> => {
-  const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
-    MOBILE_FEEDBACK_INTEGRATION_NAME,
-  );
+  const integration = _getClientIntegration();
   if (!integration) {
     return {};
   }
@@ -56,9 +56,7 @@ export const getFeedbackButtonOptions = (): Partial<FeedbackButtonProps> => {
 };
 
 export const getColorScheme = (): 'system' | 'light' | 'dark' => {
-  const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
-    MOBILE_FEEDBACK_INTEGRATION_NAME,
-  );
+  const integration = _getClientIntegration();
   if (!integration) {
     return 'system';
   }
@@ -67,9 +65,7 @@ export const getColorScheme = (): 'system' | 'light' | 'dark' => {
 };
 
 export const getFeedbackLightTheme = (): Partial<FeedbackWidgetTheme> => {
-  const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
-    MOBILE_FEEDBACK_INTEGRATION_NAME,
-  );
+  const integration = _getClientIntegration();
   if (!integration) {
     return {};
   }
@@ -78,9 +74,7 @@ export const getFeedbackLightTheme = (): Partial<FeedbackWidgetTheme> => {
 };
 
 export const getFeedbackDarkTheme = (): Partial<FeedbackWidgetTheme> => {
-  const integration = getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(
-    MOBILE_FEEDBACK_INTEGRATION_NAME,
-  );
+  const integration = _getClientIntegration();
   if (!integration) {
     return {};
   }
