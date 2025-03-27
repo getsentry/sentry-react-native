@@ -11,6 +11,15 @@ const ITEMS_PER_PAGE = 2; // Small limit to create more spans
 const AUTO_LOAD_LIMIT = 1; // One auto load at the end of the list then shows button
 const API_URL = 'https://api.spaceflightnewsapi.net/v4/articles';
 
+export const preloadArticles = async () => {
+  // Not actually preloading, just fetching for testing purposes
+  await axios.get(API_URL, {
+    params: {
+      limit: ITEMS_PER_PAGE,
+    },
+  });
+};
+
 export default function NewsScreen() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);

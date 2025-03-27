@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-
 import { AppRegistry, Platform, TurboModuleRegistry } from 'react-native';
 
 import type * as ReactNative from '../vendor/react-native';
 import type { ReactNativeLibrariesInterface } from './rnlibrariesinterface';
 
-export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
+const InternalReactNativeLibrariesInterface: Required<ReactNativeLibrariesInterface> = {
   Devtools: {
     parseErrorStack: (errorStack: string): Array<ReactNative.StackFrame> => {
       const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
@@ -42,3 +41,5 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     },
   },
 };
+
+export const ReactNativeLibraries: ReactNativeLibrariesInterface = InternalReactNativeLibrariesInterface;
