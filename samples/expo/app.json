@@ -65,6 +65,7 @@
         {
           "asyncRoutes": {
             "web": true,
+            "ios": false,
             "default": "development"
           }
         }
