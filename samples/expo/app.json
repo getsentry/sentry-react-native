@@ -3,6 +3,7 @@
     "name": "sentry-react-native-expo-sample",
     "slug": "sentry-react-native-expo-sample",
     "jsEngine": "hermes",
+    "newArchEnabled": true,
     "scheme": "sentry-expo-sample",
     "version": "6.10.0",
     "orientation": "portrait",
