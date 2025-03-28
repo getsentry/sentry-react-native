@@ -204,4 +204,118 @@ describe('FeedbackButtonManager', () => {
 
     expect(getClient().getIntegrationByName(AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME)).toBeDefined();
   });
+
+  it('the Feedback Widget matches the snapshot with default configuration', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    showFeedbackWidget();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Widget matches the snapshot with custom light theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'light',
+      themeLight: {
+        foreground: '#ff0000',
+        background: '#00ff00',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackWidget();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Widget matches the snapshot with custom dark theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'dark',
+      themeDark: {
+        foreground: '#00ff00',
+        background: '#ff0000',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackWidget();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Button matches the snapshot with default configuration', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    showFeedbackButton();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Button matches the snapshot with custom light theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'light',
+      themeLight: {
+        foreground: '#ff0000',
+        background: '#00ff00',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Button matches the snapshot with custom dark theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'dark',
+      themeDark: {
+        foreground: '#00ff00',
+        background: '#ff0000',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
 });
