@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { Image, Text, TouchableOpacity } from 'react-native';
+import type { NativeEventSubscription} from 'react-native';
+import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
 
 import { defaultButtonConfiguration } from './defaults';
 import { defaultButtonStyles } from './FeedbackWidget.styles';
+import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackWidget.types';
 import { feedbackIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
@@ -18,20 +20,41 @@ const showFeedbackWidget = (): void => {
  * Implements a feedback button that opens the FeedbackForm.
  */
 export class FeedbackButton extends React.Component<FeedbackButtonProps> {
+  private _themeListener: NativeEventSubscription;
+
   public constructor(props: FeedbackButtonProps) {
     super(props);
     lazyLoadFeedbackIntegration();
   }
 
   /**
+   * Adds a listener for theme changes.
+   */
+  public componentDidMount(): void {
+    this._themeListener = Appearance.addChangeListener(() => {
+      this.forceUpdate();
+    });
+  }
+
+  /**
+   * Removes the theme listener.
+   */
+  public componentWillUnmount(): void {
+    if (this._themeListener) {
+      this._themeListener.remove();
+    }
+  }
+
+  /**
    * Renders the feedback button.
    */
   public render(): React.ReactNode {
+    const theme = getTheme();
     const text: FeedbackButtonTextConfiguration = { ...defaultButtonConfiguration, ...this.props };
     const styles: FeedbackButtonStyles = {
-      triggerButton: { ...defaultButtonStyles.triggerButton, ...this.props.styles?.triggerButton },
-      triggerText: { ...defaultButtonStyles.triggerText, ...this.props.styles?.triggerText },
-      triggerIcon: { ...defaultButtonStyles.triggerIcon, ...this.props.styles?.triggerIcon },
+      triggerButton: { ...defaultButtonStyles(theme).triggerButton, ...this.props.styles?.triggerButton },
+      triggerText: { ...defaultButtonStyles(theme).triggerText, ...this.props.styles?.triggerText },
+      triggerIcon: { ...defaultButtonStyles(theme).triggerIcon, ...this.props.styles?.triggerIcon },
     };
 
     return (
