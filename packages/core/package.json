@@ -67,7 +67,7 @@
   "dependencies": {
     "@sentry/babel-plugin-component-annotate": "3.2.3",
     "@sentry/browser": "8.54.0",
-    "@sentry/cli": "2.42.4",
+    "@sentry/cli": "2.43.0",
     "@sentry/core": "8.54.0",
     "@sentry/react": "8.54.0",
     "@sentry/types": "8.54.0",

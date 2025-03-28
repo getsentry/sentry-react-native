@@ -13,6 +13,9 @@
 - Bump Bundler Plugins from v3.2.2 to v3.2.3 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#323)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.2.3)
+- Bump CLI from v2.42.4 to v2.43.0 ([#4692](https://github.com/getsentry/sentry-react-native/pull/4692))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2430)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.4...2.43.0)
 
 ## 6.11.0-beta.0
 
