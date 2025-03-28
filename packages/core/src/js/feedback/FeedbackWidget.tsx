@@ -1,8 +1,10 @@
 import type { SendFeedbackParams } from '@sentry/core';
 import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
-import type { KeyboardTypeOptions } from 'react-native';
+import type { KeyboardTypeOptions ,
+  NativeEventSubscription} from 'react-native';
 import {
+  Appearance,
   Image,
   Keyboard,
   Text,
@@ -17,6 +19,7 @@ import { getDataFromUri } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
+import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { lazyLoadFeedbackIntegration } from './lazy';
 import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
@@ -38,6 +41,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     attachment: undefined,
     attachmentUri: undefined,
   };
+
+  private _themeListener: NativeEventSubscription;
 
   private _didSubmitForm: boolean = false;
 
@@ -187,7 +192,16 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   }
 
   /**
-   * Save the state before unmounting the component.
+   * Add a listener to the theme change event.
+   */
+  public componentDidMount(): void {
+    this._themeListener = Appearance.addChangeListener(() => {
+      this.forceUpdate();
+    });
+  }
+
+  /**
+   * Save the state before unmounting the component and remove the theme listener.
    */
   public componentWillUnmount(): void {
     if (this._didSubmitForm) {
@@ -196,18 +210,22 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     } else {
       this._saveFormState();
     }
+    if (this._themeListener) {
+      this._themeListener.remove();
+    }
   }
 
   /**
    * Renders the feedback form screen.
    */
   public render(): React.ReactNode {
+    const theme = getTheme();
     const { name, email, description } = this.state;
     const { onFormClose } = this.props;
     const config: FeedbackGeneralConfiguration = this.props;
     const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
-    const styles: FeedbackWidgetStyles = { ...defaultStyles, ...this.props.styles };
+    const styles: FeedbackWidgetStyles = { ...defaultStyles(theme), ...this.props.styles };
     const onCancel = (): void => {
       if (onFormClose) {
         onFormClose();
