@@ -37,7 +37,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
-    "@sentry/babel-plugin-component-annotate": "3.2.3",
+    "@sentry/babel-plugin-component-annotate": "3.2.4",
     "@types/node": "20.10.4",
     "sentry-react-native-samples-utils": "workspace:^"
   },
