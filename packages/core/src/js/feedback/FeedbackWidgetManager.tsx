@@ -5,13 +5,13 @@ import { Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform
 
 import { notWeb } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
-import { ScreenshotButton } from './ScreenshotButton';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
-import { getFeedbackButtonOptions, getFeedbackOptions } from './integration';
-import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration } from './lazy';
+import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotkButtonOptions } from './integration';
+import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration, lazyLoadAutoInjectScreenshotButtonIntegration } from './lazy';
+import { ScreenshotButton } from './ScreenshotButton';
 import { isModalSupported } from './utils';
 
 const PULL_DOWN_CLOSE_THRESHOLD = 200;
@@ -216,7 +216,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
       <>
         {this.props.children}
         {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()} />}
-        {isScreenshotButtonVisible && <ScreenshotButton {...{}}/>}
+        {isScreenshotButtonVisible && <ScreenshotButton {...getScreenshotkButtonOptions()}/>}
         {isVisible &&
           <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
@@ -310,7 +310,7 @@ const resetFeedbackButtonManager = (): void => {
 };
 
 const showScreenshotButton = (): void => {
-  lazyLoadAutoInjectFeedbackButtonIntegration();
+  lazyLoadAutoInjectScreenshotButtonIntegration();
   ScreenshotButtonManager.show();
 };
 

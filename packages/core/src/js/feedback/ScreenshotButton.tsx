@@ -1,17 +1,22 @@
+import { logger } from '@sentry/core';
 import * as React from 'react';
 import type { NativeEventSubscription} from 'react-native';
 import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
+
+import type { Screenshot } from '../wrapper';
 import { NATIVE } from '../wrapper';
 import { defaultScreenshotButtonConfiguration } from './defaults';
 import { defaultScreenshotButtonStyles } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles, ScreenshotButtonTextConfiguration } from './FeedbackWidget.types';
-import { feedbackIcon } from './icons';
+import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
-const takeScreenshot = (): void => {
-  console.log('Screenshot button pressed');
-  NATIVE.captureScreenshot();
+const takeScreenshot = async (): Promise<void> => {
+  const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
+  if (screenshots && screenshots.length > 0) {
+    logger.info('ScreenshotButton captured screenshot');
+  }
 };
 
 /**
@@ -62,7 +67,7 @@ export class ScreenshotButton extends React.Component<ScreenshotButtonProps> {
         onPress={ takeScreenshot }
         accessibilityLabel={text.triggerAriaLabel}
       >
-        <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon}/>
+        <Image source={{ uri: screenshotIcon }} style={styles.triggerIcon}/>
         <Text style={styles.triggerText}>{text.triggerLabel}</Text>
       </TouchableOpacity>
     );

@@ -239,7 +239,7 @@ const ErrorsScreen = (_props: Props) => {
             }
           }}
         />
-                <Button
+        <Button
           title="Show/Hide Screenshot Button"
           onPress={() => {
             if (isScreenshotButtonVisible) {
