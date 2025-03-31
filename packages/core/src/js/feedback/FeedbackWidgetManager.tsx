@@ -5,6 +5,7 @@ import { Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform
 
 import { notWeb } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
+import { ScreenshotButton } from './ScreenshotButton';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
@@ -76,6 +77,12 @@ class FeedbackButtonManager extends FeedbackManager {
   }
 }
 
+class ScreenshotButtonManager extends FeedbackManager {
+  protected static get _feedbackComponentName(): string {
+    return 'ScreenshotButton';
+  }
+}
+
 interface FeedbackWidgetProviderProps {
   children: React.ReactNode;
   styles?: FeedbackWidgetStyles;
@@ -83,6 +90,7 @@ interface FeedbackWidgetProviderProps {
 
 interface FeedbackWidgetProviderState {
   isButtonVisible: boolean;
+  isScreenshotButtonVisible: boolean;
   isVisible: boolean;
   backgroundOpacity: Animated.Value;
   panY: Animated.Value;
@@ -92,6 +100,7 @@ interface FeedbackWidgetProviderState {
 class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps> {
   public state: FeedbackWidgetProviderState = {
     isButtonVisible: false,
+    isScreenshotButtonVisible: false,
     isVisible: false,
     backgroundOpacity: new Animated.Value(0),
     panY: new Animated.Value(Dimensions.get('screen').height),
@@ -135,6 +144,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
   public constructor(props: FeedbackWidgetProviderProps) {
     super(props);
     FeedbackButtonManager.initialize(this._setButtonVisibilityFunction);
+    ScreenshotButtonManager.initialize(this._setScreenshotButtonVisibilityFunction);
     FeedbackWidgetManager.initialize(this._setVisibilityFunction);
   }
 
@@ -193,7 +203,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
 
     const theme = getTheme();
 
-    const { isButtonVisible, isVisible, backgroundOpacity } = this.state;
+    const { isButtonVisible, isScreenshotButtonVisible, isVisible, backgroundOpacity } = this.state;
 
     const backgroundColor = backgroundOpacity.interpolate({
       inputRange: [0, 1],
@@ -205,7 +215,8 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     return (
       <>
         {this.props.children}
-        {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()}/>}
+        {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()} />}
+        {isScreenshotButtonVisible && <ScreenshotButton {...{}}/>}
         {isVisible &&
           <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
@@ -267,6 +278,10 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     this.setState({ isButtonVisible: visible });
   };
 
+  private _setScreenshotButtonVisibilityFunction = (visible: boolean): void => {
+    this.setState({ isScreenshotButtonVisible: visible });
+  };
+
   private _handleClose = (): void => {
     FeedbackWidgetManager.hide();
   };
@@ -294,4 +309,17 @@ const resetFeedbackButtonManager = (): void => {
   FeedbackButtonManager.reset();
 };
 
-export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, FeedbackWidgetProvider, resetFeedbackButtonManager, resetFeedbackWidgetManager };
+const showScreenshotButton = (): void => {
+  lazyLoadAutoInjectFeedbackButtonIntegration();
+  ScreenshotButtonManager.show();
+};
+
+const hideScreenshotButton = (): void => {
+  ScreenshotButtonManager.hide();
+};
+
+const resetScreenshotButtonManager = (): void => {
+  ScreenshotButtonManager.reset();
+};
+
+export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, showScreenshotButton, hideScreenshotButton, FeedbackWidgetProvider, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager };

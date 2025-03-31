@@ -132,6 +132,8 @@ export const defaultButtonStyles = (theme: FeedbackWidgetTheme): FeedbackButtonS
   };
 };
 
+export const defaultScreenshotButtonStyles = defaultButtonStyles;
+
 export const modalWrapper: ViewStyle = {
   position: 'absolute',
   top: 0,

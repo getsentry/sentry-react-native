@@ -170,6 +170,21 @@ export interface FeedbackButtonTextConfiguration {
 }
 
 /**
+ * The ScreenshotButton text labels that can be customized
+ */
+export interface ScreenshotButtonTextConfiguration {
+  /**
+   * The label for the Screenshot button
+   */
+  triggerLabel?: string;
+
+  /**
+   * The aria label for the Screenshot button
+   */
+  triggerAriaLabel?: string;
+}
+
+/**
  * The public callbacks available for the feedback integration
  */
 export interface FeedbackCallbacks {
@@ -273,6 +288,22 @@ export interface FeedbackButtonProps extends FeedbackButtonTextConfiguration {
  * The styles for the feedback button
  */
 export interface FeedbackButtonStyles {
+  triggerButton?: ViewStyle;
+  triggerText?: TextStyle;
+  triggerIcon?: ImageStyle;
+}
+
+/**
+ * The props for the screenshot button
+ */
+export interface ScreenshotButtonProps extends ScreenshotButtonTextConfiguration {
+  styles?: ScreenshotButtonStyles;
+}
+
+/**
+ * The styles for the screenshot button
+ */
+export interface ScreenshotButtonStyles {
   triggerButton?: ViewStyle;
   triggerText?: TextStyle;
   triggerIcon?: ImageStyle;
