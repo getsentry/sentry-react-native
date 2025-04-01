@@ -18,6 +18,7 @@ const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
 const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
 const ADD_SCREENSHOT_LABEL = 'Add a screenshot';
+const CAPTURE_SCREENSHOT_LABEL = 'Take a screenshot';
 const REMOVE_SCREENSHOT_LABEL = 'Remove screenshot';
 const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.';
 
@@ -80,6 +81,7 @@ export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
   successMessageText: SUCCESS_MESSAGE_TEXT,
   addScreenshotButtonLabel: ADD_SCREENSHOT_LABEL,
   removeScreenshotButtonLabel: REMOVE_SCREENSHOT_LABEL,
+  captureScreenshotButtonLabel: CAPTURE_SCREENSHOT_LABEL,
   genericError: GENERIC_ERROR_TEXT,
 };
 

@@ -9,6 +9,7 @@ import { defaultScreenshotButtonConfiguration } from './defaults';
 import { defaultScreenshotButtonStyles } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles, ScreenshotButtonTextConfiguration } from './FeedbackWidget.types';
+import { hideScreenshotButton, showFeedbackWidget } from './FeedbackWidgetManager';
 import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
@@ -16,6 +17,8 @@ const takeScreenshot = async (): Promise<void> => {
   const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
   if (screenshots && screenshots.length > 0) {
     logger.info('ScreenshotButton captured screenshot');
+    hideScreenshotButton();
+    showFeedbackWidget();
   }
 };
 

@@ -115,6 +115,7 @@ Sentry.init({
       }),
       Sentry.feedbackIntegration({
         imagePicker: ImagePicker,
+        enableScreenshot: true,
         styles:{
           submitButton: {
             backgroundColor: '#6a1b9a',

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { SendFeedbackParams } from '@sentry/core';
 import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
@@ -21,6 +22,7 @@ import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
+import { hideFeedbackButton, showScreenshotButton } from './FeedbackWidgetManager';
 import { lazyLoadFeedbackIntegration } from './lazy';
 import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
 
@@ -310,6 +312,15 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 </Text>
               </TouchableOpacity>
             </View>
+          )}
+          {config.enableScreenshot && (
+            <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
+              hideFeedbackButton();
+              onCancel();
+              showScreenshotButton();
+            }}>
+              <Text style={styles.takeScreenshotText}>{text.captureScreenshotButtonLabel}</Text>
+            </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
             <Text style={styles.submitText}>{text.submitButtonLabel}</Text>

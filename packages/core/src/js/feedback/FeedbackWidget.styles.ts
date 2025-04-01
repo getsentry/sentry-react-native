@@ -63,6 +63,20 @@ const defaultStyles = (theme: FeedbackWidgetTheme): FeedbackWidgetStyles => {
       color: theme.foreground,
       fontSize: 16,
     },
+    takeScreenshotButton: {
+      backgroundColor: theme.background,
+      padding: 15,
+      borderRadius: 5,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginTop: -10,
+      marginBottom: 20,
+    },
+    takeScreenshotText: {
+      color: theme.foreground,
+      fontSize: 16,
+    },
     submitButton: {
       backgroundColor: theme.accentBackground,
       paddingVertical: 15,
