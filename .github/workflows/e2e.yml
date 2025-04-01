@@ -151,8 +151,8 @@ jobs:
   react-native-build:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    needs: [diff_check, auth_token_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') }}
     env:
       RN_VERSION: ${{ matrix.rn-version }}
       RN_ENGINE: ${{ matrix.engine }}
