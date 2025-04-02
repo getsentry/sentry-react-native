@@ -159,6 +159,7 @@ jobs:
       USE_FRAMEWORKS: ${{ matrix.ios-use-frameworks }}
       PRODUCTION: ${{ matrix.build-type == 'production' && '1' || '0' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.rn-architecture == 'new' && '1' || '0' }}
+      SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
@@ -171,9 +172,11 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.77.1'
-            runs-on: macos-14
+            xcode-version: '16.2'
+            runs-on: macos-15
           - platform: ios
             rn-version: '0.65.3'
+            xcode-version: '14.2'
             runs-on: macos-13
           - platform: android
             runs-on: ubuntu-latest
@@ -221,8 +224,8 @@ jobs:
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
 
-      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
-        if: ${{ matrix.platform == 'ios' && matrix.rn-version == '0.65.3' }}
+      - run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' }}
 
       - run: corepack enable
       - uses: actions/setup-node@v4

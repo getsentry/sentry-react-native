@@ -728,6 +728,37 @@ describe('Tests the SDK functionality', () => {
       });
     });
 
+    describe('app registry integration', () => {
+      test('no integration when tracing disabled', () => {
+        init({});
+
+        expectNotIntegration('AppRegistry');
+      });
+      test('integration added when tracing enabled', () => {
+        init({
+          tracesSampleRate: 0.5,
+        });
+
+        expectIntegration('AppRegistry');
+      });
+    });
+
+    describe('time to display integration', () => {
+      it('no integration when tracing disabled', () => {
+        init({});
+
+        expectNotIntegration('TimeToDisplay');
+      });
+
+      it('integration added when tracing enabled', () => {
+        init({
+          tracesSampleRate: 0.5,
+        });
+
+        expectIntegration('TimeToDisplay');
+      });
+    });
+
     it('adds spotlight integration with spotlight bool', () => {
       init({
         spotlight: true,

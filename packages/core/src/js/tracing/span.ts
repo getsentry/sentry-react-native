@@ -1,4 +1,4 @@
-import type { Client, Scope, Span, StartSpanOptions } from '@sentry/core';
+import type { Client, Scope, Span, SpanJSON, StartSpanOptions } from '@sentry/core';
 import {
   generatePropagationContext,
   getActiveSpan,
@@ -153,4 +153,29 @@ export function addDefaultOpForSpanFrom(client: Client): void {
       span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_OP, 'default');
     }
   });
+}
+
+export const SPAN_THREAD_NAME = 'thread.name';
+export const SPAN_THREAD_NAME_MAIN = 'main';
+export const SPAN_THREAD_NAME_JAVASCRIPT = 'javascript';
+
+/**
+ * Adds Javascript thread info to spans.
+ * Ref: https://reactnative.dev/architecture/threading-model
+ */
+export function addThreadInfoToSpan(client: Client): void {
+  client.on('spanStart', (span: Span) => {
+    if (!spanToJSON(span).data?.[SPAN_THREAD_NAME]) {
+      span.setAttribute(SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT);
+    }
+  });
+}
+
+/**
+ * Sets the Main thread info to the span.
+ */
+export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
+  spanJSON.data = spanJSON.data || {};
+  spanJSON.data[SPAN_THREAD_NAME] = SPAN_THREAD_NAME_MAIN;
+  return spanJSON;
 }

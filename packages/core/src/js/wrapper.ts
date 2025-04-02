@@ -120,6 +120,11 @@ interface SentryNativeWrapper {
 
   crashedLastRun(): Promise<boolean | null>;
   getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
+
+  getDataFromUri(uri: string): Promise<Uint8Array | null>;
+  popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
+
+  setActiveSpanId(spanId: string): void;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -702,6 +707,45 @@ export const NATIVE: SentryNativeWrapper = {
     return RNSentry.getNewScreenTimeToDisplay();
   },
 
+  async getDataFromUri(uri: string): Promise<Uint8Array | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+    try {
+      const data: number[] = await RNSentry.getDataFromUri(uri);
+      return new Uint8Array(data);
+    } catch (error) {
+      logger.error('Error:', error);
+      return null;
+    }
+  },
+
+  popTimeToDisplayFor(key: string): Promise<number | undefined | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return Promise.resolve(null);
+    }
+
+    try {
+      return RNSentry.popTimeToDisplayFor(key);
+    } catch (error) {
+      logger.error('Error:', error);
+      return null;
+    }
+  },
+
+  setActiveSpanId(spanId): void {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return undefined;
+    }
+
+    try {
+      RNSentry.setActiveSpanId(spanId);
+    } catch (error) {
+      logger.error('Error:', error);
+      return undefined;
+    }
+  },
+
   /**
    * Gets the event from envelopeItem and applies the level filter to the selected event.
    * @param data An envelope item containing the event.
@@ -789,3 +833,12 @@ export const NATIVE: SentryNativeWrapper = {
   nativeIsReady: false,
   platform: Platform.OS,
 };
+
+/**
+ * Fethces the data from the given uri in Uint8Array format.
+ * @param uri string
+ * @returns Uint8Array | null
+ */
+export async function getDataFromUri(uri: string): Promise<Uint8Array | null> {
+  return NATIVE.getDataFromUri(uri);
+}
