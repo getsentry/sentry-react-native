@@ -10,7 +10,9 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.net.Uri;
 import android.util.SparseIntArray;
+import androidx.annotation.VisibleForTesting;
 import androidx.core.app.FrameMetricsAggregator;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -27,7 +29,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.JavascriptException;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import io.sentry.Breadcrumb;
 import io.sentry.ILogger;
 import io.sentry.IScope;
@@ -72,6 +73,7 @@ import io.sentry.util.JsonSerializationUtils;
 import io.sentry.vendor.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -104,7 +106,7 @@ public class RNSentryModuleImpl {
   private FrameMetricsAggregator frameMetricsAggregator = null;
   private boolean androidXAvailable;
 
-  private static boolean hasFetchedAppStart;
+  @VisibleForTesting static long lastStartTimestampMs = -1;
 
   // 700ms to constitute frozen frames.
   private static final int FROZEN_FRAME_THRESHOLD = 700;
@@ -152,11 +154,7 @@ public class RNSentryModuleImpl {
   private @NotNull Runnable createEmitNewFrameEvent() {
     return () -> {
       final SentryDate endDate = dateProvider.now();
-      WritableMap event = Arguments.createMap();
-      event.putDouble("newFrameTimestampInSeconds", endDate.nanoTimestamp() / 1e9);
-      getReactApplicationContext()
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-          .emit("rn_sentry_new_frame", event);
+      RNSentryTimeToDisplay.putTimeToInitialDisplayForActiveSpan(endDate.nanoTimestamp() / 1e9);
     };
   }
 
@@ -431,31 +429,44 @@ public class RNSentryModuleImpl {
 
   public void fetchNativeAppStart(Promise promise) {
     fetchNativeAppStart(
-        promise,
-        InternalSentrySdk.getAppStartMeasurement(),
-        logger,
-        AppStartMetrics.getInstance().isAppLaunchedInForeground());
+        promise, AppStartMetrics.getInstance(), InternalSentrySdk.getAppStartMeasurement(), logger);
   }
 
   protected void fetchNativeAppStart(
       Promise promise,
-      final Map<String, Object> appStartMeasurement,
-      ILogger logger,
-      boolean isAppLaunchedInForeground) {
-    if (!isAppLaunchedInForeground) {
+      final AppStartMetrics metrics,
+      final Map<String, Object> metricsDataBag,
+      ILogger logger) {
+    if (!metrics.isAppLaunchedInForeground()) {
       logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground.");
       promise.resolve(null);
       return;
     }
 
     WritableMap mutableMeasurement =
-        (WritableMap) RNSentryMapConverter.convertToWritable(appStartMeasurement);
-    mutableMeasurement.putBoolean("has_fetched", hasFetchedAppStart);
+        (WritableMap) RNSentryMapConverter.convertToWritable(metricsDataBag);
 
-    // This is always set to true, as we would only allow an app start fetch to only
-    // happen once in the case of a JS bundle reload, we do not want it to be
-    // instrumented again.
-    hasFetchedAppStart = true;
+    long currentStartTimestampMs = metrics.getAppStartTimeSpan().getStartTimestampMs();
+    boolean hasFetched =
+        lastStartTimestampMs > 0 && lastStartTimestampMs == currentStartTimestampMs;
+    mutableMeasurement.putBoolean("has_fetched", hasFetched);
+
+    if (lastStartTimestampMs < 0) {
+      logger.log(SentryLevel.DEBUG, "App Start data reported to the RN layer for the first time.");
+    } else if (hasFetched) {
+      logger.log(SentryLevel.DEBUG, "App Start data already fetched from native before.");
+    } else {
+      logger.log(SentryLevel.DEBUG, "App Start data updated, reporting to the RN layer again.");
+    }
+
+    // When activity is destroyed but the application process is kept alive
+    // the next activity creation is considered warm start.
+    // The app start metrics will be updated by the the Android SDK.
+    // To let the RN JS layer know these are new start data we compare the start timestamps.
+    lastStartTimestampMs = currentStartTimestampMs;
+
+    // Clears start metrics, making them ready for recording warm app start
+    metrics.onAppStartSpansSent();
 
     promise.resolve(mutableMeasurement);
   }
@@ -696,6 +707,19 @@ public class RNSentryModuleImpl {
         scope -> {
           scope.clearBreadcrumbs();
         });
+  }
+
+  public void popTimeToDisplayFor(String screenId, Promise promise) {
+    if (screenId != null) {
+      promise.resolve(RNSentryTimeToDisplay.popTimeToDisplayFor(screenId));
+    } else {
+      promise.resolve(null);
+    }
+  }
+
+  public boolean setActiveSpanId(@Nullable String spanId) {
+    RNSentryTimeToDisplay.setActiveSpanId(spanId);
+    return true; // The return ensure RN executes the code synchronously
   }
 
   public void setExtra(String key, String extra) {
@@ -965,6 +989,39 @@ public class RNSentryModuleImpl {
 
   public String fetchNativePackageName() {
     return packageInfo.packageName;
+  }
+
+  public void getDataFromUri(String uri, Promise promise) {
+    try {
+      Uri contentUri = Uri.parse(uri);
+      try (InputStream is =
+          getReactApplicationContext().getContentResolver().openInputStream(contentUri)) {
+        if (is == null) {
+          String msg = "File not found for uri: " + uri;
+          logger.log(SentryLevel.ERROR, msg);
+          promise.reject(new Exception(msg));
+          return;
+        }
+
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+        int len;
+        while ((len = is.read(buffer)) != -1) {
+          byteBuffer.write(buffer, 0, len);
+        }
+        byte[] byteArray = byteBuffer.toByteArray();
+        WritableArray jsArray = Arguments.createArray();
+        for (byte b : byteArray) {
+          jsArray.pushInt(b & 0xFF);
+        }
+        promise.resolve(jsArray);
+      }
+    } catch (IOException e) {
+      String msg = "Error reading uri: " + uri + ": " + e.getMessage();
+      logger.log(SentryLevel.ERROR, msg);
+      promise.reject(new Exception(msg));
+    }
   }
 
   public void crashedLastRun(Promise promise) {

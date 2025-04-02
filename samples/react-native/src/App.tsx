@@ -16,8 +16,8 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
+import { FeedbackWidget } from '@sentry/react-native';
 
-import { SENTRY_INTERNAL_DSN } from './dsn';
 import ErrorsScreen from './Screens/ErrorsScreen';
 import PerformanceScreen from './Screens/PerformanceScreen';
 import TrackerScreen from './Screens/TrackerScreen';
@@ -31,11 +31,16 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
-import { logWithoutTracing } from './utils';
+import { getDsn, logWithoutTracing } from './utils';
 import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
+import * as ImagePicker from 'react-native-image-picker';
+import SpaceflightNewsScreen from './Screens/SpaceflightNewsScreen';
+
+/* false by default to avoid issues in e2e tests waiting for the animation end */
+const RUNNING_INDICATOR = false;
 
 if (typeof setImmediate === 'undefined') {
   require('setimmediate');
@@ -47,12 +52,14 @@ const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   enableTimeToInitialDisplay: isMobileOs,
-  ignoreEmptyBackNavigationTransactions: true,
+  ignoreEmptyBackNavigationTransactions: false,
+  enableTimeToInitialDisplayForPreloadedRoutes: true,
+  useDispatchedActionData: true,
 });
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
-  dsn: SENTRY_INTERNAL_DSN,
+  dsn: getDsn(),
   debug: true,
   environment: 'dev',
   beforeSend: (event: ErrorEvent) => {
@@ -77,6 +84,7 @@ Sentry.init({
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeoutMs: 5_000,
+        traceFetch: false, // Creates duplicate span for axios requests
       }),
       Sentry.httpClientIntegration({
         // These options are effective only in JS.
@@ -92,6 +100,8 @@ Sentry.init({
         maskAllImages: true,
         maskAllVectors: true,
         maskAllText: true,
+        enableExperimentalViewRenderer: true,
+        enableFastViewRendering: true,
       }),
       Sentry.appStartIntegration({
         standalone: false,
@@ -102,6 +112,19 @@ Sentry.init({
           // In
           ? false
           : true,
+      }),
+      Sentry.feedbackIntegration({
+        imagePicker: ImagePicker,
+        styles:{
+          submitButton: {
+            backgroundColor: '#6a1b9a',
+            paddingVertical: 15,
+            borderRadius: 5,
+            alignItems: 'center',
+            marginBottom: 10,
+          },
+        },
+        namePlaceholder: 'Fullname',
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
@@ -149,6 +172,29 @@ const ErrorsTabNavigator = Sentry.withProfiler(
               component={ErrorsScreen}
               options={{ title: 'Errors' }}
             />
+            <Stack.Screen
+              name="FeedbackWidget"
+              options={{ presentation: 'modal', headerShown: false }}
+            >
+              {(props) => (
+                <FeedbackWidget
+                  {...props}
+                  enableScreenshot={true}
+                  onFormClose={props.navigation.goBack}
+                  onFormSubmitted={props.navigation.goBack}
+                  styles={{
+                    submitButton: {
+                      backgroundColor: '#6a1b9a',
+                      paddingVertical: 15,
+                      borderRadius: 5,
+                      alignItems: 'center',
+                      marginBottom: 10,
+                    },
+                  }}
+                  namePlaceholder={'Fullname'}
+                />
+              )}
+            </Stack.Screen>
           </Stack.Navigator>
         </Provider>
       </GestureHandlerRootView>
@@ -167,6 +213,10 @@ const PerformanceTabNavigator = Sentry.withProfiler(
               name="PerformanceScreen"
               component={PerformanceScreen}
               options={{ title: 'Performance' }}
+            />
+            <Stack.Screen
+              name="SpaceflightNewsScreen"
+              component={SpaceflightNewsScreen}
             />
             <Stack.Screen name="Tracker" component={TrackerScreen} />
             <Stack.Screen
@@ -210,6 +260,7 @@ function BottomTabsNavigator() {
                 name={focused ? 'bug' : 'bug-outline'}
                 size={size}
                 color={color}
+                testID="errors-tab-icon"
               />
             ),
           }}
@@ -225,6 +276,7 @@ function BottomTabsNavigator() {
                 name={focused ? 'speedometer' : 'speedometer-outline'}
                 size={size}
                 color={color}
+                testID="performance-tab-icon"
               />
             ),
           }}
@@ -242,6 +294,7 @@ function BottomTabsNavigator() {
                 }
                 size={size}
                 color={color}
+                testID="playground-tab-icon"
               />
             ),
           }}
@@ -281,6 +334,10 @@ function App() {
 
 function RunningIndicator() {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    return null;
+  }
+
+  if (!RUNNING_INDICATOR) {
     return null;
   }
 

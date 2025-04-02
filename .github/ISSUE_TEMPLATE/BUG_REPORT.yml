@@ -1,61 +1,63 @@
-name: "🐞 Bug Report"
+name: '🐞 Bug Report'
 description: "Tell us about something that's not working the way we (probably) intend."
-labels: ["Platform: React-Native", "Type: 🪲 Bug"]
+labels: ['Platform: React-Native', 'Type: 🪲 Bug']
+type: Bug
 body:
   - type: dropdown
     id: environment
     validations:
       required: true
     attributes:
-      label: "What React Native libraries do you use?"
-      description: "Select all options that describe your application."
+      label: 'What React Native libraries do you use?'
+      description: 'Select all options that describe your application.'
       multiple: true
       options:
-        - "React Native without Frameworks"
-        - "React Navigation"
-        - "Hermes"
-        - "RN New Architecture"
-        - "Expo Application Services (EAS)"
-        - "Expo (mobile only)"
-        - "Expo Web"
-        - "Expo Router"
-        - "React Native Web"
-        - "React Native Navigation by Wix"
+        - 'React Native without Frameworks'
+        - 'React Navigation'
+        - 'Hermes'
+        - 'RN New Architecture'
+        - 'Expo Application Services (EAS)'
+        - 'Expo (mobile only)'
+        - 'Expo Web'
+        - 'Expo Router'
+        - 'React Native Web'
+        - 'React Native Navigation by Wix'
 
   - type: dropdown
     id: sentry
     validations:
       required: true
     attributes:
-      label: "Are you using sentry.io or on-premise?"
-      description: "Select exactly one option."
+      label: 'Are you using sentry.io or on-premise?'
+      description: 'Select exactly one option.'
       options:
-        - "sentry.io (SaS)"
-        - "on-premise (Self-Hosted)"
+        - 'sentry.io (SaS)'
+        - 'on-premise (Self-Hosted)'
 
   - type: input
     id: version
     validations:
       required: true
     attributes:
-      label: "@sentry/react-native SDK Version"
-      description: "If the issue started after the SDK upgrade, please input both old and new versions."
-      placeholder: "5.33.1 ← should look like this"
+      label: '@sentry/react-native SDK Version'
+      description: 'If the issue started after the SDK upgrade, please input both old and new versions.'
+      placeholder: '5.33.1 ← should look like this'
 
   - type: textarea
     id: doctor
     validations:
       required: true
     attributes:
-      label: "How does your development environment look like?"
-      description: "Output of the command `npx react-native@latest info` or manully describe your development environment?"
+      label: 'How does your development environment look like?'
+      description:
+        'Output of the command `npx react-native@latest info` or manully describe your development environment?'
       placeholder: |-
         info Fetching system and libraries information...
         OS: OS version
         Node: Your version
         Yarn: Yarn version
         Expo SDK: Expo SDK version
-        react: React version 
+        react: React version
         react-native: React Native version
         hermesEnabled: bool
         newArchEnabled: bool
@@ -65,8 +67,8 @@ body:
     validations:
       required: true
     attributes:
-      label: "Sentry.init()"
-      description: "Code snipped of Sentry initialization from your application."
+      label: 'Sentry.init()'
+      description: 'Code snipped of Sentry initialization from your application.'
       placeholder: |-
         Sentry.init({
           dsn: 'https://...@sentry.io/...'
@@ -78,10 +80,10 @@ body:
     validations:
       required: true
     attributes:
-      label: "Steps to Reproduce"
+      label: 'Steps to Reproduce'
       description: "How can we see what you're seeing? Specific is terrific."
       placeholder: |-
-        1. Build Android using `npx react-native run-android --mode Debug` 
+        1. Build Android using `npx react-native run-android --mode Debug`
         2. Start Metro Dev server using `npx react-native start`
         3. Click on button executing `Sentry.capture(new Error("This is not captured :("))`
 
@@ -90,15 +92,15 @@ body:
     validations:
       required: true
     attributes:
-      label: "Expected Result"
+      label: 'Expected Result'
 
   - type: textarea
     id: actual
     validations:
       required: true
     attributes:
-      label: "Actual Result"
-      description: "JS Console? iOS Console? Logcat? Screenshots? Yes, please."
+      label: 'Actual Result'
+      description: 'JS Console? iOS Console? Logcat? Screenshots? Yes, please.'
 
   - type: markdown
     attributes:

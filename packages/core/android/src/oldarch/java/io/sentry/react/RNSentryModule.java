@@ -152,6 +152,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     return this.impl.fetchNativePackageName();
   }
 
+  @ReactMethod
+  public void getDataFromUri(String uri, Promise promise) {
+    this.impl.getDataFromUri(uri, promise);
+  }
+
   @ReactMethod(isBlockingSynchronousMethod = true)
   public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
     // Not used on Android
@@ -176,5 +181,10 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   @ReactMethod()
   public void getNewScreenTimeToDisplay(Promise promise) {
     this.impl.getNewScreenTimeToDisplay(promise);
+  }
+
+  @ReactMethod
+  public boolean setActiveSpanId(String spanId) {
+    return this.impl.setActiveSpanId(spanId);
   }
 }

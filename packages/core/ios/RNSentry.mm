@@ -288,13 +288,8 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
 - (void)initFramesTracking
 {
 #if SENTRY_HAS_UIKIT
-
     RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-        if (self->hasListeners) {
-            [self
-                sendEventWithName:RNSentryNewFrameEvent
-                             body:@{ @"newFrameTimestampInSeconds" : newFrameTimestampInSeconds }];
-        }
+        [RNSentryTimeToDisplay putTimeToInitialDisplayForActiveSpan:newFrameTimestampInSeconds];
     };
     [[RNSentryDependencyContainer sharedInstance]
         initializeFramesTrackerListenerWith:emitNewFrameEvent];
@@ -641,26 +636,50 @@ RCT_EXPORT_METHOD(fetchViewHierarchy
 RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictionary *)userDataKeys)
 {
     [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
-        if (nil == userKeys && nil == userDataKeys) {
-            [scope setUser:nil];
-        } else {
-            SentryUser *userInstance = [[SentryUser alloc] init];
-
-            if (nil != userKeys) {
-                [userInstance setUserId:userKeys[@"id"]];
-                [userInstance setIpAddress:userKeys[@"ip_address"]];
-                [userInstance setEmail:userKeys[@"email"]];
-                [userInstance setUsername:userKeys[@"username"]];
-                [userInstance setSegment:userKeys[@"segment"]];
-            }
-
-            if (nil != userDataKeys) {
-                [userInstance setData:userDataKeys];
-            }
-
-            [scope setUser:userInstance];
-        }
+        [scope setUser:[RNSentry userFrom:userKeys otherUserKeys:userDataKeys]];
     }];
+}
+
++ (SentryUser *_Nullable)userFrom:(NSDictionary *)userKeys
+                    otherUserKeys:(NSDictionary *)userDataKeys
+{
+    // we can safely ignore userDataKeys since if original JS user was null userKeys will be null
+    if ([userKeys isKindOfClass:NSDictionary.class]) {
+        SentryUser *userInstance = [[SentryUser alloc] init];
+
+        id userId = [userKeys valueForKey:@"id"];
+        if ([userId isKindOfClass:NSString.class]) {
+            [userInstance setUserId:userId];
+        }
+        id ipAddress = [userKeys valueForKey:@"ip_address"];
+        if ([ipAddress isKindOfClass:NSString.class]) {
+            [userInstance setIpAddress:ipAddress];
+        }
+        id email = [userKeys valueForKey:@"email"];
+        if ([email isKindOfClass:NSString.class]) {
+            [userInstance setEmail:email];
+        }
+        id username = [userKeys valueForKey:@"username"];
+        if ([username isKindOfClass:NSString.class]) {
+            [userInstance setUsername:username];
+        }
+        id segment = [userKeys valueForKey:@"segment"];
+        if ([segment isKindOfClass:NSString.class]) {
+            [userInstance setSegment:segment];
+        }
+
+        if ([userDataKeys isKindOfClass:NSDictionary.class]) {
+            [userInstance setData:userDataKeys];
+        }
+
+        return userInstance;
+    }
+
+    if (![[NSNull null] isEqual:userKeys] && nil != userKeys) {
+        NSLog(@"[RNSentry] Method setUser received unexpected type of userKeys.");
+    }
+
+    return nil;
 }
 
 RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
@@ -740,6 +759,35 @@ RCT_EXPORT_METHOD(captureReplay
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [PrivateSentrySDKOnly captureReplay];
     resolve([PrivateSentrySDKOnly getReplayId]);
+#else
+    resolve(nil);
+#endif
+}
+
+RCT_EXPORT_METHOD(getDataFromUri
+                  : (NSString *_Nonnull)uri resolve
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    NSURL *fileURL = [NSURL URLWithString:uri];
+    if (![fileURL isFileURL]) {
+        reject(@"SentryReactNative", @"The provided URI is not a valid file:// URL", nil);
+        return;
+    }
+    NSError *error = nil;
+    NSData *fileData = [NSData dataWithContentsOfURL:fileURL options:0 error:&error];
+    if (error || !fileData) {
+        reject(@"SentryReactNative", @"Failed to read file data", error);
+        return;
+    }
+    NSMutableArray *byteArray = [NSMutableArray arrayWithCapacity:fileData.length];
+    const unsigned char *bytes = (const unsigned char *)fileData.bytes;
+
+    for (NSUInteger i = 0; i < fileData.length; i++) {
+        [byteArray addObject:@(bytes[i])];
+    }
+    resolve(byteArray);
 #else
     resolve(nil);
 #endif
@@ -906,6 +954,20 @@ RCT_EXPORT_METHOD(getNewScreenTimeToDisplay
                   : (RCTPromiseRejectBlock)reject)
 {
     [_timeToDisplay getTimeToDisplay:resolve];
+}
+
+RCT_EXPORT_METHOD(popTimeToDisplayFor
+                  : (NSString *)key resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    resolve([RNSentryTimeToDisplay popTimeToDisplayFor:key]);
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)spanId)
+{
+    [RNSentryTimeToDisplay setActiveSpanId:spanId];
+    return @YES; // The return ensures that the method is synchronous
 }
 
 @end
