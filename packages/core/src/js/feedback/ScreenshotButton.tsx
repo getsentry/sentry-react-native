@@ -1,4 +1,3 @@
-import { logger } from '@sentry/core';
 import * as React from 'react';
 import type { NativeEventSubscription} from 'react-native';
 import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
@@ -9,14 +8,14 @@ import { defaultScreenshotButtonConfiguration } from './defaults';
 import { defaultScreenshotButtonStyles } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles, ScreenshotButtonTextConfiguration } from './FeedbackWidget.types';
-import { hideScreenshotButton, showFeedbackWidget } from './FeedbackWidgetManager';
 import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
 const takeScreenshot = async (): Promise<void> => {
   const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
   if (screenshots && screenshots.length > 0) {
-    logger.info('ScreenshotButton captured screenshot');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { hideScreenshotButton, showFeedbackWidget } = require('./FeedbackWidgetManager');
     hideScreenshotButton();
     showFeedbackWidget();
   }
