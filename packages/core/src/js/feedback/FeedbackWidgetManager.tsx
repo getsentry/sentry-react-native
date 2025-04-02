@@ -4,7 +4,6 @@ import type { NativeEventSubscription, NativeScrollEvent, NativeSyntheticEvent} 
 import { Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
 
 import { notWeb } from '../utils/environment';
-import type { Screenshot } from '../wrapper';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
@@ -288,12 +287,9 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
   };
 }
 
-const showFeedbackWidget = (screenshot: Screenshot | undefined = undefined): void => {
+const showFeedbackWidget = (): void => {
   lazyLoadAutoInjectFeedbackIntegration();
   FeedbackWidgetManager.show();
-  if (screenshot) {
-    // TODO: add screenshot
-  }
 };
 
 const resetFeedbackWidgetManager = (): void => {

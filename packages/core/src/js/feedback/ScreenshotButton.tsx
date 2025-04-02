@@ -11,15 +11,24 @@ import type { ScreenshotButtonProps, ScreenshotButtonStyles, ScreenshotButtonTex
 import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
+let capturedScreenshot: Screenshot | undefined;
+
 const takeScreenshot = async (): Promise<void> => {
   const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
   if (screenshots && screenshots.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { hideScreenshotButton, showFeedbackWidget } = require('./FeedbackWidgetManager');
     hideScreenshotButton();
+    capturedScreenshot = screenshots[0];
     showFeedbackWidget();
   }
 };
+
+export const getCapturedScreenshot = (): Screenshot | undefined => {
+  const screenshot = capturedScreenshot;
+  capturedScreenshot = undefined;
+  return screenshot;
+}
 
 /**
  * @beta

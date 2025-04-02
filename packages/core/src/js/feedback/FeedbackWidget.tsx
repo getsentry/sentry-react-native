@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 
 import { isWeb, notWeb } from '../utils/environment';
+import type { Screenshot } from '../wrapper';
 import { getDataFromUri } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
@@ -23,7 +24,8 @@ import defaultStyles from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { lazyLoadFeedbackIntegration } from './lazy';
-import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
+import { getCapturedScreenshot } from './ScreenshotButton';
+import { base64ToUint8Array, feedbackAlertDialog, isValidEmail,uint8ArrayToBase64  } from './utils';
 
 /**
  * @beta
@@ -199,6 +201,10 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     this._themeListener = Appearance.addChangeListener(() => {
       this.forceUpdate();
     });
+    const screenshot = getCapturedScreenshot();
+    if (screenshot) {
+      this._setCapturedScreenshot(screenshot);
+    }
   }
 
   /**
@@ -333,6 +339,17 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         </View>
       </TouchableWithoutFeedback>
     );
+  }
+
+  private _setCapturedScreenshot = (screenshot: Screenshot): void => {
+    if (screenshot.data != null) {
+      logger.debug('Setting captured screenshot:', screenshot.filename);
+      const base64String: string = uint8ArrayToBase64(screenshot.data);
+      const dataUri = `data:${screenshot.contentType};base64,${base64String}`;
+      this.setState({ filename: screenshot.filename, attachment: screenshot.data, attachmentUri: dataUri  });
+    } else {
+      logger.error('Failed to read image data from:', screenshot.filename);
+    }
   }
 
   private _saveFormState = (): void => {
