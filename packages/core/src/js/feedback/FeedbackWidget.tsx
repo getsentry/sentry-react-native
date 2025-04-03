@@ -17,7 +17,7 @@ import {
 
 import { isWeb, notWeb } from '../utils/environment';
 import type { Screenshot } from '../wrapper';
-import { getDataFromUri } from '../wrapper';
+import { getDataFromUri, NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
@@ -25,7 +25,7 @@ import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { lazyLoadFeedbackIntegration } from './lazy';
 import { getCapturedScreenshot } from './ScreenshotButton';
-import { base64ToUint8Array, feedbackAlertDialog, isValidEmail,uint8ArrayToBase64  } from './utils';
+import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
 
 /**
  * @beta
@@ -344,9 +344,16 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   private _setCapturedScreenshot = (screenshot: Screenshot): void => {
     if (screenshot.data != null) {
       logger.debug('Setting captured screenshot:', screenshot.filename);
-      const base64String: string = uint8ArrayToBase64(screenshot.data);
-      const dataUri = `data:${screenshot.contentType};base64,${base64String}`;
-      this.setState({ filename: screenshot.filename, attachment: screenshot.data, attachmentUri: dataUri  });
+      NATIVE.encodeToBase64(screenshot.data).then((base64String) => {
+        if (base64String != null) {
+          const dataUri = `data:${screenshot.contentType};base64,${base64String}`;
+          this.setState({ filename: screenshot.filename, attachment: screenshot.data, attachmentUri: dataUri });
+        } else {
+          logger.error('Failed to read image data from:', screenshot.filename);
+        }
+      }).catch((error) => {
+        logger.error('Failed to read image data from:', screenshot.filename, 'error: ', error);
+      });
     } else {
       logger.error('Failed to read image data from:', screenshot.filename);
     }

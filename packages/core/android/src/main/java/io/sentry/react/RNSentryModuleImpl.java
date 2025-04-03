@@ -20,6 +20,7 @@ import com.facebook.hermes.instrumentation.HermesSamplingProfiler;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
@@ -1025,6 +1026,15 @@ public class RNSentryModuleImpl {
       logger.log(SentryLevel.ERROR, msg);
       promise.reject(new Exception(msg));
     }
+  }
+
+  public void encodeToBase64(ReadableArray array, Promise promise) {
+    byte[] bytes = new byte[array.size()];
+    for (int i = 0; i < array.size(); i++) {
+      bytes[i] = (byte) array.getInt(i);
+    }
+    String base64String = android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT);
+    promise.resolve(base64String);
   }
 
   public void crashedLastRun(Promise promise) {
