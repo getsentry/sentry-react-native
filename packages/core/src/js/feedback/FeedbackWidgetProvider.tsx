@@ -28,7 +28,9 @@ export interface FeedbackWidgetProviderState {
 }
 
 /**
- *
+ * FeedbackWidgetProvider is a component that wraps the feedback widget and provides
+ * functionality to show and hide the widget. It also manages the visibility of the
+ * feedback button and screenshot button.
  */
 export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps> {
   public state: FeedbackWidgetProviderState = {

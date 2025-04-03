@@ -52,11 +52,11 @@ abstract class FeedbackManager {
 }
 
 /**
- *
+ * Provides functionality to show and hide the feedback widget.
  */
 export class FeedbackWidgetManager extends FeedbackManager {
   /**
-   *
+   * Returns the name of the feedback component.
    */
   protected static get _feedbackComponentName(): string {
     return 'FeedbackWidget';
@@ -64,11 +64,11 @@ export class FeedbackWidgetManager extends FeedbackManager {
 }
 
 /**
- *
+ * Provides functionality to show and hide the feedback button.
  */
 export class FeedbackButtonManager extends FeedbackManager {
   /**
-   *
+   * Returns the name of the feedback component.
    */
   protected static get _feedbackComponentName(): string {
     return 'FeedbackButton';
@@ -76,11 +76,11 @@ export class FeedbackButtonManager extends FeedbackManager {
 }
 
 /**
- *
+ * Provides functionality to show and hide the screenshot button.
  */
 export class ScreenshotButtonManager extends FeedbackManager {
   /**
-   *
+   * Returns the name of the feedback component.
    */
   protected static get _feedbackComponentName(): string {
     return 'ScreenshotButton';
