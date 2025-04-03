@@ -23,6 +23,7 @@ import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
+import { hideFeedbackButton, showScreenshotButton } from './FeedbackWidgetManager';
 import { lazyLoadFeedbackIntegration } from './lazy';
 import { getCapturedScreenshot } from './ScreenshotButton';
 import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
@@ -320,8 +321,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           )}
           {config.enableScreenshot && !this.state.attachmentUri && (
             <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
-              // eslint-disable-next-line @typescript-eslint/no-var-requires
-              const { hideFeedbackButton, showScreenshotButton } = require('./FeedbackWidgetManager');
               hideFeedbackButton();
               onCancel();
               showScreenshotButton();
