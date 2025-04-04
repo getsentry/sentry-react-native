@@ -157,7 +157,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Start',
       );
@@ -165,7 +165,7 @@ describe('App Start Integration', () => {
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
-          description: 'Cold App Start',
+          description: 'Cold Start',
           op: APP_START_COLD_OP,
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
@@ -195,7 +195,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Before React Root',
       );
@@ -203,7 +203,7 @@ describe('App Start Integration', () => {
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
-          description: 'Cold App Start',
+          description: 'Cold Start',
           op: APP_START_COLD_OP,
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
@@ -234,13 +234,13 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
-          description: 'Cold App Start',
+          description: 'Cold Start',
           op: APP_START_COLD_OP,
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
@@ -472,14 +472,14 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Start',
       );
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -512,14 +512,14 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Before React Root',
       );
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -552,14 +552,14 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Before React Root',
       );
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -593,12 +593,12 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -873,7 +873,7 @@ function expectEventWithAttachedColdAppStart({
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_COLD_OP,
-        description: 'Cold App Start',
+        description: 'Cold Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
@@ -927,7 +927,7 @@ function expectEventWithAttachedWarmAppStart({
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_WARM_OP,
-        description: 'Warm App Start',
+        description: 'Warm Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
@@ -984,7 +984,7 @@ function expectEventWithStandaloneColdAppStart(
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_COLD_OP,
-        description: 'Cold App Start',
+        description: 'Cold Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
@@ -1033,7 +1033,7 @@ function expectEventWithStandaloneWarmAppStart(
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_WARM_OP,
-        description: 'Warm App Start',
+        description: 'Warm Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
