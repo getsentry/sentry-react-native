@@ -105,10 +105,14 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
       }
       // Add RNSentrySDK.start() at the beginning of application method
+      const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(func application\([^)]*\) -> Bool \{)/s,
         `$1\n    RNSentrySDK.start()`,
       );
+      if (config.modResults.contents === originalContents) {
+        warnOnce(`Failed to insert 'RNSentrySDK.start()'.`);
+      }
     } else {
       // Objective-C
       if (config.modResults.contents.includes('[RNSentrySDK start]')) {
@@ -123,10 +127,14 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         );
       }
       // Add [RNSentrySDK start] at the beginning of application:didFinishLaunchingWithOptions method
+      const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(- \(BOOL\)application:[\s\S]*?didFinishLaunchingWithOptions:[\s\S]*?\{\n)(\s*)/s,
         `$1$2[RNSentrySDK start];\n$2`,
       );
+      if (config.modResults.contents === originalContents) {
+        warnOnce(`Failed to insert '[RNSentrySDK start]'.`);
+      }
     }
 
     return config;

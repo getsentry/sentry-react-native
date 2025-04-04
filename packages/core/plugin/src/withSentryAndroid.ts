@@ -80,10 +80,14 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
         );
       }
       // Add RNSentrySDK.init
+      const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
         `$1\n$2RNSentrySDK.init(this);\n$2`,
       );
+      if (config.modResults.contents === originalContents) {
+        warnOnce(`Failed to insert 'RNSentrySDK.init'.`);
+      }
     } else {
       // Kotlin
       if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK')) {
@@ -94,10 +98,14 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
         );
       }
       // Add RNSentrySDK.init
+      const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
         `$1\n$2RNSentrySDK.init(this)\n$2`,
       );
+      if (config.modResults.contents === originalContents) {
+        warnOnce(`Failed to insert 'RNSentrySDK.init'.`);
+      }
     }
 
     return config;
