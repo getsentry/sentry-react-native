@@ -4,7 +4,8 @@ import * as React from 'react';
 import { Text } from 'react-native';
 
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
-import { FeedbackWidgetProvider, hideFeedbackButton,resetFeedbackButtonManager, resetFeedbackWidgetManager, showFeedbackButton, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
+import { hideFeedbackButton,resetFeedbackButtonManager, resetFeedbackWidgetManager, showFeedbackButton, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
+import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME,AUTO_INJECT_FEEDBACK_INTEGRATION_NAME } from '../../src/js/feedback/lazy';
 import { isModalSupported } from '../../src/js/feedback/utils';
