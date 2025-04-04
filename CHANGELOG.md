@@ -12,7 +12,7 @@
 
 - Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
 
-  This feature is opt-out to enable it set `useNativeInit` to `true` in your `@sentry/react-native/expo` plugin configuration.
+  This feature is opt-out, to enable it set `useNativeInit` to `true` in your `@sentry/react-native/expo` plugin configuration.
 
   ```js
   "plugins": [
