@@ -10849,25 +10849,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.4.0, axios@npm:^1.6.5, axios@npm:^1.6.7, axios@npm:^1.7.4, axios@npm:^1.x":
-  version: 1.7.5
-  resolution: "axios@npm:1.7.5"
-  dependencies:
-    follow-redirects: "npm:^1.15.6"
-    form-data: "npm:^4.0.0"
-    proxy-from-env: "npm:^1.1.0"
-  checksum: 2859fe01437cf133eee35571abc1d4b5224bb13e530e66cb3581ca226e170541dd5eef9f46abb41592cee0a2f54930c9e4978354e0cf1064748fc20d9a05e9d5
-  languageName: node
-  linkType: hard
-
-"axios@npm:^1.8.3":
-  version: 1.8.3
-  resolution: "axios@npm:1.8.3"
+"axios@npm:^1.4.0, axios@npm:^1.6.5, axios@npm:^1.6.7, axios@npm:^1.7.4, axios@npm:^1.8.3, axios@npm:^1.x":
+  version: 1.8.4
+  resolution: "axios@npm:1.8.4"
   dependencies:
     follow-redirects: ^1.15.6
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 85fc8ad7d968e43ea9da5513310637d29654b181411012ee14cc0a4b3662782e6c81ac25eea40b5684f86ed2d8a01fa6fc20b9b48c4da14ef4eaee848fea43bc
+  checksum: e901dc1730bdcd769839b3d93ae6d6457a53d79b19a0eb623ebfea333441259ab51e63ca118baa47a5156567401466ac739f31087b4ee5e6770ab2e227484538
   languageName: node
   linkType: hard
 
