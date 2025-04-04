@@ -3,7 +3,7 @@ import * as React from 'react';
 import type { NativeEventSubscription, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import { Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
 
-import { notWeb } from '../utils/environment';
+import { isWeb,notWeb  } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
@@ -310,6 +310,10 @@ const resetFeedbackButtonManager = (): void => {
 };
 
 const showScreenshotButton = (): void => {
+  if (isWeb()) {
+    logger.warn('ScreenshotButton is not supported on Web.');
+    return;
+  }
   lazyLoadAutoInjectScreenshotButtonIntegration();
   ScreenshotButtonManager.show();
 };
