@@ -319,7 +319,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               </TouchableOpacity>
             </View>
           )}
-          {config.enableScreenshot && !this.state.attachmentUri && (
+          {notWeb() && config.enableScreenshot && !this.state.attachmentUri && (
             <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
               hideFeedbackButton();
               onCancel();

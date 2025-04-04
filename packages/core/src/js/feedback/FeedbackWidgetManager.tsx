@@ -1,3 +1,6 @@
+import { logger } from '@sentry/core';
+
+import { isWeb  } from '../utils/environment';
 import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration, lazyLoadAutoInjectScreenshotButtonIntegration } from './lazy';
 
 export const PULL_DOWN_CLOSE_THRESHOLD = 200;
@@ -110,6 +113,10 @@ const resetFeedbackButtonManager = (): void => {
 };
 
 const showScreenshotButton = (): void => {
+  if (isWeb()) {
+    logger.warn('ScreenshotButton is not supported on Web.');
+    return;
+  }
   lazyLoadAutoInjectScreenshotButtonIntegration();
   ScreenshotButtonManager.show();
 };
