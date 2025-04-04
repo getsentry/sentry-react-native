@@ -51,16 +51,14 @@ body:
       label: 'How does your development environment look like?'
       description:
         'Output of the command `npx react-native@latest info` or manully describe your development environment?'
-      placeholder: |-
-        info Fetching system and libraries information...
-        OS: OS version
-        Node: Your version
-        Yarn: Yarn version
-        Expo SDK: Expo SDK version
-        react: React version
-        react-native: React Native version
-        hermesEnabled: bool
-        newArchEnabled: bool
+      value: |-
+        ````
+        ⬇  Place the `npx react-native@latest info` output here. ⬇ 
+        
+        
+        
+        
+        ````
 
   - type: textarea
     id: init
@@ -69,11 +67,13 @@ body:
     attributes:
       label: 'Sentry.init()'
       description: 'Code snipped of Sentry initialization from your application.'
-      placeholder: |-
+      value: |-
+        ````js
         Sentry.init({
           dsn: 'https://...@sentry.io/...'
           // other options
         });
+        ````
 
   - type: textarea
     id: repro
