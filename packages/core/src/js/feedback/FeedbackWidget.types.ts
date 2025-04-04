@@ -124,14 +124,19 @@ export interface FeedbackTextConfiguration {
   isRequiredLabel?: string;
 
   /**
-   * The label for the button that adds a screenshot and renders the image editor
+   * The label for the button that adds a screenshot
    */
   addScreenshotButtonLabel?: string;
 
   /**
-   * The label for the button that removes a screenshot and hides the image editor
+   * The label for the button that removes a screenshot
    */
   removeScreenshotButtonLabel?: string;
+
+  /**
+   * The label for the button that shows the capture screenshot button
+   */
+  captureScreenshotButtonLabel?: string;
 
   /**
    * The title of the error dialog
@@ -165,6 +170,21 @@ export interface FeedbackButtonTextConfiguration {
 
   /**
    * The aria label for the Feedback widget button that opens the dialog
+   */
+  triggerAriaLabel?: string;
+}
+
+/**
+ * The ScreenshotButton text labels that can be customized
+ */
+export interface ScreenshotButtonTextConfiguration {
+  /**
+   * The label for the Screenshot button
+   */
+  triggerLabel?: string;
+
+  /**
+   * The aria label for the Screenshot button
    */
   triggerAriaLabel?: string;
 }
@@ -258,6 +278,8 @@ export interface FeedbackWidgetStyles {
   screenshotContainer?: ViewStyle;
   screenshotThumbnail?: ImageStyle;
   screenshotText?: TextStyle;
+  takeScreenshotButton?: ViewStyle;
+  takeScreenshotText?: TextStyle;
   titleContainer?: ViewStyle;
   sentryLogo?: ImageStyle;
 }
@@ -273,6 +295,22 @@ export interface FeedbackButtonProps extends FeedbackButtonTextConfiguration {
  * The styles for the feedback button
  */
 export interface FeedbackButtonStyles {
+  triggerButton?: ViewStyle;
+  triggerText?: TextStyle;
+  triggerIcon?: ImageStyle;
+}
+
+/**
+ * The props for the screenshot button
+ */
+export interface ScreenshotButtonProps extends ScreenshotButtonTextConfiguration {
+  styles?: ScreenshotButtonStyles;
+}
+
+/**
+ * The styles for the screenshot button
+ */
+export interface ScreenshotButtonStyles {
   triggerButton?: ViewStyle;
   triggerText?: TextStyle;
   triggerIcon?: ImageStyle;
