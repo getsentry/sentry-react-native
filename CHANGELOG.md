@@ -16,7 +16,7 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
 ### Dependencies
 
-- Bump Bundler Plugins from v3.2.2 to v3.2.4 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707))
+- Bump Bundler Plugins from v3.2.2 to v3.2.4 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707), [#4732](https://github.com/getsentry/sentry-react-native/pull/4732))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#324)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.2.4)
 - Bump CLI from v2.42.4 to v2.43.0 ([#4692](https://github.com/getsentry/sentry-react-native/pull/4692))
