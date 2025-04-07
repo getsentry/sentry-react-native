@@ -89,12 +89,6 @@ export { Mask, Unmask } from './replay/CustomMask';
 
 export { FeedbackButton } from './feedback/FeedbackButton';
 export { FeedbackWidget } from './feedback/FeedbackWidget';
-export {
-  showFeedbackWidget,
-  showFeedbackButton,
-  hideFeedbackButton,
-  showScreenshotButton,
-  hideScreenshotButton,
-} from './feedback/FeedbackWidgetManager';
+export { showFeedbackWidget, showFeedbackButton, hideFeedbackButton } from './feedback/FeedbackWidgetManager';
 
 export { getDataFromUri } from './wrapper';

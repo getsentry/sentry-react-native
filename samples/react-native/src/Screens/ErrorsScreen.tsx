@@ -32,7 +32,6 @@ const ErrorsScreen = (_props: Props) => {
   const [showBadCode, setShowBadCode] = React.useState(false);
   const [isFeedbackVisible, setFeedbackVisible] = React.useState(false);
   const [isFeedbackButtonVisible, setFeedbackButtonVisible] = React.useState(false);
-  const [isScreenshotButtonVisible, setScreenshotButtonVisible] = React.useState(false);
 
   const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
     <Text>Error boundary caught with event id: {eventId}</Text>
@@ -236,18 +235,6 @@ const ErrorsScreen = (_props: Props) => {
             } else {
               Sentry.showFeedbackButton();
               setFeedbackButtonVisible(true);
-            }
-          }}
-        />
-        <Button
-          title="Show/Hide Screenshot Button"
-          onPress={() => {
-            if (isScreenshotButtonVisible) {
-              Sentry.hideScreenshotButton();
-              setScreenshotButtonVisible(false);
-            } else {
-              Sentry.showScreenshotButton();
-              setScreenshotButtonVisible(true);
             }
           }}
         />
