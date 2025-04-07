@@ -13,12 +13,15 @@ export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';
 export { spotlightIntegration } from './spotlight';
 export { mobileReplayIntegration } from '../replay/mobilereplay';
+export { feedbackIntegration } from '../feedback/integration';
 export { browserReplayIntegration } from '../replay/browserReplay';
 export { appStartIntegration } from '../tracing/integrations/appStart';
 export { nativeFramesIntegration, createNativeFramesIntegrations } from '../tracing/integrations/nativeFrames';
 export { stallTrackingIntegration } from '../tracing/integrations/stalltracking';
 export { userInteractionIntegration } from '../tracing/integrations/userInteraction';
 export { createReactNativeRewriteFrames } from './rewriteframes';
+export { appRegistryIntegration } from './appRegistry';
+export { timeToDisplayIntegration } from '../tracing/integrations/timeToDisplayIntegration';
 
 export {
   breadcrumbsIntegration,

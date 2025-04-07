@@ -262,8 +262,9 @@ describe('profiling integration', () => {
       const transaction1 = Sentry.startSpanManual({ name: 'test-name-1' }, span => span);
       const transaction2 = Sentry.startSpanManual({ name: 'test-name-2' }, span => span);
       transaction1.end();
-      transaction2.end();
+      jest.runOnlyPendingTimers();
 
+      transaction2.end();
       jest.runAllTimers();
 
       expectEnvelopeToContainProfile(

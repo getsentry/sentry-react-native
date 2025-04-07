@@ -5,7 +5,7 @@ import { getClient } from '@sentry/core';
 
 import { isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
-import { addDefaultOpForSpanFrom, defaultIdleOptions } from './span';
+import { addDefaultOpForSpanFrom, addThreadInfoToSpan, defaultIdleOptions } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
 
@@ -119,6 +119,7 @@ export const reactNativeTracingIntegration = (
 
   const setup = (client: Client): void => {
     addDefaultOpForSpanFrom(client);
+    addThreadInfoToSpan(client);
 
     instrumentOutgoingRequests(client, {
       traceFetch: finalOptions.traceFetch,

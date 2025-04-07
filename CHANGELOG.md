@@ -14,6 +14,150 @@ Version 7 of the Sentry React Native SDK primarily introduces API cleanup and ve
 
 Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
 
+### Dependencies
+
+- Bump Bundler Plugins from v3.2.2 to v3.2.4 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#324)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.2.4)
+- Bump CLI from v2.42.4 to v2.43.0 ([#4692](https://github.com/getsentry/sentry-react-native/pull/4692))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2430)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.4...2.43.0)
+
+## 6.11.0-beta.0
+
+### Features
+
+- Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641), [#4695](https://github.com/getsentry/sentry-react-native/pull/4695))
+- Add `createTimeToInitialDisplay({useFocusEffect})` and `createTimeToFullDisplay({useFocusEffect})` to allow record full display on screen focus ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
+- Add support for measuring Time to Initial Display for already seen routes ([#4661](https://github.com/getsentry/sentry-react-native/pull/4661))
+  - Introduce `enableTimeToInitialDisplayForPreloadedRoutes` option to the React Navigation integration.
+
+  ```js
+  Sentry.reactNavigationIntegration({
+    enableTimeToInitialDisplayForPreloadedRoutes: true,
+  });
+  ```
+
+- Add `useDispatchedActionData` option to the React Navigation integration to filter out navigation actions that should not create spans ([#4684](https://github.com/getsentry/sentry-react-native/pull/4684))
+  - For example `PRELOAD`, `SET_PARAMS`, `TOGGLE_DRAWER` and others.
+
+  ```js
+  Sentry.reactNavigationIntegration({
+    useDispatchedActionData: true,
+  });
+  ```
+
+### Fixes
+
+- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
+- Avoid loading Sentry native components in Expo Go ([#4696](https://github.com/getsentry/sentry-react-native/pull/4696))
+
+### Changes
+
+- Change `gradle.projectsEvaluated` to `project.afterEvaluate` in the Sentry Gradle Plugin to fix tasks not being created when using `--configure-on-demand` ([#4687](https://github.com/getsentry/sentry-react-native/pull/4687))
+- Remove `SENTRY_FORCE_FOREGROUND` from Xcode Scripts as the underlying `--force-foreground` Sentry CLI is no-op since v2.37.0 ([#4689](https://github.com/getsentry/sentry-react-native/pull/4689))
+- TTID and TTFD use native getters instead od events to pass timestamps to the JS layer ([#4669](https://github.com/getsentry/sentry-react-native/pull/4669), [#4681](https://github.com/getsentry/sentry-react-native/pull/4681))
+
+## 6.10.0
+
+### Features
+
+- Add thread information to spans ([#4579](https://github.com/getsentry/sentry-react-native/pull/4579))
+- Exposed `getDataFromUri` as a public API to retrieve data from a URI ([#4638](https://github.com/getsentry/sentry-react-native/pull/4638))
+- Add `enableExperimentalViewRenderer` to enable up to 5x times more performance in Session Replay on iOS ([#4660](https://github.com/getsentry/sentry-react-native/pull/4660))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        enableExperimentalViewRenderer: true,
+      }),
+    ],
+  });
+  ```
+
+### Fixes
+
+- Considers the `SENTRY_DISABLE_AUTO_UPLOAD` and `SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD` environment variables in the configuration of the Sentry Android Gradle Plugin for Expo plugin ([#4583](https://github.com/getsentry/sentry-react-native/pull/4583))
+- Handle non-string category in getCurrentScreen on iOS ([#4629](https://github.com/getsentry/sentry-react-native/pull/4629))
+- Use route name instead of route key for current route tracking ([#4650](https://github.com/getsentry/sentry-react-native/pull/4650))
+  - Using key caused user interaction transaction names to contain route hash in the name.
+
+### Dependencies
+
+- Bump Bundler Plugins from v3.2.0 to v3.2.2 ([#4585](https://github.com/getsentry/sentry-react-native/pull/4585), [#4620](https://github.com/getsentry/sentry-react-native/pull/4620))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#322)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.0...3.2.2)
+- Bump CLI from v2.42.1 to v2.42.4 ([#4586](https://github.com/getsentry/sentry-react-native/pull/4586), [#4655](https://github.com/getsentry/sentry-react-native/pull/4655), [#4671](https://github.com/getsentry/sentry-react-native/pull/4671))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2424)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.1...2.42.4)
+- Bump Cocoa SDK from v8.45.0 to v8.48.0 ([#4621](https://github.com/getsentry/sentry-react-native/pull/4621), [#4651](https://github.com/getsentry/sentry-react-native/pull/4651), [#4662](https://github.com/getsentry/sentry-react-native/pull/4662))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8480)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.45.0...8.48.0)
+- Bump Android SDK from v7.22.1 to v7.22.5 ([#4675](https://github.com/getsentry/sentry-react-native/pull/4675), [#4683](https://github.com/getsentry/sentry-react-native/pull/4683))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7225)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.1...7.22.5)
+
+## 6.9.1
+
+### Fixes
+
+- Fixes missing Cold Start measurements by bumping the Android SDK version to v7.22.1 ([#4643](https://github.com/getsentry/sentry-react-native/pull/4643))
+- Attach App Start spans to the first created not the first processed root span ([#4618](https://github.com/getsentry/sentry-react-native/pull/4618), [#4644](https://github.com/getsentry/sentry-react-native/pull/4644))
+
+### Dependencies
+
+- Bump Android SDK from v7.22.0 to v7.22.1 ([#4643](https://github.com/getsentry/sentry-react-native/pull/4643))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.x.x/CHANGELOG.md#7221)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.0...7.22.1)
+
+## 6.9.0
+
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
+
+### Features
+
+- User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
+
+  To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`.
+
+  ```js
+  import Sentry from "@sentry/react-native";
+
+  Sentry.showFeedbackWidget();
+
+  Sentry.wrap(RootComponent);
+  ```
+
+  To change the default options add `Sentry.feedbackIntegration()`.
+
+  ```js
+  import Sentry from "@sentry/react-native";
+  import * as ImagePicker from 'expo-image-picker';
+
+  Sentry.init({
+    integrations: [
+      Sentry.feedbackIntegration({
+        imagePicker: ImagePicker,
+        showName: true,
+        showEmail: true,
+      }),
+    ],
+  });
+  ```
+
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback/configuration).
+
+## 6.8.0
+
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
+
 ### Features
 
 - Adds Sentry Android Gradle Plugin as an experimental Expo plugin feature ([#4440](https://github.com/getsentry/sentry-react-native/pull/4440))
@@ -32,7 +176,7 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
     ],
   ```
 
-  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/expo-sagp/).
+  To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/gradle).
 
 ### Changes
 
@@ -40,7 +184,11 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 
 ### Fixes
 
+- Remove `error:` prefix from `collect-modules.sh` to avoid failing iOS builds ([#4570](https://github.com/getsentry/sentry-react-native/pull/4570))
+- Sentry Module Collection Script Fails with Spaces in Node Path on iOS ([#4559](https://github.com/getsentry/sentry-react-native/pull/4559))
 - Various crashes and issues of Session Replay on Android. See the Android SDK version bump for more details. ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+- `Sentry.setUser(null)` doesn't crash on iOS with RN 0.77.1 ([#4567](https://github.com/getsentry/sentry-react-native/pull/4567))
+- Avoid importing `tslib` in Sentry Metro Plugin ([#4573](https://github.com/getsentry/sentry-react-native/pull/4573))
 
 ### Dependencies
 
@@ -56,6 +204,9 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 - Bump CLI from v2.41.1 to v2.42.1 ([#4563](https://github.com/getsentry/sentry-react-native/pull/4563))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2421)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.1)
+- Bump Bundler Plugins from v3.1.2 to v3.2.0 ([#4565](https://github.com/getsentry/sentry-react-native/pull/4565))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#320)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.1.2...3.2.0)
 
 
 ### Major Changes
@@ -92,6 +243,10 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 
 ## 6.7.0
 
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
+
 ### Features
 
 - Add `ignoredComponents` option to `annotateReactComponents` to exclude specific components from React component annotations ([#4517](https://github.com/getsentry/sentry-react-native/pull/4517))
@@ -123,6 +278,10 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/2.20.1...3.1.2)
 
 ## 6.6.0
+
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
 
 ### Features
 
@@ -159,6 +318,10 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.43.0...8.44.0)
 
 ## 6.5.0
+
+> [!WARNING]
+> This release contains an issue where Cold starts can be incorrectly reported as Warm starts on Android. We recommend staying on version 6.4.0 if you use this feature on Android.
+> See issue [#4598](https://github.com/getsentry/sentry-react-native/issues/4598) for more details.
 
 ### Features
 

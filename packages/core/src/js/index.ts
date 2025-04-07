@@ -77,8 +77,15 @@ export {
   startIdleNavigationSpan,
   startIdleSpan,
   getDefaultIdleNavigationSpanOptions,
+  createTimeToFullDisplay,
+  createTimeToInitialDisplay,
 } from './tracing';
 
 export type { TimeToDisplayProps } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
+
+export { FeedbackWidget } from './feedback/FeedbackWidget';
+export { showFeedbackWidget } from './feedback/FeedbackWidgetManager';
+
+export { getDataFromUri } from './wrapper';

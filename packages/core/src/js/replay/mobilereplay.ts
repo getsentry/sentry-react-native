@@ -31,12 +31,39 @@ export interface MobileReplayOptions {
    * @default true
    */
   maskAllVectors?: boolean;
+
+  /**
+   * Enables the up to 5x faster experimental view renderer used by the Session Replay integration on iOS.
+   *
+   * Enabling this flag will reduce the amount of time it takes to render each frame of the session replay on the main thread, therefore reducing
+   * interruptions and visual lag.
+   *
+   * - Experiment: This is an experimental feature and is therefore disabled by default.
+   *
+   * @default false
+   */
+  enableExperimentalViewRenderer?: boolean;
+
+  /**
+   * Enables up to 5x faster but incomplete view rendering used by the Session Replay integration on iOS.
+   *
+   * Enabling this flag will reduce the amount of time it takes to render each frame of the session replay on the main thread, therefore reducing
+   * interruptions and visual lag.
+   *
+   * - Note: This flag can only be used together with `enableExperimentalViewRenderer` with up to 20% faster render times.
+   * - Experiment: This is an experimental feature and is therefore disabled by default.
+   *
+   * @default false
+   */
+  enableFastViewRendering?: boolean;
 }
 
 const defaultOptions: Required<MobileReplayOptions> = {
   maskAllText: true,
   maskAllImages: true,
   maskAllVectors: true,
+  enableExperimentalViewRenderer: false,
+  enableFastViewRendering: false,
 };
 
 type MobileReplayIntegration = Integration & {
