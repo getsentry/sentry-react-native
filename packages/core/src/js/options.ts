@@ -235,6 +235,14 @@ export interface BaseReactNativeOptions {
   replaysOnErrorSampleRate?: number;
 
   /**
+   * Controls how many milliseconds to wait before shutting down. The default is 2 seconds. Setting this too low can cause
+   * problems for sending events from command line applications. Setting it too
+   * high can cause the application to block for users with network connectivity
+   * problems.
+   */
+  shutdownTimeout?: number;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
   _experiments?: {

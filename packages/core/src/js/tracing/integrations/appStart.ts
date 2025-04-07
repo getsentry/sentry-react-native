@@ -260,7 +260,7 @@ export const appStartIntegration = ({
       return;
     }
 
-    if (!event.contexts || !event.contexts.trace) {
+    if (!event.contexts?.trace) {
       logger.warn('[AppStart] Transaction event is missing trace context. Can not attach app start.');
       return;
     }
