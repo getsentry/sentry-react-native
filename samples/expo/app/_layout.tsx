@@ -62,6 +62,13 @@ Sentry.init({
         enableScreenshot: true,
         enableTakeScreenshot: true,
         imagePicker: ImagePicker,
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 40, // Place the feedback button above the tab bar
+            },
+          },
+        },
       }),
     );
     if (isWeb()) {
