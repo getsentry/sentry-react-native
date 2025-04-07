@@ -126,7 +126,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   };
 
   public onScreenshotButtonPress: () => void = async () => {
-    if (!this.state.filename && !this.state.attachment) {
+    if (!this._hasScreenshot()) {
       const imagePickerConfiguration: ImagePickerConfiguration = this.props;
       if (imagePickerConfiguration.imagePicker) {
         const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
@@ -301,7 +301,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             onChangeText={(value) => this.setState({ description: value })}
             multiline
           />
-          {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
+          {(config.enableScreenshot || imagePickerConfiguration.imagePicker || this._hasScreenshot()) && (
             <View style={styles.screenshotContainer}>
               {this.state.attachmentUri && (
                 <Image
@@ -311,14 +311,14 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               )}
               <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
                 <Text style={styles.screenshotText}>
-                  {!this.state.filename && !this.state.attachment
+                  {!this._hasScreenshot()
                     ? text.addScreenshotButtonLabel
                     : text.removeScreenshotButtonLabel}
                 </Text>
               </TouchableOpacity>
             </View>
           )}
-          {notWeb() && config.enableScreenshot && !this.state.attachmentUri && (
+          {notWeb() && config.enableTakeScreenshot && !this.state.attachmentUri && (
             <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
               // eslint-disable-next-line @typescript-eslint/no-var-requires
               const { hideFeedbackButton, showScreenshotButton } = require('./FeedbackWidgetManager');
@@ -373,4 +373,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       attachmentUri: undefined,
     };
   };
+
+  private _hasScreenshot = (): boolean => {
+    return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
+  }
 }

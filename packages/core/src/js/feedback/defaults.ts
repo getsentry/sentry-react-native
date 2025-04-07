@@ -63,6 +63,7 @@ export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
   showEmail: true,
   showName: true,
   enableScreenshot: false,
+  enableTakeScreenshot: false,
 
   // FeedbackTextConfiguration
   cancelButtonLabel: CANCEL_BUTTON_LABEL,
