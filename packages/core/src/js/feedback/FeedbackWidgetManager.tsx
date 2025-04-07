@@ -9,7 +9,7 @@ import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
-import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotkButtonOptions } from './integration';
+import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotButtonOptions } from './integration';
 import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration, lazyLoadAutoInjectScreenshotButtonIntegration } from './lazy';
 import { ScreenshotButton } from './ScreenshotButton';
 import { isModalSupported } from './utils';
@@ -216,7 +216,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
       <>
         {this.props.children}
         {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()} />}
-        {isScreenshotButtonVisible && <ScreenshotButton {...getScreenshotkButtonOptions()}/>}
+        {isScreenshotButtonVisible && <ScreenshotButton {...getScreenshotButtonOptions()}/>}
         {isVisible &&
           <Animated.View style={[modalWrapper, { backgroundColor }]} >
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
