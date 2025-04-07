@@ -7940,6 +7940,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/babel-plugin-component-annotate@npm:3.1.2":
+  version: 3.1.2
+  resolution: "@sentry/babel-plugin-component-annotate@npm:3.1.2"
+  checksum: 4e957d44dde3eacc60d6d33d28523fa16775e3c05603defc9268ad7209ce06da9dba50243e637f64cb12d7bb302b46584dd815754805210517a3b4da91af2c91
+  languageName: node
+  linkType: hard
+
 "@sentry/babel-plugin-component-annotate@npm:3.2.4":
   version: 3.2.4
   resolution: "@sentry/babel-plugin-component-annotate@npm:3.2.4"
@@ -8066,13 +8073,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/core@npm:8.54.0":
-  version: 8.54.0
-  resolution: "@sentry/core@npm:8.54.0"
-  checksum: ad7165a0bc56918cf8b8e5e15c4ceed11358970d8bf4c587a0fb05d8bd2759ee1d965da2a51e705e0e0aaf3a84150ecbf3bd647bfa0dd32bc723b28b91d46a66
-  languageName: node
-  linkType: hard
-
 "@sentry/core@npm:9.1.0":
   version: 9.1.0
   resolution: "@sentry/core@npm:9.1.0"
@@ -8113,16 +8113,15 @@ __metadata:
     "@expo/metro-config": 0.19.5
     "@mswjs/interceptors": ^0.25.15
     "@react-native/babel-preset": 0.77.1
-    "@sentry-internal/eslint-config-sdk": 8.54.0
-    "@sentry-internal/eslint-plugin-sdk": 8.54.0
-    "@sentry-internal/typescript": 8.54.0
-    "@sentry/babel-plugin-component-annotate": 3.2.4
-    "@sentry/browser": 8.54.0
+    "@sentry-internal/eslint-config-sdk": 9.1.0
+    "@sentry-internal/eslint-plugin-sdk": 9.1.0
+    "@sentry-internal/typescript": 9.1.0
+    "@sentry/babel-plugin-component-annotate": 3.1.2
+    "@sentry/browser": 9.1.0
     "@sentry/cli": 2.43.0
-    "@sentry/core": 8.54.0
-    "@sentry/react": 8.54.0
-    "@sentry/types": 8.54.0
-    "@sentry/utils": 8.54.0
+    "@sentry/core": 9.1.0
+    "@sentry/react": 9.1.0
+    "@sentry/types": 9.1.0
     "@sentry/wizard": 4.6.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
@@ -8152,7 +8151,7 @@ __metadata:
     react-native: 0.77.1
     react-test-renderer: ^18.3.1
     rimraf: ^4.1.1
-    ts-jest: ^29.2.5
+    ts-jest: ^29.3.1
     typescript: 4.9.5
     uglify-js: ^3.17.4
     uuid: ^9.0.1
@@ -8204,15 +8203,6 @@ __metadata:
   dependencies:
     "@sentry/types": 7.119.2
   checksum: 30044c5f420bf1194807664bc27f5e6c76ac210188a62c75fb76bf9262ee88455ba771d53f1d393c1bd581eb2b346023825aff00dd4f7739b638d63243c409b0
-  languageName: node
-  linkType: hard
-
-"@sentry/utils@npm:8.54.0":
-  version: 8.54.0
-  resolution: "@sentry/utils@npm:8.54.0"
-  dependencies:
-    "@sentry/core": 8.54.0
-  checksum: 063c31528f4d3d0f17be18050c84fad12a8a62fde97ca8e0e10c0cc01323e644d8d1cbba4b95b20de5d62eaee23ba43ae51b479057da4fd59dbccd49ac97277a
   languageName: node
   linkType: hard
 
@@ -24608,7 +24598,7 @@ __metadata:
   dependencies:
     "@babel/preset-env": ^7.25.3
     "@babel/preset-typescript": ^7.18.6
-    "@sentry/core": 8.54.0
+    "@sentry/core": 9.1.0
     "@sentry/react-native": 6.11.0-beta.0
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
@@ -24674,8 +24664,8 @@ __metadata:
     "@react-navigation/bottom-tabs": ^6.5.12
     "@react-navigation/native": ^6.1.9
     "@react-navigation/stack": ^6.3.20
-    "@sentry/core": 8.54.0
-    "@sentry/react": 8.54.0
+    "@sentry/core": 9.1.0
+    "@sentry/react": 9.1.0
     "@sentry/react-native": 6.11.0-beta.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
@@ -24722,7 +24712,7 @@ __metadata:
     "@react-navigation/native-stack": ^7.2.0
     "@react-navigation/stack": ^7.1.1
     "@sentry/babel-plugin-component-annotate": 3.2.4
-    "@sentry/core": 8.54.0
+    "@sentry/core": 9.1.0
     "@sentry/react-native": 6.11.0-beta.0
     "@shopify/flash-list": ^1.7.3
     "@types/jest": ^29.5.14
@@ -24756,7 +24746,7 @@ __metadata:
     react-test-renderer: 18.3.1
     redux: ^4.2.1
     sentry-react-native-samples-utils: "workspace:^"
-    ts-jest: ^29.2.5
+    ts-jest: ^29.3.1
     typescript: 5.0.4
   languageName: unknown
   linkType: soft
@@ -26334,9 +26324,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.1.1, ts-jest@npm:^29.2.5":
-  version: 29.2.5
-  resolution: "ts-jest@npm:29.2.5"
+"ts-jest@npm:^29.3.1":
+  version: 29.3.1
+  resolution: "ts-jest@npm:29.3.1"
   dependencies:
     bs-logger: ^0.2.6
     ejs: ^3.1.10
@@ -26346,6 +26336,7 @@ __metadata:
     lodash.memoize: ^4.1.2
     make-error: ^1.3.6
     semver: ^7.7.1
+    type-fest: ^4.38.0
     yargs-parser: ^21.1.1
   peerDependencies:
     "@babel/core": ">=7.0.0-beta.0 <8"
@@ -26367,7 +26358,7 @@ __metadata:
       optional: true
   bin:
     ts-jest: cli.js
-  checksum: ff71b27e997e4c5e6bcf2d38804b188eb1c7eec78570329f058f434ba1bd112a4806cdc4e7baac0e0e834bd20ca3be16e03d5c546304aa28e5cfeaccca82139e
+  checksum: 7320bbfab2e2cc7d5308fadcfe486d24ffc0018f92bf05946cd3ac75888977ec52887b2beaa99ec5ee3d67b8636b56a1688db447fd2794eeefc498862e850f77
   languageName: node
   linkType: hard
 
@@ -26616,6 +26607,13 @@ __metadata:
   version: 2.19.0
   resolution: "type-fest@npm:2.19.0"
   checksum: a4ef07ece297c9fba78fc1bd6d85dff4472fe043ede98bd4710d2615d15776902b595abf62bd78339ed6278f021235fb28a96361f8be86ed754f778973a0d278
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^4.38.0":
+  version: 4.39.1
+  resolution: "type-fest@npm:4.39.1"
+  checksum: 71ce0e25822d5d984c8882e3243c42c741f089c003d89222dc361a133698d8ac021c18a9139ba3baf0fee2f523383422b8c5aaa390b1b3a98140f23dd0f44795
   languageName: node
   linkType: hard
 
