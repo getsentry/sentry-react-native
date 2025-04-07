@@ -53,6 +53,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -285,6 +286,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -580,6 +582,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -843,6 +846,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -1169,6 +1173,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -1432,6 +1437,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }

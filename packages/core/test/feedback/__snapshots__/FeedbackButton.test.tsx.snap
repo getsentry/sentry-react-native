@@ -66,6 +66,7 @@ exports[`FeedbackButton matches the snapshot with custom styles 1`] = `
         "height": 24,
         "marginEnd": 6,
         "padding": 2,
+        "tintColor": "rgba(54, 45, 89, 1)",
         "width": 24,
       }
     }
@@ -149,6 +150,7 @@ exports[`FeedbackButton matches the snapshot with custom texts 1`] = `
         "height": 24,
         "marginEnd": 6,
         "padding": 2,
+        "tintColor": "rgba(54, 45, 89, 1)",
         "width": 24,
       }
     }
@@ -232,6 +234,7 @@ exports[`FeedbackButton matches the snapshot with default configuration 1`] = `
         "height": 24,
         "marginEnd": 6,
         "padding": 2,
+        "tintColor": "rgba(54, 45, 89, 1)",
         "width": 24,
       }
     }
