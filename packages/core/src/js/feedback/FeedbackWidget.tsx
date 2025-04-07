@@ -201,10 +201,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     this._themeListener = Appearance.addChangeListener(() => {
       this.forceUpdate();
     });
-    const screenshot = getCapturedScreenshot();
-    if (screenshot) {
-      this._setCapturedScreenshot(screenshot);
-    }
   }
 
   /**
@@ -243,6 +239,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
     if (!this.state.isVisible) {
       return null;
+    }
+
+    const screenshot = getCapturedScreenshot();
+    if (screenshot) {
+      this._setCapturedScreenshot(screenshot);
     }
 
     return (
