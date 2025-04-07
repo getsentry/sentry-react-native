@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
+
 ### Dependencies
 
 - Bump Bundler Plugins from v3.2.2 to v3.3.1 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707), [#4720](https://github.com/getsentry/sentry-react-native/pull/4720), [#4721](https://github.com/getsentry/sentry-react-native/pull/4721))
