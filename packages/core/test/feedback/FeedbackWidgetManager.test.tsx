@@ -172,7 +172,7 @@ describe('FeedbackButtonManager', () => {
     showFeedbackButton();
     hideFeedbackButton();
 
-    expect(queryByText('Report a Bug')).toBeNull()
+    expect(queryByText('Report a Bug')).toBeNull();
   });
 
   it('showFeedbackButton does not throw an error when FeedbackWidgetProvider is not used', () => {
