@@ -54,14 +54,14 @@ export const timeToDisplayIntegration = (): Integration => {
       });
       const ttfdSpan = await addTimeToFullDisplay({ event, rootSpanId, transactionStartTimestampSeconds, ttidSpan });
 
-      if (ttidSpan && ttidSpan.start_timestamp && ttidSpan.timestamp) {
+      if (ttidSpan?.start_timestamp && ttidSpan?.timestamp) {
         event.measurements['time_to_initial_display'] = {
           value: (ttidSpan.timestamp - ttidSpan.start_timestamp) * 1000,
           unit: 'millisecond',
         };
       }
 
-      if (ttfdSpan && ttfdSpan.start_timestamp && ttfdSpan.timestamp) {
+      if (ttfdSpan?.start_timestamp && ttfdSpan?.timestamp) {
         const durationMs = (ttfdSpan.timestamp - ttfdSpan.start_timestamp) * 1000;
         if (isDeadlineExceeded(durationMs)) {
           event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
@@ -117,7 +117,7 @@ async function addTimeToInitialDisplay({
     });
   }
 
-  if (ttidSpan && ttidSpan.status && ttidSpan.status !== 'ok') {
+  if (ttidSpan?.status && ttidSpan.status !== 'ok') {
     ttidSpan.status = 'ok';
     ttidSpan.timestamp = ttidEndTimestampSeconds;
     logger.debug(`[${INTEGRATION_NAME}] Updated existing ttid span.`, ttidSpan);
@@ -214,7 +214,7 @@ async function addTimeToFullDisplay({
 
   const durationMs = (ttfdAdjustedEndTimestampSeconds - transactionStartTimestampSeconds) * 1000;
 
-  if (ttfdSpan && ttfdSpan.status && ttfdSpan.status !== 'ok') {
+  if (ttfdSpan?.status && ttfdSpan.status !== 'ok') {
     ttfdSpan.status = 'ok';
     ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
     logger.debug(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);
