@@ -10,7 +10,7 @@ jest.mock('../../src/js/feedback/FeedbackWidgetManager', () => ({
   showFeedbackWidget: jest.fn(),
 }));
 
-const defaultProps: FeedbackButtonProps = {
+const customTextProps: FeedbackButtonProps = {
   triggerLabel: 'Give Feedback',
 };
 
@@ -34,7 +34,7 @@ describe('FeedbackButton', () => {
   });
 
   it('matches the snapshot with custom texts', () => {
-    const { toJSON } = render(<FeedbackButton {...defaultProps}/>);
+    const { toJSON } = render(<FeedbackButton {...customTextProps}/>);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -45,9 +45,9 @@ describe('FeedbackButton', () => {
   });
 
   it('shows the feedback widget when pressed', async () => {
-    const { getByText } = render(<FeedbackButton {...defaultProps} />);
+    const { getByText } = render(<FeedbackButton {...customTextProps} />);
 
-    fireEvent.press(getByText(defaultProps.triggerLabel));
+    fireEvent.press(getByText(customTextProps.triggerLabel));
 
     await waitFor(() => {
       expect(showFeedbackWidget).toHaveBeenCalled();
