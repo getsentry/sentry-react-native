@@ -2,7 +2,7 @@ import { getClient, logger, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
-
+import { Appearance } from 'react-native';
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
 import { FeedbackWidgetProvider, hideFeedbackButton,resetFeedbackButtonManager, resetFeedbackWidgetManager, showFeedbackButton, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
@@ -205,13 +205,30 @@ describe('FeedbackButtonManager', () => {
     expect(getClient().getIntegrationByName(AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME)).toBeDefined();
   });
 
-  it('the Feedback Widget matches the snapshot with default configuration', () => {
+  it('the Feedback Widget matches the snapshot with default configuration and system light theme', () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
       </FeedbackWidgetProvider>
     );
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+
+    showFeedbackWidget();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Widget matches the snapshot with default configuration and system dark theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     showFeedbackWidget();
 
@@ -262,13 +279,78 @@ describe('FeedbackButtonManager', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('the Feedback Button matches the snapshot with default configuration', () => {
+  it('the Feedback Widget matches the snapshot with system light custom theme', () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
       </FeedbackWidgetProvider>
     );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'system',
+      themeLight: {
+        foreground: '#ff0000',
+        background: '#00ff00',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+
+    showFeedbackWidget();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Widget matches the snapshot with system dark custom theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'system',
+      themeDark: {
+        foreground: '#00ff00',
+        background: '#ff0000',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+
+    showFeedbackWidget();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Button matches the snapshot with default configuration and system light theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+
+    showFeedbackButton();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Button matches the snapshot with default configuration and system dark theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     showFeedbackButton();
 
@@ -313,6 +395,54 @@ describe('FeedbackButtonManager', () => {
       },
     });
     getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Button matches the snapshot with system light custom theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'system',
+      themeLight: {
+        foreground: '#ff0000',
+        background: '#00ff00',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+
+    showFeedbackButton();
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the Feedback Button matches the snapshot with system dark custom theme', () => {
+    mockedIsModalSupported.mockReturnValue(true);
+    const { toJSON } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      colorScheme: 'system',
+      themeDark: {
+        foreground: '#00ff00',
+        background: '#ff0000',
+      },
+    });
+    getClient()?.addIntegration(integration);
+
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     showFeedbackButton();
 
