@@ -1,14 +1,35 @@
-import { render } from '@testing-library/react-native';
+import { getClient, setCurrentClient } from '@sentry/core';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
+import { Text } from 'react-native';
 
+import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
-import { ScreenshotButton } from '../../src/js/feedback/ScreenshotButton';
+import { resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager, showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';
+import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
+import { feedbackIntegration } from '../../src/js/feedback/integration';
+import { getCapturedScreenshot, ScreenshotButton } from '../../src/js/feedback/ScreenshotButton';
+import type { Screenshot } from '../../src/js/wrapper';
+import { NATIVE  } from '../../src/js/wrapper';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
-jest.mock('../../src/js/feedback/FeedbackWidgetManager', () => ({
-  ...jest.requireActual('../../src/js/feedback/FeedbackWidgetManager'),
-  showFeedbackWidget: jest.fn(),
-  hideScreenshotButton: jest.fn(),
+jest.mock('../../src/js/wrapper', () => ({
+  NATIVE: {
+    captureScreenshot: jest.fn(),
+    encodeToBase64: jest.fn(),
+  },
 }));
+
+const mockScreenshot: Screenshot = {
+  filename: 'test-screenshot.png',
+  contentType: 'image/png',
+  data: new Uint8Array([1, 2, 3]),
+};
+
+const mockBase64Image = 'mockBase64ImageString';
+
+const mockCaptureScreenshot = NATIVE.captureScreenshot as jest.Mock;
+const mockEncodeToBase64 = NATIVE.encodeToBase64 as jest.Mock;
 
 const defaultProps: ScreenshotButtonProps = {
   triggerLabel: 'Take Screenshot',
@@ -24,8 +45,16 @@ export const customStyles: ScreenshotButtonStyles = {
 };
 
 describe('ScreenshotButton', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
+    FeedbackWidget.reset();
+    getCapturedScreenshot();
+    resetFeedbackWidgetManager();
+    resetFeedbackButtonManager();
+    resetScreenshotButtonManager();
+    const client = new TestClient(getDefaultTestClientOptions());
+    setCurrentClient(client);
+    client.init();
   });
 
   it('matches the snapshot with default configuration', () => {
@@ -42,5 +71,152 @@ describe('ScreenshotButton', () => {
     const customStyleProps = {styles: customStyles};
     const { toJSON } = render(<ScreenshotButton {...customStyleProps}/>);
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('the take screenshot button is visible in the feedback widget when enabled', async () => {
+    const { getByText } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      enableTakeScreenshot: true,
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    fireEvent.press(getByText('Report a Bug'));
+
+    const takeScreenshotButton = getByText('Take a screenshot');
+    expect(takeScreenshotButton).toBeTruthy();
+  });
+
+
+  it('the capture screenshot button is shown when tapping the Take a screenshot button in the feedback widget', async () => {
+    const { getByText } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      enableTakeScreenshot: true,
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    fireEvent.press(getByText('Report a Bug'));
+    fireEvent.press(getByText('Take a screenshot'));
+
+    const captureButton = getByText('Take Screenshot');
+    expect(captureButton).toBeTruthy();
+  });
+
+  it('a screenshot is captured when tapping the Take Screenshot button', async () => {
+    mockCaptureScreenshot.mockResolvedValue([mockScreenshot]);
+    mockEncodeToBase64.mockResolvedValue(mockBase64Image);
+
+    const { getByText } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      enableTakeScreenshot: true,
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    fireEvent.press(getByText('Report a Bug'));
+    fireEvent.press(getByText('Take a screenshot'));
+    fireEvent.press(getByText('Take Screenshot'));
+
+    await waitFor(() => {
+      expect(mockCaptureScreenshot).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockEncodeToBase64).toHaveBeenCalled();
+    });
+  });
+
+  it('the feedback widget ui is updated when a screenshot is captured', async () => {
+    mockCaptureScreenshot.mockResolvedValue([mockScreenshot]);
+    mockEncodeToBase64.mockResolvedValue(mockBase64Image);
+
+    const { getByText, queryByText } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      enableTakeScreenshot: true,
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    fireEvent.press(getByText('Report a Bug'));
+    fireEvent.press(getByText('Take a screenshot'));
+    fireEvent.press(getByText('Take Screenshot'));
+
+    await waitFor(() => {
+      expect(mockCaptureScreenshot).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockEncodeToBase64).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      const captureButton = queryByText('Take Screenshot');
+      expect(captureButton).toBeNull();
+    });
+
+    await waitFor(() => {
+      const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
+      expect(takeScreenshotButtonAfterCapture).toBeNull();
+    });
+
+    await waitFor(() => {
+      const removeScreenshotButton = queryByText('Remove screenshot');
+      expect(removeScreenshotButton).not.toBeNull();
+    });
+  });
+
+  it('when the capture fails the capture button is still visible', async () => {
+    mockCaptureScreenshot.mockResolvedValue([]);
+
+    const { getByText, queryByText } = render(
+      <FeedbackWidgetProvider>
+        <Text>App Components</Text>
+      </FeedbackWidgetProvider>
+    );
+
+    const integration = feedbackIntegration({
+      enableTakeScreenshot: true,
+    });
+    getClient()?.addIntegration(integration);
+
+    showFeedbackButton();
+
+    fireEvent.press(getByText('Report a Bug'));
+    fireEvent.press(getByText('Take a screenshot'));
+    fireEvent.press(getByText('Take Screenshot'));
+
+    await waitFor(() => {
+      expect(mockCaptureScreenshot).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      const captureButton = queryByText('Take Screenshot');
+      expect(captureButton).not.toBeNull();
+    });
   });
 });

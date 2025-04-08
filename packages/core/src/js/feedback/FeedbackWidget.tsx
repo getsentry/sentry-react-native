@@ -73,6 +73,20 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     lazyLoadFeedbackIntegration();
   }
 
+  /**
+   * For testing purposes only.
+   */
+  public static reset(): void {
+    FeedbackWidget._savedState = {
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+      attachmentUri: undefined,
+    };
+  }
+
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
     const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
@@ -127,7 +141,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   };
 
   public onScreenshotButtonPress: () => void = async () => {
-    if (!this.state.filename && !this.state.attachment) {
+    if (!this._hasScreenshot()) {
       const imagePickerConfiguration: ImagePickerConfiguration = this.props;
       if (imagePickerConfiguration.imagePicker) {
         const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
@@ -202,10 +216,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     this._themeListener = Appearance.addChangeListener(() => {
       this.forceUpdate();
     });
-    const screenshot = getCapturedScreenshot();
-    if (screenshot) {
-      this._setCapturedScreenshot(screenshot);
-    }
   }
 
   /**
@@ -244,6 +254,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
     if (!this.state.isVisible) {
       return null;
+    }
+
+    const screenshot = getCapturedScreenshot();
+    if (screenshot) {
+      this._setCapturedScreenshot(screenshot);
     }
 
     return (
@@ -302,7 +317,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             onChangeText={(value) => this.setState({ description: value })}
             multiline
           />
-          {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
+          {(config.enableScreenshot || imagePickerConfiguration.imagePicker || this._hasScreenshot()) && (
             <View style={styles.screenshotContainer}>
               {this.state.attachmentUri && (
                 <Image
@@ -312,14 +327,14 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               )}
               <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
                 <Text style={styles.screenshotText}>
-                  {!this.state.filename && !this.state.attachment
+                  {!this._hasScreenshot()
                     ? text.addScreenshotButtonLabel
                     : text.removeScreenshotButtonLabel}
                 </Text>
               </TouchableOpacity>
             </View>
           )}
-          {notWeb() && config.enableScreenshot && !this.state.attachmentUri && (
+          {notWeb() && config.enableTakeScreenshot && !this.state.attachmentUri && (
             <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
               hideFeedbackButton();
               onCancel();
@@ -372,4 +387,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       attachmentUri: undefined,
     };
   };
+
+  private _hasScreenshot = (): boolean => {
+    return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
+  }
 }

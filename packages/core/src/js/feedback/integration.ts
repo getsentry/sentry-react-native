@@ -65,7 +65,7 @@ export const getFeedbackButtonOptions = (): Partial<FeedbackButtonProps> => {
   return integration.buttonOptions;
 };
 
-export const getScreenshotkButtonOptions = (): Partial<ScreenshotButtonProps> => {
+export const getScreenshotButtonOptions = (): Partial<ScreenshotButtonProps> => {
   const integration = _getClientIntegration();
   if (!integration) {
     return {};
