@@ -6,14 +6,9 @@ import { defaultButtonConfiguration } from './defaults';
 import { defaultButtonStyles } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackWidget.types';
+import { showFeedbackWidget } from './FeedbackWidgetManager';
 import { feedbackIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
-
-const showFeedbackWidget = (): void => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { showFeedbackWidget } = require('./FeedbackWidgetManager');
-  showFeedbackWidget();
-};
 
 /**
  * @beta
