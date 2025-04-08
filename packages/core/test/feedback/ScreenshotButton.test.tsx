@@ -3,10 +3,11 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
 
+import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
-import { FeedbackWidgetProvider, resetFeedbackWidgetManager,showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';
+import { FeedbackWidgetProvider, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager, showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
-import { ScreenshotButton } from '../../src/js/feedback/ScreenshotButton';
+import { getCapturedScreenshot, ScreenshotButton } from '../../src/js/feedback/ScreenshotButton';
 import type { Screenshot } from '../../src/js/wrapper';
 import { NATIVE  } from '../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
@@ -51,7 +52,11 @@ describe('ScreenshotButton', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    FeedbackWidget.reset();
+    getCapturedScreenshot();
     resetFeedbackWidgetManager();
+    resetFeedbackButtonManager();
+    resetScreenshotButtonManager();
   });
 
   it('matches the snapshot with default configuration', () => {

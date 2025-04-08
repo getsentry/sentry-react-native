@@ -72,6 +72,20 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     lazyLoadFeedbackIntegration();
   }
 
+  /**
+   * For testing purposes only.
+   */
+  public static reset(): void {
+    FeedbackWidget._savedState = {
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+      attachmentUri: undefined,
+    };
+  }
+
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
     const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
