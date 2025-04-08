@@ -45,18 +45,15 @@ export const customStyles: ScreenshotButtonStyles = {
 
 describe('ScreenshotButton', () => {
   beforeEach(() => {
-    const client = new TestClient(getDefaultTestClientOptions());
-    setCurrentClient(client);
-    client.init();
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
     FeedbackWidget.reset();
     getCapturedScreenshot();
     resetFeedbackWidgetManager();
     resetFeedbackButtonManager();
     resetScreenshotButtonManager();
+    const client = new TestClient(getDefaultTestClientOptions());
+    setCurrentClient(client);
+    client.init();
   });
 
   it('matches the snapshot with default configuration', () => {
@@ -145,12 +142,6 @@ describe('ScreenshotButton', () => {
     await waitFor(() => {
       expect(mockEncodeToBase64).toHaveBeenCalled();
     });
-
-    await waitFor(() => {
-      const removeScreenshotButton = getByText('Remove screenshot');
-      expect(removeScreenshotButton).toBeTruthy();
-      fireEvent.press(removeScreenshotButton); // reset ui state
-    }, { timeout: 5000, interval: 100 });
   });
 
   it('the feedback widget ui is updated when a screenshot is captured', async () => {
@@ -182,23 +173,26 @@ describe('ScreenshotButton', () => {
       expect(mockEncodeToBase64).toHaveBeenCalled();
     });
 
-    const captureButton = queryByText('Take Screenshot');
-    expect(captureButton).toBeNull();
-
-    const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
-    expect(takeScreenshotButtonAfterCapture).toBeNull();
+    await waitFor(() => {
+      const captureButton = queryByText('Take Screenshot');
+      expect(captureButton).toBeNull();
+    });
 
     await waitFor(() => {
-      const removeScreenshotButton = getByText('Remove screenshot');
-      expect(removeScreenshotButton).toBeTruthy();
-      fireEvent.press(removeScreenshotButton); // reset ui state
-    }, { timeout: 5000, interval: 100 });
+      const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
+      expect(takeScreenshotButtonAfterCapture).toBeNull();
+    });
+
+    await waitFor(() => {
+      const removeScreenshotButton = queryByText('Remove screenshot');
+      expect(removeScreenshotButton).not.toBeNull();
+    });
   });
 
   it('when the capture fails the capture button is still visible', async () => {
     mockCaptureScreenshot.mockResolvedValue([]);
 
-    const { getByText } = render(
+    const { getByText, queryByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
       </FeedbackWidgetProvider>
@@ -219,7 +213,9 @@ describe('ScreenshotButton', () => {
       expect(mockCaptureScreenshot).toHaveBeenCalled();
     });
 
-    const captureButton = getByText('Take Screenshot');
-    expect(captureButton).toBeTruthy();
+    await waitFor(() => {
+      const captureButton = queryByText('Take Screenshot');
+      expect(captureButton).not.toBeNull();
+    });
   });
 });
