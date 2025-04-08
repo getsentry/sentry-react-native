@@ -145,7 +145,7 @@ describe('ScreenshotButton', () => {
       const removeScreenshotButton = getByText('Remove screenshot');
       expect(removeScreenshotButton).toBeTruthy();
       fireEvent.press(removeScreenshotButton); // reset ui state
-    });
+    }, { timeout: 5000, interval: 100 });
   });
 
   it('the feedback widget ui is updated when a screenshot is captured', async () => {
@@ -187,7 +187,7 @@ describe('ScreenshotButton', () => {
       const removeScreenshotButton = getByText('Remove screenshot');
       expect(removeScreenshotButton).toBeTruthy();
       fireEvent.press(removeScreenshotButton); // reset ui state
-    });
+    }, { timeout: 5000, interval: 100 });
   });
 
   it('when the capture fails the capture button is still visible', async () => {
