@@ -1,4 +1,5 @@
 /* eslint-disable complexity */
+import { browserSessionIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
 
 import type { ReactNativeClientOptions } from '../options';
@@ -59,6 +60,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(browserApiErrorsIntegration());
     integrations.push(browserGlobalHandlersIntegration());
     integrations.push(browserLinkedErrorsIntegration());
+
+    if (options.enableAutoSessionTracking) {
+      integrations.push(browserSessionIntegration());
+    }
   }
 
   // @sentry/react default integrations
