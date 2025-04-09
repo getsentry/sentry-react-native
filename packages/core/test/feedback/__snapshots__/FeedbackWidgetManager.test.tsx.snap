@@ -702,6 +702,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
         >
           <View>
             <View
+              accessibilityElementsHidden={false}
               accessibilityState={
                 {
                   "busy": undefined,
@@ -711,7 +712,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                   "selected": undefined,
                 }
               }
-              accessible={true}
+              accessible={false}
               focusable={true}
               onClick={[Function]}
               onResponderGrant={[Function]}
@@ -1049,6 +1050,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
         >
           <View>
             <View
+              accessibilityElementsHidden={false}
               accessibilityState={
                 {
                   "busy": undefined,
@@ -1058,7 +1060,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                   "selected": undefined,
                 }
               }
-              accessible={true}
+              accessible={false}
               focusable={true}
               onClick={[Function]}
               onResponderGrant={[Function]}
@@ -1396,6 +1398,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
         >
           <View>
             <View
+              accessibilityElementsHidden={false}
               accessibilityState={
                 {
                   "busy": undefined,
@@ -1405,7 +1408,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                   "selected": undefined,
                 }
               }
-              accessible={true}
+              accessible={false}
               focusable={true}
               onClick={[Function]}
               onResponderGrant={[Function]}
@@ -1743,6 +1746,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
         >
           <View>
             <View
+              accessibilityElementsHidden={false}
               accessibilityState={
                 {
                   "busy": undefined,
@@ -1752,7 +1756,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                   "selected": undefined,
                 }
               }
-              accessible={true}
+              accessible={false}
               focusable={true}
               onClick={[Function]}
               onResponderGrant={[Function]}
@@ -2090,6 +2094,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
         >
           <View>
             <View
+              accessibilityElementsHidden={false}
               accessibilityState={
                 {
                   "busy": undefined,
@@ -2099,7 +2104,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                   "selected": undefined,
                 }
               }
-              accessible={true}
+              accessible={false}
               focusable={true}
               onClick={[Function]}
               onResponderGrant={[Function]}
@@ -2437,6 +2442,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
         >
           <View>
             <View
+              accessibilityElementsHidden={false}
               accessibilityState={
                 {
                   "busy": undefined,
@@ -2446,7 +2452,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                   "selected": undefined,
                 }
               }
-              accessible={true}
+              accessible={false}
               focusable={true}
               onClick={[Function]}
               onResponderGrant={[Function]}
@@ -2784,6 +2790,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
         >
           <View>
             <View
+              accessibilityElementsHidden={false}
               accessibilityState={
                 {
                   "busy": undefined,
@@ -2793,7 +2800,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                   "selected": undefined,
                 }
               }
-              accessible={true}
+              accessible={false}
               focusable={true}
               onClick={[Function]}
               onResponderGrant={[Function]}
