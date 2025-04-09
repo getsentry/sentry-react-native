@@ -17,6 +17,7 @@
 ### Fixes
 
 - Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
+- Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
 
 ### Dependencies
 

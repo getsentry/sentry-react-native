@@ -262,7 +262,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     }
 
     return (
-      <TouchableWithoutFeedback onPress={notWeb() ? Keyboard.dismiss: undefined}>
+      <TouchableWithoutFeedback
+        onPress={notWeb() ? Keyboard.dismiss : undefined}
+        accessible={false}
+        accessibilityElementsHidden={false}
+        >
         <View style={styles.container}>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{text.formTitle}</Text>
