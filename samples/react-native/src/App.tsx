@@ -37,6 +37,7 @@ import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 import * as ImagePicker from 'react-native-image-picker';
+import SpaceflightNewsScreen from './Screens/SpaceflightNewsScreen';
 
 /* false by default to avoid issues in e2e tests waiting for the animation end */
 const RUNNING_INDICATOR = false;
@@ -51,7 +52,9 @@ const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   enableTimeToInitialDisplay: isMobileOs,
-  ignoreEmptyBackNavigationTransactions: true,
+  ignoreEmptyBackNavigationTransactions: false,
+  enableTimeToInitialDisplayForPreloadedRoutes: true,
+  useDispatchedActionData: true,
 });
 
 Sentry.init({
@@ -81,6 +84,7 @@ Sentry.init({
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeoutMs: 5_000,
+        traceFetch: false, // Creates duplicate span for axios requests
       }),
       Sentry.httpClientIntegration({
         // These options are effective only in JS.
@@ -96,6 +100,8 @@ Sentry.init({
         maskAllImages: true,
         maskAllVectors: true,
         maskAllText: true,
+        enableExperimentalViewRenderer: true,
+        enableFastViewRendering: true,
       }),
       Sentry.appStartIntegration({
         standalone: false,
@@ -109,6 +115,8 @@ Sentry.init({
       }),
       Sentry.feedbackIntegration({
         imagePicker: ImagePicker,
+        enableScreenshot: true,
+        enableTakeScreenshot: true,
         styles:{
           submitButton: {
             backgroundColor: '#6a1b9a',
@@ -119,6 +127,20 @@ Sentry.init({
           },
         },
         namePlaceholder: 'Fullname',
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
+        screenshotButtonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
@@ -207,6 +229,10 @@ const PerformanceTabNavigator = Sentry.withProfiler(
               name="PerformanceScreen"
               component={PerformanceScreen}
               options={{ title: 'Performance' }}
+            />
+            <Stack.Screen
+              name="SpaceflightNewsScreen"
+              component={SpaceflightNewsScreen}
             />
             <Stack.Screen name="Tracker" component={TrackerScreen} />
             <Stack.Screen

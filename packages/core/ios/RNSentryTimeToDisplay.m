@@ -7,6 +7,74 @@
     RCTResponseSenderBlock resolveBlock;
 }
 
+static NSMutableDictionary<NSString *, NSNumber *> *screenIdToRenderDuration;
+static NSMutableArray<NSString *> *screenIdAge;
+static NSUInteger screenIdCurrentIndex;
+
+static NSString *activeSpanId;
+
++ (void)initialize
+{
+    if (self == [RNSentryTimeToDisplay class]) {
+        screenIdToRenderDuration =
+            [[NSMutableDictionary alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
+        screenIdAge = [[NSMutableArray alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
+        screenIdCurrentIndex = 0;
+
+        activeSpanId = nil;
+    }
+}
+
++ (void)setActiveSpanId:(NSString *)spanId
+{
+    activeSpanId = spanId;
+}
+
++ (NSNumber *)popTimeToDisplayFor:(NSString *)screenId
+{
+    NSNumber *value = screenIdToRenderDuration[screenId];
+    [screenIdToRenderDuration removeObjectForKey:screenId];
+    return value;
+}
+
++ (void)putTimeToInitialDisplayForActiveSpan:(NSNumber *)value
+{
+    if (activeSpanId != nil) {
+        NSString *prefixedSpanId = [@"ttid-navigation-" stringByAppendingString:activeSpanId];
+        [self putTimeToDisplayFor:prefixedSpanId value:value];
+    }
+}
+
++ (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
+{
+    if (!screenId)
+        return;
+
+    // If key already exists, just update the value,
+    // this should never happen as TTD is recorded once per navigation
+    // We avoid updating the age to avoid the age array shift
+    if ([screenIdToRenderDuration objectForKey:screenId]) {
+        [screenIdToRenderDuration setObject:value forKey:screenId];
+        return;
+    }
+
+    // If we haven't reached capacity yet, just append
+    if (screenIdAge.count < TIME_TO_DISPLAY_ENTRIES_MAX_SIZE) {
+        [screenIdToRenderDuration setObject:value forKey:screenId];
+        [screenIdAge addObject:screenId];
+    } else {
+        // Remove oldest entry, in most case will already be removed by pop
+        NSString *oldestKey = screenIdAge[screenIdCurrentIndex];
+        [screenIdToRenderDuration removeObjectForKey:oldestKey];
+
+        [screenIdToRenderDuration setObject:value forKey:screenId];
+        screenIdAge[screenIdCurrentIndex] = screenId;
+
+        // Update circular index, point to the new oldest
+        screenIdCurrentIndex = (screenIdCurrentIndex + 1) % TIME_TO_DISPLAY_ENTRIES_MAX_SIZE;
+    }
+}
+
 // Rename requestAnimationFrame to getTimeToDisplay
 - (void)getTimeToDisplay:(RCTResponseSenderBlock)callback
 {
@@ -26,8 +94,7 @@
 - (void)handleDisplayLink:(CADisplayLink *)link
 {
     // Get the current time
-    NSTimeInterval currentTime =
-        [[NSDate date] timeIntervalSince1970] * 1000.0; // Convert to milliseconds
+    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
 
     // Ensure the callback is valid and pass the current time back
     if (resolveBlock) {

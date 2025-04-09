@@ -49,6 +49,9 @@ export interface Spec extends TurboModule {
   getCurrentReplayId(): string | undefined | null;
   crashedLastRun(): Promise<boolean | undefined | null>;
   getDataFromUri(uri: string): Promise<number[]>;
+  popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
+  setActiveSpanId(spanId: string): boolean;
+  encodeToBase64(data: number[]): Promise<string | undefined | null>;
 }
 
 export type NativeStackFrame = {

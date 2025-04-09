@@ -1,8 +1,11 @@
+/* eslint-disable max-lines */
 import type { SendFeedbackParams } from '@sentry/core';
 import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
-import type { KeyboardTypeOptions } from 'react-native';
+import type { KeyboardTypeOptions ,
+  NativeEventSubscription} from 'react-native';
 import {
+  Appearance,
   Image,
   Keyboard,
   Text,
@@ -13,12 +16,16 @@ import {
 } from 'react-native';
 
 import { isWeb, notWeb } from '../utils/environment';
-import { getDataFromUri } from '../wrapper';
+import type { Screenshot } from '../wrapper';
+import { getDataFromUri, NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
+import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
+import { hideFeedbackButton, showScreenshotButton } from './FeedbackWidgetManager';
 import { lazyLoadFeedbackIntegration } from './lazy';
+import { getCapturedScreenshot } from './ScreenshotButton';
 import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
 
 /**
@@ -38,6 +45,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     attachment: undefined,
     attachmentUri: undefined,
   };
+
+  private _themeListener: NativeEventSubscription;
 
   private _didSubmitForm: boolean = false;
 
@@ -62,6 +71,20 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     };
 
     lazyLoadFeedbackIntegration();
+  }
+
+  /**
+   * For testing purposes only.
+   */
+  public static reset(): void {
+    FeedbackWidget._savedState = {
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+      attachmentUri: undefined,
+    };
   }
 
   public handleFeedbackSubmit: () => void = () => {
@@ -118,7 +141,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   };
 
   public onScreenshotButtonPress: () => void = async () => {
-    if (!this.state.filename && !this.state.attachment) {
+    if (!this._hasScreenshot()) {
       const imagePickerConfiguration: ImagePickerConfiguration = this.props;
       if (imagePickerConfiguration.imagePicker) {
         const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
@@ -187,7 +210,16 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   }
 
   /**
-   * Save the state before unmounting the component.
+   * Add a listener to the theme change event.
+   */
+  public componentDidMount(): void {
+    this._themeListener = Appearance.addChangeListener(() => {
+      this.forceUpdate();
+    });
+  }
+
+  /**
+   * Save the state before unmounting the component and remove the theme listener.
    */
   public componentWillUnmount(): void {
     if (this._didSubmitForm) {
@@ -196,18 +228,22 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     } else {
       this._saveFormState();
     }
+    if (this._themeListener) {
+      this._themeListener.remove();
+    }
   }
 
   /**
    * Renders the feedback form screen.
    */
   public render(): React.ReactNode {
+    const theme = getTheme();
     const { name, email, description } = this.state;
     const { onFormClose } = this.props;
     const config: FeedbackGeneralConfiguration = this.props;
     const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
-    const styles: FeedbackWidgetStyles = { ...defaultStyles, ...this.props.styles };
+    const styles: FeedbackWidgetStyles = { ...defaultStyles(theme), ...this.props.styles };
     const onCancel = (): void => {
       if (onFormClose) {
         onFormClose();
@@ -220,8 +256,17 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       return null;
     }
 
+    const screenshot = getCapturedScreenshot();
+    if (screenshot) {
+      this._setCapturedScreenshot(screenshot);
+    }
+
     return (
-      <TouchableWithoutFeedback onPress={notWeb() ? Keyboard.dismiss: undefined}>
+      <TouchableWithoutFeedback
+        onPress={notWeb() ? Keyboard.dismiss : undefined}
+        accessible={false}
+        accessibilityElementsHidden={false}
+        >
         <View style={styles.container}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} testID='form-title'>{text.formTitle}</Text>
@@ -283,7 +328,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             onChangeText={(value) => this.setState({ description: value })}
             multiline
           />
-          {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
+          {(config.enableScreenshot || imagePickerConfiguration.imagePicker || this._hasScreenshot()) && (
             <View style={styles.screenshotContainer}>
               {this.state.attachmentUri && (
                 <Image
@@ -294,15 +339,24 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 />
               )}
               <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                <Text style={styles.screenshotText} testID='screenshot-button' accessibilityLabel={!this.state.filename && !this.state.attachment
-                    ? text.addScreenshotButtonLabel
-                    : text.removeScreenshotButtonLabel}>
-                  {!this.state.filename && !this.state.attachment
+                <Text style={styles.screenshotText} testID='screenshot-button' accessibilityLabel={!this._hasScreenshot()
+                  ? text.addScreenshotButtonLabel
+                  : text.removeScreenshotButtonLabel}>
+                  {!this._hasScreenshot()
                     ? text.addScreenshotButtonLabel
                     : text.removeScreenshotButtonLabel}
                 </Text>
               </TouchableOpacity>
             </View>
+          )}
+          {notWeb() && config.enableTakeScreenshot && !this.state.attachmentUri && (
+            <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
+              hideFeedbackButton();
+              onCancel();
+              showScreenshotButton();
+            }}>
+              <Text style={styles.takeScreenshotText} testID='capture-screenshot-button' accessibilityLabel={text.captureScreenshotButtonLabel}>{text.captureScreenshotButtonLabel}</Text>
+            </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
             <Text style={styles.submitText} testID='submit-button' accessibilityLabel={text.submitButtonLabel}>{text.submitButtonLabel}</Text>
@@ -314,6 +368,24 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         </View>
       </TouchableWithoutFeedback>
     );
+  }
+
+  private _setCapturedScreenshot = (screenshot: Screenshot): void => {
+    if (screenshot.data != null) {
+      logger.debug('Setting captured screenshot:', screenshot.filename);
+      NATIVE.encodeToBase64(screenshot.data).then((base64String) => {
+        if (base64String != null) {
+          const dataUri = `data:${screenshot.contentType};base64,${base64String}`;
+          this.setState({ filename: screenshot.filename, attachment: screenshot.data, attachmentUri: dataUri });
+        } else {
+          logger.error('Failed to read image data from:', screenshot.filename);
+        }
+      }).catch((error) => {
+        logger.error('Failed to read image data from:', screenshot.filename, 'error: ', error);
+      });
+    } else {
+      logger.error('Failed to read image data from:', screenshot.filename);
+    }
   }
 
   private _saveFormState = (): void => {
@@ -330,4 +402,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       attachmentUri: undefined,
     };
   };
+
+  private _hasScreenshot = (): boolean => {
+    return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
+  }
 }

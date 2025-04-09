@@ -288,13 +288,8 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
 - (void)initFramesTracking
 {
 #if SENTRY_HAS_UIKIT
-
     RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-        if (self->hasListeners) {
-            [self
-                sendEventWithName:RNSentryNewFrameEvent
-                             body:@{ @"newFrameTimestampInSeconds" : newFrameTimestampInSeconds }];
-        }
+        [RNSentryTimeToDisplay putTimeToInitialDisplayForActiveSpan:newFrameTimestampInSeconds];
     };
     [[RNSentryDependencyContainer sharedInstance]
         initializeFramesTrackerListenerWith:emitNewFrameEvent];
@@ -959,6 +954,44 @@ RCT_EXPORT_METHOD(getNewScreenTimeToDisplay
                   : (RCTPromiseRejectBlock)reject)
 {
     [_timeToDisplay getTimeToDisplay:resolve];
+}
+
+RCT_EXPORT_METHOD(popTimeToDisplayFor
+                  : (NSString *)key resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    resolve([RNSentryTimeToDisplay popTimeToDisplayFor:key]);
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)spanId)
+{
+    [RNSentryTimeToDisplay setActiveSpanId:spanId];
+    return @YES; // The return ensures that the method is synchronous
+}
+
+RCT_EXPORT_METHOD(encodeToBase64
+                  : (NSArray *)array resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    NSUInteger count = array.count;
+    uint8_t *bytes = (uint8_t *)malloc(count);
+
+    if (!bytes) {
+        reject(@"encodeToBase64", @"Memory allocation failed", nil);
+        return;
+    }
+
+    for (NSUInteger i = 0; i < count; i++) {
+        bytes[i] = (uint8_t)[array[i] unsignedCharValue];
+    }
+
+    NSData *data = [NSData dataWithBytes:bytes length:count];
+    free(bytes);
+
+    NSString *base64String = [data base64EncodedStringWithOptions:0];
+    resolve(base64String);
 }
 
 @end
