@@ -153,12 +153,11 @@ export function init(passedOptions: ReactNativeOptions): void {
  */
 export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
-  options?: ReactNativeWrapperOptions
+  options?:  Pick<Partial<ReactNativeWrapperOptions>, Exclude<keyof ReactNativeWrapperOptions, 'updateProps' | 'children'>>
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps ?? {}),
+    ...(options?.profilerProps ?? { updateProps: undefined }),
     name: RootComponent.displayName ?? 'Root',
-    updateProps: {}
   };
 
   const RootApp: React.FC<P> = (appProps) => {
