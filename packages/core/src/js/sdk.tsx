@@ -156,9 +156,8 @@ export function wrap<P extends Record<string, unknown>>(
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps ?? {}),
+    ...(options?.profilerProps ?? { updateProps: undefined }),
     name: RootComponent.displayName ?? 'Root',
-    updateProps: {}
   };
 
   const RootApp: React.FC<P> = (appProps) => {
