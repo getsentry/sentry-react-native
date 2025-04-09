@@ -39,7 +39,7 @@ export interface NativeProfileEvent {
       unit: string;
     }
   >;
-  debug_meta: {
+  debug_meta?: {
     images: {
       type: 'macho';
       debug_id: string;
