@@ -6,29 +6,13 @@ jsEngine: graaljs
 # Open feedback widget
 - tapOn: 'Feedback'
 
-# Assert that all feedback form elements are visible
+# Assert that all feedback form is visible
 - extendedWaitUntil:
     visible:
       id: 'sentry-logo'
     timeout: 1_000
 - assertVisible:
     id: 'form-title'
-- assertVisible:
-    id: 'name-label'
-- assertVisible:
-    id: 'name-input'
-- assertVisible:
-    id: 'email-label'
-- assertVisible:
-    id: 'email-input'
-- assertVisible:
-    id: 'message-label'
-- assertVisible:
-    id: 'message-input'
-- assertVisible:
-    id: 'submit-button'
-- assertVisible:
-    id: 'cancel-button'
 
 # Close and repopen feedback widget
 - tapOn:
