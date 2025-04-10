@@ -96,4 +96,4 @@ const EndToEndTestsScreen = (): JSX.Element => {
   );
 };
 
-export default Sentry.wrap(EndToEndTestsScreen);
+export default EndToEndTestsScreen;
