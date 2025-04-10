@@ -48,8 +48,9 @@ export class ReactNativeProfiler extends Profiler {
     }
 
     const appRegistryIntegration = getAppRegistryIntegration(client);
-    
+
     if (!appRegistryIntegration || typeof appRegistryIntegration.onRunApplication !== 'function') {
+      // eslint-disable-next-line no-console
       __DEV__ && console.warn('AppRegistryIntegration.onRunApplication not found or invalid.');
       return;
     }
