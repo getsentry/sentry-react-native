@@ -47,9 +47,16 @@ export class ReactNativeProfiler extends Profiler {
       return;
     }
 
+    const appRegistryIntegration = getAppRegistryIntegration(client);
+    
+    if (!appRegistryIntegration || typeof appRegistryIntegration.onRunApplication !== 'function') {
+      __DEV__ && console.warn('AppRegistryIntegration.onRunApplication not found or invalid.');
+      return;
+    }
+
     client.addIntegration && client.addIntegration(createIntegration(this.name));
 
-    getAppRegistryIntegration(client).onRunApplication(ReactNativeProfilerGlobalState.onRunApplicationHook);
+    appRegistryIntegration.onRunApplication(ReactNativeProfilerGlobalState.onRunApplicationHook);
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     _captureAppStart({ isManual: false });
