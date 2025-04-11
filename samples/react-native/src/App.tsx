@@ -125,6 +125,13 @@ Sentry.init({
           },
         },
         namePlaceholder: 'Fullname',
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');

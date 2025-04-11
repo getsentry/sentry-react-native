@@ -25,3 +25,16 @@ export function lazyLoadAutoInjectFeedbackIntegration(): void {
     getClient()?.addIntegration({ name: AUTO_INJECT_FEEDBACK_INTEGRATION_NAME });
   }
 }
+
+export const AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME = 'AutoInjectMobileFeedbackButton';
+
+/**
+ * Lazy loads the auto inject feedback button integration if it is not already loaded.
+ */
+export function lazyLoadAutoInjectFeedbackButtonIntegration(): void {
+  const integration = getClient()?.getIntegrationByName(AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME);
+  if (!integration) {
+    // Lazy load the integration to track usage
+    getClient()?.addIntegration({ name: AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME });
+  }
+}
