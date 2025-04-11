@@ -8,20 +8,23 @@ import { defaultScreenshotButtonConfiguration } from './defaults';
 import { defaultScreenshotButtonStyles } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles, ScreenshotButtonTextConfiguration } from './FeedbackWidget.types';
+import { hideScreenshotButton, showFeedbackWidget, showScreenshotButton } from './FeedbackWidgetManager';
 import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
 let capturedScreenshot: Screenshot | undefined;
 
 const takeScreenshot = async (): Promise<void> => {
-  const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
-  if (screenshots && screenshots.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { hideScreenshotButton, showFeedbackWidget } = require('./FeedbackWidgetManager');
-    hideScreenshotButton();
-    capturedScreenshot = screenshots[0];
-    showFeedbackWidget();
-  }
+  hideScreenshotButton();
+  setTimeout(async () => { // Delay capture to allow the button to hide
+    const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
+    if (screenshots && screenshots.length > 0) {
+      capturedScreenshot = screenshots[0];
+      showFeedbackWidget();
+    } else {
+      showScreenshotButton();
+    }
+  }, 100);
 };
 
 export const getCapturedScreenshot = (): Screenshot | undefined => {
