@@ -63,6 +63,11 @@ const EndToEndTestsScreen = (): JSX.Element => {
       action: async () => await Promise.reject(new Error('Unhandled Promise Rejection')),
     },
     {
+      id: 'feedback',
+      name: 'Feedback',
+      action: () => Sentry.showFeedbackButton(),
+    },
+    {
       id: 'close',
       name: 'Close',
       action: async () => await Sentry.close(),
