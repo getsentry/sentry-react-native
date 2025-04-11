@@ -157,6 +157,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.getDataFromUri(uri, promise);
   }
 
+  @ReactMethod
+  public void encodeToBase64(ReadableArray array, Promise promise) {
+    this.impl.encodeToBase64(array, promise);
+  }
+
   @ReactMethod(isBlockingSynchronousMethod = true)
   public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
     // Not used on Android

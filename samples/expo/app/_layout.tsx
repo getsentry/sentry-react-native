@@ -59,6 +59,8 @@ Sentry.init({
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
       Sentry.feedbackIntegration({
+        enableScreenshot: true,
+        enableTakeScreenshot: true,
         imagePicker: ImagePicker,
         buttonOptions: {
           styles: {
