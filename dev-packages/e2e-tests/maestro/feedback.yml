@@ -28,7 +28,6 @@ jsEngine: graaljs
 - inputText: 'This is a test feedback message from CI e2e tests'
 
 # Submit feedback
-- hideKeyboard
 - scrollUntilVisible:
     element:
       id: 'submit-button'
