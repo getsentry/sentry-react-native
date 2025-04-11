@@ -128,11 +128,15 @@ describe('App Start Integration', () => {
 
     it('Does add App Start Span older than threshold in development builds', async () => {
       set__DEV__(true);
-      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockTooOldAppStart();
+      const [timeOriginMilliseconds, appStartTimeMilliseconds, appStartDurationMilliseconds] = mockTooOldAppStart();
 
       const actualEvent = await captureStandAloneAppStart();
       expect(actualEvent).toEqual(
-        expectEventWithStandaloneWarmAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+        expectEventWithStandaloneWarmAppStart(actualEvent, {
+          timeOriginMilliseconds,
+          appStartTimeMilliseconds,
+          appStartDurationMilliseconds,
+        }),
       );
     });
 
@@ -433,21 +437,27 @@ describe('App Start Integration', () => {
 
     it('Does not add App Start Span older than threshold', async () => {
       set__DEV__(false);
-      mockTooOldAppStart();
+      const [timeOriginMilliseconds] = mockTooOldAppStart();
 
-      const actualEvent = await processEvent(getMinimalTransactionEvent());
-      expect(actualEvent).toStrictEqual(getMinimalTransactionEvent());
+      const actualEvent = await processEvent(
+        getMinimalTransactionEvent({ startTimestampSeconds: timeOriginMilliseconds }),
+      );
+      expect(actualEvent).toStrictEqual(getMinimalTransactionEvent({ startTimestampSeconds: timeOriginMilliseconds }));
     });
 
     it('Does add App Start Span older than threshold in development builds', async () => {
       set__DEV__(true);
-      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockTooOldAppStart();
+      const [timeOriginMilliseconds, appStartTimeMilliseconds, appStartDurationMilliseconds] = mockTooOldAppStart();
 
       const actualEvent = await processEvent(
         getMinimalTransactionEvent({ startTimestampSeconds: timeOriginMilliseconds }),
       );
       expect(actualEvent).toEqual(
-        expectEventWithAttachedWarmAppStart({ timeOriginMilliseconds, appStartTimeMilliseconds }),
+        expectEventWithAttachedWarmAppStart({
+          timeOriginMilliseconds,
+          appStartTimeMilliseconds,
+          appStartDurationMilliseconds,
+        }),
       );
     });
 
@@ -901,9 +911,11 @@ function expectEventWithAttachedColdAppStart({
 function expectEventWithAttachedWarmAppStart({
   timeOriginMilliseconds,
   appStartTimeMilliseconds,
+  appStartDurationMilliseconds,
 }: {
   timeOriginMilliseconds: number;
   appStartTimeMilliseconds: number;
+  appStartDurationMilliseconds?: number;
 }) {
   return expect.objectContaining<TransactionEvent>({
     type: 'transaction',
@@ -920,7 +932,7 @@ function expectEventWithAttachedWarmAppStart({
     }),
     measurements: expect.objectContaining({
       [APP_START_WARM_MEASUREMENT]: {
-        value: timeOriginMilliseconds - appStartTimeMilliseconds,
+        value: appStartDurationMilliseconds || timeOriginMilliseconds - appStartTimeMilliseconds,
         unit: 'millisecond',
       },
     }),
@@ -1006,9 +1018,11 @@ function expectEventWithStandaloneWarmAppStart(
   {
     timeOriginMilliseconds,
     appStartTimeMilliseconds,
+    appStartDurationMilliseconds,
   }: {
     timeOriginMilliseconds: number;
     appStartTimeMilliseconds: number;
+    appStartDurationMilliseconds?: number;
   },
 ) {
   return expect.objectContaining<TransactionEvent>({
@@ -1026,7 +1040,7 @@ function expectEventWithStandaloneWarmAppStart(
     }),
     measurements: expect.objectContaining({
       [APP_START_WARM_MEASUREMENT]: {
-        value: timeOriginMilliseconds - appStartTimeMilliseconds,
+        value: appStartDurationMilliseconds || timeOriginMilliseconds - appStartTimeMilliseconds,
         unit: 'millisecond',
       },
     }),
@@ -1107,7 +1121,10 @@ function mockTooLongAppStart() {
 
 function mockTooOldAppStart() {
   const timeOriginMilliseconds = Date.now();
+  // Ensures app start is old (more than 1 minute before transaction start)
   const appStartTimeMilliseconds = timeOriginMilliseconds - 65000;
+  const appStartEndTimestampMilliseconds = appStartTimeMilliseconds + 5000;
+  const appStartDurationMilliseconds = appStartEndTimestampMilliseconds - appStartTimeMilliseconds;
   const mockAppStartResponse: NativeAppStartResponse = {
     type: 'warm',
     app_start_timestamp_ms: appStartTimeMilliseconds,
@@ -1116,13 +1133,14 @@ function mockTooOldAppStart() {
   };
 
   // App start finish timestamp
-  _setAppStartEndTimestampMs(timeOriginMilliseconds);
+  // App start length is 5 seconds
+  _setAppStartEndTimestampMs(appStartEndTimestampMilliseconds);
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds - 64000);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
   // Transaction start timestamp
   mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000 + 65);
 
-  return [timeOriginMilliseconds, appStartTimeMilliseconds];
+  return [timeOriginMilliseconds, appStartTimeMilliseconds, appStartDurationMilliseconds];
 }
 
 /**
