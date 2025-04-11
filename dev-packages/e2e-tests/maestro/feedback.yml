@@ -30,6 +30,14 @@ jsEngine: graaljs
     id: 'message-input'
 - inputText: 'This is a test feedback message from CI e2e tests'
 
+# Take screenshot
+- scrollUntilVisible:
+    element:
+      id: 'capture-screenshot-button'
+- tapOn:
+    id: 'capture-screenshot-button'
+- tapOn: 'Take Screenshot'
+
 # Submit feedback
 - scrollUntilVisible:
     element:
