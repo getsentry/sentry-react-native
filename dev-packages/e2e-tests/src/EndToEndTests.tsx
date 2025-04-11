@@ -65,7 +65,7 @@ const EndToEndTestsScreen = (): JSX.Element => {
     {
       id: 'feedback',
       name: 'Feedback',
-      action: () => Sentry.showFeedbackWidget(),
+      action: () => Sentry.showFeedbackButton(),
     },
     {
       id: 'close',

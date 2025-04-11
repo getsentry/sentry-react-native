@@ -3,8 +3,11 @@ jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
 
-# Open feedback widget
+# Show feedback button
 - tapOn: 'Feedback'
+
+# Open feedback widget
+- tapOn: 'Report a Bug'
 
 # Assert that all feedback form is visible
 - extendedWaitUntil:
