@@ -6,6 +6,8 @@ jsEngine: graaljs
 # Open feedback widget
 - tapOn: 'Feedback'
 
+- takeScreenshot: open-feedback-1
+
 # Assert that all feedback form is visible
 - extendedWaitUntil:
     visible:
@@ -18,6 +20,9 @@ jsEngine: graaljs
 - tapOn:
     id: 'cancel-button'
 - tapOn: 'Feedback'
+
+- takeScreenshot: open-feedback-2
+
 - extendedWaitUntil:
     visible:
       id: 'sentry-logo'
@@ -38,6 +43,7 @@ jsEngine: graaljs
 - scrollUntilVisible:
     element:
       id: 'submit-button'
+- takeScreenshot: before-submit-1
 - tapOn:
     id: 'submit-button'
 - assertVisible: 'Please fill out all required fields.'
@@ -53,6 +59,7 @@ jsEngine: graaljs
 - scrollUntilVisible:
     element:
       id: 'submit-button'
+- takeScreenshot: before-submit-2
 - tapOn:
     id: 'submit-button'
 - assertVisible: 'Please enter a valid email address.'
@@ -69,6 +76,7 @@ jsEngine: graaljs
 - scrollUntilVisible:
     element:
       id: 'submit-button'
+- takeScreenshot: before-submit-3
 - tapOn:
     id: 'submit-button'
 - assertVisible: 'Thank you for your report!'
