@@ -181,7 +181,7 @@ describe('ScreenshotButton', () => {
       const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
       expect(takeScreenshotButtonAfterCapture).toBeNull();
     });
-
+    
     await waitFor(() => {
       const removeScreenshotButtonAfterCapture = queryByText('Remove screenshot');
       expect(removeScreenshotButtonAfterCapture).toBeTruthy();
