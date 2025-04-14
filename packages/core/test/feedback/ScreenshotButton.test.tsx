@@ -180,6 +180,11 @@ describe('ScreenshotButton', () => {
       const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
       expect(takeScreenshotButtonAfterCapture).toBeNull();
     });
+
+    await waitFor(() => {
+      const takeScreenshotButtonAfterCapture = queryByText('Remove screenshot');
+      expect(takeScreenshotButtonAfterCapture).not.toBeNull();
+    });
   });
 
   it('when the capture fails the capture button is still visible', async () => {
