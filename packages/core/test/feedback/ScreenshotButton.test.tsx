@@ -31,24 +31,11 @@ const mockBase64Image = 'mockBase64ImageString';
 const mockCaptureScreenshot = NATIVE.captureScreenshot as jest.Mock;
 const mockEncodeToBase64 = NATIVE.encodeToBase64 as jest.Mock;
 
-const defaultProps: ScreenshotButtonProps = {
-  triggerLabel: 'Take Screenshot',
-};
-
-export const customStyles: ScreenshotButtonStyles = {
-  triggerButton: {
-    backgroundColor: '#ffffff',
-  },
-  triggerText: {
-    color: '#ff0000',
-  },
-};
-
 describe('ScreenshotButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     FeedbackWidget.reset();
-    getCapturedScreenshot();
+    getCapturedScreenshot(); // cleans up stored screenshot if any
     resetFeedbackWidgetManager();
     resetFeedbackButtonManager();
     resetScreenshotButtonManager();
@@ -63,11 +50,22 @@ describe('ScreenshotButton', () => {
   });
 
   it('matches the snapshot with custom texts', () => {
+    const defaultProps: ScreenshotButtonProps = {
+      triggerLabel: 'Take Screenshot',
+    };
     const { toJSON } = render(<ScreenshotButton {...defaultProps}/>);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom styles', () => {
+    const customStyles: ScreenshotButtonStyles = {
+      triggerButton: {
+        backgroundColor: '#ffffff',
+      },
+      triggerText: {
+        color: '#ff0000',
+      },
+    };
     const customStyleProps = {styles: customStyles};
     const { toJSON } = render(<ScreenshotButton {...customStyleProps}/>);
     expect(toJSON()).toMatchSnapshot();
@@ -182,6 +180,11 @@ describe('ScreenshotButton', () => {
     await waitFor(() => {
       const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
       expect(takeScreenshotButtonAfterCapture).toBeNull();
+    });
+
+    await waitFor(() => {
+      const removeScreenshotButtonAfterCapture = queryByText('Remove screenshot');
+      expect(removeScreenshotButtonAfterCapture).toBeTruthy();
     });
   });
 
