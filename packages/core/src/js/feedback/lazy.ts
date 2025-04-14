@@ -38,3 +38,16 @@ export function lazyLoadAutoInjectFeedbackButtonIntegration(): void {
     getClient()?.addIntegration({ name: AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME });
   }
 }
+
+export const AUTO_INJECT_SCREENSHOT_BUTTON_INTEGRATION_NAME = 'AutoInjectMobileScreenshotButton';
+
+/**
+ * Lazy loads the auto inject screenshot button integration if it is not already loaded.
+ */
+export function lazyLoadAutoInjectScreenshotButtonIntegration(): void {
+  const integration = getClient()?.getIntegrationByName(AUTO_INJECT_SCREENSHOT_BUTTON_INTEGRATION_NAME);
+  if (!integration) {
+    // Lazy load the integration to track usage
+    getClient()?.addIntegration({ name: AUTO_INJECT_SCREENSHOT_BUTTON_INTEGRATION_NAME });
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { SendFeedbackParams } from '@sentry/core';
 import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
@@ -15,13 +16,15 @@ import {
 } from 'react-native';
 
 import { isWeb, notWeb } from '../utils/environment';
-import { getDataFromUri } from '../wrapper';
+import type { Screenshot } from '../wrapper';
+import { getDataFromUri, NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { lazyLoadFeedbackIntegration } from './lazy';
+import { getCapturedScreenshot } from './ScreenshotButton';
 import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
 
 /**
@@ -67,6 +70,20 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     };
 
     lazyLoadFeedbackIntegration();
+  }
+
+  /**
+   * For testing purposes only.
+   */
+  public static reset(): void {
+    FeedbackWidget._savedState = {
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+      attachmentUri: undefined,
+    };
   }
 
   public handleFeedbackSubmit: () => void = () => {
@@ -123,7 +140,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   };
 
   public onScreenshotButtonPress: () => void = async () => {
-    if (!this.state.filename && !this.state.attachment) {
+    if (!this._hasScreenshot()) {
       const imagePickerConfiguration: ImagePickerConfiguration = this.props;
       if (imagePickerConfiguration.imagePicker) {
         const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
@@ -238,6 +255,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       return null;
     }
 
+    const screenshot = getCapturedScreenshot();
+    if (screenshot) {
+      this._setCapturedScreenshot(screenshot);
+    }
+
     return (
       <TouchableWithoutFeedback onPress={notWeb() ? Keyboard.dismiss: undefined}>
         <View style={styles.container}>
@@ -294,7 +316,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             onChangeText={(value) => this.setState({ description: value })}
             multiline
           />
-          {(config.enableScreenshot || imagePickerConfiguration.imagePicker) && (
+          {(config.enableScreenshot || imagePickerConfiguration.imagePicker || this._hasScreenshot()) && (
             <View style={styles.screenshotContainer}>
               {this.state.attachmentUri && (
                 <Image
@@ -304,12 +326,23 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               )}
               <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
                 <Text style={styles.screenshotText}>
-                  {!this.state.filename && !this.state.attachment
+                  {!this._hasScreenshot()
                     ? text.addScreenshotButtonLabel
                     : text.removeScreenshotButtonLabel}
                 </Text>
               </TouchableOpacity>
             </View>
+          )}
+          {notWeb() && config.enableTakeScreenshot && !this.state.attachmentUri && (
+            <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
+              // eslint-disable-next-line @typescript-eslint/no-var-requires
+              const { hideFeedbackButton, showScreenshotButton } = require('./FeedbackWidgetManager');
+              hideFeedbackButton();
+              onCancel();
+              showScreenshotButton();
+            }}>
+              <Text style={styles.takeScreenshotText}>{text.captureScreenshotButtonLabel}</Text>
+            </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
             <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
@@ -321,6 +354,24 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         </View>
       </TouchableWithoutFeedback>
     );
+  }
+
+  private _setCapturedScreenshot = (screenshot: Screenshot): void => {
+    if (screenshot.data != null) {
+      logger.debug('Setting captured screenshot:', screenshot.filename);
+      NATIVE.encodeToBase64(screenshot.data).then((base64String) => {
+        if (base64String != null) {
+          const dataUri = `data:${screenshot.contentType};base64,${base64String}`;
+          this.setState({ filename: screenshot.filename, attachment: screenshot.data, attachmentUri: dataUri });
+        } else {
+          logger.error('Failed to read image data from:', screenshot.filename);
+        }
+      }).catch((error) => {
+        logger.error('Failed to read image data from:', screenshot.filename, 'error: ', error);
+      });
+    } else {
+      logger.error('Failed to read image data from:', screenshot.filename);
+    }
   }
 
   private _saveFormState = (): void => {
@@ -337,4 +388,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       attachmentUri: undefined,
     };
   };
+
+  private _hasScreenshot = (): boolean => {
+    return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
+  }
 }
