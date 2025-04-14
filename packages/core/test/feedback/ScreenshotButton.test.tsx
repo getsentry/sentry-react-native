@@ -30,15 +30,6 @@ const mockBase64Image = 'mockBase64ImageString';
 const mockCaptureScreenshot = NATIVE.captureScreenshot as jest.Mock;
 const mockEncodeToBase64 = NATIVE.encodeToBase64 as jest.Mock;
 
-export const customStyles: ScreenshotButtonStyles = {
-  triggerButton: {
-    backgroundColor: '#ffffff',
-  },
-  triggerText: {
-    color: '#ff0000',
-  },
-};
-
 describe('ScreenshotButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -66,6 +57,14 @@ describe('ScreenshotButton', () => {
   });
 
   it('matches the snapshot with custom styles', () => {
+    const customStyles: ScreenshotButtonStyles = {
+      triggerButton: {
+        backgroundColor: '#ffffff',
+      },
+      triggerText: {
+        color: '#ff0000',
+      },
+    };
     const customStyleProps = {styles: customStyles};
     const { toJSON } = render(<ScreenshotButton {...customStyleProps}/>);
     expect(toJSON()).toMatchSnapshot();
