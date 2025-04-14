@@ -182,8 +182,8 @@ describe('ScreenshotButton', () => {
     });
 
     await waitFor(() => {
-      const takeScreenshotButtonAfterCapture = queryByText('Remove screenshot');
-      expect(takeScreenshotButtonAfterCapture).not.toBeNull();
+      const removeScreenshotButtonAfterCapture = queryByText('Remove screenshot');
+      expect(removeScreenshotButtonAfterCapture).toBeTruthy();
     });
   });
 
