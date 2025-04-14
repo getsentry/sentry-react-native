@@ -5,7 +5,8 @@ import { Text } from 'react-native';
 
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
-import { FeedbackWidgetProvider, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager, showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';
+import { resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager, showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';
+import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { getCapturedScreenshot, ScreenshotButton } from '../../src/js/feedback/ScreenshotButton';
 import type { Screenshot } from '../../src/js/wrapper';
