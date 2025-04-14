@@ -47,7 +47,7 @@ describe('ScreenshotButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     FeedbackWidget.reset();
-    getCapturedScreenshot();
+    getCapturedScreenshot(); // cleans up stored screenshot if any
     resetFeedbackWidgetManager();
     resetFeedbackButtonManager();
     resetScreenshotButtonManager();
