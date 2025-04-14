@@ -1,12 +1,13 @@
 import { logger } from '@sentry/core';
 import * as React from 'react';
-import type { NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import { Animated, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
+import type { NativeEventSubscription, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import { Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
 
 import { notWeb } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
+import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackButtonOptions, getFeedbackOptions } from './integration';
 import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration } from './lazy';
@@ -97,6 +98,8 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
     isScrollAtTop: true,
   };
 
+  private _themeListener: NativeEventSubscription;
+
   private _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: (_, gestureState) => {
       return notWeb() && this.state.isScrollAtTop && gestureState.dy > 0;
@@ -136,6 +139,24 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
   }
 
   /**
+   * Add a listener to the theme change event.
+   */
+  public componentDidMount(): void {
+    this._themeListener = Appearance.addChangeListener(() => {
+      this.forceUpdate();
+    });
+  }
+
+  /**
+   * Clean up the theme listener.
+   */
+  public componentWillUnmount(): void {
+    if (this._themeListener) {
+      this._themeListener.remove();
+    }
+  }
+
+  /**
    * Animates the background opacity when the modal is shown.
    */
   public componentDidUpdate(_prevProps: any, prevState: FeedbackWidgetProviderState): void {
@@ -170,6 +191,8 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
       return <>{this.props.children}</>;
     }
 
+    const theme = getTheme();
+
     const { isButtonVisible, isVisible, backgroundOpacity } = this.state;
 
     const backgroundColor = backgroundOpacity.interpolate({
@@ -188,7 +211,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
             <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
               <View style={topSpacer}/>
               <Animated.View
-                style={[modalSheetContainer, { transform: [{ translateY: this.state.panY }] }]}
+                style={[modalSheetContainer(theme), { transform: [{ translateY: this.state.panY }] }]}
                 {...this._panResponder.panHandlers}>
                 <ScrollView
                   bounces={false}
