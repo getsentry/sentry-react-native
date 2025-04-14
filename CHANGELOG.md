@@ -18,6 +18,8 @@
 
 - Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
+- Prevent crash on iOS during profiling stop when debug images are missing ([#4738](https://github.com/getsentry/sentry-react-native/pull/4738))
+- Attach only App Starts within the 60s threshold (fixed comparison units, use ms) ([#4746](https://github.com/getsentry/sentry-react-native/pull/4746))
 
 ### Dependencies
 
@@ -27,6 +29,9 @@
 - Bump CLI from v2.42.4 to v2.43.0 ([#4692](https://github.com/getsentry/sentry-react-native/pull/4692))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2430)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.4...2.43.0)
+- Bump Cocoa SDK from v8.48.0 to v8.49.0 ([#4742](https://github.com/getsentry/sentry-react-native/pull/4742))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8490)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.48.0...8.49.0)
 
 ## 6.11.0-beta.0
 
