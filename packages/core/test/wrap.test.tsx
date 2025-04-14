@@ -16,9 +16,8 @@ describe('Sentry.wrap', () => {
   });
 
   it('should wrap the component and init with a warning when getAppRegistryIntegration returns undefined', () => {
-    jest.spyOn(AppRegistry, 'getAppRegistryIntegration').mockReturnValueOnce(undefined);
     logger.warn = jest.fn();
-
+    const getAppRegistryIntegration = jest.spyOn(AppRegistry, 'getAppRegistryIntegration').mockReturnValueOnce(undefined);
     const Mock: React.FC = () => <Text>Test</Text>;
     const client = new TestClient(
       getDefaultTestClientOptions(),
@@ -29,6 +28,8 @@ describe('Sentry.wrap', () => {
     const ActualWrapped = wrap(Mock);
 
     const { getByText } = render(<ActualWrapped />);
+
+    expect(getAppRegistryIntegration).toHaveBeenCalled();
     expect(logger.warn).toHaveBeenCalledWith('AppRegistryIntegration.onRunApplication not found or invalid.');
     expect(getByText('Test')).toBeTruthy();
   });
