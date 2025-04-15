@@ -16,6 +16,9 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
 ### Dependencies
 
+- Bump JavaScript SDK from v8.54.0 to v9.12.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568), [#4752](https://github.com/getsentry/sentry-react-native/pull/4752))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.12.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.12.0)
 - Bump Bundler Plugins from v3.2.2 to v3.2.4 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#324)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.2.4)
@@ -223,9 +226,6 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 
 ### Dependencies
 
-- Bump JavaScript SDK from v8.54.0 to v9.1.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.1.0/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.1.0)
 - Bump Android SDK from v7.20.1 to v8.3.0 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#830)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.3.0)
