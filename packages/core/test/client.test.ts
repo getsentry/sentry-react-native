@@ -639,6 +639,7 @@ describe('Tests ReactNativeClient', () => {
           send: mockTransportSend,
           flush: jest.fn(),
         }),
+        sendDefaultPii: true,
       });
     });
 
@@ -694,6 +695,24 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
         expect.objectContaining({ ip_address: '{{auto}}' }),
       );
+    });
+
+    test('does not add ip_address {{auto}} to undefined user if sendDefaultPii is false', () => {
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: false,
+      });
+
+      client.captureEvent({});
+
+      expect(
+        mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user?.ip_address,
+      ).toBeUndefined();
     });
   });
 });

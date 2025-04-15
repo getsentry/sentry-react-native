@@ -1,9 +1,4 @@
-import {
-  addAutoIpAddressToSession,
-  addAutoIpAddressToUser,
-  eventFromException,
-  eventFromMessage,
-} from '@sentry/browser';
+import { eventFromException, eventFromMessage } from '@sentry/browser';
 import type {
   ClientReportEnvelope,
   ClientReportItem,
@@ -15,7 +10,14 @@ import type {
   TransportMakeRequestResponse,
   UserFeedback,
 } from '@sentry/core';
-import { BaseClient, dateTimestampInSeconds, logger, SentryError } from '@sentry/core';
+import {
+  BaseClient,
+  dateTimestampInSeconds,
+  logger,
+  SentryError,
+  addAutoIpAddressToSession,
+  addAutoIpAddressToUser,
+} from '@sentry/core';
 import { Alert } from 'react-native';
 
 import { getDevServer } from './integrations/debugsymbolicatorutils';
