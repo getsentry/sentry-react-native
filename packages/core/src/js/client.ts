@@ -54,8 +54,10 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     this._outcomesBuffer = [];
 
-    this.on('postprocessEvent', addAutoIpAddressToUser);
-    this.on('beforeSendSession', addAutoIpAddressToSession);
+    if (options.sendDefaultPii === true) {
+      this.on('postprocessEvent', addAutoIpAddressToUser);
+      this.on('beforeSendSession', addAutoIpAddressToSession);
+    }
   }
 
   /**
