@@ -7,7 +7,7 @@ import { warnOnce, writeSentryPropertiesTo } from './utils';
 
 export const withSentryAndroid: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
   config,
-  { sentryProperties, useNativeInit = false },
+  { sentryProperties, useNativeInit = true },
 ) => {
   const appBuildGradleCfg = withAppBuildGradle(config, config => {
     if (config.modResults.language === 'groovy') {

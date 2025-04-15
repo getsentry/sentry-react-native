@@ -15,7 +15,7 @@ const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH =
 
 export const withSentryIOS: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
   config,
-  { sentryProperties, useNativeInit = false },
+  { sentryProperties, useNativeInit = true },
 ) => {
   const xcodeProjectCfg = withXcodeProject(config, config => {
     const xcodeProject: XcodeProject = config.modResults;
