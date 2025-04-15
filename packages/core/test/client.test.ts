@@ -625,6 +625,77 @@ describe('Tests ReactNativeClient', () => {
       client.recordDroppedEvent('before_send', 'error');
     }
   });
+
+  describe('ipAddress', () => {
+    let mockTransportSend: jest.Mock;
+    let client: ReactNativeClient;
+
+    beforeEach(() => {
+      mockTransportSend = jest.fn(() => Promise.resolve());
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+      });
+    });
+
+    test('preserves ip_address null', () => {
+      client.captureEvent({
+        user: {
+          ip_address: null,
+        },
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: null }),
+      );
+    });
+
+    test('preserves ip_address value if set', () => {
+      client.captureEvent({
+        user: {
+          ip_address: '203.45.167.89',
+        },
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: '203.45.167.89' }),
+      );
+    });
+
+    test('adds ip_address {{auto}} to user if set to undefined', () => {
+      client.captureEvent({
+        user: {
+          ip_address: undefined,
+        },
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: '{{auto}}' }),
+      );
+    });
+
+    test('adds ip_address {{auto}} to user if not set', () => {
+      client.captureEvent({
+        user: {},
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: '{{auto}}' }),
+      );
+    });
+
+    test('adds ip_address {{auto}} to undefined user', () => {
+      client.captureEvent({});
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: '{{auto}}' }),
+      );
+    });
+  });
 });
 
 function mockedOptions(options: Partial<ReactNativeClientOptions>): ReactNativeClientOptions {

@@ -1,4 +1,9 @@
-import { eventFromException, eventFromMessage } from '@sentry/browser';
+import {
+  addAutoIpAddressToSession,
+  addAutoIpAddressToUser,
+  eventFromException,
+  eventFromMessage,
+} from '@sentry/browser';
 import type {
   ClientReportEnvelope,
   ClientReportItem,
@@ -48,6 +53,9 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     super(options);
 
     this._outcomesBuffer = [];
+
+    this.on('postprocessEvent', addAutoIpAddressToUser);
+    this.on('beforeSendSession', addAutoIpAddressToSession);
   }
 
   /**
