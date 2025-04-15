@@ -12,14 +12,28 @@ const ReactNativeProfilerGlobalState = {
   },
 };
 
+type ProfilerConstructorProps = ConstructorParameters<typeof Profiler>[0];
+type ReactNativeProfilerConstructorProps = ProfilerConstructorProps &
+{
+  /**
+   * Since we cannot modify the Profiler class directly, this flag is used to preserve its original behavior.
+   * When true, it indicates that `updateProps` were not passed in the options, signaling the code to remove `updateProps` from the parameters.
+   * Otherwise, it means `updateProps` were provided for use with the React Native profiler.
+   */
+  removeUpdateProps?: boolean
+};
+
 /**
  * Custom profiler for the React Native app root.
  */
 export class ReactNativeProfiler extends Profiler {
   public readonly name: string = 'ReactNativeProfiler';
 
-  public constructor(props: ConstructorParameters<typeof Profiler>[0]) {
+  public constructor(props: ReactNativeProfilerConstructorProps) {
     _setRootComponentCreationTimestampMs(timestampInSeconds() * 1000);
+    if (props.removeUpdateProps === true) {
+      delete props.updateProps;
+    }
     super(props);
   }
 

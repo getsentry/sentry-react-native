@@ -4,20 +4,17 @@ import * as React from 'react';
 import { wrap } from '../src/js/sdk';
 
 jest.mock('../src/js/touchevents', () => ({
-  __esModule: true,
   TouchEventBoundary: ({ children }: { children: React.ReactNode }) =>
     React.createElement('div', { testID: 'touch-boundaryID' }, children),
 }));
 
 jest.mock('../src/js/tracing', () => ({
-  __esModule: true,
   ReactNativeProfiler: jest.fn(({ children }: { children: React.ReactNode }) =>
     React.createElement('div', { testID: 'profilerID' }, children),
   ),
 }));
 
 jest.mock('../src/js/feedback/FeedbackWidgetManager', () => ({
-  __esModule: true,
   FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) =>
     React.createElement('div', { testID: 'feedback-widgetID' }, children),
 }));
@@ -26,7 +23,6 @@ import type { ReactNativeWrapperOptions } from 'src/js/options';
 
 import { ReactNativeProfiler } from '../src/js/tracing';
 
-// Test
 describe('wrap', () => {
   const DummyComponent: React.FC<{ value?: string }> = ({ value }) => React.createElement('div', null, value);
 
@@ -44,7 +40,7 @@ describe('wrap', () => {
   describe('ReactNativeProfiler', () => {
     it('uses given options when set', () => {
       const options: ReactNativeWrapperOptions = {
-        profilerProps: { name: 'custom Name', updateProps: { update: true } },
+        profilerProps: { name: 'custom Name' },
       };
       const Wrapped = wrap(DummyComponent, options);
       const element = React.createElement(Wrapped, { value: 'wrapped' });
@@ -53,13 +49,12 @@ describe('wrap', () => {
       expect(ReactNativeProfiler).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Root',
-          updateProps: { update: true },
         }),
         expect.anything(),
       );
     });
 
-    it('sets updateProps when not defined', () => {
+    it('updateProps not set when not defined', () => {
       const Wrapped = wrap(DummyComponent);
       const element = React.createElement(Wrapped, { value: 'wrapped' });
       render(element);
@@ -67,28 +62,6 @@ describe('wrap', () => {
       expect(ReactNativeProfiler).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Root',
-          updateProps: undefined,
-        }),
-        expect.anything(),
-      );
-    });
-
-    it('overwrites Root when component has a name', () => {
-      const NamedDummyComponent: React.FC<{ value?: string }> = ({ value }) =>
-        React.createElement('div', { displayName: 'custom Name' }, value);
-      NamedDummyComponent.displayName = 'custom Name';
-
-      const options: ReactNativeWrapperOptions = {
-        profilerProps: { name: 'custom Name', updateProps: { update: true } },
-      };
-      const Wrapped = wrap(NamedDummyComponent, options);
-      const element = React.createElement(Wrapped, { value: 'wrapped' });
-      render(element);
-
-      expect(ReactNativeProfiler).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'custom Name',
-          updateProps: { update: true },
         }),
         expect.anything(),
       );
