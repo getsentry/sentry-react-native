@@ -620,6 +620,36 @@ describe('Tests the SDK functionality', () => {
       expectIntegration('HermesProfiling');
     });
 
+    it('adds browserSessionIntegration on web when enableAutoSessionTracking is set true', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({ enableAutoSessionTracking: true });
+
+      expectIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on web when enableAutoSessionTracking is set false', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({ enableAutoSessionTracking: false });
+
+      expectNotIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on web when enableAutoSessionTracking is not set', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({});
+
+      expectNotIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on mobile', () => {
+      init({ enableAutoSessionTracking: true });
+
+      expectNotIntegration('BrowserSession');
+    });
+
     it('no spotlight integration by default', () => {
       init({});
 
