@@ -178,9 +178,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.crashedLastRun(promise);
   }
 
-  @ReactMethod()
+  @ReactMethod
   public void getNewScreenTimeToDisplay(Promise promise) {
     this.impl.getNewScreenTimeToDisplay(promise);
+  }
+
+  @ReactMethod
+  public void getDataFromUri(String uri, Promise promise) {
+    this.impl.getDataFromUri(uri, promise);
+  }
+
+  @ReactMethod
+  public void popTimeToDisplayFor(String key, Promise promise) {
+    this.impl.popTimeToDisplayFor(key, promise);
   }
 
   @ReactMethod
