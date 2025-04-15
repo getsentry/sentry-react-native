@@ -18,7 +18,7 @@ interface PluginProps {
 const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   const sentryProperties = getSentryProperties(props);
 
-  if (props && props.authToken) {
+  if (props?.authToken) {
     // If not removed, the plugin config with the authToken will be written to the application package
     delete props.authToken;
   }

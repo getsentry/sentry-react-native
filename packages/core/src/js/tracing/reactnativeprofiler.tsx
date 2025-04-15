@@ -47,10 +47,9 @@ export class ReactNativeProfiler extends Profiler {
       return;
     }
 
-    client.addIntegration && client.addIntegration(createIntegration(this.name));
+    client.addIntegration?.(createIntegration(this.name));
 
     getAppRegistryIntegration(client).onRunApplication(ReactNativeProfilerGlobalState.onRunApplicationHook);
-
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     _captureAppStart({ isManual: false });
   }
