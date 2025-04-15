@@ -56,9 +56,7 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -229,9 +227,7 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -357,9 +353,7 @@ jobs:
           path: dev-packages/e2e-tests
 
       - name: Enable Corepack
-        run: |
-            npm i -g corepack
-            corepack enable
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 20

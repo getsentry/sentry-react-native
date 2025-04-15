@@ -23,9 +23,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -43,9 +41,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -63,9 +59,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -88,9 +82,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -133,9 +125,7 @@ jobs:
       YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -165,9 +155,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -201,9 +189,7 @@ jobs:
         dev: [true, false]
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm i -g corepack
-          corepack enable
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 18

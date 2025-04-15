@@ -1,6 +1,6 @@
 # expects `$repo`, `$tagPrefix` and `$packages` (array) variables to be defined, see e.g. update-javascript.sh
 
-npm i -g corepack # This repository uses Yarn v3 which requires corepack to be installed
+# npm i -g corepack # This repository uses Yarn v3 which requires corepack to be installed
 corepack enable # Enable corepack after installation
 
 monorepoRoot="$(dirname "$0")/.."
