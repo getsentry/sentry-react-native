@@ -60,7 +60,7 @@ export function modifyAppBuildGradle(buildGradle: string): string {
 export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
   return withMainApplication(config, async config => {
     if (!config.modResults || !config.modResults.path) {
-      warnOnce('Skipping MainApplication modification because the file does not exist.');
+      warnOnce("Can't add 'RNSentrySDK.init' to Android MainApplication, because the file was not found.");
       return config;
     }
 
