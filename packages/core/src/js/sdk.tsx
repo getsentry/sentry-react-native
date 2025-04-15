@@ -158,6 +158,7 @@ export function wrap<P extends Record<string, unknown>>(
   const profilerProps = {
     ...(options?.profilerProps ?? { updateProps: undefined }),
     name: RootComponent.displayName ?? 'Root',
+    updateProps: {}
   };
 
   const RootApp: React.FC<P> = (appProps) => {
