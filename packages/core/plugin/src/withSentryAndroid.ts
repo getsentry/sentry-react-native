@@ -64,7 +64,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       return config;
     }
 
-    const fileName = config.modResults.path.split('/').pop();
+    const fileName = path.basename(config.modResults.path);
 
     if (config.modResults.contents.includes('RNSentrySDK.init')) {
       warnOnce(`Your '${fileName}' already contains 'RNSentrySDK.init', the native code won't be updated.`);

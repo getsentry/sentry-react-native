@@ -93,7 +93,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       return config;
     }
 
-    const fileName = config.modResults.path.split('/').pop();
+    const fileName = path.basename(config.modResults.path);
 
     if (config.modResults.language === 'swift') {
       if (config.modResults.contents.includes('RNSentrySDK.start()')) {
