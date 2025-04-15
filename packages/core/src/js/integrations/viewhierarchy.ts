@@ -21,7 +21,7 @@ export const viewHierarchyIntegration = (): Integration => {
 };
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
-  const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
+  const hasException = event.exception?.values?.length > 0;
   if (!hasException) {
     return event;
   }

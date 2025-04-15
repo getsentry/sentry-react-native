@@ -143,7 +143,7 @@ function replaceExceptionFramesInException(exception: Exception, frames: SentryS
  * @param frames StackFrame[]
  */
 function replaceThreadFramesInEvent(event: Event, frames: SentryStackFrame[]): void {
-  if (event.threads && event.threads.values && event.threads.values[0] && event.threads.values[0].stacktrace) {
+  if (event.threads?.values?.[0]?.stacktrace) {
     event.threads.values[0].stacktrace.frames = frames.reverse();
   }
 }

@@ -34,7 +34,7 @@ const UnmaskFallback = (viewProps: ViewProps): React.ReactElement => {
   return <View {...viewProps} />;
 };
 
-const hasViewManagerConfig = (nativeComponentName: string): boolean => UIManager.hasViewManagerConfig && UIManager.hasViewManagerConfig(nativeComponentName);
+const hasViewManagerConfig = (nativeComponentName: string): boolean => UIManager.hasViewManagerConfig?.(nativeComponentName);
 
 const Mask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
   if (isExpoGo() || !hasViewManagerConfig(MaskNativeComponentName)) {

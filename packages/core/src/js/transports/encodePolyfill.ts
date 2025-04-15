@@ -1,3 +1,5 @@
+import { SDK_VERSION } from '@sentry/core';
+
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { utf8ToBytes } from '../vendor';
 
@@ -6,7 +8,7 @@ export const useEncodePolyfill = (): void => {
     (RN_GLOBAL_OBJ.__SENTRY__ as Partial<(typeof RN_GLOBAL_OBJ)['__SENTRY__']>) = {};
   }
 
-  RN_GLOBAL_OBJ.__SENTRY__.encodePolyfill = encodePolyfill;
+  RN_GLOBAL_OBJ.__SENTRY__[SDK_VERSION].encodePolyfill = encodePolyfill;
 };
 
 export const encodePolyfill = (text: string): Uint8Array => {
