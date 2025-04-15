@@ -141,7 +141,9 @@ describe('modifyMainApplication', () => {
 
     const result = await modifyMainApplication(config);
 
-    expect(warnOnce).toHaveBeenCalledWith('Skipping MainApplication modification because the file does not exist.');
+    expect(warnOnce).toHaveBeenCalledWith(
+      `Can't add 'RNSentrySDK.init' to Android MainApplication, because the file was not found.`,
+    );
     expect(result).toBe(config); // No modification
   });
 
@@ -150,7 +152,9 @@ describe('modifyMainApplication', () => {
 
     const result = await modifyMainApplication(config);
 
-    expect(warnOnce).toHaveBeenCalledWith(`Your 'MainApplication.java' already contains 'RNSentrySDK.init'.`);
+    expect(warnOnce).toHaveBeenCalledWith(
+      `Your 'MainApplication.java' already contains 'RNSentrySDK.init', the native code won't be updated.`,
+    );
     expect(result).toBe(config); // No modification
   });
 
