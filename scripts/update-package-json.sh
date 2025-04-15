@@ -1,6 +1,8 @@
 # expects `$repo`, `$tagPrefix` and `$packages` (array) variables to be defined, see e.g. update-javascript.sh
 
-npm i -g corepack # This repository uses Yarn v3 which requires corepack to be installed
+# Since Corepack is not going to be distributed with Node.js v25+ in the future we need to install Corepack globally.
+# See: https://github.com/getsentry/sentry-react-native/pull/4741
+corepack enable # This repository uses Yarn v3 which requires corepack to be enabled
 
 monorepoRoot="$(dirname "$0")/.."
 
