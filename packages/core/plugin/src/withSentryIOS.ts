@@ -100,10 +100,6 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         warnOnce(`Your '${fileName}' already contains 'RNSentrySDK.start()'.`);
         return config;
       }
-      if (!config.modResults.contents.includes('import RNSentry')) {
-        // Insert import statement after UIKit import
-        config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
-      }
       // Add RNSentrySDK.start() at the beginning of application method
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
@@ -112,18 +108,14 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.start()' in '${fileName}.`);
+      } else if (!config.modResults.contents.includes('import RNSentry')) {
+        // Insert import statement after UIKit import
+        config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
       }
     } else if (config.modResults.language === 'objc') {
       if (config.modResults.contents.includes('[RNSentrySDK start]')) {
         warnOnce(`Your '${fileName}' already contains '[RNSentrySDK start]'.`);
         return config;
-      }
-      if (!config.modResults.contents.includes('#import <RNSentry/RNSentry.h>')) {
-        // Add import after AppDelegate.h
-        config.modResults.contents = config.modResults.contents.replace(
-          /(#import "AppDelegate.h"\n)/,
-          `$1#import <RNSentry/RNSentry.h>\n`,
-        );
       }
       // Add [RNSentrySDK start] at the beginning of application:didFinishLaunchingWithOptions method
       const originalContents = config.modResults.contents;
@@ -133,6 +125,12 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert '[RNSentrySDK start]' in '${fileName}.`);
+      } else if (!config.modResults.contents.includes('#import <RNSentry/RNSentry.h>')) {
+        // Add import after AppDelegate.h
+        config.modResults.contents = config.modResults.contents.replace(
+          /(#import "AppDelegate.h"\n)/,
+          `$1#import <RNSentry/RNSentry.h>\n`,
+        );
       }
     } else {
       warnOnce(`Unsupported language detected in '${fileName}', the native code won't be updated.`);
