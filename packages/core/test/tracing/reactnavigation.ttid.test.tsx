@@ -255,7 +255,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -296,7 +296,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -327,7 +327,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
           ]),
           measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
@@ -678,7 +678,7 @@ function initSentry(sut: ReturnType<typeof Sentry.reactNavigationIntegration>): 
   const transportSendMock = jest.fn<ReturnType<Transport['send']>, Parameters<Transport['send']>>();
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
-    enableTracing: true,
+    tracesSampleRate: 1.0,
     enableStallTracking: false,
     integrations: [
       sut,

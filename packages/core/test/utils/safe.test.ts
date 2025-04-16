@@ -38,14 +38,31 @@ describe('safe', () => {
     test('calls given function with correct args', () => {
       const mockFn = jest.fn();
       const actualSafeFunction = safeTracesSampler(mockFn);
-      actualSafeFunction?.({ name: 'foo', transactionContext: { name: 'foo' } });
+      const expectedInheritOrSampleWith = function (fallbackSampleRate: number): number {
+        return fallbackSampleRate;
+      };
+      actualSafeFunction?.({
+        name: 'foo',
+        transactionContext: { name: 'foo' },
+        inheritOrSampleWith: expectedInheritOrSampleWith,
+      });
       expect(mockFn).toBeCalledTimes(1);
-      expect(mockFn).toBeCalledWith({ name: 'foo', transactionContext: { name: 'foo' } });
+      expect(mockFn).toBeCalledWith({
+        name: 'foo',
+        transactionContext: { name: 'foo' },
+        inheritOrSampleWith: expectedInheritOrSampleWith,
+      });
     });
     test('calls given function amd return its result', () => {
       const mockFn = jest.fn(() => 0.5);
       const actualSafeFunction = safeTracesSampler(mockFn);
-      const actualResult = actualSafeFunction?.({ name: 'foo', transactionContext: { name: 'foo' } });
+      const actualResult = actualSafeFunction?.({
+        name: 'foo',
+        transactionContext: { name: 'foo' },
+        inheritOrSampleWith: function (fallbackSampleRate: number): number {
+          return fallbackSampleRate;
+        },
+      });
       expect(mockFn).toBeCalledTimes(1);
       expect(actualResult).toBe(0.5);
     });
@@ -58,7 +75,13 @@ describe('safe', () => {
         throw 'Test error';
       });
       const actualSafeFunction = safeTracesSampler(mockFn);
-      const actualResult = actualSafeFunction?.({ name: 'foo', transactionContext: { name: 'foo' } });
+      const actualResult = actualSafeFunction?.({
+        name: 'foo',
+        transactionContext: { name: 'foo' },
+        inheritOrSampleWith: function (fallbackSampleRate: number): number {
+          return fallbackSampleRate;
+        },
+      });
       expect(mockFn).toBeCalledTimes(1);
       expect(actualResult).toEqual(0);
     });

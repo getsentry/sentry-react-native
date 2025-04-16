@@ -47,7 +47,7 @@ export class ReactNativeProfiler extends Profiler {
       return;
     }
 
-    client.addIntegration && client.addIntegration(createIntegration(this.name));
+    client.addIntegration?.(createIntegration(this.name));
 
     const appRegistryIntegration = getAppRegistryIntegration(client);
     if (appRegistryIntegration && typeof appRegistryIntegration.onRunApplication === 'function') {

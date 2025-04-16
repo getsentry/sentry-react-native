@@ -1,6 +1,9 @@
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
+  // Fixes TypeError: Cannot set property UIManager of #<Object> which has only a getter
+  delete RN.UIManager;
   RN.UIManager = {};
+
   return RN;
 });
 

@@ -12,7 +12,6 @@
     "plugin/**/*.ts"
   ],
   "exclude": ["dist"],
-  "allowSyntheticDefaultImports": true,
   "compilerOptions": {
     "rootDir": ".",
     "jsx": "react",

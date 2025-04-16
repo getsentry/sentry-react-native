@@ -1,3 +1,4 @@
+import type { Span } from '@sentry/core';
 import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
 
 import { reactNativeTracingIntegration } from '../../src/js';
@@ -55,9 +56,12 @@ describe('Tracing extensions', () => {
   });
 
   test('transaction start span passes correct values to the child', async () => {
-    const transaction = startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, span => span);
-    const span = startSpanManual({ name: 'child', scope: getCurrentScope() }, span => span);
-    span!.end();
+    let childSpan: Span = undefined;
+    const transaction = startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, _span => {
+      childSpan = startSpanManual({ name: 'child', scope: getCurrentScope() }, __span => __span);
+      return _span;
+    });
+    childSpan!.end();
     transaction!.end();
 
     await client.flush();
@@ -70,9 +74,9 @@ describe('Tracing extensions', () => {
         }),
       }),
     );
-    expect(spanToJSON(span!)).toEqual(
+    expect(spanToJSON(childSpan!)).toEqual(
       expect.objectContaining({
-        parent_span_id: transaction!.spanContext().spanId,
+        parent_span_id: spanToJSON(transaction!).span_id,
       }),
     );
   });

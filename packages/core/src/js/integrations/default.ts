@@ -1,4 +1,5 @@
 /* eslint-disable complexity */
+import { browserSessionIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
 
 import type { ReactNativeClientOptions } from '../options';
@@ -59,6 +60,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(browserApiErrorsIntegration());
     integrations.push(browserGlobalHandlersIntegration());
     integrations.push(browserLinkedErrorsIntegration());
+
+    if (options.enableAutoSessionTracking) {
+      integrations.push(browserSessionIntegration());
+    }
   }
 
   // @sentry/react default integrations
@@ -93,10 +98,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   // hasTracingEnabled from `@sentry/core` only check if tracesSampler or tracesSampleRate keys are present
   // that's different from prev imp here and might lead misconfiguration
   // `tracesSampleRate: undefined` should not enable tracing
-  const hasTracingEnabled =
-    options.enableTracing ||
-    typeof options.tracesSampleRate === 'number' ||
-    typeof options.tracesSampler === 'function';
+  const hasTracingEnabled = typeof options.tracesSampleRate === 'number' || typeof options.tracesSampler === 'function';
   if (hasTracingEnabled && options.enableAppStartTracking) {
     integrations.push(appStartIntegration());
   }
