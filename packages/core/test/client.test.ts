@@ -2,8 +2,21 @@ import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative'
 jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 import { defaultStackParser } from '@sentry/browser';
-import type { Envelope, Event, Outcome, Transport, TransportMakeRequestResponse } from '@sentry/core';
-import { rejectedSyncPromise, SentryError } from '@sentry/core';
+import type {
+  Envelope,
+  Event,
+  Outcome,
+  SessionAggregates,
+  Transport,
+  TransportMakeRequestResponse,
+} from '@sentry/core';
+import {
+  addAutoIpAddressToSession,
+  addAutoIpAddressToUser,
+  makeSession,
+  rejectedSyncPromise,
+  SentryError,
+} from '@sentry/core';
 import * as RN from 'react-native';
 
 import { ReactNativeClient } from '../src/js/client';
@@ -698,9 +711,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     test('does not add ip_address {{auto}} to undefined user if sendDefaultPii is false', () => {
-      client = new ReactNativeClient({
-        ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+      const { client, onSpy } = createClientWithSpy({
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -710,9 +721,121 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureEvent({});
 
+      expect(onSpy).not.toHaveBeenCalledWith('postprocessEvent', addAutoIpAddressToUser);
       expect(
         mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user?.ip_address,
       ).toBeUndefined();
+    });
+
+    test('uses ip address hooks if sendDefaultPii is true', () => {
+      const { onSpy } = createClientWithSpy({
+        sendDefaultPii: true,
+      });
+
+      expect(onSpy).toHaveBeenCalledWith('postprocessEvent', addAutoIpAddressToUser);
+      expect(onSpy).toHaveBeenCalledWith('beforeSendSession', addAutoIpAddressToSession);
+    });
+
+    test('does not add ip_address {{auto}} to session if sendDefaultPii is false', () => {
+      const { client, onSpy } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: false,
+      });
+
+      const session = makeSession();
+      session.ipAddress = undefined;
+      client.captureSession(session);
+
+      expect(onSpy).not.toHaveBeenCalledWith('beforeSendSession', addAutoIpAddressToSession);
+      expect(
+        mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address,
+      ).toBeUndefined();
+    });
+
+    test('does not add ip_address {{auto}} to session aggregate if sendDefaultPii is false', () => {
+      const { client, onSpy } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: false,
+      });
+
+      const session: SessionAggregates = {
+        aggregates: [],
+      };
+      client.sendSession(session);
+
+      expect(onSpy).not.toHaveBeenCalledWith('beforeSendSession', addAutoIpAddressToSession);
+      expect(
+        mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address,
+      ).toBeUndefined();
+    });
+
+    test('does not overwrite session aggregate ip_address if already set', () => {
+      const { client } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: true,
+      });
+
+      const session: SessionAggregates = {
+        aggregates: [],
+        attrs: {
+          ip_address: '123.45.67.89',
+        },
+      };
+      client.sendSession(session);
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
+        '123.45.67.89',
+      );
+    });
+
+    test('does add ip_address {{auto}} to session if sendDefaultPii is true', () => {
+      const { client } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: true,
+      });
+
+      const session = makeSession();
+      session.ipAddress = undefined;
+      client.captureSession(session);
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
+        '{{auto}}',
+      );
+    });
+
+    test('does not overwrite session  ip_address if already set', () => {
+      const { client } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: true,
+      });
+
+      const session = makeSession();
+      session.ipAddress = '123.45.67.89';
+      client.captureSession(session);
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
+        '123.45.67.89',
+      );
     });
   });
 });
@@ -726,5 +849,25 @@ function mockedOptions(options: Partial<ReactNativeClientOptions>): ReactNativeC
       flush: jest.fn(),
     }),
     ...options,
+  };
+}
+
+function createClientWithSpy(options: Partial<ReactNativeClientOptions>) {
+  const onSpy = jest.fn();
+  class SpyClient extends ReactNativeClient {
+    public on(hook: string, callback: unknown): () => void {
+      onSpy(hook, callback);
+      // @ts-expect-error - the public interface doesn't allow string and unknown
+      return super.on(hook, callback);
+    }
+  }
+
+  return {
+    client: new SpyClient({
+      ...DEFAULT_OPTIONS,
+      dsn: EXAMPLE_DSN,
+      ...options,
+    }),
+    onSpy,
   };
 }

@@ -11,12 +11,12 @@ import type {
   UserFeedback,
 } from '@sentry/core';
 import {
+  addAutoIpAddressToSession,
+  addAutoIpAddressToUser,
   BaseClient,
   dateTimestampInSeconds,
   logger,
   SentryError,
-  addAutoIpAddressToSession,
-  addAutoIpAddressToUser,
 } from '@sentry/core';
 import { Alert } from 'react-native';
 
