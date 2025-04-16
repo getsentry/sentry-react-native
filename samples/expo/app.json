@@ -3,6 +3,7 @@
     "name": "sentry-react-native-expo-sample",
     "slug": "sentry-react-native-expo-sample",
     "jsEngine": "hermes",
+    "newArchEnabled": true,
     "scheme": "sentry-expo-sample",
     "version": "6.11.0-beta.0",
     "orientation": "portrait",
@@ -65,10 +66,30 @@
         {
           "asyncRoutes": {
             "web": true,
+            "ios": false,
             "default": "development"
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false,
+        "asyncRoutes": {
+          "web": true,
+          "default": "development"
+        }
+      },
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "owner": "__OWNER__",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/00000000-0000-0000-0000-000000000000"
+    }
   }
 }

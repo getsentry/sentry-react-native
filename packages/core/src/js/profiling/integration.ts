@@ -315,9 +315,7 @@ export function addNativeProfileToHermesProfile(
   return {
     ...hermes,
     profile: addNativeThreadCpuProfileToHermes(hermes.profile, native.profile, hermes.transaction.active_thread_id),
-    debug_meta: {
-      images: native.debug_meta.images,
-    },
+    ...(native.debug_meta?.images ? { debug_meta: { images: native.debug_meta.images } } : {}),
     measurements: native.measurements,
   };
 }
