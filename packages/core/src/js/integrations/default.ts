@@ -142,8 +142,8 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   if (!hasReplayOptions && hasExperimentsReplayOptions) {
     // Remove in the next major version (v7)
-    options.replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
-    options.replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
+    options.replaysOnErrorSampleRate = options._experiments?.replaysOnErrorSampleRate;
+    options.replaysSessionSampleRate = options._experiments?.replaysSessionSampleRate;
   }
 
   if ((hasReplayOptions || hasExperimentsReplayOptions) && notWeb()) {

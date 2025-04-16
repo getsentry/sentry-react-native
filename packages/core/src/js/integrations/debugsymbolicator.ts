@@ -131,7 +131,7 @@ async function convertReactNativeFramesToSentryFrames(frames: ReactNative.StackF
  * @param event Event
  * @param frames StackFrame[]
  */
-function replaceExceptionFramesInException(exception: Exception, frames: SentryStackFrame[]): void {
+function replaceExceptionFramesInException(exception: Exception | undefined, frames: SentryStackFrame[]): void {
   if (exception?.stacktrace) {
     exception.stacktrace.frames = frames.reverse();
   }

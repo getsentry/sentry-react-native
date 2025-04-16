@@ -30,7 +30,7 @@ export const timeToDisplayIntegration = (): Integration => {
         return event;
       }
 
-      const rootSpanId = event.contexts.trace.span_id;
+      const rootSpanId = event.contexts?.trace?.span_id;
       if (!rootSpanId) {
         logger.warn(`[${INTEGRATION_NAME}] No root span id found in transaction.`);
         return event;
@@ -64,7 +64,9 @@ export const timeToDisplayIntegration = (): Integration => {
       if (ttfdSpan?.start_timestamp && ttfdSpan?.timestamp) {
         const durationMs = (ttfdSpan.timestamp - ttfdSpan.start_timestamp) * 1000;
         if (isDeadlineExceeded(durationMs)) {
-          event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
+          if (event.measurements['time_to_initial_display']) {
+            event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
+          }
         } else {
           event.measurements['time_to_full_display'] = {
             value: durationMs,
@@ -99,6 +101,8 @@ async function addTimeToInitialDisplay({
   enableTimeToInitialDisplayForPreloadedRoutes: boolean;
 }): Promise<SpanJSON | undefined> {
   const ttidEndTimestampSeconds = await NATIVE.popTimeToDisplayFor(`ttid-${rootSpanId}`);
+
+  event.spans = event.spans || [];
 
   let ttidSpan: SpanJSON | undefined = event.spans?.find(span => span.op === UI_LOAD_INITIAL_DISPLAY);
 
@@ -204,11 +208,13 @@ async function addTimeToFullDisplay({
     return undefined;
   }
 
+  event.spans = event.spans || [];
+
   let ttfdSpan = event.spans?.find(span => span.op === UI_LOAD_FULL_DISPLAY);
 
   let ttfdAdjustedEndTimestampSeconds = ttfdEndTimestampSeconds;
-  const ttfdIsBeforeTtid = ttidSpan?.timestamp && ttfdEndTimestampSeconds < ttidSpan.timestamp;
-  if (ttfdIsBeforeTtid) {
+  const ttfdIsBeforeTtid = ttidSpan.timestamp && ttfdEndTimestampSeconds < ttidSpan.timestamp;
+  if (ttfdIsBeforeTtid && ttidSpan.timestamp) {
     ttfdAdjustedEndTimestampSeconds = ttidSpan.timestamp;
   }
 

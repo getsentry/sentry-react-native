@@ -8,7 +8,7 @@ type FeedbackIntegration = Integration & {
   options: Partial<FeedbackWidgetProps>;
 };
 
-export const feedbackIntegration = (initOptions: FeedbackWidgetProps = {}): FeedbackIntegration => {
+export const feedbackIntegration = (initOptions: Partial<FeedbackWidgetProps> = {}): FeedbackIntegration => {
   return {
     name: MOBILE_FEEDBACK_INTEGRATION_NAME,
     options: initOptions,

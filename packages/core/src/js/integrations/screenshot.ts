@@ -18,13 +18,13 @@ export const screenshotIntegration = (): Integration => {
 };
 
 async function processEvent(event: Event, hint: EventHint, client: ReactNativeClient): Promise<Event> {
-  const hasException = event.exception?.values?.length > 0;
+  const hasException = event.exception?.values && event.exception.values.length > 0;
   if (!hasException || client.getOptions().beforeScreenshot?.(event, hint) === false) {
     return event;
   }
 
   const screenshots: ScreenshotAttachment[] | null = await NATIVE.captureScreenshot();
-  if (screenshots?.length > 0) {
+  if (screenshots && screenshots.length > 0) {
     hint.attachments = [...screenshots, ...(hint?.attachments || [])];
   }
 

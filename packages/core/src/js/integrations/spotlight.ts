@@ -83,17 +83,23 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
   });
 }
 
+const DEFAULT_SIDECAR_URL = 'http://localhost:8969/stream';
+
 /**
  * Gets the default Spotlight sidecar URL.
  */
 export function getDefaultSidecarUrl(): string {
   try {
-    const { url } = ReactNativeLibraries.Devtools?.getDevServer();
+    const { url } = ReactNativeLibraries.Devtools?.getDevServer() ?? {};
+    if (!url) {
+      return DEFAULT_SIDECAR_URL;
+    }
+
     return `http://${getHostnameFromString(url)}:8969/stream`;
   } catch (_oO) {
     // We can't load devserver URL
   }
-  return 'http://localhost:8969/stream';
+  return DEFAULT_SIDECAR_URL;
 }
 
 /**

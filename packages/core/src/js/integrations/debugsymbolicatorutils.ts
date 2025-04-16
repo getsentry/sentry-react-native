@@ -20,7 +20,14 @@ export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<Se
         return;
       }
 
-      xhr.open('POST', getSentryMetroSourceContextUrl(), true);
+      const url = getSentryMetroSourceContextUrl();
+      if (!url) {
+        logger.error('Could not fetch source context. No dev server URL found.');
+        resolve(frames);
+        return;
+      }
+
+      xhr.open('POST', url, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify({ stack: frames }));
 
@@ -52,8 +59,14 @@ export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<Se
   });
 }
 
-function getSentryMetroSourceContextUrl(): string {
-  return `${getDevServer().url}__sentry/context`;
+function getSentryMetroSourceContextUrl(): string | undefined {
+  const devServer = getDevServer();
+
+  if (!devServer) {
+    return undefined;
+  }
+
+  return `${devServer.url}__sentry/context`;
 }
 
 /**
