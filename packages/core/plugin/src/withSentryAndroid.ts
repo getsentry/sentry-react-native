@@ -86,7 +86,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
         `$1\n$2RNSentrySDK.init(this);\n$2`,
       );
       if (config.modResults.contents === originalContents) {
-        warnOnce(`Failed to insert 'RNSentrySDK.init'.`);
+        warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
       }
     } else if (config.modResults.language === 'kt') {
       if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK')) {
@@ -103,7 +103,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
         `$1\n$2RNSentrySDK.init(this)\n$2`,
       );
       if (config.modResults.contents === originalContents) {
-        warnOnce(`Failed to insert 'RNSentrySDK.init'.`);
+        warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
       }
     } else {
       warnOnce(`Unrecognized language detected in '${fileName}', the native code won't be updated.`);
