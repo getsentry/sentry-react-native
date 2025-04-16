@@ -12,18 +12,22 @@ import { hideScreenshotButton, showFeedbackWidget } from './FeedbackWidgetManage
 import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
-let capturedScreenshot: Screenshot | undefined;
+let capturedScreenshot: Screenshot | 'ErrorCapturingScreenshot' | undefined;
 
 const takeScreenshot = async (): Promise<void> => {
-  const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
-  if (screenshots && screenshots.length > 0) {
-    hideScreenshotButton();
-    capturedScreenshot = screenshots[0];
+  hideScreenshotButton();
+  setTimeout(async () => { // Delay capture to allow the button to hide
+    const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
+    if (screenshots && screenshots.length > 0) {
+      capturedScreenshot = screenshots[0];
+    } else {
+      capturedScreenshot = 'ErrorCapturingScreenshot';
+    }
     showFeedbackWidget();
-  }
+  }, 100);
 };
 
-export const getCapturedScreenshot = (): Screenshot | undefined => {
+export const getCapturedScreenshot = (): Screenshot | 'ErrorCapturingScreenshot' | undefined => {
   const screenshot = capturedScreenshot;
   capturedScreenshot = undefined;
   return screenshot;

@@ -16,6 +16,7 @@ const TRIGGER_SCREENSHOT_LABEL = 'Take Screenshot';
 const ERROR_TITLE = 'Error';
 const FORM_ERROR = 'Please fill out all required fields.';
 const EMAIL_ERROR = 'Please enter a valid email address.';
+const CAPTURE_SCREENSHOT_ERROR = 'Error capturing screenshot. Please try again.';
 const SUCCESS_MESSAGE_TEXT = 'Thank you for your report!';
 const ADD_SCREENSHOT_LABEL = 'Add a screenshot';
 const CAPTURE_SCREENSHOT_LABEL = 'Take a screenshot';
@@ -79,6 +80,7 @@ export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
   errorTitle: ERROR_TITLE,
   formError: FORM_ERROR,
   emailError: EMAIL_ERROR,
+  captureScreenshotError: CAPTURE_SCREENSHOT_ERROR,
   successMessageText: SUCCESS_MESSAGE_TEXT,
   addScreenshotButtonLabel: ADD_SCREENSHOT_LABEL,
   removeScreenshotButtonLabel: REMOVE_SCREENSHOT_LABEL,

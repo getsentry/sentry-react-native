@@ -297,7 +297,7 @@ export const appStartIntegration = ({
     }
 
     const isAppStartWithinBounds =
-      !!event.start_timestamp && appStartTimestampMs >= event.start_timestamp - MAX_APP_START_AGE_MS;
+      !!event.start_timestamp && appStartTimestampMs >= event.start_timestamp * 1_000 - MAX_APP_START_AGE_MS;
     if (!__DEV__ && !isAppStartWithinBounds) {
       logger.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
       return;

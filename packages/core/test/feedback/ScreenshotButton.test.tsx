@@ -1,7 +1,7 @@
 import { getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
-import { Text } from 'react-native';
+import { Alert, Text } from 'react-native';
 
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
@@ -20,6 +20,8 @@ jest.mock('../../src/js/wrapper', () => ({
   },
 }));
 
+jest.spyOn(Alert, 'alert');
+
 const mockScreenshot: Screenshot = {
   filename: 'test-screenshot.png',
   contentType: 'image/png',
@@ -31,24 +33,11 @@ const mockBase64Image = 'mockBase64ImageString';
 const mockCaptureScreenshot = NATIVE.captureScreenshot as jest.Mock;
 const mockEncodeToBase64 = NATIVE.encodeToBase64 as jest.Mock;
 
-const defaultProps: ScreenshotButtonProps = {
-  triggerLabel: 'Take Screenshot',
-};
-
-export const customStyles: ScreenshotButtonStyles = {
-  triggerButton: {
-    backgroundColor: '#ffffff',
-  },
-  triggerText: {
-    color: '#ff0000',
-  },
-};
-
 describe('ScreenshotButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     FeedbackWidget.reset();
-    getCapturedScreenshot();
+    getCapturedScreenshot(); // cleans up stored screenshot if any
     resetFeedbackWidgetManager();
     resetFeedbackButtonManager();
     resetScreenshotButtonManager();
@@ -63,11 +52,22 @@ describe('ScreenshotButton', () => {
   });
 
   it('matches the snapshot with custom texts', () => {
+    const defaultProps: ScreenshotButtonProps = {
+      triggerLabel: 'Take Screenshot',
+    };
     const { toJSON } = render(<ScreenshotButton {...defaultProps}/>);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom styles', () => {
+    const customStyles: ScreenshotButtonStyles = {
+      triggerButton: {
+        backgroundColor: '#ffffff',
+      },
+      triggerText: {
+        color: '#ff0000',
+      },
+    };
     const customStyleProps = {styles: customStyles};
     const { toJSON } = render(<ScreenshotButton {...customStyleProps}/>);
     expect(toJSON()).toMatchSnapshot();
@@ -183,12 +183,17 @@ describe('ScreenshotButton', () => {
       const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
       expect(takeScreenshotButtonAfterCapture).toBeNull();
     });
+
+    await waitFor(() => {
+      const removeScreenshotButtonAfterCapture = queryByText('Remove screenshot');
+      expect(removeScreenshotButtonAfterCapture).toBeTruthy();
+    });
   });
 
-  it('when the capture fails the capture button is still visible', async () => {
+  it('when the capture fails an error message is shown', async () => {
     mockCaptureScreenshot.mockResolvedValue([]);
 
-    const { getByText, queryByText } = render(
+    const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
       </FeedbackWidgetProvider>
@@ -210,8 +215,7 @@ describe('ScreenshotButton', () => {
     });
 
     await waitFor(() => {
-      const captureButton = queryByText('Take Screenshot');
-      expect(captureButton).not.toBeNull();
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Error capturing screenshot. Please try again.');
     });
   });
 });
