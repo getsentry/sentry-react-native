@@ -153,7 +153,7 @@ export function init(passedOptions: ReactNativeOptions): void {
  */
 export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
-  options?:  ReactNativeWrapperOptions
+  options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
   const profilerProps = {
     ...(options?.profilerProps ?? { removeUpdateProps: true }),
@@ -164,7 +164,7 @@ export function wrap<P extends Record<string, unknown>>(
   const RootApp: React.FC<P> = (appProps) => {
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
-        <ReactNativeProfiler {...profilerProps }>
+        <ReactNativeProfiler {...profilerProps}>
           <FeedbackWidgetProvider>
             <RootComponent {...appProps} />
           </FeedbackWidgetProvider>
