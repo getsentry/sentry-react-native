@@ -64,7 +64,7 @@ describe('Sentry.wrap', () => {
   describe('ReactNativeProfiler', () => {
     it('uses given options when set', () => {
       const options: ReactNativeWrapperOptions = {
-        profilerProps: { name: 'custom Name' },
+        profilerProps: { disabled: false, includeRender: true, includeUpdates: true },
       };
       const Wrapped = wrap(DummyComponent, options);
       render(<Wrapped value="wrapped" />);
@@ -72,6 +72,9 @@ describe('Sentry.wrap', () => {
       expect(ReactNativeProfiler).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Root',
+          disabled: false,
+          includeRender: true,
+          includeUpdates: true
         }),
         expect.anything(),
       );
