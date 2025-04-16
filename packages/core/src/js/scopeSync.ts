@@ -1,10 +1,10 @@
 import type { Breadcrumb, Scope } from '@sentry/core';
+import { logger } from '@sentry/react';
 
 import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { fillTyped } from './utils/fill';
 import { convertToNormalizedObject } from './utils/normalize';
 import { NATIVE } from './wrapper';
-import { logger } from '@sentry/react';
 
 /**
  * This WeakMap is used to keep track of which scopes have been synced to the native SDKs.

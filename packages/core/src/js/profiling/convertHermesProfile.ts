@@ -140,9 +140,11 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
     if (!Object.prototype.hasOwnProperty.call(hermesStackFrames, key)) {
       continue;
     }
-    if (hermesStackFrames[key]) {
+
+    const hermesStackFrame = hermesStackFrames[key];
+    if (hermesStackFrame) {
       hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
-      frames.push(parseHermesJSStackFrame(hermesStackFrames[key]));
+      frames.push(parseHermesJSStackFrame(hermesStackFrame));
     }
   }
 

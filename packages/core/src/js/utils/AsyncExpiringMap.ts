@@ -7,7 +7,7 @@ export class AsyncExpiringMap<K, V> {
   private _ttl: number;
   private _cleanupIntervalMs: number;
   private _map: Map<K, { value: V | undefined; expiresAt: number | null; promise: PromiseLike<V> | null }>;
-  private _cleanupInterval: ReturnType<typeof setInterval>;
+  private _cleanupInterval: ReturnType<typeof setInterval> | undefined;
 
   public constructor({
     cleanupInterval = 5_000,
@@ -30,7 +30,7 @@ export class AsyncExpiringMap<K, V> {
       this.startCleanup();
     }
 
-    if (typeof promise !== 'object' || !('then' in promise)) {
+    if (typeof promise !== 'object' || !promise || !('then' in promise)) {
       this._map.set(key, { value: promise, expiresAt: Date.now() + this._ttl, promise: null });
       return;
     }
@@ -143,7 +143,9 @@ export class AsyncExpiringMap<K, V> {
    * Clear all entries.
    */
   public clear(): void {
-    clearInterval(this._cleanupInterval);
+    if (typeof this._cleanupInterval === 'number') {
+      clearInterval(this._cleanupInterval);
+    }
     this._map.clear();
   }
 
@@ -151,7 +153,9 @@ export class AsyncExpiringMap<K, V> {
    * Stop the cleanup interval.
    */
   public stopCleanup(): void {
-    clearInterval(this._cleanupInterval);
+    if (typeof this._cleanupInterval === 'number') {
+      clearInterval(this._cleanupInterval);
+    }
   }
 
   /**
