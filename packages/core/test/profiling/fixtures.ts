@@ -83,6 +83,15 @@ export function createMockMinimalValidHermesProfileEvent(): HermesProfileEvent {
 /**
  * Create a mock native (iOS/Apple) profile.
  */
+export function createMockMinimalValidAppleProfileWithoutDebugMeta(): NativeProfileEvent {
+  const profile = createMockMinimalValidAppleProfile();
+  delete profile.debug_meta;
+  return profile;
+}
+
+/**
+ * Create a mock native (iOS/Apple) profile.
+ */
 export function createMockMinimalValidAppleProfile(): NativeProfileEvent {
   return {
     debug_meta: {
