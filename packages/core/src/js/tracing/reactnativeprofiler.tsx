@@ -31,10 +31,6 @@ export class ReactNativeProfiler extends Profiler {
 
   public constructor(props: ReactNativeProfilerConstructorProps) {
     _setRootComponentCreationTimestampMs(timestampInSeconds() * 1000);
-    if (props.removeUpdateProps === true) {
-      delete props.updateProps;
-    }
-    delete props.removeUpdateProps;
     super(props);
   }
 

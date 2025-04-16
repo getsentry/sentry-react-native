@@ -92,15 +92,15 @@ describe('Sentry.wrap', () => {
       );
     });
 
-    it('updateProps and removeUpdateProps defined when updateProps is not provided', () => {
-      const Wrapped = wrap(DummyComponent);
+    it('ignore updateProps when set', () => {
+      // @ts-expect-error just for testing.
+      const Wrapped = wrap(DummyComponent, { updateProps: [ 'prop']});
       render(<Wrapped value="wrapped" />);
 
       expect(ReactNativeProfiler).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Root',
-          updateProps: undefined,
-          removeUpdateProps: true,
+          updateProps: {},
         }),
         expect.anything(),
       );
