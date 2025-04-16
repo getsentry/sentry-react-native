@@ -257,7 +257,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     }
 
     const screenshot = getCapturedScreenshot();
-    if (screenshot) {
+    if (screenshot === 'ErrorCapturingScreenshot') {
+      setTimeout(async () => {
+        feedbackAlertDialog(text.errorTitle, text.captureScreenshotError);
+      }, 100);
+    } else if (screenshot) {
       this._setCapturedScreenshot(screenshot);
     }
 
