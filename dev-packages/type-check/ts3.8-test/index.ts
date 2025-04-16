@@ -22,6 +22,7 @@ declare global {
   }
   interface PerformanceEntry {}
   interface Performance {}
+  interface PerformanceNavigationTiming {}
 }
 
 declare module 'react-native' {
