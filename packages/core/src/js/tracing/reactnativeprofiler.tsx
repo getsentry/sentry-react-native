@@ -1,4 +1,4 @@
-import { timestampInSeconds } from '@sentry/core';
+import { logger, timestampInSeconds } from '@sentry/core';
 import { getClient, Profiler } from '@sentry/react';
 
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
@@ -60,7 +60,13 @@ export class ReactNativeProfiler extends Profiler {
 
     client.addIntegration?.(createIntegration(this.name));
 
-    getAppRegistryIntegration(client).onRunApplication(ReactNativeProfilerGlobalState.onRunApplicationHook);
+    const appRegistryIntegration = getAppRegistryIntegration(client);
+    if (appRegistryIntegration && typeof appRegistryIntegration.onRunApplication === 'function') {
+      appRegistryIntegration.onRunApplication(ReactNativeProfilerGlobalState.onRunApplicationHook);
+    } else {
+      logger.warn('AppRegistryIntegration.onRunApplication not found or invalid.');
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     _captureAppStart({ isManual: false });
   }

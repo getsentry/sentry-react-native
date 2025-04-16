@@ -14,18 +14,33 @@ Version 7 of the Sentry React Native SDK primarily introduces API cleanup and ve
 
 Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
 
+### Fixes
+
+- Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
+- Prevent crash on iOS during profiling stop when debug images are missing ([#4738](https://github.com/getsentry/sentry-react-native/pull/4738))
+- Attach only App Starts within the 60s threshold (fixed comparison units, use ms) ([#4746](https://github.com/getsentry/sentry-react-native/pull/4746))
+
 ### Dependencies
 
-- Bump Bundler Plugins from v3.2.2 to v3.2.4 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707))
-  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#324)
-  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.2.4)
+- Bump JavaScript SDK from v8.54.0 to v9.12.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568), [#4752](https://github.com/getsentry/sentry-react-native/pull/4752))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.12.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.12.0)
+- Bump Android SDK from v7.20.1 to v8.6.0 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4663](https://github.com/getsentry/sentry-react-native/pull/4663))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#860)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.6.0)
+- Bump Bundler Plugins from v3.2.2 to v3.3.1 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707), [#4720](https://github.com/getsentry/sentry-react-native/pull/4720), [#4721](https://github.com/getsentry/sentry-react-native/pull/4721))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#331)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.3.1)
 - Bump CLI from v2.42.4 to v2.43.0 ([#4692](https://github.com/getsentry/sentry-react-native/pull/4692))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2430)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.42.4...2.43.0)
+- Bump Cocoa SDK from v8.48.0 to v8.49.0 ([#4742](https://github.com/getsentry/sentry-react-native/pull/4742))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8490)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.48.0...8.49.0)
 
 ### Major Changes
 
-- `ip addresses` is only collected when `sendDefaultPii`: `true`
+- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
 - Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
 - `shutdownTimeout` moved from `core` to `@sentry/react-native`
 - `hasTracingEnabled` was renamed to `hasSpansEnabled`
@@ -223,12 +238,6 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 
 ### Dependencies
 
-- Bump JavaScript SDK from v8.54.0 to v9.1.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.1.0/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.1.0)
-- Bump Android SDK from v7.20.1 to v8.3.0 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#830)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.3.0)
 - Bump Cocoa SDK from v8.44.0 to v8.45.0 ([#4537](https://github.com/getsentry/sentry-react-native/pull/4537))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8450)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.44.0...8.45.0)
