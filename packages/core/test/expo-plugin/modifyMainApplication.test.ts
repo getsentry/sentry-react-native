@@ -17,7 +17,7 @@ interface MockedExpoConfig extends ExpoConfig {
   modResults: {
     path: string;
     contents: string;
-    language: 'java' | 'kotlin';
+    language: 'java' | 'kt';
   };
 }
 
@@ -167,7 +167,7 @@ describe('modifyMainApplication', () => {
   });
 
   it('should modify a Kotlin file by adding the RNSentrySDK import and init', async () => {
-    config.modResults.language = 'kotlin';
+    config.modResults.language = 'kt';
     config.modResults.contents = kotlinContents;
 
     const result = (await modifyMainApplication(config)) as MockedExpoConfig;
