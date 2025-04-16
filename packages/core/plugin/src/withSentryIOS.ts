@@ -89,7 +89,7 @@ export function addSentryWithBundledScriptsToBundleShellScript(script: string): 
 export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
   return withAppDelegate(config, async config => {
     if (!config.modResults || !config.modResults.path) {
-      warnOnce('Skipping AppDelegate modification because the file does not exist.');
+      warnOnce("Can't add 'RNSentrySDK.start()' to the iOS AppDelegate, because the file was not found.");
       return config;
     }
 

@@ -111,7 +111,7 @@ describe('modifyAppDelegate', () => {
 
     const result = await modifyAppDelegate(config);
 
-    expect(warnOnce).toHaveBeenCalledWith('Skipping AppDelegate modification because the file does not exist.');
+    expect(warnOnce).toHaveBeenCalledWith(`Can't add 'RNSentrySDK.start()' to the iOS AppDelegate, because the file was not found.`);
     expect(result).toBe(config); // No modification
   });
 
