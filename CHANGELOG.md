@@ -20,6 +20,7 @@
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
 - Prevent crash on iOS during profiling stop when debug images are missing ([#4738](https://github.com/getsentry/sentry-react-native/pull/4738))
 - Attach only App Starts within the 60s threshold (fixed comparison units, use ms) ([#4746](https://github.com/getsentry/sentry-react-native/pull/4746))
+- Add missing `popTimeToDisplayFor` in to the Android Old Arch Native interface([#4751](https://github.com/getsentry/sentry-react-native/pull/4751))
 
 ### Dependencies
 
