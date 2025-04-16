@@ -152,16 +152,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     return this.impl.fetchNativePackageName();
   }
 
-  @ReactMethod
-  public void getDataFromUri(String uri, Promise promise) {
-    this.impl.getDataFromUri(uri, promise);
-  }
-
-  @ReactMethod
-  public void encodeToBase64(ReadableArray array, Promise promise) {
-    this.impl.encodeToBase64(array, promise);
-  }
-
   @ReactMethod(isBlockingSynchronousMethod = true)
   public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
     // Not used on Android
@@ -183,9 +173,24 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.crashedLastRun(promise);
   }
 
-  @ReactMethod()
+  @ReactMethod
   public void getNewScreenTimeToDisplay(Promise promise) {
     this.impl.getNewScreenTimeToDisplay(promise);
+  }
+
+  @ReactMethod
+  public void getDataFromUri(String uri, Promise promise) {
+    this.impl.getDataFromUri(uri, promise);
+  }
+
+  @ReactMethod
+  public void encodeToBase64(ReadableArray array, Promise promise) {
+    this.impl.encodeToBase64(array, promise);
+  }
+
+  @ReactMethod
+  public void popTimeToDisplayFor(String key, Promise promise) {
+    this.impl.popTimeToDisplayFor(key, promise);
   }
 
   @ReactMethod
