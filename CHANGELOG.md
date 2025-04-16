@@ -41,9 +41,7 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
 - `autoSessionTracking` from options.
   To enable session tracking, ensure that `enableAutoSessionTracking` is enabled.
-
 - `enableTracing`. Instead, set `tracesSampleRate` to a value greater than `zero` to `enable tracing`, `0` to keep tracing integrations active without sampling, or `undefined` to disable the performance integration.
-
 - `getCurrentHub()`, `Hub`, and `getCurrentHubShim()`
 - `spanId` from propagation `context`
 - metrics API
@@ -54,7 +52,7 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 ## Other Changes
 
 - Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
-
+- On React Native Web, `browserSessionIntegration` is added when `enableAutoSessionTracking` is set to `True` ([#4732](https://github.com/getsentry/sentry-react-native/pull/4732))
 
 ## 6.11.0-beta.0
 
