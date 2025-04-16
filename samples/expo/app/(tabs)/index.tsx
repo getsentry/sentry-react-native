@@ -7,14 +7,19 @@ import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
 import React from 'react';
 import * as WebBrowser from 'expo-web-browser';
+import { useUpdates } from 'expo-updates';
 
 const isRunningInExpoGo = Constants.appOwnership === 'expo'
 
 export default function TabOneScreen() {
+  const { currentlyRunning } = useUpdates();
   return (
     <View style={styles.container}>
       <Sentry.TimeToInitialDisplay record />
       <Text>Welcome to Sentry Expo Sample App!</Text>
+      <Text>Update ID: {currentlyRunning.updateId}</Text>
+      <Text>Channel: {currentlyRunning.channel}</Text>
+      <Text>Runtime Version: {currentlyRunning.runtimeVersion}</Text>
       <Button
         title="Capture message"
         onPress={() => {

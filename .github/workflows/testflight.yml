@@ -26,7 +26,7 @@ jobs:
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
-      - run: corepack enable
+      - run: npm i -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 18
