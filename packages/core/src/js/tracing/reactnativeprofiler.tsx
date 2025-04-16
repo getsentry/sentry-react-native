@@ -34,6 +34,7 @@ export class ReactNativeProfiler extends Profiler {
     if (props.removeUpdateProps === true) {
       delete props.updateProps;
     }
+    delete props.removeUpdateProps;
     super(props);
   }
 

@@ -27,6 +27,12 @@ describe('ReactNativeProfiler', () => {
         updateProps: expect.anything(),
       }),
     );
+
+    expect(Profiler).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        removeUpdateProps: expect.anything(),
+      }),
+    );
   });
 
   it('does not remove updateProps if removeUpdateProps is undefined', () => {
@@ -40,6 +46,12 @@ describe('ReactNativeProfiler', () => {
     expect(Profiler).toHaveBeenCalledWith(
       expect.objectContaining({
         updateProps: { prop: true },
+      }),
+    );
+
+    expect(Profiler).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        removeUpdateProps: expect.anything(),
       }),
     );
   });
@@ -56,6 +68,11 @@ describe('ReactNativeProfiler', () => {
     expect(Profiler).toHaveBeenCalledWith(
       expect.objectContaining({
         updateProps: { prop: true },
+      }),
+    );
+    expect(Profiler).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        removeUpdateProps: expect.anything(),
       }),
     );
   });
