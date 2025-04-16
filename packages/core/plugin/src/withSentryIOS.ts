@@ -111,7 +111,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         `$1\n    RNSentrySDK.start()`,
       );
       if (config.modResults.contents === originalContents) {
-        warnOnce(`Failed to insert 'RNSentrySDK.start()'.`);
+        warnOnce(`Failed to insert 'RNSentrySDK.start()' in '${fileName}.`);
       }
     } else if (config.modResults.language === 'objc') {
       if (config.modResults.contents.includes('[RNSentrySDK start]')) {
@@ -132,7 +132,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         `$1$2[RNSentrySDK start];\n$2`,
       );
       if (config.modResults.contents === originalContents) {
-        warnOnce(`Failed to insert '[RNSentrySDK start]'.`);
+        warnOnce(`Failed to insert '[RNSentrySDK start]' in '${fileName}.`);
       }
     } else {
       warnOnce(`Unsupported language detected in '${fileName}', the native code won't be updated.`);
