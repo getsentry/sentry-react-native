@@ -12,7 +12,7 @@ This repository contains mono repository structure with multiple React Native an
 
 # Requirements
 
-- nodejs 18 (with corepack enabled)
+- nodejs 18 (with corepack globally installed)
 - yarn version specified in `package.json` (at the moment version 3.6)
 
 ## Building
