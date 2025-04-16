@@ -4,6 +4,7 @@ import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { fillTyped } from './utils/fill';
 import { convertToNormalizedObject } from './utils/normalize';
 import { NATIVE } from './wrapper';
+import { logger } from '@sentry/react';
 
 /**
  * This WeakMap is used to keep track of which scopes have been synced to the native SDKs.
@@ -60,7 +61,11 @@ export function enableSyncToNative(scope: Scope): void {
     original.call(scope, mergedBreadcrumb, maxBreadcrumbs);
 
     const finalBreadcrumb = scope.getLastBreadcrumb();
-    NATIVE.addBreadcrumb(finalBreadcrumb);
+    if (finalBreadcrumb) {
+      NATIVE.addBreadcrumb(finalBreadcrumb);
+    } else {
+      logger.warn('[ScopeSync] Last created breadcrumb is undefined. Skipping sync to native.');
+    }
 
     return scope;
   });

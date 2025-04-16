@@ -28,7 +28,7 @@ class FeedbackWidgetManager {
    */
   public static reset(): void {
     this._isVisible = false;
-    this._setVisibility = undefined;
+    this._setVisibility = () => {};
   }
 
   public static show(): void {

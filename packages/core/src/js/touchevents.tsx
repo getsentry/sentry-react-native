@@ -121,8 +121,12 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     const level = 'info' as SeverityLevel;
 
     const root = touchPath[0];
-    const detail = label ? label : `${root.name}${root.file ? ` (${root.file})` : ''}`;
+    if (!root) {
+      logger.warn('[TouchEvents] No root component found in touch path.');
+      return;
+    }
 
+    const detail = label ? label : `${root.name}${root.file ? ` (${root.file})` : ''}`;
     const crumb = {
       category: this.props.breadcrumbCategory,
       data: { path: touchPath },
