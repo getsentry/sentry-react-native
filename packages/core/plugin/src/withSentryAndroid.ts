@@ -72,13 +72,6 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
     }
 
     if (config.modResults.language === 'java') {
-      if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK;')) {
-        // Insert import statement after package declaration
-        config.modResults.contents = config.modResults.contents.replace(
-          /(package .*;\n\n?)/,
-          `$1import io.sentry.react.RNSentrySDK;\n`,
-        );
-      }
       // Add RNSentrySDK.init
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
@@ -87,15 +80,14 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
-      }
-    } else if (config.modResults.language === 'kt') {
-      if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK')) {
+      } else if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK;')) {
         // Insert import statement after package declaration
         config.modResults.contents = config.modResults.contents.replace(
-          /(package .*\n\n?)/,
-          `$1import io.sentry.react.RNSentrySDK\n`,
+          /(package .*;\n\n?)/,
+          `$1import io.sentry.react.RNSentrySDK;\n`,
         );
       }
+    } else if (config.modResults.language === 'kt') {
       // Add RNSentrySDK.init
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
@@ -104,6 +96,12 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
+      } else if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK')) {
+        // Insert import statement after package declaration
+        config.modResults.contents = config.modResults.contents.replace(
+          /(package .*\n\n?)/,
+          `$1import io.sentry.react.RNSentrySDK\n`,
+        );
       }
     } else {
       warnOnce(`Unrecognized language detected in '${fileName}', the native code won't be updated.`);
