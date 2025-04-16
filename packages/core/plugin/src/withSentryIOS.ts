@@ -113,8 +113,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.start()'.`);
       }
-    } else {
-      // Objective-C
+    } else if (config.modResults.language === 'objc') {
       if (config.modResults.contents.includes('[RNSentrySDK start]')) {
         warnOnce(`Your '${fileName}' already contains '[RNSentrySDK start]'.`);
         return config;
@@ -135,6 +134,8 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert '[RNSentrySDK start]'.`);
       }
+    } else {
+      warnOnce(`Unsupported language detected in '${fileName}', the native code won't be updated.`);
     }
 
     return config;
