@@ -125,15 +125,7 @@ describe('modifyMainApplication', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset to a mocked Java config after each test
-    config = {
-      name: 'test',
-      slug: 'test',
-      modResults: {
-        path: '/android/app/src/main/java/com/example/MainApplication.java',
-        contents: javaContents,
-        language: 'java',
-      },
-    };
+    config = createMockConfig();
   });
 
   it('should skip modification if modResults or path is missing', async () => {
@@ -186,3 +178,15 @@ describe('modifyMainApplication', () => {
     expect(importCount).toBe(1);
   });
 });
+
+function createMockConfig(): MockedExpoConfig {
+  return {
+    name: 'test',
+    slug: 'test',
+    modResults: {
+      path: '/android/app/src/main/java/com/example/MainApplication.java',
+      contents: javaContents,
+      language: 'java',
+    },
+  };
+}

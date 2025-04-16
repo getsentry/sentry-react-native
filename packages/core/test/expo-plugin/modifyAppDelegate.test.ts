@@ -95,15 +95,7 @@ describe('modifyAppDelegate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset to a mocked Swift config after each test
-    config = {
-      name: 'test',
-      slug: 'test',
-      modResults: {
-        path: 'samples/react-native/ios/AppDelegate.swift',
-        contents: swiftContents,
-        language: 'swift',
-      },
-    };
+    config = createMockConfig();
   });
 
   it('should skip modification if modResults or path is missing', async () => {
@@ -175,3 +167,15 @@ describe('modifyAppDelegate', () => {
     expect(importCount).toBe(1);
   });
 });
+
+function createMockConfig(): MockedExpoConfig {
+  return {
+    name: 'test',
+    slug: 'test',
+    modResults: {
+      path: 'samples/react-native/ios/AppDelegate.swift',
+      contents: swiftContents,
+      language: 'swift',
+    },
+  };
+}
