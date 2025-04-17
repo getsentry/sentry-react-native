@@ -14,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '1.39.0'
+  MAESTRO_VERSION: '1.40.00'
   IOS_DEVICE: 'iPhone 16'
   IOS_VERSION: '18.1'
 
