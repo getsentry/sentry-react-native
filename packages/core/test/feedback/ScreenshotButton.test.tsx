@@ -1,7 +1,7 @@
 import { getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
-import { Text } from 'react-native';
+import { Alert, Text } from 'react-native';
 
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
@@ -19,6 +19,8 @@ jest.mock('../../src/js/wrapper', () => ({
     encodeToBase64: jest.fn(),
   },
 }));
+
+jest.spyOn(Alert, 'alert');
 
 const mockScreenshot: Screenshot = {
   filename: 'test-screenshot.png',
@@ -188,10 +190,10 @@ describe('ScreenshotButton', () => {
     });
   });
 
-  it('when the capture fails the capture button is still visible', async () => {
+  it('when the capture fails an error message is shown', async () => {
     mockCaptureScreenshot.mockResolvedValue([]);
 
-    const { getByText, queryByText } = render(
+    const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
       </FeedbackWidgetProvider>
@@ -213,8 +215,7 @@ describe('ScreenshotButton', () => {
     });
 
     await waitFor(() => {
-      const captureButton = queryByText('Take Screenshot');
-      expect(captureButton).not.toBeNull();
+      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Error capturing screenshot. Please try again.');
     });
   });
 });

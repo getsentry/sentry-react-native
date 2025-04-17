@@ -160,6 +160,11 @@ export interface FeedbackTextConfiguration {
   emailError?: string;
 
   /**
+   * The error message when the capture screenshot fails
+   */
+  captureScreenshotError?: string;
+
+  /**
    * Message when there is a generic error
    */
   genericError?: string;
