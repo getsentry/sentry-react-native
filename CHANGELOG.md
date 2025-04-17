@@ -40,7 +40,7 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
 ### Major Changes
 
-- `ip addresses` is only collected when `sendDefaultPii`: `true`
+- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
 - Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
 - `shutdownTimeout` moved from `core` to `@sentry/react-native`
 - `hasTracingEnabled` was renamed to `hasSpansEnabled`
