@@ -126,6 +126,7 @@ Sentry.init({
         },
         namePlaceholder: 'Fullname',
       }),
+      Sentry.extraErrorDataIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
