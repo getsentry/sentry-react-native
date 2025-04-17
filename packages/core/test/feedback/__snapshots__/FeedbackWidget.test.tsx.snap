@@ -2,6 +2,7 @@
 
 exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
 <View
+  accessibilityElementsHidden={false}
   accessibilityState={
     {
       "busy": undefined,
@@ -11,7 +12,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       "selected": undefined,
     }
   }
-  accessible={true}
+  accessible={false}
   focusable={true}
   onClick={[Function]}
   onResponderGrant={[Function]}
@@ -53,6 +54,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -234,6 +236,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
 
 exports[`FeedbackWidget matches the snapshot with custom styles and screenshot button 1`] = `
 <View
+  accessibilityElementsHidden={false}
   accessibilityState={
     {
       "busy": undefined,
@@ -243,7 +246,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       "selected": undefined,
     }
   }
-  accessible={true}
+  accessible={false}
   focusable={true}
   onClick={[Function]}
   onResponderGrant={[Function]}
@@ -285,6 +288,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -523,6 +527,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
 
 exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
 <View
+  accessibilityElementsHidden={false}
   accessibilityState={
     {
       "busy": undefined,
@@ -532,7 +537,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
       "selected": undefined,
     }
   }
-  accessible={true}
+  accessible={false}
   focusable={true}
   onClick={[Function]}
   onResponderGrant={[Function]}
@@ -580,6 +585,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -786,6 +792,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
 
 exports[`FeedbackWidget matches the snapshot with custom texts and screenshot button 1`] = `
 <View
+  accessibilityElementsHidden={false}
   accessibilityState={
     {
       "busy": undefined,
@@ -795,7 +802,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
       "selected": undefined,
     }
   }
-  accessible={true}
+  accessible={false}
   focusable={true}
   onClick={[Function]}
   onResponderGrant={[Function]}
@@ -843,6 +850,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -1112,6 +1120,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
 
 exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
 <View
+  accessibilityElementsHidden={false}
   accessibilityState={
     {
       "busy": undefined,
@@ -1121,7 +1130,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
       "selected": undefined,
     }
   }
-  accessible={true}
+  accessible={false}
   focusable={true}
   onClick={[Function]}
   onResponderGrant={[Function]}
@@ -1169,6 +1178,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
@@ -1375,6 +1385,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
 
 exports[`FeedbackWidget matches the snapshot with default configuration and screenshot button 1`] = `
 <View
+  accessibilityElementsHidden={false}
   accessibilityState={
     {
       "busy": undefined,
@@ -1384,7 +1395,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
       "selected": undefined,
     }
   }
-  accessible={true}
+  accessible={false}
   focusable={true}
   onClick={[Function]}
   onResponderGrant={[Function]}
@@ -1432,6 +1443,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
       style={
         {
           "height": 40,
+          "tintColor": "rgba(54, 45, 89, 1)",
           "width": 40,
         }
       }
