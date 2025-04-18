@@ -748,10 +748,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                       "textAlign": "left",
                     }
                   }
+                  testID="form-title"
                 >
                   Report a Bug
                 </Text>
                 <Image
+                  accessibilityLabel="Sentry logo"
                   source={
                     {
                       "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
@@ -768,6 +770,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 />
               </View>
               <Text
+                accessibilityLabel="Name"
                 style={
                   {
                     "color": "#00ff00",
@@ -775,10 +778,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "marginBottom": 4,
                   }
                 }
+                testID="name-label"
               >
                 Name
               </Text>
               <TextInput
+                accessibilityLabel="Your Name"
                 onChangeText={[Function]}
                 placeholder="Your Name"
                 style={
@@ -793,9 +798,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="name-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Email"
                 style={
                   {
                     "color": "#00ff00",
@@ -803,10 +810,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "marginBottom": 4,
                   }
                 }
+                testID="email-label"
               >
                 Email
               </Text>
               <TextInput
+                accessibilityLabel="your.email@example.org"
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
@@ -822,9 +831,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="email-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Description"
                 style={
                   {
                     "color": "#00ff00",
@@ -832,11 +843,13 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "marginBottom": 4,
                   }
                 }
+                testID="message-label"
               >
                 Description
                  (required)
               </Text>
               <TextInput
+                accessibilityLabel="What's the bug? What did you expect?"
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
@@ -859,6 +872,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     },
                   ]
                 }
+                testID="message-input"
                 value=""
               />
               <View
@@ -901,12 +915,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 }
               >
                 <Text
+                  accessibilityLabel="Send Bug Report"
                   style={
                     {
                       "color": "#ffffff",
                       "fontSize": 18,
                     }
                   }
+                  testID="submit-button"
                 >
                   Send Bug Report
                 </Text>
@@ -952,12 +968,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 }
               >
                 <Text
+                  accessibilityLabel="Cancel"
                   style={
                     {
                       "color": "#00ff00",
                       "fontSize": 16,
                     }
                   }
+                  testID="cancel-button"
                 >
                   Cancel
                 </Text>
@@ -1096,10 +1114,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                       "textAlign": "left",
                     }
                   }
+                  testID="form-title"
                 >
                   Report a Bug
                 </Text>
                 <Image
+                  accessibilityLabel="Sentry logo"
                   source={
                     {
                       "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
@@ -1116,6 +1136,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 />
               </View>
               <Text
+                accessibilityLabel="Name"
                 style={
                   {
                     "color": "#ff0000",
@@ -1123,10 +1144,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "marginBottom": 4,
                   }
                 }
+                testID="name-label"
               >
                 Name
               </Text>
               <TextInput
+                accessibilityLabel="Your Name"
                 onChangeText={[Function]}
                 placeholder="Your Name"
                 style={
@@ -1141,9 +1164,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="name-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Email"
                 style={
                   {
                     "color": "#ff0000",
@@ -1151,10 +1176,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "marginBottom": 4,
                   }
                 }
+                testID="email-label"
               >
                 Email
               </Text>
               <TextInput
+                accessibilityLabel="your.email@example.org"
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
@@ -1170,9 +1197,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="email-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Description"
                 style={
                   {
                     "color": "#ff0000",
@@ -1180,11 +1209,13 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     "marginBottom": 4,
                   }
                 }
+                testID="message-label"
               >
                 Description
                  (required)
               </Text>
               <TextInput
+                accessibilityLabel="What's the bug? What did you expect?"
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
@@ -1207,6 +1238,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                     },
                   ]
                 }
+                testID="message-input"
                 value=""
               />
               <View
@@ -1249,12 +1281,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 }
               >
                 <Text
+                  accessibilityLabel="Send Bug Report"
                   style={
                     {
                       "color": "#ffffff",
                       "fontSize": 18,
                     }
                   }
+                  testID="submit-button"
                 >
                   Send Bug Report
                 </Text>
@@ -1300,12 +1334,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 }
               >
                 <Text
+                  accessibilityLabel="Cancel"
                   style={
                     {
                       "color": "#ff0000",
                       "fontSize": 16,
                     }
                   }
+                  testID="cancel-button"
                 >
                   Cancel
                 </Text>
@@ -1444,10 +1480,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                       "textAlign": "left",
                     }
                   }
+                  testID="form-title"
                 >
                   Report a Bug
                 </Text>
                 <Image
+                  accessibilityLabel="Sentry logo"
                   source={
                     {
                       "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
@@ -1464,6 +1502,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 />
               </View>
               <Text
+                accessibilityLabel="Name"
                 style={
                   {
                     "color": "#ebe6ef",
@@ -1471,10 +1510,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="name-label"
               >
                 Name
               </Text>
               <TextInput
+                accessibilityLabel="Your Name"
                 onChangeText={[Function]}
                 placeholder="Your Name"
                 style={
@@ -1489,9 +1530,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="name-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Email"
                 style={
                   {
                     "color": "#ebe6ef",
@@ -1499,10 +1542,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="email-label"
               >
                 Email
               </Text>
               <TextInput
+                accessibilityLabel="your.email@example.org"
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
@@ -1518,9 +1563,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="email-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Description"
                 style={
                   {
                     "color": "#ebe6ef",
@@ -1528,11 +1575,13 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="message-label"
               >
                 Description
                  (required)
               </Text>
               <TextInput
+                accessibilityLabel="What's the bug? What did you expect?"
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
@@ -1555,6 +1604,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     },
                   ]
                 }
+                testID="message-input"
                 value=""
               />
               <View
@@ -1597,12 +1647,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 }
               >
                 <Text
+                  accessibilityLabel="Send Bug Report"
                   style={
                     {
                       "color": "#ffffff",
                       "fontSize": 18,
                     }
                   }
+                  testID="submit-button"
                 >
                   Send Bug Report
                 </Text>
@@ -1648,12 +1700,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 }
               >
                 <Text
+                  accessibilityLabel="Cancel"
                   style={
                     {
                       "color": "#ebe6ef",
                       "fontSize": 16,
                     }
                   }
+                  testID="cancel-button"
                 >
                   Cancel
                 </Text>
@@ -1792,10 +1846,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                       "textAlign": "left",
                     }
                   }
+                  testID="form-title"
                 >
                   Report a Bug
                 </Text>
                 <Image
+                  accessibilityLabel="Sentry logo"
                   source={
                     {
                       "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
@@ -1812,6 +1868,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 />
               </View>
               <Text
+                accessibilityLabel="Name"
                 style={
                   {
                     "color": "#ebe6ef",
@@ -1819,10 +1876,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="name-label"
               >
                 Name
               </Text>
               <TextInput
+                accessibilityLabel="Your Name"
                 onChangeText={[Function]}
                 placeholder="Your Name"
                 style={
@@ -1837,9 +1896,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="name-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Email"
                 style={
                   {
                     "color": "#ebe6ef",
@@ -1847,10 +1908,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="email-label"
               >
                 Email
               </Text>
               <TextInput
+                accessibilityLabel="your.email@example.org"
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
@@ -1866,9 +1929,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="email-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Description"
                 style={
                   {
                     "color": "#ebe6ef",
@@ -1876,11 +1941,13 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="message-label"
               >
                 Description
                  (required)
               </Text>
               <TextInput
+                accessibilityLabel="What's the bug? What did you expect?"
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
@@ -1903,6 +1970,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     },
                   ]
                 }
+                testID="message-input"
                 value=""
               />
               <View
@@ -1945,12 +2013,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 }
               >
                 <Text
+                  accessibilityLabel="Send Bug Report"
                   style={
                     {
                       "color": "#ffffff",
                       "fontSize": 18,
                     }
                   }
+                  testID="submit-button"
                 >
                   Send Bug Report
                 </Text>
@@ -1996,12 +2066,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 }
               >
                 <Text
+                  accessibilityLabel="Cancel"
                   style={
                     {
                       "color": "#ebe6ef",
                       "fontSize": 16,
                     }
                   }
+                  testID="cancel-button"
                 >
                   Cancel
                 </Text>
@@ -2140,10 +2212,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                       "textAlign": "left",
                     }
                   }
+                  testID="form-title"
                 >
                   Report a Bug
                 </Text>
                 <Image
+                  accessibilityLabel="Sentry logo"
                   source={
                     {
                       "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
@@ -2160,6 +2234,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 />
               </View>
               <Text
+                accessibilityLabel="Name"
                 style={
                   {
                     "color": "#2b2233",
@@ -2167,10 +2242,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="name-label"
               >
                 Name
               </Text>
               <TextInput
+                accessibilityLabel="Your Name"
                 onChangeText={[Function]}
                 placeholder="Your Name"
                 style={
@@ -2185,9 +2262,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="name-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Email"
                 style={
                   {
                     "color": "#2b2233",
@@ -2195,10 +2274,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="email-label"
               >
                 Email
               </Text>
               <TextInput
+                accessibilityLabel="your.email@example.org"
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
@@ -2214,9 +2295,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="email-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Description"
                 style={
                   {
                     "color": "#2b2233",
@@ -2224,11 +2307,13 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     "marginBottom": 4,
                   }
                 }
+                testID="message-label"
               >
                 Description
                  (required)
               </Text>
               <TextInput
+                accessibilityLabel="What's the bug? What did you expect?"
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
@@ -2251,6 +2336,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                     },
                   ]
                 }
+                testID="message-input"
                 value=""
               />
               <View
@@ -2293,12 +2379,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 }
               >
                 <Text
+                  accessibilityLabel="Send Bug Report"
                   style={
                     {
                       "color": "#ffffff",
                       "fontSize": 18,
                     }
                   }
+                  testID="submit-button"
                 >
                   Send Bug Report
                 </Text>
@@ -2344,12 +2432,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 }
               >
                 <Text
+                  accessibilityLabel="Cancel"
                   style={
                     {
                       "color": "#2b2233",
                       "fontSize": 16,
                     }
                   }
+                  testID="cancel-button"
                 >
                   Cancel
                 </Text>
@@ -2488,10 +2578,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                       "textAlign": "left",
                     }
                   }
+                  testID="form-title"
                 >
                   Report a Bug
                 </Text>
                 <Image
+                  accessibilityLabel="Sentry logo"
                   source={
                     {
                       "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
@@ -2508,6 +2600,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 />
               </View>
               <Text
+                accessibilityLabel="Name"
                 style={
                   {
                     "color": "#00ff00",
@@ -2515,10 +2608,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "marginBottom": 4,
                   }
                 }
+                testID="name-label"
               >
                 Name
               </Text>
               <TextInput
+                accessibilityLabel="Your Name"
                 onChangeText={[Function]}
                 placeholder="Your Name"
                 style={
@@ -2533,9 +2628,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="name-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Email"
                 style={
                   {
                     "color": "#00ff00",
@@ -2543,10 +2640,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "marginBottom": 4,
                   }
                 }
+                testID="email-label"
               >
                 Email
               </Text>
               <TextInput
+                accessibilityLabel="your.email@example.org"
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
@@ -2562,9 +2661,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="email-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Description"
                 style={
                   {
                     "color": "#00ff00",
@@ -2572,11 +2673,13 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "marginBottom": 4,
                   }
                 }
+                testID="message-label"
               >
                 Description
                  (required)
               </Text>
               <TextInput
+                accessibilityLabel="What's the bug? What did you expect?"
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
@@ -2599,6 +2702,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     },
                   ]
                 }
+                testID="message-input"
                 value=""
               />
               <View
@@ -2641,12 +2745,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 }
               >
                 <Text
+                  accessibilityLabel="Send Bug Report"
                   style={
                     {
                       "color": "#ffffff",
                       "fontSize": 18,
                     }
                   }
+                  testID="submit-button"
                 >
                   Send Bug Report
                 </Text>
@@ -2692,12 +2798,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 }
               >
                 <Text
+                  accessibilityLabel="Cancel"
                   style={
                     {
                       "color": "#00ff00",
                       "fontSize": 16,
                     }
                   }
+                  testID="cancel-button"
                 >
                   Cancel
                 </Text>
@@ -2836,10 +2944,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                       "textAlign": "left",
                     }
                   }
+                  testID="form-title"
                 >
                   Report a Bug
                 </Text>
                 <Image
+                  accessibilityLabel="Sentry logo"
                   source={
                     {
                       "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
@@ -2856,6 +2966,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 />
               </View>
               <Text
+                accessibilityLabel="Name"
                 style={
                   {
                     "color": "#ff0000",
@@ -2863,10 +2974,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "marginBottom": 4,
                   }
                 }
+                testID="name-label"
               >
                 Name
               </Text>
               <TextInput
+                accessibilityLabel="Your Name"
                 onChangeText={[Function]}
                 placeholder="Your Name"
                 style={
@@ -2881,9 +2994,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="name-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Email"
                 style={
                   {
                     "color": "#ff0000",
@@ -2891,10 +3006,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "marginBottom": 4,
                   }
                 }
+                testID="email-label"
               >
                 Email
               </Text>
               <TextInput
+                accessibilityLabel="your.email@example.org"
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
@@ -2910,9 +3027,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "paddingHorizontal": 10,
                   }
                 }
+                testID="email-input"
                 value=""
               />
               <Text
+                accessibilityLabel="Description"
                 style={
                   {
                     "color": "#ff0000",
@@ -2920,11 +3039,13 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     "marginBottom": 4,
                   }
                 }
+                testID="message-label"
               >
                 Description
                  (required)
               </Text>
               <TextInput
+                accessibilityLabel="What's the bug? What did you expect?"
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
@@ -2947,6 +3068,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                     },
                   ]
                 }
+                testID="message-input"
                 value=""
               />
               <View
@@ -2989,12 +3111,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 }
               >
                 <Text
+                  accessibilityLabel="Send Bug Report"
                   style={
                     {
                       "color": "#ffffff",
                       "fontSize": 18,
                     }
                   }
+                  testID="submit-button"
                 >
                   Send Bug Report
                 </Text>
@@ -3040,12 +3164,14 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 }
               >
                 <Text
+                  accessibilityLabel="Cancel"
                   style={
                     {
                       "color": "#ff0000",
                       "fontSize": 16,
                     }
                   }
+                  testID="cancel-button"
                 >
                   Cancel
                 </Text>
