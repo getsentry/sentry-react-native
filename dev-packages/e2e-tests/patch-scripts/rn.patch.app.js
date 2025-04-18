@@ -32,9 +32,6 @@ Sentry.init({
   },
   integrations: [
     Sentry.mobileReplayIntegration(),
-    Sentry.feedbackIntegration({
-      enableTakeScreenshot: true,
-    }),
   ],
 });
 `;
