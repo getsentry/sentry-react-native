@@ -3,41 +3,7 @@ jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
 
-# Show feedback button
-- tapOn: 'Feedback'
-
-# Open feedback widget
-- tapOn: 'Report a Bug'
-
-# Assert that all feedback form is visible
-- extendedWaitUntil:
-    visible:
-      id: 'form-title'
-    timeout: 5_000
-
-# Fill out name field
-- tapOn:
-    id: 'name-input'
-- inputText: 'John Doe'
-
-# Fill out email field
-- tapOn:
-    id: 'email-input'
-- inputText: 'test@email.com'
-
-# Fill out message field
-- tapOn:
-    id: 'message-input'
-- inputText: 'This is a test feedback message from CI e2e tests'
-
-# Submit feedback
-- scrollUntilVisible:
-    element:
-      id: 'submit-button'
-- tapOn:
-    id: 'submit-button'
-- assertVisible: 'Thank you for your report!'
-- tapOn: 'OK'
-
-# Verify feedback form is closed and the home screen is visible
-- assertVisible: 'Welcome to React Native'
+- runFlow:
+    when:
+      visible: 'Engine: Hermes for RN 0.77.1' # Skipping for 0.65.3
+    file: feedback/happyFlow.yml
