@@ -21,7 +21,7 @@ function setup(): void {
   setExpoUpdatesNativeContext();
 }
 
-function setExpoUpdatesNativeContext() {
+function setExpoUpdatesNativeContext(): void {
   if (!isExpo() || isExpoGo()) {
     return;
   }
@@ -60,32 +60,32 @@ function getExpoUpdatesContext(): Record<string, unknown> {
   }
 
   const updatesContext: Record<string, unknown> = {
-    isEnabled: !!expoUpdates.isEnabled,
-    isEmbeddedLaunch: !!expoUpdates.isEmbeddedLaunch,
-    isEmergencyLaunch: !!expoUpdates.isEmergencyLaunch,
-    isUsingEmbeddedAssets: !!expoUpdates.isUsingEmbeddedAssets,
+    is_enabled: !!expoUpdates.isEnabled,
+    is_embedded_launch: !!expoUpdates.isEmbeddedLaunch,
+    is_emergency_launch: !!expoUpdates.isEmergencyLaunch,
+    is_using_embedded_assets: !!expoUpdates.isUsingEmbeddedAssets,
   };
 
   if (expoUpdates.updateId) {
-    updatesContext.updateId = expoUpdates.updateId;
+    updatesContext.update_id = expoUpdates.updateId;
   }
   if (expoUpdates.channel) {
     updatesContext.channel = expoUpdates.channel;
   }
   if (expoUpdates.runtimeVersion) {
-    updatesContext.runtimeVersion = expoUpdates.runtimeVersion;
+    updatesContext.runtime_version = expoUpdates.runtimeVersion;
   }
   if (expoUpdates.checkAutomatically) {
-    updatesContext.checkAutomatically = expoUpdates.checkAutomatically;
+    updatesContext.check_automatically = expoUpdates.checkAutomatically;
   }
   if (expoUpdates.emergencyLaunchReason) {
-    updatesContext.emergencyLaunchReason = expoUpdates.emergencyLaunchReason;
+    updatesContext.emergency_launch_reason = expoUpdates.emergencyLaunchReason;
   }
   if (expoUpdates.launchDuration) {
-    updatesContext.launchDuration = expoUpdates.launchDuration;
+    updatesContext.launch_duration = expoUpdates.launchDuration;
   }
   if (expoUpdates.createdAt) {
-    updatesContext.createdAt = expoUpdates.createdAt;
+    updatesContext.created_at = expoUpdates.createdAt;
   }
   return updatesContext;
 }
