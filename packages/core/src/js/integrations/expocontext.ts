@@ -1,4 +1,4 @@
-import type { DeviceContext, Event, Integration, OsContext } from '@sentry/core';
+import { logger, type DeviceContext, type Event, type Integration, type OsContext } from '@sentry/core';
 
 import { isExpo, isExpoGo } from '../utils/environment';
 import { getExpoDevice, getExpoUpdates } from '../utils/expomodules';
@@ -18,9 +18,22 @@ export const expoContextIntegration = (): Integration => {
 };
 
 function setup(): void {
+  setExpoUpdatesNativeContext();
+}
+
+function setExpoUpdatesNativeContext() {
+  if (!isExpo() || isExpoGo()) {
+    return;
+  }
+
   const expoUpdates = getExpoUpdatesContext();
-  // Ensures native errors and crashes have the same context as JS errors
-  NATIVE.setContext(CONTEXT_KEY, expoUpdates);
+
+  try {
+    // Ensures native errors and crashes have the same context as JS errors
+    NATIVE.setContext(CONTEXT_KEY, expoUpdates);
+  } catch (error) {
+    logger.error('Error setting Expo updates context:', error);
+  }
 }
 
 function processEvent(event: Event): Event {
