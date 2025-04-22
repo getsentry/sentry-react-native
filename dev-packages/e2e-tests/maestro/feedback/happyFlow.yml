@@ -10,7 +10,7 @@ jsEngine: graaljs
 # Open feedback widget
 - tapOn: 'Report a Bug'
 
-# Assert that all feedback form is visible
+# Assert that the feedback form is visible
 - extendedWaitUntil:
     visible:
       id: 'form-title'
