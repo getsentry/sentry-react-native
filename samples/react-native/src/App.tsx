@@ -16,6 +16,7 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
+import * as SentryCore from '@sentry/core';
 import { FeedbackWidget } from '@sentry/react-native';
 
 import ErrorsScreen from './Screens/ErrorsScreen';
@@ -81,6 +82,7 @@ Sentry.init({
   integrations(integrations) {
     integrations.push(
       reactNavigationIntegration,
+      SentryCore.captureConsoleIntegration(),
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeoutMs: 5_000,

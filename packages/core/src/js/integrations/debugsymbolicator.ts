@@ -33,6 +33,14 @@ export const debugSymbolicatorIntegration = (): Integration => {
 };
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
+  // event created by consoleIntegration, symbolicator can trigger those events.
+  // so we drop the event to avoid an infinite loop.
+  if (
+    event.extra?.['arguments'] &&
+    event.message?.startsWith("Assertion failed: 'this' is expected an Event object, but got")
+  ) {
+    return event;
+  }
   if (event.exception?.values && isErrorLike(hint.originalException)) {
     // originalException is ErrorLike object
     const errorGroup = getExceptionGroup(hint.originalException);

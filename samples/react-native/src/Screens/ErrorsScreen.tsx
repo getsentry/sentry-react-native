@@ -239,6 +239,26 @@ const ErrorsScreen = (_props: Props) => {
           />
         ) : null}
         <View style={styles.mainViewBottomWhiteSpace} />
+        <Button
+          title="Log console assert"
+          onPress={() => {
+            // Sample code from https://gitlab.cin.ufpe.br/vrs2/iot-trafficlight-final/-/blob/main/node_modules/event-target-shim/dist/event-target-shim.mjs?ref_type=heads#L40
+            // This code is used by Metro and the assert is triggered when interacting with Debug Symbolicator integration.
+            // When using consoleintegration and filtering assert, it could trigger an infinite loop where debug symbolicator
+            // triggers the console integration, then it creates an event, that again calls debug symbolicator and the loop restart.
+            function pd(event: string) {
+              // const retv = privateData.get(event);
+              const retv = null;
+              console.assert(
+                  retv != null,
+                  "'this' is expected an Event object, but got",
+                  event
+              );
+              return retv;
+          }
+            pd('<object>');
+          }}
+        />
       </ScrollView>
     </>
   );

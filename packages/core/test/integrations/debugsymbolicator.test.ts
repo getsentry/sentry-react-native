@@ -9,6 +9,7 @@ import {
   parseErrorStack,
   symbolicateStackTrace,
 } from '../../src/js/integrations/debugsymbolicatorutils';
+import * as ErrorUtils from '../../src/js/utils/error';
 import type * as ReactNative from '../../src/js/vendor/react-native';
 
 async function processEvent(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
@@ -363,6 +364,63 @@ describe('Debug Symbolicator Integration', () => {
           ],
         },
       });
+    });
+
+    it('skips metro events created by Sentry console integration', async () => {
+      const spy = jest.spyOn(ErrorUtils, 'isErrorLike').mockImplementation(() => {
+        throw new Error('only first if condition should be called');
+      });
+
+      const symbolicatedEvent = await processEvent(
+        {
+          exception: {
+            values: [],
+          },
+          extra: {
+            arguments: [false, "'this' is expected an Event object, but got", '<object>'],
+          },
+          message: "Assertion failed: 'this' is expected an Event object, but got",
+        },
+        {},
+      );
+
+      expect(symbolicatedEvent).toStrictEqual(<Event>{
+        exception: {
+          values: [],
+        },
+        extra: {
+          arguments: [false, "'this' is expected an Event object, but got", '<object>'],
+        },
+        message: "Assertion failed: 'this' is expected an Event object, but got",
+      });
+
+      // This is the second if condition after the tested element, it is here to make sure the returned code
+      // came from the console filter.
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('do not skip events similar to metro events created by Sentry console integration', async () => {
+      const spy = jest.spyOn(ErrorUtils, 'isErrorLike').mockImplementation(() => {
+        throw new Error('second if condition called.');
+      });
+
+      try {
+        await processEvent(
+          {
+            exception: {
+              values: [],
+            },
+            message: "Assertion failed: 'this' is expected an Event object, but got",
+          },
+          {},
+        );
+      } catch (err: Error | unknown) {
+        expect((err as Error).message).toBe('second if condition called.');
+      } finally {
+        expect(spy).toHaveBeenCalled();
+        spy.mockRestore();
+      }
     });
 
     it('should symbolicate error with cause ', async () => {
