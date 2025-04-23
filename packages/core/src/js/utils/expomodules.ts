@@ -16,7 +16,7 @@ export function getExpoDevice(): ExpoDevice | undefined {
 }
 
 /**
- *
+ * Returns the Expo Updates module if present
  */
 export function getExpoUpdates(): ExpoUpdates | undefined {
   return RN_GLOBAL_OBJ.expo?.modules?.ExpoUpdates ?? undefined;

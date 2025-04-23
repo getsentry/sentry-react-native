@@ -1,4 +1,4 @@
-import { logger, type DeviceContext, type Event, type Integration, type OsContext } from '@sentry/core';
+import { type DeviceContext, type Event, type Integration, type OsContext, logger } from '@sentry/core';
 
 import { isExpo, isExpoGo } from '../utils/environment';
 import { getExpoDevice, getExpoUpdates } from '../utils/expomodules';
@@ -6,7 +6,7 @@ import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'ExpoContext';
 
-const CONTEXT_KEY = 'expo_updates';
+export const EXPO_UPDATES_CONTEXT_KEY = 'expo_updates';
 
 /** Load device context from expo modules. */
 export const expoContextIntegration = (): Integration => {
@@ -30,7 +30,7 @@ function setExpoUpdatesNativeContext(): void {
 
   try {
     // Ensures native errors and crashes have the same context as JS errors
-    NATIVE.setContext(CONTEXT_KEY, expoUpdates);
+    NATIVE.setContext(EXPO_UPDATES_CONTEXT_KEY, expoUpdates);
   } catch (error) {
     logger.error('Error setting Expo updates context:', error);
   }
@@ -48,44 +48,44 @@ function processEvent(event: Event): Event {
 
 function addExpoUpdatesContext(event: Event): void {
   event.contexts = event.contexts || {};
-  event.contexts[CONTEXT_KEY] = getExpoUpdatesContext();
+  event.contexts[EXPO_UPDATES_CONTEXT_KEY] = getExpoUpdatesContext();
 }
 
-function getExpoUpdatesContext(): Record<string, unknown> {
+function getExpoUpdatesContext(): ExpoUpdatesContext {
   const expoUpdates = getExpoUpdates();
   if (!expoUpdates) {
     return {
-      isEnabled: false,
+      is_enabled: false,
     };
   }
 
-  const updatesContext: Record<string, unknown> = {
+  const updatesContext: ExpoUpdatesContext = {
     is_enabled: !!expoUpdates.isEnabled,
     is_embedded_launch: !!expoUpdates.isEmbeddedLaunch,
     is_emergency_launch: !!expoUpdates.isEmergencyLaunch,
     is_using_embedded_assets: !!expoUpdates.isUsingEmbeddedAssets,
   };
 
-  if (expoUpdates.updateId) {
+  if (typeof expoUpdates.updateId === 'string') {
     updatesContext.update_id = expoUpdates.updateId;
   }
-  if (expoUpdates.channel) {
+  if (typeof expoUpdates.channel === 'string') {
     updatesContext.channel = expoUpdates.channel;
   }
-  if (expoUpdates.runtimeVersion) {
+  if (typeof expoUpdates.runtimeVersion === 'string') {
     updatesContext.runtime_version = expoUpdates.runtimeVersion;
   }
-  if (expoUpdates.checkAutomatically) {
+  if (typeof expoUpdates.checkAutomatically === 'string') {
     updatesContext.check_automatically = expoUpdates.checkAutomatically;
   }
-  if (expoUpdates.emergencyLaunchReason) {
+  if (typeof expoUpdates.emergencyLaunchReason === 'string') {
     updatesContext.emergency_launch_reason = expoUpdates.emergencyLaunchReason;
   }
-  if (expoUpdates.launchDuration) {
+  if (typeof expoUpdates.launchDuration === 'number') {
     updatesContext.launch_duration = expoUpdates.launchDuration;
   }
-  if (expoUpdates.createdAt) {
-    updatesContext.created_at = expoUpdates.createdAt;
+  if (expoUpdates.createdAt instanceof Date) {
+    updatesContext.created_at = expoUpdates.createdAt.toISOString();
   }
   return updatesContext;
 }
@@ -143,3 +143,17 @@ function getExpoOsContext(): OsContext | undefined {
     name: expoDevice.osName,
   };
 }
+
+type ExpoUpdatesContext = Partial<{
+  is_enabled: boolean;
+  is_embedded_launch: boolean;
+  is_emergency_launch: boolean;
+  is_using_embedded_assets: boolean;
+  update_id: string;
+  channel: string;
+  runtime_version: string;
+  check_automatically: string;
+  emergency_launch_reason: string;
+  launch_duration: number;
+  created_at: string;
+}>;
