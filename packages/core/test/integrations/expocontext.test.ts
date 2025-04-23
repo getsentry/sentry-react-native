@@ -18,8 +18,8 @@ describe('Expo Context Integration', () => {
       jest.spyOn(environment, 'isExpo').mockReturnValue(false);
     });
 
-    it('does not add expo updates context', async () => {
-      const actualEvent = await executeIntegrationFor({});
+    it('does not add expo updates context', () => {
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toBeUndefined();
     });
@@ -31,20 +31,20 @@ describe('Expo Context Integration', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
     });
 
-    it('adds isEnabled false if ExpoUpdates module is missing', async () => {
+    it('adds isEnabled false if ExpoUpdates module is missing', () => {
       jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue(undefined);
 
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: false,
       });
     });
 
-    it('adds all bool constants if ExpoUpdate module is empty', async () => {
+    it('adds all bool constants if ExpoUpdate module is empty', () => {
       jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({});
 
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: false,
@@ -54,7 +54,7 @@ describe('Expo Context Integration', () => {
       });
     });
 
-    it('adds all non bool constants', async () => {
+    it('adds all non bool constants', () => {
       jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
         updateId: '123',
         channel: 'default',
@@ -65,7 +65,7 @@ describe('Expo Context Integration', () => {
         createdAt: new Date('2021-01-01T00:00:00.000Z'),
       });
 
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toEqual({
         is_enabled: false,
@@ -82,7 +82,7 @@ describe('Expo Context Integration', () => {
       });
     });
 
-    it('avoids adding values of unexpected types', async () => {
+    it('avoids adding values of unexpected types', () => {
       jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
         updateId: {},
         channel: {},
@@ -93,7 +93,7 @@ describe('Expo Context Integration', () => {
         createdAt: {},
       } as unknown as ExpoUpdates);
 
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: false,
@@ -110,7 +110,7 @@ describe('Expo Context Integration', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
     });
 
-    it('does add expo updates context', async () => {
+    it('does add expo updates context', () => {
       jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
         isEnabled: true,
         isEmbeddedLaunch: false,
@@ -119,7 +119,7 @@ describe('Expo Context Integration', () => {
         runtimeVersion: '1.0.0',
       });
 
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: true,
@@ -132,21 +132,21 @@ describe('Expo Context Integration', () => {
       });
     });
 
-    it('does not add device context because expo device module is not available', async () => {
+    it('does not add device context because expo device module is not available', () => {
       (getExpoDevice as jest.Mock).mockReturnValue(undefined);
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.device).toBeUndefined();
     });
 
-    it('does not add os context because expo device module is not available', async () => {
+    it('does not add os context because expo device module is not available', () => {
       (getExpoDevice as jest.Mock).mockReturnValue(undefined);
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.os).toBeUndefined();
     });
 
-    it('adds expo device context', async () => {
+    it('adds expo device context', () => {
       (getExpoDevice as jest.Mock).mockReturnValue({
         deviceName: 'test device name',
         isDevice: true,
@@ -154,7 +154,7 @@ describe('Expo Context Integration', () => {
         manufacturer: 'test manufacturer',
         totalMemory: 1000,
       });
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.device).toStrictEqual({
         name: 'test device name',
@@ -165,13 +165,13 @@ describe('Expo Context Integration', () => {
       });
     });
 
-    it('adds expo os context', async () => {
+    it('adds expo os context', () => {
       (getExpoDevice as jest.Mock).mockReturnValue({
         osName: 'test os name',
         osBuildId: 'test os build id',
         osVersion: 'test os version',
       });
-      const actualEvent = await executeIntegrationFor({});
+      const actualEvent = executeIntegrationFor({});
 
       expect(actualEvent.contexts?.os).toStrictEqual({
         name: 'test os name',
@@ -180,7 +180,7 @@ describe('Expo Context Integration', () => {
       });
     });
 
-    it('merge existing event device context with expo', async () => {
+    it('merge existing event device context with expo', () => {
       (getExpoDevice as jest.Mock).mockReturnValue({
         deviceName: 'test device name',
         simulator: true,
@@ -188,7 +188,7 @@ describe('Expo Context Integration', () => {
         manufacturer: 'test manufacturer',
         totalMemory: 1000,
       });
-      const actualEvent = await executeIntegrationFor({
+      const actualEvent = executeIntegrationFor({
         contexts: {
           device: {
             name: 'existing device name',
@@ -205,13 +205,13 @@ describe('Expo Context Integration', () => {
       });
     });
 
-    it('merge existing  event os context with expo', async () => {
+    it('merge existing  event os context with expo', () => {
       (getExpoDevice as jest.Mock).mockReturnValue({
         osName: 'test os name',
         osBuildId: 'test os build id',
         osVersion: 'test os version',
       });
-      const actualEvent = await executeIntegrationFor({
+      const actualEvent = executeIntegrationFor({
         contexts: {
           os: {
             name: 'existing os name',
