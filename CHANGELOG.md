@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- App slowdown when using Sentry console Integration and filtering by `assert`  ([#4770](https://github.com/getsentry/sentry-react-native/pull/4770))
 - Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
 - Prevent crash on iOS during profiling stop when debug images are missing ([#4738](https://github.com/getsentry/sentry-react-native/pull/4738))
 - Attach only App Starts within the 60s threshold (fixed comparison units, use ms) ([#4746](https://github.com/getsentry/sentry-react-native/pull/4746))
