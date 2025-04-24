@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - antonis/chore-maestro-bump-script # temporary branch to test Maestro bump script
 
 jobs:
   android:
