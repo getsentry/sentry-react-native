@@ -15,6 +15,9 @@ files=(
 # Regex to match lines like: MAESTRO_VERSION: '1.40.0'
 regex="MAESTRO_VERSION: ['\"]([0-9]+\.[0-9]+\.[0-9]+)['\"]"
 
+# maestro has a prefix in the repo, but we want to remove it for the version in the yml files
+tagPrefix='v'
+
 first_match=""
 
 for file in "${files[@]}"; do
@@ -49,6 +52,10 @@ set-version)
     exit 1
   fi
   new_version=$2
+  # remove $tagPrefix from the $version by skipping the first `strlen($tagPrefix)` characters
+  if [[ "$new_version" == "$tagPrefix"* ]]; then
+      new_version="${new_version:${#tagPrefix}}"
+  fi
   for file in "${files[@]}"; do
     updated=false
     tmpfile=$(mktemp)
