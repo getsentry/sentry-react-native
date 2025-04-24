@@ -16,11 +16,53 @@
 
 ### Fixes
 
+- Export `extraErrorDataIntegration` from `@sentry/core` ([#4762](https://github.com/getsentry/sentry-react-native/pull/4762))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.49.0 to v8.49.1 ([#4771](https://github.com/getsentry/sentry-react-native/pull/4771))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8491)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.0...8.49.1)
+
+## 6.11.0
+
+### Features
+
+- Improve Warm App Start reporting on Android ([#4641](https://github.com/getsentry/sentry-react-native/pull/4641), [#4695](https://github.com/getsentry/sentry-react-native/pull/4695))
+- Add `createTimeToInitialDisplay({useFocusEffect})` and `createTimeToFullDisplay({useFocusEffect})` to allow record full display on screen focus ([#4665](https://github.com/getsentry/sentry-react-native/pull/4665))
+- Add support for measuring Time to Initial Display for already seen routes ([#4661](https://github.com/getsentry/sentry-react-native/pull/4661))
+  - Introduce `enableTimeToInitialDisplayForPreloadedRoutes` option to the React Navigation integration.
+
+  ```js
+  Sentry.reactNavigationIntegration({
+    enableTimeToInitialDisplayForPreloadedRoutes: true,
+  });
+  ```
+
+- Add `useDispatchedActionData` option to the React Navigation integration to filter out navigation actions that should not create spans ([#4684](https://github.com/getsentry/sentry-react-native/pull/4684))
+  - For example `PRELOAD`, `SET_PARAMS`, `TOGGLE_DRAWER` and others.
+
+  ```js
+  Sentry.reactNavigationIntegration({
+    useDispatchedActionData: true,
+  });
+  ```
+
+### Fixes
+
+- Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
+- Avoid loading Sentry native components in Expo Go ([#4696](https://github.com/getsentry/sentry-react-native/pull/4696))
 - Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
 - Prevent crash on iOS during profiling stop when debug images are missing ([#4738](https://github.com/getsentry/sentry-react-native/pull/4738))
 - Attach only App Starts within the 60s threshold (fixed comparison units, use ms) ([#4746](https://github.com/getsentry/sentry-react-native/pull/4746))
 - Add missing `popTimeToDisplayFor` in to the Android Old Arch Native interface([#4751](https://github.com/getsentry/sentry-react-native/pull/4751))
+
+### Changes
+
+- Change `gradle.projectsEvaluated` to `project.afterEvaluate` in the Sentry Gradle Plugin to fix tasks not being created when using `--configure-on-demand` ([#4687](https://github.com/getsentry/sentry-react-native/pull/4687))
+- Remove `SENTRY_FORCE_FOREGROUND` from Xcode Scripts as the underlying `--force-foreground` Sentry CLI is no-op since v2.37.0 ([#4689](https://github.com/getsentry/sentry-react-native/pull/4689))
+- TTID and TTFD use native getters instead od events to pass timestamps to the JS layer ([#4669](https://github.com/getsentry/sentry-react-native/pull/4669), [#4681](https://github.com/getsentry/sentry-react-native/pull/4681))
 
 ### Dependencies
 
