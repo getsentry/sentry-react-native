@@ -31,6 +31,26 @@ describe('Expo Context Integration', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
     });
 
+    it('only calls getExpoUpdates once', () => {
+      const getExpoUpdatesMock = jest.spyOn(expoModules, 'getExpoUpdates');
+
+      const integration = expoContextIntegration();
+      integration.processEvent!({}, {}, {} as Client);
+      integration.processEvent!({}, {}, {} as Client);
+
+      expect(getExpoUpdatesMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('added context does not share the same reference', async () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({});
+
+      const integration = expoContextIntegration();
+      const event1 = await integration.processEvent!({}, {}, {} as Client);
+      const event2 = await integration.processEvent!({}, {}, {} as Client);
+
+      expect(event1.contexts![EXPO_UPDATES_CONTEXT_KEY]).not.toBe(event2.contexts![EXPO_UPDATES_CONTEXT_KEY]);
+    });
+
     it('adds isEnabled false if ExpoUpdates module is missing', () => {
       jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue(undefined);
 

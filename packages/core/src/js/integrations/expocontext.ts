@@ -10,46 +10,58 @@ export const EXPO_UPDATES_CONTEXT_KEY = 'expo_updates';
 
 /** Load device context from expo modules. */
 export const expoContextIntegration = (): Integration => {
+  let _expoUpdatesContextCached: ExpoUpdatesContext | undefined;
+
+  function setup(): void {
+    setExpoUpdatesNativeContext();
+  }
+
+  function setExpoUpdatesNativeContext(): void {
+    if (!isExpo() || isExpoGo()) {
+      return;
+    }
+
+    const expoUpdates = getExpoUpdatesContextCached();
+
+    try {
+      // Ensures native errors and crashes have the same context as JS errors
+      NATIVE.setContext(EXPO_UPDATES_CONTEXT_KEY, expoUpdates);
+    } catch (error) {
+      logger.error('Error setting Expo updates context:', error);
+    }
+  }
+
+  function processEvent(event: Event): Event {
+    if (!isExpo()) {
+      return event;
+    }
+
+    addExpoGoContext(event);
+    addExpoUpdatesContext(event);
+    return event;
+  }
+
+  function addExpoUpdatesContext(event: Event): void {
+    event.contexts = event.contexts || {};
+    event.contexts[EXPO_UPDATES_CONTEXT_KEY] = {
+      ...getExpoUpdatesContextCached(),
+    };
+  }
+
+  function getExpoUpdatesContextCached(): ExpoUpdatesContext {
+    if (_expoUpdatesContextCached) {
+      return _expoUpdatesContextCached;
+    }
+
+    return (_expoUpdatesContextCached = getExpoUpdatesContext());
+  }
+
   return {
     name: INTEGRATION_NAME,
     setup,
     processEvent,
   };
 };
-
-function setup(): void {
-  setExpoUpdatesNativeContext();
-}
-
-function setExpoUpdatesNativeContext(): void {
-  if (!isExpo() || isExpoGo()) {
-    return;
-  }
-
-  const expoUpdates = getExpoUpdatesContext();
-
-  try {
-    // Ensures native errors and crashes have the same context as JS errors
-    NATIVE.setContext(EXPO_UPDATES_CONTEXT_KEY, expoUpdates);
-  } catch (error) {
-    logger.error('Error setting Expo updates context:', error);
-  }
-}
-
-function processEvent(event: Event): Event {
-  if (!isExpo()) {
-    return event;
-  }
-
-  addExpoGoContext(event);
-  addExpoUpdatesContext(event);
-  return event;
-}
-
-function addExpoUpdatesContext(event: Event): void {
-  event.contexts = event.contexts || {};
-  event.contexts[EXPO_UPDATES_CONTEXT_KEY] = getExpoUpdatesContext();
-}
 
 function getExpoUpdatesContext(): ExpoUpdatesContext {
   const expoUpdates = getExpoUpdates();
