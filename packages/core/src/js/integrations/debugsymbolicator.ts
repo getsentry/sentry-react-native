@@ -1,5 +1,5 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { consoleSandbox, logger } from '@sentry/core';
 
 import type { ExtendedError } from '../utils/error';
 import { getFramesToPop, isErrorLike } from '../utils/error';
@@ -33,8 +33,11 @@ export const debugSymbolicatorIntegration = (): Integration => {
 };
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
+  return consoleSandbox(async () => {
   // event created by consoleIntegration, symbolicator can trigger those events.
-  // so we drop the event to avoid an infinite loop.
+    // so we drop the event to avoid an infinite loop.
+    // @ts-ignore lets ignore for now
+    console.assert(false, ' deadlock test');
   if (
     event.extra?.['arguments'] &&
     event.message?.startsWith("Assertion failed: 'this' is expected an Event object, but got")
@@ -66,7 +69,8 @@ async function processEvent(event: Event, hint: EventHint): Promise<Event> {
     }
   }
 
-  return event;
+    return event;
+  });
 }
 
 /**
