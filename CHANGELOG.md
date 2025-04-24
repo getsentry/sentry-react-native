@@ -17,6 +17,9 @@
 - Bump Cocoa SDK from v8.49.0 to v8.49.1 ([#4771](https://github.com/getsentry/sentry-react-native/pull/4771))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8491)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.0...8.49.1)
+- Bump Maestro from v1.39.0 to v1.40.0 ([#4778](https://github.com/getsentry/sentry-react-native/pull/4778))
+  - [changelog](https://github.com/mobile-dev-inc/Maestro/blob/main/CHANGELOG.md#v1400)
+  - [diff](https://github.com/mobile-dev-inc/Maestro/compare/1.39.0...v1.40.0)
 
 ## 6.11.0
 
