@@ -83,5 +83,6 @@ jobs:
       name: Maestro
       pattern: '^v[0-9.]+$' # only match non-preview versions
       pr-strategy: update
+      changelog-entry: false
     secrets:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
