@@ -81,6 +81,7 @@ jobs:
     with:
       path: scripts/update-maestro.sh
       name: Maestro
+      pattern: '^v[0-9.]+$' # only match non-preview versions
       pr-strategy: update
     secrets:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
