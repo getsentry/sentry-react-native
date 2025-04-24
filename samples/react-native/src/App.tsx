@@ -142,6 +142,7 @@ Sentry.init({
           },
         },
       }),
+      Sentry.extraErrorDataIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
