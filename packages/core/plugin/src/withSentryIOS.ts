@@ -107,7 +107,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         `$1\n    RNSentrySDK.start()`,
       );
       if (config.modResults.contents === originalContents) {
-        warnOnce(`Failed to insert 'RNSentrySDK.start()' in '${fileName}.`);
+        warnOnce(`Failed to insert 'RNSentrySDK.start()' in '${fileName}'.`);
       } else if (!config.modResults.contents.includes('import RNSentry')) {
         // Insert import statement after UIKit import
         config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
