@@ -259,6 +259,7 @@ const ErrorsScreen = (_props: Props) => {
             pd('<object>');
           }}
         />
+        <View style={styles.mainViewBottomWhiteSpace} />
       </ScrollView>
     </>
   );
