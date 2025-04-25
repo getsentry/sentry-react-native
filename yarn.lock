@@ -8426,7 +8426,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@6.11.0-beta.0, @sentry/react-native@workspace:packages/core":
+"@sentry/react-native@6.11.0, @sentry/react-native@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
@@ -8444,7 +8444,7 @@ __metadata:
     "@sentry/react": 8.54.0
     "@sentry/types": 8.54.0
     "@sentry/utils": 8.54.0
-    "@sentry/wizard": 4.7.0
+    "@sentry/wizard": 4.8.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -8537,9 +8537,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:4.7.0":
-  version: 4.7.0
-  resolution: "@sentry/wizard@npm:4.7.0"
+"@sentry/wizard@npm:4.8.0":
+  version: 4.8.0
+  resolution: "@sentry/wizard@npm:4.8.0"
   dependencies:
     "@clack/core": ^0.3.4
     "@clack/prompts": 0.7.0
@@ -8558,7 +8558,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 15cd38989b87e2ca1bf12406521699d3e110281278734bc2d22032e7131a1cbd21790610769b32e763e708152dc7f961329165b5373ed2330fe8fbe23cc38233
+  checksum: af6ac3cc77901ec1048a101de23d01ee7ac1a021a2f9000f052a68218724b3ae63d1dfd073b2634c6e9c00294094d4ebe12c94380dc9a0302f359d6bd4c938b9
   languageName: node
   linkType: hard
 
@@ -10110,7 +10110,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
-    "@sentry/react-native": 6.11.0-beta.0
+    "@sentry/react-native": 6.11.0
     metro-react-native-babel-preset: ^0.72.3
     react: 18.1.0
     react-native: 0.70.15
@@ -25090,7 +25090,7 @@ __metadata:
     "@babel/preset-env": ^7.25.3
     "@babel/preset-typescript": ^7.18.6
     "@sentry/core": 8.54.0
-    "@sentry/react-native": 6.11.0-beta.0
+    "@sentry/react-native": 6.11.0
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
     appium: 2.4.1
@@ -25119,7 +25119,7 @@ __metadata:
     "@babel/core": ^7.26.0
     "@babel/preset-env": ^7.26.0
     "@sentry/babel-plugin-component-annotate": 3.3.1
-    "@sentry/react-native": 6.11.0-beta.0
+    "@sentry/react-native": 6.11.0
     "@types/node": 20.10.4
     "@types/react": ~18.3.12
     expo: ~52.0.42
@@ -25158,7 +25158,7 @@ __metadata:
     "@react-navigation/stack": ^6.3.20
     "@sentry/core": 8.54.0
     "@sentry/react": 8.54.0
-    "@sentry/react-native": 6.11.0-beta.0
+    "@sentry/react-native": 6.11.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
     "@types/react-test-renderer": ^18.0.0
@@ -25205,7 +25205,7 @@ __metadata:
     "@react-navigation/stack": ^7.1.1
     "@sentry/babel-plugin-component-annotate": 3.3.1
     "@sentry/core": 8.54.0
-    "@sentry/react-native": 6.11.0-beta.0
+    "@sentry/react-native": 6.11.0
     "@shopify/flash-list": ^1.7.3
     "@types/jest": ^29.5.14
     "@types/node": ^22.13.1
