@@ -82,6 +82,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with cus
           "fontSize": 18,
         }
       }
+      testID="feedback-button"
     >
       Report a Bug
     </Text>
@@ -171,6 +172,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with cus
           "fontSize": 18,
         }
       }
+      testID="feedback-button"
     >
       Report a Bug
     </Text>
@@ -260,6 +262,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with def
           "fontSize": 18,
         }
       }
+      testID="feedback-button"
     >
       Report a Bug
     </Text>
@@ -349,6 +352,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with def
           "fontSize": 18,
         }
       }
+      testID="feedback-button"
     >
       Report a Bug
     </Text>
@@ -438,6 +442,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with def
           "fontSize": 18,
         }
       }
+      testID="feedback-button"
     >
       Report a Bug
     </Text>
@@ -527,6 +532,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with sys
           "fontSize": 18,
         }
       }
+      testID="feedback-button"
     >
       Report a Bug
     </Text>
@@ -616,6 +622,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with sys
           "fontSize": 18,
         }
       }
+      testID="feedback-button"
     >
       Report a Bug
     </Text>
