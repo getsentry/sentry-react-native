@@ -17,6 +17,7 @@
 
 - Export `extraErrorDataIntegration` from `@sentry/core` ([#4762](https://github.com/getsentry/sentry-react-native/pull/4762))
 - Remove `@sentry-internal/replay` when `includeWebReplay: false` ([#4774](https://github.com/getsentry/sentry-react-native/pull/4774))
+- Initialize Sentry Android with ApplicationContext if available ([#4779](https://github.com/getsentry/sentry-react-native/pull/4779))
 
 ### Dependencies
 
