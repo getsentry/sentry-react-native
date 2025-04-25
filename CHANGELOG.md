@@ -10,6 +10,8 @@
 
 ### Features
 
+- Add Expo Updates Event Context ([#4767](https://github.com/getsentry/sentry-react-native/pull/4767))
+  - Automatically collects `updateId`, `channel`, Emergency Launch Reason and other Expo Updates constants
 - Adds the `FeedbackButton` component that shows the Feedback Widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
 - Add Feedback Widget theming ([#4677](https://github.com/getsentry/sentry-react-native/pull/4677))
 - Adds the `ScreenshotButton` component that takes a screenshot ([#4714](https://github.com/getsentry/sentry-react-native/issues/4714))
@@ -17,6 +19,7 @@
 ### Fixes
 
 - Export `extraErrorDataIntegration` from `@sentry/core` ([#4762](https://github.com/getsentry/sentry-react-native/pull/4762))
+- Remove `@sentry-internal/replay` when `includeWebReplay: false` ([#4774](https://github.com/getsentry/sentry-react-native/pull/4774))
 
 ### Dependencies
 

@@ -44,9 +44,31 @@ export interface ExpoDevice {
   totalMemory?: number;
 }
 
+/**
+ * Interface from the Expo SDK defined here
+ * (we are describing the native module
+ * the TS typing is only guideline)
+ *
+ * https://github.com/expo/expo/blob/8b7165ad2c6751c741f588c72dac50fb3a814dcc/packages/expo-updates/src/Updates.ts
+ */
+export interface ExpoUpdates {
+  isEnabled?: boolean;
+  updateId?: string | null;
+  channel?: string | null;
+  runtimeVersion?: string | null;
+  checkAutomatically?: string | null;
+  isEmergencyLaunch?: boolean;
+  emergencyLaunchReason?: string | null;
+  launchDuration?: number | null;
+  isEmbeddedLaunch?: boolean;
+  isUsingEmbeddedAssets?: boolean;
+  createdAt?: Date | null;
+}
+
 export interface ExpoGlobalObject {
   modules?: {
     ExponentConstants?: ExpoConstants;
     ExpoDevice?: ExpoDevice;
+    ExpoUpdates?: ExpoUpdates;
   };
 }
