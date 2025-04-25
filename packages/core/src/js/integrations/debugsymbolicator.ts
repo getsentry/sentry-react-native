@@ -33,17 +33,6 @@ export const debugSymbolicatorIntegration = (): Integration => {
 };
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
-  return consoleSandbox(async () => {
-  // event created by consoleIntegration, symbolicator can trigger those events.
-    // so we drop the event to avoid an infinite loop.
-    // @ts-ignore lets ignore for now
-    console.assert(false, ' deadlock test');
-  if (
-    event.extra?.['arguments'] &&
-    event.message?.startsWith("Assertion failed: 'this' is expected an Event object, but got")
-  ) {
-    return event;
-  }
   if (event.exception?.values && isErrorLike(hint.originalException)) {
     // originalException is ErrorLike object
     const errorGroup = getExceptionGroup(hint.originalException);
@@ -69,8 +58,7 @@ async function processEvent(event: Event, hint: EventHint): Promise<Event> {
     }
   }
 
-    return event;
-  });
+  return event;
 }
 
 /**
@@ -81,7 +69,9 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
   try {
     const parsedStack = parseErrorStack(rawStack);
 
-    const prettyStack = await symbolicateStackTrace(parsedStack);
+    // Avoid capturing console logs as events when calling symbolicateStackTrace to avoid infinite loops.
+    // See file `debugsymbolicator.consoleissue.txt` for a sample stack-trace with this problem.
+    const prettyStack = await consoleSandbox(async () => symbolicateStackTrace(parsedStack));
     if (!prettyStack) {
       logger.error('React Native DevServer could not symbolicate the stack trace.');
       return null;

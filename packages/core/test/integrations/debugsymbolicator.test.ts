@@ -1,6 +1,13 @@
 jest.mock('../../src/js/integrations/debugsymbolicatorutils');
 
-import type { Client, Event, EventHint, StackFrame } from '@sentry/core';
+import {
+  type Client,
+  type Event,
+  type EventHint,
+  type StackFrame,
+  captureConsoleIntegration,
+  setCurrentClient,
+} from '@sentry/core';
 
 import { debugSymbolicatorIntegration } from '../../src/js/integrations/debugsymbolicator';
 import {
@@ -9,8 +16,8 @@ import {
   parseErrorStack,
   symbolicateStackTrace,
 } from '../../src/js/integrations/debugsymbolicatorutils';
-import * as ErrorUtils from '../../src/js/utils/error';
 import type * as ReactNative from '../../src/js/vendor/react-native';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 async function processEvent(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
   return debugSymbolicatorIntegration().processEvent!(mockedEvent, mockedHint, {} as Client);
@@ -364,63 +371,6 @@ describe('Debug Symbolicator Integration', () => {
           ],
         },
       });
-    });
-
-    it('skips metro events created by Sentry console integration', async () => {
-      const spy = jest.spyOn(ErrorUtils, 'isErrorLike').mockImplementation(() => {
-        throw new Error('only first if condition should be called');
-      });
-
-      const symbolicatedEvent = await processEvent(
-        {
-          exception: {
-            values: [],
-          },
-          extra: {
-            arguments: [false, "'this' is expected an Event object, but got", '<object>'],
-          },
-          message: "Assertion failed: 'this' is expected an Event object, but got",
-        },
-        {},
-      );
-
-      expect(symbolicatedEvent).toStrictEqual(<Event>{
-        exception: {
-          values: [],
-        },
-        extra: {
-          arguments: [false, "'this' is expected an Event object, but got", '<object>'],
-        },
-        message: "Assertion failed: 'this' is expected an Event object, but got",
-      });
-
-      // This is the second if condition after the tested element, it is here to make sure the returned code
-      // came from the console filter.
-      expect(spy).not.toHaveBeenCalled();
-      spy.mockRestore();
-    });
-
-    it('do not skip events similar to metro events created by Sentry console integration', async () => {
-      const spy = jest.spyOn(ErrorUtils, 'isErrorLike').mockImplementation(() => {
-        throw new Error('second if condition called.');
-      });
-
-      try {
-        await processEvent(
-          {
-            exception: {
-              values: [],
-            },
-            message: "Assertion failed: 'this' is expected an Event object, but got",
-          },
-          {},
-        );
-      } catch (err: Error | unknown) {
-        expect((err as Error).message).toBe('second if condition called.');
-      } finally {
-        expect(spy).toHaveBeenCalled();
-        spy.mockRestore();
-      }
     });
 
     it('should symbolicate error with cause ', async () => {
@@ -896,6 +846,55 @@ describe('Debug Symbolicator Integration', () => {
                     in_app: true,
                   },
                 ],
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    it('should not capture console events when symbolicating the stack trace', async () => {
+      (symbolicateStackTrace as jest.Mock).mockImplementation(() => {
+        // eslint-disable-next-line no-console
+        console.assert(false, 'should not be logged as an event', '<object>');
+        return Promise.resolve({
+          stack: [],
+        } as ReactNative.SymbolicatedStackTrace);
+      });
+
+      const client = new TestClient(getDefaultTestClientOptions());
+      setCurrentClient(client);
+      client.addIntegration(captureConsoleIntegration({ levels: ['assert'] }));
+      client.init();
+
+      const symbolicatedEvent = await processEvent(
+        {
+          threads: {
+            values: [
+              {
+                stacktrace: {
+                  frames: mockSentryParsedFrames,
+                },
+              },
+            ],
+          },
+        },
+        {
+          syntheticException: {
+            stack: mockRawStack,
+            framesToPop: 2,
+          } as unknown as Error,
+        },
+      );
+
+      // An event with the console log will be captured here if failed
+      expect(client.event).toBeUndefined();
+      expect(symbolicatedEvent).toStrictEqual(<Event>{
+        threads: {
+          values: [
+            {
+              stacktrace: {
+                frames: [],
               },
             },
           ],
