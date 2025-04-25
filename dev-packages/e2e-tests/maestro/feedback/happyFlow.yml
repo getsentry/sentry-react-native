@@ -8,7 +8,8 @@ jsEngine: graaljs
 - tapOn: 'Feedback'
 
 # Open feedback widget
-- tapOn: 'Report a Bug'
+- tapOn:
+    id: 'feedback-button'
 
 # Assert that the feedback form is visible
 - extendedWaitUntil:
