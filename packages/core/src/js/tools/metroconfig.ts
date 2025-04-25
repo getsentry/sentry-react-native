@@ -212,7 +212,7 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
     if (
       (includeWebReplay === false ||
         (includeWebReplay === undefined && (platform === 'android' || platform === 'ios'))) &&
-      (oldMetroModuleName ?? moduleName).includes('@sentry/replay')
+      !!(oldMetroModuleName ?? moduleName).match(/@sentry(?:-internal)?\/replay/)
     ) {
       return { type: 'empty' } as Resolution;
     }

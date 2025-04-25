@@ -883,6 +883,7 @@ describe('Tests the SDK functionality', () => {
       expectIntegration('EventOrigin');
       expectIntegration('SdkInfo');
       expectIntegration('ReactNativeInfo');
+      expectIntegration('ExpoContext');
     });
 
     it('adds web platform specific default integrations', () => {

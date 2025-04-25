@@ -1,21 +1,112 @@
-import type { DeviceContext, Event, Integration, OsContext } from '@sentry/core';
+import { type DeviceContext, type Event, type Integration, type OsContext, logger } from '@sentry/core';
 
-import { getExpoDevice } from '../utils/expomodules';
+import { isExpo, isExpoGo } from '../utils/environment';
+import { getExpoDevice, getExpoUpdates } from '../utils/expomodules';
+import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'ExpoContext';
 
+export const EXPO_UPDATES_CONTEXT_KEY = 'expo_updates';
+
 /** Load device context from expo modules. */
 export const expoContextIntegration = (): Integration => {
+  let _expoUpdatesContextCached: ExpoUpdatesContext | undefined;
+
+  function setup(): void {
+    setExpoUpdatesNativeContext();
+  }
+
+  function setExpoUpdatesNativeContext(): void {
+    if (!isExpo() || isExpoGo()) {
+      return;
+    }
+
+    const expoUpdates = getExpoUpdatesContextCached();
+
+    try {
+      // Ensures native errors and crashes have the same context as JS errors
+      NATIVE.setContext(EXPO_UPDATES_CONTEXT_KEY, expoUpdates);
+    } catch (error) {
+      logger.error('Error setting Expo updates context:', error);
+    }
+  }
+
+  function processEvent(event: Event): Event {
+    if (!isExpo()) {
+      return event;
+    }
+
+    addExpoGoContext(event);
+    addExpoUpdatesContext(event);
+    return event;
+  }
+
+  function addExpoUpdatesContext(event: Event): void {
+    event.contexts = event.contexts || {};
+    event.contexts[EXPO_UPDATES_CONTEXT_KEY] = {
+      ...getExpoUpdatesContextCached(),
+    };
+  }
+
+  function getExpoUpdatesContextCached(): ExpoUpdatesContext {
+    if (_expoUpdatesContextCached) {
+      return _expoUpdatesContextCached;
+    }
+
+    return (_expoUpdatesContextCached = getExpoUpdatesContext());
+  }
+
   return {
     name: INTEGRATION_NAME,
-    setupOnce: () => {
-      // noop
-    },
+    setup,
     processEvent,
   };
 };
 
-function processEvent(event: Event): Event {
+function getExpoUpdatesContext(): ExpoUpdatesContext {
+  const expoUpdates = getExpoUpdates();
+  if (!expoUpdates) {
+    return {
+      is_enabled: false,
+    };
+  }
+
+  const updatesContext: ExpoUpdatesContext = {
+    is_enabled: !!expoUpdates.isEnabled,
+    is_embedded_launch: !!expoUpdates.isEmbeddedLaunch,
+    is_emergency_launch: !!expoUpdates.isEmergencyLaunch,
+    is_using_embedded_assets: !!expoUpdates.isUsingEmbeddedAssets,
+  };
+
+  if (typeof expoUpdates.updateId === 'string') {
+    updatesContext.update_id = expoUpdates.updateId;
+  }
+  if (typeof expoUpdates.channel === 'string') {
+    updatesContext.channel = expoUpdates.channel;
+  }
+  if (typeof expoUpdates.runtimeVersion === 'string') {
+    updatesContext.runtime_version = expoUpdates.runtimeVersion;
+  }
+  if (typeof expoUpdates.checkAutomatically === 'string') {
+    updatesContext.check_automatically = expoUpdates.checkAutomatically;
+  }
+  if (typeof expoUpdates.emergencyLaunchReason === 'string') {
+    updatesContext.emergency_launch_reason = expoUpdates.emergencyLaunchReason;
+  }
+  if (typeof expoUpdates.launchDuration === 'number') {
+    updatesContext.launch_duration = expoUpdates.launchDuration;
+  }
+  if (expoUpdates.createdAt instanceof Date) {
+    updatesContext.created_at = expoUpdates.createdAt.toISOString();
+  }
+  return updatesContext;
+}
+
+function addExpoGoContext(event: Event): void {
+  if (!isExpoGo()) {
+    return;
+  }
+
   const expoDeviceContext = getExpoDeviceContext();
   if (expoDeviceContext) {
     event.contexts = event.contexts || {};
@@ -27,8 +118,6 @@ function processEvent(event: Event): Event {
     event.contexts = event.contexts || {};
     event.contexts.os = { ...expoOsContext, ...event.contexts.os };
   }
-
-  return event;
 }
 
 /**
@@ -66,3 +155,17 @@ function getExpoOsContext(): OsContext | undefined {
     name: expoDevice.osName,
   };
 }
+
+type ExpoUpdatesContext = Partial<{
+  is_enabled: boolean;
+  is_embedded_launch: boolean;
+  is_emergency_launch: boolean;
+  is_using_embedded_assets: boolean;
+  update_id: string;
+  channel: string;
+  runtime_version: string;
+  check_automatically: string;
+  emergency_launch_reason: string;
+  launch_duration: number;
+  created_at: string;
+}>;
