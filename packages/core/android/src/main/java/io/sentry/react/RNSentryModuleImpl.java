@@ -178,8 +178,7 @@ public class RNSentryModuleImpl {
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
     SentryAndroid.init(
-        getApplicationContext(),
-        options -> getSentryAndroidOptions(options, rnOptions, logger));
+        getApplicationContext(), options -> getSentryAndroidOptions(options, rnOptions, logger));
 
     promise.resolve(true);
   }
@@ -188,7 +187,8 @@ public class RNSentryModuleImpl {
   protected Context getApplicationContext() {
     final Context context = this.getReactApplicationContext().getApplicationContext();
     if (context == null) {
-      logger.log(SentryLevel.ERROR, "ApplicationContext is null, using ReactApplicationContext fallback.");
+      logger.log(
+          SentryLevel.ERROR, "ApplicationContext is null, using ReactApplicationContext fallback.");
       return this.getReactApplicationContext();
     }
     return context;
