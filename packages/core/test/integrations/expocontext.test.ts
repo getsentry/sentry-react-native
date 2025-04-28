@@ -1,6 +1,6 @@
 import type { Client, Event } from '@sentry/core';
 
-import { EXPO_UPDATES_CONTEXT_KEY, expoContextIntegration } from '../../src/js/integrations/expocontext';
+import { OTA_UPDATES_CONTEXT_KEY, expoContextIntegration } from '../../src/js/integrations/expocontext';
 import * as environment from '../../src/js/utils/environment';
 import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 import { getExpoDevice } from '../../src/js/utils/expomodules';
@@ -21,7 +21,7 @@ describe('Expo Context Integration', () => {
     it('does not add expo updates context', () => {
       const actualEvent = executeIntegrationFor({});
 
-      expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toBeUndefined();
+      expect(actualEvent.contexts?.[OTA_UPDATES_CONTEXT_KEY]).toBeUndefined();
     });
   });
 
@@ -48,7 +48,7 @@ describe('Expo Context Integration', () => {
       const event1 = await integration.processEvent!({}, {}, {} as Client);
       const event2 = await integration.processEvent!({}, {}, {} as Client);
 
-      expect(event1.contexts![EXPO_UPDATES_CONTEXT_KEY]).not.toBe(event2.contexts![EXPO_UPDATES_CONTEXT_KEY]);
+      expect(event1.contexts![OTA_UPDATES_CONTEXT_KEY]).not.toBe(event2.contexts![OTA_UPDATES_CONTEXT_KEY]);
     });
 
     it('adds isEnabled false if ExpoUpdates module is missing', () => {
@@ -56,7 +56,7 @@ describe('Expo Context Integration', () => {
 
       const actualEvent = executeIntegrationFor({});
 
-      expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
+      expect(actualEvent.contexts?.[OTA_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: false,
       });
     });
@@ -66,7 +66,7 @@ describe('Expo Context Integration', () => {
 
       const actualEvent = executeIntegrationFor({});
 
-      expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
+      expect(actualEvent.contexts?.[OTA_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: false,
         is_embedded_launch: false,
         is_emergency_launch: false,
@@ -87,7 +87,7 @@ describe('Expo Context Integration', () => {
 
       const actualEvent = executeIntegrationFor({});
 
-      expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toEqual({
+      expect(actualEvent.contexts?.[OTA_UPDATES_CONTEXT_KEY]).toEqual({
         is_enabled: false,
         is_embedded_launch: false,
         is_emergency_launch: false,
@@ -115,7 +115,7 @@ describe('Expo Context Integration', () => {
 
       const actualEvent = executeIntegrationFor({});
 
-      expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
+      expect(actualEvent.contexts?.[OTA_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: false,
         is_embedded_launch: false,
         is_emergency_launch: false,
@@ -141,7 +141,7 @@ describe('Expo Context Integration', () => {
 
       const actualEvent = executeIntegrationFor({});
 
-      expect(actualEvent.contexts?.[EXPO_UPDATES_CONTEXT_KEY]).toStrictEqual({
+      expect(actualEvent.contexts?.[OTA_UPDATES_CONTEXT_KEY]).toStrictEqual({
         is_enabled: true,
         is_embedded_launch: false,
         is_emergency_launch: false,
