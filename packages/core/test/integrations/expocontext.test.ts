@@ -1,6 +1,6 @@
 import type { Client, Event } from '@sentry/core';
 
-import { OTA_UPDATES_CONTEXT_KEY, expoContextIntegration } from '../../src/js/integrations/expocontext';
+import { expoContextIntegration, OTA_UPDATES_CONTEXT_KEY } from '../../src/js/integrations/expocontext';
 import * as environment from '../../src/js/utils/environment';
 import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 import { getExpoDevice } from '../../src/js/utils/expomodules';
