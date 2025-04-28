@@ -15,6 +15,7 @@
 
 ### Fixes
 
+- App slowdown when using Sentry console Integration and filtering by `assert`  ([#4770](https://github.com/getsentry/sentry-react-native/pull/4770))
 - Export `extraErrorDataIntegration` from `@sentry/core` ([#4762](https://github.com/getsentry/sentry-react-native/pull/4762))
 - Remove `@sentry-internal/replay` when `includeWebReplay: false` ([#4774](https://github.com/getsentry/sentry-react-native/pull/4774))
 
@@ -50,7 +51,6 @@
 
 ### Fixes
 
-- App slowdown when using Sentry console Integration and filtering by `assert`  ([#4770](https://github.com/getsentry/sentry-react-native/pull/4770))
 - Equalize TTID and TTFD duration when TTFD manual API is called and resolved before auto TTID ([#4680](https://github.com/getsentry/sentry-react-native/pull/4680))
 - Avoid loading Sentry native components in Expo Go ([#4696](https://github.com/getsentry/sentry-react-native/pull/4696))
 - Avoid silent failure when JS bundle was not created due to Sentry Xcode scripts failure ([#4690](https://github.com/getsentry/sentry-react-native/pull/4690))
