@@ -3,7 +3,6 @@ package io.sentry.react
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.mock

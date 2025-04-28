@@ -1,13 +1,9 @@
 package io.sentry.react
 
 import android.app.Application
-import android.content.Context
-import com.facebook.react.bridge.ReactApplicationContext
 import org.junit.Assert.assertSame
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
