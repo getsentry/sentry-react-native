@@ -143,7 +143,7 @@ export class AsyncExpiringMap<K, V> {
    * Clear all entries.
    */
   public clear(): void {
-    if (typeof this._cleanupInterval === 'number') {
+    if (this._cleanupInterval) {
       clearInterval(this._cleanupInterval);
     }
     this._map.clear();
@@ -153,7 +153,7 @@ export class AsyncExpiringMap<K, V> {
    * Stop the cleanup interval.
    */
   public stopCleanup(): void {
-    if (typeof this._cleanupInterval === 'number') {
+    if (this._cleanupInterval) {
       clearInterval(this._cleanupInterval);
     }
   }

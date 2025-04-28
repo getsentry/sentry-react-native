@@ -72,7 +72,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const trimmedDescription = description?.trim();
 
     if ((this.props.isNameRequired && !trimmedName) || (this.props.isEmailRequired && !trimmedEmail) || !trimmedDescription) {
-      feedbackAlertDialog(text.errorTitle ?? defaultConfiguration.errorTitle, text.formError ?? defaultConfiguration.formError);
+      feedbackAlertDialog(text.errorTitle, text.formError);
       return;
     }
 

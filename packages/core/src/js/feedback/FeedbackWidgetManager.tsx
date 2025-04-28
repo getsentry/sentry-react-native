@@ -15,6 +15,10 @@ const PULL_DOWN_CLOSE_THRESHOLD = 200;
 const SLIDE_ANIMATION_DURATION = 200;
 const BACKGROUND_ANIMATION_DURATION = 200;
 
+const NOOP_SET_VISIBILITY = (): void => {
+  // No-op
+};
+
 class FeedbackWidgetManager {
   private static _isVisible = false;
   private static _setVisibility: (visible: boolean) => void;
@@ -28,24 +32,24 @@ class FeedbackWidgetManager {
    */
   public static reset(): void {
     this._isVisible = false;
-    this._setVisibility = () => {
-      // No-op
-    };
+    this._setVisibility = NOOP_SET_VISIBILITY;
   }
 
   public static show(): void {
-    if (this._setVisibility) {
+    if (this._setVisibility !== NOOP_SET_VISIBILITY) {
       this._isVisible = true;
       this._setVisibility(true);
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
       // eslint-disable-next-line no-console
-      console.warn('[Sentry] FeedbackWidget requires `Sentry.wrap(RootComponent)` to be called before `showFeedbackWidget()`.');
+      console.warn(
+        '[Sentry] FeedbackWidget requires `Sentry.wrap(RootComponent)` to be called before `showFeedbackWidget()`.',
+      );
     }
   }
 
   public static hide(): void {
-    if (this._setVisibility) {
+    if (this._setVisibility !== NOOP_SET_VISIBILITY) {
       this._isVisible = false;
       this._setVisibility(false);
     } else {
