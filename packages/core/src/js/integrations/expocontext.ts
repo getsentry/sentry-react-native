@@ -6,7 +6,7 @@ import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'ExpoContext';
 
-export const EXPO_UPDATES_CONTEXT_KEY = 'expo_updates';
+export const OTA_UPDATES_CONTEXT_KEY = 'ota_updates';
 
 /** Load device context from expo modules. */
 export const expoContextIntegration = (): Integration => {
@@ -25,7 +25,7 @@ export const expoContextIntegration = (): Integration => {
 
     try {
       // Ensures native errors and crashes have the same context as JS errors
-      NATIVE.setContext(EXPO_UPDATES_CONTEXT_KEY, expoUpdates);
+      NATIVE.setContext(OTA_UPDATES_CONTEXT_KEY, expoUpdates);
     } catch (error) {
       logger.error('Error setting Expo updates context:', error);
     }
@@ -43,7 +43,7 @@ export const expoContextIntegration = (): Integration => {
 
   function addExpoUpdatesContext(event: Event): void {
     event.contexts = event.contexts || {};
-    event.contexts[EXPO_UPDATES_CONTEXT_KEY] = {
+    event.contexts[OTA_UPDATES_CONTEXT_KEY] = {
       ...getExpoUpdatesContextCached(),
     };
   }

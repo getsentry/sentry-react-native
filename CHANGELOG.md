@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add Expo Updates Event Context ([#4767](https://github.com/getsentry/sentry-react-native/pull/4767))
+- Add Expo Updates Event Context ([#4767](https://github.com/getsentry/sentry-react-native/pull/4767), [#4786](https://github.com/getsentry/sentry-react-native/pull/4786))
   - Automatically collects `updateId`, `channel`, Emergency Launch Reason and other Expo Updates constants
 
 ### Fixes
