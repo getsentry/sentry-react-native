@@ -3,55 +3,52 @@ import * as React from 'react';
 
 import type { ReactNativeWrapperOptions } from 'src/js/options';
 
+jest.doMock('../src/js/touchevents', () => {
+  const original = jest.requireActual('../src/js/touchevents');
+  return {
+    ...original,
+    TouchEventBoundary: ({ children }: { children: React.ReactNode }) => (
+      // eslint-disable-next-line react/no-unknown-property
+      <div testID="touch-boundaryID">{children}</div>
+    ),
+  };
+});
+
+jest.doMock('../src/js/tracing', () => {
+  const original = jest.requireActual('../src/js/tracing');
+  return {
+    ...original,
+    ReactNativeProfiler: jest.fn(({ children }: { children: React.ReactNode }) => (
+      // eslint-disable-next-line react/no-unknown-property
+      <div testID="profilerID">{children}</div>
+    )),
+  };
+});
+
+jest.doMock('../src/js/feedback/FeedbackWidgetManager', () => {
+  const original = jest.requireActual('../src/js/feedback/FeedbackWidgetManager');
+  return {
+    ...original,
+    FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
+      // eslint-disable-next-line react/no-unknown-property
+      <div testID="feedback-widgetID">{children}</div>
+    ),
+  };
+});
+
+import { wrap } from '../src/js/sdk';
+
 describe('Sentry.wrap', () => {
-  beforeEach(() => {
-    jest.doMock('../src/js/touchevents', () => {
-      const original = jest.requireActual('../src/js/touchevents');
-      return {
-        ...original,
-        TouchEventBoundary: ({ children }: { children: React.ReactNode }) => (
-          // eslint-disable-next-line react/no-unknown-property
-          <div testID="touch-boundaryID">{children}</div>
-        ),
-      };
-    });
-
-    jest.doMock('../src/js/tracing', () => {
-      const original = jest.requireActual('../src/js/tracing');
-      return {
-        ...original,
-        ReactNativeProfiler: jest.fn(({ children }: { children: React.ReactNode }) => (
-          // eslint-disable-next-line react/no-unknown-property
-          <div testID="profilerID">{children}</div>
-        )),
-      };
-    });
-
-    jest.doMock('../src/js/feedback/FeedbackWidgetManager', () => {
-      const original = jest.requireActual('../src/js/feedback/FeedbackWidgetManager');
-      return {
-        ...original,
-        FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
-          // eslint-disable-next-line react/no-unknown-property
-          <div testID="feedback-widgetID">{children}</div>
-        ),
-      };
-    });
-
-  });
-
-    const DummyComponent: React.FC<{ value?: string }> = ({ value }) => <div>{value}</div>;
+  const DummyComponent: React.FC<{ value?: string }> = ({ value }) => <div>{value}</div>;
 
     it('should not enforce any keys on the wrapped component', () => {
       const Mock: React.FC<{ test: 23 }> = () => <></>;
-      const { wrap } = jest.requireActual('../src/js/sdk');
       const ActualWrapped = wrap(Mock);
 
       expect(typeof ActualWrapped.defaultProps).toBe(typeof Mock.defaultProps);
     });
 
     it('wraps components with Sentry wrappers', async () => {
-      const { wrap } = jest.requireActual('../src/js/sdk');
       const Wrapped = wrap(DummyComponent);
       const renderResult = render(<Wrapped value="wrapped" />);
 
@@ -77,7 +74,6 @@ describe('Sentry.wrap', () => {
     describe('ReactNativeProfiler', () => {
       it('uses given options when set', async () => {
         const { ReactNativeProfiler } = jest.requireMock('../src/js/tracing');
-        const { wrap } = require('../src/js/sdk');
         const options: ReactNativeWrapperOptions = {
           profilerProps: { disabled: false, includeRender: true, includeUpdates: true },
         };
@@ -109,7 +105,6 @@ describe('Sentry.wrap', () => {
 
       it('ignore updateProps when set', () => {
         const { ReactNativeProfiler } = require('../src/js/tracing');
-        const { wrap } = require('../src/js/sdk');
 
         // @ts-expect-error just for testing.
         const Wrapped = wrap(DummyComponent, { updateProps: ['prop'] });
