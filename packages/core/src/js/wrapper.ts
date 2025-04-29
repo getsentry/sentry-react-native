@@ -729,7 +729,7 @@ export const NATIVE: SentryNativeWrapper = {
       return RNSentry.popTimeToDisplayFor(key);
     } catch (error) {
       logger.error('Error:', error);
-      return null;
+      return Promise.resolve(null);
     }
   },
 

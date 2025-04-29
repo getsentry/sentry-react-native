@@ -25,12 +25,22 @@ export function getDebugMetadata(): DebugImage[] {
     logger.warn(
       '[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...',
     );
+    return [];
+  }
+
+  if (!debugIdsKeys[0]) {
+    return [];
+  }
+
+  const debugId = debugIdMap[debugIdsKeys[0]];
+  if (!debugId) {
+    return [];
   }
 
   return [
     {
       code_file: DEFAULT_BUNDLE_NAME,
-      debug_id: debugIdMap[debugIdsKeys[0]],
+      debug_id: debugId,
       type: 'sourcemap',
     },
   ];

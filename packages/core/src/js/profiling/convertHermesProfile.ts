@@ -82,11 +82,21 @@ export function mapSamples(
   hermesStacks: Set<Hermes.StackFrameId>;
   jsThreads: Set<ThreadId>;
 } {
+  const samples: ThreadCpuSample[] = [];
   const jsThreads = new Set<ThreadId>();
   const hermesStacks = new Set<Hermes.StackFrameId>();
 
-  const start = Number(hermesSamples[0].ts);
-  const samples: ThreadCpuSample[] = [];
+  const firstSample = hermesSamples[0];
+  if (!firstSample) {
+    logger.warn('[Profiling] No samples found in profile.');
+    return {
+      samples,
+      hermesStacks,
+      jsThreads,
+    };
+  }
+
+  const start = Number(firstSample.ts);
   for (const hermesSample of hermesSamples) {
     jsThreads.add(hermesSample.tid);
     hermesStacks.add(hermesSample.sf);
@@ -130,8 +140,12 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
     if (!Object.prototype.hasOwnProperty.call(hermesStackFrames, key)) {
       continue;
     }
-    hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
-    frames.push(parseHermesJSStackFrame(hermesStackFrames[key]));
+
+    const hermesStackFrame = hermesStackFrames[key];
+    if (hermesStackFrame) {
+      hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
+      frames.push(parseHermesJSStackFrame(hermesStackFrame));
+    }
   }
 
   return {

@@ -63,7 +63,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableSyncToNative(getIsolationScope());
   }
 
-  const getURLFromDSN = (dsn: string | null): string | undefined => {
+  const getURLFromDSN = (dsn: string | undefined): string | undefined => {
     if (!dsn) {
       return undefined;
     }
