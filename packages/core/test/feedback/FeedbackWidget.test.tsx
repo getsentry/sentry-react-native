@@ -139,7 +139,7 @@ describe('FeedbackWidget', () => {
     const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<FeedbackWidget {...defaultProps} />);
 
     expect(getByText(defaultProps.formTitle)).toBeTruthy();
-    expect(getByTestId('sentry-logo')).toBeTruthy(); // default showBranding is true
+    expect(getByTestId('sentry-feedback-logo')).toBeTruthy(); // default showBranding is true
     expect(getByText(defaultProps.nameLabel)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.namePlaceholder)).toBeTruthy();
     expect(getByText(defaultProps.emailLabel)).toBeTruthy();
@@ -160,7 +160,7 @@ describe('FeedbackWidget', () => {
   it('does not render the sentry logo when showBranding is false', () => {
     const { queryByTestId } = render(<FeedbackWidget {...defaultProps} showBranding={false} />);
 
-    expect(queryByTestId('sentry-logo')).toBeNull();
+    expect(queryByTestId('sentry-feedback-logo')).toBeNull();
   });
 
   it('name and email are prefilled when sentry user is set', () => {

@@ -273,27 +273,25 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         >
         <View style={styles.container}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title} testID='form-title'>{text.formTitle}</Text>
+            <Text style={styles.title} testID='sentry-feedback-form-title'>{text.formTitle}</Text>
             {config.showBranding && (
               <Image
                 source={{ uri: sentryLogo }}
                 style={styles.sentryLogo}
-                testID='sentry-logo'
-                accessibilityLabel='Sentry logo'
+                testID='sentry-feedback-logo'
               />
             )}
           </View>
 
           {config.showName && (
           <>
-            <Text style={styles.label} testID='name-label' accessibilityLabel={text.nameLabel}>
+            <Text style={styles.label}>
               {text.nameLabel}
               {config.isNameRequired && ` ${text.isRequiredLabel}`}
             </Text>
             <TextInput
               style={styles.input}
-              testID='name-input'
-              accessibilityLabel={text.namePlaceholder}
+              testID='sentry-feedback-name-input'
               placeholder={text.namePlaceholder}
               value={name}
               onChangeText={(value) => this.setState({ name: value })}
@@ -303,14 +301,13 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
           {config.showEmail && (
           <>
-            <Text style={styles.label} testID='email-label' accessibilityLabel={text.emailLabel}>
+            <Text style={styles.label}>
               {text.emailLabel}
               {config.isEmailRequired && ` ${text.isRequiredLabel}`}
             </Text>
             <TextInput
               style={styles.input}
-              testID='email-input'
-              accessibilityLabel={text.emailPlaceholder}
+              testID='sentry-feedback-email-input'
               placeholder={text.emailPlaceholder}
               keyboardType={'email-address' as KeyboardTypeOptions}
               value={email}
@@ -319,14 +316,13 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           </>
           )}
 
-          <Text style={styles.label} testID='message-label' accessibilityLabel={text.messageLabel}>
+          <Text style={styles.label}>
             {text.messageLabel}
             {` ${text.isRequiredLabel}`}
           </Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            testID='message-input'
-            accessibilityLabel={text.messagePlaceholder}
+            testID='sentry-feedback-message-input'
             placeholder={text.messagePlaceholder}
             value={description}
             onChangeText={(value) => this.setState({ description: value })}
@@ -338,14 +334,10 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 <Image
                   source={{ uri: this.state.attachmentUri }}
                   style={styles.screenshotThumbnail}
-                  testID='screenshot-thumbnail'
-                  accessibilityLabel='Screenshot thumbnail'
                 />
               )}
               <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
-                <Text style={styles.screenshotText} testID='screenshot-button' accessibilityLabel={!this._hasScreenshot()
-                  ? text.addScreenshotButtonLabel
-                  : text.removeScreenshotButtonLabel}>
+                <Text style={styles.screenshotText}>
                   {!this._hasScreenshot()
                     ? text.addScreenshotButtonLabel
                     : text.removeScreenshotButtonLabel}
@@ -359,15 +351,15 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               onCancel();
               showScreenshotButton();
             }}>
-              <Text style={styles.takeScreenshotText} testID='capture-screenshot-button' accessibilityLabel={text.captureScreenshotButtonLabel}>{text.captureScreenshotButtonLabel}</Text>
+              <Text style={styles.takeScreenshotText}>{text.captureScreenshotButtonLabel}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
-            <Text style={styles.submitText} testID='submit-button' accessibilityLabel={text.submitButtonLabel}>{text.submitButtonLabel}</Text>
+            <Text style={styles.submitText} testID='sentry-feedback-submit-button'>{text.submitButtonLabel}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-            <Text style={styles.cancelText} testID='cancel-button' accessibilityLabel={text.cancelButtonLabel}>{text.cancelButtonLabel}</Text>
+            <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
           </TouchableOpacity>
         </View>
       </TouchableWithoutFeedback>

@@ -78,7 +78,7 @@ exports[`FeedbackButton matches the snapshot with custom styles 1`] = `
         "fontSize": 18,
       }
     }
-    testID="feedback-button"
+    testID="sentry-feedback-button"
   >
     Report a Bug
   </Text>
@@ -163,7 +163,7 @@ exports[`FeedbackButton matches the snapshot with custom texts 1`] = `
         "fontSize": 18,
       }
     }
-    testID="feedback-button"
+    testID="sentry-feedback-button"
   >
     Give Feedback
   </Text>
@@ -248,7 +248,7 @@ exports[`FeedbackButton matches the snapshot with default configuration 1`] = `
         "fontSize": 18,
       }
     }
-    testID="feedback-button"
+    testID="sentry-feedback-button"
   >
     Report a Bug
   </Text>
