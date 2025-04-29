@@ -1,12 +1,6 @@
 // We can't test wrap with mock and non mocked components, otherwise it will break the RN testing library.
-import { logger, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
-import { getDefaultTestClientOptions, TestClient } from './mocks/client';
-import { Text } from 'react-native';
-import * as AppRegistry from '../src/js/integrations/appRegistry';
-
-
 import type { ReactNativeWrapperOptions } from 'src/js/options';
 
   jest.doMock('../src/js/touchevents', () => {
