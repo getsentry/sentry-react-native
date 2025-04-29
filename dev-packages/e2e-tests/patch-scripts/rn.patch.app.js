@@ -38,7 +38,7 @@ Sentry.init({
 const e2eComponentPatch = '<EndToEndTestsScreen />';
 const lastImportRex = /^([^]*)(import\s+[^;]*?;$)/m;
 const patchRex = '@sentry/react-native';
-const headerComponentRex = /<Header \/>/gm;
+const headerComponentRex = /<ScrollView/gm;
 
 const jsPath = path.join(args.app, 'App.js');
 const tsxPath = path.join(args.app, 'App.tsx');
