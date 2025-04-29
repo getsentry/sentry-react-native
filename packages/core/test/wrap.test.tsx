@@ -1,3 +1,4 @@
+// We can't test wrap with mock and non mocked components, otherwise it will break the RN testing library.
 import { logger, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
@@ -26,5 +27,4 @@ describe('ReactNativeProfiler', () => {
       expect(logger.warn).toHaveBeenCalledWith('AppRegistryIntegration.onRunApplication not found or invalid.');
       expect(getByText('Test')).toBeTruthy();
     });
-
   });
