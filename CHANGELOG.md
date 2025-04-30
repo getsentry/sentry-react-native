@@ -12,6 +12,10 @@
 
 - Fallback to Current Activity Holder when React Context Activity is not present ([#4779](https://github.com/getsentry/sentry-react-native/pull/4779))
 
+### Fixes
+
+- Initialize Sentry Android with ApplicationContext if available ([#4780](https://github.com/getsentry/sentry-react-native/pull/4780))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.49.1 to v8.49.2 ([#4792](https://github.com/getsentry/sentry-react-native/pull/4792))
@@ -29,7 +33,6 @@
 
 - Export `extraErrorDataIntegration` from `@sentry/core` ([#4762](https://github.com/getsentry/sentry-react-native/pull/4762))
 - Remove `@sentry-internal/replay` when `includeWebReplay: false` ([#4774](https://github.com/getsentry/sentry-react-native/pull/4774))
-- Initialize Sentry Android with ApplicationContext if available ([#4779](https://github.com/getsentry/sentry-react-native/pull/4779))
 
 ### Dependencies
 
