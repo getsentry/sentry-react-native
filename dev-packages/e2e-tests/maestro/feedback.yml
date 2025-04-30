@@ -3,7 +3,4 @@ jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
 
-- runFlow:
-    when:
-      visible: 'Engine: Hermes for RN 0.77.1' # Skipping for 0.65.3
-    file: feedback/happyFlow.yml
+- runFlow: feedback/happyFlow.yml
