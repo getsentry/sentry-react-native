@@ -11,6 +11,7 @@
 ### Changes
 
 - Fallback to Current Activity Holder when React Context Activity is not present ([#4779](https://github.com/getsentry/sentry-react-native/pull/4779))
+- Support `REACT_NATIVE_PATH` env in Xcode Debug Files upload scripts ([#4789](https://github.com/getsentry/sentry-react-native/pull/4789))
 
 ### Fixes
 
