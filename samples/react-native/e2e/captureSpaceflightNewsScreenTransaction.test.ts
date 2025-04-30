@@ -12,7 +12,6 @@ import { maestro } from './utils/maestro';
 
 describe('Capture Spaceflight News Screen Transaction', () => {
   let sentryServer = createSentryServer();
-  sentryServer.start();
 
   let newsEnvelopes: Envelope[] = [];
   let allTransactionEnvelopes: Envelope[] = [];
@@ -24,6 +23,8 @@ describe('Capture Spaceflight News Screen Transaction', () => {
     getItemOfTypeFrom<EventItem>(newsEnvelopes[1], 'transaction');
 
   beforeAll(async () => {
+    await sentryServer.start();
+
     const containingNewsScreen = containingTransactionWithName(
       'SpaceflightNewsScreen',
     );
