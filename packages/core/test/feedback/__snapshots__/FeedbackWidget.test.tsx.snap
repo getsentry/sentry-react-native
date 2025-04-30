@@ -42,7 +42,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
           "fontSize": 20,
         }
       }
-      testID="sentry-feedback-form-title"
     >
       Report a Bug
     </Text>
@@ -59,7 +58,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
           "width": 40,
         }
       }
-      testID="sentry-feedback-logo"
+      testID="sentry-logo"
     />
   </View>
   <Text
@@ -83,7 +82,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         "height": 50,
       }
     }
-    testID="sentry-feedback-name-input"
     value="Test User"
   />
   <Text
@@ -108,7 +106,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         "height": 50,
       }
     }
-    testID="sentry-feedback-email-input"
     value="test@example.com"
   />
   <Text
@@ -140,7 +137,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
         },
       ]
     }
-    testID="sentry-feedback-message-input"
     value=""
   />
   <View
@@ -185,7 +181,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
           "fontSize": 12,
         }
       }
-      testID="sentry-feedback-submit-button"
     >
       Send Bug Report
     </Text>
@@ -281,7 +276,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
           "fontSize": 20,
         }
       }
-      testID="sentry-feedback-form-title"
     >
       Report a Bug
     </Text>
@@ -298,7 +292,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
           "width": 40,
         }
       }
-      testID="sentry-feedback-logo"
+      testID="sentry-logo"
     />
   </View>
   <Text
@@ -322,7 +316,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         "height": 50,
       }
     }
-    testID="sentry-feedback-name-input"
     value="Test User"
   />
   <Text
@@ -347,7 +340,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         "height": 50,
       }
     }
-    testID="sentry-feedback-email-input"
     value="test@example.com"
   />
   <Text
@@ -379,7 +371,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
         },
       ]
     }
-    testID="sentry-feedback-message-input"
     value=""
   />
   <View
@@ -481,7 +472,6 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
           "fontSize": 12,
         }
       }
-      testID="sentry-feedback-submit-button"
     >
       Send Bug Report
     </Text>
@@ -583,7 +573,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
           "textAlign": "left",
         }
       }
-      testID="sentry-feedback-form-title"
     >
       Feedback Form
     </Text>
@@ -600,7 +589,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
           "width": 40,
         }
       }
-      testID="sentry-feedback-logo"
+      testID="sentry-logo"
     />
   </View>
   <Text
@@ -629,7 +618,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-name-input"
     value="Test User"
   />
   <Text
@@ -659,7 +647,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-email-input"
     value="test@example.com"
   />
   <Text
@@ -697,7 +684,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
         },
       ]
     }
-    testID="sentry-feedback-message-input"
     value=""
   />
   <View
@@ -746,7 +732,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
           "fontSize": 18,
         }
       }
-      testID="sentry-feedback-submit-button"
     >
       Submit Button Label
     </Text>
@@ -853,7 +838,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
           "textAlign": "left",
         }
       }
-      testID="sentry-feedback-form-title"
     >
       Feedback Form
     </Text>
@@ -870,7 +854,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
           "width": 40,
         }
       }
-      testID="sentry-feedback-logo"
+      testID="sentry-logo"
     />
   </View>
   <Text
@@ -899,7 +883,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-name-input"
     value="Test User"
   />
   <Text
@@ -929,7 +912,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-email-input"
     value="test@example.com"
   />
   <Text
@@ -967,7 +949,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
         },
       ]
     }
-    testID="sentry-feedback-message-input"
     value=""
   />
   <View
@@ -1079,7 +1060,6 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
           "fontSize": 18,
         }
       }
-      testID="sentry-feedback-submit-button"
     >
       Submit Button Label
     </Text>
@@ -1186,7 +1166,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
           "textAlign": "left",
         }
       }
-      testID="sentry-feedback-form-title"
     >
       Report a Bug
     </Text>
@@ -1203,7 +1182,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
           "width": 40,
         }
       }
-      testID="sentry-feedback-logo"
+      testID="sentry-logo"
     />
   </View>
   <Text
@@ -1232,7 +1211,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-name-input"
     value="Test User"
   />
   <Text
@@ -1262,7 +1240,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-email-input"
     value="test@example.com"
   />
   <Text
@@ -1300,7 +1277,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
         },
       ]
     }
-    testID="sentry-feedback-message-input"
     value=""
   />
   <View
@@ -1349,7 +1325,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
           "fontSize": 18,
         }
       }
-      testID="sentry-feedback-submit-button"
     >
       Send Bug Report
     </Text>
@@ -1456,7 +1431,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
           "textAlign": "left",
         }
       }
-      testID="sentry-feedback-form-title"
     >
       Report a Bug
     </Text>
@@ -1473,7 +1447,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
           "width": 40,
         }
       }
-      testID="sentry-feedback-logo"
+      testID="sentry-logo"
     />
   </View>
   <Text
@@ -1502,7 +1476,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-name-input"
     value="Test User"
   />
   <Text
@@ -1532,7 +1505,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         "paddingHorizontal": 10,
       }
     }
-    testID="sentry-feedback-email-input"
     value="test@example.com"
   />
   <Text
@@ -1570,7 +1542,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
         },
       ]
     }
-    testID="sentry-feedback-message-input"
     value=""
   />
   <View
@@ -1682,7 +1653,6 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
           "fontSize": 18,
         }
       }
-      testID="sentry-feedback-submit-button"
     >
       Send Bug Report
     </Text>

@@ -59,7 +59,7 @@ export class FeedbackButton extends React.Component<FeedbackButtonProps> {
         accessibilityLabel={text.triggerAriaLabel}
       >
         <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon}/>
-        <Text style={styles.triggerText} testID='sentry-feedback-button'>{text.triggerLabel}</Text>
+        <Text style={styles.triggerText}>{text.triggerLabel}</Text>
       </TouchableOpacity>
     );
   }

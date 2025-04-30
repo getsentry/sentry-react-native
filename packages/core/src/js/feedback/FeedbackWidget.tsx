@@ -273,12 +273,12 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         >
         <View style={styles.container}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title} testID='sentry-feedback-form-title'>{text.formTitle}</Text>
+            <Text style={styles.title}>{text.formTitle}</Text>
             {config.showBranding && (
               <Image
                 source={{ uri: sentryLogo }}
                 style={styles.sentryLogo}
-                testID='sentry-feedback-logo'
+                testID='sentry-logo'
               />
             )}
           </View>
@@ -291,7 +291,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             </Text>
             <TextInput
               style={styles.input}
-              testID='sentry-feedback-name-input'
               placeholder={text.namePlaceholder}
               value={name}
               onChangeText={(value) => this.setState({ name: value })}
@@ -307,7 +306,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             </Text>
             <TextInput
               style={styles.input}
-              testID='sentry-feedback-email-input'
               placeholder={text.emailPlaceholder}
               keyboardType={'email-address' as KeyboardTypeOptions}
               value={email}
@@ -322,7 +320,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           </Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            testID='sentry-feedback-message-input'
             placeholder={text.messagePlaceholder}
             value={description}
             onChangeText={(value) => this.setState({ description: value })}
@@ -355,7 +352,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
-            <Text style={styles.submitText} testID='sentry-feedback-submit-button'>{text.submitButtonLabel}</Text>
+            <Text style={styles.submitText}>{text.submitButtonLabel}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
