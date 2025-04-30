@@ -8,9 +8,17 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.49.1 to v8.49.2 ([#4792](https://github.com/getsentry/sentry-react-native/pull/4792))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8492)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.1...8.49.2)
+
+## 6.12.0
+
 ### Features
 
-- Add Expo Updates Event Context ([#4767](https://github.com/getsentry/sentry-react-native/pull/4767))
+- Add Expo Updates Event Context ([#4767](https://github.com/getsentry/sentry-react-native/pull/4767), [#4786](https://github.com/getsentry/sentry-react-native/pull/4786))
   - Automatically collects `updateId`, `channel`, Emergency Launch Reason and other Expo Updates constants
 
 ### Fixes
@@ -24,6 +32,9 @@
 - Bump Cocoa SDK from v8.49.0 to v8.49.1 ([#4771](https://github.com/getsentry/sentry-react-native/pull/4771))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8491)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.0...8.49.1)
+- Bump CLI from v2.43.0 to v2.43.1 ([#4787](https://github.com/getsentry/sentry-react-native/pull/4787))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2431)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.43.0...2.43.1)
 
 ## 6.11.0
 
