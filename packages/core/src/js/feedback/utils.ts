@@ -18,6 +18,15 @@ export function isModalSupported(): boolean {
   return !(isFabricEnabled() && major === 0 && minor < 71);
 }
 
+/**
+ * The native driver supports color animations since React Native 0.69.
+ * ref: https://github.com/facebook/react-native/commit/201f355479cafbcece3d9eb40a52bae003da3e5c
+ */
+export function isNativeDriverSupportedForColorAnimations(): boolean {
+  const { major, minor } = ReactNativeLibraries.ReactNativeVersion?.version || {};
+  return major >= 0 && minor >= 69;
+}
+
 export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
