@@ -60,7 +60,7 @@ export const createNativeFramesIntegrations = (enable: boolean | undefined): Int
 export const nativeFramesIntegration = (): Integration => {
   /** The native frames at the finish time of the most recent span. */
   let _lastChildSpanEndFrames: NativeFramesResponseWithTimestamp | null = null;
-  const _spanToNativeFramesAtStartMap: AsyncExpiringMap<string, NativeFramesResponse> = new AsyncExpiringMap({
+  const _spanToNativeFramesAtStartMap: AsyncExpiringMap<string, NativeFramesResponse | null> = new AsyncExpiringMap({
     ttl: START_FRAMES_TIMEOUT_MS,
   });
   const _spanToNativeFramesAtEndMap: AsyncExpiringMap<string, NativeFramesResponseWithTimestamp | null> =

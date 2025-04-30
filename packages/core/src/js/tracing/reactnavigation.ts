@@ -220,6 +220,7 @@ export const reactNavigationIntegration = ({
     const navigationActionType = useDispatchedActionData ? event?.data.action.type : undefined;
     if (
       useDispatchedActionData &&
+      navigationActionType &&
       [
         // Process common actions
         'PRELOAD',
@@ -252,12 +253,12 @@ export const reactNavigationIntegration = ({
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
 
-    if (enableTimeToInitialDisplay) {
-      NATIVE.setActiveSpanId(latestNavigationSpan?.spanContext().spanId);
+    if (enableTimeToInitialDisplay && latestNavigationSpan) {
+      NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId);
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation dispatch to navigation cancelled or screen mounted',
-        startTime: latestNavigationSpan && spanToJSON(latestNavigationSpan).start_timestamp,
+        startTime: spanToJSON(latestNavigationSpan).start_timestamp,
       });
       navigationProcessingSpan.setAttribute(
         SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,

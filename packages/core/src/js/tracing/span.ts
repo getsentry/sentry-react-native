@@ -127,7 +127,7 @@ export function getDefaultIdleNavigationSpanOptions(): StartSpanOptions {
  * Checks if the span is a Sentry User Interaction span.
  */
 export function isSentryInteractionSpan(span: Span): boolean {
-  return [SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION].includes(spanToJSON(span).origin);
+  return [SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION].includes(spanToJSON(span).origin || '');
 }
 
 export const SCOPE_SPAN_FIELD = '_sentrySpan';
