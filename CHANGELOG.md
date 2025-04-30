@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Disable native driver for Feedback Widget `backgroundColor` animation ([#4794](https://github.com/getsentry/sentry-react-native/pull/4794))
+- Disable native driver for Feedback Widget `backgroundColor` animation in unsupported React Native versions ([#4794](https://github.com/getsentry/sentry-react-native/pull/4794))
 
 ## 6.13.0
 
