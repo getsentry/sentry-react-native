@@ -194,7 +194,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 0,
           duration: BACKGROUND_ANIMATION_DURATION,
-          useNativeDriver: true,
+          useNativeDriver: false,
           easing: Easing.out(Easing.quad),
         })
       ]).start(() => {
