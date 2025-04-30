@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Changes
+
+- Fallback to Current Activity Holder when React Context Activity is not present ([#4779](https://github.com/getsentry/sentry-react-native/pull/4779))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.49.1 to v8.49.2 ([#4792](https://github.com/getsentry/sentry-react-native/pull/4792))
