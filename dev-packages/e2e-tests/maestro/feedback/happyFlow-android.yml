@@ -1,4 +1,4 @@
-# This is a happy path test for the feedback widget
+# This is a happy path test for the feedback widget on Android.
 # It verifies that the feedback form can be opened, filled out, and submitted successfully
 appId: ${APP_ID}
 jsEngine: graaljs
