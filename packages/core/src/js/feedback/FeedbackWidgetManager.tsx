@@ -124,7 +124,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 1,
           duration: BACKGROUND_ANIMATION_DURATION,
-          useNativeDriver: true,
+          useNativeDriver: false,
           easing: Easing.in(Easing.quad),
         }),
         Animated.timing(this.state.panY, {
@@ -206,7 +206,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 0,
           duration: BACKGROUND_ANIMATION_DURATION,
-          useNativeDriver: true,
+          useNativeDriver: false,
           easing: Easing.out(Easing.quad),
         })
       ]).start(() => {
