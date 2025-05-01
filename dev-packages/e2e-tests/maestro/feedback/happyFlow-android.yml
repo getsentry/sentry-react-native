@@ -28,8 +28,7 @@ jsEngine: graaljs
 - inputText: 'This is a test feedback message from CI e2e tests'
 
 # Hide keyboard
-- tapOn:
-    id: 'sentry-logo'
+- tapOn: 'Report a Bug'
 
 # Submit feedback
 - scrollUntilVisible:

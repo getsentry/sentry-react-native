@@ -35,8 +35,7 @@ jsEngine: graaljs
 - tapOn: 'Take Screenshot'
 
 # Hide keyboard
-- tapOn:
-    id: 'sentry-logo'
+- tapOn: 'Report a Bug'
 
 # Submit feedback
 - scrollUntilVisible:
