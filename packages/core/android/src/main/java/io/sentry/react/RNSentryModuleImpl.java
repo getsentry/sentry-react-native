@@ -91,6 +91,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class RNSentryModuleImpl {
 
@@ -178,10 +179,20 @@ public class RNSentryModuleImpl {
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
     SentryAndroid.init(
-        this.getReactApplicationContext(),
-        options -> getSentryAndroidOptions(options, rnOptions, logger));
+        getApplicationContext(), options -> getSentryAndroidOptions(options, rnOptions, logger));
 
     promise.resolve(true);
+  }
+
+  @TestOnly
+  protected Context getApplicationContext() {
+    final Context context = this.getReactApplicationContext().getApplicationContext();
+    if (context == null) {
+      logger.log(
+          SentryLevel.ERROR, "ApplicationContext is null, using ReactApplicationContext fallback.");
+      return this.getReactApplicationContext();
+    }
+    return context;
   }
 
   protected void getSentryAndroidOptions(

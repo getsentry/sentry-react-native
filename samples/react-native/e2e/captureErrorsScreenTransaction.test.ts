@@ -10,12 +10,13 @@ import { maestro } from './utils/maestro';
 
 describe('Capture Errors Screen Transaction', () => {
   let sentryServer = createSentryServer();
-  sentryServer.start();
 
   const getErrorsEnvelope = () =>
     sentryServer.getEnvelope(containingTransactionWithName('Errors'));
 
   beforeAll(async () => {
+    await sentryServer.start();
+
     const waitForErrorsTx = sentryServer.waitForEnvelope(
       containingTransactionWithName('Errors'), // The last created and sent transaction
     );
