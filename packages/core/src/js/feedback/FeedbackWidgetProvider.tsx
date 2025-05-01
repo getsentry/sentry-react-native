@@ -11,7 +11,9 @@ import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { BACKGROUND_ANIMATION_DURATION,FeedbackButtonManager, FeedbackWidgetManager, PULL_DOWN_CLOSE_THRESHOLD, ScreenshotButtonManager, SLIDE_ANIMATION_DURATION } from './FeedbackWidgetManager';
 import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotButtonOptions } from './integration';
 import { ScreenshotButton } from './ScreenshotButton';
-import { isModalSupported } from './utils';
+import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';
+
+const useNativeDriverForColorAnimations = isNativeDriverSupportedForColorAnimations();
 
 export interface FeedbackWidgetProviderProps {
   children: React.ReactNode;
@@ -110,7 +112,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 1,
           duration: BACKGROUND_ANIMATION_DURATION,
-          useNativeDriver: true,
+          useNativeDriver: useNativeDriverForColorAnimations,
           easing: Easing.in(Easing.quad),
         }),
         Animated.timing(this.state.panY, {
@@ -194,7 +196,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 0,
           duration: BACKGROUND_ANIMATION_DURATION,
-          useNativeDriver: true,
+          useNativeDriver: useNativeDriverForColorAnimations,
           easing: Easing.out(Easing.quad),
         })
       ]).start(() => {

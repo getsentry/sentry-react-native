@@ -13,6 +13,7 @@ import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 jest.mock('../../src/js/feedback/utils', () => ({
   isModalSupported: jest.fn(),
+  isNativeDriverSupportedForColorAnimations: jest.fn().mockReturnValue(true),
 }));
 
 const consoleWarnSpy = jest.spyOn(console, 'warn');

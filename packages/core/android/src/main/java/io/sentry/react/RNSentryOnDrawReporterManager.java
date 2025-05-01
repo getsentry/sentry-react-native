@@ -14,6 +14,7 @@ import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.internal.util.FirstDrawDoneListener;
+import io.sentry.react.utils.RNSentryActivityUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,11 +152,12 @@ public class RNSentryOnDrawReporterManager
         return;
       }
 
-      @Nullable Activity activity = reactContext.getCurrentActivity();
+      final @Nullable Activity activity =
+          RNSentryActivityUtils.getCurrentActivity(reactContext, logger);
       if (activity == null) {
         logger.log(
             SentryLevel.ERROR,
-            "[TimeToDisplay] Won't emit next frame drawn event, reactContext is null.");
+            "[TimeToDisplay] Won't emit next frame drawn event, activity is null.");
         return;
       }
 

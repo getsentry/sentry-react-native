@@ -5,7 +5,10 @@
 # print commands before executing them
 set -x
 
-[ -z "$WITH_ENVIRONMENT" ] && WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
+# REACT_NATIVE_PATH first used in RN 0.74.0 Template https://github.com/facebook/react-native/commit/289e78388a87408e215a25108cb02511a05f5c80
+LOCAL_REACT_NATIVE_PATH="${REACT_NATIVE_PATH:-"../node_modules/react-native"}"
+
+[ -z "$WITH_ENVIRONMENT" ] && WITH_ENVIRONMENT="${LOCAL_REACT_NATIVE_PATH}/scripts/xcode/with-environment.sh"
 
 if [ -f "$WITH_ENVIRONMENT" ]; then
   # load envs if loader file exists (since rn 0.68)
