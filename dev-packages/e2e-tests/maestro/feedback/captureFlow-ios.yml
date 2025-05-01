@@ -41,6 +41,10 @@ jsEngine: graaljs
 - tapOn:
     id: 'sentry-feedback-screenshot-button'
 
+# Hide keyboard
+- tapOn:
+    id: 'sentry-logo'
+
 # Submit feedback
 - scrollUntilVisible:
     element:

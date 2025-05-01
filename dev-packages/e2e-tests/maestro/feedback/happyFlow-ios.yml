@@ -32,6 +32,10 @@ jsEngine: graaljs
     id: 'sentry-feedback-message-input'
 - inputText: 'This is a test feedback message from CI e2e tests'
 
+# Hide keyboard
+- tapOn:
+    id: 'sentry-logo'
+
 # Submit feedback
 - scrollUntilVisible:
     element:
