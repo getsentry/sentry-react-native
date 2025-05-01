@@ -24,7 +24,7 @@ export function isModalSupported(): boolean {
  */
 export function isNativeDriverSupportedForColorAnimations(): boolean {
   const { major, minor } = ReactNativeLibraries.ReactNativeVersion?.version || {};
-  return major >= 0 && minor >= 69;
+  return major > 0 || minor >= 69;
 }
 
 export const isValidEmail = (email: string): boolean => {
