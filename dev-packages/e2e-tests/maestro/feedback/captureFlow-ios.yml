@@ -41,7 +41,7 @@ jsEngine: graaljs
 - tapOn:
     id: 'sentry-feedback-screenshot-button'
 
-# Hide keyboard
+# Hide keyboard by tapping on a non-tappable element
 - tapOn:
     id: 'sentry-logo'
 

@@ -32,7 +32,7 @@ jsEngine: graaljs
     id: 'sentry-feedback-message-input'
 - inputText: 'This is a test feedback message from CI e2e tests'
 
-# Hide keyboard
+# Hide keyboard by tapping on a non-tappable element
 - tapOn:
     id: 'sentry-logo'
 
