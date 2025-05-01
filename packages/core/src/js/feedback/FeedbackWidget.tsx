@@ -351,7 +351,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               onCancel();
               showScreenshotButton();
             }}>
-              <Text style={styles.takeScreenshotText}>{text.captureScreenshotButtonLabel}</Text>
+              <Text style={styles.takeScreenshotText} testID='sentry-feedback-take-screenshot-button'>{text.captureScreenshotButtonLabel}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
