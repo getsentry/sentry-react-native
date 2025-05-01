@@ -34,6 +34,11 @@ jsEngine: graaljs
 - tapOn: 'Take a screenshot'
 - tapOn: 'Take Screenshot'
 
+# Assert that the feedback form is visible
+- extendedWaitUntil:
+    visible: 'Report a Bug'
+    timeout: 5_000
+
 # Hide keyboard by tapping on a non-tappable element
 - tapOn: 'Email'
 
