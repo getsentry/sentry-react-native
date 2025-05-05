@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "6.13.0",
+  "version": "6.13.1",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -17,7 +17,7 @@
     "eas-build-pre-install": "npm i -g corepack && yarn install --no-immutable --inline-builds && yarn workspace @sentry/react-native build"
   },
   "dependencies": {
-    "@sentry/react-native": "6.13.0",
+    "@sentry/react-native": "6.13.1",
     "@types/react": "~18.3.12",
     "expo": "~52.0.42",
     "expo-constants": "~17.0.8",
