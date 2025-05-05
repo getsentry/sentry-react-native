@@ -8,6 +8,15 @@ const InternalReactNativeLibrariesInterface: Required<ReactNativeLibrariesInterf
   Devtools: {
     parseErrorStack: (errorStack: string): Array<ReactNative.StackFrame> => {
       const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (parseErrorStack.default && typeof parseErrorStack.default === 'function') {
+        // Starting with react-native 0.79, the parseErrorStack is a default export
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return parseErrorStack.default(errorStack);
+      }
+
+      // react-native 0.78 and below
       return parseErrorStack(errorStack);
     },
     symbolicateStackTrace: (
@@ -15,10 +24,28 @@ const InternalReactNativeLibrariesInterface: Required<ReactNativeLibrariesInterf
       extraData?: Record<string, unknown>,
     ): Promise<ReactNative.SymbolicatedStackTrace> => {
       const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (symbolicateStackTrace.default && typeof symbolicateStackTrace.default === 'function') {
+        // Starting with react-native 0.79, the symbolicateStackTrace is a default export
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return symbolicateStackTrace.default(stack, extraData);
+      }
+
+      // react-native 0.78 and below
       return symbolicateStackTrace(stack, extraData);
     },
     getDevServer: (): ReactNative.DevServerInfo => {
       const getDevServer = require('react-native/Libraries/Core/Devtools/getDevServer');
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (getDevServer.default && typeof getDevServer.default === 'function') {
+        // Starting with react-native 0.79, the getDevServer is a default export
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return getDevServer.default();
+      }
+
+      // react-native 0.78 and below
       return getDevServer();
     },
   },
