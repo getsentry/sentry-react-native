@@ -11,6 +11,7 @@
 ### Fixes
 
 - Disable native driver for Feedback Widget `backgroundColor` animation in unsupported React Native versions ([#4794](https://github.com/getsentry/sentry-react-native/pull/4794))
+- Fix Debug Symbolicator for local development builds (use RN 0.79 default exports) ([#4801](https://github.com/getsentry/sentry-react-native/pull/4801))
 
 ## 6.13.0
 
