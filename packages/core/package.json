@@ -107,7 +107,7 @@
     "metro": "0.82.2",
     "prettier": "^2.0.5",
     "react": "19.0.0",
-    "react-native": "0.79.2",
+    "react-native": "0.78.2",
     "react-test-renderer": "^19.0.0",
     "rimraf": "^4.1.1",
     "ts-jest": "^29.1.1",
