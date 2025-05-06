@@ -6,6 +6,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "metro-config": "^0.81.0"
+    "metro-config": "^0.82.2"
   }
 }
