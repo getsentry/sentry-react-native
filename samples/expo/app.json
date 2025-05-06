@@ -70,7 +70,8 @@
             "default": "development"
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "extra": {
       "router": {
