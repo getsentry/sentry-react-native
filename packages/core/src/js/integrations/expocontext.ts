@@ -70,7 +70,10 @@ export const expoContextIntegration = (): Integration => {
   };
 };
 
-function getExpoUpdatesContext(): ExpoUpdatesContext {
+/**
+ * @internal Exposed for testing purposes
+ */
+export function getExpoUpdatesContext(): ExpoUpdatesContext {
   const expoUpdates = getExpoUpdates();
   if (!expoUpdates) {
     return {
@@ -85,19 +88,19 @@ function getExpoUpdatesContext(): ExpoUpdatesContext {
     is_using_embedded_assets: !!expoUpdates.isUsingEmbeddedAssets,
   };
 
-  if (typeof expoUpdates.updateId === 'string') {
-    updatesContext.update_id = expoUpdates.updateId;
+  if (typeof expoUpdates.updateId === 'string' && expoUpdates.updateId) {
+    updatesContext.update_id = expoUpdates.updateId.toLocaleLowerCase();
   }
-  if (typeof expoUpdates.channel === 'string') {
-    updatesContext.channel = expoUpdates.channel;
+  if (typeof expoUpdates.channel === 'string' && expoUpdates.channel) {
+    updatesContext.channel = expoUpdates.channel.toLocaleLowerCase();
   }
-  if (typeof expoUpdates.runtimeVersion === 'string') {
-    updatesContext.runtime_version = expoUpdates.runtimeVersion;
+  if (typeof expoUpdates.runtimeVersion === 'string' && expoUpdates.runtimeVersion) {
+    updatesContext.runtime_version = expoUpdates.runtimeVersion.toLocaleLowerCase();
   }
-  if (typeof expoUpdates.checkAutomatically === 'string') {
-    updatesContext.check_automatically = expoUpdates.checkAutomatically;
+  if (typeof expoUpdates.checkAutomatically === 'string' && expoUpdates.checkAutomatically) {
+    updatesContext.check_automatically = expoUpdates.checkAutomatically.toLocaleLowerCase();
   }
-  if (typeof expoUpdates.emergencyLaunchReason === 'string') {
+  if (typeof expoUpdates.emergencyLaunchReason === 'string' && expoUpdates.emergencyLaunchReason) {
     updatesContext.emergency_launch_reason = expoUpdates.emergencyLaunchReason;
   }
   if (typeof expoUpdates.launchDuration === 'number') {
