@@ -23,6 +23,7 @@
 
 - Disable native driver for Feedback Widget `backgroundColor` animation in unsupported React Native versions ([#4794](https://github.com/getsentry/sentry-react-native/pull/4794))
 - Fix Debug Symbolicator for local development builds (use RN 0.79 default exports) ([#4801](https://github.com/getsentry/sentry-react-native/pull/4801))
+- Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 
 ## 6.13.0
 
