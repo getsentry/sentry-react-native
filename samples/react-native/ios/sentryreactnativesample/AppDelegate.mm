@@ -64,7 +64,6 @@ AppDelegate () <UNUserNotificationCenterDelegate> {
     self.reactNativeFactory = [[RCTReactNativeFactory alloc] initWithDelegate:self];
     self.dependencyProvider = [RCTAppDependencyProvider new];
 
-
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 
     [self.reactNativeFactory startReactNativeWithModuleName:@"sentry-react-native-sample"
@@ -93,8 +92,9 @@ AppDelegate () <UNUserNotificationCenterDelegate> {
 
 #pragma mark - RCTComponentViewFactoryComponentProvider
 
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const std::string &)name
-                                                      jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker
+- (std::shared_ptr<facebook::react::TurboModule>)
+    getTurboModule:(const std::string &)name
+         jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker
 {
 #ifdef RCT_NEW_ARCH_ENABLED
     if (name == std::string([@"NativeSampleModule" UTF8String])) {
@@ -102,7 +102,7 @@ AppDelegate () <UNUserNotificationCenterDelegate> {
     }
 #endif
 
-  return [super getTurboModule:name jsInvoker:jsInvoker];
+    return [super getTurboModule:name jsInvoker:jsInvoker];
 }
 
 @end
