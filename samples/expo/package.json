@@ -21,6 +21,7 @@
     "@types/react": "~18.3.12",
     "expo": "~52.0.42",
     "expo-constants": "~17.0.8",
+    "expo-dev-client": "~5.0.20",
     "expo-image-picker": "~16.0.5",
     "expo-linking": "~7.0.5",
     "expo-router": "~4.0.19",
