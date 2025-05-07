@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Changes
+
+- Renames `enableExperimentalViewRenderer` to `enableViewRendererV2` which is enabled by default for up to 5x times more performance in Session Replay on iOS ([#4815](https://github.com/getsentry/sentry-react-native/pull/4815))
+
 ### Dependencies
 
 - Bump CLI from v2.43.1 to v2.44.0 ([#4804](https://github.com/getsentry/sentry-react-native/pull/4804))
