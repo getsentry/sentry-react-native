@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
+
 ### Dependencies
 
 - Bump CLI from v2.43.1 to v2.44.0 ([#4804](https://github.com/getsentry/sentry-react-native/pull/4804))
