@@ -11113,7 +11113,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.4.0, axios@npm:^1.6.5, axios@npm:^1.6.7, axios@npm:^1.7.4, axios@npm:^1.8.3, axios@npm:^1.x":
+"axios@npm:^1.4.0, axios@npm:^1.6.5, axios@npm:^1.6.7, axios@npm:^1.7.4, axios@npm:^1.x":
   version: 1.8.4
   resolution: "axios@npm:1.8.4"
   dependencies:
@@ -25451,7 +25451,6 @@ __metadata:
     "@types/react-test-renderer": ^18.0.0
     "@typescript-eslint/eslint-plugin": ^7.18.0
     "@typescript-eslint/parser": ^7.18.0
-    axios: ^1.8.3
     babel-jest: ^29.6.3
     babel-plugin-module-resolver: ^5.0.0
     delay: ^6.0.0
