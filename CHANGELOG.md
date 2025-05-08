@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- App slowdown when using Sentry console Integration and filtering by `assert`  ([#4770](https://github.com/getsentry/sentry-react-native/pull/4770))
 - Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 
 ### Dependencies
@@ -62,7 +63,6 @@
 
 ### Fixes
 
-- App slowdown when using Sentry console Integration and filtering by `assert`  ([#4770](https://github.com/getsentry/sentry-react-native/pull/4770))
 - Export `extraErrorDataIntegration` from `@sentry/core` ([#4762](https://github.com/getsentry/sentry-react-native/pull/4762))
 - Remove `@sentry-internal/replay` when `includeWebReplay: false` ([#4774](https://github.com/getsentry/sentry-react-native/pull/4774))
 
