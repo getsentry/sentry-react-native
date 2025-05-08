@@ -156,7 +156,7 @@ export function wrap<P extends Record<string, unknown>>(
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps ?? {}),
+    ...(options?.profilerProps),
     name: RootComponent.displayName ?? 'Root',
     updateProps: {}
   };
