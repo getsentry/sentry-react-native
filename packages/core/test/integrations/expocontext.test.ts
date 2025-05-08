@@ -1,6 +1,10 @@
 import { type Client, type Event, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
 
-import { expoContextIntegration, OTA_UPDATES_CONTEXT_KEY } from '../../src/js/integrations/expocontext';
+import {
+  expoContextIntegration,
+  getExpoUpdatesContext,
+  OTA_UPDATES_CONTEXT_KEY,
+} from '../../src/js/integrations/expocontext';
 import * as environment from '../../src/js/utils/environment';
 import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 import { getExpoDevice } from '../../src/js/utils/expomodules';
@@ -308,6 +312,59 @@ describe('Expo Context Integration', () => {
         build: 'test os build id',
         version: 'test os version',
       });
+    });
+  });
+
+  describe('getExpoUpdatesContext', () => {
+    it('does not return empty values', () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEnabled: false,
+        isEmbeddedLaunch: false,
+        isEmergencyLaunch: false,
+        isUsingEmbeddedAssets: false,
+        updateId: '',
+        channel: '',
+        runtimeVersion: '',
+        checkAutomatically: '',
+        emergencyLaunchReason: '',
+        launchDuration: 0,
+        createdAt: new Date('2021-01-01T00:00:00.000Z'),
+      });
+
+      const expoUpdates = getExpoUpdatesContext();
+
+      expect(expoUpdates).toStrictEqual({
+        is_enabled: false,
+        is_embedded_launch: false,
+        is_emergency_launch: false,
+        is_using_embedded_assets: false,
+        launch_duration: 0,
+        created_at: '2021-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('lowercases all string values', () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        updateId: 'UPPERCASE-123',
+        channel: 'UPPERCASE-123',
+        runtimeVersion: 'UPPERCASE-123',
+        checkAutomatically: 'UPPERCASE-123',
+        emergencyLaunchReason: 'This is a description of the reason.',
+        createdAt: new Date('2021-01-01T00:00:00.000Z'),
+      });
+
+      const expoUpdates = getExpoUpdatesContext();
+
+      expect(expoUpdates).toEqual(
+        expect.objectContaining({
+          update_id: 'uppercase-123',
+          channel: 'uppercase-123',
+          runtime_version: 'uppercase-123',
+          check_automatically: 'uppercase-123',
+          emergency_launch_reason: 'This is a description of the reason.', // Description should be kept as is
+          created_at: '2021-01-01T00:00:00.000Z', // Date should keep ISO string format
+        }),
+      );
     });
   });
 
