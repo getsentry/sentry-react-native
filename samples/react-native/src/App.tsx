@@ -86,7 +86,6 @@ Sentry.init({
       Sentry.reactNativeTracingIntegration({
         // The time to wait in ms until the transaction will be finished, For testing, default is 1000 ms
         idleTimeoutMs: 5_000,
-        traceFetch: false, // Creates duplicate span for axios requests
       }),
       Sentry.httpClientIntegration({
         // These options are effective only in JS.
@@ -109,15 +108,16 @@ Sentry.init({
         standalone: false,
       }),
       Sentry.reactNativeErrorHandlersIntegration({
-        patchGlobalPromise: Platform.OS === 'ios' && isTurboModuleEnabled()
-          // The global patch doesn't work on iOS with the New Architecture in this Sample app
-          // In
-          ? false
-          : true,
+        patchGlobalPromise:
+          Platform.OS === 'ios' && isTurboModuleEnabled()
+            ? // The global patch doesn't work on iOS with the New Architecture in this Sample app
+              // In
+              false
+            : true,
       }),
       Sentry.feedbackIntegration({
         imagePicker: ImagePicker,
-        styles:{
+        styles: {
           submitButton: {
             backgroundColor: '#6a1b9a',
             paddingVertical: 15,

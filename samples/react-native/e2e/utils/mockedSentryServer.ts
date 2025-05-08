@@ -16,7 +16,7 @@ export function createSentryServer({ port = 8961 } = {}): {
     predicate: (envelope: Envelope) => boolean,
   ) => Promise<Envelope>;
   close: () => Promise<void>;
-  start: () => void;
+  start: () => Promise<void>;
   getEnvelope: (predicate: (envelope: Envelope) => boolean) => Envelope;
   getAllEnvelopes: (predicate: (envelope: Envelope) => boolean) => Envelope[];
 } {
@@ -64,7 +64,12 @@ export function createSentryServer({ port = 8961 } = {}): {
 
   return {
     start: () => {
-      server.listen(port);
+      return new Promise<void>((resolve, _reject) => {
+        server.listen(port, () => {
+          console.log(`Sentry server listening on port ${port}`);
+          resolve();
+        });
+      });
     },
     waitForEnvelope: async (
       predicate: (envelope: Envelope) => boolean,

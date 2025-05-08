@@ -1,11 +1,11 @@
 {
   "name": "sentry-react-native-samples-utils",
-  "version": "6.11.0",
+  "version": "6.13.1",
   "description": "Internal Samples Utils",
   "main": "index.js",
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "metro-config": "^0.81.0"
+    "metro-config": "^0.82.2"
   }
 }

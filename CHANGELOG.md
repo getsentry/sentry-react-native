@@ -8,6 +8,53 @@
 
 ## Unreleased
 
+### Fixes
+
+- Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
+
+### Dependencies
+
+- Bump CLI from v2.43.1 to v2.44.0 ([#4804](https://github.com/getsentry/sentry-react-native/pull/4804))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2440)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.43.1...2.44.0)
+- Bump Bundler Plugins from v3.3.1 to v3.4.0 ([#4805](https://github.com/getsentry/sentry-react-native/pull/4805))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#340)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.3.1...3.4.0)
+- Bump Cocoa SDK from v8.49.2 to v8.50.0 ([#4807](https://github.com/getsentry/sentry-react-native/pull/4807))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8500)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.2...8.50.0)
+
+### Fixes
+
+- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
+  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
+
+## 6.13.1
+
+### Fixes
+
+- Disable native driver for Feedback Widget `backgroundColor` animation in unsupported React Native versions ([#4794](https://github.com/getsentry/sentry-react-native/pull/4794))
+- Fix Debug Symbolicator for local development builds (use RN 0.79 default exports) ([#4801](https://github.com/getsentry/sentry-react-native/pull/4801))
+
+## 6.13.0
+
+### Changes
+
+- Fallback to Current Activity Holder when React Context Activity is not present ([#4779](https://github.com/getsentry/sentry-react-native/pull/4779))
+- Support `REACT_NATIVE_PATH` env in Xcode Debug Files upload scripts ([#4789](https://github.com/getsentry/sentry-react-native/pull/4789))
+
+### Fixes
+
+- Initialize Sentry Android with ApplicationContext if available ([#4780](https://github.com/getsentry/sentry-react-native/pull/4780))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.49.1 to v8.49.2 ([#4792](https://github.com/getsentry/sentry-react-native/pull/4792))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8492)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.1...8.49.2)
+
+## 6.12.0
+
 ### Features
 
 - Add Expo Updates Event Context ([#4767](https://github.com/getsentry/sentry-react-native/pull/4767), [#4786](https://github.com/getsentry/sentry-react-native/pull/4786))

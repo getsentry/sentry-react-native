@@ -13,7 +13,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '1.40.0'
+  MAESTRO_VERSION: '1.40.2'
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -208,7 +208,7 @@ jobs:
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/${{ matrix.platform }}/*.log
 
   test:
-    name: Test ${{ matrix.platform }} ${{ matrix.build-type }}
+    name: Test ${{ matrix.platform }} ${{ matrix.build-type }} REV2
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, build]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
