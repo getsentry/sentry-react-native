@@ -27,7 +27,7 @@
         @"errorSampleRate" : options[@"replaysOnErrorSampleRate"] ?: [NSNull null],
         @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
         @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
-        @"enableViewRendererV2" : replayOptions[@"enableViewRendererV2"] ?: @YES,
+        @"enableViewRendererV2" : replayOptions[@"enableViewRendererV2"] ?: [NSNull null],
         @"enableFastViewRendering" : replayOptions[@"enableFastViewRendering"] ?: [NSNull null],
         @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
         @"sdkInfo" :
