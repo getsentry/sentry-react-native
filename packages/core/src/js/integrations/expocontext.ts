@@ -89,16 +89,16 @@ export function getExpoUpdatesContext(): ExpoUpdatesContext {
   };
 
   if (typeof expoUpdates.updateId === 'string' && expoUpdates.updateId) {
-    updatesContext.update_id = expoUpdates.updateId.toLocaleLowerCase();
+    updatesContext.update_id = expoUpdates.updateId.toLowerCase();
   }
   if (typeof expoUpdates.channel === 'string' && expoUpdates.channel) {
-    updatesContext.channel = expoUpdates.channel.toLocaleLowerCase();
+    updatesContext.channel = expoUpdates.channel.toLowerCase();
   }
   if (typeof expoUpdates.runtimeVersion === 'string' && expoUpdates.runtimeVersion) {
-    updatesContext.runtime_version = expoUpdates.runtimeVersion.toLocaleLowerCase();
+    updatesContext.runtime_version = expoUpdates.runtimeVersion.toLowerCase();
   }
   if (typeof expoUpdates.checkAutomatically === 'string' && expoUpdates.checkAutomatically) {
-    updatesContext.check_automatically = expoUpdates.checkAutomatically.toLocaleLowerCase();
+    updatesContext.check_automatically = expoUpdates.checkAutomatically.toLowerCase();
   }
   if (typeof expoUpdates.emergencyLaunchReason === 'string' && expoUpdates.emergencyLaunchReason) {
     updatesContext.emergency_launch_reason = expoUpdates.emergencyLaunchReason;
