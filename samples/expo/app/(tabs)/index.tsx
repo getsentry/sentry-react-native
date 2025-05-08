@@ -9,6 +9,7 @@ import { setScopeProperties } from '@/utils/setScopeProperties';
 import React from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import { useUpdates } from 'expo-updates';
+import { isWeb } from '../../utils/isWeb';
 
 const isRunningInExpoGo = Constants.appOwnership === 'expo';
 
@@ -26,6 +27,7 @@ export default function TabOneScreen() {
         onPress={() => {
           DevClient.openMenu();
         }}
+        disabled={isWeb()}
       />
       <Button
         title="Capture message"
