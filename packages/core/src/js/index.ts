@@ -91,3 +91,5 @@ export { FeedbackWidget } from './feedback/FeedbackWidget';
 export { showFeedbackWidget } from './feedback/FeedbackWidgetManager';
 
 export { getDataFromUri } from './wrapper';
+
+export { Wizard } from './wizard/modal';
