@@ -91,12 +91,6 @@ describe('Sentry.wrap', () => {
             updateProps: expect.anything(),
           })
         );
-
-        expect(ReactNativeProfiler).not.toHaveBeenCalledWith(
-          expect.objectContaining({
-            removeUpdateProps: expect.anything(),
-          })
-        );
       });
 
       it('ignore updateProps when set', () => {
