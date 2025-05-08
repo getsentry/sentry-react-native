@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
+
 ### Changes
 
 - Renames `enableExperimentalViewRenderer` to `enableViewRendererV2` which is enabled by default for up to 5x times more performance in Session Replay on iOS ([#4815](https://github.com/getsentry/sentry-react-native/pull/4815))
