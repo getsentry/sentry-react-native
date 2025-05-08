@@ -9,6 +9,7 @@ jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplayn
 
 import { isTurboModuleEnabled } from '../../src/js/utils/environment';
 jest.mock('../../src/js/utils/environment', () => ({
+  isWeb: jest.fn().mockReturnValue(false),
   isTurboModuleEnabled: jest.fn().mockReturnValue(false),
 }));
 
