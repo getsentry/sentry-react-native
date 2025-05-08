@@ -1,0 +1,60 @@
+diff --git a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
+index be8ba08..d8cdbe1 100644
+--- a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
++++ b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
+@@ -73,13 +73,7 @@ export type WebViewNavigationEvent = Readonly<{
+   canGoBack: boolean;
+   canGoForward: boolean;
+   lockIdentifier: Double;
+-  navigationType:
+-    | 'click'
+-    | 'formsubmit'
+-    | 'backforward'
+-    | 'reload'
+-    | 'formresubmit'
+-    | 'other';
++  navigationType: string;
+   mainDocumentURL?: string;
+ }>;
+
+@@ -90,13 +84,7 @@ export type ShouldStartLoadRequestEvent = Readonly<{
+   canGoBack: boolean;
+   canGoForward: boolean;
+   lockIdentifier: Double;
+-  navigationType:
+-    | 'click'
+-    | 'formsubmit'
+-    | 'backforward'
+-    | 'reload'
+-    | 'formresubmit'
+-    | 'other';
++  navigationType: string;
+   mainDocumentURL?: string;
+   isTopFrame: boolean;
+ }>;
+@@ -147,14 +135,8 @@ export interface NativeProps extends ViewProps {
+   allowFileAccess?: boolean;
+   allowsProtectedMedia?: boolean;
+   allowsFullscreenVideo?: boolean;
+-  androidLayerType?: WithDefault<'none' | 'software' | 'hardware', 'none'>;
+-  cacheMode?: WithDefault<
+-    | 'LOAD_DEFAULT'
+-    | 'LOAD_CACHE_ELSE_NETWORK'
+-    | 'LOAD_NO_CACHE'
+-    | 'LOAD_CACHE_ONLY',
+-    'LOAD_DEFAULT'
+-  >;
++  androidLayerType?: WithDefault<string, 'none'>;
++  cacheMode?: WithDefault<string, 'LOAD_DEFAULT'>;
+   domStorageEnabled?: boolean;
+   downloadingMessage?: string;
+   forceDarkOn?: boolean;
+@@ -162,7 +144,7 @@ export interface NativeProps extends ViewProps {
+   lackPermissionToDownloadMessage?: string;
+   messagingModuleName: string;
+   minimumFontSize?: Int32;
+-  mixedContentMode?: WithDefault<'never' | 'always' | 'compatibility', 'never'>;
++  mixedContentMode?: WithDefault<string, 'never'>;
+   nestedScrollEnabled?: boolean;
+   onContentSizeChange?: DirectEventHandler<WebViewNativeEvent>;
+   onRenderProcessGone?: DirectEventHandler<WebViewRenderProcessGoneEvent>;
