@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
+
 ### Dependencies
 
 - Bump CLI from v2.43.1 to v2.44.0 ([#4804](https://github.com/getsentry/sentry-react-native/pull/4804))
@@ -16,6 +20,9 @@
 - Bump Bundler Plugins from v3.3.1 to v3.4.0 ([#4805](https://github.com/getsentry/sentry-react-native/pull/4805))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#340)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.3.1...3.4.0)
+- Bump Cocoa SDK from v8.49.2 to v8.50.0 ([#4807](https://github.com/getsentry/sentry-react-native/pull/4807))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8500)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.2...8.50.0)
 
 ## 6.13.1
 
