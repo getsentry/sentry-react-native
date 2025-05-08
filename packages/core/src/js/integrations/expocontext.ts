@@ -1,5 +1,6 @@
 import { type DeviceContext, type Event, type Integration, type OsContext, logger } from '@sentry/core';
 
+import type { ReactNativeClient } from '../client';
 import { isExpo, isExpoGo } from '../utils/environment';
 import { getExpoDevice, getExpoUpdates } from '../utils/expomodules';
 import { NATIVE } from '../wrapper';
@@ -12,8 +13,14 @@ export const OTA_UPDATES_CONTEXT_KEY = 'ota_updates';
 export const expoContextIntegration = (): Integration => {
   let _expoUpdatesContextCached: ExpoUpdatesContext | undefined;
 
-  function setup(): void {
-    setExpoUpdatesNativeContext();
+  function setup(client: ReactNativeClient): void {
+    client.on('afterInit', () => {
+      if (!client.getOptions().enableNative) {
+        return;
+      }
+
+      setExpoUpdatesNativeContext();
+    });
   }
 
   function setExpoUpdatesNativeContext(): void {
