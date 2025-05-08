@@ -108,4 +108,19 @@ describe('Capture Spaceflight News Screen Transaction', () => {
       }),
     );
   });
+
+  it('contains exactly two articles requests spans', () => {
+    // This test ensures we are to tracing requests multiple times on different layers
+    // fetch > xhr > native
+
+    const item = getFirstNewsEventItem();
+    const spans = item?.[1].spans;
+
+    console.log(spans);
+
+    const httpSpans = spans?.filter(
+      span => span.data?.['sentry.op'] === 'http.client',
+    );
+    expect(httpSpans).toHaveLength(2);
+  });
 });

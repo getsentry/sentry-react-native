@@ -30,7 +30,6 @@
     "@sentry/core": "8.54.0",
     "@sentry/react-native": "6.13.1",
     "@shopify/flash-list": "1.8.0",
-    "axios": "^1.8.3",
     "delay": "^6.0.0",
     "react": "19.0.0",
     "react-native": "0.79.2",
