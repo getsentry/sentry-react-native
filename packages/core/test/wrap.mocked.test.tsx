@@ -3,32 +3,32 @@ import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import type { ReactNativeWrapperOptions } from 'src/js/options';
 
-  jest.doMock('../src/js/touchevents', () => {
-    return {
-          TouchEventBoundary: ({ children }: { children: React.ReactNode }) => (
-            // eslint-disable-next-line react/no-unknown-property
-            <div testID="touch-boundaryID">{children}</div>
-          ),
-        }
-  });
+jest.doMock('../src/js/touchevents', () => {
+  return {
+        TouchEventBoundary: ({ children }: { children: React.ReactNode }) => (
+          // eslint-disable-next-line react/no-unknown-property
+          <div testID="touch-boundaryID">{children}</div>
+        ),
+      }
+});
 
 jest.doMock('../src/js/tracing', () => {
   return {
-          ReactNativeProfiler: jest.fn(({ children }: { children: React.ReactNode }) => (
-            // eslint-disable-next-line react/no-unknown-property
-            <div testID="profilerID">{children}</div>
-          )),
-        }
-  });
+        ReactNativeProfiler: jest.fn(({ children }: { children: React.ReactNode }) => (
+          // eslint-disable-next-line react/no-unknown-property
+          <div testID="profilerID">{children}</div>
+        )),
+      }
+});
 
-  jest.doMock('../src/js/feedback/FeedbackWidgetManager', () => {
-    return {
-          FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
-            // eslint-disable-next-line react/no-unknown-property
-            <div testID="feedback-widgetID">{children}</div>
-          ),
-      };
-  });
+jest.doMock('../src/js/feedback/FeedbackWidgetManager', () => {
+  return {
+        FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
+          // eslint-disable-next-line react/no-unknown-property
+          <div testID="feedback-widgetID">{children}</div>
+        ),
+    };
+});
 
 
 import { wrap } from '../src/js/sdk';

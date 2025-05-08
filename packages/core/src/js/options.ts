@@ -294,7 +294,7 @@ export interface ReactNativeClientOptions
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */
-  profilerProps?: Pick<Partial<ProfilerProps>, Exclude<keyof ProfilerProps, 'updateProps' | 'children' | 'name'>>;
+  profilerProps?: Omit<ProfilerProps, 'updateProps' | 'children' | 'name'>
 
   /** Props for the root touch event boundary */
   touchEventBoundaryProps?: TouchEventBoundaryProps;
