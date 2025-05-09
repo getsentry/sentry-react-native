@@ -1,8 +1,42 @@
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.mm b/node_modules/react-native-webview/apple/RNCWebView.mm
-index f9d080e..30f192c 100644
+index f9d080e..321b1e5 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.mm
 +++ b/node_modules/react-native-webview/apple/RNCWebView.mm
-@@ -368,13 +368,14 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+@@ -13,30 +13,15 @@
+ using namespace facebook::react;
+
+ auto stringToOnShouldStartLoadWithRequestNavigationTypeEnum(std::string value) {
+-    if (value == "click") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Click;
+-    if (value == "formsubmit") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Formsubmit;
+-    if (value == "backforward") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Backforward;
+-    if (value == "reload") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Reload;
+-    if (value == "formresubmit") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequesstNavigationType::Formresubmit;
+-    return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Other;
++    return value;
+ }
+
+ auto stringToOnLoadingStartNavigationTypeEnum(std::string value) {
+-    if (value == "click") return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Click;
+-    if (value == "formsubmit") return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Formsubmit;
+-    if (value == "backforward") return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Backforward;
+-    if (value == "reload") return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Reload;
+-    if (value == "formresubmit") return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Formresubmit;
+-    return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Other;
++    return value;
+ }
+
+ auto stringToOnLoadingFinishNavigationTypeEnum(std::string value) {
+-    if (value == "click") return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Click;
+-    if (value == "formsubmit") return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Formsubmit;
+-    if (value == "backforward") return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Backforward;
+-    if (value == "reload") return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Reload;
+-    if (value == "formresubmit") return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Formresubmit;
+-    return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Other;
++    return value;
+ }
+
+ @interface RNCWebView () <RCTRNCWebViewViewProtocol>
+@@ -368,13 +353,14 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
 
  #if !TARGET_OS_OSX
      if (oldViewProps.contentInsetAdjustmentBehavior != newViewProps.contentInsetAdjustmentBehavior) {
@@ -21,7 +55,7 @@ index f9d080e..30f192c 100644
              [_view setContentInsetAdjustmentBehavior: UIScrollViewContentInsetAdjustmentAlways];
          }
      }
-@@ -431,14 +432,14 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+@@ -431,14 +417,14 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
              _view.onOpenWindow = nil;
          }
      }
@@ -40,7 +74,7 @@ index f9d080e..30f192c 100644
              [_view setContentMode:WKContentModeDesktop];
          }
      }
-@@ -446,15 +447,16 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+@@ -446,15 +432,16 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
 
  #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000 /* iOS 15 */
      if (oldViewProps.mediaCapturePermissionGrantType != newViewProps.mediaCapturePermissionGrantType) {
