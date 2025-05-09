@@ -4,17 +4,17 @@ index f9d080e..321b1e5 100644
 +++ b/node_modules/react-native-webview/apple/RNCWebView.mm
 @@ -13,30 +13,15 @@
  using namespace facebook::react;
-
+ 
  auto stringToOnShouldStartLoadWithRequestNavigationTypeEnum(std::string value) {
 -    if (value == "click") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Click;
 -    if (value == "formsubmit") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Formsubmit;
 -    if (value == "backforward") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Backforward;
 -    if (value == "reload") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Reload;
--    if (value == "formresubmit") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequesstNavigationType::Formresubmit;
+-    if (value == "formresubmit") return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Formresubmit;
 -    return RNCWebViewEventEmitter::OnShouldStartLoadWithRequestNavigationType::Other;
 +    return value;
  }
-
+ 
  auto stringToOnLoadingStartNavigationTypeEnum(std::string value) {
 -    if (value == "click") return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Click;
 -    if (value == "formsubmit") return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Formsubmit;
@@ -24,7 +24,7 @@ index f9d080e..321b1e5 100644
 -    return RNCWebViewEventEmitter::OnLoadingStartNavigationType::Other;
 +    return value;
  }
-
+ 
  auto stringToOnLoadingFinishNavigationTypeEnum(std::string value) {
 -    if (value == "click") return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Click;
 -    if (value == "formsubmit") return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Formsubmit;
@@ -34,10 +34,10 @@ index f9d080e..321b1e5 100644
 -    return RNCWebViewEventEmitter::OnLoadingFinishNavigationType::Other;
 +    return value;
  }
-
+ 
  @interface RNCWebView () <RCTRNCWebViewViewProtocol>
 @@ -368,13 +353,14 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
-
+ 
  #if !TARGET_OS_OSX
      if (oldViewProps.contentInsetAdjustmentBehavior != newViewProps.contentInsetAdjustmentBehavior) {
 -        if (newViewProps.contentInsetAdjustmentBehavior == RNCWebViewContentInsetAdjustmentBehavior::Never) {
@@ -75,7 +75,7 @@ index f9d080e..321b1e5 100644
          }
      }
 @@ -446,15 +432,16 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
-
+ 
  #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000 /* iOS 15 */
      if (oldViewProps.mediaCapturePermissionGrantType != newViewProps.mediaCapturePermissionGrantType) {
 -        if (newViewProps.mediaCapturePermissionGrantType == RNCWebViewMediaCapturePermissionGrantType::Prompt) {
@@ -114,7 +114,7 @@ index be8ba08..c39c697 100644
 +  navigationType: string;
    mainDocumentURL?: string;
  }>;
-
+ 
 @@ -90,13 +84,7 @@ export type ShouldStartLoadRequestEvent = Readonly<{
    canGoBack: boolean;
    canGoForward: boolean;
@@ -189,3 +189,4 @@ index be8ba08..c39c697 100644
    pagingEnabled?: boolean;
    pullToRefreshEnabled?: boolean;
    refreshControlLightMode?: boolean;
+
