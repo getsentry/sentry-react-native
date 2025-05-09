@@ -7,44 +7,67 @@ export const Wizard = () => {
 
   return (
     <Modal
-      presentationStyle='formSheet'
+      presentationStyle="formSheet"
       visible={show}
-      animationType='slide'
+      animationType="slide"
       onRequestClose={() => {
         setShow(false);
-      }}>
+      }}
+    >
       <SafeAreaView style={styles.background}>
         <View style={styles.container}>
-          <Image
-            source={require('../../../images/hi.gif')}
-            style={{ width: 100, height: 100 }}
-          />
+          <Text style={{ color: 'rgb(246, 245, 250)', fontSize: 24, fontWeight: 'bold' }}>
+            Welcome to Sentry Starter!
+          </Text>
+          <Image source={require('../../../images/hi.gif')} style={{ width: 100, height: 100 }} />
           <View style={styles.listContainer}>
-            <Row action={'Capture'}/>
-            <Row action={'Try'}/>
-            <Row action={'Crash'} last />
+            <Row
+              title={'captureException()'}
+              description={'In try-catch scenario error can be reported using manual APIs.'}
+              action={'Try'}
+            />
+            <Row
+              title={'throw new Error()'}
+              description={'Uncaught errors are automatically reported from React Native Global Handler.'}
+              action={'Throw'}
+            />
+            <Row
+              title={'throw RuntimeException()'}
+              description={
+                'Unhandled errors in the native layers like Java, Objective-C, C, Swift or Kotlin are automatically reported. '
+              }
+              action={'Crash'}
+              last
+            />
           </View>
+          <View style={{ marginTop: 40 }} />
+          <Button
+            title={'Go to my App'}
+            onPress={() => {
+              setShow(false);
+            }}
+          />
         </View>
       </SafeAreaView>
     </Modal>
   );
 };
 
-const Row = ({last, action}) => {
+const Row = ({ last, action, title, description }) => {
   return (
     <View style={[styles.rowContainer, last && styles.lastRowContainer]}>
-      <View>
-        <Text style={styles.rowTitle}>{action}</Text>
-        <Text style={{ color: 'rgb(177, 177, 177)' }}>
-          Lorem ipsum dolor sit amet.
-        </Text>
+      <View style={{ flexShrink: 1, paddingRight: 12 }}>
+        <Text style={[styles.rowTitle, { fontFamily: 'Menlo' }]}>{title}</Text>
+        <Text style={{ color: 'rgb(146, 130, 170)', fontSize: 12 }}>{description}</Text>
       </View>
-      <Button onPress={() => {}} title={action} />
+      <View>
+        <Button secondary onPress={() => {}} title={action} />
+      </View>
     </View>
   );
 };
 
-const Button = ({ onPress, title }) => {
+const Button = ({ onPress, title, secondary }) => {
   return (
     <View style={[styles.buttonBottomLayer, styles.buttonCommon]}>
       <Pressable
@@ -52,7 +75,7 @@ const Button = ({ onPress, title }) => {
           styles.buttonMainContainer,
           pressed && styles.buttonMainContainerPressed,
           styles.buttonCommon,
-          styles.buttonSecondaryContainer,
+          secondary && styles.buttonSecondaryContainer,
         ]}
         onPress={onPress}
       >
@@ -60,7 +83,7 @@ const Button = ({ onPress, title }) => {
       </Pressable>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   background: {
@@ -72,10 +95,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center', // Center content vertically
   },
   container: {
+    flex: 1,
+    flexDirection: 'column',
     padding: 20,
     marginTop: 20,
     width: '100%',
     alignItems: 'center', // Center image and button container
+    justifyContent: 'space-evenly', // Center image and button container
   },
   buttonContainer: {
     flexDirection: 'row', // Arrange buttons horizontally
@@ -87,22 +113,23 @@ const styles = StyleSheet.create({
     marginTop: 20, // Add some space above the buttons
     borderColor: 'rgb(7, 5, 15)',
     borderWidth: 1,
-    borderRadius  : 8,
+    borderRadius: 8,
   },
   rowTitle: {
     color: 'rgb(246, 245, 250)',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'left',
   },
   rowContainer: {
+    overflow: 'hidden',
     flexDirection: 'row',
     justifyContent: 'space-between', // Space between buttons
     paddingTop: 16,
     paddingBottom: 10,
     paddingHorizontal: 10,
     borderColor: 'rgb(7, 5, 15)',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   lastRowContainer: {
     borderBottomWidth: 0, // Remove border for the last row
