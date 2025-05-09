@@ -32,7 +32,7 @@
     "@shopify/flash-list": "^1.7.3",
     "delay": "^6.0.0",
     "react": "18.3.1",
-    "react-native": "0.77.1",
+    "react-native": "0.79.2",
     "react-native-gesture-handler": "^2.24.0",
     "react-native-image-picker": "^8.0.0",
     "react-native-launch-arguments": "^4.1.0",
