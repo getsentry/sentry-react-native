@@ -1,5 +1,69 @@
+diff --git a/node_modules/react-native-webview/apple/RNCWebView.mm b/node_modules/react-native-webview/apple/RNCWebView.mm
+index f9d080e..30f192c 100644
+--- a/node_modules/react-native-webview/apple/RNCWebView.mm
++++ b/node_modules/react-native-webview/apple/RNCWebView.mm
+@@ -368,13 +368,14 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+
+ #if !TARGET_OS_OSX
+     if (oldViewProps.contentInsetAdjustmentBehavior != newViewProps.contentInsetAdjustmentBehavior) {
+-        if (newViewProps.contentInsetAdjustmentBehavior == RNCWebViewContentInsetAdjustmentBehavior::Never) {
++        std::string behavior = newViewProps.contentInsetAdjustmentBehavior;
++        if (behavior == "never") {
+             [_view setContentInsetAdjustmentBehavior: UIScrollViewContentInsetAdjustmentNever];
+-        } else if (newViewProps.contentInsetAdjustmentBehavior == RNCWebViewContentInsetAdjustmentBehavior::Automatic) {
++        } else if (behavior == "automatic") {
+             [_view setContentInsetAdjustmentBehavior: UIScrollViewContentInsetAdjustmentAutomatic];
+-        } else if (newViewProps.contentInsetAdjustmentBehavior == RNCWebViewContentInsetAdjustmentBehavior::ScrollableAxes) {
++        } else if (behavior == "scrollableAxes") {
+             [_view setContentInsetAdjustmentBehavior: UIScrollViewContentInsetAdjustmentScrollableAxes];
+-        } else if (newViewProps.contentInsetAdjustmentBehavior == RNCWebViewContentInsetAdjustmentBehavior::Always) {
++        } else if (behavior == "always") {
+             [_view setContentInsetAdjustmentBehavior: UIScrollViewContentInsetAdjustmentAlways];
+         }
+     }
+@@ -431,14 +432,14 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+             _view.onOpenWindow = nil;
+         }
+     }
+-//
+ #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000 /* iOS 13 */
+     if (oldViewProps.contentMode != newViewProps.contentMode) {
+-        if (newViewProps.contentMode == RNCWebViewContentMode::Recommended) {
++        std::string mode = newViewProps.contentMode;
++        if (mode == "recommended") {
+             [_view setContentMode: WKContentModeRecommended];
+-        } else if (newViewProps.contentMode == RNCWebViewContentMode::Mobile) {
++        } else if (mode == "mobile") {
+             [_view setContentMode:WKContentModeMobile];
+-        } else if (newViewProps.contentMode == RNCWebViewContentMode::Desktop) {
++        } else if (mode == "desktop") {
+             [_view setContentMode:WKContentModeDesktop];
+         }
+     }
+@@ -446,15 +447,16 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+
+ #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000 /* iOS 15 */
+     if (oldViewProps.mediaCapturePermissionGrantType != newViewProps.mediaCapturePermissionGrantType) {
+-        if (newViewProps.mediaCapturePermissionGrantType == RNCWebViewMediaCapturePermissionGrantType::Prompt) {
++        std::string grantType = newViewProps.mediaCapturePermissionGrantType;
++        if (grantType == "prompt") {
+             [_view setMediaCapturePermissionGrantType:RNCWebViewPermissionGrantType_Prompt];
+-        } else if (newViewProps.mediaCapturePermissionGrantType == RNCWebViewMediaCapturePermissionGrantType::Grant) {
++        } else if (grantType == "grant") {
+             [_view setMediaCapturePermissionGrantType:RNCWebViewPermissionGrantType_Grant];
+-        } else if (newViewProps.mediaCapturePermissionGrantType == RNCWebViewMediaCapturePermissionGrantType::Deny) {
++        } else if (grantType == "deny") {
+             [_view setMediaCapturePermissionGrantType:RNCWebViewPermissionGrantType_Deny];
+-        }else if (newViewProps.mediaCapturePermissionGrantType == RNCWebViewMediaCapturePermissionGrantType::GrantIfSameHostElsePrompt) {
++        } else if (grantType == "grantIfSameHostElsePrompt") {
+             [_view setMediaCapturePermissionGrantType:RNCWebViewPermissionGrantType_GrantIfSameHost_ElsePrompt];
+-        }else if (newViewProps.mediaCapturePermissionGrantType == RNCWebViewMediaCapturePermissionGrantType::GrantIfSameHostElseDeny) {
++        } else if (grantType == "grantIfSameHostElseDeny") {
+             [_view setMediaCapturePermissionGrantType:RNCWebViewPermissionGrantType_GrantIfSameHost_ElseDeny];
+         }
+     }
 diff --git a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
-index be8ba08..d8cdbe1 100644
+index be8ba08..c39c697 100644
 --- a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
 +++ b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
 @@ -73,13 +73,7 @@ export type WebViewNavigationEvent = Readonly<{
@@ -58,3 +122,36 @@ index be8ba08..d8cdbe1 100644
    nestedScrollEnabled?: boolean;
    onContentSizeChange?: DirectEventHandler<WebViewNativeEvent>;
    onRenderProcessGone?: DirectEventHandler<WebViewRenderProcessGoneEvent>;
+@@ -194,14 +176,8 @@ export interface NativeProps extends ViewProps {
+     bottom?: Double;
+     right?: Double;
+   }>;
+-  contentInsetAdjustmentBehavior?: WithDefault<
+-    'never' | 'automatic' | 'scrollableAxes' | 'always',
+-    'never'
+-  >;
+-  contentMode?: WithDefault<
+-    'recommended' | 'mobile' | 'desktop',
+-    'recommended'
+-  >;
++  contentInsetAdjustmentBehavior?: WithDefault<string, 'never'>;
++  contentMode?: WithDefault<string, 'recommended'>;
+   dataDetectorTypes?: WithDefault<
+     ReadonlyArray<
+       | 'address'
+@@ -222,14 +198,7 @@ export interface NativeProps extends ViewProps {
+   hideKeyboardAccessoryView?: boolean;
+   keyboardDisplayRequiresUserAction?: WithDefault<boolean, true>;
+   limitsNavigationsToAppBoundDomains?: boolean;
+-  mediaCapturePermissionGrantType?: WithDefault<
+-    | 'prompt'
+-    | 'grant'
+-    | 'deny'
+-    | 'grantIfSameHostElsePrompt'
+-    | 'grantIfSameHostElseDeny',
+-    'prompt'
+-  >;
++  mediaCapturePermissionGrantType?: WithDefault<string, 'prompt'>;
+   pagingEnabled?: boolean;
+   pullToRefreshEnabled?: boolean;
+   refreshControlLightMode?: boolean;
