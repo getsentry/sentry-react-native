@@ -1,5 +1,5 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { consoleSandbox, logger } from '@sentry/core';
 
 import type { ExtendedError } from '../utils/error';
 import { getFramesToPop, isErrorLike } from '../utils/error';
@@ -69,7 +69,9 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
   try {
     const parsedStack = parseErrorStack(rawStack);
 
-    const prettyStack = await symbolicateStackTrace(parsedStack);
+    // Avoid capturing console logs as events when calling symbolicateStackTrace to avoid infinite loops.
+    // See file `debugsymbolicator.consoleissue.txt` for a sample stack-trace with this problem.
+    const prettyStack = await consoleSandbox(async () => symbolicateStackTrace(parsedStack));
     if (!prettyStack) {
       logger.error('React Native DevServer could not symbolicate the stack trace.');
       return null;
