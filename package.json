@@ -1,7 +1,6 @@
 {
   "private": true,
   "scripts": {
-    "postinstall": "lerna run postinstall",
     "build": "lerna run build",
     "build:tarball": "lerna run build:tarball",
     "downlevel": "lerna run downlevel",

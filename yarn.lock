@@ -17962,7 +17962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"invariant@npm:2.2.4, invariant@npm:^2.2.4":
+"invariant@npm:^2.2.4":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
   dependencies:
@@ -24784,19 +24784,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webview@npm:13.13.5":
-  version: 13.13.5
-  resolution: "react-native-webview@npm:13.13.5"
-  dependencies:
-    escape-string-regexp: ^4.0.0
-    invariant: 2.2.4
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 7f3bce1b37d6be9b2f07f0f7481181d5344f9e58022645b0d20dc58cd66056bb6efecacb231963959db6283cc66d977593db62a403c7c151f83568f83041c2eb
-  languageName: node
-  linkType: hard
-
 "react-native@npm:0.70.15":
   version: 0.70.15
   resolution: "react-native@npm:0.70.15"
@@ -26406,7 +26393,6 @@ __metadata:
     react-native-screens: 4.10.0
     react-native-svg: 15.11.2
     react-native-vector-icons: ^10.2.0
-    react-native-webview: 13.13.5
     react-redux: ^8.1.3
     react-test-renderer: 19.0.0
     redux: ^4.2.1
