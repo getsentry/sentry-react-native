@@ -1,0 +1,45 @@
+# This is a happy path test for the feedback widget on iOS.
+# It verifies that the feedback form can be opened, filled out, and submitted successfully
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+
+# Show feedback button
+- tapOn: 'Feedback'
+
+# Open feedback widget
+- tapOn:
+    id: 'sentry-feedback-button'
+
+# Assert that the feedback form is visible
+- extendedWaitUntil:
+    visible:
+      id: 'sentry-feedback-form-title'
+    timeout: 5_000
+
+# Fill out name field
+- tapOn:
+    id: 'sentry-feedback-name-input'
+- inputText: 'John Doe'
+
+# Fill out email field
+- tapOn:
+    id: 'sentry-feedback-email-input'
+- inputText: 'test@email.com'
+
+# Fill out message field
+- tapOn:
+    id: 'sentry-feedback-message-input'
+- inputText: 'This is a test feedback message from CI e2e tests'
+
+# Submit feedback
+- scrollUntilVisible:
+    element:
+      id: 'sentry-feedback-submit-button'
+- tapOn:
+    id: 'sentry-feedback-submit-button'
+- assertVisible: 'Thank you for your report!'
+- tapOn: 'OK'
+
+# Verify feedback form is closed and the home screen is visible
+- assertVisible: 'Welcome to React Native'

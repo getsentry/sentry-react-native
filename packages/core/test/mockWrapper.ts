@@ -62,6 +62,7 @@ const NATIVE: MockInterface<NativeType> = {
   getDataFromUri: jest.fn(),
   popTimeToDisplayFor: jest.fn(),
   setActiveSpanId: jest.fn(),
+  encodeToBase64: jest.fn(),
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);

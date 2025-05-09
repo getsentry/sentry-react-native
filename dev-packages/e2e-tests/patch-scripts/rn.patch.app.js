@@ -39,6 +39,7 @@ const e2eComponentPatch = '<EndToEndTestsScreen />';
 const lastImportRex = /^([^]*)(import\s+[^;]*?;$)/m;
 const patchRex = '@sentry/react-native';
 const headerComponentRex = /<ScrollView/gm;
+const exportDefaultRex = /export\s+default\s+App;/m;
 
 const jsPath = path.join(args.app, 'App.js');
 const tsxPath = path.join(args.app, 'App.tsx');
@@ -50,7 +51,8 @@ const isPatched = app.match(patchRex);
 if (!isPatched) {
   const patched = app
     .replace(lastImportRex, m => m + initPatch)
-    .replace(headerComponentRex, m => e2eComponentPatch + m);
+    .replace(headerComponentRex, m => e2eComponentPatch + m)
+    .replace(exportDefaultRex, 'export default Sentry.wrap(App);');
 
   fs.writeFileSync(appPath, patched);
   logger.info('Patched RN App.(js|tsx) successfully!');

@@ -970,4 +970,28 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)sp
     return @YES; // The return ensures that the method is synchronous
 }
 
+RCT_EXPORT_METHOD(encodeToBase64
+                  : (NSArray *)array resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    NSUInteger count = array.count;
+    uint8_t *bytes = (uint8_t *)malloc(count);
+
+    if (!bytes) {
+        reject(@"encodeToBase64", @"Memory allocation failed", nil);
+        return;
+    }
+
+    for (NSUInteger i = 0; i < count; i++) {
+        bytes[i] = (uint8_t)[array[i] unsignedCharValue];
+    }
+
+    NSData *data = [NSData dataWithBytes:bytes length:count];
+    free(bytes);
+
+    NSString *base64String = [data base64EncodedStringWithOptions:0];
+    resolve(base64String);
+}
+
 @end
