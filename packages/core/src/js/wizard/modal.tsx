@@ -1,9 +1,18 @@
-import { on } from 'events';
 import * as React from 'react';
-import { Modal, SafeAreaView, View, Image, Pressable, Text, StyleSheet } from 'react-native';
+import { Modal, SafeAreaView, View, Image, Pressable, Text, StyleSheet, useColorScheme } from 'react-native';
+import { getDevServer } from '../integrations/debugsymbolicatorutils';
+
+function openURLInBrowser(url: string) {
+  // This doesn't work for Expo project with Web enabled
+  fetch(getDevServer().url + 'open-url', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+}
 
 export const Wizard = () => {
   const [show, setShow] = React.useState(true);
+  const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
 
   return (
     <Modal
@@ -16,9 +25,7 @@ export const Wizard = () => {
     >
       <SafeAreaView style={styles.background}>
         <View style={styles.container}>
-          <Text style={{ color: 'rgb(246, 245, 250)', fontSize: 24, fontWeight: 'bold' }}>
-            Welcome to Sentry Starter!
-          </Text>
+          <Text style={styles.welcomeText}>Welcome to Sentry Starter!</Text>
           <Image source={require('../../../images/hi.gif')} style={{ width: 100, height: 100 }} />
           <View style={styles.listContainer}>
             <Row
@@ -41,12 +48,27 @@ export const Wizard = () => {
             />
           </View>
           <View style={{ marginTop: 40 }} />
-          <Button
-            title={'Go to my App'}
-            onPress={() => {
-              setShow(false);
+          <View
+            style={{
+              width: '100%',
+              flexDirection: 'row', // Arrange buttons horizontally
+              justifyContent: 'space-evenly', // Space between buttons
             }}
-          />
+          >
+            <Button
+              secondary={}
+              title={'Open Sentry'}
+              onPress={() => {
+                openURLInBrowser('https://sentry.io/');
+              }}
+            />
+            <Button
+              title={'Go to my App'}
+              onPress={() => {
+                setShow(false);
+              }}
+            />
+          </View>
         </View>
       </SafeAreaView>
     </Modal>
@@ -54,10 +76,12 @@ export const Wizard = () => {
 };
 
 const Row = ({ last, action, title, description }) => {
+  const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
+
   return (
     <View style={[styles.rowContainer, last && styles.lastRowContainer]}>
       <View style={{ flexShrink: 1, paddingRight: 12 }}>
-        <Text style={[styles.rowTitle, { fontFamily: 'Menlo' }]}>{title}</Text>
+        <Text style={styles.rowTitle}>{title}</Text>
         <Text style={{ color: 'rgb(146, 130, 170)', fontSize: 12 }}>{description}</Text>
       </View>
       <View>
@@ -68,8 +92,10 @@ const Row = ({ last, action, title, description }) => {
 };
 
 const Button = ({ onPress, title, secondary }) => {
+  const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
+
   return (
-    <View style={[styles.buttonBottomLayer, styles.buttonCommon]}>
+    <View style={[styles.buttonBottomLayer, styles.buttonCommon, secondary && styles.buttonSecondaryBottomLayer]}>
       <Pressable
         style={({ pressed }) => [
           styles.buttonMainContainer,
@@ -79,13 +105,14 @@ const Button = ({ onPress, title, secondary }) => {
         ]}
         onPress={onPress}
       >
-        <Text style={styles.buttonText}>{title}</Text>
+        <Text style={[styles.buttonText, secondary && styles.buttonSecondaryText]}>{title}</Text>
       </Pressable>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const defaultDarkStyles = StyleSheet.create({
+  welcomeText: { color: 'rgb(246, 245, 250)', fontSize: 24, fontWeight: 'bold' },
   background: {
     flex: 1,
     backgroundColor: 'rgb(39, 36, 51)',
@@ -97,7 +124,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
-    padding: 20,
+    padding: 12,
     marginTop: 20,
     width: '100%',
     alignItems: 'center', // Center image and button container
@@ -120,6 +147,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'left',
+    fontFamily: 'Menlo',
   },
   rowContainer: {
     overflow: 'hidden',
@@ -151,6 +179,8 @@ const styles = StyleSheet.create({
   buttonSecondaryContainer: {
     backgroundColor: 'rgb(39, 36, 51)',
   },
+  buttonSecondaryBottomLayer: {},
+  buttonSecondaryText: {},
   buttonMainContainerPressed: {
     transform: [{ translateY: 0 }],
   },
@@ -159,5 +189,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+});
+
+const lightStyles: typeof defaultDarkStyles = StyleSheet.create({
+  ...defaultDarkStyles,
+  welcomeText: {
+    ...defaultDarkStyles.welcomeText,
+    color: 'rgb(24, 20, 35)',
+  },
+  background: {
+    ...defaultDarkStyles.background,
+    backgroundColor: 'rgb(251, 250, 255)',
+  },
+  buttonMainContainer: {
+    ...defaultDarkStyles.buttonMainContainer,
+    backgroundColor: 'rgb(117, 83, 255)',
+    borderColor: 'rgb(85, 61, 184)',
+  },
+  buttonBottomLayer: {
+    backgroundColor: 'rgb(85, 61, 184)',
+  },
+  buttonSecondaryContainer: {
+    backgroundColor: 'rgb(255, 255, 255)',
+    borderColor: 'rgb(218, 215, 229)',
+  },
+  buttonSecondaryBottomLayer: {
+    backgroundColor: 'rgb(218, 215, 229)',
+  },
+  buttonText: {
+    ...defaultDarkStyles.buttonText,
+  },
+  buttonSecondaryText: {
+    ...defaultDarkStyles.buttonText,
+    color: 'rgb(24, 20, 35)',
+  },
+  rowTitle: {
+    ...defaultDarkStyles.rowTitle,
+    color: 'rgb(24, 20, 35)',
+  },
+  rowContainer: {
+    ...defaultDarkStyles.rowContainer,
+    borderColor: 'rgb(218, 215, 229)',
+  },
+  listContainer: {
+    ...defaultDarkStyles.listContainer,
+    borderColor: 'rgb(218, 215, 229)',
+    backgroundColor: 'rgb(255, 255, 255)',
   },
 });
