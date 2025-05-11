@@ -10,7 +10,7 @@
 
 ### Upgrading from 6.x to 7.0
 
-Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
+Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes based on the Sentry Javascript SDK version 9. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
 
 Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
 
@@ -19,8 +19,46 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 - Expo Updates Context values should all be lowercase ([#4809](https://github.com/getsentry/sentry-react-native/pull/4809))
 
+### Major Changes
+
+- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
+- Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
+- `shutdownTimeout` moved from `core` to `@sentry/react-native`
+- `hasTracingEnabled` was renamed to `hasSpansEnabled`
+- You can no longer drop spans or return null on `beforeSendSpan` hook
+
+### Removed types
+
+- TransactionNamingScheme
+- Request
+- Scope (prefer using the Scope class)
+
+### Other removed items.
+
+- `autoSessionTracking` from options.
+  To enable session tracking, ensure that `enableAutoSessionTracking` is enabled.
+- `enableTracing`. Instead, set `tracesSampleRate` to a value greater than `zero` to `enable tracing`, `0` to keep tracing integrations active without sampling, or `undefined` to disable the performance integration.
+- `getCurrentHub()`, `Hub`, and `getCurrentHubShim()`
+- `spanId` from propagation `context`
+- metrics API
+- `transactionContext` from `samplingContext`
+- `@sentry/utils` package, the exports were moved to `@sentry/core`
+- Standalone `Client` interface & deprecate `BaseClient`
+
+## Other Changes
+
+- Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
+- On React Native Web, `browserSessionIntegration` is added when `enableAutoSessionTracking` is set to `True` ([#4732](https://github.com/getsentry/sentry-react-native/pull/4732))
+Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](https://github.com/getsentry/sentry-react-native/pull/4636))
+
 ### Dependencies
 
+- Bump JavaScript SDK from v8.54.0 to v9.12.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568), [#4752](https://github.com/getsentry/sentry-react-native/pull/4752))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.12.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.12.0)
+- Bump Android SDK from v7.20.1 to v8.11.1 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8111)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.11.1)
 - Bump CLI from v2.43.1 to v2.45.0 ([#4804](https://github.com/getsentry/sentry-react-native/pull/4804), [#4818](https://github.com/getsentry/sentry-react-native/pull/4818))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2450)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.43.1...2.45.0)
@@ -122,12 +160,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
 ### Dependencies
 
-- Bump JavaScript SDK from v8.54.0 to v9.12.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568), [#4752](https://github.com/getsentry/sentry-react-native/pull/4752))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.12.0/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.12.0)
-- Bump Android SDK from v7.20.1 to v8.11.1 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8111)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.11.1)
 - Bump Bundler Plugins from v3.2.2 to v3.3.1 ([#4693](https://github.com/getsentry/sentry-react-native/pull/4693), [#4707](https://github.com/getsentry/sentry-react-native/pull/4707), [#4720](https://github.com/getsentry/sentry-react-native/pull/4720), [#4721](https://github.com/getsentry/sentry-react-native/pull/4721))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#331)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.2.2...3.3.1)
@@ -137,37 +169,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Bump Cocoa SDK from v8.48.0 to v8.49.0 ([#4742](https://github.com/getsentry/sentry-react-native/pull/4742))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8490)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.48.0...8.49.0)
-
-### Major Changes
-
-- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
-- Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
-- `shutdownTimeout` moved from `core` to `@sentry/react-native`
-- `hasTracingEnabled` was renamed to `hasSpansEnabled`
-- You can no longer drop spans or return null on `beforeSendSpan` hook
-
-### Removed types
-
-- TransactionNamingScheme
-- Request
-- Scope (prefer using the Scope class)
-
-### Other removed items.
-
-- `autoSessionTracking` from options.
-  To enable session tracking, ensure that `enableAutoSessionTracking` is enabled.
-- `enableTracing`. Instead, set `tracesSampleRate` to a value greater than `zero` to `enable tracing`, `0` to keep tracing integrations active without sampling, or `undefined` to disable the performance integration.
-- `getCurrentHub()`, `Hub`, and `getCurrentHubShim()`
-- `spanId` from propagation `context`
-- metrics API
-- `transactionContext` from `samplingContext`
-- `@sentry/utils` package, the exports were moved to `@sentry/core`
-- Standalone `Client` interface & deprecate `BaseClient`
-
-## Other Changes
-
-- Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
-- On React Native Web, `browserSessionIntegration` is added when `enableAutoSessionTracking` is set to `True` ([#4732](https://github.com/getsentry/sentry-react-native/pull/4732))
 
 ## 6.11.0-beta.0
 
@@ -324,10 +325,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
   To learn more about the available configuration options visit [the documentation](https://docs.sentry.io/platforms/react-native/manual-setup/expo/gradle).
 
-### Changes
-
-Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](https://github.com/getsentry/sentry-react-native/pull/4636))
-
 ### Fixes
 
 - Remove `error:` prefix from `collect-modules.sh` to avoid failing iOS builds ([#4570](https://github.com/getsentry/sentry-react-native/pull/4570))
@@ -338,6 +335,9 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 
 ### Dependencies
 
+- Bump Android SDK from v7.20.1 to v7.22.0 ([#4529](https://github.com/getsentry/sentry-react-native/pull/4529))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/7.x.x/CHANGELOG.md#7220)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...7.22.0)
 - Bump Cocoa SDK from v8.44.0 to v8.45.0 ([#4537](https://github.com/getsentry/sentry-react-native/pull/4537))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8450)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.44.0...8.45.0)
