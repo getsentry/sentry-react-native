@@ -34,4 +34,5 @@ export {
   inboundFiltersIntegration,
   linkedErrorsIntegration as browserLinkedErrorsIntegration,
   rewriteFramesIntegration,
+  extraErrorDataIntegration,
 } from '@sentry/react';

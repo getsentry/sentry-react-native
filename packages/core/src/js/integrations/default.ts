@@ -4,7 +4,7 @@ import type { Integration } from '@sentry/core';
 
 import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
-import { isExpoGo, notWeb } from '../utils/environment';
+import { notWeb } from '../utils/environment';
 import {
   appRegistryIntegration,
   appStartIntegration,
@@ -125,9 +125,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(httpClientIntegration());
   }
 
-  if (isExpoGo()) {
-    integrations.push(expoContextIntegration());
-  }
+  integrations.push(expoContextIntegration());
 
   if (options.spotlight) {
     const sidecarUrl = typeof options.spotlight === 'string' ? options.spotlight : undefined;

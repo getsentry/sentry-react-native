@@ -9,7 +9,7 @@ import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.s
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import { getFeedbackOptions } from './integration';
 import { lazyLoadAutoInjectFeedbackIntegration } from './lazy';
-import { isModalSupported } from './utils';
+import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';
 
 const PULL_DOWN_CLOSE_THRESHOLD = 200;
 const SLIDE_ANIMATION_DURATION = 200;
@@ -18,6 +18,8 @@ const BACKGROUND_ANIMATION_DURATION = 200;
 const NOOP_SET_VISIBILITY = (): void => {
   // No-op
 };
+
+const useNativeDriverForColorAnimations = isNativeDriverSupportedForColorAnimations();
 
 class FeedbackWidgetManager {
   private static _isVisible = false;
@@ -130,7 +132,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 1,
           duration: BACKGROUND_ANIMATION_DURATION,
-          useNativeDriver: true,
+          useNativeDriver: useNativeDriverForColorAnimations,
           easing: Easing.in(Easing.quad),
         }),
         Animated.timing(this.state.panY, {
@@ -212,7 +214,7 @@ class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 0,
           duration: BACKGROUND_ANIMATION_DURATION,
-          useNativeDriver: true,
+          useNativeDriver: useNativeDriverForColorAnimations,
           easing: Easing.out(Easing.quad),
         })
       ]).start(() => {

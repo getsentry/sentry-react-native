@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "6.11.0-beta.0",
+  "version": "6.13.1",
   "private": true,
   "scripts": {
     "postinstall": "patch-package",
@@ -28,9 +28,8 @@
     "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.1",
     "@sentry/core": "9.12.0",
-    "@sentry/react-native": "6.11.0-beta.0",
+    "@sentry/react-native": "6.13.1",
     "@shopify/flash-list": "^1.7.3",
-    "axios": "^1.8.3",
     "delay": "^6.0.0",
     "react": "18.3.1",
     "react-native": "0.77.1",
@@ -57,7 +56,7 @@
     "@react-native/eslint-config": "0.77.1",
     "@react-native/metro-config": "0.77.1",
     "@react-native/typescript-config": "0.77.1",
-    "@sentry/babel-plugin-component-annotate": "3.3.1",
+    "@sentry/babel-plugin-component-annotate": "3.4.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.1",
     "@types/react": "^18.2.65",

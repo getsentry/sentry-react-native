@@ -114,5 +114,9 @@ export function setupTestClient(options: Partial<TestClientOptions> = {}): TestC
   const client = new TestClient(finalOptions);
   setCurrentClient(client);
   client.init();
+
+  // @ts-expect-error Only available on ReactNativeClient
+  client.emit('afterInit');
+
   return client;
 }
