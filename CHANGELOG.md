@@ -18,6 +18,8 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
 - Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 - Expo Updates Context values should all be lowercase ([#4809](https://github.com/getsentry/sentry-react-native/pull/4809))
+- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
+  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
 
 ### Major Changes
 
@@ -68,11 +70,6 @@ Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](http
 - Bump Cocoa SDK from v8.49.2 to v8.50.0 ([#4807](https://github.com/getsentry/sentry-react-native/pull/4807))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8500)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.2...8.50.0)
-
-### Fixes
-
-- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
-  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
 
 ## 6.13.1
 
