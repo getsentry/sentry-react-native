@@ -44,7 +44,7 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
   });
 };
 
-export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span): void => {
+export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span | undefined): void => {
   if (!client) {
     logger.warn('Could not hook on spanEnd event because client is not defined.');
     return;
@@ -129,7 +129,7 @@ export const cancelInBackground = (client: Client, span: Span): void => {
     client.on('spanEnd', (endedSpan: Span) => {
       if (endedSpan === span) {
         logger.debug(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
-        subscription && subscription.remove && subscription.remove();
+        subscription?.remove?.();
       }
     });
 };

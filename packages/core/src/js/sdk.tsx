@@ -63,7 +63,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableSyncToNative(getIsolationScope());
   }
 
-  const getURLFromDSN = (dsn: string | null): string | undefined => {
+  const getURLFromDSN = (dsn: string | undefined): string | undefined => {
     if (!dsn) {
       return undefined;
     }
@@ -156,8 +156,9 @@ export function wrap<P extends Record<string, unknown>>(
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps ?? {}),
+    ...(options?.profilerProps),
     name: RootComponent.displayName ?? 'Root',
+    updateProps: {}
   };
 
   const RootApp: React.FC<P> = (appProps) => {

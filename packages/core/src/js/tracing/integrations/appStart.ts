@@ -211,6 +211,13 @@ export const appStartIntegration = ({
   };
 
   async function captureStandaloneAppStart(): Promise<void> {
+    if (!_client) {
+      // If client is not set, SDK was not initialized, logger is thus disabled
+      // eslint-disable-next-line no-console
+      console.warn('[AppStart] Could not capture App Start, missing client, call `Sentry.init` first.');
+      return;
+    }
+
     if (!standalone) {
       logger.debug(
         '[AppStart] App start tracking is enabled. App start will be added to the first transaction as a child span.',
@@ -260,7 +267,7 @@ export const appStartIntegration = ({
       return;
     }
 
-    if (!event.contexts || !event.contexts.trace) {
+    if (!event.contexts?.trace) {
       logger.warn('[AppStart] Transaction event is missing trace context. Can not attach app start.');
       return;
     }
@@ -361,7 +368,7 @@ export const appStartIntegration = ({
     const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
     const appStartSpanJSON: SpanJSON = createSpanJSON({
       op,
-      description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
+      description: appStart.type === 'cold' ? 'Cold Start' : 'Warm Start',
       start_timestamp: appStartTimestampSeconds,
       timestamp: appStartEndTimestampSeconds,
       trace_id: event.contexts.trace.trace_id,

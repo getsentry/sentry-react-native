@@ -26,9 +26,7 @@ import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils'
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
 export class FeedbackWidget extends React.Component<FeedbackWidgetProps, FeedbackWidgetState> {
-  public static defaultProps: Partial<FeedbackWidgetProps> = {
-    ...defaultConfiguration
-  }
+  public static defaultProps = defaultConfiguration;
 
   private static _savedState: Omit<FeedbackWidgetState, 'isVisible'> = {
     name: '',
@@ -67,7 +65,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
     const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
-    const text: FeedbackTextConfiguration = this.props;
+    const text = this.props;
 
     const trimmedName = name?.trim();
     const trimmedEmail = email?.trim();
@@ -119,14 +117,14 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   public onScreenshotButtonPress: () => void = async () => {
     if (!this.state.filename && !this.state.attachment) {
-      const imagePickerConfiguration: ImagePickerConfiguration = this.props;
-      if (imagePickerConfiguration.imagePicker) {
-        const launchImageLibrary = imagePickerConfiguration.imagePicker.launchImageLibraryAsync
+      const { imagePicker } = this.props;
+      if (imagePicker) {
+        const launchImageLibrary = imagePicker.launchImageLibraryAsync
           // expo-image-picker library is available
-          ? () => imagePickerConfiguration.imagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: isWeb() })
+          ? () => imagePicker.launchImageLibraryAsync?.({ mediaTypes: ['images'], base64: isWeb() })
           // react-native-image-picker library is available
-          : imagePickerConfiguration.imagePicker.launchImageLibrary
-            ? () => imagePickerConfiguration.imagePicker.launchImageLibrary({ mediaType: 'photo', includeBase64: isWeb() })
+          : imagePicker.launchImageLibrary
+            ? () => imagePicker.launchImageLibrary?.({ mediaType: 'photo', includeBase64: isWeb() })
             : null;
         if (!launchImageLibrary) {
           logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
@@ -140,22 +138,22 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         }
 
         const result = await launchImageLibrary();
-        if (result.assets && result.assets.length > 0) {
+        if (result?.assets && result.assets.length > 0) {
           if (isWeb()) {
-            const filename = result.assets[0].fileName;
-            const imageUri = result.assets[0].uri;
-            const base64 = result.assets[0].base64;
-            const data = base64ToUint8Array(base64);
-            if (data != null) {
+            const filename = result.assets[0]?.fileName;
+            const imageUri = result.assets[0]?.uri;
+            const base64 = result.assets[0]?.base64;
+            const data = base64 ? base64ToUint8Array(base64) : undefined;
+            if (data) {
               this.setState({ filename, attachment: data, attachmentUri: imageUri });
             } else {
               logger.error('Failed to read image data on the web');
             }
           } else {
-            const filename = result.assets[0].fileName;
-            const imageUri = result.assets[0].uri;
-            getDataFromUri(imageUri).then((data) => {
-              if (data != null) {
+            const filename = result.assets[0]?.fileName;
+            const imageUri = result.assets[0]?.uri;
+            imageUri && getDataFromUri(imageUri).then((data) => {
+              if (data) {
                 this.setState({ filename, attachment: data, attachmentUri: imageUri });
               } else {
                 logger.error('Failed to read image data from uri:', imageUri);

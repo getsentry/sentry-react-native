@@ -88,7 +88,7 @@ export class TestClient extends BaseClient<TestClientOptions> {
       super.sendEvent(event, hint);
       return;
     }
-    TestClient.sendEventCalled && TestClient.sendEventCalled(event);
+    TestClient.sendEventCalled?.(event);
   }
 
   public sendSession(session: Session): void {

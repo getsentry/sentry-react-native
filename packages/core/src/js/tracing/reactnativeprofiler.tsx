@@ -12,13 +12,15 @@ const ReactNativeProfilerGlobalState = {
   },
 };
 
+type ProfilerConstructorProps = ConstructorParameters<typeof Profiler>[0];
+
 /**
  * Custom profiler for the React Native app root.
  */
 export class ReactNativeProfiler extends Profiler {
   public readonly name: string = 'ReactNativeProfiler';
 
-  public constructor(props: ConstructorParameters<typeof Profiler>[0]) {
+  public constructor(props: ProfilerConstructorProps) {
     _setRootComponentCreationTimestampMs(timestampInSeconds() * 1000);
     super(props);
   }
@@ -47,7 +49,7 @@ export class ReactNativeProfiler extends Profiler {
       return;
     }
 
-    client.addIntegration && client.addIntegration(createIntegration(this.name));
+    client.addIntegration?.(createIntegration(this.name));
 
     const appRegistryIntegration = getAppRegistryIntegration(client);
     if (appRegistryIntegration && typeof appRegistryIntegration.onRunApplication === 'function') {

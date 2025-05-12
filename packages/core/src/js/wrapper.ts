@@ -37,7 +37,7 @@ import { base64StringFromByteArray, utf8ToBytes } from './vendor';
  */
 export function getRNSentryModule(): Spec | undefined {
   return isTurboModuleEnabled()
-    ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentry')
+    ? ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry')
     : NativeModules.RNSentry;
 }
 
@@ -729,7 +729,7 @@ export const NATIVE: SentryNativeWrapper = {
       return RNSentry.popTimeToDisplayFor(key);
     } catch (error) {
       logger.error('Error:', error);
-      return null;
+      return Promise.resolve(null);
     }
   },
 
