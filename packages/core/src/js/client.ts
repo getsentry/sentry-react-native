@@ -43,7 +43,6 @@ const DEFAULT_FLUSH_INTERVAL = 5000;
  */
 export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   private _outcomesBuffer: Outcome[];
-
   private _logFlushIdleTimeout: ReturnType<typeof setTimeout> | undefined;
 
   /**
@@ -61,16 +60,12 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     this._outcomesBuffer = [];
 
-    const { _experiments } = options;
-    const enableLogs = _experiments?.enableLogs;
-
-
     if (options.sendDefaultPii === true) {
       this.on('postprocessEvent', addAutoIpAddressToUser);
       this.on('beforeSendSession', addAutoIpAddressToSession);
     }
 
-    if (enableLogs) {
+    if (options._experiments?.enableLogs) {
       this.on('flush', () => {
         _INTERNAL_flushLogsBuffer(this);
       });
