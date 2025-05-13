@@ -16,6 +16,7 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
+import { withSentryPlayground } from '@sentry/react-native';
 import { FeedbackWidget } from '@sentry/react-native';
 
 import ErrorsScreen from './Screens/ErrorsScreen';
@@ -387,4 +388,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Sentry.wrap(App);
+export default withSentryPlayground(Sentry.wrap(App), {
+  projectId: '5428561',
+  organizationSlug: 'sentry-sdks',
+});

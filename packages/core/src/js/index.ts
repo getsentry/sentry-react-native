@@ -92,4 +92,4 @@ export { showFeedbackWidget } from './feedback/FeedbackWidgetManager';
 
 export { getDataFromUri } from './wrapper';
 
-export { Wizard } from './wizard/modal';
+export { SentryPlayground as Wizard, withSentryPlayground } from './playground/modal';

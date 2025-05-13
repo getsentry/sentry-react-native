@@ -1,11 +1,23 @@
 import * as React from 'react';
-import { Modal, SafeAreaView, View, Image, Pressable, Text, StyleSheet, Animated, LogBox } from 'react-native';
+import { Modal, SafeAreaView, View, Image, Pressable, Text, StyleSheet, Animated, useColorScheme } from 'react-native';
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { captureException } from '@sentry/core';
 import { NATIVE } from '../wrapper';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
 
-const useColorScheme = () => 'dark';
+export const withSentryPlayground = <P extends object>(
+  Component: React.ComponentType<P>,
+  options: { projectId?: string; organizationSlug?: string } = {},
+) => {
+  return (props: P) => {
+    return (
+      <>
+        <SentryPlayground projectId={options.projectId} organizationSlug={options.organizationSlug} />
+        <Component {...props} />
+      </>
+    );
+  };
+};
 
 // This is a placeholder to match the example code with what Sentry SDK users would see.
 const Sentry = {
@@ -42,15 +54,17 @@ const nativeCrashExample = () => {
   Sentry.nativeCrash();
 };
 
-function openURLInBrowser(url: string) {
-  // This doesn't work for Expo project with Web enabled
-  fetch(getDevServer().url + 'open-url', {
-    method: 'POST',
-    body: JSON.stringify({ url }),
-  });
-}
-
-export const Wizard = () => {
+export const SentryPlayground = ({
+  projectId,
+  organizationSlug,
+}: {
+  projectId?: string;
+  organizationSlug?: string;
+}) => {
+  const issuesStreamUrl =
+    projectId && organizationSlug
+      ? `https://${organizationSlug}.sentry.io/issues/?project=${projectId}&statsPeriod=1h`
+      : 'https://sentry.io/';
   const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
 
   const [show, setShow] = React.useState(true);
@@ -158,7 +172,7 @@ export const Wizard = () => {
                 secondary
                 title={'Open Sentry'}
                 onPress={() => {
-                  openURLInBrowser('https://sentry.io/');
+                  openURLInBrowser(issuesStreamUrl);
                 }}
               />
             )}
@@ -393,3 +407,11 @@ const lightStyles: typeof defaultDarkStyles = StyleSheet.create({
     backgroundColor: 'rgb(238, 235, 249)',
   },
 });
+
+function openURLInBrowser(url: string) {
+  // This doesn't work for Expo project with Web enabled
+  fetch(getDevServer().url + 'open-url', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+}
