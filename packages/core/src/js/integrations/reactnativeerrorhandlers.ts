@@ -1,6 +1,14 @@
 import type { EventHint, Integration, SeverityLevel } from '@sentry/core';
-import { addExceptionMechanism, captureException, getClient, getCurrentScope, logger } from '@sentry/core';
+import {
+  addExceptionMechanism,
+  addGlobalUnhandledRejectionInstrumentationHandler,
+  captureException,
+  getClient,
+  getCurrentScope,
+  logger,
+} from '@sentry/core';
 
+import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
@@ -44,12 +52,70 @@ function setup(options: ReactNativeErrorHandlersOptions): void {
  * Setup unhandled promise rejection tracking
  */
 function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
-  if (patchGlobalPromise) {
-    polyfillPromise();
-  }
+  try {
+    if (isHermesEnabled() && RN_GLOBAL_OBJ.HermesInternal?.enablePromiseRejectionTracker) {
+      logger.log('Using Hermes native promise rejection tracking');
 
-  attachUnhandledRejectionHandler();
-  checkPromiseAndWarn();
+      RN_GLOBAL_OBJ.HermesInternal.enablePromiseRejectionTracker({
+        allRejections: true,
+        onUnhandled: (id: string, error: unknown) => {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${error}`);
+          }
+
+          captureException(error, {
+            data: { id },
+            originalException: error,
+            syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
+            mechanism: { handled: true, type: 'onunhandledrejection' },
+          });
+        },
+        onHandled: (id: string) => {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `Promise Rejection Handled (id: ${id})\n` +
+                'This means you can ignore any previous messages of the form ' +
+                `"Possible Unhandled Promise Rejection (id: ${id})"`,
+            );
+          }
+        },
+      });
+
+      logger.log('Unhandled promise rejections will be caught by Sentry.');
+    } else if (isWeb()) {
+      logger.log('Using Browser JS promise rejection tracking for React Native Web');
+
+      // Use Sentry's built-in global unhandled rejection handler
+      addGlobalUnhandledRejectionInstrumentationHandler((error: unknown) => {
+        captureException(error, {
+          originalException: error,
+          syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
+          mechanism: { handled: false, type: 'onunhandledrejection' },
+        });
+      });
+
+      logger.log('Unhandled promise rejections will be caught by Sentry.');
+    } else if (patchGlobalPromise) {
+      // For JSC and other environments, use the existing approach
+      polyfillPromise();
+      attachUnhandledRejectionHandler();
+      checkPromiseAndWarn();
+    } else {
+      // Patching was disabled by user configuration
+      logger.log('Promise rejection tracking is disabled by configuration.');
+    }
+  } catch (e) {
+    // Use setTimeout to avoid issues with early logging
+    setTimeout(() => {
+      logger.warn(
+        'Failed to set up promise rejection tracking. ' +
+          'Unhandled promise rejections will not be caught by Sentry. ' +
+          'Read about how to fix this on our troubleshooting page.',
+      );
+    }, 0);
+  }
 }
 
 function attachUnhandledRejectionHandler(): void {
