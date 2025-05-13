@@ -7,8 +7,13 @@ import { Platform } from 'react-native';
 import type { TouchEventBoundaryProps } from './touchevents';
 import { getExpoConstants } from './utils/expomodules';
 
+import type { BrowserOptions } from '@sentry/react';
+
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
 type BrowserTransportOptions = Parameters<typeof makeFetchTransport>[0];
+
+type BrowserExperiments = NonNullable<BrowserOptions['_experiments']>;
+type SharedExperimentsSubset = Pick<BrowserExperiments, 'enableLogs' | 'beforeSendLog'>;
 
 export interface BaseReactNativeOptions {
   /**
@@ -245,7 +250,7 @@ export interface BaseReactNativeOptions {
   /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
-  _experiments?: {
+  _experiments?: SharedExperimentsSubset & {
     [key: string]: unknown;
 
     /**

@@ -11,6 +11,7 @@ import type {
   UserFeedback,
 } from '@sentry/core';
 import {
+  _INTERNAL_flushLogsBuffer,
   addAutoIpAddressToSession,
   addAutoIpAddressToUser,
   BaseClient,
@@ -32,6 +33,8 @@ import { mergeOutcomes } from './utils/outcome';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { NATIVE } from './wrapper';
 
+const DEFAULT_FLUSH_INTERVAL = 5000;
+
 /**
  * The Sentry React Native SDK Client.
  *
@@ -40,6 +43,8 @@ import { NATIVE } from './wrapper';
  */
 export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   private _outcomesBuffer: Outcome[];
+
+  private _logFlushIdleTimeout: ReturnType<typeof setTimeout> | undefined;
 
   /**
    * Creates a new React Native SDK instance.
@@ -56,9 +61,29 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
 
     this._outcomesBuffer = [];
 
+    const { _experiments } = options;
+    const enableLogs = _experiments?.enableLogs;
+
+
     if (options.sendDefaultPii === true) {
       this.on('postprocessEvent', addAutoIpAddressToUser);
       this.on('beforeSendSession', addAutoIpAddressToSession);
+    }
+
+    if (enableLogs) {
+      this.on('flush', () => {
+        _INTERNAL_flushLogsBuffer(this);
+      });
+
+      this.on('afterCaptureLog', () => {
+        if (this._logFlushIdleTimeout) {
+          clearTimeout(this._logFlushIdleTimeout);
+        }
+
+        this._logFlushIdleTimeout = setTimeout(() => {
+          _INTERNAL_flushLogsBuffer(this);
+        }, DEFAULT_FLUSH_INTERVAL);
+      });
     }
   }
 
