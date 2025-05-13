@@ -1,6 +1,46 @@
 import * as React from 'react';
-import { Modal, SafeAreaView, View, Image, Pressable, Text, StyleSheet, useColorScheme } from 'react-native';
+import { Modal, SafeAreaView, View, Image, Pressable, Text, StyleSheet, Animated, LogBox } from 'react-native';
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
+import { captureException } from '@sentry/core';
+import { NATIVE } from '../wrapper';
+import { isExpo, isExpoGo, isWeb } from '../utils/environment';
+
+const useColorScheme = () => 'dark';
+
+// This is a placeholder to match the example code with what Sentry SDK users would see.
+const Sentry = {
+  captureException,
+  nativeCrash: () => {
+    NATIVE.nativeCrash();
+  },
+};
+
+/**
+ * Example of error handling with Sentry integration.
+ */
+const tryCatchExample = () => {
+  try {
+    // If you see the line below highlighted the source maps are working correctly.
+    throw new Error('This is a test caught error.');
+  } catch (e) {
+    Sentry.captureException(e);
+  }
+};
+
+/**
+ * Example of an uncaught error causing a crash from JS.
+ */
+const uncaughtErrorExample = () => {
+  // If you see the line below highlighted the source maps are working correctly.
+  throw new Error('This is a test uncaught error.');
+};
+
+/**
+ * Example of a native crash.
+ */
+const nativeCrashExample = () => {
+  Sentry.nativeCrash();
+};
 
 function openURLInBrowser(url: string) {
   // This doesn't work for Expo project with Web enabled
@@ -11,8 +51,46 @@ function openURLInBrowser(url: string) {
 }
 
 export const Wizard = () => {
-  const [show, setShow] = React.useState(true);
   const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
+
+  const [show, setShow] = React.useState(true);
+  const [animation, setAnimation] = React.useState('hi');
+
+  const onAnimationPress = () => {
+    switch (animation) {
+      case 'hi':
+        setAnimation('thumbsup');
+        break;
+      default:
+        setAnimation('hi');
+    }
+  };
+
+  const showOpenSentryButton = !isExpo();
+  const isNativeCrashDisabled = isWeb() || isExpoGo() || __DEV__;
+
+  const animationContainerYPosition = React.useRef(new Animated.Value(0)).current;
+
+  const springAnimation = Animated.sequence([
+    Animated.timing(animationContainerYPosition, {
+      toValue: -50,
+      duration: 300,
+      useNativeDriver: true,
+    }),
+    Animated.spring(animationContainerYPosition, {
+      toValue: 0,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }),
+  ]);
+
+  const changeAnimationToBug = (func: () => void) => {
+    setAnimation('bug');
+    springAnimation.start(() => {
+      func();
+    });
+  };
 
   return (
     <Modal
@@ -25,26 +103,46 @@ export const Wizard = () => {
     >
       <SafeAreaView style={styles.background}>
         <View style={styles.container}>
-          <Text style={styles.welcomeText}>Welcome to Sentry Starter!</Text>
-          <Image source={require('../../../images/hi.gif')} style={{ width: 100, height: 100 }} />
+          <Text style={styles.welcomeText}>Welcome to Sentry Playground!</Text>
+          <Animated.View
+            style={{
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: [{ translateY: animationContainerYPosition }],
+            }}
+            onTouchEnd={() => {
+              springAnimation.start();
+            }}
+          >
+            <Pressable onPress={onAnimationPress}>
+              <Animation id={animation} />
+            </Pressable>
+          </Animated.View>
           <View style={styles.listContainer}>
             <Row
               title={'captureException()'}
-              description={'In try-catch scenario error can be reported using manual APIs.'}
-              action={'Try'}
+              description={'In a try-catch scenario, errors can be reported using manual APIs.'}
+              actionDescription={'Try'}
+              action={tryCatchExample}
             />
             <Row
               title={'throw new Error()'}
-              description={'Uncaught errors are automatically reported from React Native Global Handler.'}
-              action={'Throw'}
+              description={'Uncaught errors are automatically reported by the React Native Global Handler.'}
+              actionDescription={'Throw'}
+              action={() => changeAnimationToBug(uncaughtErrorExample)}
             />
             <Row
               title={'throw RuntimeException()'}
               description={
-                'Unhandled errors in the native layers like Java, Objective-C, C, Swift or Kotlin are automatically reported. '
+                isNativeCrashDisabled
+                  ? 'For testing native crashes, build the mobile application in release mode.'
+                  : 'Unhandled errors in native layers such as Java, Objective-C, C, Swift, or Kotlin are automatically reported.'
               }
-              action={'Crash'}
+              actionDescription={'Crash'}
+              action={nativeCrashExample}
               last
+              disabled={isNativeCrashDisabled}
             />
           </View>
           <View style={{ marginTop: 40 }} />
@@ -55,13 +153,15 @@ export const Wizard = () => {
               justifyContent: 'space-evenly', // Space between buttons
             }}
           >
-            <Button
-              secondary={}
-              title={'Open Sentry'}
-              onPress={() => {
-                openURLInBrowser('https://sentry.io/');
-              }}
-            />
+            {showOpenSentryButton && (
+              <Button
+                secondary
+                title={'Open Sentry'}
+                onPress={() => {
+                  openURLInBrowser('https://sentry.io/');
+                }}
+              />
+            )}
             <Button
               title={'Go to my App'}
               onPress={() => {
@@ -75,7 +175,34 @@ export const Wizard = () => {
   );
 };
 
-const Row = ({ last, action, title, description }) => {
+const Animation = ({ id }: { id: string }) => {
+  switch (id) {
+    case 'hi':
+      return <Image source={require('../../../images/hi.gif')} style={{ width: 100, height: 100 }} />;
+    case 'bug':
+      return <Image source={require('../../../images/bug.gif')} style={{ width: 100, height: 100 }} />;
+    case 'thumbsup':
+      return <Image source={require('../../../images/thumbsup.gif')} style={{ width: 100, height: 100 }} />;
+    default:
+      return null;
+  }
+};
+
+const Row = ({
+  last = false,
+  action = () => {},
+  actionDescription,
+  title,
+  description,
+  disabled = false,
+}: {
+  last?: boolean;
+  action?: () => void;
+  actionDescription?: string;
+  title: string;
+  description: string;
+  disabled?: boolean;
+}) => {
   const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
 
   return (
@@ -85,13 +212,23 @@ const Row = ({ last, action, title, description }) => {
         <Text style={{ color: 'rgb(146, 130, 170)', fontSize: 12 }}>{description}</Text>
       </View>
       <View>
-        <Button secondary onPress={() => {}} title={action} />
+        <Button disabled={disabled} secondary onPress={action} title={actionDescription} />
       </View>
     </View>
   );
 };
 
-const Button = ({ onPress, title, secondary }) => {
+const Button = ({
+  onPress,
+  title,
+  secondary,
+  disabled = false,
+}: {
+  onPress: () => void;
+  title: string;
+  secondary?: boolean;
+  disabled?: boolean;
+}) => {
   const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
 
   return (
@@ -102,10 +239,16 @@ const Button = ({ onPress, title, secondary }) => {
           pressed && styles.buttonMainContainerPressed,
           styles.buttonCommon,
           secondary && styles.buttonSecondaryContainer,
+          disabled && styles.buttonDisabledContainer,
         ]}
         onPress={onPress}
+        disabled={disabled}
       >
-        <Text style={[styles.buttonText, secondary && styles.buttonSecondaryText]}>{title}</Text>
+        <Text
+          style={[styles.buttonText, secondary && styles.buttonSecondaryText, disabled && styles.buttonDisabledText]}
+        >
+          {title}
+        </Text>
       </Pressable>
     </View>
   );
@@ -115,7 +258,7 @@ const defaultDarkStyles = StyleSheet.create({
   welcomeText: { color: 'rgb(246, 245, 250)', fontSize: 24, fontWeight: 'bold' },
   background: {
     flex: 1,
-    backgroundColor: 'rgb(39, 36, 51)',
+    backgroundColor: 'rgb(26, 20, 31)',
     width: '100%',
     minHeight: '100%',
     alignItems: 'center', // Center content horizontally
@@ -135,6 +278,7 @@ const defaultDarkStyles = StyleSheet.create({
     marginTop: 20, // Add some space above the buttons
   },
   listContainer: {
+    backgroundColor: 'rgb(39, 36, 51)',
     width: '100%',
     flexDirection: 'column',
     marginTop: 20, // Add some space above the buttons
@@ -190,6 +334,13 @@ const defaultDarkStyles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  buttonDisabledText: {
+    color: 'rgb(146, 130, 170)',
+  },
+  buttonDisabledContainer: {
+    transform: [{ translateY: -2 }],
+    backgroundColor: 'rgb(39, 36, 51)',
+  },
 });
 
 const lightStyles: typeof defaultDarkStyles = StyleSheet.create({
@@ -236,5 +387,9 @@ const lightStyles: typeof defaultDarkStyles = StyleSheet.create({
     ...defaultDarkStyles.listContainer,
     borderColor: 'rgb(218, 215, 229)',
     backgroundColor: 'rgb(255, 255, 255)',
+  },
+  buttonDisabledContainer: {
+    ...defaultDarkStyles.buttonDisabledContainer,
+    backgroundColor: 'rgb(238, 235, 249)',
   },
 });
