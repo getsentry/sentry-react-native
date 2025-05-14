@@ -807,6 +807,5 @@ describe('Tests Native Wrapper', () => {
       const result = await NATIVE.crashedLastRun();
       expect(result).toBeNull();
     });
-
   });
 });
