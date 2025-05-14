@@ -96,7 +96,10 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
         });
       });
 
-      logger.log('Unhandled promise rejections will be caught by Sentry.');
+      logger.warn(
+        'Unhandled promise rejections will not be caught by Sentry. ' +
+          'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
+      );
     } else if (patchGlobalPromise) {
       // For JSC and other environments, use the existing approach
       polyfillPromise();
@@ -107,14 +110,11 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
       logger.log('Promise rejection tracking is disabled by configuration.');
     }
   } catch (e) {
-    // Use setTimeout to avoid issues with early logging
-    setTimeout(() => {
-      logger.warn(
-        'Failed to set up promise rejection tracking. ' +
-          'Unhandled promise rejections will not be caught by Sentry. ' +
-          'Read about how to fix this on our troubleshooting page.',
-      );
-    }, 0);
+    logger.warn(
+      'Failed to set up promise rejection tracking. ' +
+        'Unhandled promise rejections will not be caught by Sentry.' +
+        'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
+    );
   }
 }
 
