@@ -74,8 +74,7 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
         },
         onHandled: (id: string) => {
           if (__DEV__) {
-            // eslint-disable-next-line no-console
-            console.warn(
+            logger.warn(
               `Promise Rejection Handled (id: ${id})\n` +
                 'This means you can ignore any previous messages of the form ' +
                 `"Possible Unhandled Promise Rejection (id: ${id})"`,
