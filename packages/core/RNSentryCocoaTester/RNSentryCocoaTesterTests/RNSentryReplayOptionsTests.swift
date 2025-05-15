@@ -207,7 +207,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertFalse(actualOptions.sessionReplay.enableViewRendererV2)
     }
-    
+
     func testEnableFastViewRenderingDefault() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -220,7 +220,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
-    
+
     func testEnableFastViewRenderingTrue() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -234,7 +234,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertTrue(actualOptions.sessionReplay.enableFastViewRendering)
     }
-    
+
     func testEnableFastViewRenderingFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
