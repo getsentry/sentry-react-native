@@ -64,6 +64,8 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
             console.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${error}`);
           }
 
+          // Marking the rejection as handled to avoid breaking crash rate calculations.
+          // See: https://github.com/getsentry/sentry-react-native/issues/4141
           captureException(error, {
             data: { id },
             originalException: error,
@@ -143,6 +145,8 @@ function attachUnhandledRejectionHandler(): void {
         promiseRejectionTrackingOptions.onUnhandled(id, error);
       }
 
+      // Marking the rejection as handled to avoid breaking crash rate calculations.
+      // See: https://github.com/getsentry/sentry-react-native/issues/4141
       captureException(error, {
         data: { id },
         originalException: error,
