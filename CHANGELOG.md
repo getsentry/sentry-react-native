@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- crashedLastRun now returns the correct value ([#4829](https://github.com/getsentry/sentry-react-native/pull/4829))
 - Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
 
 ## 6.14.0
