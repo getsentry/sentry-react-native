@@ -106,8 +106,8 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
       attachUnhandledRejectionHandler();
       checkPromiseAndWarn();
     } else {
-      // Patching was disabled by user configuration
-      logger.log('Promise rejection tracking is disabled by configuration.');
+      // For JSC and other environments, patching was disabled by user configuration
+      logger.log('Unhandled promise rejections will not be caught by Sentry.');
     }
   } catch (e) {
     logger.warn(
