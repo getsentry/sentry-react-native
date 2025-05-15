@@ -6,13 +6,18 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
+
 ## 6.14.0
 
 ### Fixes
 
 - Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 - Expo Updates Context values should all be lowercase ([#4809](https://github.com/getsentry/sentry-react-native/pull/4809))
-- Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
 - Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
   - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
 
