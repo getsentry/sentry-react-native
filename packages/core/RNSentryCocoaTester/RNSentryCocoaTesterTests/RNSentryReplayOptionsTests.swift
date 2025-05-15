@@ -177,7 +177,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertFalse(actualOptions.sessionReplay.enableExperimentalViewRenderer)
+        XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
     }
     
     func testEnableExperimentalViewRendererTrue() {
