@@ -13,6 +13,12 @@
 - Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 - Expo Updates Context values should all be lowercase ([#4809](https://github.com/getsentry/sentry-react-native/pull/4809))
 - Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
+- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
+  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
+
+### Changes
+
+- Renames `enableExperimentalViewRenderer` to `enableViewRendererV2` which is enabled by default for up to 5x times more performance in Session Replay on iOS ([#4815](https://github.com/getsentry/sentry-react-native/pull/4815))
 
 ### Dependencies
 
@@ -25,11 +31,6 @@
 - Bump Cocoa SDK from v8.49.2 to v8.50.2 ([#4807](https://github.com/getsentry/sentry-react-native/pull/4807), [#4821](https://github.com/getsentry/sentry-react-native/pull/4821), [#4830](https://github.com/getsentry/sentry-react-native/pull/4830))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8502)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.2...8.50.2)
-
-### Fixes
-
-- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
-  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
 
 ## 6.13.1
 
