@@ -14,6 +14,7 @@ jest.mock('react-native', () => {
     addBreadcrumb: jest.fn(),
     captureEnvelope: jest.fn(),
     clearBreadcrumbs: jest.fn(),
+    crashedLastRun: jest.fn(),
     crash: jest.fn(),
     fetchNativeDeviceContexts: jest.fn(() =>
       Promise.resolve({
@@ -783,5 +784,29 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setContext).toHaveBeenCalledWith('key', { self: '[Circular ~]' });
       expect(RNSentry.setContext).toHaveBeenCalledOnce();
     });
+  });
+
+  describe('crashedLastRun', () => {
+    test('return true when promise resolves true ', async () => {
+      (RNSentry.crashedLastRun as jest.Mock).mockResolvedValue(true);
+
+      const result = await NATIVE.crashedLastRun();
+      expect(result).toBeTrue();
+    });
+
+    test('return true when promise resolves false ', async () => {
+      (RNSentry.crashedLastRun as jest.Mock).mockResolvedValue(false);
+
+      const result = await NATIVE.crashedLastRun();
+      expect(result).toBeFalse();
+    });
+
+    test('return null when promise does not resolve ', async () => {
+      (RNSentry.crashedLastRun as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await NATIVE.crashedLastRun();
+      expect(result).toBeNull();
+    });
+
   });
 });
