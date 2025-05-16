@@ -12,6 +12,12 @@
 
 - crashedLastRun now returns the correct value ([#4829](https://github.com/getsentry/sentry-react-native/pull/4829))
 
+### Dependencies
+
+- Bump JavaScript SDK from v8.54.0 to v9.19.0 ([#4615](https://github.com/getsentry/sentry-react-native/pull/4615))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#9190)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.19.0)
+
 ## 6.14.0
 
 ### Fixes
