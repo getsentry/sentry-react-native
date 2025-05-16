@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+- runFlow: utils/launchTestAppClear.yml
+
+
+# The following tests are happy path tests for the feedback widget on both iOS and Android.
+# They verify that the feedback form can be opened, filled out, and submitted successfully.
+# The tests are separate because iOS tests work better with `testID` and Android tests work better with `text`.
+
+- runFlow:
+    file: feedback/happyFlow-ios.yml
+    when:
+      platform: iOS
+
+- runFlow:
+    file: feedback/happyFlow-android.yml
+    when:
+      platform: Android
