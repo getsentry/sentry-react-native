@@ -12,6 +12,12 @@
 
 - crashedLastRun now returns the correct value ([#4829](https://github.com/getsentry/sentry-react-native/pull/4829))
 
+### Dependencies
+
+- Bump Android SDK from v7.22.5 to v8.12.0 ([#4471](https://github.com/getsentry/sentry-react-native/pull/4471))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8120)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.5...8.12.0)
+
 ## 6.14.0
 
 ### Fixes
