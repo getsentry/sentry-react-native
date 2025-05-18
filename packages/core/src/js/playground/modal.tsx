@@ -1,15 +1,17 @@
+/* eslint-disable max-lines */
+import { captureException, logger } from '@sentry/core';
 import * as React from 'react';
-import { Modal, SafeAreaView, View, Image, Pressable, Text, StyleSheet, Animated, useColorScheme } from 'react-native';
+import { Animated, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
-import { captureException } from '@sentry/core';
-import { NATIVE } from '../wrapper';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
+import { NATIVE } from '../wrapper';
 
 export const withSentryPlayground = <P extends object>(
   Component: React.ComponentType<P>,
   options: { projectId?: string; organizationSlug?: string } = {},
-) => {
-  return (props: P) => {
+): React.ComponentType<P> => {
+  const Wrapper = (props: P): React.ReactElement => {
     return (
       <>
         <SentryPlayground projectId={options.projectId} organizationSlug={options.organizationSlug} />
@@ -17,12 +19,15 @@ export const withSentryPlayground = <P extends object>(
       </>
     );
   };
+
+  Wrapper.displayName = `withSentryPlayground()`;
+  return Wrapper;
 };
 
 // This is a placeholder to match the example code with what Sentry SDK users would see.
 const Sentry = {
   captureException,
-  nativeCrash: () => {
+  nativeCrash: (): void => {
     NATIVE.nativeCrash();
   },
 };
@@ -30,7 +35,7 @@ const Sentry = {
 /**
  * Example of error handling with Sentry integration.
  */
-const tryCatchExample = () => {
+const tryCatchExample = (): void => {
   try {
     // If you see the line below highlighted the source maps are working correctly.
     throw new Error('This is a test caught error.');
@@ -42,7 +47,7 @@ const tryCatchExample = () => {
 /**
  * Example of an uncaught error causing a crash from JS.
  */
-const uncaughtErrorExample = () => {
+const uncaughtErrorExample = (): void => {
   // If you see the line below highlighted the source maps are working correctly.
   throw new Error('This is a test uncaught error.');
 };
@@ -50,7 +55,7 @@ const uncaughtErrorExample = () => {
 /**
  * Example of a native crash.
  */
-const nativeCrashExample = () => {
+const nativeCrashExample = (): void => {
   Sentry.nativeCrash();
 };
 
@@ -60,7 +65,7 @@ export const SentryPlayground = ({
 }: {
   projectId?: string;
   organizationSlug?: string;
-}) => {
+}): React.ReactElement => {
   const issuesStreamUrl =
     projectId && organizationSlug
       ? `https://${organizationSlug}.sentry.io/issues/?project=${projectId}&statsPeriod=1h`
@@ -70,7 +75,7 @@ export const SentryPlayground = ({
   const [show, setShow] = React.useState(true);
   const [animation, setAnimation] = React.useState('hi');
 
-  const onAnimationPress = () => {
+  const onAnimationPress = (): void => {
     switch (animation) {
       case 'hi':
         setAnimation('thumbsup');
@@ -99,7 +104,7 @@ export const SentryPlayground = ({
     }),
   ]);
 
-  const changeAnimationToBug = (func: () => void) => {
+  const changeAnimationToBug = (func: () => void): void => {
     setAnimation('bug');
     springAnimation.start(() => {
       func();
@@ -189,7 +194,7 @@ export const SentryPlayground = ({
   );
 };
 
-const Animation = ({ id }: { id: string }) => {
+const Animation = ({ id }: { id: string }): React.ReactElement => {
   switch (id) {
     case 'hi':
       return <Image source={require('../../../images/hi.gif')} style={{ width: 100, height: 100 }} />;
@@ -204,6 +209,7 @@ const Animation = ({ id }: { id: string }) => {
 
 const Row = ({
   last = false,
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   action = () => {},
   actionDescription,
   title,
@@ -216,7 +222,7 @@ const Row = ({
   title: string;
   description: string;
   disabled?: boolean;
-}) => {
+}): React.ReactElement => {
   const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
 
   return (
@@ -242,7 +248,7 @@ const Button = ({
   title: string;
   secondary?: boolean;
   disabled?: boolean;
-}) => {
+}): React.ReactElement => {
   const styles = useColorScheme() === 'dark' ? defaultDarkStyles : lightStyles;
 
   return (
@@ -408,10 +414,13 @@ const lightStyles: typeof defaultDarkStyles = StyleSheet.create({
   },
 });
 
-function openURLInBrowser(url: string) {
+function openURLInBrowser(url: string): void {
   // This doesn't work for Expo project with Web enabled
-  fetch(getDevServer().url + 'open-url', {
+  // disable-next-line @typescript-eslint/no-floating-promises
+  fetch(`${getDevServer().url}open-url`, {
     method: 'POST',
     body: JSON.stringify({ url }),
+  }).catch(e => {
+    logger.error('Error opening URL:', e);
   });
 }
