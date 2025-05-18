@@ -5,6 +5,10 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import type { InputConfigT, Middleware } from 'metro-config';
 import { promisify } from 'util';
 
+import { SENTRY_CONTEXT_REQUEST_PATH, SENTRY_OPEN_URL_REQUEST_PATH } from '../metro/constants';
+import { getRawBody } from '../metro/getRawBody';
+import { openURLMiddleware } from '../metro/openUrlMiddleware';
+
 const readFileAsync = promisify(readFile);
 
 /**
@@ -69,29 +73,15 @@ function badRequest(response: ServerResponse, message: string): void {
   response.end(message);
 }
 
-function getRawBody(request: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    request.on('data', chunk => {
-      data += chunk;
-    });
-    request.on('end', () => {
-      resolve(data);
-    });
-    request.on('error', reject);
-  });
-}
-
-const SENTRY_MIDDLEWARE_PATH = '/__sentry';
-const SENTRY_CONTEXT_REQUEST_PATH = `${SENTRY_MIDDLEWARE_PATH}/context`;
-
 /**
  * Creates a middleware that adds source context to the Sentry formatted stack frames.
  */
 export const createSentryMetroMiddleware = (middleware: Middleware): Middleware => {
   return (request: IncomingMessage, response: ServerResponse, next: unknown) => {
-    if (request.url?.startsWith(SENTRY_CONTEXT_REQUEST_PATH)) {
+    if (request.url?.startsWith(`/${SENTRY_CONTEXT_REQUEST_PATH}`)) {
       return stackFramesContextMiddleware(request, response);
+    } else if (request.url?.startsWith(`/${SENTRY_OPEN_URL_REQUEST_PATH}`)) {
+      return openURLMiddleware(request, response);
     }
     return middleware(request, response, next);
   };
