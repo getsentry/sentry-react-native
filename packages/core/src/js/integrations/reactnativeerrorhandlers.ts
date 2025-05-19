@@ -53,7 +53,11 @@ function setup(options: ReactNativeErrorHandlersOptions): void {
  */
 function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
   try {
-    if (isHermesEnabled() && RN_GLOBAL_OBJ.HermesInternal?.enablePromiseRejectionTracker) {
+    if (
+      isHermesEnabled() &&
+      RN_GLOBAL_OBJ.HermesInternal?.enablePromiseRejectionTracker &&
+      RN_GLOBAL_OBJ?.HermesInternal?.hasPromise?.()
+    ) {
       logger.log('Using Hermes native promise rejection tracking');
 
       RN_GLOBAL_OBJ.HermesInternal.enablePromiseRejectionTracker({

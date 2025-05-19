@@ -73,6 +73,7 @@ describe('ReactNativeErrorHandlers', () => {
     mockEnablePromiseRejectionTracker = jest.fn();
     RN_GLOBAL_OBJ.HermesInternal = {
       enablePromiseRejectionTracker: mockEnablePromiseRejectionTracker,
+      hasPromise: jest.fn(() => true),
     };
 
     jest.clearAllMocks();

@@ -16,6 +16,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   HermesInternal?: {
     getRuntimeProperties?: () => Record<string, string | undefined>;
     enablePromiseRejectionTracker?: (options: HermesPromiseRejectionTrackingOptions) => void;
+    hasPromise?: () => boolean;
   };
   Promise: unknown;
   __turboModuleProxy: unknown;
