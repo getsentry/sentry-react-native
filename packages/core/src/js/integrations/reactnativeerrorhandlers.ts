@@ -62,29 +62,8 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
 
       RN_GLOBAL_OBJ.HermesInternal.enablePromiseRejectionTracker({
         allRejections: true,
-        onUnhandled: (id: string, error: unknown) => {
-          if (__DEV__) {
-            logger.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${error}`);
-          }
-
-          // Marking the rejection as handled to avoid breaking crash rate calculations.
-          // See: https://github.com/getsentry/sentry-react-native/issues/4141
-          captureException(error, {
-            data: { id },
-            originalException: error,
-            syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
-            mechanism: { handled: true, type: 'onunhandledrejection' },
-          });
-        },
-        onHandled: (id: string) => {
-          if (__DEV__) {
-            logger.warn(
-              `Promise Rejection Handled (id: ${id})\n` +
-                'This means you can ignore any previous messages of the form ' +
-                `"Possible Unhandled Promise Rejection (id: ${id})"`,
-            );
-          }
-        },
+        onUnhandled: promiseRejectionTrackingOptions.onUnhandled,
+        onHandled: promiseRejectionTrackingOptions.onHandled,
       });
 
       logger.log('Unhandled promise rejections will be caught by Sentry.');
@@ -122,43 +101,39 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
   }
 }
 
-function attachUnhandledRejectionHandler(): void {
-  const tracking = requireRejectionTracking();
+const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
+  onUnhandled: (id, error: unknown, rejection = {}) => {
+    if (__DEV__) {
+      logger.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
+    }
 
-  const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
-    onUnhandled: (id, rejection = {}) => {
-      // eslint-disable-next-line no-console
-      console.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
-    },
-    onHandled: id => {
-      // eslint-disable-next-line no-console
-      console.warn(
+    // Marking the rejection as handled to avoid breaking crash rate calculations.
+    // See: https://github.com/getsentry/sentry-react-native/issues/4141
+    captureException(error, {
+      data: { id },
+      originalException: error,
+      syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
+      mechanism: { handled: true, type: 'onunhandledrejection' },
+    });
+  },
+  onHandled: id => {
+    if (__DEV__) {
+      logger.warn(
         `Promise Rejection Handled (id: ${id})\n` +
           'This means you can ignore any previous messages of the form ' +
           `"Possible Unhandled Promise Rejection (id: ${id}):"`,
       );
-    },
-  };
+    }
+  },
+};
+
+function attachUnhandledRejectionHandler(): void {
+  const tracking = requireRejectionTracking();
 
   tracking.enable({
     allRejections: true,
-    onUnhandled: (id: string, error: unknown) => {
-      if (__DEV__) {
-        promiseRejectionTrackingOptions.onUnhandled(id, error);
-      }
-
-      // Marking the rejection as handled to avoid breaking crash rate calculations.
-      // See: https://github.com/getsentry/sentry-react-native/issues/4141
-      captureException(error, {
-        data: { id },
-        originalException: error,
-        syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
-        mechanism: { handled: true, type: 'onunhandledrejection' },
-      });
-    },
-    onHandled: (id: string) => {
-      promiseRejectionTrackingOptions.onHandled(id);
-    },
+    onUnhandled: promiseRejectionTrackingOptions.onUnhandled,
+    onHandled: promiseRejectionTrackingOptions.onHandled,
   });
 }
 
