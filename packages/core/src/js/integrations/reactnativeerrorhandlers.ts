@@ -78,11 +78,6 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
           mechanism: { handled: false, type: 'onunhandledrejection' },
         });
       });
-
-      logger.warn(
-        'Unhandled promise rejections will not be caught by Sentry. ' +
-          'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
-      );
     } else if (patchGlobalPromise) {
       // For JSC and other environments, use the existing approach
       polyfillPromise();
