@@ -2,7 +2,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, ActivityIndicator, StyleSheet, RefreshControl, Text, Pressable } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import axios from 'axios';
 import { ArticleCard } from '../components/ArticleCard';
 import type { Article } from '../types/api';
 import { useFocusEffect } from '@react-navigation/native';
@@ -13,11 +12,7 @@ const API_URL = 'https://api.spaceflightnewsapi.net/v4/articles';
 
 export const preloadArticles = async () => {
   // Not actually preloading, just fetching for testing purposes
-  await axios.get(API_URL, {
-    params: {
-      limit: ITEMS_PER_PAGE,
-    },
-  });
+  await fetch(`${API_URL}/?limit=${ITEMS_PER_PAGE}`);
 };
 
 export default function NewsScreen() {
@@ -30,21 +25,21 @@ export default function NewsScreen() {
 
   const fetchArticles = async (pageNumber: number, refresh = false) => {
     try {
-      const response = await axios.get(API_URL, {
-        params: {
-          limit: ITEMS_PER_PAGE,
-          offset: (pageNumber - 1) * ITEMS_PER_PAGE,
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/?limit=${ITEMS_PER_PAGE}&offset=${
+          (pageNumber - 1) * ITEMS_PER_PAGE
+        }`,
+      );
+      const data = await response.json();
 
-      const newArticles = response.data.results;
-      setHasMore(response.data.next !== null);
+      const newArticles = data.results;
+      setHasMore(data.next !== null);
 
       if (refresh) {
         setArticles(newArticles);
         setAutoLoadCount(0);
       } else {
-        setArticles((prev) => [...prev, ...newArticles]);
+        setArticles(prev => [...prev, ...newArticles]);
       }
     } catch (error) {
       console.error('Error fetching articles:', error);
@@ -62,14 +57,14 @@ export default function NewsScreen() {
       }
 
       fetchArticles(1, true);
-    }, [articles])
+    }, [articles]),
   );
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
-      setPage((prev) => prev + 1);
+      setPage(prev => prev + 1);
       fetchArticles(page + 1);
-      setAutoLoadCount((prev) => prev + 1);
+      setAutoLoadCount(prev => prev + 1);
     }
   };
 
@@ -90,7 +85,9 @@ export default function NewsScreen() {
   };
 
   const LoadMoreButton = () => {
-    if (!hasMore) {return null;}
+    if (!hasMore) {
+      return null;
+    }
     if (loading) {
       return (
         <View style={styles.loadMoreContainer}>
@@ -126,7 +123,9 @@ export default function NewsScreen() {
         estimatedItemSize={350}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={autoLoadCount >= AUTO_LOAD_LIMIT ? LoadMoreButton : null}
+        ListFooterComponent={
+          autoLoadCount >= AUTO_LOAD_LIMIT ? LoadMoreButton : null
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }

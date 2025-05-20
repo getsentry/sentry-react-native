@@ -40,9 +40,23 @@ export interface MobileReplayOptions {
    *
    * - Experiment: This is an experimental feature and is therefore disabled by default.
    *
-   * @default false
+   * @deprecated Use `enableViewRendererV2` instead.
    */
   enableExperimentalViewRenderer?: boolean;
+
+  /**
+   * Enables up to 5x faster new view renderer used by the Session Replay integration on iOS.
+   *
+   * Enabling this flag will reduce the amount of time it takes to render each frame of the session replay on the main thread, therefore reducing
+   * interruptions and visual lag. [Our benchmarks](https://github.com/getsentry/sentry-cocoa/pull/4940) have shown a significant improvement of
+   * **up to 4-5x faster rendering** (reducing `~160ms` to `~36ms` per frame) on older devices.
+   *
+   * - Experiment: In case you are noticing issues with the new view renderer, please report the issue on [GitHub](https://github.com/getsentry/sentry-cocoa).
+   *               Eventually, we will remove this feature flag and use the new view renderer by default.
+   *
+   * @default true
+   */
+  enableViewRendererV2?: boolean;
 
   /**
    * Enables up to 5x faster but incomplete view rendering used by the Session Replay integration on iOS.
@@ -63,8 +77,22 @@ const defaultOptions: Required<MobileReplayOptions> = {
   maskAllImages: true,
   maskAllVectors: true,
   enableExperimentalViewRenderer: false,
+  enableViewRendererV2: true,
   enableFastViewRendering: false,
 };
+
+function mergeOptions(initOptions: Partial<MobileReplayOptions>): Required<MobileReplayOptions> {
+  const merged = {
+    ...defaultOptions,
+    ...initOptions,
+  };
+
+  if (initOptions.enableViewRendererV2 === undefined && initOptions.enableExperimentalViewRenderer !== undefined) {
+    merged.enableViewRendererV2 = initOptions.enableExperimentalViewRenderer;
+  }
+
+  return merged;
+}
 
 type MobileReplayIntegration = Integration & {
   options: Required<MobileReplayOptions>;
@@ -100,7 +128,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     return mobileReplayIntegrationNoop();
   }
 
-  const options = { ...defaultOptions, ...initOptions };
+  const options = mergeOptions(initOptions);
 
   async function processEvent(event: Event): Promise<Event> {
     const hasException = event.exception && event.exception.values && event.exception.values.length > 0;

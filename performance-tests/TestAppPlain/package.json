@@ -1,6 +1,6 @@
 {
   "name": "TestAppPlain",
-  "version": "6.13.0",
+  "version": "6.14.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

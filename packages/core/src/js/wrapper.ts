@@ -697,7 +697,7 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    const result = RNSentry.crashedLastRun();
+    const result = await RNSentry.crashedLastRun();
     return typeof result === 'boolean' ? result : null;
   },
 

@@ -1,16 +1,84 @@
-import type { Client, Event } from '@sentry/core';
+import { type Client, type Event, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
 
-import { expoContextIntegration, OTA_UPDATES_CONTEXT_KEY } from '../../src/js/integrations/expocontext';
+import {
+  expoContextIntegration,
+  getExpoUpdatesContext,
+  OTA_UPDATES_CONTEXT_KEY,
+} from '../../src/js/integrations/expocontext';
 import * as environment from '../../src/js/utils/environment';
 import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 import { getExpoDevice } from '../../src/js/utils/expomodules';
 import * as expoModules from '../../src/js/utils/expomodules';
+import { setupTestClient } from '../mocks/client';
+import { NATIVE } from '../mockWrapper';
 
+jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
 jest.mock('../../src/js/utils/expomodules');
 
 describe('Expo Context Integration', () => {
   afterEach(() => {
     jest.clearAllMocks();
+
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+  });
+
+  describe('Set Native Context after init()', () => {
+    beforeEach(() => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        updateId: '123',
+        channel: 'default',
+        runtimeVersion: '1.0.0',
+        checkAutomatically: 'always',
+        emergencyLaunchReason: 'some reason',
+        launchDuration: 1000,
+        createdAt: new Date('2021-01-01T00:00:00.000Z'),
+      });
+    });
+
+    it('calls setContext when native enabled', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      expect(NATIVE.setContext).toHaveBeenCalledWith(
+        OTA_UPDATES_CONTEXT_KEY,
+        expect.objectContaining({
+          update_id: '123',
+          channel: 'default',
+          runtime_version: '1.0.0',
+        }),
+      );
+    });
+
+    it('does not call setContext when native disabled', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      setupTestClient({ enableNative: false, integrations: [expoContextIntegration()] });
+
+      expect(NATIVE.setContext).not.toHaveBeenCalled();
+    });
+
+    it('does not call setContext when not expo', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(false);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      expect(NATIVE.setContext).not.toHaveBeenCalled();
+    });
+
+    it('does not call setContext when expo go', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      expect(NATIVE.setContext).not.toHaveBeenCalled();
+    });
   });
 
   describe('Non Expo App', () => {
@@ -244,6 +312,59 @@ describe('Expo Context Integration', () => {
         build: 'test os build id',
         version: 'test os version',
       });
+    });
+  });
+
+  describe('getExpoUpdatesContext', () => {
+    it('does not return empty values', () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEnabled: false,
+        isEmbeddedLaunch: false,
+        isEmergencyLaunch: false,
+        isUsingEmbeddedAssets: false,
+        updateId: '',
+        channel: '',
+        runtimeVersion: '',
+        checkAutomatically: '',
+        emergencyLaunchReason: '',
+        launchDuration: 0,
+        createdAt: new Date('2021-01-01T00:00:00.000Z'),
+      });
+
+      const expoUpdates = getExpoUpdatesContext();
+
+      expect(expoUpdates).toStrictEqual({
+        is_enabled: false,
+        is_embedded_launch: false,
+        is_emergency_launch: false,
+        is_using_embedded_assets: false,
+        launch_duration: 0,
+        created_at: '2021-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('lowercases all string values', () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        updateId: 'UPPERCASE-123',
+        channel: 'UPPERCASE-123',
+        runtimeVersion: 'UPPERCASE-123',
+        checkAutomatically: 'UPPERCASE-123',
+        emergencyLaunchReason: 'This is a description of the reason.',
+        createdAt: new Date('2021-01-01T00:00:00.000Z'),
+      });
+
+      const expoUpdates = getExpoUpdatesContext();
+
+      expect(expoUpdates).toEqual(
+        expect.objectContaining({
+          update_id: 'uppercase-123',
+          channel: 'uppercase-123',
+          runtime_version: 'uppercase-123',
+          check_automatically: 'uppercase-123',
+          emergency_launch_reason: 'This is a description of the reason.', // Description should be kept as is
+          created_at: '2021-01-01T00:00:00.000Z', // Date should keep ISO string format
+        }),
+      );
     });
   });
 

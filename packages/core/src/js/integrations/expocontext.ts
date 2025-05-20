@@ -1,5 +1,6 @@
 import { type DeviceContext, type Event, type Integration, type OsContext, logger } from '@sentry/core';
 
+import type { ReactNativeClient } from '../client';
 import { isExpo, isExpoGo } from '../utils/environment';
 import { getExpoDevice, getExpoUpdates } from '../utils/expomodules';
 import { NATIVE } from '../wrapper';
@@ -12,8 +13,14 @@ export const OTA_UPDATES_CONTEXT_KEY = 'ota_updates';
 export const expoContextIntegration = (): Integration => {
   let _expoUpdatesContextCached: ExpoUpdatesContext | undefined;
 
-  function setup(): void {
-    setExpoUpdatesNativeContext();
+  function setup(client: ReactNativeClient): void {
+    client.on('afterInit', () => {
+      if (!client.getOptions().enableNative) {
+        return;
+      }
+
+      setExpoUpdatesNativeContext();
+    });
   }
 
   function setExpoUpdatesNativeContext(): void {
@@ -63,7 +70,10 @@ export const expoContextIntegration = (): Integration => {
   };
 };
 
-function getExpoUpdatesContext(): ExpoUpdatesContext {
+/**
+ * @internal Exposed for testing purposes
+ */
+export function getExpoUpdatesContext(): ExpoUpdatesContext {
   const expoUpdates = getExpoUpdates();
   if (!expoUpdates) {
     return {
@@ -78,19 +88,19 @@ function getExpoUpdatesContext(): ExpoUpdatesContext {
     is_using_embedded_assets: !!expoUpdates.isUsingEmbeddedAssets,
   };
 
-  if (typeof expoUpdates.updateId === 'string') {
-    updatesContext.update_id = expoUpdates.updateId;
+  if (typeof expoUpdates.updateId === 'string' && expoUpdates.updateId) {
+    updatesContext.update_id = expoUpdates.updateId.toLowerCase();
   }
-  if (typeof expoUpdates.channel === 'string') {
-    updatesContext.channel = expoUpdates.channel;
+  if (typeof expoUpdates.channel === 'string' && expoUpdates.channel) {
+    updatesContext.channel = expoUpdates.channel.toLowerCase();
   }
-  if (typeof expoUpdates.runtimeVersion === 'string') {
-    updatesContext.runtime_version = expoUpdates.runtimeVersion;
+  if (typeof expoUpdates.runtimeVersion === 'string' && expoUpdates.runtimeVersion) {
+    updatesContext.runtime_version = expoUpdates.runtimeVersion.toLowerCase();
   }
-  if (typeof expoUpdates.checkAutomatically === 'string') {
-    updatesContext.check_automatically = expoUpdates.checkAutomatically;
+  if (typeof expoUpdates.checkAutomatically === 'string' && expoUpdates.checkAutomatically) {
+    updatesContext.check_automatically = expoUpdates.checkAutomatically.toLowerCase();
   }
-  if (typeof expoUpdates.emergencyLaunchReason === 'string') {
+  if (typeof expoUpdates.emergencyLaunchReason === 'string' && expoUpdates.emergencyLaunchReason) {
     updatesContext.emergency_launch_reason = expoUpdates.emergencyLaunchReason;
   }
   if (typeof expoUpdates.launchDuration === 'number') {
