@@ -14,7 +14,10 @@
     "export:web": "expo export --dump-sourcemap --clear --platform web",
     "prebuild": "expo prebuild --clean --no-install",
     "set-version": "npx react-native-version --skip-tag --never-amend",
-    "eas-build-pre-install": "npm i -g corepack && yarn install --no-immutable --inline-builds && yarn workspace @sentry/react-native build"
+    "eas-build-pre-install": "npm i -g corepack && yarn install --no-immutable --inline-builds && yarn workspace @sentry/react-native build",
+    "eas-update-configure": "eas update:configure",
+    "eas-update-publish-development": "eas update --channel development --message 'Development update'",
+    "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
     "@sentry/react-native": "6.14.0",
