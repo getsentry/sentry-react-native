@@ -11,7 +11,7 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v8.50.2 to v8.51.0 ([#??](https://github.com/getsentry/sentry-react-native/pull/??))
+- Bump Cocoa SDK from v8.50.2 to v8.51.0 ([#4843](https://github.com/getsentry/sentry-react-native/pull/4843))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8510)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.0...8.51.0)
 
