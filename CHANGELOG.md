@@ -24,6 +24,7 @@
 
 ### Fixes
 
+- App slowdown when using Sentry console Integration and filtering by `assert`  ([#4770](https://github.com/getsentry/sentry-react-native/pull/4770))
 - Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 - Expo Updates Context values should all be lowercase ([#4809](https://github.com/getsentry/sentry-react-native/pull/4809))
 - Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
