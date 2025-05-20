@@ -20,6 +20,12 @@
 - Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.50.2 to v8.51.0 ([#4839](https://github.com/getsentry/sentry-react-native/pull/4839))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8510)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.2...8.51.0)
+
 ## 6.14.0
 
 ### Fixes
