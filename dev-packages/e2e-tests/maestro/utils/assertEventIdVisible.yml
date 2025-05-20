@@ -10,6 +10,13 @@ jsEngine: graaljs
     id: "eventId"
 - assertTrue: ${maestro.copiedText}
 
+# Add a delay for iOS platform to ensure replays are available before the api call
+- evalScript: |
+    if (maestro.platform === "iOS") {
+      maestro.sleep(10000);
+    }
+    true;
+
 - runScript:
     file: sentryApi.js
     env:
