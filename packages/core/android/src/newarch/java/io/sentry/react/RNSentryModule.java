@@ -184,6 +184,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void encodeToBase64(ReadableArray array, Promise promise) {
+    this.impl.encodeToBase64(array, promise);
+  }
+
+  @Override
   public void popTimeToDisplayFor(String key, Promise promise) {
     this.impl.popTimeToDisplayFor(key, promise);
   }

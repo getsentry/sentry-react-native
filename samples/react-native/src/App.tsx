@@ -115,6 +115,8 @@ Sentry.init({
       }),
       Sentry.feedbackIntegration({
         imagePicker: ImagePicker,
+        enableScreenshot: true,
+        enableTakeScreenshot: true,
         styles: {
           submitButton: {
             backgroundColor: '#6a1b9a',
@@ -125,6 +127,20 @@ Sentry.init({
           },
         },
         namePlaceholder: 'Fullname',
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
+        screenshotButtonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
       }),
       Sentry.extraErrorDataIntegration(),
     );

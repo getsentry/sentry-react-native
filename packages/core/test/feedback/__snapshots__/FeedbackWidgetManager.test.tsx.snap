@@ -1,0 +1,3102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FeedbackButtonManager the Feedback Button matches the snapshot with custom dark theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    accessibilityLabel=""
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ff0000",
+        "borderColor": "rgba(235, 230, 239, 0.15)",
+        "borderRadius": 40,
+        "borderWidth": 1,
+        "bottom": 30,
+        "elevation": 5,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+        "position": "absolute",
+        "right": 30,
+        "shadowColor": "rgba(235, 230, 239, 0.15)",
+        "shadowOffset": {
+          "height": 2,
+          "width": 1,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "data:image/png;base64,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",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "marginEnd": 6,
+          "padding": 2,
+          "tintColor": "#ffffff",
+          "width": 24,
+        }
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#00ff00",
+          "fontSize": 18,
+        }
+      }
+      testID="sentry-feedback-button"
+    >
+      Report a Bug
+    </Text>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Button matches the snapshot with custom light theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    accessibilityLabel=""
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#00ff00",
+        "borderColor": "rgba(41, 35, 47, 0.13)",
+        "borderRadius": 40,
+        "borderWidth": 1,
+        "bottom": 30,
+        "elevation": 5,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+        "position": "absolute",
+        "right": 30,
+        "shadowColor": "rgba(41, 35, 47, 0.13)",
+        "shadowOffset": {
+          "height": 2,
+          "width": 1,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "data:image/png;base64,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",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "marginEnd": 6,
+          "padding": 2,
+          "tintColor": "rgba(54, 45, 89, 1)",
+          "width": 24,
+        }
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#ff0000",
+          "fontSize": 18,
+        }
+      }
+      testID="sentry-feedback-button"
+    >
+      Report a Bug
+    </Text>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Button matches the snapshot with default configuration and dynamically changed theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    accessibilityLabel=""
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#29232f",
+        "borderColor": "rgba(235, 230, 239, 0.15)",
+        "borderRadius": 40,
+        "borderWidth": 1,
+        "bottom": 30,
+        "elevation": 5,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+        "position": "absolute",
+        "right": 30,
+        "shadowColor": "rgba(235, 230, 239, 0.15)",
+        "shadowOffset": {
+          "height": 2,
+          "width": 1,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "data:image/png;base64,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",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "marginEnd": 6,
+          "padding": 2,
+          "tintColor": "#ffffff",
+          "width": 24,
+        }
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#ebe6ef",
+          "fontSize": 18,
+        }
+      }
+      testID="sentry-feedback-button"
+    >
+      Report a Bug
+    </Text>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Button matches the snapshot with default configuration and system dark theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    accessibilityLabel=""
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#29232f",
+        "borderColor": "rgba(235, 230, 239, 0.15)",
+        "borderRadius": 40,
+        "borderWidth": 1,
+        "bottom": 30,
+        "elevation": 5,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+        "position": "absolute",
+        "right": 30,
+        "shadowColor": "rgba(235, 230, 239, 0.15)",
+        "shadowOffset": {
+          "height": 2,
+          "width": 1,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "data:image/png;base64,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",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "marginEnd": 6,
+          "padding": 2,
+          "tintColor": "#ffffff",
+          "width": 24,
+        }
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#ebe6ef",
+          "fontSize": 18,
+        }
+      }
+      testID="sentry-feedback-button"
+    >
+      Report a Bug
+    </Text>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Button matches the snapshot with default configuration and system light theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    accessibilityLabel=""
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "rgba(41, 35, 47, 0.13)",
+        "borderRadius": 40,
+        "borderWidth": 1,
+        "bottom": 30,
+        "elevation": 5,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+        "position": "absolute",
+        "right": 30,
+        "shadowColor": "rgba(41, 35, 47, 0.13)",
+        "shadowOffset": {
+          "height": 2,
+          "width": 1,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "data:image/png;base64,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",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "marginEnd": 6,
+          "padding": 2,
+          "tintColor": "rgba(54, 45, 89, 1)",
+          "width": 24,
+        }
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#2b2233",
+          "fontSize": 18,
+        }
+      }
+      testID="sentry-feedback-button"
+    >
+      Report a Bug
+    </Text>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Button matches the snapshot with system dark custom theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    accessibilityLabel=""
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ff0000",
+        "borderColor": "rgba(235, 230, 239, 0.15)",
+        "borderRadius": 40,
+        "borderWidth": 1,
+        "bottom": 30,
+        "elevation": 5,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+        "position": "absolute",
+        "right": 30,
+        "shadowColor": "rgba(235, 230, 239, 0.15)",
+        "shadowOffset": {
+          "height": 2,
+          "width": 1,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "data:image/png;base64,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",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "marginEnd": 6,
+          "padding": 2,
+          "tintColor": "#ffffff",
+          "width": 24,
+        }
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#00ff00",
+          "fontSize": 18,
+        }
+      }
+      testID="sentry-feedback-button"
+    >
+      Report a Bug
+    </Text>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Button matches the snapshot with system light custom theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    accessibilityLabel=""
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#00ff00",
+        "borderColor": "rgba(41, 35, 47, 0.13)",
+        "borderRadius": 40,
+        "borderWidth": 1,
+        "bottom": 30,
+        "elevation": 5,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "opacity": 1,
+        "padding": 15,
+        "position": "absolute",
+        "right": 30,
+        "shadowColor": "rgba(41, 35, 47, 0.13)",
+        "shadowOffset": {
+          "height": 2,
+          "width": 1,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <Image
+      source={
+        {
+          "uri": "data:image/png;base64,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",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "marginEnd": 6,
+          "padding": 2,
+          "tintColor": "rgba(54, 45, 89, 1)",
+          "width": 24,
+        }
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#ff0000",
+          "fontSize": 18,
+        }
+      }
+      testID="sentry-feedback-button"
+    >
+      Report a Bug
+    </Text>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with custom dark theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <Modal
+      animationType="none"
+      hardwareAccelerated={false}
+      onRequestClose={[Function]}
+      testID="feedback-form-modal"
+      transparent={true}
+      visible={true}
+    >
+      <View
+        style={
+          {
+            "height": 64,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "alignSelf": "stretch",
+            "backgroundColor": "#ff0000",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "elevation": 5,
+            "flex": 1,
+            "overflow": "hidden",
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": -3,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+      >
+        <RCTScrollView
+          automaticallyAdjustKeyboardInsets={true}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={[Function]}
+        >
+          <View>
+            <View
+              accessibilityElementsHidden={false}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "backgroundColor": "#ff0000",
+                  "flex": 1,
+                  "padding": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#00ff00",
+                      "flex": 1,
+                      "fontSize": 24,
+                      "fontWeight": "bold",
+                      "marginBottom": 20,
+                      "textAlign": "left",
+                    }
+                  }
+                  testID="sentry-feedback-form-title"
+                >
+                  Report a Bug
+                </Text>
+                <Image
+                  source={
+                    {
+                      "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 40,
+                      "tintColor": "#ffffff",
+                      "width": 40,
+                    }
+                  }
+                  testID="sentry-logo"
+                />
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Name
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="Your Name"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-name-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Email
+              </Text>
+              <TextInput
+                keyboardType="email-address"
+                onChangeText={[Function]}
+                placeholder="your.email@example.org"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-email-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Description
+                 (required)
+              </Text>
+              <TextInput
+                multiline={true}
+                onChangeText={[Function]}
+                placeholder="What's the bug? What did you expect?"
+                style={
+                  [
+                    {
+                      "borderColor": "rgba(235, 230, 239, 0.15)",
+                      "borderRadius": 5,
+                      "borderWidth": 1,
+                      "color": "#00ff00",
+                      "fontSize": 16,
+                      "height": 50,
+                      "marginBottom": 15,
+                      "paddingHorizontal": 10,
+                    },
+                    {
+                      "color": "#00ff00",
+                      "height": 100,
+                      "textAlignVertical": "top",
+                    },
+                  ]
+                }
+                testID="sentry-feedback-message-input"
+                value=""
+              />
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "rgba(88, 74, 192, 1)",
+                    "borderRadius": 5,
+                    "marginBottom": 10,
+                    "opacity": 1,
+                    "paddingVertical": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ffffff",
+                      "fontSize": 18,
+                    }
+                  }
+                  testID="sentry-feedback-submit-button"
+                >
+                  Send Bug Report
+                </Text>
+              </View>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ff0000",
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "opacity": 1,
+                    "padding": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#00ff00",
+                      "fontSize": 16,
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </Modal>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with custom light theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <Modal
+      animationType="none"
+      hardwareAccelerated={false}
+      onRequestClose={[Function]}
+      testID="feedback-form-modal"
+      transparent={true}
+      visible={true}
+    >
+      <View
+        style={
+          {
+            "height": 64,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "alignSelf": "stretch",
+            "backgroundColor": "#00ff00",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "elevation": 5,
+            "flex": 1,
+            "overflow": "hidden",
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": -3,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+      >
+        <RCTScrollView
+          automaticallyAdjustKeyboardInsets={true}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={[Function]}
+        >
+          <View>
+            <View
+              accessibilityElementsHidden={false}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "backgroundColor": "#00ff00",
+                  "flex": 1,
+                  "padding": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ff0000",
+                      "flex": 1,
+                      "fontSize": 24,
+                      "fontWeight": "bold",
+                      "marginBottom": 20,
+                      "textAlign": "left",
+                    }
+                  }
+                  testID="sentry-feedback-form-title"
+                >
+                  Report a Bug
+                </Text>
+                <Image
+                  source={
+                    {
+                      "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 40,
+                      "tintColor": "rgba(54, 45, 89, 1)",
+                      "width": 40,
+                    }
+                  }
+                  testID="sentry-logo"
+                />
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Name
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="Your Name"
+                style={
+                  {
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-name-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Email
+              </Text>
+              <TextInput
+                keyboardType="email-address"
+                onChangeText={[Function]}
+                placeholder="your.email@example.org"
+                style={
+                  {
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-email-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Description
+                 (required)
+              </Text>
+              <TextInput
+                multiline={true}
+                onChangeText={[Function]}
+                placeholder="What's the bug? What did you expect?"
+                style={
+                  [
+                    {
+                      "borderColor": "rgba(41, 35, 47, 0.13)",
+                      "borderRadius": 5,
+                      "borderWidth": 1,
+                      "color": "#ff0000",
+                      "fontSize": 16,
+                      "height": 50,
+                      "marginBottom": 15,
+                      "paddingHorizontal": 10,
+                    },
+                    {
+                      "color": "#ff0000",
+                      "height": 100,
+                      "textAlignVertical": "top",
+                    },
+                  ]
+                }
+                testID="sentry-feedback-message-input"
+                value=""
+              />
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "rgba(88, 74, 192, 1)",
+                    "borderRadius": 5,
+                    "marginBottom": 10,
+                    "opacity": 1,
+                    "paddingVertical": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ffffff",
+                      "fontSize": 18,
+                    }
+                  }
+                  testID="sentry-feedback-submit-button"
+                >
+                  Send Bug Report
+                </Text>
+              </View>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#00ff00",
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "opacity": 1,
+                    "padding": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ff0000",
+                      "fontSize": 16,
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </Modal>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with default configuration and dynamically changed theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <Modal
+      animationType="none"
+      hardwareAccelerated={false}
+      onRequestClose={[Function]}
+      testID="feedback-form-modal"
+      transparent={true}
+      visible={true}
+    >
+      <View
+        style={
+          {
+            "height": 64,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "alignSelf": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "elevation": 5,
+            "flex": 1,
+            "overflow": "hidden",
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": -3,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+      >
+        <RCTScrollView
+          automaticallyAdjustKeyboardInsets={true}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={[Function]}
+        >
+          <View>
+            <View
+              accessibilityElementsHidden={false}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "backgroundColor": "#29232f",
+                  "flex": 1,
+                  "padding": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ebe6ef",
+                      "flex": 1,
+                      "fontSize": 24,
+                      "fontWeight": "bold",
+                      "marginBottom": 20,
+                      "textAlign": "left",
+                    }
+                  }
+                  testID="sentry-feedback-form-title"
+                >
+                  Report a Bug
+                </Text>
+                <Image
+                  source={
+                    {
+                      "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 40,
+                      "tintColor": "#ffffff",
+                      "width": 40,
+                    }
+                  }
+                  testID="sentry-logo"
+                />
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Name
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="Your Name"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-name-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Email
+              </Text>
+              <TextInput
+                keyboardType="email-address"
+                onChangeText={[Function]}
+                placeholder="your.email@example.org"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-email-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Description
+                 (required)
+              </Text>
+              <TextInput
+                multiline={true}
+                onChangeText={[Function]}
+                placeholder="What's the bug? What did you expect?"
+                style={
+                  [
+                    {
+                      "borderColor": "rgba(235, 230, 239, 0.15)",
+                      "borderRadius": 5,
+                      "borderWidth": 1,
+                      "color": "#ebe6ef",
+                      "fontSize": 16,
+                      "height": 50,
+                      "marginBottom": 15,
+                      "paddingHorizontal": 10,
+                    },
+                    {
+                      "color": "#ebe6ef",
+                      "height": 100,
+                      "textAlignVertical": "top",
+                    },
+                  ]
+                }
+                testID="sentry-feedback-message-input"
+                value=""
+              />
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "rgba(88, 74, 192, 1)",
+                    "borderRadius": 5,
+                    "marginBottom": 10,
+                    "opacity": 1,
+                    "paddingVertical": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ffffff",
+                      "fontSize": 18,
+                    }
+                  }
+                  testID="sentry-feedback-submit-button"
+                >
+                  Send Bug Report
+                </Text>
+              </View>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#29232f",
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "opacity": 1,
+                    "padding": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ebe6ef",
+                      "fontSize": 16,
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </Modal>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with default configuration and system dark theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <Modal
+      animationType="none"
+      hardwareAccelerated={false}
+      onRequestClose={[Function]}
+      testID="feedback-form-modal"
+      transparent={true}
+      visible={true}
+    >
+      <View
+        style={
+          {
+            "height": 64,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "alignSelf": "stretch",
+            "backgroundColor": "#29232f",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "elevation": 5,
+            "flex": 1,
+            "overflow": "hidden",
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": -3,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+      >
+        <RCTScrollView
+          automaticallyAdjustKeyboardInsets={true}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={[Function]}
+        >
+          <View>
+            <View
+              accessibilityElementsHidden={false}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "backgroundColor": "#29232f",
+                  "flex": 1,
+                  "padding": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ebe6ef",
+                      "flex": 1,
+                      "fontSize": 24,
+                      "fontWeight": "bold",
+                      "marginBottom": 20,
+                      "textAlign": "left",
+                    }
+                  }
+                  testID="sentry-feedback-form-title"
+                >
+                  Report a Bug
+                </Text>
+                <Image
+                  source={
+                    {
+                      "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 40,
+                      "tintColor": "#ffffff",
+                      "width": 40,
+                    }
+                  }
+                  testID="sentry-logo"
+                />
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Name
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="Your Name"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-name-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Email
+              </Text>
+              <TextInput
+                keyboardType="email-address"
+                onChangeText={[Function]}
+                placeholder="your.email@example.org"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-email-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ebe6ef",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Description
+                 (required)
+              </Text>
+              <TextInput
+                multiline={true}
+                onChangeText={[Function]}
+                placeholder="What's the bug? What did you expect?"
+                style={
+                  [
+                    {
+                      "borderColor": "rgba(235, 230, 239, 0.15)",
+                      "borderRadius": 5,
+                      "borderWidth": 1,
+                      "color": "#ebe6ef",
+                      "fontSize": 16,
+                      "height": 50,
+                      "marginBottom": 15,
+                      "paddingHorizontal": 10,
+                    },
+                    {
+                      "color": "#ebe6ef",
+                      "height": 100,
+                      "textAlignVertical": "top",
+                    },
+                  ]
+                }
+                testID="sentry-feedback-message-input"
+                value=""
+              />
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "rgba(88, 74, 192, 1)",
+                    "borderRadius": 5,
+                    "marginBottom": 10,
+                    "opacity": 1,
+                    "paddingVertical": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ffffff",
+                      "fontSize": 18,
+                    }
+                  }
+                  testID="sentry-feedback-submit-button"
+                >
+                  Send Bug Report
+                </Text>
+              </View>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#29232f",
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "opacity": 1,
+                    "padding": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ebe6ef",
+                      "fontSize": 16,
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </Modal>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with default configuration and system light theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <Modal
+      animationType="none"
+      hardwareAccelerated={false}
+      onRequestClose={[Function]}
+      testID="feedback-form-modal"
+      transparent={true}
+      visible={true}
+    >
+      <View
+        style={
+          {
+            "height": 64,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "alignSelf": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "elevation": 5,
+            "flex": 1,
+            "overflow": "hidden",
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": -3,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+      >
+        <RCTScrollView
+          automaticallyAdjustKeyboardInsets={true}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={[Function]}
+        >
+          <View>
+            <View
+              accessibilityElementsHidden={false}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "flex": 1,
+                  "padding": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#2b2233",
+                      "flex": 1,
+                      "fontSize": 24,
+                      "fontWeight": "bold",
+                      "marginBottom": 20,
+                      "textAlign": "left",
+                    }
+                  }
+                  testID="sentry-feedback-form-title"
+                >
+                  Report a Bug
+                </Text>
+                <Image
+                  source={
+                    {
+                      "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 40,
+                      "tintColor": "rgba(54, 45, 89, 1)",
+                      "width": 40,
+                    }
+                  }
+                  testID="sentry-logo"
+                />
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#2b2233",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Name
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="Your Name"
+                style={
+                  {
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#2b2233",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-name-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#2b2233",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Email
+              </Text>
+              <TextInput
+                keyboardType="email-address"
+                onChangeText={[Function]}
+                placeholder="your.email@example.org"
+                style={
+                  {
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#2b2233",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-email-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#2b2233",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Description
+                 (required)
+              </Text>
+              <TextInput
+                multiline={true}
+                onChangeText={[Function]}
+                placeholder="What's the bug? What did you expect?"
+                style={
+                  [
+                    {
+                      "borderColor": "rgba(41, 35, 47, 0.13)",
+                      "borderRadius": 5,
+                      "borderWidth": 1,
+                      "color": "#2b2233",
+                      "fontSize": 16,
+                      "height": 50,
+                      "marginBottom": 15,
+                      "paddingHorizontal": 10,
+                    },
+                    {
+                      "color": "#2b2233",
+                      "height": 100,
+                      "textAlignVertical": "top",
+                    },
+                  ]
+                }
+                testID="sentry-feedback-message-input"
+                value=""
+              />
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "rgba(88, 74, 192, 1)",
+                    "borderRadius": 5,
+                    "marginBottom": 10,
+                    "opacity": 1,
+                    "paddingVertical": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ffffff",
+                      "fontSize": 18,
+                    }
+                  }
+                  testID="sentry-feedback-submit-button"
+                >
+                  Send Bug Report
+                </Text>
+              </View>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "opacity": 1,
+                    "padding": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#2b2233",
+                      "fontSize": 16,
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </Modal>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with system dark custom theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <Modal
+      animationType="none"
+      hardwareAccelerated={false}
+      onRequestClose={[Function]}
+      testID="feedback-form-modal"
+      transparent={true}
+      visible={true}
+    >
+      <View
+        style={
+          {
+            "height": 64,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "alignSelf": "stretch",
+            "backgroundColor": "#ff0000",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "elevation": 5,
+            "flex": 1,
+            "overflow": "hidden",
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": -3,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+      >
+        <RCTScrollView
+          automaticallyAdjustKeyboardInsets={true}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={[Function]}
+        >
+          <View>
+            <View
+              accessibilityElementsHidden={false}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "backgroundColor": "#ff0000",
+                  "flex": 1,
+                  "padding": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#00ff00",
+                      "flex": 1,
+                      "fontSize": 24,
+                      "fontWeight": "bold",
+                      "marginBottom": 20,
+                      "textAlign": "left",
+                    }
+                  }
+                  testID="sentry-feedback-form-title"
+                >
+                  Report a Bug
+                </Text>
+                <Image
+                  source={
+                    {
+                      "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 40,
+                      "tintColor": "#ffffff",
+                      "width": 40,
+                    }
+                  }
+                  testID="sentry-logo"
+                />
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Name
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="Your Name"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-name-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Email
+              </Text>
+              <TextInput
+                keyboardType="email-address"
+                onChangeText={[Function]}
+                placeholder="your.email@example.org"
+                style={
+                  {
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-email-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#00ff00",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Description
+                 (required)
+              </Text>
+              <TextInput
+                multiline={true}
+                onChangeText={[Function]}
+                placeholder="What's the bug? What did you expect?"
+                style={
+                  [
+                    {
+                      "borderColor": "rgba(235, 230, 239, 0.15)",
+                      "borderRadius": 5,
+                      "borderWidth": 1,
+                      "color": "#00ff00",
+                      "fontSize": 16,
+                      "height": 50,
+                      "marginBottom": 15,
+                      "paddingHorizontal": 10,
+                    },
+                    {
+                      "color": "#00ff00",
+                      "height": 100,
+                      "textAlignVertical": "top",
+                    },
+                  ]
+                }
+                testID="sentry-feedback-message-input"
+                value=""
+              />
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "rgba(88, 74, 192, 1)",
+                    "borderRadius": 5,
+                    "marginBottom": 10,
+                    "opacity": 1,
+                    "paddingVertical": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ffffff",
+                      "fontSize": 18,
+                    }
+                  }
+                  testID="sentry-feedback-submit-button"
+                >
+                  Send Bug Report
+                </Text>
+              </View>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ff0000",
+                    "borderColor": "rgba(235, 230, 239, 0.15)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "opacity": 1,
+                    "padding": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#00ff00",
+                      "fontSize": 16,
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </Modal>
+  </View>,
+]
+`;
+
+exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with system light custom theme 1`] = `
+[
+  <Text>
+    App Components
+  </Text>,
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <Modal
+      animationType="none"
+      hardwareAccelerated={false}
+      onRequestClose={[Function]}
+      testID="feedback-form-modal"
+      transparent={true}
+      visible={true}
+    >
+      <View
+        style={
+          {
+            "height": 64,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        style={
+          {
+            "alignSelf": "stretch",
+            "backgroundColor": "#00ff00",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "elevation": 5,
+            "flex": 1,
+            "overflow": "hidden",
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": -3,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 4,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+      >
+        <RCTScrollView
+          automaticallyAdjustKeyboardInsets={true}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+          onScroll={[Function]}
+        >
+          <View>
+            <View
+              accessibilityElementsHidden={false}
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessible={false}
+              focusable={true}
+              onClick={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                {
+                  "backgroundColor": "#00ff00",
+                  "flex": 1,
+                  "padding": 20,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "width": "100%",
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ff0000",
+                      "flex": 1,
+                      "fontSize": 24,
+                      "fontWeight": "bold",
+                      "marginBottom": 20,
+                      "textAlign": "left",
+                    }
+                  }
+                  testID="sentry-feedback-form-title"
+                >
+                  Report a Bug
+                </Text>
+                <Image
+                  source={
+                    {
+                      "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC4BAMAAABUVL5sAAAAD1BMVEUAAAA2Llo3LVk4LFg2LVmgcvrUAAAABHRSTlMAgL9ARyeO/QAAA7pJREFUeNrtWltynDAQFBIHIFUcgCQ6AIk5AAjd/0ypxFk3ouUCNJofl/rHy75a09MzI7Q2DQ0NDQ0NDQ0NDQ0N9eF+xPh9MKpwPv6FLss7R9yMImz8j8nowb9IglFDF6N+KCNIdqMFcGjpBbVUXdzHqKsXUhJGNb2g1vz6azRgX8XulUwMtVZjFsWkvFz10s0ooEO+9Vpxj/6rp9eI5VsdE6eJcDCxilqICiZWMHBSMkBVA2vq1SVrVyr6Ea5VMjHqjytTwcAgRVJ0DAy9VoWUTNT3tQysZGIYmGNTKHfK0q6oFkysYWCuHB0DaxX9yHLx5JKrhVC0TGwjWNRMvNAuW6PoR4TCepnqLLuiicEyKJq4g2C6Rc+hsInlgtHCF41OrD65INisObksbKy2/YJg9U08sGBTbRN3YaBQQu2i74/mcQil6vZr5C0dQpGbGKJvdOA1VDVxd5LHooPR5BJPdwql5vaLeq9FQZKJpa1kOoUSKpq45+m+ZK93aUpSwRyuafslUguCIZRZamKoBYQT80QmlqnF38p6bSIDcyg2q5fw/uo8dx0upZMLLdadQ1kgkNDEOOGiYYXjVKGJ8V00rEggcErurxAKCwQTi9RCAW7UFcUm5vPAOFNXFBY9DggQyp76jnIkOyBwaeqtyMScEu7w4JRNLnyQOjyvACcWpR145g6PV1fp9mvE0jMd3tWZXDR3/Ud2cSXZfmHhvNpEoFlgYsjFHX4AJc3kXXSTyEfDTrz94ptE1qvS9ouG1Ud2sQT5PVcHg3FL78FIYUpqxWK1yLzMxNzhHVaLzItMzB0eB/S4CDRHC+AzFTjhAiSSHx9tpgJXqnmhXi7VizM/F5v4V5oVqOIp81PpEW4Xt7PUA0kEe5WZ2PLt7ZopDg8Seue9GpxoU0WrHyFPgYlzmyrKPDxcpFeX3YRS5mGvxybmsC2tPhLJQxPzdsfliwMeLjAx9wcujoFIaEAX/KSYXz0s+9TE/E7LX0yF8lQvitl99sVjSgITl/yk6Lk48JjfGadnanHml8xjMvFTA+eL42CRwDKEZwbm4rBMyAmdH6UEz8HDTPj4d4ie1EJxJCQg56DXaxKOl0iGz0jcdebZluzhbFSA1yEZ2JzbHZKQe3I/EK4CErTHbwn84ZP+8Poxqrd/+I2cXJAw0v9VAkBiI3DhLryZEe6SXNeJk5HcHFu+Aom5wiIn2a7niZiE1WKMUhIOhNFJSQZzh0VG8tPcQufLSQI46sO9vcM0NDQ0NDQ0NDQ0NHxF/AFGJOBYBWrb5gAAAABJRU5ErkJggg==",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 40,
+                      "tintColor": "rgba(54, 45, 89, 1)",
+                      "width": 40,
+                    }
+                  }
+                  testID="sentry-logo"
+                />
+              </View>
+              <Text
+                style={
+                  {
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Name
+              </Text>
+              <TextInput
+                onChangeText={[Function]}
+                placeholder="Your Name"
+                style={
+                  {
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-name-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Email
+              </Text>
+              <TextInput
+                keyboardType="email-address"
+                onChangeText={[Function]}
+                placeholder="your.email@example.org"
+                style={
+                  {
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "height": 50,
+                    "marginBottom": 15,
+                    "paddingHorizontal": 10,
+                  }
+                }
+                testID="sentry-feedback-email-input"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ff0000",
+                    "fontSize": 16,
+                    "marginBottom": 4,
+                  }
+                }
+              >
+                Description
+                 (required)
+              </Text>
+              <TextInput
+                multiline={true}
+                onChangeText={[Function]}
+                placeholder="What's the bug? What did you expect?"
+                style={
+                  [
+                    {
+                      "borderColor": "rgba(41, 35, 47, 0.13)",
+                      "borderRadius": 5,
+                      "borderWidth": 1,
+                      "color": "#ff0000",
+                      "fontSize": 16,
+                      "height": 50,
+                      "marginBottom": 15,
+                      "paddingHorizontal": 10,
+                    },
+                    {
+                      "color": "#ff0000",
+                      "height": 100,
+                      "textAlignVertical": "top",
+                    },
+                  ]
+                }
+                testID="sentry-feedback-message-input"
+                value=""
+              />
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "rgba(88, 74, 192, 1)",
+                    "borderRadius": 5,
+                    "marginBottom": 10,
+                    "opacity": 1,
+                    "paddingVertical": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ffffff",
+                      "fontSize": 18,
+                    }
+                  }
+                  testID="sentry-feedback-submit-button"
+                >
+                  Send Bug Report
+                </Text>
+              </View>
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#00ff00",
+                    "borderColor": "rgba(41, 35, 47, 0.13)",
+                    "borderRadius": 5,
+                    "borderWidth": 1,
+                    "opacity": 1,
+                    "padding": 15,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#ff0000",
+                      "fontSize": 16,
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </View>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </Modal>
+  </View>,
+]
+`;
