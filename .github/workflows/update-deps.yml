@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - v7
 
 jobs:
   android:
