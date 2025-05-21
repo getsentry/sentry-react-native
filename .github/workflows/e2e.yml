@@ -413,6 +413,12 @@ jobs:
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
+        
+      - name: Copy Sentry logs
+        if: ${{ always() }}
+        run: |
+          mkdir -p ./dev-packages/e2e-tests/maestro-logs
+          cp $(find ~/Library/Developer/CoreSimulator -name "sentry.log" | head -n 1) ./dev-packages/e2e-tests/maestro-logs/ || true
 
       - name: Upload logs
         if: ${{ always() }}
