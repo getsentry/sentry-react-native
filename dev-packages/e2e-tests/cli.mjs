@@ -143,6 +143,20 @@ if (actions.includes('create')) {
       env: env,
     });
 
+    // Add this new step to modify the Podfile to use specific commit
+    console.log('Patching Podfile to use specific Sentry commit...');
+    const podfilePath = `${appDir}/ios/Podfile`;
+    let podfileContent = fs.readFileSync(podfilePath, 'utf8');
+
+    // Add this line at the beginning of the target block
+    podfileContent = podfileContent.replace(
+      /target .* do/,
+      `$&\n  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '62a336269d2fb1606b22df88841807eb3270ab9b'`
+    );
+
+    fs.writeFileSync(podfilePath, podfileContent);
+    console.log('Podfile patched successfully');
+
     if (fs.existsSync(`${appDir}/Gemfile`)) {
       execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });
       execSync('bundle exec pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });

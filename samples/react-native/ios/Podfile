@@ -37,6 +37,8 @@ target 'sentryreactnativesample' do
     pod 'AppTurboModules', :path => "./../tm"
   end
 
+  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '62a336269d2fb1606b22df88841807eb3270ab9b'
+
   target 'sentryreactnativesampleTests' do
     inherit! :complete
     # Pods for testing
