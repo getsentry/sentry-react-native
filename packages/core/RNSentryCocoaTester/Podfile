@@ -9,7 +9,7 @@ target 'RNSentryCocoaTesterTests' do
   pod 'RNSentry', :path => '../RNSentry.podspec'
   pod 'OCMock', '3.9.1'
 
-  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '62a336269d2fb1606b22df88841807eb3270ab9b'
+  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '156cf966f0c637d61494c0804a70b85ab91f5dc8'
 
   post_install do |installer|
     set_react_native_path(installer)

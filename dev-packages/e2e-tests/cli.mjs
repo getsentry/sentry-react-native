@@ -151,7 +151,7 @@ if (actions.includes('create')) {
     // Add this line at the beginning of the target block
     podfileContent = podfileContent.replace(
       /target .* do/,
-      `$&\n  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '62a336269d2fb1606b22df88841807eb3270ab9b'`
+      `$&\n  pod 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '156cf966f0c637d61494c0804a70b85ab91f5dc8'`
     );
 
     fs.writeFileSync(podfilePath, podfileContent);
