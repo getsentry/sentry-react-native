@@ -391,8 +391,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           disable-spellchecker: true
-          target: 'aosp_atd'
-          channel: canary # Necessary for ATDs
+          target: 'google_apis'
           emulator-options: >
             -no-window
             -no-snapshot-save
