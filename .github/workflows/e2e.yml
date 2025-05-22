@@ -399,9 +399,12 @@ jobs:
             -gpu swiftshader_indirect
             -noaudio
             -no-boot-anim
-            -camera-back none
-            -camera-front none
+            -camera-back webcam0
+            -camera-front webcam0
+            -skin 1080x1920
+            -memory 4096
             -timezone US/Pacific
+            -feature WindowManagerService
           script: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
