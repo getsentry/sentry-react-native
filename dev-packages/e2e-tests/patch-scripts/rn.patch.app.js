@@ -33,6 +33,8 @@ Sentry.init({
   integrations: [
     Sentry.mobileReplayIntegration(),
   ],
+  replaysSessionSampleRate: 1.0,
+  replaysOnErrorSampleRate: 1.0,
 });
 `;
 const e2eComponentPatch = '<EndToEndTestsScreen />';
