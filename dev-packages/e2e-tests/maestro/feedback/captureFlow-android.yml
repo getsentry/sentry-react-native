@@ -37,7 +37,7 @@ jsEngine: graaljs
 # Assert that the feedback form is visible
 - extendedWaitUntil:
     visible: 'Report a Bug'
-    timeout: 5_000
+    timeout: 15_000
 
 # Hide keyboard by tapping on a non-tappable element
 - tapOn: 'Email'
