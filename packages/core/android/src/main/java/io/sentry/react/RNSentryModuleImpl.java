@@ -278,6 +278,12 @@ public class RNSentryModuleImpl {
     if (rnOptions.hasKey("enableNdk")) {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
+    if (rnOptions.hasKey("_experiments")) {
+        var experiments = rnOptions.getMap("_experiments");
+        if (experiments.hasKey(("enableLogs"))) {
+          options.getLogs().setEnabled(experiments.getBoolean("enableLogs"));
+        }
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));

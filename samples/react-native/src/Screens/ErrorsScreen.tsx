@@ -20,6 +20,7 @@ import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
 import { TimeToFullDisplay } from '../utils';
+import { logger } from '@sentry/browser';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -147,6 +148,18 @@ const ErrorsScreen = (_props: Props) => {
             } catch (e) {
               Sentry.captureException(e);
             }
+          }}
+        />
+        <Button
+          title="Log console"
+          onPress={() => {
+            logger.info('info log');
+            logger.trace('trace log');
+            logger.debug('debug log');
+            logger.warn('warn log');
+            logger.error('error log');
+
+            logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
           }}
         />
         {Platform.OS === 'android' && (
