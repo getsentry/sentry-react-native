@@ -221,20 +221,6 @@ export async function close(): Promise<void> {
 }
 
 /**
- * Captures user feedback and sends it to Sentry.
- * @deprecated Use `Sentry.captureFeedback` instead.
- */
-export function captureUserFeedback(feedback: UserFeedback): void {
-  const feedbackParams: SendFeedbackParams = {
-    name: feedback.name,
-    email: feedback.email,
-    message: feedback.comments,
-    associatedEventId: feedback.event_id,
-  };
-  captureFeedback(feedbackParams);
-}
-
-/**
  * Creates a new scope with and executes the given operation within.
  * The scope is automatically removed once the operation
  * finishes or throws.
