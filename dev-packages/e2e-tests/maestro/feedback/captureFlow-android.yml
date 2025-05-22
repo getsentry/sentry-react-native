@@ -1,4 +1,4 @@
-# This is a happy path test for the feedback widget on iOS.
+# This is a happy path test for the feedback widget on Android.
 # It verifies that the feedback form can be opened, filled out, and submitted successfully
 appId: ${APP_ID}
 jsEngine: graaljs
@@ -8,40 +8,45 @@ jsEngine: graaljs
 - tapOn: 'Feedback'
 
 # Open feedback widget
-- tapOn:
-    id: 'sentry-feedback-button'
+- tapOn: 'Report a Bug'
 
 # Assert that the feedback form is visible
 - extendedWaitUntil:
-    visible:
-      id: 'sentry-feedback-form-title'
+    visible: 'Report a Bug'
     timeout: 5_000
 
 # Fill out name field
-- tapOn:
-    id: 'sentry-feedback-name-input'
+- tapOn: 'Your Name'
 - inputText: 'John Doe'
 
 # Fill out email field
-- tapOn:
-    id: 'sentry-feedback-email-input'
+- tapOn: 'your.email@example.org'
 - inputText: 'test@email.com'
 
 # Fill out message field
-- tapOn:
-    id: 'sentry-feedback-message-input'
-- inputText: 'This is a test feedback message from CI e2e tests'
+- tapOn: "What's the bug? What did you expect?"
+- inputText: 'This is a test feedback message with a screenshot from CI e2e tests'
+
+# Take screenshot
+- scrollUntilVisible:
+    element:
+      text: 'Take a screenshot'
+- tapOn: 'Take a screenshot'
+- tapOn: 'Take Screenshot'
+
+# Assert that the feedback form is visible
+- extendedWaitUntil:
+    visible: 'Report a Bug'
+    timeout: 5_000
 
 # Hide keyboard by tapping on a non-tappable element
-- tapOn:
-    id: 'sentry-logo'
+- tapOn: 'Email'
 
 # Submit feedback
 - scrollUntilVisible:
     element:
-      id: 'sentry-feedback-submit-button'
-- tapOn:
-    id: 'sentry-feedback-submit-button'
+      text: 'Send Bug Report'
+- tapOn: 'Send Bug Report'
 - assertVisible: 'Thank you for your report!'
 - tapOn: 'OK'
 
