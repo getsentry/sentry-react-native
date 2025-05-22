@@ -183,7 +183,7 @@ export const NATIVE: SentryNativeWrapper = {
           typeof itemHeader.content_type === 'string' ? itemHeader.content_type : 'application/octet-stream';
         bytesPayload = itemPayload;
       } else {
-        bytesContentType = 'application/json';
+        bytesContentType = 'application/vnd.sentry.items.log+json';
         bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
         if (!hardCrashed) {
           hardCrashed = isHardCrash(itemPayload);
