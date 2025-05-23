@@ -12,6 +12,8 @@ export type {
   Thread,
   User,
   UserFeedback,
+  ErrorEvent,
+  TransactionEvent,
 } from '@sentry/core';
 
 export {
