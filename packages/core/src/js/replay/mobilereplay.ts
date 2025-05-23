@@ -150,9 +150,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
-    setupOnce() {
-      /* Noop */
-    },
     setup,
     processEvent,
     options: options,
@@ -162,9 +159,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
-    setupOnce() {
-      /* Noop */
-    },
     options: defaultOptions,
   };
 };
