@@ -24,7 +24,7 @@ LogBox.ignoreAllLogs();
 SplashScreen.preventAutoHideAsync();
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
-  enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
+  enableTimeToInitialDisplay: true,
 });
 
 Sentry.init({
