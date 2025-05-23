@@ -1,4 +1,4 @@
-import { describe, test, } from '@jest/globals';
+import { describe, test } from '@jest/globals';
 import * as SentryReact from '@sentry/react';
 import { spyOn } from 'jest-mock';
 

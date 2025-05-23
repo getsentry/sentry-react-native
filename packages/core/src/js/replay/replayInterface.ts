@@ -38,9 +38,7 @@ export interface Replay extends Integration {
    *
    * Otherwise, queue up a flush.
    */
-  flush(options?: {
-    continueRecording?: boolean;
-  }): Promise<void>;
+  flush(options?: { continueRecording?: boolean }): Promise<void>;
 
   /**
    * Get the current session ID.

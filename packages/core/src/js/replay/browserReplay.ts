@@ -18,9 +18,7 @@ const INTEGRATION_NAME = 'Replay';
  *
  * See the [Browser Replay documentation](https://docs.sentry.io/platforms/javascript/session-replay/) for more information.
  */
-const browserReplayIntegration = (
-  options: ReplayConfiguration = {},
-): Replay => {
+const browserReplayIntegration = (options: ReplayConfiguration = {}): Replay => {
   if (notWeb()) {
     // This is required because because `replayIntegration` browser check doesn't
     // work for React Native.
@@ -37,7 +35,9 @@ const browserReplayIntegration = (
 const browserReplayIntegrationNoop = (): Replay => {
   return {
     name: INTEGRATION_NAME,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     start: () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     startBuffering: () => {},
     stop: () => Promise.resolve(),
     flush: () => Promise.resolve(),
