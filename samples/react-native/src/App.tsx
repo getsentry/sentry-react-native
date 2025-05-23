@@ -32,7 +32,6 @@ import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { getDsn, logWithoutTracing } from './utils';
-import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
@@ -62,11 +61,11 @@ Sentry.init({
   dsn: getDsn(),
   debug: true,
   environment: 'dev',
-  beforeSend: (event: ErrorEvent) => {
+  beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event) {
+  beforeSendTransaction(event: Sentry.TransactionEvent) {
     logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },
