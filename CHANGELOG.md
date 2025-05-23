@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Changes
+
+- Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
+- Allow using `browserReplayIntegration` without `isWeb` guard ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
+  - The integration returns noop in non-browser environments
+
 ### Dependencies
 
 - Bump Android SDK from v8.11.1 to v8.12.0 ([#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
@@ -60,9 +66,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
 - On React Native Web, `browserSessionIntegration` is added when `enableAutoSessionTracking` is set to `True` ([#4732](https://github.com/getsentry/sentry-react-native/pull/4732))
 - Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](https://github.com/getsentry/sentry-react-native/pull/4636))
-- Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
-- Allow using `browserReplayIntegration` without `isWeb` guard ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
-  - The integration returns noop in non-browser environments
 
 ### Dependencies
 
