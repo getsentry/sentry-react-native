@@ -6,7 +6,6 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-
 ## Unreleased
 
 ### Dependencies
@@ -14,7 +13,9 @@
 - Bump Cocoa SDK from v8.50.2 to v8.51.1 ([#4843](https://github.com/getsentry/sentry-react-native/pull/4843))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8511)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.0...8.51.1)
-
+- Bump Android SDK from v8.11.1 to v8.12.0 ([#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8120)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.11.1...8.12.0)
 
 ## 7.0.0-alpha.0
 
