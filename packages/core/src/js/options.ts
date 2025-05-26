@@ -1,13 +1,11 @@
 import type { makeFetchTransport } from '@sentry/browser';
 import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
-import type { Profiler } from '@sentry/react';
+import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
 import { Platform } from 'react-native';
 
 import type { TouchEventBoundaryProps } from './touchevents';
 import { getExpoConstants } from './utils/expomodules';
-
-import type { BrowserOptions } from '@sentry/react';
 
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
 type BrowserTransportOptions = Parameters<typeof makeFetchTransport>[0];
