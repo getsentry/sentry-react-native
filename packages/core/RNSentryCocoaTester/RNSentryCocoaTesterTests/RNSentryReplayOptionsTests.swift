@@ -166,7 +166,7 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
     }
-    
+
     func testEnableExperimentalViewRendererDefault() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -177,9 +177,9 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertFalse(actualOptions.sessionReplay.enableExperimentalViewRenderer)
+        XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
     }
-    
+
     func testEnableExperimentalViewRendererTrue() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -193,7 +193,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
     }
-    
+
     func testEnableExperimentalViewRendererFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -207,7 +207,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertFalse(actualOptions.sessionReplay.enableExperimentalViewRenderer)
     }
-    
+
     func testEnableFastViewRenderingDefault() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -220,7 +220,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
-    
+
     func testEnableFastViewRenderingTrue() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -234,7 +234,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertTrue(actualOptions.sessionReplay.enableFastViewRendering)
     }
-    
+
     func testEnableFastViewRenderingFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
