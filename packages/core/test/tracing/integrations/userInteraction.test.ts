@@ -8,7 +8,6 @@ import {
   startSpanManual,
 } from '@sentry/core';
 import type { AppState, AppStateStatus } from 'react-native';
-
 import {
   startUserInteractionSpan,
   userInteractionIntegration,

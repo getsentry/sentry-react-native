@@ -1,16 +1,7 @@
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'
-import * as React from "react";
-
-import * as mockWrapper from '../mockWrapper';
-import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitterfallback';
-import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
-jest.mock('../../src/js/wrapper', () => mockWrapper);
-jest.mock('../../src/js/utils/environment');
-jest.mock('../../src/js/utils/sentryeventemitterfallback', () => mockedSentryEventEmitter);
-jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
-
+import * as React from 'react';
 import * as Sentry from '../../src/js';
 import { startSpanManual } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
@@ -20,9 +11,17 @@ import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/trac
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { MOCK_DSN } from '../mockDsn';
+import * as mockWrapper from '../mockWrapper';
 import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
+import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitterfallback';
+import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+
+jest.mock('../../src/js/wrapper', () => mockWrapper);
+jest.mock('../../src/js/utils/environment');
+jest.mock('../../src/js/utils/sentryeventemitterfallback', () => mockedSentryEventEmitter);
+jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
 

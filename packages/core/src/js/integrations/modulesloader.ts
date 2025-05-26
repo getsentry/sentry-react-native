@@ -1,6 +1,5 @@
 import type { Event, Integration } from '@sentry/core';
 import { logger } from '@sentry/core';
-
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'ModulesLoader';

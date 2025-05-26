@@ -1,7 +1,6 @@
 import type { InternalGlobal } from '@sentry/core';
 import { GLOBAL_OBJ } from '@sentry/core';
 import type { ErrorUtils } from 'react-native/types';
-
 import type { ExpoGlobalObject } from './expoglobalobject';
 
 /** Internal Global object interface with common and Sentry specific properties */

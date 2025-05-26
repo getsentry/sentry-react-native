@@ -1,5 +1,4 @@
 import type { ViewStyle } from 'react-native';
-
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 
 const PURPLE = 'rgba(88, 74, 192, 1)';

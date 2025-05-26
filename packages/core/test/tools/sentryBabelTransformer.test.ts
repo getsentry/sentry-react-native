@@ -1,14 +1,12 @@
 import * as process from 'process';
-
 import {
   createSentryBabelTransformer,
   SENTRY_BABEL_TRANSFORMER_OPTIONS,
   SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH,
 } from '../../src/js/tools/sentryBabelTransformerUtils';
+import type { BabelTransformerArgs } from '../../src/js/tools/vendor/metro/metroBabelTransformer';
 
 process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH] = require.resolve('./fixtures/mockBabelTransformer.js');
-
-import type { BabelTransformerArgs } from '../../src/js/tools/vendor/metro/metroBabelTransformer';
 
 const MockDefaultBabelTransformer: {
   transform: jest.Mock;

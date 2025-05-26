@@ -9,7 +9,6 @@ import {
   withIsolationScope,
   withScope,
 } from '@sentry/core';
-
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 
 describe('captureFeedback', () => {

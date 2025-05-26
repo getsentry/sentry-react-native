@@ -1,5 +1,4 @@
 import { logger, timestampInSeconds } from '@sentry/core';
-
 import { NATIVE } from '../wrapper';
 import type { NewFrameEvent, SentryEventEmitter } from './sentryeventemitter';
 import { createSentryEventEmitter, NewFrameEventName } from './sentryeventemitter';

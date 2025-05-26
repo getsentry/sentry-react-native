@@ -1,6 +1,3 @@
-import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
-jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
-
 import { defaultStackParser } from '@sentry/browser';
 import type {
   Envelope,
@@ -18,7 +15,6 @@ import {
   SentryError,
 } from '@sentry/core';
 import * as RN from 'react-native';
-
 import { ReactNativeClient } from '../src/js/client';
 import type { ReactNativeClientOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
@@ -35,6 +31,9 @@ import {
   getMockUserFeedback,
   getSyncPromiseRejectOnFirstCall,
 } from './testutils';
+import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
+
+jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 interface MockedReactNative {
   NativeModules: {

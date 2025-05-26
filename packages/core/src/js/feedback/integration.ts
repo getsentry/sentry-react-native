@@ -1,5 +1,4 @@
 import { type Integration, getClient } from '@sentry/core';
-
 import type { FeedbackWidgetProps } from './FeedbackWidget.types';
 
 export const MOBILE_FEEDBACK_INTEGRATION_NAME = 'MobileFeedback';

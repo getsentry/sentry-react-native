@@ -1,7 +1,6 @@
 import type { Package } from '@sentry/core';
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
-
 import type { UnsafeObject } from './utils/rnlibrariesinterface';
 
 // There has to be only one interface and it has to be named `Spec`

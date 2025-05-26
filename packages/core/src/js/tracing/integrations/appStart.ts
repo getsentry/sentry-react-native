@@ -10,7 +10,6 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
-
 import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
@@ -394,7 +393,7 @@ export const appStartIntegration = ({
     event.measurements = event.measurements || {};
     event.measurements[measurementKey] = measurementValue;
     logger.debug(
-      `[AppStart] Added app start measurement to transaction event.`,
+      '[AppStart] Added app start measurement to transaction event.',
       JSON.stringify(measurementValue, undefined, 2),
     );
   }

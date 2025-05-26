@@ -1,10 +1,4 @@
-jest.mock('../../src/js/tracing/utils', () => ({
-  ...jest.requireActual('../../src/js/tracing/utils'),
-  isNearToNow: jest.fn(),
-}));
-
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
-
 import { reactNativeTracingIntegration, reactNavigationIntegration } from '../../src/js';
 import { stallTrackingIntegration } from '../../src/js/tracing/integrations/stalltracking';
 import { isNearToNow } from '../../src/js/tracing/utils';
@@ -12,6 +6,11 @@ import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { expectStallMeasurements } from './integrations/stallTracking/stalltrackingutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+
+jest.mock('../../src/js/tracing/utils', () => ({
+  ...jest.requireActual('../../src/js/tracing/utils'),
+  isNearToNow: jest.fn(),
+}));
 
 jest.useFakeTimers({ advanceTimers: 1 });
 

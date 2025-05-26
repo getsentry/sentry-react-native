@@ -1,7 +1,7 @@
 import { logger } from '@sentry/core';
-
 import { NewFrameEventName } from '../../src/js/utils/sentryeventemitter';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
+import { NATIVE } from '../../src/js/wrapper';
 
 // Mock dependencies
 jest.mock('../../src/js/utils/environment', () => ({
@@ -9,8 +9,6 @@ jest.mock('../../src/js/utils/environment', () => ({
 }));
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
-
-import { NATIVE } from '../../src/js/wrapper';
 
 jest.spyOn(logger, 'warn');
 jest.spyOn(logger, 'log');

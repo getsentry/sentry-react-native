@@ -6,7 +6,6 @@ import {
   makeFetchTransport,
 } from '@sentry/react';
 import * as React from 'react';
-
 import { ReactNativeClient } from './client';
 import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetManager';
 import { getDevServer } from './integrations/debugsymbolicatorutils';

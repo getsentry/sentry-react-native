@@ -11,7 +11,6 @@ import type {
 } from '@sentry/core';
 import { logger, normalize, SentryError } from '@sentry/core';
 import { NativeModules, Platform } from 'react-native';
-
 import { isHardCrash } from './misc';
 import type {
   NativeAppStartResponse,
