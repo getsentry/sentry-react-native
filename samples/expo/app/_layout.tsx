@@ -10,7 +10,6 @@ import * as Sentry from '@sentry/react-native';
 import { ErrorEvent } from '@sentry/core';
 import { isExpoGo } from '../utils/isExpoGo';
 import { LogBox } from 'react-native';
-import { isWeb } from '../utils/isWeb';
 import * as ImagePicker from 'expo-image-picker';
 
 export {
@@ -58,13 +57,19 @@ Sentry.init({
       }),
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllText: true,
+        maskAllVectors: true,
+      }),
+      Sentry.browserReplayIntegration({
+        maskAllInputs: true,
+        maskAllText: true,
+      }),
       Sentry.feedbackIntegration({
         imagePicker: ImagePicker,
       }),
     );
-    if (isWeb()) {
-      integrations.push(Sentry.browserReplayIntegration());
-    }
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,
