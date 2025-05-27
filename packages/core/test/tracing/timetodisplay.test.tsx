@@ -1,5 +1,16 @@
 import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
 import { getCurrentScope, getGlobalScope, getIsolationScope, logger , setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
+
+jest.spyOn(logger, 'warn');
+
+import * as mockWrapper from '../mockWrapper';
+
+jest.mock('../../src/js/wrapper', () => mockWrapper);
+
+import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
+
+jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
+
 import * as React from 'react';
 import * as TestRenderer from 'react-test-renderer';
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
@@ -9,13 +20,8 @@ import { SPAN_THREAD_NAME , SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tra
 import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
 import { isTurboModuleEnabled } from '../../src/js/utils/environment';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
-import * as mockWrapper from '../mockWrapper';
 import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
-import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 
-jest.spyOn(logger, 'warn');
-jest.mock('../../src/js/wrapper', () => mockWrapper);
-jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 jest.mock('../../src/js/utils/environment', () => ({
   isWeb: jest.fn().mockReturnValue(false),
   isTurboModuleEnabled: jest.fn().mockReturnValue(false),

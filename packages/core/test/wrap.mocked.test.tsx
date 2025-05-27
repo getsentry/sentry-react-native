@@ -2,8 +2,6 @@
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import type { ReactNativeWrapperOptions } from 'src/js/options';
-import { wrap } from '../src/js/sdk';
-import { ReactNativeProfiler } from '../src/js/tracing';
 
 jest.doMock('../src/js/touchevents', () => {
   return {
@@ -31,6 +29,9 @@ jest.doMock('../src/js/feedback/FeedbackWidgetManager', () => {
         ),
     };
 });
+
+import { wrap } from '../src/js/sdk';
+import { ReactNativeProfiler } from '../src/js/tracing';
 
 describe('Sentry.wrap', () => {
 

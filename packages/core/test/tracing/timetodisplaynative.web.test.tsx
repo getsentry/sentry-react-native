@@ -1,6 +1,3 @@
-import { getRNSentryOnDrawReporter } from '../../src/js/tracing/timetodisplaynative';
-import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
-
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   // Fixes TypeError: Cannot set property UIManager of #<Object> which has only a getter
@@ -9,6 +6,9 @@ jest.mock('react-native', () => {
 
   return RN;
 });
+
+import { getRNSentryOnDrawReporter } from '../../src/js/tracing/timetodisplaynative';
+import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 
 jest.mock('../../src/js/utils/rnlibraries', () => {
   const webLibrary = jest.requireActual('../../src/js/utils/rnlibraries.web');

@@ -1,3 +1,9 @@
+import * as mockWrapper from '../mockWrapper';
+
+jest.mock('../../src/js/wrapper', () => mockWrapper);
+jest.mock('../../src/js/utils/environment');
+jest.mock('../../src/js/profiling/debugid');
+
 import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Transport } from '@sentry/core';
 import { getClient, spanToJSON } from '@sentry/core';
 import * as Sentry from '../../src/js';
@@ -7,7 +13,6 @@ import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
 import type { AndroidProfileEvent } from '../../src/js/profiling/types';
 import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { MOCK_DSN } from '../mockDsn';
-import * as mockWrapper from '../mockWrapper';
 import { envelopeItemPayload, envelopeItems } from '../testutils';
 import {
   createMockMinimalValidAndroidProfile,
@@ -15,10 +20,6 @@ import {
   createMockMinimalValidAppleProfileWithoutDebugMeta,
   createMockMinimalValidHermesProfile,
 } from './fixtures';
-
-jest.mock('../../src/js/wrapper', () => mockWrapper);
-jest.mock('../../src/js/utils/environment');
-jest.mock('../../src/js/profiling/debugid');
 
 const SEC_TO_MS = 1e6;
 
