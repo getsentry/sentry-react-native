@@ -155,8 +155,8 @@ Sentry.init({
   // release: 'myapp@1.2.3+1',
   // dist: `1`,
   profilesSampleRate: 1.0,
-  replaysSessionSampleRate: 0.0,
-  replaysOnErrorSampleRate: 0.0,
+  replaysSessionSampleRate: 1.0,
+  replaysOnErrorSampleRate: 1.0,
   spotlight: true,
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
