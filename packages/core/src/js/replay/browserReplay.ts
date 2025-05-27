@@ -20,7 +20,7 @@ const INTEGRATION_NAME = 'Replay';
  */
 const browserReplayIntegration = (options: ReplayConfiguration = {}): Replay => {
   if (notWeb()) {
-    // This is required because because `replayIntegration` browser check doesn't
+    // This is required because `replayIntegration` browser check doesn't
     // work for React Native.
     return browserReplayIntegrationNoop();
   }
