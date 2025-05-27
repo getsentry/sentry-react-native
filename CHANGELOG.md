@@ -86,7 +86,7 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 
 ### Self Hosted
 
-- It is recommended to use Sentry Self Hosted version `24.8.0` this and future versions.
+- It is recommended to use Sentry Self Hosted version `25.2.0` this and future versions.
 
 ### Other Changes
 
