@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import { browserSessionIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
-
 import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
 import { notWeb } from '../utils/environment';

@@ -8,7 +8,6 @@ import {
   setCurrentClient,
   timestampInSeconds,
 } from '@sentry/core';
-
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,

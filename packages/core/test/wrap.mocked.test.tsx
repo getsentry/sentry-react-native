@@ -30,7 +30,6 @@ jest.doMock('../src/js/feedback/FeedbackWidgetManager', () => {
     };
 });
 
-
 import { wrap } from '../src/js/sdk';
 import { ReactNativeProfiler } from '../src/js/tracing';
 

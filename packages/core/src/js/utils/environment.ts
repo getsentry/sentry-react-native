@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { getExpoConstants } from './expomodules';
 import { ReactNativeLibraries } from './rnlibraries';

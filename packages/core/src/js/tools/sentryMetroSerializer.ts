@@ -3,7 +3,6 @@ import * as crypto from 'crypto';
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as countLines from 'metro/src/lib/countLines';
-
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
 import { createDebugIdSnippet, createSet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';

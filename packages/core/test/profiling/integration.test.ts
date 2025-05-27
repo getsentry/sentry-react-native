@@ -1,11 +1,11 @@
 import * as mockWrapper from '../mockWrapper';
+
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/profiling/debugid');
 
 import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Transport } from '@sentry/core';
 import { getClient, spanToJSON } from '@sentry/core';
-
 import * as Sentry from '../../src/js';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import type { HermesProfilingOptions } from '../../src/js/profiling/integration';

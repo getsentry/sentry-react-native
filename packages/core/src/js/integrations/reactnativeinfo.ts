@@ -1,5 +1,4 @@
 import type { Context, Event, EventHint, Integration } from '@sentry/core';
-
 import {
   getExpoGoVersion,
   getExpoSdkVersion,

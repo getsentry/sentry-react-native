@@ -11,7 +11,6 @@ import {
   TouchableWithoutFeedback,
   View
 } from 'react-native';
-
 import { isWeb, notWeb } from '../utils/environment';
 import { getDataFromUri } from '../wrapper';
 import { sentryLogo } from './branding';
