@@ -280,7 +280,7 @@ public class RNSentryModuleImpl {
     }
     if (rnOptions.hasKey("_experiments")) {
       var experiments = rnOptions.getMap("_experiments");
-      if (experiments.hasKey(("enableLogs"))) {
+      if (experiments.hasKey("enableLogs")) {
         options.getLogs().setEnabled(experiments.getBoolean("enableLogs"));
       }
     }
