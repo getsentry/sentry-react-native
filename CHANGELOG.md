@@ -8,6 +8,31 @@
 
 ## Unreleased
 
+### Features
+
+-  Add experimental support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827))
+
+To enable it add the following code to your Sentry Options:
+
+```typescript
+  _experiments: {
+    enableLogs: true,
+  },
+```
+
+You can also filter the logs being collected by adding beforeSendLogs into `_experiments`
+
+```typescript
+  _experiments: {
+    enableLogs: true,
+    beforeSendLog: (log) => {
+      return log;
+    },
+  },
+  ```
+
+  TODO: Mention break change with self hosted.
+
 ### Dependencies
 
 - Bump JavaScript SDK from v9.12.0 to v9.22.0 ([#4860](https://github.com/getsentry/sentry-react-native/pull/4860))
