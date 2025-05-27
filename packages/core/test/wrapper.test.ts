@@ -303,7 +303,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":87}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":87}\n' +
               '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
           ),
         ),
@@ -335,7 +335,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":93}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":93}\n' +
               '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
           ),
         ),
@@ -378,7 +378,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":50}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":50}\n' +
               '{"event_id":"event0","message":{"message":"test"}}\n',
           ),
         ),
@@ -417,7 +417,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":124}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":124}\n' +
               '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
@@ -446,7 +446,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":58}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":58}\n' +
               '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
@@ -485,7 +485,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":132}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":132}\n' +
               '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":"onerror"}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),

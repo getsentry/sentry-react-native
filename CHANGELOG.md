@@ -31,8 +31,6 @@ You can also filter the logs being collected by adding beforeSendLogs into `_exp
   },
   ```
 
-  TODO: Mention break change with self hosted.
-
 ### Dependencies
 
 - Bump JavaScript SDK from v9.12.0 to v9.22.0 ([#4860](https://github.com/getsentry/sentry-react-native/pull/4860))
@@ -85,6 +83,10 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - `transactionContext` from `samplingContext`
 - `@sentry/utils` package, the exports were moved to `@sentry/core`
 - Standalone `Client` interface & deprecate `BaseClient`
+
+### Self Hosted
+
+- It is recommended to use Sentry Self Hosted version `24.8.0` this and future versions.
 
 ### Other Changes
 
