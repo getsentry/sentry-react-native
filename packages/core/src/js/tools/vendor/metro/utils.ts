@@ -32,7 +32,6 @@ import * as baseJSBundle from 'metro/src/DeltaBundler/Serializers/baseJSBundle';
 import * as sourceMapString from 'metro/src/DeltaBundler/Serializers/sourceMapString';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as bundleToString from 'metro/src/lib/bundleToString';
-
 import type { MetroSerializer } from '../../utils';
 
 type NewSourceMapStringExport = {

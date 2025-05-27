@@ -7,15 +7,15 @@ jest.mock('react-native', () => {
   return RN;
 });
 
+import { getRNSentryOnDrawReporter } from '../../src/js/tracing/timetodisplaynative';
+import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
+
 jest.mock('../../src/js/utils/rnlibraries', () => {
   const webLibrary = jest.requireActual('../../src/js/utils/rnlibraries.web');
   return {
     ...webLibrary,
   };
 });
-
-import { getRNSentryOnDrawReporter } from '../../src/js/tracing/timetodisplaynative';
-import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 
 describe('timetodisplaynative', () => {
   test('requireNativeComponent to be undefined', () => {

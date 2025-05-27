@@ -1,6 +1,5 @@
 import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
 import { logger, timestampInSeconds } from '@sentry/core';
-
 import type { NativeFramesResponse } from '../../NativeRNSentry';
 import { AsyncExpiringMap } from '../../utils/AsyncExpiringMap';
 import { isRootSpan } from '../../utils/span';

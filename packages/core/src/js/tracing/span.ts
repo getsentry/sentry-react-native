@@ -12,7 +12,6 @@ import {
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
-
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import {
@@ -53,7 +52,7 @@ export const startIdleNavigationSpan = (
 ): Span | undefined => {
   const client = getClient();
   if (!client) {
-    logger.warn(`[startIdleNavigationSpan] Can't create route change span, missing client.`);
+    logger.warn("[startIdleNavigationSpan] Can't create route change span, missing client.");
     return undefined;
   }
 
@@ -100,7 +99,7 @@ export const startIdleSpan = (
 ): Span => {
   const client = getClient();
   if (!client) {
-    logger.warn(`[startIdleSpan] Can't create idle span, missing client.`);
+    logger.warn("[startIdleSpan] Can't create idle span, missing client.");
     return new SentryNonRecordingSpan();
   }
 

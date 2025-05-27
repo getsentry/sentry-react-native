@@ -1,5 +1,4 @@
 import { getMainCarrier, SDK_VERSION } from '@sentry/core';
-
 import { utf8ToBytes } from '../vendor';
 
 export const useEncodePolyfill = (): void => {

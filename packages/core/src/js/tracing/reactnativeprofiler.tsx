@@ -1,6 +1,5 @@
 import { logger, timestampInSeconds } from '@sentry/core';
 import { getClient, Profiler } from '@sentry/react';
-
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { createIntegration } from '../integrations/factory';
 import { _captureAppStart, _setRootComponentCreationTimestampMs } from '../tracing/integrations/appStart';

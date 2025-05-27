@@ -1,5 +1,4 @@
 import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
-
 import { warnOnce } from './utils';
 
 export interface SentryAndroidGradlePluginOptions {
@@ -67,7 +66,7 @@ export function withSentryAndroidGradlePlugin(
           projectBuildGradle.modResults.contents = updatedContents;
         }
       } catch (error) {
-        warnOnce(`An error occurred while trying to modify build.gradle`);
+        warnOnce('An error occurred while trying to modify build.gradle');
       }
       return projectBuildGradle;
     });
@@ -81,7 +80,7 @@ export function withSentryAndroidGradlePlugin(
         warnOnce('Cannot configure Sentry in android/app/build.gradle because it is not in Groovy.');
         return config;
       }
-      const sentryPlugin = `apply plugin: "io.sentry.android.gradle"`;
+      const sentryPlugin = 'apply plugin: "io.sentry.android.gradle"';
       const sentryConfig = `
   sentry {
       autoUploadProguardMapping = ${autoUploadProguardMapping ? 'shouldSentryAutoUpload()' : 'false'}

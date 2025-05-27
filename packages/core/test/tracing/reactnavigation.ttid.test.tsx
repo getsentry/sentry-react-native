@@ -1,11 +1,11 @@
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'
-import * as React from "react";
-
+import * as React from 'react';
 import * as mockWrapper from '../mockWrapper';
 import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitterfallback';
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
+
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/utils/sentryeventemitterfallback', () => mockedSentryEventEmitter);
@@ -23,6 +23,7 @@ import { MOCK_DSN } from '../mockDsn';
 import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
 import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
 

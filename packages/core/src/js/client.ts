@@ -20,7 +20,6 @@ import {
   SentryError,
 } from '@sentry/core';
 import { Alert } from 'react-native';
-
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';

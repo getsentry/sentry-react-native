@@ -1,5 +1,4 @@
 import { Alert } from 'react-native';
-
 import { isFabricEnabled, isWeb } from '../utils/environment';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { ReactNativeLibraries } from './../utils/rnlibraries';

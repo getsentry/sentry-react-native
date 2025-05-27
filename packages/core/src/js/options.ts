@@ -3,7 +3,6 @@ import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@
 import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
 import { Platform } from 'react-native';
-
 import type { TouchEventBoundaryProps } from './touchevents';
 import { getExpoConstants } from './utils/expomodules';
 
