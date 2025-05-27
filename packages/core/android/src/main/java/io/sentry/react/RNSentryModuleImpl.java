@@ -279,7 +279,7 @@ public class RNSentryModuleImpl {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
     if (rnOptions.hasKey("_experiments")) {
-      var experiments = rnOptions.getMap("_experiments");
+      ReadableMap experiments = rnOptions.getMap("_experiments");
       if (experiments.hasKey("enableLogs")) {
         options.getLogs().setEnabled(experiments.getBoolean("enableLogs"));
       }
