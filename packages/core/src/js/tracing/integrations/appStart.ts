@@ -16,7 +16,7 @@ import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
-import type { NativeAppStartResponse } from '../../NativeRNSentry';
+import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
 import type { ReactNativeClientOptions } from '../../options';
 import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
@@ -49,7 +49,12 @@ const MAX_APP_START_AGE_MS = 60_000;
 /** App Start transaction name */
 const APP_START_TX_NAME = 'App Start';
 
-let recordedAppStartEndTimestampMs: number | undefined = undefined;
+interface AppStartEndData {
+  timestampMs: number;
+  endFrames: NativeFramesResponse | null;
+}
+
+let appStartEndData: AppStartEndData | undefined = undefined;
 let isRecordedAppStartEndTimestampMsManual = false;
 
 let rootComponentCreationTimestampMs: number | undefined = undefined;
@@ -76,7 +81,24 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
   }
 
   isRecordedAppStartEndTimestampMsManual = isManual;
-  _setAppStartEndTimestampMs(timestampInSeconds() * 1000);
+
+  const timestampMs = timestampInSeconds() * 1000;
+  let endFrames: NativeFramesResponse | null = null;
+
+  if (NATIVE.enableNative) {
+    try {
+      endFrames = await NATIVE.fetchNativeFrames();
+      logger.debug('[AppStart] Captured end frames for app start.', endFrames);
+    } catch (error) {
+      logger.debug('[AppStart] Failed to capture end frames for app start.', error);
+    }
+  }
+
+  _setAppStartEndData({
+    timestampMs,
+    endFrames,
+  });
+
   await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
 }
 
@@ -85,8 +107,7 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
  * Used automatically by `Sentry.wrap` and `Sentry.ReactNativeProfiler`.
  */
 export function setRootComponentCreationTimestampMs(timestampMs: number): void {
-  recordedAppStartEndTimestampMs &&
-    logger.warn('Setting Root component creation timestamp after app start end is set.');
+  appStartEndData?.timestampMs && logger.warn('Setting Root component creation timestamp after app start end is set.');
   rootComponentCreationTimestampMs && logger.warn('Overwriting already set root component creation timestamp.');
   rootComponentCreationTimestampMs = timestampMs;
   isRootComponentCreationTimestampMsManual = true;
@@ -107,9 +128,9 @@ export function _setRootComponentCreationTimestampMs(timestampMs: number): void 
  *
  * @private
  */
-export const _setAppStartEndTimestampMs = (timestampMs: number): void => {
-  recordedAppStartEndTimestampMs && logger.warn('Overwriting already set app start.');
-  recordedAppStartEndTimestampMs = timestampMs;
+export const _setAppStartEndData = (data: AppStartEndData): void => {
+  appStartEndData && logger.warn('Overwriting already set app start end data.');
+  appStartEndData = data;
 };
 
 /**
@@ -119,6 +140,25 @@ export const _setAppStartEndTimestampMs = (timestampMs: number): void => {
  */
 export function _clearRootComponentCreationTimestampMs(): void {
   rootComponentCreationTimestampMs = undefined;
+}
+
+/**
+ * Attaches frame data to a span's data object.
+ */
+function attachFrameDataToSpan(span: SpanJSON, frames: NativeFramesResponse): void {
+  span.data = span.data || {};
+  span.data['frames.total'] = frames.totalFrames;
+  span.data['frames.slow'] = frames.slowFrames;
+  span.data['frames.frozen'] = frames.frozenFrames;
+
+  logger.debug('[AppStart] Attached frame data to span.', {
+    spanId: span.span_id,
+    frameData: {
+      total: frames.totalFrames,
+      slow: frames.slowFrames,
+      frozen: frames.frozenFrames,
+    },
+  });
 }
 
 /**
@@ -220,6 +260,21 @@ export const appStartIntegration = ({
 
     logger.debug('[AppStart] App start tracking standalone root span (transaction).');
 
+    if (!appStartEndData?.endFrames && NATIVE.enableNative) {
+      try {
+        const endFrames = await NATIVE.fetchNativeFrames();
+        logger.debug('[AppStart] Captured end frames for standalone app start.', endFrames);
+
+        const currentTimestamp = appStartEndData?.timestampMs || timestampInSeconds() * 1000;
+        _setAppStartEndData({
+          timestampMs: currentTimestamp,
+          endFrames,
+        });
+      } catch (error) {
+        logger.debug('[AppStart] Failed to capture frames for standalone app start.', error);
+      }
+    }
+
     const span = startInactiveSpan({
       forceTransaction: true,
       name: APP_START_TX_NAME,
@@ -288,10 +343,10 @@ export const appStartIntegration = ({
       return;
     }
 
-    const appStartEndTimestampMs = recordedAppStartEndTimestampMs || getBundleStartTimestampMs();
+    const appStartEndTimestampMs = appStartEndData?.timestampMs || getBundleStartTimestampMs();
     if (!appStartEndTimestampMs) {
       logger.warn(
-        '[AppStart] Javascript failed to record app start end. `setAppStartEndTimestampMs` was not called nor could the bundle start be found.',
+        '[AppStart] Javascript failed to record app start end. `_setAppStartEndData` was not called nor could the bundle start be found.',
       );
       return;
     }
@@ -368,6 +423,11 @@ export const appStartIntegration = ({
       parent_span_id: event.contexts.trace.span_id,
       origin,
     });
+
+    if (appStartEndData?.endFrames) {
+      attachFrameDataToSpan(appStartSpanJSON, appStartEndData.endFrames);
+    }
+
     const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
 
     const appStartSpans = [
