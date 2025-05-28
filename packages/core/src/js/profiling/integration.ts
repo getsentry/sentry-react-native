@@ -2,7 +2,6 @@
 import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/core';
 import { getActiveSpan, getClient, logger, spanIsSampled, uuid4 } from '@sentry/core';
 import { Platform } from 'react-native';
-
 import type { ReactNativeClient } from '../client';
 import { isHermesEnabled } from '../utils/environment';
 import { isRootSpan } from '../utils/span';
@@ -128,7 +127,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
     }
 
     const client = getClient<ReactNativeClient>();
-    const options = client && client.getOptions();
+    const options = client?.getOptions?.();
 
     const profilesSampleRate =
       options && typeof options.profilesSampleRate === 'number' ? options.profilesSampleRate : undefined;

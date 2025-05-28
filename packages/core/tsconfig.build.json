@@ -25,9 +25,7 @@
     "target": "es6",
     "module": "es6",
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
     "strictBindCallApply": true,
-    "strictNullChecks": false,
     "importHelpers": false
   }
 }

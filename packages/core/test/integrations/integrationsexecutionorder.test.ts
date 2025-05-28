@@ -1,10 +1,10 @@
 import * as mockWrapper from '../mockWrapper';
+
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 
 import { defaultStackParser } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
-
 import { ReactNativeClient } from '../../src/js/client';
 import { getDefaultIntegrations } from '../../src/js/integrations/default';
 import type { ReactNativeClientOptions } from '../../src/js/options';

@@ -1,12 +1,11 @@
-import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import { getMainCarrier, SDK_VERSION } from '@sentry/core';
 import { utf8ToBytes } from '../vendor';
 
 export const useEncodePolyfill = (): void => {
-  if (!RN_GLOBAL_OBJ.__SENTRY__) {
-    (RN_GLOBAL_OBJ.__SENTRY__ as Partial<(typeof RN_GLOBAL_OBJ)['__SENTRY__']>) = {};
-  }
-
-  RN_GLOBAL_OBJ.__SENTRY__.encodePolyfill = encodePolyfill;
+  // Based on https://github.com/getsentry/sentry-javascript/blob/f0fc41f6166857cd97a695f5cc9a18caf6a0bf43/packages/core/src/carrier.ts#L49
+  const carrier = getMainCarrier();
+  const __SENTRY__ = (carrier.__SENTRY__ = carrier.__SENTRY__ || {});
+  (__SENTRY__[SDK_VERSION] = __SENTRY__[SDK_VERSION] || {}).encodePolyfill = encodePolyfill;
 };
 
 export const encodePolyfill = (text: string): Uint8Array => {

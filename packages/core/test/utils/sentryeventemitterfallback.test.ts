@@ -1,5 +1,4 @@
 import { logger } from '@sentry/core';
-
 import { NewFrameEventName } from '../../src/js/utils/sentryeventemitter';
 import { createSentryFallbackEventEmitter } from '../../src/js/utils/sentryeventemitterfallback';
 

@@ -2,7 +2,6 @@ import { captureFeedback, getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert } from 'react-native';
-
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { FeedbackWidgetProps, FeedbackWidgetStyles, ImagePicker } from '../../src/js/feedback/FeedbackWidget.types';
 import { MOBILE_FEEDBACK_INTEGRATION_NAME } from '../../src/js/feedback/integration';
@@ -317,7 +316,7 @@ describe('FeedbackWidget', () => {
 
   it('calls launchImageLibraryAsync when the expo-image-picker library is integrated', async () => {
     const mockLaunchImageLibrary = jest.fn().mockResolvedValue({
-      assets: [{ fileName: "mock-image.jpg", uri: "file:///mock/path/image.jpg" }],
+      assets: [{ fileName: 'mock-image.jpg', uri: 'file:///mock/path/image.jpg' }],
     });
     const mockImagePicker: jest.Mocked<ImagePicker> = {
       launchImageLibraryAsync: mockLaunchImageLibrary,
@@ -334,7 +333,7 @@ describe('FeedbackWidget', () => {
 
   it('calls launchImageLibrary when the react-native-image-picker library is integrated', async () => {
     const mockLaunchImageLibrary = jest.fn().mockResolvedValue({
-      assets: [{ fileName: "mock-image.jpg", uri: "file:///mock/path/image.jpg" }],
+      assets: [{ fileName: 'mock-image.jpg', uri: 'file:///mock/path/image.jpg' }],
     });
     const mockImagePicker: jest.Mocked<ImagePicker> = {
       launchImageLibrary: mockLaunchImageLibrary,

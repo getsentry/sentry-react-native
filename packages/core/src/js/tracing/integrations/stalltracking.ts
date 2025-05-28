@@ -3,7 +3,6 @@ import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@
 import { getRootSpan, logger, spanToJSON, timestampInSeconds } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
-
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../../measurements';
 import { isRootSpan } from '../../utils/span';
 import { getLatestChildSpanEndTimestamp, isNearToNow, setSpanMeasurement } from '../utils';
