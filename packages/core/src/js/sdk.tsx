@@ -1,6 +1,16 @@
 /* eslint-disable complexity */
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/core';
-import { captureFeedback, getClient, getGlobalScope, getIntegrationsToSetup, getIsolationScope, initAndBind, logger, makeDsn, stackParserFromStackParserOptions, withScope as coreWithScope } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
+import {
+  getClient,
+  getGlobalScope,
+  getIntegrationsToSetup,
+  getIsolationScope,
+  initAndBind,
+  logger,
+  makeDsn,
+  stackParserFromStackParserOptions,
+  withScope as coreWithScope,
+} from '@sentry/core';
 import {
   defaultStackParser,
   makeFetchTransport,
@@ -217,20 +227,6 @@ export async function close(): Promise<void> {
   } catch (e) {
     logger.error('Failed to close the SDK');
   }
-}
-
-/**
- * Captures user feedback and sends it to Sentry.
- * @deprecated Use `Sentry.captureFeedback` instead.
- */
-export function captureUserFeedback(feedback: UserFeedback): void {
-  const feedbackParams: SendFeedbackParams = {
-    name: feedback.name,
-    email: feedback.email,
-    message: feedback.comments,
-    associatedEventId: feedback.event_id,
-  };
-  captureFeedback(feedbackParams);
 }
 
 /**
