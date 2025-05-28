@@ -78,6 +78,7 @@ exports[`ScreenshotButton matches the snapshot with custom styles 1`] = `
         "fontSize": 18,
       }
     }
+    testID="sentry-feedback-screenshot-button"
   >
     Take Screenshot
   </Text>
@@ -162,6 +163,7 @@ exports[`ScreenshotButton matches the snapshot with custom texts 1`] = `
         "fontSize": 18,
       }
     }
+    testID="sentry-feedback-screenshot-button"
   >
     Take Screenshot
   </Text>
@@ -246,6 +248,7 @@ exports[`ScreenshotButton matches the snapshot with default configuration 1`] = 
         "fontSize": 18,
       }
     }
+    testID="sentry-feedback-screenshot-button"
   >
     Take Screenshot
   </Text>
