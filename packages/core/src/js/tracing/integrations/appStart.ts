@@ -146,6 +146,10 @@ export function _clearRootComponentCreationTimestampMs(): void {
  * Attaches frame data to a span's data object.
  */
 function attachFrameDataToSpan(span: SpanJSON, frames: NativeFramesResponse): void {
+  if (frames.totalFrames <= 0 && frames.slowFrames <= 0 && frames.totalFrames <= 0) {
+    logger.warn(`[AppStart] Detected zero slow or frozen frames. Not adding measurements to spanId (${span.span_id}).`);
+    return;
+  }
   span.data = span.data || {};
   span.data['frames.total'] = frames.totalFrames;
   span.data['frames.slow'] = frames.slowFrames;

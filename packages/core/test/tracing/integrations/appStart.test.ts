@@ -902,6 +902,36 @@ describe('Frame Data Integration', () => {
     );
   });
 
+  it('does not attach frame data when they are zero', async () => {
+    const mockEndFrames = {
+      totalFrames: 0,
+      slowFrames: 0,
+      frozenFrames: 0,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: true });
+
+    await _captureAppStart({ isManual: false });
+
+    const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+
+    expect(appStartSpan!.data).not.toHaveProperty('frames.total');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.slow');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.frozen');
+  });
+
   it('does not attach frame data when native frames are not available', async () => {
     mockFunction(NATIVE.fetchNativeFrames).mockRejectedValue(new Error('Native frames not available'));
 
