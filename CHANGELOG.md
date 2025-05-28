@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Major Changes
+
+- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+
 ### Changes
 
 - Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
