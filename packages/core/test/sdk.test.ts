@@ -1,7 +1,6 @@
 import type { BaseTransportOptions, Breadcrumb, BreadcrumbHint, ClientOptions, Integration, Scope } from '@sentry/core';
 import { initAndBind, logger } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-
 import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';

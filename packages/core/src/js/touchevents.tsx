@@ -3,7 +3,6 @@ import { addBreadcrumb, dropUndefinedKeys, getClient, logger, SEMANTIC_ATTRIBUTE
 import * as React from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
-
 import { createIntegration } from './integrations/factory';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';

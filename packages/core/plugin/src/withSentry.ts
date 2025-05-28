@@ -1,6 +1,5 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { createRunOncePlugin } from 'expo/config-plugins';
-
 import { bold, sdkPackage, warnOnce } from './utils';
 import { withSentryAndroid } from './withSentryAndroid';
 import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
@@ -50,8 +49,9 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
 
 const missingProjectMessage = '# no project found, falling back to SENTRY_PROJECT environment variable';
 const missingOrgMessage = '# no org found, falling back to SENTRY_ORG environment variable';
-const existingAuthTokenMessage = `# DO NOT COMMIT the auth token, use SENTRY_AUTH_TOKEN instead, see https://docs.sentry.io/platforms/react-native/manual-setup/`;
-const missingAuthTokenMessage = `# Using SENTRY_AUTH_TOKEN environment variable`;
+const existingAuthTokenMessage =
+  '# DO NOT COMMIT the auth token, use SENTRY_AUTH_TOKEN instead, see https://docs.sentry.io/platforms/react-native/manual-setup/';
+const missingAuthTokenMessage = '# Using SENTRY_AUTH_TOKEN environment variable';
 
 export function getSentryProperties(props: PluginProps | void): string | null {
   const { organization, project, authToken, url = 'https://sentry.io/' } = props ?? {};

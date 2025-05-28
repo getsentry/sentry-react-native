@@ -1,6 +1,5 @@
 import type { Breadcrumb } from '@sentry/core';
 import { getActiveSpan, spanToJSON, startSpan } from '@sentry/core';
-
 import { UI_ACTION } from '../../src/js/tracing';
 import {
   DEFAULT_BREADCRUMB_CATEGORY as DEFAULT_GESTURE_BREADCRUMB_CATEGORY,

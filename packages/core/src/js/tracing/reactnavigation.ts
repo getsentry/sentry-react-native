@@ -12,7 +12,6 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
-
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -30,6 +29,7 @@ import {
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
 import { addTimeToInitialDisplayFallback } from './timeToDisplayFallback';
+
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;

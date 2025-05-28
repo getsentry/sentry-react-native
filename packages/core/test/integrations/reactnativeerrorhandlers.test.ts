@@ -1,11 +1,10 @@
-jest.mock('../../src/js/integrations/reactnativeerrorhandlersutils');
-
 import type { ExtendedError, Mechanism, SeverityLevel } from '@sentry/core';
 import { setCurrentClient } from '@sentry/core';
-
 import { reactNativeErrorHandlersIntegration } from '../../src/js/integrations/reactnativeerrorhandlers';
 import { requireRejectionTracking } from '../../src/js/integrations/reactnativeerrorhandlersutils';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+
+jest.mock('../../src/js/integrations/reactnativeerrorhandlersutils');
 
 describe('ReactNativeErrorHandlers', () => {
   let client: TestClient;

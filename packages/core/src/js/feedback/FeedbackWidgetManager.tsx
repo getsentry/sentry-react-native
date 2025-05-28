@@ -2,7 +2,6 @@ import { logger } from '@sentry/core';
 import * as React from 'react';
 import type { NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import { Animated, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
-
 import { notWeb } from '../utils/environment';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';

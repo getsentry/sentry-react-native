@@ -1,5 +1,4 @@
 import { logger, setCurrentClient } from '@sentry/core';
-
 import { crashedLastRun, flush } from '../src/js/sdk';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 import { NATIVE } from './mockWrapper';

@@ -3,16 +3,16 @@ import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
 import * as process from 'process';
 import { env } from 'process';
-
 import { enableLogger } from './enableLogger';
+import { withSentryMiddleware } from './metroMiddleware';
 import {
   setSentryBabelTransformerOptions,
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
+
 export * from './sentryMetroSerializer';
-import { withSentryMiddleware } from './metroMiddleware';
 
 enableLogger();
 

@@ -3,7 +3,6 @@ import { logger, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
-
 import * as AppRegistry from '../src/js/integrations/appRegistry';
 import { wrap } from '../src/js/sdk';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
