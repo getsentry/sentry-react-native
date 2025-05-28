@@ -125,6 +125,8 @@ interface SentryNativeWrapper {
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
 
   setActiveSpanId(spanId: string): void;
+
+  encodeToBase64(data: Uint8Array): Promise<string | null>;
 }
 
 const EOL = utf8ToBytes('\n');
@@ -695,7 +697,7 @@ export const NATIVE: SentryNativeWrapper = {
       return null;
     }
 
-    const result = RNSentry.crashedLastRun();
+    const result = await RNSentry.crashedLastRun();
     return typeof result === 'boolean' ? result : null;
   },
 
@@ -743,6 +745,21 @@ export const NATIVE: SentryNativeWrapper = {
     } catch (error) {
       logger.error('Error:', error);
       return undefined;
+    }
+  },
+
+  async encodeToBase64(data: Uint8Array): Promise<string | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return Promise.resolve(null);
+    }
+
+    try {
+      const byteArray = Array.from(data);
+      const base64 = await RNSentry.encodeToBase64(byteArray);
+      return base64 || null;
+    } catch (error) {
+      logger.error('Error:', error);
+      return Promise.resolve(null);
     }
   },
 

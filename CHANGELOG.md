@@ -8,27 +8,55 @@
 
 ## Unreleased
 
+### Features
+
+- Adds the `FeedbackButton` component that shows the Feedback Widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
+- Adds the `ScreenshotButton` component that takes a screenshot ([#4714](https://github.com/getsentry/sentry-react-native/issues/4714))
+- Add Feedback Widget theming ([#4677](https://github.com/getsentry/sentry-react-native/pull/4677))
+- Re-export `ErrorEvent` and `TransactionEvent` types ([#4859](https://github.com/getsentry/sentry-react-native/pull/4859))
+
+### Fixes
+
+- crashedLastRun now returns the correct value ([#4829](https://github.com/getsentry/sentry-react-native/pull/4829))
+- Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
+- Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
+
+### Dependencies
+
+- Bump Bundler Plugins from v3.4.0 to v3.5.0 ([#4850](https://github.com/getsentry/sentry-react-native/pull/4850))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#350)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.4.0...3.5.0)
+- Bump Cocoa SDK from v8.50.2 to v8.51.1 ([#4839](https://github.com/getsentry/sentry-react-native/pull/4839))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8511)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.2...8.51.1)
+- Bump CLI from v2.45.0 to v2.46.0 ([#4866](https://github.com/getsentry/sentry-react-native/pull/4866))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2460)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.45.0...2.46.0)
+
+## 6.14.0
+
 ### Fixes
 
 - Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
 - Expo Updates Context values should all be lowercase ([#4809](https://github.com/getsentry/sentry-react-native/pull/4809))
+- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
+  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
+
+### Changes
+
+- Renames `enableExperimentalViewRenderer` to `enableViewRendererV2` which is enabled by default for up to 5x times more performance in Session Replay on iOS ([#4815](https://github.com/getsentry/sentry-react-native/pull/4815))
 
 ### Dependencies
 
-- Bump CLI from v2.43.1 to v2.44.0 ([#4804](https://github.com/getsentry/sentry-react-native/pull/4804))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2440)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.43.1...2.44.0)
+- Bump CLI from v2.43.1 to v2.45.0 ([#4804](https://github.com/getsentry/sentry-react-native/pull/4804), [#4818](https://github.com/getsentry/sentry-react-native/pull/4818))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2450)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.43.1...2.45.0)
 - Bump Bundler Plugins from v3.3.1 to v3.4.0 ([#4805](https://github.com/getsentry/sentry-react-native/pull/4805))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#340)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.3.1...3.4.0)
-- Bump Cocoa SDK from v8.49.2 to v8.50.0 ([#4807](https://github.com/getsentry/sentry-react-native/pull/4807))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8500)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.2...8.50.0)
-
-### Fixes
-
-- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
-  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
+- Bump Cocoa SDK from v8.49.2 to v8.50.2 ([#4807](https://github.com/getsentry/sentry-react-native/pull/4807), [#4821](https://github.com/getsentry/sentry-react-native/pull/4821), [#4830](https://github.com/getsentry/sentry-react-native/pull/4830))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8502)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.2...8.50.2)
 
 ## 6.13.1
 
