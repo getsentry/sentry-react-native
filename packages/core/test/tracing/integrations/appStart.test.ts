@@ -795,6 +795,7 @@ describe('Frame Data Integration', () => {
       totalFrames: 150,
       slowFrames: 5,
       frozenFrames: 2,
+      framesDelay: 0,
     };
 
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
@@ -822,6 +823,7 @@ describe('Frame Data Integration', () => {
       totalFrames: 200,
       slowFrames: 8,
       frozenFrames: 1,
+      framesDelay: 0,
     };
 
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
@@ -849,6 +851,7 @@ describe('Frame Data Integration', () => {
       totalFrames: 120,
       slowFrames: 3,
       frozenFrames: 0,
+      framesDelay: 0,
     };
 
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
@@ -878,6 +881,7 @@ describe('Frame Data Integration', () => {
       totalFrames: 180,
       slowFrames: 12,
       frozenFrames: 3,
+      framesDelay: 0,
     };
 
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
@@ -907,6 +911,7 @@ describe('Frame Data Integration', () => {
       totalFrames: 0,
       slowFrames: 0,
       frozenFrames: 0,
+      framesDelay: 0,
     };
 
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);

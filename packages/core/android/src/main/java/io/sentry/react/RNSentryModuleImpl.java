@@ -491,6 +491,7 @@ public class RNSentryModuleImpl {
         int totalFrames = 0;
         int slowFrames = 0;
         int frozenFrames = 0;
+        int framesDelay = 0; // TODO
 
         final SparseIntArray[] framesRates = frameMetricsAggregator.getMetrics();
 
@@ -518,6 +519,7 @@ public class RNSentryModuleImpl {
         map.putInt("totalFrames", totalFrames);
         map.putInt("slowFrames", slowFrames);
         map.putInt("frozenFrames", frozenFrames);
+        map.putInt("framesDelay", framesDelay);
 
         promise.resolve(map);
       } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case

@@ -154,6 +154,7 @@ function attachFrameDataToSpan(span: SpanJSON, frames: NativeFramesResponse): vo
   span.data['frames.total'] = frames.totalFrames;
   span.data['frames.slow'] = frames.slowFrames;
   span.data['frames.frozen'] = frames.frozenFrames;
+  span.data['frames.delay'] = frames.framesDelay;
 
   logger.debug('[AppStart] Attached frame data to span.', {
     spanId: span.span_id,
