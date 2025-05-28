@@ -902,7 +902,7 @@ describe('Frame Data Integration', () => {
     );
   });
 
-  it('does not attach frame data when they are zero', async () => {
+  it('does not attach frame data when they are no frames', async () => {
     const mockEndFrames = {
       totalFrames: 0,
       slowFrames: 0,
