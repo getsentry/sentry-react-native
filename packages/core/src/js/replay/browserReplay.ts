@@ -1,5 +1,4 @@
 import { replayIntegration } from '@sentry/react';
-
 import { notWeb } from '../utils/environment';
 import type { Replay } from './replayInterface';
 

@@ -1,7 +1,6 @@
 import { describe, test } from '@jest/globals';
 import * as SentryReact from '@sentry/react';
 import { spyOn } from 'jest-mock';
-
 import { browserReplayIntegration } from '../../src/js/replay/browserReplay';
 import * as environment from '../../src/js/utils/environment';
 
