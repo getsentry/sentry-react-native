@@ -32,7 +32,6 @@ import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { getDsn, logWithoutTracing } from './utils';
-import { ErrorEvent } from '@sentry/core';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
@@ -62,11 +61,11 @@ Sentry.init({
   dsn: getDsn(),
   debug: true,
   environment: 'dev',
-  beforeSend: (event: ErrorEvent) => {
+  beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event) {
+  beforeSendTransaction(event: Sentry.TransactionEvent) {
     logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },
@@ -105,7 +104,7 @@ Sentry.init({
         maskAllImages: true,
         maskAllVectors: true,
         maskAllText: true,
-        enableExperimentalViewRenderer: true,
+        enableViewRendererV2: true,
         enableFastViewRendering: true,
       }),
       Sentry.appStartIntegration({
@@ -121,6 +120,8 @@ Sentry.init({
       }),
       Sentry.feedbackIntegration({
         imagePicker: ImagePicker,
+        enableScreenshot: true,
+        enableTakeScreenshot: true,
         styles: {
           submitButton: {
             backgroundColor: '#6a1b9a',
@@ -131,6 +132,20 @@ Sentry.init({
           },
         },
         namePlaceholder: 'Fullname',
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
+        screenshotButtonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
       }),
       Sentry.extraErrorDataIntegration(),
     );

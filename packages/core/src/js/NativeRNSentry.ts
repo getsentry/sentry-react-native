@@ -50,6 +50,7 @@ export interface Spec extends TurboModule {
   getDataFromUri(uri: string): Promise<number[]>;
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
   setActiveSpanId(spanId: string): boolean;
+  encodeToBase64(data: number[]): Promise<string | undefined | null>;
 }
 
 export type NativeStackFrame = {

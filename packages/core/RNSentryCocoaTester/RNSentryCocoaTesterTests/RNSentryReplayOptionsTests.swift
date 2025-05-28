@@ -55,7 +55,7 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertNotNil(replayOptions["maskAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
         XCTAssertNotNil(replayOptions["sdkInfo"])
-        XCTAssertNotNil(replayOptions["enableExperimentalViewRenderer"])
+        XCTAssertNotNil(replayOptions["enableViewRendererV2"])
         XCTAssertNotNil(replayOptions["enableFastViewRendering"])
     }
 
@@ -184,28 +184,28 @@ final class RNSentryReplayOptions: XCTestCase {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75,
-            "mobileReplayOptions": [ "enableExperimentalViewRenderer": true ]
+            "mobileReplayOptions": [ "enableViewRendererV2": true ]
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
         RNSentryReplay.updateOptions(optionsDict)
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
+        XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
     }
 
     func testEnableExperimentalViewRendererFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75,
-            "mobileReplayOptions": [ "enableExperimentalViewRenderer": false ]
+            "mobileReplayOptions": [ "enableViewRendererV2": false ]
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
         RNSentryReplay.updateOptions(optionsDict)
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertFalse(actualOptions.sessionReplay.enableExperimentalViewRenderer)
+        XCTAssertFalse(actualOptions.sessionReplay.enableViewRendererV2)
     }
 
     func testEnableFastViewRenderingDefault() {

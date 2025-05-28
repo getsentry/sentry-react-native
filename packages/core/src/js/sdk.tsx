@@ -17,7 +17,7 @@ import {
 } from '@sentry/react';
 import * as React from 'react';
 import { ReactNativeClient } from './client';
-import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetManager';
+import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { getDefaultIntegrations } from './integrations/default';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
