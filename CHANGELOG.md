@@ -14,10 +14,34 @@
 - Adds the `ScreenshotButton` component that takes a screenshot ([#4714](https://github.com/getsentry/sentry-react-native/issues/4714))
 - Add Feedback Widget theming ([#4677](https://github.com/getsentry/sentry-react-native/pull/4677))
 - Re-export `ErrorEvent` and `TransactionEvent` types ([#4859](https://github.com/getsentry/sentry-react-native/pull/4859))
+- Add experimental support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827))
+
+To enable it add the following code to your Sentry Options:
+
+```typescript
+  _experiments: {
+    enableLogs: true,
+  },
+```
+
+You can also filter the logs being collected by adding beforeSendLogs into `_experiments`
+
+```typescript
+  _experiments: {
+    enableLogs: true,
+    beforeSendLog: (log) => {
+      return log;
+    },
+  },
+  ```
 
 ### Major Changes
 
 - `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+
+### Self Hosted
+
+- It is recommended to use Sentry Self Hosted version `25.2.0` or new for React Native V7 or newer
 
 ### Changes
 
