@@ -7,7 +7,6 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
-import { ErrorEvent } from '@sentry/core';
 import { isExpoGo } from '../utils/isExpoGo';
 import { LogBox } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -31,11 +30,11 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: ErrorEvent) => {
+  beforeSend: (event: Sentry.ErrorEvent) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event) {
+  beforeSendTransaction(event: Sentry.TransactionEvent) {
     console.log('Transaction beforeSend:', event.event_id);
     return event;
   },
@@ -67,7 +66,16 @@ Sentry.init({
         maskAllText: true,
       }),
       Sentry.feedbackIntegration({
+        enableScreenshot: true,
+        enableTakeScreenshot: true,
         imagePicker: ImagePicker,
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 40, // Place the feedback button above the tab bar
+            },
+          },
+        },
       }),
     );
     return integrations.filter(i => i.name !== 'Dedupe');

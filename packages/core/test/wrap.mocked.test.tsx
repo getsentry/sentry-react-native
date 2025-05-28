@@ -21,13 +21,13 @@ jest.doMock('../src/js/tracing', () => {
       }
 });
 
-jest.doMock('../src/js/feedback/FeedbackWidgetManager', () => {
+jest.doMock('../src/js/feedback/FeedbackWidgetProvider', () => {
   return {
-        FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
-          // eslint-disable-next-line react/no-unknown-property
-          <div testID="feedback-widgetID">{children}</div>
-        ),
-    };
+    FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
+      // eslint-disable-next-line react/no-unknown-property
+      <div testID="feedback-widgetID">{children}</div>
+    ),
+  };
 });
 
 import { wrap } from '../src/js/sdk';

@@ -81,11 +81,8 @@
           "default": "development"
         }
       },
-      "eas": {
-        "projectId": "00000000-0000-0000-0000-000000000000"
-      }
+      "eas": {}
     },
-    "owner": "__OWNER__",
     "runtimeVersion": {
       "policy": "appVersion"
     },

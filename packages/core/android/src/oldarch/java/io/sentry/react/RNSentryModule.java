@@ -184,6 +184,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void encodeToBase64(ReadableArray array, Promise promise) {
+    this.impl.encodeToBase64(array, promise);
+  }
+
+  @ReactMethod
   public void popTimeToDisplayFor(String key, Promise promise) {
     this.impl.popTimeToDisplayFor(key, promise);
   }

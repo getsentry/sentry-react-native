@@ -14,7 +14,10 @@
     "export:web": "expo export --dump-sourcemap --clear --platform web",
     "prebuild": "expo prebuild --clean --no-install",
     "set-version": "npx react-native-version --skip-tag --never-amend",
-    "eas-build-pre-install": "npm i -g corepack && yarn install --no-immutable --inline-builds && yarn workspace @sentry/react-native build"
+    "eas-build-pre-install": "npm i -g corepack && yarn install --no-immutable --inline-builds && yarn workspace @sentry/react-native build",
+    "eas-update-configure": "eas update:configure",
+    "eas-update-publish-development": "eas update --channel development --message 'Development update'",
+    "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
     "@sentry/react-native": "7.0.0-alpha.0",
@@ -40,7 +43,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
-    "@sentry/babel-plugin-component-annotate": "3.4.0",
+    "@sentry/babel-plugin-component-annotate": "3.5.0",
     "@types/node": "20.10.4",
     "sentry-react-native-samples-utils": "workspace:^"
   },
