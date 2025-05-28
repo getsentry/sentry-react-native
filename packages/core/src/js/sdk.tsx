@@ -1,6 +1,16 @@
 /* eslint-disable complexity */
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/core';
-import { captureFeedback, getClient, getGlobalScope, getIntegrationsToSetup, getIsolationScope, initAndBind, logger, makeDsn, stackParserFromStackParserOptions, withScope as coreWithScope } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
+import {
+  getClient,
+  getGlobalScope,
+  getIntegrationsToSetup,
+  getIsolationScope,
+  initAndBind,
+  logger,
+  makeDsn,
+  stackParserFromStackParserOptions,
+  withScope as coreWithScope,
+} from '@sentry/core';
 import {
   defaultStackParser,
   makeFetchTransport,
