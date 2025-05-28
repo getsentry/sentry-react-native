@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Major Changes
+
+- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+
 ### Changes
 
 - Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
@@ -48,7 +52,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - `shutdownTimeout` moved from `core` to `@sentry/react-native`
 - `hasTracingEnabled` was renamed to `hasSpansEnabled`
 - You can no longer drop spans or return null on `beforeSendSpan` hook
-- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
 
 ### Removed types
 
