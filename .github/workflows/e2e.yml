@@ -414,6 +414,19 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
+      - name: Redact sensitive data from logs
+        if: ${{ always() }}
+        run: |
+          if [[ "$(uname)" == "Darwin" ]]; then
+            find ./dev-packages/e2e-tests/maestro-logs -type f -exec \
+            sed -i '' "s/${{ secrets.SENTRY_AUTH_TOKEN }}/[REDACTED]/g" {} +
+            echo 'Redacted sensitive data from logs on MacOS'
+          else
+            find ./dev-packages/e2e-tests/maestro-logs -type f -exec \
+            sed -i "s/${{ secrets.SENTRY_AUTH_TOKEN }}/[REDACTED]/g" {} +
+            echo 'Redacted sensitive data from logs on Ubuntu'
+          fi
+
       - name: Upload logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
