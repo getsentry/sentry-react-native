@@ -1,8 +1,20 @@
 /* eslint-disable max-lines */
 import { captureException } from '@sentry/core';
 import * as React from 'react';
-import { Animated, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import {
+  Animated,
+  Image,
+  Linking,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 
+import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { openURLInBrowser } from '../metro/openUrlInBrowser';
 import { isExpoGo, isWeb } from '../utils/environment';
 import { NATIVE } from '../wrapper';
@@ -158,7 +170,7 @@ export const SentryPlayground = ({
                   : 'Unhandled errors in native layers such as Java, Objective-C, C, Swift, or Kotlin are automatically reported.'
               }
               actionDescription={'Crash'}
-              action={nativeCrashExample}
+              action={() => changeAnimationToBug(nativeCrashExample)}
               last
               disabled={isNativeCrashDisabled}
             />
@@ -175,7 +187,11 @@ export const SentryPlayground = ({
               secondary
               title={'Open Sentry'}
               onPress={() => {
-                openURLInBrowser(issuesStreamUrl);
+                if (getDevServer()) {
+                  openURLInBrowser(issuesStreamUrl);
+                } else {
+                  Linking.openURL(issuesStreamUrl);
+                }
               }}
             />
             <Button
