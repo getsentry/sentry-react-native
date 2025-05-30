@@ -12,6 +12,8 @@ import { LogBox } from 'react-native';
 import { isWeb } from '../utils/isWeb';
 import * as ImagePicker from 'expo-image-picker';
 
+const { withSentryPlayground } = Sentry;
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -144,4 +146,14 @@ function RootLayoutNav() {
   );
 }
 
-export default Sentry.wrap(RootLayout);
+// This would set the component and the options to the globalThis,
+// which could be picked up by the Sentry.wrap()
+// initSentryPlayground({
+//   projectId: '5428561',
+//   organizationSlug: 'sentry-sdks',
+// });
+
+export default withSentryPlayground(Sentry.wrap(RootLayout), {
+  projectId: '5428561',
+  organizationSlug: 'sentry-sdks',
+});
