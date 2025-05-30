@@ -18,6 +18,7 @@
 ### Major Changes
 
 - `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+- Use global `TextEncoder` when available ([#4874](https://github.com/getsentry/sentry-react-native/pull/4874))
 
 ### Changes
 
