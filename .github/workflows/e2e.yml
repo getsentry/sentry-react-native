@@ -419,11 +419,11 @@ jobs:
         run: |
           if [[ "$(uname)" == "Darwin" ]]; then
             find ./dev-packages/e2e-tests/maestro-logs -type f -exec \
-            sed -i '' "s/${{ secrets.SENTRY_AUTH_TOKEN }}/[REDACTED]/g" {} +
+            sed -i '' "s/${SENTRY_AUTH_TOKEN}/[REDACTED]/g" {} +
             echo 'Redacted sensitive data from logs on MacOS'
           else
             find ./dev-packages/e2e-tests/maestro-logs -type f -exec \
-            sed -i "s/${{ secrets.SENTRY_AUTH_TOKEN }}/[REDACTED]/g" {} +
+            sed -i "s/${SENTRY_AUTH_TOKEN}/[REDACTED]/g" {} +
             echo 'Redacted sensitive data from logs on Ubuntu'
           fi
 
