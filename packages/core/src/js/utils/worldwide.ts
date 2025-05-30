@@ -36,8 +36,9 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
 }
 
 type TextEncoder = {
-  new (): TextEncoder;
-  encode(input?: string): Uint8Array;
+  new (): {
+    encode(input?: string): Uint8Array;
+  };
 };
 
 /** Get's the global object for the current JavaScript runtime */
