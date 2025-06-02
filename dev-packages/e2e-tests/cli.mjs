@@ -259,7 +259,7 @@ if (actions.includes('test')) {
       `;
 
       try {
-        execSync(redactScript, { stdio: 'inherit', shell: '/bin/bash' });
+        execSync(redactScript, { stdio: 'inherit', cwd: e2eDir, shell: '/bin/bash' });
       } catch (error) {
         console.warn('Failed to redact sensitive data from logs:', error.message);
       }
