@@ -1,5 +1,5 @@
 import { SDK_VERSION } from '@sentry/core';
-import { encodePolyfill, globalEncodeFactory, useEncodePolyfill } from '../../src/js/transports/encodePolyfill';
+import { encodePolyfill, useEncodePolyfill } from '../../src/js/transports/encodePolyfill';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 
 const OriginalTextEncoder = RN_GLOBAL_OBJ.TextEncoder;
