@@ -234,7 +234,7 @@ if (actions.includes('test')) {
   if (!sentryAuthToken) {
     console.log('Skipping maestro test due to unavailable or empty SENTRY_AUTH_TOKEN');
   } else {
-  try {
+    try {
       execSync(
         `maestro test maestro \
           --env=APP_ID="${appId}" \
