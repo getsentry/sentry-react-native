@@ -26,10 +26,11 @@ import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
+import { encodeUTF8 } from './utils/encode';
 import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
 import { ReactNativeLibraries } from './utils/rnlibraries';
-import { base64StringFromByteArray, utf8ToBytes } from './vendor';
+import { base64StringFromByteArray } from './vendor';
 
 /**
  * Returns the RNSentry module. Dynamically resolves if NativeModule or TurboModule is used.
@@ -128,7 +129,7 @@ interface SentryNativeWrapper {
   encodeToBase64(data: Uint8Array): Promise<string | null>;
 }
 
-const EOL = utf8ToBytes('\n');
+const EOL = encodeUTF8('\n');
 
 /**
  * Our internal interface for calling native functions
@@ -165,7 +166,7 @@ export const NATIVE: SentryNativeWrapper = {
     const [envelopeHeader, envelopeItems] = envelope;
 
     const headerString = JSON.stringify(envelopeHeader);
-    const headerBytes = utf8ToBytes(headerString);
+    const headerBytes = encodeUTF8(headerString);
     let envelopeBytes: Uint8Array = new Uint8Array(headerBytes.length + EOL.length);
     envelopeBytes.set(headerBytes);
     envelopeBytes.set(EOL, headerBytes.length);
@@ -178,14 +179,14 @@ export const NATIVE: SentryNativeWrapper = {
       let bytesPayload: number[] | Uint8Array | undefined;
       if (typeof itemPayload === 'string') {
         bytesContentType = 'text/plain';
-        bytesPayload = utf8ToBytes(itemPayload);
+        bytesPayload = encodeUTF8(itemPayload);
       } else if (itemPayload instanceof Uint8Array) {
         bytesContentType =
           typeof itemHeader.content_type === 'string' ? itemHeader.content_type : 'application/octet-stream';
         bytesPayload = itemPayload;
       } else {
         bytesContentType = 'application/json';
-        bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
+        bytesPayload = encodeUTF8(JSON.stringify(itemPayload));
         if (!hardCrashed) {
           hardCrashed = isHardCrash(itemPayload);
         }
@@ -196,7 +197,7 @@ export const NATIVE: SentryNativeWrapper = {
       (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
       const serializedItemHeader = JSON.stringify(itemHeader);
 
-      const bytesItemHeader = utf8ToBytes(serializedItemHeader);
+      const bytesItemHeader = encodeUTF8(serializedItemHeader);
       const newBytes = new Uint8Array(
         envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length + EOL.length,
       );
