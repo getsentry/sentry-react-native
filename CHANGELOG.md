@@ -34,6 +34,8 @@
   Sentry.hideFeedbackButton();
   ```
 
+  To learn more visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback).
+
 - Re-export `ErrorEvent` and `TransactionEvent` types ([#4859](https://github.com/getsentry/sentry-react-native/pull/4859))
 
 ### Fixes
