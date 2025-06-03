@@ -10,9 +10,32 @@
 
 ### Features
 
-- Adds the `FeedbackButton` component that shows the Feedback Widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
-- Adds the `ScreenshotButton` component that takes a screenshot ([#4714](https://github.com/getsentry/sentry-react-native/issues/4714))
-- Add Feedback Widget theming ([#4677](https://github.com/getsentry/sentry-react-native/pull/4677))
+- User Feedback Widget Updates
+  - `FeedbackButton` for easy access to the widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
+  - `ScreenshotButton` for capturing the application visuals ([#4714](https://github.com/getsentry/sentry-react-native/issues/4714))
+  - Theming support to better align with the application styles ([#4677](https://github.com/getsentry/sentry-react-native/pull/4677))
+
+  ```js
+  Sentry.init({
+    integrations: [
+      Sentry.feedbackIntegration({
+        enableTakeScreenshot: true, // Enables `ScreenshotButton`
+        themeDark: {
+          // Add dark theme styles here
+        },
+        themeLight: {
+          // Add light theme styles here
+        },
+      }),
+    ],
+  });
+
+  Sentry.showFeedbackButton();
+  Sentry.hideFeedbackButton();
+  ```
+
+  To learn more visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback).
+
 - Re-export `ErrorEvent` and `TransactionEvent` types ([#4859](https://github.com/getsentry/sentry-react-native/pull/4859))
 
 ### Major Changes
@@ -31,6 +54,7 @@
 - crashedLastRun now returns the correct value ([#4829](https://github.com/getsentry/sentry-react-native/pull/4829))
 - Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
+- Measuring TTID or TTFD could cause a crash when `parentSpanId` was removed ([#4881](https://github.com/getsentry/sentry-react-native/pull/4881))
 
 ### Dependencies
 
