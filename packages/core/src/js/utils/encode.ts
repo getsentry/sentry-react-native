@@ -1,3 +1,4 @@
+import { useEncodePolyfill } from '../transports/encodePolyfill';
 import { getSentryCarrier } from './carrier';
 
 /**
@@ -5,5 +6,9 @@ import { getSentryCarrier } from './carrier';
  */
 export function encodeUTF8(input: string): Uint8Array {
   const carrier = getSentryCarrier();
-  return carrier.encodePolyfill ? carrier.encodePolyfill(input) : new TextEncoder().encode(input);
+  if (!carrier.encodePolyfill) {
+    useEncodePolyfill();
+  }
+
+  return carrier.encodePolyfill!(input);
 }
