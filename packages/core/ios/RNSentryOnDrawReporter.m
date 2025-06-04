@@ -42,6 +42,10 @@ RCT_EXPORT_VIEW_PROPERTY(parentSpanId, NSString)
     return ^(NSNumber *newFrameTimestampInSeconds) {
         self->isListening = NO;
 
+        if (![_parentSpanId isKindOfClass:[NSString class]]) {
+            return;
+        }
+
         if (self->_fullDisplay) {
             [RNSentryTimeToDisplay
                 putTimeToDisplayFor:[@"ttfd-" stringByAppendingString:self->_parentSpanId]
