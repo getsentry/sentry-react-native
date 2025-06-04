@@ -13,10 +13,12 @@ interface BreadcrumbsOptions {
    *
    * Only available on web. In React Native this is a no-op.
    */
-  dom: boolean | {
-      serializeAttribute?: string | string[];
-      maxStringLength?: number;
-  };
+  dom:
+    | boolean
+    | {
+        serializeAttribute?: string | string[];
+        maxStringLength?: number;
+      };
 
   /**
    * Log HTTP requests done with the global Fetch API.
@@ -60,8 +62,8 @@ export const breadcrumbsIntegration = (options: Partial<BreadcrumbsOptions> = {}
     console: true,
     sentry: true,
     ...options,
+    fetch: options.fetch ?? (isWeb() ? true : false),
     dom: isWeb() ? options.dom ?? true : false,
-    fetch: isWeb() ? options.fetch ?? true : false,
     history: isWeb() ? options.history ?? true : false,
   };
 
