@@ -42,6 +42,7 @@
 
 - `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
 - Use global `TextEncoder` (available with Hermes in React Native 0.74 or higher) to greatly improve envelope encoding performance. ([#4874](https://github.com/getsentry/sentry-react-native/pull/4874))
+- `breadcrumbsIntegration` disables React Native incompatible options automatically ([#4886](https://github.com/getsentry/sentry-react-native/pull/4886))
 
 ### Changes
 
