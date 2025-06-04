@@ -73,6 +73,6 @@ export interface ExpoGlobalObject {
     ExponentConstants?: ExpoConstants;
     ExpoDevice?: ExpoDevice;
     ExpoUpdates?: ExpoUpdates;
-    ExpoGo?: ExpoGo | null;
+    ExpoGo?: ExpoGo;
   };
 }
