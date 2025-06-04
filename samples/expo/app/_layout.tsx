@@ -1,5 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { isRunningInExpoGo } from 'expo';
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { useEffect } from 'react';
@@ -7,7 +8,6 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
-import { isExpoGo } from '../utils/isExpoGo';
 import { LogBox } from 'react-native';
 import { isWeb } from '../utils/isWeb';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,7 +23,7 @@ LogBox.ignoreAllLogs();
 SplashScreen.preventAutoHideAsync();
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
-  enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
+  enableTimeToInitialDisplay: !isRunningInExpoGo(), // This is not supported in Expo Go.
 });
 
 Sentry.init({
