@@ -62,7 +62,7 @@ export default function TabOneScreen() {
       <Button
         title="Native Crash"
         onPress={() => {
-          if (isRunningInExpoGo) {
+          if (isRunningInExpoGo()) {
             console.warn('Not supported in Expo Go. Build the application to test this feature.');
             return;
           }
