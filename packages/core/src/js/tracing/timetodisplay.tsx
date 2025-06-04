@@ -294,7 +294,10 @@ export function updateInitialDisplaySpan(
   });
 }
 
-function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
+/**
+ * @internal Exposed for testing purposes
+ */
+export function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
     logger.warn(`[TimeToDisplay] No active span found to update ui.load.full_display in.`);

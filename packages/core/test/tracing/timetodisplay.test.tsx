@@ -21,13 +21,14 @@ import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/time
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME , SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
-import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
+import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay, updateFullDisplaySpan, updateInitialDisplaySpan } from '../../src/js/tracing/timetodisplay';
+import { NATIVE } from '../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
-import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
+import { mockFunction,nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs  } from '../testutils';
 
 const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } = mockedtimetodisplaynative;
 
-jest.useFakeTimers({advanceTimers: true});
+jest.useFakeTimers({ advanceTimers: true });
 
 describe('TimeToDisplay', () => {
   let client: TestClient;
@@ -307,6 +308,214 @@ describe('TimeToDisplay', () => {
 
     expect(logger.warn).toHaveBeenCalledWith(
       'TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
+  });
+
+  describe('Frame Data Integration', () => {
+    test('attaches frame data to initial display span', async () => {
+      const mockStartFrames = {
+        totalFrames: 50,
+        slowFrames: 2,
+        frozenFrames: 1,
+      };
+      const mockEndFrames = {
+        totalFrames: 186,
+        slowFrames: 7,
+        frozenFrames: 3,
+      };
+
+      mockFunction(NATIVE.fetchNativeFrames)
+        .mockResolvedValueOnce(mockStartFrames)
+        .mockResolvedValueOnce(mockEndFrames);
+
+      let initialDisplaySpan: Span | undefined;
+
+      await startSpanManual(
+        {
+          name: 'Root Manual Span',
+          startTime: secondAgoTimestampMs(),
+        },
+        async (activeSpan: Span | undefined) => {
+          initialDisplaySpan = startTimeToInitialDisplaySpan();
+          TestRenderer.create(<TimeToInitialDisplay record={true} />);
+
+          await jest.advanceTimersByTimeAsync(100);
+
+          updateInitialDisplaySpan(nowInSeconds(), {
+            activeSpan,
+            span: initialDisplaySpan,
+          });
+
+          await jest.advanceTimersByTimeAsync(200);
+          activeSpan?.end();
+        },
+      );
+
+      await jest.advanceTimersByTimeAsync(100);
+      await client.flush();
+
+      const initialDisplaySpanJSON = getInitialDisplaySpanJSON(client.event!.spans!);
+      expect(initialDisplaySpanJSON).toBeDefined();
+      expect(initialDisplaySpanJSON!.data).toEqual(
+        expect.objectContaining({
+          'frames.total': 136, // 186 - 50
+          'frames.slow': 5,    // 7 - 2
+          'frames.frozen': 2,  // 3 - 1
+        }),
+      );
+    });
+
+    test('attaches frame data to full display span', async () => {
+      const mockStartFrames = {
+        totalFrames: 50,
+        slowFrames: 2,
+        frozenFrames: 1,
+      };
+      const mockEndFrames = {
+        totalFrames: 200,
+        slowFrames: 10,
+        frozenFrames: 4,
+      };
+
+      mockFunction(NATIVE.fetchNativeFrames)
+        .mockResolvedValueOnce(mockStartFrames) // Initial display start
+        .mockResolvedValueOnce(mockEndFrames)   // Initial display end
+        .mockResolvedValueOnce(mockStartFrames) // Full display start
+        .mockResolvedValueOnce(mockEndFrames);  // Full display end
+
+      let initialDisplaySpan: Span | undefined;
+
+      await startSpanManual(
+        {
+          name: 'Root Manual Span',
+          startTime: secondAgoTimestampMs(),
+        },
+        async (activeSpan: Span | undefined) => {
+          initialDisplaySpan = startTimeToInitialDisplaySpan();
+          TestRenderer.create(<TimeToInitialDisplay record={true} />);
+
+          await jest.advanceTimersByTimeAsync(100);
+
+          updateInitialDisplaySpan(nowInSeconds(), {
+            activeSpan,
+            span: initialDisplaySpan,
+          });
+
+          await jest.advanceTimersByTimeAsync(100);
+
+          startTimeToFullDisplaySpan();
+          TestRenderer.create(<TimeToFullDisplay record={true} />);
+
+          await jest.advanceTimersByTimeAsync(100);
+
+          updateFullDisplaySpan(nowInSeconds() + 0.1, initialDisplaySpan);
+
+          await jest.advanceTimersByTimeAsync(200);
+          activeSpan?.end();
+        },
+      );
+
+      await jest.advanceTimersByTimeAsync(100);
+      await client.flush();
+
+      const fullDisplaySpanJSON = getFullDisplaySpanJSON(client.event!.spans!);
+      expect(fullDisplaySpanJSON).toBeDefined();
+      expect(fullDisplaySpanJSON!.data).toEqual(
+        expect.objectContaining({
+          'frames.total': 150, // 200 - 50
+          'frames.slow': 8,    // 10 - 2
+          'frames.frozen': 3,  // 4 - 1
+        }),
+      );
+    });
+
+    test('does not attach frame data when frames are zero', async () => {
+      const mockFrames = {
+        totalFrames: 10,
+        slowFrames: 20,
+        frozenFrames: 30,
+      };
+
+      mockFunction(NATIVE.fetchNativeFrames)
+        .mockResolvedValueOnce(mockFrames)
+        .mockResolvedValueOnce(mockFrames); // same frames for both initial and full display
+
+      let initialDisplaySpan: Span | undefined;
+
+      await startSpanManual(
+        {
+          name: 'Root Manual Span',
+          startTime: secondAgoTimestampMs(),
+        },
+        async (activeSpan: Span | undefined) => {
+          initialDisplaySpan = startTimeToInitialDisplaySpan();
+          TestRenderer.create(<TimeToInitialDisplay record={true} />);
+
+          await jest.advanceTimersByTimeAsync(100);
+
+          updateInitialDisplaySpan(nowInSeconds(), {
+            activeSpan,
+            span: initialDisplaySpan,
+          });
+
+          await jest.advanceTimersByTimeAsync(200);
+          activeSpan?.end();
+        },
+      );
+
+      await jest.advanceTimersByTimeAsync(100);
+      await client.flush();
+
+      const initialDisplaySpanJSON = getInitialDisplaySpanJSON(client.event!.spans!);
+      expect(initialDisplaySpanJSON).toBeDefined();
+      expect(initialDisplaySpanJSON!.data).not.toHaveProperty('frames.total');
+      expect(initialDisplaySpanJSON!.data).not.toHaveProperty('frames.slow');
+      expect(initialDisplaySpanJSON!.data).not.toHaveProperty('frames.frozen');
+    });
+
+    test('handles frame data fetch failure gracefully', async () => {
+      mockFunction(NATIVE.fetchNativeFrames)
+        .mockRejectedValueOnce(new Error('Start frames failed'))
+        .mockRejectedValueOnce(new Error('End frames failed'));
+
+      let initialDisplaySpan: Span | undefined;
+
+      await startSpanManual(
+        {
+          name: 'Root Manual Span',
+          startTime: secondAgoTimestampMs(),
+        },
+        async (activeSpan: Span | undefined) => {
+          initialDisplaySpan = startTimeToInitialDisplaySpan();
+          TestRenderer.create(<TimeToInitialDisplay record={true} />);
+
+          await jest.advanceTimersByTimeAsync(100);
+
+          updateInitialDisplaySpan(nowInSeconds(), {
+            activeSpan,
+            span: initialDisplaySpan,
+          });
+
+          await jest.advanceTimersByTimeAsync(200);
+          activeSpan?.end();
+        },
+      );
+
+      await jest.advanceTimersByTimeAsync(100);
+      await client.flush();
+
+      const initialDisplaySpanJSON = getInitialDisplaySpanJSON(client.event!.spans!);
+
+      expect(initialDisplaySpanJSON).toBeDefined();
+      expect(initialDisplaySpanJSON!.op).toBe('ui.load.initial_display');
+      expect(initialDisplaySpanJSON!.status).toBe('ok');
+
+      expect(initialDisplaySpanJSON!.data).not.toHaveProperty('frames.total');
+      expect(initialDisplaySpanJSON!.data).not.toHaveProperty('frames.slow');
+      expect(initialDisplaySpanJSON!.data).not.toHaveProperty('frames.frozen');
+
+      expect(client.event!.measurements).toBeDefined();
+      expect(client.event!.measurements!.time_to_initial_display).toBeDefined();
+    });
   });
 });
 
