@@ -119,4 +119,30 @@ final class RNSentryOnDrawReporterTests: XCTestCase {
 
         XCTAssertNil(RNSentryTimeToDisplay.pop(for: ttidPrefix + spanId))
     }
+
+    func testFullDisplayEmitNewFrameCallbackHandlesMissingParentSpanId() {
+        let reporter = RNSentryOnDrawReporterView.createWithMockedListener()
+
+        // We call the callback manually in this test to simulate a change between
+        // start of listening for next frame and the next frame render
+        let emitNewFrameCallback = reporter!.createEmitNewFrameEvent()
+
+        reporter!.fullDisplay = true
+        reporter!.parentSpanId = nil
+
+        emitNewFrameCallback!(1)
+    }
+
+    func testInitialDisplayEmitNewFrameCallbackHandlesMissingParentSpanId() {
+        let reporter = RNSentryOnDrawReporterView.createWithMockedListener()
+
+        // We call the callback manually in this test to simulate a change between
+        // start of listening for next frame and the next frame render
+        let emitNewFrameCallback = reporter!.createEmitNewFrameEvent()
+
+        reporter!.initialDisplay = true
+        reporter!.parentSpanId = nil
+
+        emitNewFrameCallback!(1)
+    }
 }

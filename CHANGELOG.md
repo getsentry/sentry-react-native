@@ -10,9 +10,32 @@
 
 ### Features
 
-- Adds the `FeedbackButton` component that shows the Feedback Widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
-- Adds the `ScreenshotButton` component that takes a screenshot ([#4714](https://github.com/getsentry/sentry-react-native/issues/4714))
-- Add Feedback Widget theming ([#4677](https://github.com/getsentry/sentry-react-native/pull/4677))
+- User Feedback Widget Updates
+  - `FeedbackButton` for easy access to the widget ([#4378](https://github.com/getsentry/sentry-react-native/pull/4378))
+  - `ScreenshotButton` for capturing the application visuals ([#4714](https://github.com/getsentry/sentry-react-native/issues/4714))
+  - Theming support to better align with the application styles ([#4677](https://github.com/getsentry/sentry-react-native/pull/4677))
+
+  ```js
+  Sentry.init({
+    integrations: [
+      Sentry.feedbackIntegration({
+        enableTakeScreenshot: true, // Enables `ScreenshotButton`
+        themeDark: {
+          // Add dark theme styles here
+        },
+        themeLight: {
+          // Add light theme styles here
+        },
+      }),
+    ],
+  });
+
+  Sentry.showFeedbackButton();
+  Sentry.hideFeedbackButton();
+  ```
+
+  To learn more visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback).
+
 - Re-export `ErrorEvent` and `TransactionEvent` types ([#4859](https://github.com/getsentry/sentry-react-native/pull/4859))
 
 ### Fixes
@@ -20,6 +43,7 @@
 - crashedLastRun now returns the correct value ([#4829](https://github.com/getsentry/sentry-react-native/pull/4829))
 - Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
+- Measuring TTID or TTFD could cause a crash when `parentSpanId` was removed ([#4881](https://github.com/getsentry/sentry-react-native/pull/4881))
 - Report slow and frozen frames as app start span data ([#4865](https://github.com/getsentry/sentry-react-native/pull/4865))
 
 ### Dependencies
@@ -27,9 +51,9 @@
 - Bump Bundler Plugins from v3.4.0 to v3.5.0 ([#4850](https://github.com/getsentry/sentry-react-native/pull/4850))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#350)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.4.0...3.5.0)
-- Bump Cocoa SDK from v8.50.2 to v8.51.1 ([#4839](https://github.com/getsentry/sentry-react-native/pull/4839))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8511)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.2...8.51.1)
+- Bump Cocoa SDK from v8.50.2 to v8.52.0 ([#4839](https://github.com/getsentry/sentry-react-native/pull/4839), [#4887](https://github.com/getsentry/sentry-react-native/pull/4887))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8520)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.2...8.52.0)
 - Bump CLI from v2.45.0 to v2.46.0 ([#4866](https://github.com/getsentry/sentry-react-native/pull/4866))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2460)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.45.0...2.46.0)
