@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Remove deprecated `appOwnership` constant ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
+
 ## 6.15.0
 
 ### Features
@@ -44,7 +50,7 @@
 - Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
 - Measuring TTID or TTFD could cause a crash when `parentSpanId` was removed ([#4881](https://github.com/getsentry/sentry-react-native/pull/4881))
-- Remove deprecated `appOwnership` constant ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
+
 
 ### Dependencies
 
