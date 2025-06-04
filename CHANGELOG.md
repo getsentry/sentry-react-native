@@ -48,6 +48,7 @@
 - Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
 - Allow using `browserReplayIntegration` without `isWeb` guard ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
   - The integration returns noop in non-browser environments
+- Use single `encodeUTF8` implementation through the SDK ([#4885](https://github.com/getsentry/sentry-react-native/pull/4885))
 
 ### Fixes
 
