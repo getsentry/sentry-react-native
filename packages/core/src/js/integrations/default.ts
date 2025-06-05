@@ -98,11 +98,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   // that's different from prev imp here and might lead misconfiguration
   // `tracesSampleRate: undefined` should not enable tracing
   const hasTracingEnabled = typeof options.tracesSampleRate === 'number' || typeof options.tracesSampler === 'function';
-  if (hasTracingEnabled && options.enableAppStartTracking) {
+  if (hasTracingEnabled && options.enableAppStartTracking && options.enableNative) {
     integrations.push(appStartIntegration());
   }
   const nativeFramesIntegrationInstance = createNativeFramesIntegrations(
-    hasTracingEnabled && options.enableNativeFramesTracking,
+    hasTracingEnabled && options.enableNativeFramesTracking && options.enableNative,
   );
   if (nativeFramesIntegrationInstance) {
     integrations.push(nativeFramesIntegrationInstance);

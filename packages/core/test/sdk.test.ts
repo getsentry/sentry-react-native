@@ -678,6 +678,15 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('AppStart');
     });
 
+    it('when tracing enabled app start without native (on web, Expo Go) integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableNative: false,
+      });
+
+      expectNotIntegration('AppStart');
+    });
+
     it('no native frames integration by default', () => {
       init({});
 
@@ -696,6 +705,15 @@ describe('Tests the SDK functionality', () => {
       init({
         tracesSampleRate: 0.5,
         enableNativeFramesTracking: false,
+      });
+
+      expectNotIntegration('NativeFrames');
+    });
+
+    it('when tracing enabled (on web, Expo Go) native frames integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableNative: false,
       });
 
       expectNotIntegration('NativeFrames');
