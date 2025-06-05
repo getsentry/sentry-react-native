@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Changes
+
+- Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
+
 ## 7.0.0-beta.0
 
 ### Upgrading from 6.x to 7.0

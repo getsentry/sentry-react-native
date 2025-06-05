@@ -1,7 +1,6 @@
 import { Button, StyleSheet } from 'react-native';
-import Constants from 'expo-constants';
 import * as Sentry from '@sentry/react-native';
-import { reloadAppAsync } from 'expo';
+import { reloadAppAsync, isRunningInExpoGo } from 'expo';
 import * as DevClient from 'expo-dev-client';
 
 import { Text, View } from '@/components/Themed';
@@ -10,8 +9,6 @@ import React from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import { useUpdates } from 'expo-updates';
 import { isWeb } from '../../utils/isWeb';
-
-const isRunningInExpoGo = Constants.appOwnership === 'expo';
 
 export default function TabOneScreen() {
   const { currentlyRunning } = useUpdates();
@@ -65,7 +62,7 @@ export default function TabOneScreen() {
       <Button
         title="Native Crash"
         onPress={() => {
-          if (isRunningInExpoGo) {
+          if (isRunningInExpoGo()) {
             console.warn('Not supported in Expo Go. Build the application to test this feature.');
             return;
           }
