@@ -8,6 +8,30 @@
 
 ## Unreleased
 
+### Major Changes
+
+- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+- Use global `TextEncoder` (available with Hermes in React Native 0.74 or higher) to improve envelope encoding performance. ([#4874](https://github.com/getsentry/sentry-react-native/pull/4874))
+- `breadcrumbsIntegration` disables React Native incompatible options automatically ([#4886](https://github.com/getsentry/sentry-react-native/pull/4886))
+
+### Changes
+
+- Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
+- Allow using `browserReplayIntegration` without `isWeb` guard ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
+  - The integration returns noop in non-browser environments
+- Use single `encodeUTF8` implementation through the SDK ([#4885](https://github.com/getsentry/sentry-react-native/pull/4885))
+
+### Dependencies
+
+- Bump JavaScript SDK from v9.12.0 to v9.22.0 ([#4860](https://github.com/getsentry/sentry-react-native/pull/4860))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.22.0/CHANGELOG.md)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/9.12.0...9.22.0)
+- Bump Android SDK from v8.11.1 to v8.13.2 ([#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.11.1...8.13.2)
+
+## 6.15.0
+
 ### Features
 
 - User Feedback Widget Updates
@@ -38,19 +62,6 @@
 
 - Re-export `ErrorEvent` and `TransactionEvent` types ([#4859](https://github.com/getsentry/sentry-react-native/pull/4859))
 
-### Major Changes
-
-- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
-- Use global `TextEncoder` (available with Hermes in React Native 0.74 or higher) to greatly improve envelope encoding performance. ([#4874](https://github.com/getsentry/sentry-react-native/pull/4874))
-- `breadcrumbsIntegration` disables React Native incompatible options automatically ([#4886](https://github.com/getsentry/sentry-react-native/pull/4886))
-
-### Changes
-
-- Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
-- Allow using `browserReplayIntegration` without `isWeb` guard ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
-  - The integration returns noop in non-browser environments
-- Use single `encodeUTF8` implementation through the SDK ([#4885](https://github.com/getsentry/sentry-react-native/pull/4885))
-
 ### Fixes
 
 - crashedLastRun now returns the correct value ([#4829](https://github.com/getsentry/sentry-react-native/pull/4829))
@@ -60,21 +71,15 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v9.12.0 to v9.22.0 ([#4860](https://github.com/getsentry/sentry-react-native/pull/4860))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.22.0/CHANGELOG.md)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/9.12.0...9.22.0)
-- Bump Cocoa SDK from v8.50.2 to v8.51.1 ([#4843](https://github.com/getsentry/sentry-react-native/pull/4843))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8511)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.0...8.51.1)
-- Bump Android SDK from v8.11.1 to v8.13.2 ([#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.11.1...8.13.2)
-- Bump CLI from v2.45.0 to v2.46.0 ([#4866](https://github.com/getsentry/sentry-react-native/pull/4866))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2460)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.45.0...2.46.0)
 - Bump Bundler Plugins from v3.4.0 to v3.5.0 ([#4850](https://github.com/getsentry/sentry-react-native/pull/4850))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#350)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.4.0...3.5.0)
+- Bump Cocoa SDK from v8.50.2 to v8.52.0 ([#4839](https://github.com/getsentry/sentry-react-native/pull/4839), [#4887](https://github.com/getsentry/sentry-react-native/pull/4887))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8520)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.2...8.52.0)
+- Bump CLI from v2.45.0 to v2.46.0 ([#4866](https://github.com/getsentry/sentry-react-native/pull/4866))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2460)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.45.0...2.46.0)
 
 ## 7.0.0-alpha.0
 
