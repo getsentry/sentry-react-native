@@ -27,6 +27,35 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - You can no longer drop spans or return null on `beforeSendSpan` hook
 - Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
 
+#### Features
+
+- Add experimental support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827))
+
+To enable it add the following code to your Sentry Options:
+
+```typescript
+Sentry.init({
+  // other options...
+  _experiments: {
+    enableLogs: true,
+  },
+});
+```
+
+You can also filter the logs being collected by adding beforeSendLogs into `_experiments`
+
+```typescript
+Sentry.init({
+  // other options...
+  _experiments: {
+    enableLogs: true,
+    beforeSendLog: (log) => {
+      return log;
+    },
+  }
+});
+```
+
 #### Removed types
 
 - TransactionNamingScheme
@@ -65,6 +94,10 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
 
+### Self Hosted
+
+- It is recommended to use Sentry Self Hosted version `25.2.0` or new for React Native V7 or newer
+
 ## 6.15.0
 
 ### Features
@@ -96,36 +129,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
   To learn more visit [the documentation](https://docs.sentry.io/platforms/react-native/user-feedback).
 
 - Re-export `ErrorEvent` and `TransactionEvent` types ([#4859](https://github.com/getsentry/sentry-react-native/pull/4859))
-- Add experimental support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827))
-
-To enable it add the following code to your Sentry Options:
-
-```typescript
-Sentry.init({
-  // other options...
-  _experiments: {
-    enableLogs: true,
-  },
-});
-```
-
-You can also filter the logs being collected by adding beforeSendLogs into `_experiments`
-
-```typescript
-Sentry.init({
-  // other options...
-  _experiments: {
-    enableLogs: true,
-    beforeSendLog: (log) => {
-      return log;
-    },
-  }
-});
-```
-
-### Self Hosted
-
-- It is recommended to use Sentry Self Hosted version `25.2.0` or new for React Native V7 or newer
 
 ### Fixes
 
