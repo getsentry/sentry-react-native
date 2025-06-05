@@ -1,7 +1,6 @@
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/core';
 import { createEnvelope, logger } from '@sentry/core';
 import * as RN from 'react-native';
-
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
 import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';

@@ -2,7 +2,6 @@ import { getClient, logger, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Appearance, Text } from 'react-native';
-
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
 import { hideFeedbackButton,resetFeedbackButtonManager, resetFeedbackWidgetManager, showFeedbackButton, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
 import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
@@ -116,7 +115,7 @@ describe('FeedbackWidgetManager', () => {
 
     showFeedbackWidget();
 
-    expect(consoleWarnSpy).toHaveBeenLastCalledWith(`[Sentry] FeedbackWidget requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackWidget()'.`);
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith('[Sentry] FeedbackWidget requires \'Sentry.wrap(RootComponent)\' to be called before \'showFeedbackWidget()\'.');
   });
 
   it('showFeedbackWidget does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {
@@ -196,7 +195,7 @@ describe('FeedbackButtonManager', () => {
   it('showFeedbackButton warns about missing feedback provider', () => {
     showFeedbackButton();
 
-    expect(consoleWarnSpy).toHaveBeenLastCalledWith(`[Sentry] FeedbackButton requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackButton()'.`);
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith('[Sentry] FeedbackButton requires \'Sentry.wrap(RootComponent)\' to be called before \'showFeedbackButton()\'.');
   });
 
   it('showFeedbackButton does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {

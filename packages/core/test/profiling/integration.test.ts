@@ -1,11 +1,11 @@
 import * as mockWrapper from '../mockWrapper';
+
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/profiling/debugid');
 
 import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Transport } from '@sentry/core';
 import { getClient, spanToJSON } from '@sentry/core';
-
 import * as Sentry from '../../src/js';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import type { HermesProfilingOptions } from '../../src/js/profiling/integration';
@@ -380,7 +380,7 @@ function initTestClient(
   const transportSendMock = jest.fn<ReturnType<Transport['send']>, Parameters<Transport['send']>>();
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
-    enableTracing: true,
+    tracesSampleRate: 1.0,
     enableNativeFramesTracking: false,
     profilesSampleRate: 1,
     integrations: integrations => {
@@ -466,5 +466,5 @@ function addIntegrationAndForceSetupOnce(integration: Integration): void {
   }
 
   client.addIntegration(integration);
-  integration.setupOnce && integration.setupOnce();
+  integration.setupOnce?.();
 }

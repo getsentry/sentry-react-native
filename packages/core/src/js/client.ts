@@ -10,9 +10,15 @@ import type {
   TransportMakeRequestResponse,
   UserFeedback,
 } from '@sentry/core';
-import { BaseClient, dateTimestampInSeconds, logger, SentryError } from '@sentry/core';
+import {
+  addAutoIpAddressToSession,
+  addAutoIpAddressToUser,
+  BaseClient,
+  dateTimestampInSeconds,
+  logger,
+  SentryError,
+} from '@sentry/core';
 import { Alert } from 'react-native';
-
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
@@ -48,6 +54,11 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     super(options);
 
     this._outcomesBuffer = [];
+
+    if (options.sendDefaultPii === true) {
+      this.on('postprocessEvent', addAutoIpAddressToUser);
+      this.on('beforeSendSession', addAutoIpAddressToSession);
+    }
   }
 
   /**

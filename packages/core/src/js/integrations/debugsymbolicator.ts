@@ -1,6 +1,5 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
 import { logger } from '@sentry/core';
-
 import type { ExtendedError } from '../utils/error';
 import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
@@ -131,7 +130,7 @@ async function convertReactNativeFramesToSentryFrames(frames: ReactNative.StackF
  * @param event Event
  * @param frames StackFrame[]
  */
-function replaceExceptionFramesInException(exception: Exception, frames: SentryStackFrame[]): void {
+function replaceExceptionFramesInException(exception: Exception | undefined, frames: SentryStackFrame[]): void {
   if (exception?.stacktrace) {
     exception.stacktrace.frames = frames.reverse();
   }
@@ -143,7 +142,7 @@ function replaceExceptionFramesInException(exception: Exception, frames: SentryS
  * @param frames StackFrame[]
  */
 function replaceThreadFramesInEvent(event: Event, frames: SentryStackFrame[]): void {
-  if (event.threads && event.threads.values && event.threads.values[0] && event.threads.values[0].stacktrace) {
+  if (event.threads?.values?.[0]?.stacktrace) {
     event.threads.values[0].stacktrace.frames = frames.reverse();
   }
 }

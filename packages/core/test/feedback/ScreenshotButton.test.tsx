@@ -2,7 +2,6 @@ import { getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert, Text } from 'react-native';
-
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
 import { resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager, showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';

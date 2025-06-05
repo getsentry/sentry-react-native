@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { getExpoConstants, getExpoGo } from './expomodules';
 import { ReactNativeLibraries } from './rnlibraries';
@@ -75,11 +74,7 @@ export function notMobileOs(): boolean {
 
 /** Returns Hermes Version if hermes is present in the runtime */
 export function getHermesVersion(): string | undefined {
-  return (
-    RN_GLOBAL_OBJ.HermesInternal &&
-    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties &&
-    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties()['OSS Release Version']
-  );
+  return RN_GLOBAL_OBJ.HermesInternal?.getRuntimeProperties?.()['OSS Release Version'];
 }
 
 /** Returns default environment based on __DEV__ */
@@ -91,8 +86,7 @@ export function getDefaultEnvironment(): 'development' | 'production' {
 export function isRunningInMetroDevServer(): boolean {
   if (
     typeof RN_GLOBAL_OBJ.process !== 'undefined' &&
-    RN_GLOBAL_OBJ.process.env &&
-    RN_GLOBAL_OBJ.process.env.___SENTRY_METRO_DEV_SERVER___ === 'true'
+    RN_GLOBAL_OBJ.process.env?.___SENTRY_METRO_DEV_SERVER___ === 'true'
   ) {
     return true;
   }

@@ -9,7 +9,6 @@ import {
   spanToJSON,
 } from '@sentry/core';
 import type { EmitterSubscription } from 'react-native';
-
 import { reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from '../../src/js/tracing/origin';
 import type {

@@ -7,7 +7,7 @@ import {
   getCurrentScope,
   logger,
 } from '@sentry/core';
-
+import type { ReactNativeClientOptions } from '../options';
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -141,7 +141,7 @@ function setupErrorUtilsGlobalHandler(): void {
     return;
   }
 
-  const defaultHandler = errorUtils.getGlobalHandler && errorUtils.getGlobalHandler();
+  const defaultHandler = errorUtils.getGlobalHandler?.();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
@@ -197,7 +197,7 @@ function setupErrorUtilsGlobalHandler(): void {
       return;
     }
 
-    void client.flush(client.getOptions().shutdownTimeout || 2000).then(
+    void client.flush((client.getOptions() as ReactNativeClientOptions).shutdownTimeout || 2000).then(
       () => {
         defaultHandler(error, isFatal);
       },

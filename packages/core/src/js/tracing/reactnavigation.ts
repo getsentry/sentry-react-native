@@ -12,7 +12,6 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
-
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -30,6 +29,7 @@ import {
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
 import { addTimeToInitialDisplayFallback } from './timeToDisplayFallback';
+
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
@@ -220,6 +220,7 @@ export const reactNavigationIntegration = ({
     const navigationActionType = useDispatchedActionData ? event?.data.action.type : undefined;
     if (
       useDispatchedActionData &&
+      navigationActionType &&
       [
         // Process common actions
         'PRELOAD',
@@ -241,7 +242,7 @@ export const reactNavigationIntegration = ({
     }
 
     latestNavigationSpan = startGenericIdleNavigationSpan(
-      tracing && tracing.options.beforeStartSpan
+      tracing?.options.beforeStartSpan
         ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
@@ -252,12 +253,12 @@ export const reactNavigationIntegration = ({
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
 
-    if (enableTimeToInitialDisplay) {
-      NATIVE.setActiveSpanId(latestNavigationSpan?.spanContext().spanId);
+    if (enableTimeToInitialDisplay && latestNavigationSpan) {
+      NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId);
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation dispatch to navigation cancelled or screen mounted',
-        startTime: latestNavigationSpan && spanToJSON(latestNavigationSpan).start_timestamp,
+        startTime: spanToJSON(latestNavigationSpan).start_timestamp,
       });
       navigationProcessingSpan.setAttribute(
         SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
