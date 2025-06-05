@@ -1,5 +1,4 @@
 import { logger } from '@sentry/core';
-
 import type { ReactNativeOptions } from '../options';
 
 type DangerTypesWithoutCallSignature =

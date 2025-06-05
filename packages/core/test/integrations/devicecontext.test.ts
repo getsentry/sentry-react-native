@@ -1,5 +1,4 @@
 import type { Client, Event, EventHint, SeverityLevel } from '@sentry/core';
-
 import { deviceContextIntegration } from '../../src/js/integrations/devicecontext';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';

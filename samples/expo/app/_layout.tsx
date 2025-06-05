@@ -9,7 +9,6 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { LogBox } from 'react-native';
-import { isWeb } from '../utils/isWeb';
 import * as ImagePicker from 'expo-image-picker';
 
 export {
@@ -57,6 +56,15 @@ Sentry.init({
       }),
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllText: true,
+        maskAllVectors: true,
+      }),
+      Sentry.browserReplayIntegration({
+        maskAllInputs: true,
+        maskAllText: true,
+      }),
       Sentry.feedbackIntegration({
         enableScreenshot: true,
         enableTakeScreenshot: true,
@@ -70,9 +78,6 @@ Sentry.init({
         },
       }),
     );
-    if (isWeb()) {
-      integrations.push(Sentry.browserReplayIntegration());
-    }
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,

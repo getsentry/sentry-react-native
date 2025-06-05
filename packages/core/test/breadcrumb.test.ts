@@ -1,5 +1,4 @@
 import type { Breadcrumb } from '@sentry/core';
-
 import { breadcrumbFromObject } from '../src/js/breadcrumb';
 
 describe('Breadcrumb', () => {
