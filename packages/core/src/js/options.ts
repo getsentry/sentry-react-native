@@ -40,7 +40,10 @@ export interface BaseReactNativeOptions {
   /** Should the native nagger alert be shown or not. */
   enableNativeNagger?: boolean;
 
-  /** Should sessions be tracked to Sentry Health or not. */
+  /** Should sessions be tracked to Sentry Health or not.
+   *
+   * @default true
+   */
   enableAutoSessionTracking?: boolean;
 
   /** The interval to end a session if the App goes to the background. */

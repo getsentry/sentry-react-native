@@ -47,6 +47,7 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeFramesTracking: true,
   enableStallTracking: true,
   enableUserInteractionTracing: false,
+  enableAutoSessionTracking: true,
 };
 
 /**
