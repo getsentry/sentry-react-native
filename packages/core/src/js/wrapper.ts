@@ -186,7 +186,7 @@ export const NATIVE: SentryNativeWrapper = {
         bytesPayload = itemPayload;
       } else {
         bytesContentType = 'application/vnd.sentry.items.log+json';
-        bytesPayload = encodeUTF8(JSON.stringify(itemPayload))
+        bytesPayload = encodeUTF8(JSON.stringify(itemPayload));
         if (!hardCrashed) {
           hardCrashed = isHardCrash(itemPayload);
         }
