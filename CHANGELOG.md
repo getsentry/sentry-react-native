@@ -101,21 +101,27 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 To enable it add the following code to your Sentry Options:
 
 ```typescript
+Sentry.init({
+  // other options...
   _experiments: {
     enableLogs: true,
   },
+});
 ```
 
 You can also filter the logs being collected by adding beforeSendLogs into `_experiments`
 
 ```typescript
+Sentry.init({
+  // other options...
   _experiments: {
     enableLogs: true,
     beforeSendLog: (log) => {
       return log;
     },
-  },
-  ```
+  }
+});
+```
 
 ### Self Hosted
 
