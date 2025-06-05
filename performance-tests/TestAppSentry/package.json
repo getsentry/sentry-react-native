@@ -1,6 +1,6 @@
 {
   "name": "TestAppSentry",
-  "version": "7.0.0-alpha.0",
+  "version": "7.0.0-beta.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -8,7 +8,7 @@
     "start": "react-native start"
   },
   "dependencies": {
-    "@sentry/react-native": "7.0.0-alpha.0",
+    "@sentry/react-native": "7.0.0-beta.0",
     "react": "18.1.0",
     "react-native": "0.70.15"
   },
