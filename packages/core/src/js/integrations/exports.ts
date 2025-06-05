@@ -22,9 +22,9 @@ export { userInteractionIntegration } from '../tracing/integrations/userInteract
 export { createReactNativeRewriteFrames } from './rewriteframes';
 export { appRegistryIntegration } from './appRegistry';
 export { timeToDisplayIntegration } from '../tracing/integrations/timeToDisplayIntegration';
+export { breadcrumbsIntegration } from './breadcrumbs';
 
 export {
-  breadcrumbsIntegration,
   browserApiErrorsIntegration,
   dedupeIntegration,
   functionToStringIntegration,
