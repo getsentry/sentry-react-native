@@ -15,7 +15,7 @@ import {
   View
 } from 'react-native';
 
-import { isWeb, notWeb } from '../utils/environment';
+import { isExpoGo, isWeb, notWeb } from '../utils/environment';
 import type { Screenshot } from '../wrapper';
 import { getDataFromUri, NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
@@ -181,9 +181,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               if (data != null) {
                 this.setState({ filename, attachment: data, attachmentUri: imageUri });
               } else {
+                this._showImageRetrievalDevelopmentNote();
                 logger.error('Failed to read image data from uri:', imageUri);
               }
             }).catch((error) => {
+              this._showImageRetrievalDevelopmentNote();
               logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
             });
           }
@@ -196,10 +198,12 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             if (data != null) {
               this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
             } else {
+              this._showImageRetrievalDevelopmentNote();
               logger.error('Failed to read image data from uri:', uri);
             }
           })
-          .catch((error) => {
+            .catch((error) => {
+            this._showImageRetrievalDevelopmentNote();
             logger.error('Failed to read image data from uri:', uri, 'error: ', error);
           });
         });
@@ -401,5 +405,14 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   private _hasScreenshot = (): boolean => {
     return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
+  }
+
+  private _showImageRetrievalDevelopmentNote = (): void => {
+    if (isExpoGo()) {
+      feedbackAlertDialog(
+        'Development note',
+        'The feedback widget cannot retrieve image data in Expo Go. Please build your app to test this functionality.',
+      );
+    }
   }
 }
