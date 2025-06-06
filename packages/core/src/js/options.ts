@@ -4,7 +4,7 @@ import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
 import { Platform } from 'react-native';
 import type { TouchEventBoundaryProps } from './touchevents';
-import { getExpoConstants } from './utils/expomodules';
+import { isExpoGo } from './utils/environment';
 
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
 type BrowserTransportOptions = Parameters<typeof makeFetchTransport>[0];
@@ -318,8 +318,7 @@ export function shouldEnableNativeNagger(userOptions: unknown): boolean {
     return false;
   }
 
-  const expoConstants = getExpoConstants();
-  if (expoConstants && expoConstants.appOwnership === 'expo') {
+  if (isExpoGo()) {
     // If the app is running in Expo Go, we don't want to nag
     return false;
   }

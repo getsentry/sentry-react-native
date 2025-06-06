@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Changes
+
+- Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
+
+## 7.0.0-beta.0
+
 ### Upgrading from 6.x to 7.0
 
 Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes based on the Sentry Javascript SDK version 9. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.

@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
-import { getExpoConstants } from './expomodules';
+import { getExpoConstants, getExpoGo } from './expomodules';
 import { ReactNativeLibraries } from './rnlibraries';
 
 /** Checks if the React Native Hermes engine is running */
@@ -34,8 +34,8 @@ export function isExpo(): boolean {
 
 /** Check if JS runs in Expo Go */
 export function isExpoGo(): boolean {
-  const expoConstants = getExpoConstants();
-  return expoConstants?.appOwnership === 'expo';
+  const expoGo = getExpoGo();
+  return !!expoGo;
 }
 
 /** Check Expo Go version if available */
