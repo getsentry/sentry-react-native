@@ -8,6 +8,14 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.52.0 to v8.52.1 ([#4899](https://github.com/getsentry/sentry-react-native/pull/4899))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8521)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.52.0...8.52.1)
+
+## 6.15.0
+
 ### Features
 
 - User Feedback Widget Updates
