@@ -201,8 +201,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               this._showImageRetrievalDevelopmentNote();
               logger.error('Failed to read image data from uri:', uri);
             }
-          })
-            .catch((error) => {
+          }).catch((error) => {
             this._showImageRetrievalDevelopmentNote();
             logger.error('Failed to read image data from uri:', uri, 'error: ', error);
           });
