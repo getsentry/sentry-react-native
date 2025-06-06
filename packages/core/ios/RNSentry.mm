@@ -517,6 +517,11 @@ RCT_EXPORT_METHOD(fetchNativeFrames
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
+        // TODO
+        CFTimeInterval framesDelay = [PrivateSentrySDKOnly getFramesDelay:0.0
+                                                       endSystemTimestamp:0.0];
+        NSNumber *delay = [NSNumber numberWithDouble:framesDelay];
+
         SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
 
         if (frames == nil) {
@@ -532,6 +537,7 @@ RCT_EXPORT_METHOD(fetchNativeFrames
             @"totalFrames" : total,
             @"frozenFrames" : frozen,
             @"slowFrames" : slow,
+            @"framesDelay" : delay,
         });
     } else {
         resolve(nil);
