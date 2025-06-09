@@ -408,15 +408,14 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   private _getUser = (): User | undefined => {
     const currentUser = getCurrentScope().getUser();
-    const isolationUser = getIsolationScope().getUser();
-    const globalUser = getGlobalScope().getUser();
     if (currentUser && Object.keys(currentUser).length) {
       return currentUser;
     }
+    const isolationUser = getIsolationScope().getUser();
     if (isolationUser && Object.keys(isolationUser).length) {
       return isolationUser;
     }
-    return globalUser;
+    return getGlobalScope().getUser();
   }
 
   private _showImageRetrievalDevelopmentNote = (): void => {
