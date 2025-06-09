@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Consider isolation and global scope for prefilling feedback widget user data([#4901](https://github.com/getsentry/sentry-react-native/pull/4901))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.52.0 to v8.52.1 ([#4899](https://github.com/getsentry/sentry-react-native/pull/4899))
