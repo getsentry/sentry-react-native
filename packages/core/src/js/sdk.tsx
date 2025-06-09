@@ -11,10 +11,7 @@ import {
   stackParserFromStackParserOptions,
   withScope as coreWithScope,
 } from '@sentry/core';
-import {
-  defaultStackParser,
-  makeFetchTransport,
-} from '@sentry/react';
+import { defaultStackParser, makeFetchTransport, Profiler } from '@sentry/react';
 import * as React from 'react';
 import { ReactNativeClient } from './client';
 import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetProvider';
@@ -27,7 +24,7 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
-import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
+import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -170,14 +167,16 @@ export function wrap<P extends Record<string, unknown>>(
     updateProps: {}
   };
 
-  const RootApp: React.FC<P> = (appProps) => {
+  const ProfilerComponent = isWeb() ? Profiler : ReactNativeProfiler;
+
+  const RootApp: React.FC<P> = appProps => {
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
-        <ReactNativeProfiler {...profilerProps}>
+        <ProfilerComponent {...profilerProps}>
           <FeedbackWidgetProvider>
             <RootComponent {...appProps} />
           </FeedbackWidgetProvider>
-        </ReactNativeProfiler>
+        </ProfilerComponent>
       </TouchEventBoundary>
     );
   };
