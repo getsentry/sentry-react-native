@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Report slow and frozen frames as app start span data ([#4865](https://github.com/getsentry/sentry-react-native/pull/4865))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.52.0 to v8.52.1 ([#4899](https://github.com/getsentry/sentry-react-native/pull/4899))
@@ -52,7 +56,6 @@
 - Use engine-specific promise rejection tracking ([#4826](https://github.com/getsentry/sentry-react-native/pull/4826))
 - Fixes Feedback Widget accessibility issue on iOS ([#4739](https://github.com/getsentry/sentry-react-native/pull/4739))
 - Measuring TTID or TTFD could cause a crash when `parentSpanId` was removed ([#4881](https://github.com/getsentry/sentry-react-native/pull/4881))
-- Report slow and frozen frames as app start span data ([#4865](https://github.com/getsentry/sentry-react-native/pull/4865))
 
 ### Dependencies
 
