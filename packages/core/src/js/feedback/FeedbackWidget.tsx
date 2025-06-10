@@ -408,11 +408,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   private _getUser = (): User | undefined => {
     const currentUser = getCurrentScope().getUser();
-    if (currentUser && Object.keys(currentUser).length) {
+    if (currentUser) {
       return currentUser;
     }
     const isolationUser = getIsolationScope().getUser();
-    if (isolationUser && Object.keys(isolationUser).length) {
+    if (isolationUser) {
       return isolationUser;
     }
     return getGlobalScope().getUser();
