@@ -6,12 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 6.15.1
+## Unreleased
 
 ### Fixes
 
 - User set by `Sentry.setUser` is prefilled in Feedback Widget ([#4901](https://github.com/getsentry/sentry-react-native/pull/4901))
   - User data are considered from all scopes in the following order current, isolation and global.
+
+## 6.15.1
 
 ### Dependencies
 
