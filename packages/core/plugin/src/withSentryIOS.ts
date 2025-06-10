@@ -103,8 +103,8 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       // Add RNSentrySDK.start() at the beginning of application method
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
-        /(func application\([^)]*\) -> Bool \{)/s,
-        `$1\n    RNSentrySDK.start()`,
+        /(func application\([^)]*\) -> Bool \{)\s*\n(\s*)/s,
+        `$1\n$2RNSentrySDK.start()\n$2`,
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.start()' in '${fileName}'.`);
