@@ -84,13 +84,13 @@ export function withSentryAndroidGradlePlugin(
       const sentryPlugin = `apply plugin: "io.sentry.android.gradle"`;
       const sentryConfig = `
   sentry {
-      autoUploadProguardMapping = ${autoUploadProguardMapping}
+      autoUploadProguardMapping = ${autoUploadProguardMapping ? 'shouldSentryAutoUpload()' : 'false'}
       includeProguardMapping = ${includeProguardMapping}
       dexguardEnabled = ${dexguardEnabled}
-      uploadNativeSymbols = ${uploadNativeSymbols}
-      autoUploadNativeSymbols = ${autoUploadNativeSymbols}
+      uploadNativeSymbols = ${uploadNativeSymbols ? 'shouldSentryAutoUpload()' : 'false'}
+      autoUploadNativeSymbols = ${autoUploadNativeSymbols ? 'shouldSentryAutoUpload()' : 'false'}
       includeNativeSources = ${includeNativeSources}
-      includeSourceContext = ${includeSourceContext}
+      includeSourceContext = ${includeSourceContext ? 'shouldSentryAutoUpload()' : 'false'}
       tracingInstrumentation {
           enabled = false
       }

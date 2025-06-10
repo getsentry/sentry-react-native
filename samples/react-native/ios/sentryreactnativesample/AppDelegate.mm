@@ -1,10 +1,13 @@
 #import "AppDelegate.h"
 
-#import <RCTAppDelegate+Protected.h>
-#import <React/CoreModulesPlugins.h>
+#import <UserNotifications/UserNotifications.h>
+
 #import <React/RCTBundleURLProvider.h>
-#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
+#import <React/RCTDefines.h>
+#import <React/RCTLinkingManager.h>
 #import <ReactCommon/RCTTurboModuleManager.h>
+
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #    import <NativeSampleModule.h>
@@ -15,7 +18,7 @@
 #import <Sentry/Sentry.h>
 
 @interface
-AppDelegate () <RCTTurboModuleManagerDelegate> {
+AppDelegate () <UNUserNotificationCenterDelegate> {
 }
 @end
 
@@ -34,15 +37,22 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
                                      userInfo:nil];
     }
 
-    self.moduleName = @"sentry-react-native-sample";
-
+    // When the native init is enabled the `autoInitializeNativeSdk`
+    // in JS has to be set to `false`
+    // [self initializeSentry];
+    self.reactNativeFactory = [[RCTReactNativeFactory alloc] initWithDelegate:self];
     self.dependencyProvider = [RCTAppDependencyProvider new];
 
-    // You can add your custom initial props in the dictionary below.
-    // They will be passed down to the ViewController used by React
-    self.initialProps = @{};
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 
-    return [super application:application didFinishLaunchingWithOptions:launchOptions];
+    [self.reactNativeFactory startReactNativeWithModuleName:@"sentry-react-native-sample"
+                                                   inWindow:self.window
+                                          initialProperties:@{}
+                                              launchOptions:launchOptions];
+
+    [[UNUserNotificationCenter currentNotificationCenter] setDelegate:self];
+
+    return YES;
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
@@ -59,28 +69,19 @@ AppDelegate () <RCTTurboModuleManagerDelegate> {
 #endif
 }
 
-/// This method controls whether the `concurrentRoot`feature of React18 is turned on or off.
-///
-/// @see: https://reactjs.org/blog/2022/03/29/react-v18.html
-/// @note: This requires to be rendering on Fabric (i.e. on the New Architecture).
-/// @return: `true` if the `concurrentRoot` feature is enabled. Otherwise, it returns `false`.
-- (BOOL)concurrentRootEnabled
-{
-    return true;
-}
-
-#pragma mark RCTTurboModuleManagerDelegate
+#pragma mark - RCTComponentViewFactoryComponentProvider
 
 - (std::shared_ptr<facebook::react::TurboModule>)
     getTurboModule:(const std::string &)name
          jsInvoker:(std::shared_ptr<facebook::react::CallInvoker>)jsInvoker
 {
 #ifdef RCT_NEW_ARCH_ENABLED
-    if (name == "NativeSampleModule") {
+    if (name == std::string([@"NativeSampleModule" UTF8String])) {
         return std::make_shared<facebook::react::NativeSampleModule>(jsInvoker);
     }
 #endif
-    return nullptr;
+
+    return [super getTurboModule:name jsInvoker:jsInvoker];
 }
 
 - (BOOL)shouldStartSentry

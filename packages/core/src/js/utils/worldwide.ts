@@ -4,6 +4,11 @@ import type { ErrorUtils } from 'react-native/types';
 
 import type { ReactNativeOptions } from '../options';
 import type { ExpoGlobalObject } from './expoglobalobject';
+export interface HermesPromiseRejectionTrackingOptions {
+  allRejections: boolean;
+  onUnhandled: (id: string, error: unknown) => void;
+  onHandled: (id: string) => void;
+}
 
 /** Internal Global object interface with common and Sentry specific properties */
 export interface ReactNativeInternalGlobal extends InternalGlobal {
@@ -11,6 +16,8 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   __sentry_rn_v5_registered?: boolean;
   HermesInternal?: {
     getRuntimeProperties?: () => Record<string, string | undefined>;
+    enablePromiseRejectionTracker?: (options: HermesPromiseRejectionTrackingOptions) => void;
+    hasPromise?: () => boolean;
   };
   Promise: unknown;
   __turboModuleProxy: unknown;

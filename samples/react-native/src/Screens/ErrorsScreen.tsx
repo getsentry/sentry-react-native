@@ -19,6 +19,7 @@ import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
+import { TimeToFullDisplay } from '../utils';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -30,6 +31,7 @@ const ErrorsScreen = (_props: Props) => {
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
   const [isFeedbackVisible, setFeedbackVisible] = React.useState(false);
+  const [isFeedbackButtonVisible, setFeedbackButtonVisible] = React.useState(false);
 
   const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
     <Text>Error boundary caught with event id: {eventId}</Text>
@@ -46,6 +48,7 @@ const ErrorsScreen = (_props: Props) => {
     <>
       <StatusBar barStyle="dark-content" />
       <ScrollView style={styles.mainView}>
+        <TimeToFullDisplay record={true} />
         <Button
           title="Capture message"
           onPress={() => {
@@ -185,29 +188,20 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Add attachment"
           onPress={() => {
-            Sentry.configureScope(scope => {
+            const scope = Sentry.getGlobalScope();
+            scope.addAttachment({
+              data: 'Attachment content',
+              filename: 'attachment.txt',
+              contentType: 'text/plain',
+            });
+            if (data) {
               scope.addAttachment({
-                data: 'Attachment content',
-                filename: 'attachment.txt',
-                contentType: 'text/plain',
+                data,
+                filename: 'logo.png',
+                contentType: 'image/png',
               });
-              if (data) {
-                scope.addAttachment({
-                  data,
-                  filename: 'logo.png',
-                  contentType: 'image/png',
-                });
-              }
-              console.log('Sentry attachment added.');
-            });
-          }}
-        />
-        <Button
-          title="Get attachments"
-          onPress={async () => {
-            Sentry.configureScope(scope => {
-              console.log('Attachments:', scope.getAttachments());
-            });
+            }
+            console.log('Sentry attachment added.');
           }}
         />
         <Button
@@ -230,6 +224,18 @@ const ErrorsScreen = (_props: Props) => {
           title="Feedback form (auto)"
           onPress={() => {
             Sentry.showFeedbackWidget();
+          }}
+        />
+        <Button
+          title="Show/Hide Feedback Button"
+          onPress={() => {
+            if (isFeedbackButtonVisible) {
+              Sentry.hideFeedbackButton();
+              setFeedbackButtonVisible(false);
+            } else {
+              Sentry.showFeedbackButton();
+              setFeedbackButtonVisible(true);
+            }
           }}
         />
         <Button

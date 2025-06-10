@@ -1,4 +1,5 @@
 #import "RNSentryOnDrawReporter.h"
+#import "RNSentryTimeToDisplay.h"
 
 #if SENTRY_HAS_UIKIT
 
@@ -7,9 +8,9 @@
 @implementation RNSentryOnDrawReporter
 
 RCT_EXPORT_MODULE(RNSentryOnDrawReporter)
-RCT_EXPORT_VIEW_PROPERTY(onDrawNextFrame, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(initialDisplay, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(parentSpanId, NSString)
 
 - (UIView *)view
 {
@@ -19,29 +20,16 @@ RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
 
 @end
 
-@implementation RNSentryOnDrawReporterView
+@implementation RNSentryOnDrawReporterView {
+    BOOL isListening;
+}
 
 - (instancetype)init
 {
     self = [super init];
     if (self) {
-        RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {
-            if (self->_fullDisplay) {
-                self.onDrawNextFrame(@{
-                    @"newFrameTimestampInSeconds" : newFrameTimestampInSeconds,
-                    @"type" : @"fullDisplay"
-                });
-                return;
-            }
-
-            if (self->_initialDisplay) {
-                self.onDrawNextFrame(@{
-                    @"newFrameTimestampInSeconds" : newFrameTimestampInSeconds,
-                    @"type" : @"initialDisplay"
-                });
-                return;
-            }
-        };
+        _spanIdUsed = NO;
+        RNSentryEmitNewFrameEvent emitNewFrameEvent = [self createEmitNewFrameEvent];
         _framesListener = [[RNSentryFramesTrackerListener alloc]
             initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
                         andEventEmitter:emitNewFrameEvent];
@@ -49,10 +37,53 @@ RCT_EXPORT_VIEW_PROPERTY(fullDisplay, BOOL)
     return self;
 }
 
+- (RNSentryEmitNewFrameEvent)createEmitNewFrameEvent
+{
+    return ^(NSNumber *newFrameTimestampInSeconds) {
+        self->isListening = NO;
+
+        if (![_parentSpanId isKindOfClass:[NSString class]]) {
+            return;
+        }
+
+        if (self->_fullDisplay) {
+            [RNSentryTimeToDisplay
+                putTimeToDisplayFor:[@"ttfd-" stringByAppendingString:self->_parentSpanId]
+                              value:newFrameTimestampInSeconds];
+            return;
+        }
+
+        if (self->_initialDisplay) {
+            [RNSentryTimeToDisplay
+                putTimeToDisplayFor:[@"ttid-" stringByAppendingString:self->_parentSpanId]
+                              value:newFrameTimestampInSeconds];
+            return;
+        }
+    };
+}
+
 - (void)didSetProps:(NSArray<NSString *> *)changedProps
 {
+    if (![_parentSpanId isKindOfClass:[NSString class]]) {
+        _previousParentSpanId = nil;
+        return;
+    }
+
+    if ([_parentSpanId isEqualToString:_previousParentSpanId] && _spanIdUsed) {
+        _previousInitialDisplay = _initialDisplay;
+        _previousFullDisplay = _fullDisplay;
+        return;
+    }
+
+    _previousParentSpanId = _parentSpanId;
+    _spanIdUsed = NO;
+
     if (_fullDisplay || _initialDisplay) {
-        [_framesListener startListening];
+        if (!isListening && !_spanIdUsed) {
+            _spanIdUsed = YES;
+            isListening = YES;
+            [_framesListener startListening];
+        }
     }
 }
 

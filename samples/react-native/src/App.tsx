@@ -31,12 +31,13 @@ import GesturesTracingScreen from './Screens/GesturesTracingScreen';
 import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
-import { logWithoutTracing, shouldUseAutoStart } from './utils';
-import { ErrorEvent } from '@sentry/core';
+
+import { logWithoutTracing, shouldUseAutoStart, getDsn } from './utils';
 import HeavyNavigationScreen from './Screens/HeavyNavigationScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 import * as ImagePicker from 'react-native-image-picker';
+import SpaceflightNewsScreen from './Screens/SpaceflightNewsScreen';
 
 /* false by default to avoid issues in e2e tests waiting for the animation end */
 const RUNNING_INDICATOR = false;
@@ -51,15 +52,18 @@ const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
 const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   routeChangeTimeoutMs: 500, // How long it will wait for the route change to complete. Default is 1000ms
   enableTimeToInitialDisplay: isMobileOs,
-  ignoreEmptyBackNavigationTransactions: true,
+  ignoreEmptyBackNavigationTransactions: false,
+  enableTimeToInitialDisplayForPreloadedRoutes: true,
+  useDispatchedActionData: true,
 });
 
 Sentry.init({
-  beforeSend: (event: ErrorEvent) => {
+  dsn: getDsn(),
+  beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event) {
+  beforeSendTransaction(event: Sentry.TransactionEvent) {
     logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },
@@ -91,20 +95,25 @@ Sentry.init({
         maskAllImages: true,
         maskAllVectors: true,
         maskAllText: true,
+        enableViewRendererV2: true,
+        enableFastViewRendering: true,
       }),
       Sentry.appStartIntegration({
         standalone: false,
       }),
       Sentry.reactNativeErrorHandlersIntegration({
-        patchGlobalPromise: Platform.OS === 'ios' && isTurboModuleEnabled()
-          // The global patch doesn't work on iOS with the New Architecture in this Sample app
-          // In
-          ? false
-          : true,
+        patchGlobalPromise:
+          Platform.OS === 'ios' && isTurboModuleEnabled()
+            ? // The global patch doesn't work on iOS with the New Architecture in this Sample app
+              // In
+              false
+            : true,
       }),
       Sentry.feedbackIntegration({
         imagePicker: ImagePicker,
-        styles:{
+        enableScreenshot: true,
+        enableTakeScreenshot: true,
+        styles: {
           submitButton: {
             backgroundColor: '#6a1b9a',
             paddingVertical: 15,
@@ -114,7 +123,22 @@ Sentry.init({
           },
         },
         namePlaceholder: 'Fullname',
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
+        screenshotButtonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 75, // Place above the tab bar
+            },
+          },
+        },
       }),
+      Sentry.extraErrorDataIntegration(),
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
@@ -180,6 +204,10 @@ const PerformanceTabNavigator = Sentry.withProfiler(
               component={PerformanceScreen}
               options={{ title: 'Performance' }}
             />
+            <Stack.Screen
+              name="SpaceflightNewsScreen"
+              component={SpaceflightNewsScreen}
+            />
             <Stack.Screen name="Tracker" component={TrackerScreen} />
             <Stack.Screen
               name="ManualTracker"
@@ -222,6 +250,7 @@ function BottomTabsNavigator() {
                 name={focused ? 'bug' : 'bug-outline'}
                 size={size}
                 color={color}
+                testID="errors-tab-icon"
               />
             ),
           }}
@@ -237,6 +266,7 @@ function BottomTabsNavigator() {
                 name={focused ? 'speedometer' : 'speedometer-outline'}
                 size={size}
                 color={color}
+                testID="performance-tab-icon"
               />
             ),
           }}
@@ -254,6 +284,7 @@ function BottomTabsNavigator() {
                 }
                 size={size}
                 color={color}
+                testID="playground-tab-icon"
               />
             ),
           }}

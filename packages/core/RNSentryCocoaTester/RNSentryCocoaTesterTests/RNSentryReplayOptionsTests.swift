@@ -48,13 +48,15 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 6)
+        XCTAssertEqual(replayOptions.count, 8)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["maskAllImages"])
         XCTAssertNotNil(replayOptions["maskAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
         XCTAssertNotNil(replayOptions["sdkInfo"])
+        XCTAssertNotNil(replayOptions["enableViewRendererV2"])
+        XCTAssertNotNil(replayOptions["enableFastViewRendering"])
     }
 
     func testSessionSampleRate() {
@@ -163,6 +165,88 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
+    }
+
+    func testEnableViewRendererV2Default() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
+    }
+
+    func testEnableViewRendererV2True() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableViewRendererV2": true ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
+    }
+
+    func testEnableViewRendererV2False() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableViewRendererV2": false ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertFalse(actualOptions.sessionReplay.enableViewRendererV2)
+    }
+
+    func testEnableFastViewRenderingDefault() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
+    }
+
+    func testEnableFastViewRenderingTrue() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableFastViewRendering": true ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertTrue(actualOptions.sessionReplay.enableFastViewRendering)
+    }
+
+    func testEnableFastViewRenderingFalse() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "enableFastViewRendering": false ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+
+        XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
 
 }

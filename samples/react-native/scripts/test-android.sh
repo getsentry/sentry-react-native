@@ -1,43 +1,27 @@
 #!/bin/bash
 
-# Exit on error and print commands
-set -xe
+set -e -x # exit on error, print commands
 
-thisFilePath=$(dirname "$0")
+# Get current directory
+thisFileDirPath=$(dirname "$0")
+reactProjectRootPath="$(cd "$thisFileDirPath/.." && pwd)"
 
-cd "${thisFilePath}/.."
+maybeApkPath=$(find "${reactProjectRootPath}" -maxdepth 1 -name "*.apk")
 
-if [ -z "$ANDROID_AVD_NAME" ]; then
-  # Get the name of the first booted or connected Android device
-  DEVICE_NAME=$(adb devices | grep -w "device" | head -n 1 | cut -f 1)
+# Check if any APK files exist
+apk_count=$(echo "$maybeApkPath" | wc -l)
 
-  if [ -z "$DEVICE_NAME" ]; then
-    echo "No Android device or emulator found"
-    exit 1
-  fi
-
-  if [[ "$DEVICE_NAME" == *"emulator"* ]]; then
-    # Get the name of the first booted or connected Android emulator/device
-    EMULATOR_NAME=$(adb -s "${DEVICE_NAME}" emu avd name | head -n 1 | cut -f 1 )
-
-    if [ -z "$EMULATOR_NAME" ]; then
-      echo "No Android emulator found"
-      exit 1
-    fi
-
-    export ANDROID_TYPE="android.emulator"
-    export ANDROID_AVD_NAME="$EMULATOR_NAME"
-    echo "Using Android emulator: $EMULATOR_NAME"
-  else
-    export ANDROID_TYPE="android.attached"
-    export ANDROID_ADB_NAME="$DEVICE_NAME"
-
-    adb reverse tcp:8081  tcp:8081
-    adb reverse tcp:8961  tcp:8961
-
-    echo "Using Android device: $DEVICE_NAME"
-  fi
+if [ -n "$maybeApkPath" ] && [ $apk_count -eq 1 ]; then
+  # Force install single APK using adb
+  apk_file="${maybeApkPath}"
+  echo "Installing $apk_file..."
+  adb install -r "$apk_file"
+elif [ $apk_count -gt 1 ]; then
+  echo "Error: Multiple APK files found. Expected only one APK file."
+  exit 1
+else
+  echo "No APK files found, continuing without install"
 fi
 
 # Run the tests
-detox test --configuration ci.android
+npx jest --config e2e/jest.config.android.js

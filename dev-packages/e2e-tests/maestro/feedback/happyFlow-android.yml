@@ -1,0 +1,39 @@
+# This is a happy path test for the feedback widget on Android.
+# It verifies that the feedback form can be opened, filled out, and submitted successfully
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+
+# Show feedback button
+- tapOn: 'Feedback'
+
+# Open feedback widget
+- tapOn: 'Report a Bug'
+
+# Assert that the feedback form is visible
+- extendedWaitUntil:
+    visible: 'Report a Bug'
+    timeout: 5_000
+
+# Fill out name field
+- tapOn: 'Your Name'
+- inputText: 'John Doe'
+
+# Fill out email field
+- tapOn: 'your.email@example.org'
+- inputText: 'test@email.com'
+
+# Fill out message field
+- tapOn: "What's the bug? What did you expect?"
+- inputText: 'This is a test feedback message from CI e2e tests'
+
+# Submit feedback
+- scrollUntilVisible:
+    element:
+      text: 'Send Bug Report'
+- tapOn: 'Send Bug Report'
+- assertVisible: 'Thank you for your report!'
+- tapOn: 'OK'
+
+# Verify feedback form is closed and the home screen is visible
+- assertVisible: 'Welcome to React Native'
