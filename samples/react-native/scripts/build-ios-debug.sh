@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Exit on error and print commands
-set -xe
+# Exit on error
+set -e
 
 thisFilePath=$(dirname "$0")
 

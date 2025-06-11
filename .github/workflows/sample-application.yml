@@ -185,7 +185,7 @@ jobs:
           name: build-sample-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/${{ matrix.platform }}/*.log
 
-  test:
+  test-detox:
     name: ${{ matrix.job-name }}
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, build]

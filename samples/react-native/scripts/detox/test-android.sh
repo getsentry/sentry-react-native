@@ -5,7 +5,7 @@ set -xe
 
 thisFilePath=$(dirname "$0")
 
-cd "${thisFilePath}/.."
+cd "${thisFilePath}/../.."
 
 if [ -z "$ANDROID_AVD_NAME" ]; then
   # Get the name of the first booted or connected Android device

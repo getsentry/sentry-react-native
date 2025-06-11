@@ -37,7 +37,7 @@ module.exports = {
       testRunner: {
         args: {
           $0: 'jest',
-          config: 'e2e/jest.config.android.js',
+          config: 'e2e-detox/jest.config.android.js',
         },
         jest: {
           setupTimeout: 120000,
@@ -50,7 +50,7 @@ module.exports = {
       testRunner: {
         args: {
           $0: 'jest',
-          config: 'e2e/jest.config.ios.auto.js',
+          config: 'e2e-detox/jest.config.ios.auto.js',
         },
         jest: {
           setupTimeout: 120000,
@@ -63,7 +63,7 @@ module.exports = {
       testRunner: {
         args: {
           $0: 'jest',
-          config: 'e2e/jest.config.ios.manual.js',
+          config: 'e2e-detox/jest.config.ios.manual.js',
         },
         jest: {
           setupTimeout: 120000,
