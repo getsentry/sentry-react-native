@@ -8,32 +8,6 @@
 
 ## Unreleased
 
-### Changes
-
-- Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
-- Disable AppStart and NativeFrames in unsupported environments (web, Expo Go) ([#4897](https://github.com/getsentry/sentry-react-native/pull/4897))
-
-## 7.0.0-beta.0
-
-### Upgrading from 6.x to 7.0
-
-Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes based on the Sentry Javascript SDK version 9. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
-
-Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
-
-### Major Changes
-
-- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
-- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
-
-### Major Changes from Sentry JS SDK v9
-
-- Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
-- `shutdownTimeout` moved from `core` to `@sentry/react-native`
-- `hasTracingEnabled` was renamed to `hasSpansEnabled`
-- You can no longer drop spans or return null on `beforeSendSpan` hook
-- Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
-
 #### Features
 
 - Add experimental support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827))
@@ -62,6 +36,32 @@ Sentry.init({
   }
 });
 ```
+
+### Changes
+
+- Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
+- Disable AppStart and NativeFrames in unsupported environments (web, Expo Go) ([#4897](https://github.com/getsentry/sentry-react-native/pull/4897))
+
+## 7.0.0-beta.0
+
+### Upgrading from 6.x to 7.0
+
+Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes based on the Sentry Javascript SDK version 9. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
+
+Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
+
+### Major Changes
+
+- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
+- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+
+### Major Changes from Sentry JS SDK v9
+
+- Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
+- `shutdownTimeout` moved from `core` to `@sentry/react-native`
+- `hasTracingEnabled` was renamed to `hasSpansEnabled`
+- You can no longer drop spans or return null on `beforeSendSpan` hook
+- Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
 
 #### Removed types
 
