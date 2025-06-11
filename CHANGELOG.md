@@ -42,6 +42,10 @@ Sentry.init({
 - Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
 - Disable AppStart and NativeFrames in unsupported environments (web, Expo Go) ([#4897](https://github.com/getsentry/sentry-react-native/pull/4897))
 
+### Self Hosted
+
+- It is recommended to use Sentry Self Hosted version `25.2.0` or new for React Native V7 or newer
+
 ## 7.0.0-beta.0
 
 ### Upgrading from 6.x to 7.0
@@ -100,10 +104,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Bump Android SDK from v7.20.1 to v8.13.2 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
-
-### Self Hosted
-
-- It is recommended to use Sentry Self Hosted version `25.2.0` or new for React Native V7 or newer
 
 ## 6.15.0
 
