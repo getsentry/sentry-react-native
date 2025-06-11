@@ -1,6 +1,13 @@
 jest.mock('../../src/js/integrations/debugsymbolicatorutils');
 
-import type { Client, Event, EventHint, StackFrame } from '@sentry/core';
+import {
+  type Client,
+  type Event,
+  type EventHint,
+  type StackFrame,
+  captureConsoleIntegration,
+  setCurrentClient,
+} from '@sentry/core';
 
 import { debugSymbolicatorIntegration } from '../../src/js/integrations/debugsymbolicator';
 import {
@@ -10,6 +17,7 @@ import {
   symbolicateStackTrace,
 } from '../../src/js/integrations/debugsymbolicatorutils';
 import type * as ReactNative from '../../src/js/vendor/react-native';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 async function processEvent(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
   return debugSymbolicatorIntegration().processEvent!(mockedEvent, mockedHint, {} as Client);
@@ -838,6 +846,55 @@ describe('Debug Symbolicator Integration', () => {
                     in_app: true,
                   },
                 ],
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    it('should not capture console events when symbolicating the stack trace', async () => {
+      (symbolicateStackTrace as jest.Mock).mockImplementation(() => {
+        // eslint-disable-next-line no-console
+        console.assert(false, 'should not be logged as an event', '<object>');
+        return Promise.resolve({
+          stack: [],
+        } as ReactNative.SymbolicatedStackTrace);
+      });
+
+      const client = new TestClient(getDefaultTestClientOptions());
+      setCurrentClient(client);
+      client.addIntegration(captureConsoleIntegration({ levels: ['assert'] }));
+      client.init();
+
+      const symbolicatedEvent = await processEvent(
+        {
+          threads: {
+            values: [
+              {
+                stacktrace: {
+                  frames: mockSentryParsedFrames,
+                },
+              },
+            ],
+          },
+        },
+        {
+          syntheticException: {
+            stack: mockRawStack,
+            framesToPop: 2,
+          } as unknown as Error,
+        },
+      );
+
+      // An event with the console log will be captured here if failed
+      expect(client.event).toBeUndefined();
+      expect(symbolicatedEvent).toStrictEqual(<Event>{
+        threads: {
+          values: [
+            {
+              stacktrace: {
+                frames: [],
               },
             },
           ],
