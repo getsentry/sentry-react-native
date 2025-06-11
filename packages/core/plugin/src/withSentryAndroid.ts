@@ -105,7 +105,9 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
         );
       }
     } else {
-      warnOnce(`Unrecognized language detected in '${fileName}', the native code won't be updated.`);
+      warnOnce(
+        `Unsupported language '${config.modResults.language}' detected in '${fileName}', the native code won't be updated.`,
+      );
     }
 
     return config;

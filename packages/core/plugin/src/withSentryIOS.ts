@@ -104,8 +104,8 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       // Add RNSentrySDK.start() at the beginning of application method
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
-        /(func application\([^)]*\) -> Bool \{)/s,
-        `$1\n    RNSentrySDK.start()`,
+        /(func application\([^)]*\) -> Bool \{)\s*\n(\s*)/s,
+        `$1\n$2RNSentrySDK.start()\n$2`,
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.start()' in '${fileName}'.`);
@@ -113,7 +113,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         // Insert import statement after UIKit import
         config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
       }
-    } else if (config.modResults.language === 'objc') {
+    } else if (['objcpp', 'objc'].includes(config.modResults.language)) {
       if (config.modResults.contents.includes('[RNSentrySDK start]')) {
         warnOnce(`Your '${fileName}' already contains '[RNSentrySDK start]'.`);
         return config;
@@ -134,7 +134,9 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         );
       }
     } else {
-      warnOnce(`Unsupported language detected in '${fileName}', the native code won't be updated.`);
+      warnOnce(
+        `Unsupported language '${config.modResults.language}' detected in '${fileName}', the native code won't be updated.`,
+      );
     }
 
     return config;
