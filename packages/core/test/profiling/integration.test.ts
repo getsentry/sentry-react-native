@@ -17,6 +17,7 @@ import { envelopeItemPayload, envelopeItems } from '../testutils';
 import {
   createMockMinimalValidAndroidProfile,
   createMockMinimalValidAppleProfile,
+  createMockMinimalValidAppleProfileWithoutDebugMeta,
   createMockMinimalValidHermesProfile,
 } from './fixtures';
 
@@ -155,6 +156,41 @@ describe('profiling integration', () => {
     });
 
     describe('with native profiling', () => {
+      test('should create a new mixed profile and add it to the transaction envelope with missing debug_meta', () => {
+        mockWrapper.NATIVE.stopProfiling.mockReturnValue({
+          hermesProfile: createMockMinimalValidHermesProfile(),
+          nativeProfile: createMockMinimalValidAppleProfileWithoutDebugMeta(),
+        });
+
+        const transaction = Sentry.startSpan({ name: 'test-name' }, span => span);
+
+        jest.runAllTimers();
+
+        const envelope: Envelope | undefined = mock.transportSendMock.mock.lastCall?.[0];
+        expectEnvelopeToContainProfile(envelope, 'test-name', spanToJSON(transaction).trace_id);
+        // Expect merged profile
+        expect(getProfileFromEnvelope(envelope)).toEqual(
+          expect.objectContaining(<Partial<Profile>>{
+            profile: expect.objectContaining(<Partial<ThreadCpuProfile>>{
+              frames: [
+                {
+                  function: '[root]',
+                  in_app: false,
+                },
+                {
+                  instruction_addr: '0x0000000000000003',
+                  platform: 'cocoa',
+                },
+                {
+                  instruction_addr: '0x0000000000000004',
+                  platform: 'cocoa',
+                },
+              ],
+            }),
+          }),
+        );
+      });
+
       test('should create a new mixed profile and add it to the transaction envelope', () => {
         mockWrapper.NATIVE.stopProfiling.mockReturnValue({
           hermesProfile: createMockMinimalValidHermesProfile(),
@@ -262,8 +298,9 @@ describe('profiling integration', () => {
       const transaction1 = Sentry.startSpanManual({ name: 'test-name-1' }, span => span);
       const transaction2 = Sentry.startSpanManual({ name: 'test-name-2' }, span => span);
       transaction1.end();
-      transaction2.end();
+      jest.runOnlyPendingTimers();
 
+      transaction2.end();
       jest.runAllTimers();
 
       expectEnvelopeToContainProfile(

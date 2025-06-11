@@ -31,7 +31,6 @@ import { LogBox, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PlaygroundScreen from './Screens/PlaygroundScreen';
 import { logWithoutTracing } from './utils';
-import { ErrorEvent } from '@sentry/core';
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -47,11 +46,11 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: ErrorEvent) => {
+  beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event) {
+  beforeSendTransaction(event: Sentry.TransactionEvent) {
     logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },

@@ -8,7 +8,6 @@ jsEngine: graaljs
 - launchApp:
     clearState: true
     arguments:
-      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
       replaysOnErrorSampleRate: ${replaysOnErrorSampleRate}
 
 - runFlow: assertTestReady.yml

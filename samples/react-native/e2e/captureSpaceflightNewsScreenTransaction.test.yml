@@ -1,0 +1,30 @@
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    # We expect cold start
+    clearState: true
+    stopApp: true
+    arguments:
+      isE2ETest: true
+
+# For unknown reasons tapOn: "Performance" does not work on iOS
+- tapOn:
+    id: "performance-tab-icon"
+- tapOn: "Open Spaceflight News"
+
+- scrollUntilVisible:
+    element: "Load More Articles"
+# On iOS the visibility is resolved when the button only peaks from the bottom tabs
+# this causes Maestro to click the bottom tab instead of the button
+# thus the extra scroll is needed to make the button visible
+- scroll
+- tapOn: "Load More Articles"
+- scrollUntilVisible:
+    element: "Load More Articles"
+
+- tapOn:
+    id: "errors-tab-icon"
+
+# The tab keeps News Screen open, but the data are updated on the next visit
+- tapOn:
+    id: "performance-tab-icon"

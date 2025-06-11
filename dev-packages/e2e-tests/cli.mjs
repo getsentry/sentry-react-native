@@ -234,16 +234,35 @@ if (actions.includes('test')) {
   if (!sentryAuthToken) {
     console.log('Skipping maestro test due to unavailable or empty SENTRY_AUTH_TOKEN');
   } else {
-    execSync(
-      `maestro test maestro \
-        --env=APP_ID="${appId}" \
-        --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
-        --debug-output maestro-logs \
-        --flatten-debug-output`,
-      {
-        stdio: 'inherit',
-        cwd: e2eDir,
-      },
-    );
+    try {
+      execSync(
+        `maestro test maestro \
+          --env=APP_ID="${appId}" \
+          --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
+          --debug-output maestro-logs \
+          --flatten-debug-output`,
+        {
+          stdio: 'inherit',
+          cwd: e2eDir,
+        },
+      );
+    } finally {
+      // Always redact sensitive data, even if the test fails
+      const redactScript = `
+        if [[ "$(uname)" == "Darwin" ]]; then
+          find ./maestro-logs -type f -exec sed -i '' "s/${sentryAuthToken}/[REDACTED]/g" {} +
+          echo 'Redacted sensitive data from logs on MacOS'
+        else
+          find ./maestro-logs -type f -exec sed -i "s/${sentryAuthToken}/[REDACTED]/g" {} +
+          echo 'Redacted sensitive data from logs on Ubuntu'
+        fi
+      `;
+
+      try {
+        execSync(redactScript, { stdio: 'inherit', cwd: e2eDir, shell: '/bin/bash' });
+      } catch (error) {
+        console.warn('Failed to redact sensitive data from logs:', error.message);
+      }
+    }
   }
 }

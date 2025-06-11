@@ -1,14 +1,23 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-
-import { Platform, TurboModuleRegistry } from 'react-native';
+import { AppRegistry, Platform, TurboModuleRegistry } from 'react-native';
 
 import type * as ReactNative from '../vendor/react-native';
 import type { ReactNativeLibrariesInterface } from './rnlibrariesinterface';
 
-export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
+const InternalReactNativeLibrariesInterface: Required<ReactNativeLibrariesInterface> = {
   Devtools: {
     parseErrorStack: (errorStack: string): Array<ReactNative.StackFrame> => {
       const parseErrorStack = require('react-native/Libraries/Core/Devtools/parseErrorStack');
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (parseErrorStack.default && typeof parseErrorStack.default === 'function') {
+        // Starting with react-native 0.79, the parseErrorStack is a default export
+        // https://github.com/facebook/react-native/commit/e5818d92a867dbfa5f60d176b847b1f2131cb6da
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return parseErrorStack.default(errorStack);
+      }
+
+      // react-native 0.78 and below
       return parseErrorStack(errorStack);
     },
     symbolicateStackTrace: (
@@ -16,10 +25,30 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
       extraData?: Record<string, unknown>,
     ): Promise<ReactNative.SymbolicatedStackTrace> => {
       const symbolicateStackTrace = require('react-native/Libraries/Core/Devtools/symbolicateStackTrace');
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (symbolicateStackTrace.default && typeof symbolicateStackTrace.default === 'function') {
+        // Starting with react-native 0.79, the symbolicateStackTrace is a default export
+        // https://github.com/facebook/react-native/commit/e5818d92a867dbfa5f60d176b847b1f2131cb6da
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return symbolicateStackTrace.default(stack, extraData);
+      }
+
+      // react-native 0.78 and below
       return symbolicateStackTrace(stack, extraData);
     },
     getDevServer: (): ReactNative.DevServerInfo => {
       const getDevServer = require('react-native/Libraries/Core/Devtools/getDevServer');
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (getDevServer.default && typeof getDevServer.default === 'function') {
+        // Starting with react-native 0.79, the getDevServer is a default export
+        // https://github.com/facebook/react-native/commit/e5818d92a867dbfa5f60d176b847b1f2131cb6da
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return getDevServer.default();
+      }
+
+      // react-native 0.78 and below
       return getDevServer();
     },
   },
@@ -34,6 +63,7 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     version: Platform.constants?.reactNativeVersion,
   },
   TurboModuleRegistry,
+  AppRegistry,
   ReactNative: {
     requireNativeComponent: <T>(viewName: string): ReactNative.HostComponent<T> => {
       const { requireNativeComponent } = require('react-native');
@@ -41,3 +71,5 @@ export const ReactNativeLibraries: Required<ReactNativeLibrariesInterface> = {
     },
   },
 };
+
+export const ReactNativeLibraries: ReactNativeLibrariesInterface = InternalReactNativeLibrariesInterface;

@@ -13,6 +13,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  MAESTRO_VERSION: '1.40.3'
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -60,9 +61,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Enable Corepack
-        run: |
-          npm install -g corepack@0.29.4
-          corepack enable
+        run: npm i -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -115,7 +114,7 @@ jobs:
           export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
-          ./scripts/set-dsn-aos.mjs
+          ./scripts/detox/set-dsn-aos.mjs
           ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
       - name: Build iOS App
@@ -124,7 +123,7 @@ jobs:
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
 
-          ./scripts/set-dsn-ios.mjs
+          ./scripts/detox/set-dsn-ios.mjs
           ./scripts/build-ios.sh
 
       - name: Build macOS App
@@ -216,7 +215,7 @@ jobs:
             runs-on: ubuntu-latest
             rn-architecture: 'new'
             build-type: 'production'
-            test-command: 'yarn test-android'
+            test-command: 'yarn test-android-manual'
 
     steps:
       - uses: actions/checkout@v4
@@ -316,3 +315,115 @@ jobs:
             -timezone US/Pacific
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
           script: ${{ matrix.test-command }}
+
+  test:
+    name: Test ${{ matrix.platform }} ${{ matrix.build-type }} REV2
+    runs-on: ${{ matrix.runs-on }}
+    needs: [diff_check, build]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    strategy:
+      # we want that the matrix keeps running, default is to cancel them if it fails.
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ios
+            runs-on: macos-15
+            rn-architecture: 'new'
+            ios-use-frameworks: 'no-frameworks'
+            build-type: 'production'
+
+          - platform: android
+            runs-on: ubuntu-latest
+            rn-architecture: 'new'
+            build-type: 'production'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Maestro
+        uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
+        with:
+          version: ${{env.MAESTRO_VERSION}}
+
+      - name: Download iOS App Archive
+        if: ${{ matrix.platform == 'ios' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.platform }}
+          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+
+      - name: Download Android APK
+        if: ${{ matrix.platform == 'android' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
+          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+
+      - name: Unzip iOS App Archive
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: unzip ${{ env.IOS_APP_ARCHIVE_PATH }}
+
+      - name: Unzip Android APK
+        if: ${{ matrix.platform == 'android' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
+          rm app-androidTest.apk
+
+      - name: Enable Corepack
+        run: npm i -g corepack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install JS Dependencies
+        run: yarn install
+
+      - name: Setup KVM
+        if: ${{ matrix.platform == 'android' }}
+        shell: bash
+        run: |
+          # check if virtualization is supported...
+          sudo apt install -y --no-install-recommends cpu-checker coreutils && echo "CPUs=$(nproc --all)" && kvm-ok
+          # allow access to KVM to run the emulator
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Boot ${{ env.IOS_DEVICE }} with iOS ${{ env.IOS_VERSION }}
+        uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          model: ${{ env.IOS_DEVICE }}
+          os_version: ${{ env.IOS_VERSION }}
+
+      - name: Run iOS Tests
+        if: ${{ matrix.platform == 'ios' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: yarn test-ios
+
+      - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
+        if: ${{ matrix.platform == 'android' }}
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # pin@v2.34.0
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          force-avd-creation: false
+          disable-animations: true
+          disable-spellchecker: true
+          target: 'aosp_atd'
+          channel: canary # Necessary for ATDs
+          emulator-options: >
+            -no-window
+            -no-snapshot-save
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+            -timezone US/Pacific
+          working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+          script: yarn test-android
