@@ -8,10 +8,43 @@
 
 ## Unreleased
 
+#### Features
+
+- Add experimental support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827))
+
+To enable it add the following code to your Sentry Options:
+
+```typescript
+Sentry.init({
+  // other options...
+  _experiments: {
+    enableLogs: true,
+  },
+});
+```
+
+You can also filter the logs being collected by adding beforeSendLogs into `_experiments`
+
+```typescript
+Sentry.init({
+  // other options...
+  _experiments: {
+    enableLogs: true,
+    beforeSendLog: (log) => {
+      return log;
+    },
+  }
+});
+```
+
 ### Changes
 
 - Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
 - Disable AppStart and NativeFrames in unsupported environments (web, Expo Go) ([#4897](https://github.com/getsentry/sentry-react-native/pull/4897))
+
+### Self Hosted
+
+- It is recommended to use Sentry Self Hosted version `25.2.0` or new for React Native V7 or newer
 
 ## 7.0.0-beta.0
 

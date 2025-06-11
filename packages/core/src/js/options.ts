@@ -1,6 +1,6 @@
 import type { makeFetchTransport } from '@sentry/browser';
 import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
-import type { Profiler } from '@sentry/react';
+import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
 import { Platform } from 'react-native';
 import type { TouchEventBoundaryProps } from './touchevents';
@@ -8,6 +8,9 @@ import { isExpoGo } from './utils/environment';
 
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
 type BrowserTransportOptions = Parameters<typeof makeFetchTransport>[0];
+
+type BrowserExperiments = NonNullable<BrowserOptions['_experiments']>;
+type SharedExperimentsSubset = Pick<BrowserExperiments, 'enableLogs' | 'beforeSendLog'>;
 
 export interface BaseReactNativeOptions {
   /**
@@ -244,7 +247,7 @@ export interface BaseReactNativeOptions {
   /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
-  _experiments?: {
+  _experiments?: SharedExperimentsSubset & {
     [key: string]: unknown;
 
     /**
