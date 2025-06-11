@@ -81,7 +81,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     const port = dsnComponents.port ? `:${dsnComponents.port}` : '';
     return `${dsnComponents.protocol}://${dsnComponents.host}${port}`;
   };
-
+  // Extra comment.
   const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
