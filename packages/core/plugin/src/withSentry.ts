@@ -1,7 +1,8 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { createRunOncePlugin } from 'expo/config-plugins';
 
-import { bold, sdkPackage, warnOnce } from './utils';
+import { bold, warnOnce } from './logger';
+import { PLUGIN_NAME, PLUGIN_VERSION } from './version';
 import { withSentryAndroid } from './withSentryAndroid';
 import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
 import { withSentryAndroidGradlePlugin } from './withSentryAndroidGradlePlugin';
@@ -80,6 +81,6 @@ ${authToken ? `${existingAuthTokenMessage}\nauth.token=${authToken}` : missingAu
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-const withSentry = createRunOncePlugin(withSentryPlugin, sdkPackage.name, sdkPackage.version);
+const withSentry = createRunOncePlugin(withSentryPlugin, PLUGIN_NAME, PLUGIN_VERSION);
 
 export { withSentry };
