@@ -133,7 +133,9 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         );
       }
     } else {
-      warnOnce(`Unsupported language detected in '${fileName}', the native code won't be updated.`);
+      warnOnce(
+        `Unsupported language '${config.modResults.language}' detected in '${fileName}', the native code won't be updated.`,
+      );
     }
 
     return config;
