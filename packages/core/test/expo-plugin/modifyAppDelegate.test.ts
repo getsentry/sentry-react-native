@@ -17,7 +17,7 @@ interface MockedExpoConfig extends ExpoConfig {
   modResults: {
     path: string;
     contents: string;
-    language: 'swift' | 'objc';
+    language: 'swift' | 'objc' | 'objcpp' | string;
   };
 }
 
@@ -146,6 +146,30 @@ describe('modifyAppDelegate', () => {
     expect(result.modResults.contents).toContain('#import <RNSentry/RNSentry.h>');
     expect(result.modResults.contents).toContain('[RNSentrySDK start];');
     expect(result.modResults.contents).toBe(objcExpected);
+  });
+
+  it('should modify an Objective-C++ file by adding the RNSentrySDK import and start', async () => {
+    config.modResults.language = 'objcpp';
+    config.modResults.contents = objcContents;
+
+    const result = (await modifyAppDelegate(config)) as MockedExpoConfig;
+
+    expect(result.modResults.contents).toContain('#import <RNSentry/RNSentry.h>');
+    expect(result.modResults.contents).toContain('[RNSentrySDK start];');
+    expect(result.modResults.contents).toBe(objcExpected);
+  });
+
+  it('should not modify a source file if the language is not supported', async () => {
+    config.modResults.language = 'cpp';
+    config.modResults.contents = objcContents;
+    config.modResults.path = 'samples/react-native/ios/AppDelegate.cpp';
+
+    const result = (await modifyAppDelegate(config)) as MockedExpoConfig;
+
+    expect(warnOnce).toHaveBeenCalledWith(
+      `Unsupported language 'cpp' detected in 'AppDelegate.cpp', the native code won't be updated.`,
+    );
+    expect(result).toBe(config); // No modification
   });
 
   it('should insert import statements only once in an Swift project', async () => {
