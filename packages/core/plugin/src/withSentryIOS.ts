@@ -112,7 +112,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         // Insert import statement after UIKit import
         config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
       }
-    } else if (config.modResults.language === 'objc') {
+    } else if (['objcpp', 'objc'].includes(config.modResults.language)) {
       if (config.modResults.contents.includes('[RNSentrySDK start]')) {
         warnOnce(`Your '${fileName}' already contains '[RNSentrySDK start]'.`);
         return config;
