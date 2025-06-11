@@ -16,6 +16,44 @@ import { withSentryMiddleware } from './metroMiddleware';
 
 enableLogger();
 
+interface ExpoConfig {
+  name?: string;
+  version?: string;
+}
+
+interface ExpoConfigResult {
+  exp: ExpoConfig;
+}
+
+/**
+ * Try to inject Expo config name and version as environment variables.
+ * @param projectRoot The root directory of the Expo project.
+ */
+function injectExpoConfigAsEnvVars(projectRoot: string): void {
+  try {
+    let getConfigFunction: ((projectRoot: string) => ExpoConfigResult) | null = null;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+      const expoConfig = require('@expo/config') as { getConfig: (projectRoot: string) => ExpoConfigResult };
+      getConfigFunction = expoConfig.getConfig;
+    } catch {
+      // @expo/config not available, do nothing
+    }
+
+    if (getConfigFunction) {
+      const { exp } = getConfigFunction(projectRoot);
+
+      if (exp && typeof exp.name === 'string' && typeof exp.version === 'string') {
+        process.env.EXPO_PUBLIC_APP_NAME = exp.name;
+        process.env.EXPO_PUBLIC_APP_VERSION = exp.version;
+      }
+    }
+  } catch (error) {
+    logger.warn('Failed to inject Expo config as environment variables:', error);
+  }
+}
+
 export interface SentryMetroConfigOptions {
   /**
    * Annotates React components with Sentry data.
@@ -87,6 +125,8 @@ export function getSentryExpoConfig(
   options: DefaultConfigOptions & SentryExpoConfigOptions & SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
+
+  injectExpoConfigAsEnvVars(projectRoot);
 
   const getDefaultConfig = options.getDefaultConfig || loadExpoMetroConfigModule().getDefaultConfig;
   const config = getDefaultConfig(projectRoot, {
