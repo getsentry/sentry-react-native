@@ -112,6 +112,7 @@ export type NativeFramesResponse = {
   totalFrames: number;
   slowFrames: number;
   frozenFrames: number;
+  framesDelay: number;
 };
 
 export type NativeReleaseResponse = {
