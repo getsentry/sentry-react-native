@@ -15,6 +15,16 @@ import {
 
 type MetroFrame = Parameters<Required<Required<MetroConfig>['symbolicator']>['customizeFrame']>[0];
 
+const mockGetConfig = jest.fn();
+jest.mock('@expo/config', () => ({
+  getConfig: mockGetConfig,
+}));
+
+const mockExpoGetDefaultConfig = jest.fn();
+jest.mock('expo/metro-config', () => ({
+  getDefaultConfig: mockExpoGetDefaultConfig,
+}));
+
 describe('metroconfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -23,6 +33,16 @@ describe('metroconfig', () => {
     delete process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS];
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH];
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete process.env.EXPO_PUBLIC_APP_NAME;
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete process.env.EXPO_PUBLIC_APP_VERSION;
+
+    // Reset mocks to default behavior
+    mockExpoGetDefaultConfig.mockReturnValue({
+      transformer: { babelTransformerPath: 'default/babel/transformer' },
+    });
+    mockGetConfig.mockReset();
   });
 
   test('getSentryExpoConfig keeps compatible interface with Expos getDefaultConfig', () => {
@@ -321,6 +341,64 @@ describe('metroconfig', () => {
           expect(received).toBeCalledWith(contextMock, moduleName, platform);
         }
       }
+    });
+  });
+
+  describe('injectExpoConfigAsEnvVars', () => {
+    test('injects Expo config name and version as environment variables when config is available', () => {
+      mockGetConfig.mockReturnValue({
+        exp: {
+          name: 'MyExpoApp',
+          version: '1.2.3',
+        },
+      });
+
+      getSentryExpoConfig('/test/project/root');
+
+      expect(mockGetConfig).toHaveBeenCalledWith('/test/project/root');
+      expect(process.env.EXPO_PUBLIC_APP_NAME).toBe('MyExpoApp');
+      expect(process.env.EXPO_PUBLIC_APP_VERSION).toBe('1.2.3');
+    });
+
+    test('does not inject environment variables when exp config is missing', () => {
+      mockGetConfig.mockReturnValue({});
+
+      getSentryExpoConfig('/test/project/root');
+
+      expect(process.env.EXPO_PUBLIC_APP_NAME).toBeUndefined();
+      expect(process.env.EXPO_PUBLIC_APP_VERSION).toBeUndefined();
+    });
+
+    test('handles @expo/config not being available gracefully', () => {
+      const originalModule = require('@expo/config');
+      jest.doMock('@expo/config', () => {
+        throw new Error('Module not found');
+      });
+
+      jest.resetModules();
+      const { getSentryExpoConfig: freshGetSentryExpoConfig } = require('../../src/js/tools/metroconfig');
+
+      expect(() => {
+        freshGetSentryExpoConfig('/test/project/root');
+      }).not.toThrow();
+
+      expect(process.env.EXPO_PUBLIC_APP_NAME).toBeUndefined();
+      expect(process.env.EXPO_PUBLIC_APP_VERSION).toBeUndefined();
+
+      jest.doMock('@expo/config', () => originalModule);
+    });
+
+    test('handles getConfig throwing an error gracefully', () => {
+      mockGetConfig.mockImplementation(() => {
+        throw new Error('Config loading failed');
+      });
+
+      expect(() => {
+        getSentryExpoConfig('/test/project/root');
+      }).not.toThrow();
+
+      expect(process.env.EXPO_PUBLIC_APP_NAME).toBeUndefined();
+      expect(process.env.EXPO_PUBLIC_APP_VERSION).toBeUndefined();
     });
   });
 });
