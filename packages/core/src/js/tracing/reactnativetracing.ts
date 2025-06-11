@@ -5,7 +5,7 @@ import { getClient } from '@sentry/core';
 
 import { isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
-import { addDefaultOpForSpanFrom, defaultIdleOptions } from './span';
+import { addDefaultOpForSpanFrom, addThreadInfoToSpan, defaultIdleOptions } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
 
@@ -29,7 +29,10 @@ export interface ReactNativeTracingOptions {
   /**
    * Flag to disable patching all together for fetch requests.
    *
-   * @default true
+   * Fetch in React Native is a `whatwg-fetch` polyfill which uses XHR under the hood.
+   * This causes duplicates when both `traceFetch` and `traceXHR` are enabled at the same time.
+   *
+   * @default false
    */
   traceFetch: boolean;
 
@@ -70,7 +73,11 @@ function getDefaultTracePropagationTargets(): RegExp[] | undefined {
 }
 
 export const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
-  traceFetch: true,
+  // Fetch in React Native is a `whatwg-fetch` polyfill which uses XHR under the hood.
+  // This causes duplicates when both `traceFetch` and `traceXHR` are enabled at the same time.
+  // https://github.com/facebook/react-native/blob/28945c68da056ab2ac01de7e542a845b2bca6096/packages/react-native/Libraries/Network/fetch.js
+  // (RN Web uses browsers native fetch implementation)
+  traceFetch: isWeb() ? true : false,
   traceXHR: true,
   enableHTTPTimings: true,
 };
@@ -119,6 +126,7 @@ export const reactNativeTracingIntegration = (
 
   const setup = (client: Client): void => {
     addDefaultOpForSpanFrom(client);
+    addThreadInfoToSpan(client);
 
     instrumentOutgoingRequests(client, {
       traceFetch: finalOptions.traceFetch,

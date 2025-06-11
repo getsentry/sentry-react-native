@@ -1,27 +1,8 @@
 import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
-import { LaunchArguments } from "react-native-launch-arguments";
 
 const E2E_TESTS_READY_TEXT = 'E2E Tests Ready';
-
-const getSentryAuthToken = ():
-  | { token: string }
-  | { error: string } => {
-  const { sentryAuthToken } = LaunchArguments.value<{
-    sentryAuthToken: unknown;
-  }>();
-
-  if (typeof sentryAuthToken !== 'string') {
-    return { error: 'Sentry Auth Token is required' };
-  }
-
-  if (sentryAuthToken.length === 0) {
-    return { error: 'Sentry Auth Token must not be empty' };
-  }
-
-  return { token: sentryAuthToken };
-};
 
 const EndToEndTestsScreen = (): JSX.Element => {
   const [isReady, setIsReady] = React.useState(false);
@@ -61,6 +42,11 @@ const EndToEndTestsScreen = (): JSX.Element => {
       id: 'unhandledPromiseRejection',
       name: 'Unhandled Promise Rejection',
       action: async () => await Promise.reject(new Error('Unhandled Promise Rejection')),
+    },
+    {
+      id: 'feedback',
+      name: 'Feedback',
+      action: () => Sentry.showFeedbackButton(),
     },
     {
       id: 'close',

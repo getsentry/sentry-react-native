@@ -1,6 +1,14 @@
 import type { EventHint, Integration, SeverityLevel } from '@sentry/core';
-import { addExceptionMechanism, captureException, getClient, getCurrentScope, logger } from '@sentry/core';
+import {
+  addExceptionMechanism,
+  addGlobalUnhandledRejectionInstrumentationHandler,
+  captureException,
+  getClient,
+  getCurrentScope,
+  logger,
+} from '@sentry/core';
 
+import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
@@ -44,49 +52,83 @@ function setup(options: ReactNativeErrorHandlersOptions): void {
  * Setup unhandled promise rejection tracking
  */
 function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
-  if (patchGlobalPromise) {
-    polyfillPromise();
-  }
+  try {
+    if (
+      isHermesEnabled() &&
+      RN_GLOBAL_OBJ.HermesInternal?.enablePromiseRejectionTracker &&
+      RN_GLOBAL_OBJ?.HermesInternal?.hasPromise?.()
+    ) {
+      logger.log('Using Hermes native promise rejection tracking');
 
-  attachUnhandledRejectionHandler();
-  checkPromiseAndWarn();
+      RN_GLOBAL_OBJ.HermesInternal.enablePromiseRejectionTracker({
+        allRejections: true,
+        onUnhandled: promiseRejectionTrackingOptions.onUnhandled,
+        onHandled: promiseRejectionTrackingOptions.onHandled,
+      });
+
+      logger.log('Unhandled promise rejections will be caught by Sentry.');
+    } else if (isWeb()) {
+      logger.log('Using Browser JS promise rejection tracking for React Native Web');
+
+      // Use Sentry's built-in global unhandled rejection handler
+      addGlobalUnhandledRejectionInstrumentationHandler((error: unknown) => {
+        captureException(error, {
+          originalException: error,
+          syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
+          mechanism: { handled: false, type: 'onunhandledrejection' },
+        });
+      });
+    } else if (patchGlobalPromise) {
+      // For JSC and other environments, use the existing approach
+      polyfillPromise();
+      attachUnhandledRejectionHandler();
+      checkPromiseAndWarn();
+    } else {
+      // For JSC and other environments, patching was disabled by user configuration
+      logger.log('Unhandled promise rejections will not be caught by Sentry.');
+    }
+  } catch (e) {
+    logger.warn(
+      'Failed to set up promise rejection tracking. ' +
+        'Unhandled promise rejections will not be caught by Sentry.' +
+        'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
+    );
+  }
 }
 
-function attachUnhandledRejectionHandler(): void {
-  const tracking = requireRejectionTracking();
+const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
+  onUnhandled: (id, error: unknown, rejection = {}) => {
+    if (__DEV__) {
+      logger.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
+    }
 
-  const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
-    onUnhandled: (id, rejection = {}) => {
-      // eslint-disable-next-line no-console
-      console.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
-    },
-    onHandled: id => {
-      // eslint-disable-next-line no-console
-      console.warn(
+    // Marking the rejection as handled to avoid breaking crash rate calculations.
+    // See: https://github.com/getsentry/sentry-react-native/issues/4141
+    captureException(error, {
+      data: { id },
+      originalException: error,
+      syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
+      mechanism: { handled: true, type: 'onunhandledrejection' },
+    });
+  },
+  onHandled: id => {
+    if (__DEV__) {
+      logger.warn(
         `Promise Rejection Handled (id: ${id})\n` +
           'This means you can ignore any previous messages of the form ' +
           `"Possible Unhandled Promise Rejection (id: ${id}):"`,
       );
-    },
-  };
+    }
+  },
+};
+
+function attachUnhandledRejectionHandler(): void {
+  const tracking = requireRejectionTracking();
 
   tracking.enable({
     allRejections: true,
-    onUnhandled: (id: string, error: unknown) => {
-      if (__DEV__) {
-        promiseRejectionTrackingOptions.onUnhandled(id, error);
-      }
-
-      captureException(error, {
-        data: { id },
-        originalException: error,
-        syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
-        mechanism: { handled: true, type: 'onunhandledrejection' },
-      });
-    },
-    onHandled: (id: string) => {
-      promiseRejectionTrackingOptions.onHandled(id);
-    },
+    onUnhandled: promiseRejectionTrackingOptions.onUnhandled,
+    onHandled: promiseRejectionTrackingOptions.onHandled,
   });
 }
 

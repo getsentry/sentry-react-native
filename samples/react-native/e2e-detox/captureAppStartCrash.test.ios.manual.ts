@@ -43,7 +43,7 @@ describe('Capture app start crash', () => {
       expect.objectContaining({
         platform: 'cocoa',
         sdk: {
-          features: [],
+          features: ['experimentalViewRenderer', 'dataSwizzling'],
           integrations: [
             'SessionReplay',
             'WatchdogTerminationTracking',

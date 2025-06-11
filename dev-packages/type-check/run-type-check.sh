@@ -14,6 +14,9 @@ yalc add @sentry/react-native
 
 yarn install
 
+echo "Removing duplicate React types..."
+rm -rf ./node_modules/@types/react-native/node_modules/@types/react
+
 yarn type-check
 
 rm yarn.lock

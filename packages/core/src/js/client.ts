@@ -141,6 +141,26 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
   }
 
   /**
+   * Register a hook on this client.
+   *
+   * (Generic method signature to allow for custom React Native Client events.)
+   */
+  public on(hook: string, callback: unknown): () => void {
+    // @ts-expect-error on from the base class doesn't support generic types
+    return super.on(hook, callback);
+  }
+
+  /**
+   * Emit a hook that was previously registered via `on()`.
+   *
+   * (Generic method signature to allow for custom React Native Client events.)
+   */
+  public emit(hook: string, ...rest: unknown[]): void {
+    // @ts-expect-error emit from the base class doesn't support generic types
+    super.emit(hook, ...rest);
+  }
+
+  /**
    * Starts native client with dsn and options
    */
   private _initNativeSdk(): void {
@@ -165,6 +185,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
       )
       .then((didCallNativeInit: boolean) => {
         this._options.onReady?.({ didCallNativeInit });
+        this.emit('afterInit');
       })
       .then(undefined, error => {
         logger.error('The OnReady callback threw an error: ', error);
