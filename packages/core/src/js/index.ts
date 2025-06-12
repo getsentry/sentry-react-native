@@ -14,6 +14,7 @@ export type {
   UserFeedback,
   ErrorEvent,
   TransactionEvent,
+  FeatureFlagsIntegration,
 } from '@sentry/core';
 
 export {
@@ -47,6 +48,7 @@ export {
   addEventProcessor,
   metricsDefault as metrics,
   lastEventId,
+  featureFlagsIntegration,
 } from '@sentry/core';
 
 export {
