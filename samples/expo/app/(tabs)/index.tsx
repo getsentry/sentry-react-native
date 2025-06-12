@@ -10,8 +10,6 @@ import React from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import { useUpdates } from 'expo-updates';
 import { isWeb } from '../../utils/isWeb';
-import { Wizard } from '@sentry/react-native';
-import { Image } from 'react-native';
 
 const isRunningInExpoGo = Constants.appOwnership === 'expo';
 
@@ -19,7 +17,6 @@ export default function TabOneScreen() {
   const { currentlyRunning } = useUpdates();
   return (
     <View style={styles.container}>
-      <Wizard />
       {/* <Image source={require('../..//hi.gif')} style={{ width: 100, height: 100 }} /> */}
       <Sentry.TimeToInitialDisplay record />
       <Text>Welcome to Sentry Expo Sample App!</Text>

@@ -20,6 +20,25 @@ import { hi as hiAnimation, bug as bugAnimation, thumbsup as thumbsupAnimation }
 import { hi as hiImage, bug as bugImage, thumbsup as thumbsupImage } from './images';
 import { nativeCrashExample, tryCatchExample, uncaughtErrorExample } from './examples';
 
+/**
+ * Wrapper to add Sentry Playground to your application
+ * to test your Sentry React Native SDK setup.
+ *
+ * @example
+ * ```tsx
+ * import * as Sentry from '@sentry/react-native';
+ * import { withSentryPlayground } from '@sentry/react-native/playground';
+ *
+ * function App() {
+ *   return <View>...</View>;
+ * }
+ *
+ * export default withSentryPlayground(Sentry.wrap(App), {
+ *   projectId: '123456',
+ *   organizationSlug: 'my-org'
+ * });
+ * ```
+ */
 export const withSentryPlayground = <P extends object>(
   Component: React.ComponentType<P>,
   options: { projectId?: string; organizationSlug?: string } = {},
