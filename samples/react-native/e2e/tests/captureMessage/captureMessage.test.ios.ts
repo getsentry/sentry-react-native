@@ -1,26 +1,32 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
 import { Envelope, EventItem } from '@sentry/core';
-import { device } from 'detox';
+
 import {
   createSentryServer,
   containingEventWithMessage,
-} from './utils/mockedSentryServer';
-import { tap } from './utils/tap';
-import { getItemOfTypeFrom } from './utils/event';
+} from '../../utils/mockedSentryServer';
+import { getItemOfTypeFrom } from '../../utils/event';
+import { maestro } from '../../utils/maestro';
+import { isAutoInitTest } from '../../utils/environment';
 
 describe('Capture message', () => {
   let sentryServer = createSentryServer();
-  sentryServer.start();
 
   let envelope: Envelope;
 
   beforeAll(async () => {
-    await device.launchApp();
+    await sentryServer.start();
 
     const envelopePromise = sentryServer.waitForEnvelope(
       containingEventWithMessage('Captured message'),
     );
-    await tap('Capture message');
+
+    if (isAutoInitTest()) {
+      await maestro('tests/captureMessage/captureMessage.test.ios.auto.yml');
+    } else {
+      await maestro('tests/captureMessage/captureMessage.test.yml');
+    }
+
     envelope = await envelopePromise;
   });
 

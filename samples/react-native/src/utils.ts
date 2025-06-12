@@ -21,9 +21,9 @@ export function shouldUseAutoStart(): boolean {
     ).SENTRY_DISABLE_NATIVE_START;
   } else if (Platform.OS === 'ios') {
     const args = LaunchArguments.value<{
-      sentrydisablenativestart?: boolean;
+      sentryDisableNativeStart?: boolean;
     }>();
-    return !!args.sentrydisablenativestart;
+    return !!args.sentryDisableNativeStart;
   } else {
     return false;
   }

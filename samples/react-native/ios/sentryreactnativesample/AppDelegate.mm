@@ -84,13 +84,13 @@ AppDelegate () <UNUserNotificationCenterDelegate> {
 - (BOOL)shouldStartSentry
 {
     NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
-    return ![arguments containsObject:@"--sentry-disable-native-start"];
+    return ![arguments containsObject:@"sentryDisableNativeStart"];
 }
 
 - (BOOL)shouldCrashOnStart
 {
     NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
-    return [arguments containsObject:@"--sentry-crash-on-start"];
+    return [arguments containsObject:@"sentryCrashOnStart"];
 }
 
 @end
