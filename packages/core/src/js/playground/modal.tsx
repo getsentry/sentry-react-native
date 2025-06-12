@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { captureException, logger } from '@sentry/core';
+import { logger } from '@sentry/core';
 import * as React from 'react';
 import {
   Animated,
@@ -18,7 +18,7 @@ import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
 import { hi as hiAnimation, bug as bugAnimation, thumbsup as thumbsupAnimation } from './animations';
 import { hi as hiImage, bug as bugImage, thumbsup as thumbsupImage } from './images';
-import { NATIVE } from '../wrapper';
+import { nativeCrashExample, tryCatchExample, uncaughtErrorExample } from './examples';
 
 export const withSentryPlayground = <P extends object>(
   Component: React.ComponentType<P>,
@@ -35,41 +35,6 @@ export const withSentryPlayground = <P extends object>(
 
   Wrapper.displayName = `withSentryPlayground()`;
   return Wrapper;
-};
-
-// This is a placeholder to match the example code with what Sentry SDK users would see.
-const Sentry = {
-  captureException,
-  nativeCrash: (): void => {
-    NATIVE.nativeCrash();
-  },
-};
-
-/**
- * Example of error handling with Sentry integration.
- */
-const tryCatchExample = (): void => {
-  try {
-    // If you see the line below highlighted the source maps are working correctly.
-    throw new Error('This is a test caught error.');
-  } catch (e) {
-    Sentry.captureException(e);
-  }
-};
-
-/**
- * Example of an uncaught error causing a crash from JS.
- */
-const uncaughtErrorExample = (): void => {
-  // If you see the line below highlighted the source maps are working correctly.
-  throw new Error('This is a test uncaught error.');
-};
-
-/**
- * Example of a native crash.
- */
-const nativeCrashExample = (): void => {
-  Sentry.nativeCrash();
 };
 
 export const SentryPlayground = ({
@@ -208,25 +173,21 @@ export const SentryPlayground = ({
 };
 
 const Animation = ({ id }: { id: string }): React.ReactElement => {
+  const shouldFallbackToImage = Platform.OS === 'android';
+
   switch (id) {
     case 'hi':
       return (
-        <Image
-          source={{ uri: Platform.OS === 'android' ? hiImage : hiAnimation }}
-          style={{ width: 100, height: 100 }}
-        />
+        <Image source={{ uri: shouldFallbackToImage ? hiImage : hiAnimation }} style={{ width: 100, height: 100 }} />
       );
     case 'bug':
       return (
-        <Image
-          source={{ uri: Platform.OS === 'android' ? bugImage : bugAnimation }}
-          style={{ width: 100, height: 100 }}
-        />
+        <Image source={{ uri: shouldFallbackToImage ? bugImage : bugAnimation }} style={{ width: 100, height: 100 }} />
       );
     case 'thumbsup':
       return (
         <Image
-          source={{ uri: Platform.OS === 'android' ? thumbsupImage : thumbsupAnimation }}
+          source={{ uri: shouldFallbackToImage ? thumbsupImage : thumbsupAnimation }}
           style={{ width: 100, height: 100 }}
         />
       );
