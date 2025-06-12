@@ -46,6 +46,7 @@
           "url": "https://sentry.io/",
           "project": "sentry-react-native",
           "organization": "sentry-sdks",
+          "useNativeInit": true,
           "experimental_android": {
             "enableAndroidGradlePlugin": true,
             "autoUploadProguardMapping": true,
