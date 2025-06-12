@@ -62,11 +62,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--sentry-disable-native-start"
+            argument = "sentryDisableNativeStart"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sentry-crash-on-start"
+            argument = "sentryCrashOnStart"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

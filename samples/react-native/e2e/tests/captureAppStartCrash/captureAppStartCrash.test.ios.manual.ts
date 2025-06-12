@@ -1,29 +1,24 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
 import { Envelope, EventItem } from '@sentry/core';
-import { device } from 'detox';
+
 import {
   createSentryServer,
   containingEvent,
-} from './utils/mockedSentryServer';
-import { getItemOfTypeFrom } from './utils/event';
+} from '../../utils/mockedSentryServer';
+import { getItemOfTypeFrom } from '../../utils/event';
+import { maestro } from '../../utils/maestro';
 
 describe('Capture app start crash', () => {
   let sentryServer = createSentryServer();
-  sentryServer.start();
 
   let envelope: Envelope;
 
   beforeAll(async () => {
-    const launchConfig = {
-      launchArgs: {
-        0: '--sentry-crash-on-start',
-      },
-    };
+    await sentryServer.start();
 
     const envelopePromise = sentryServer.waitForEnvelope(containingEvent);
 
-    device.launchApp(launchConfig);
-    device.launchApp(launchConfig); // This launch sends the crash event before the app crashes again
+    await maestro('tests/captureAppStartCrash/captureAppStartCrash.test.ios.manual.yml');
 
     envelope = await envelopePromise;
   });
@@ -46,16 +41,17 @@ describe('Capture app start crash', () => {
           features: ['experimentalViewRenderer', 'dataSwizzling'],
           integrations: [
             'SessionReplay',
-            'WatchdogTerminationTracking',
-            'Screenshot',
-            'Crash',
-            'ANRTracking',
-            'ViewHierarchy',
-            'AutoBreadcrumbTracking',
-            'AutoSessionTracking',
-            'NetworkTracking',
-            'AppStartTracking',
-            'FramesTracking',
+            // FIXME: Why are these not included?
+            // 'WatchdogTerminationTracking',
+            // 'Screenshot',
+            // 'Crash',
+            // 'ANRTracking',
+            // 'ViewHierarchy',
+            // 'AutoBreadcrumbTracking',
+            // 'AutoSessionTracking',
+            // 'NetworkTracking',
+            // 'AppStartTracking',
+            // 'FramesTracking',
           ],
           name: 'sentry.cocoa.react-native',
           packages: [

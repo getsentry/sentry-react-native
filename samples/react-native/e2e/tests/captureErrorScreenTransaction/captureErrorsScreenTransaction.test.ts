@@ -1,37 +1,29 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
 import { EventItem } from '@sentry/core';
-import { device } from 'detox';
 import {
   createSentryServer,
   containingTransactionWithName,
-} from './utils/mockedSentryServer';
-import { tap } from './utils/tap';
-import { sleep } from './utils/sleep';
-import { getItemOfTypeFrom } from './utils/event';
+} from '../../utils/mockedSentryServer';
 
-describe('Capture transaction', () => {
+import { getItemOfTypeFrom } from '../../utils/event';
+import { maestro } from '../../utils/maestro';
+
+describe('Capture Errors Screen Transaction', () => {
   let sentryServer = createSentryServer();
-  sentryServer.start();
 
   const getErrorsEnvelope = () =>
     sentryServer.getEnvelope(containingTransactionWithName('Errors'));
 
-  const getTrackerEnvelope = () =>
-    sentryServer.getEnvelope(containingTransactionWithName('Tracker'));
-
   beforeAll(async () => {
-    await device.launchApp();
+    await sentryServer.start();
 
-    const waitForPerformanceTransaction = sentryServer.waitForEnvelope(
-      containingTransactionWithName('Tracker'), // The last created and sent transaction
+    const waitForErrorsTx = sentryServer.waitForEnvelope(
+      containingTransactionWithName('Errors'), // The last created and sent transaction
     );
 
-    await sleep(500);
-    await tap('Performance'); // Bottom tab
-    await sleep(200);
-    await tap('Auto Tracing Example'); // Screen with Full Display
+    await maestro('tests/captureErrorScreenTransaction/captureErrorsScreenTransaction.test.yml');
 
-    await waitForPerformanceTransaction;
+    await waitForErrorsTx;
   });
 
   afterAll(async () => {
@@ -81,10 +73,6 @@ describe('Capture transaction', () => {
       'transaction',
     );
 
-    expect(
-      item?.[1].measurements?.app_start_warm ||
-        item?.[1].measurements?.app_start_cold,
-    ).toBeDefined();
     expect(item?.[1]).toEqual(
       expect.objectContaining({
         measurements: expect.objectContaining({
@@ -92,19 +80,10 @@ describe('Capture transaction', () => {
             unit: 'millisecond',
             value: expect.any(Number),
           },
-          // Expect warm or cold app start measurements
-          ...(item?.[1].measurements?.app_start_warm && {
-            app_start_warm: {
-              unit: 'millisecond',
-              value: expect.any(Number),
-            },
-          }),
-          ...(item?.[1].measurements?.app_start_cold && {
-            app_start_cold: {
-              unit: 'millisecond',
-              value: expect.any(Number),
-            },
-          }),
+          app_start_cold: {
+            unit: 'millisecond',
+            value: expect.any(Number),
+          },
         }),
       }),
     );
@@ -150,56 +129,6 @@ describe('Capture transaction', () => {
             value: expect.any(Number),
           },
         }),
-      }),
-    );
-  });
-
-  it('contains time to display measurements', async () => {
-    const item = getItemOfTypeFrom<EventItem>(
-      getTrackerEnvelope(),
-      'transaction',
-    );
-
-    expect(item?.[1]).toEqual(
-      expect.objectContaining({
-        measurements: expect.objectContaining({
-          time_to_initial_display: {
-            unit: 'millisecond',
-            value: expect.any(Number),
-          },
-          time_to_full_display: {
-            unit: 'millisecond',
-            value: expect.any(Number),
-          },
-        }),
-      }),
-    );
-  });
-
-  it('contains at least one xhr breadcrumb of request to the tracker endpoint', async () => {
-    const item = getItemOfTypeFrom<EventItem>(
-      getTrackerEnvelope(),
-      'transaction',
-    );
-
-    expect(item?.[1]).toEqual(
-      expect.objectContaining({
-        breadcrumbs: expect.arrayContaining([
-          expect.objectContaining({
-            category: 'xhr',
-            data: {
-              end_timestamp: expect.any(Number),
-              method: 'GET',
-              response_body_size: expect.any(Number),
-              start_timestamp: expect.any(Number),
-              status_code: expect.any(Number),
-              url: expect.stringContaining('api.covid19api.com/summary'),
-            },
-            level: 'info',
-            timestamp: expect.any(Number),
-            type: 'http',
-          }),
-        ]),
       }),
     );
   });

@@ -1,0 +1,9 @@
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      isE2ETest: true
+
+- tapOn: "Capture message"
