@@ -8,7 +8,7 @@ fi
 
 # yml files to search and update MAESTRO_VERSION
 files=(
-  "$(dirname "$0")/../.github/workflows/e2e.yml"
+  "$(dirname "$0")/../.github/workflows/e2e-v2.yml"
   "$(dirname "$0")/../.github/workflows/sample-application.yml"
 )
 
