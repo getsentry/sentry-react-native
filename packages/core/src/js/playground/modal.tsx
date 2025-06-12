@@ -1,10 +1,23 @@
 /* eslint-disable max-lines */
 import { captureException, logger } from '@sentry/core';
 import * as React from 'react';
-import { Animated, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import {
+  Animated,
+  Image,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+  Platform,
+} from 'react-native';
 
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
+import { hi as hiAnimation, bug as bugAnimation, thumbsup as thumbsupAnimation } from './animations';
+import { hi as hiImage, bug as bugImage, thumbsup as thumbsupImage } from './images';
 import { NATIVE } from '../wrapper';
 
 export const withSentryPlayground = <P extends object>(
@@ -197,11 +210,26 @@ export const SentryPlayground = ({
 const Animation = ({ id }: { id: string }): React.ReactElement => {
   switch (id) {
     case 'hi':
-      return <Image source={require('../../../images/hi.gif')} style={{ width: 100, height: 100 }} />;
+      return (
+        <Image
+          source={{ uri: Platform.OS === 'android' ? hiImage : hiAnimation }}
+          style={{ width: 100, height: 100 }}
+        />
+      );
     case 'bug':
-      return <Image source={require('../../../images/bug.gif')} style={{ width: 100, height: 100 }} />;
+      return (
+        <Image
+          source={{ uri: Platform.OS === 'android' ? bugImage : bugAnimation }}
+          style={{ width: 100, height: 100 }}
+        />
+      );
     case 'thumbsup':
-      return <Image source={require('../../../images/thumbsup.gif')} style={{ width: 100, height: 100 }} />;
+      return (
+        <Image
+          source={{ uri: Platform.OS === 'android' ? thumbsupImage : thumbsupAnimation }}
+          style={{ width: 100, height: 100 }}
+        />
+      );
     default:
       return null;
   }
