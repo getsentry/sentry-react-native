@@ -114,7 +114,7 @@ jobs:
           export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
-          ./scripts/detox/set-dsn-aos.mjs
+          ./scripts/set-dsn-aos.mjs
           ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
       - name: Build iOS App
@@ -123,7 +123,7 @@ jobs:
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
 
-          ./scripts/detox/set-dsn-ios.mjs
+          ./scripts/set-dsn-ios.mjs
           ./scripts/build-ios.sh
 
       - name: Build macOS App
