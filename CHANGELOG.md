@@ -12,6 +12,11 @@
 
 - Automatically detect Release name and version for Expo Web ([#4910](https://github.com/getsentry/sentry-react-native/pull/4910))
 
+### Fixes
+
+- User set by `Sentry.setUser` is prefilled in Feedback Widget ([#4901](https://github.com/getsentry/sentry-react-native/pull/4901))
+  - User data are considered from all scopes in the following order current, isolation and global.
+
 ## 6.15.1
 
 ### Dependencies
