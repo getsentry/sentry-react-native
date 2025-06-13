@@ -2,6 +2,7 @@ import type { InternalGlobal } from '@sentry/core';
 import { GLOBAL_OBJ } from '@sentry/core';
 import type { ErrorUtils } from 'react-native/types';
 
+import type { ReactNativeOptions } from '../options';
 import type { ExpoGlobalObject } from './expoglobalobject';
 export interface HermesPromiseRejectionTrackingOptions {
   allRejections: boolean;
@@ -33,6 +34,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   nativePerformanceNow?: () => number;
   TextEncoder?: TextEncoder;
   alert?: (message: string) => void;
+  __SENTRY_OPTIONS__?: ReactNativeOptions;
 }
 
 type TextEncoder = {

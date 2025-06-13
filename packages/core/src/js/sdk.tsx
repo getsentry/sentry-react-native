@@ -20,6 +20,7 @@ import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
 import { safeFactory, safeTracesSampler } from './utils/safe';
+import { RN_GLOBAL_OBJ } from './utils/worldwide';
 import { NATIVE } from './wrapper';
 
 const DEFAULT_OPTIONS: ReactNativeOptions = {
@@ -48,12 +49,17 @@ export function init(passedOptions: ReactNativeOptions): void {
     return;
   }
 
-  const maxQueueSize = passedOptions.maxQueueSize
+  const userOptions = {
+    ...RN_GLOBAL_OBJ.__SENTRY_OPTIONS__,
+    ...passedOptions,
+  };
+
+  const maxQueueSize = userOptions.maxQueueSize
     // eslint-disable-next-line deprecation/deprecation
-    ?? passedOptions.transportOptions?.bufferSize
+    ?? userOptions.transportOptions?.bufferSize
     ?? DEFAULT_OPTIONS.maxQueueSize;
 
-  const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
+  const enableNative = userOptions.enableNative === undefined || userOptions.enableNative
     ? NATIVE.isNativeAvailable()
     : false;
 
@@ -76,11 +82,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     return `${dsnComponents.protocol}://${dsnComponents.host}${port}`;
   };
 
-  const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
+  const userBeforeBreadcrumb = safeFactory(userOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
   const devServerUrl = getDevServer()?.url;
-  const dsn = getURLFromDSN(passedOptions.dsn);
+  const dsn = getURLFromDSN(userOptions.dsn);
   const defaultBeforeBreadcrumb = (breadcrumb: Breadcrumb, _hint?: BreadcrumbHint): Breadcrumb | null => {
     const type = breadcrumb.type || '';
     const url = typeof breadcrumb.data?.url === 'string' ? breadcrumb.data.url : '';
@@ -104,26 +110,34 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
-    ...passedOptions,
+    ...userOptions,
     enableNative,
-    enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
+    enableNativeNagger: shouldEnableNativeNagger(userOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
-    transport: passedOptions.transport
+    transport: userOptions.transport
       || makeNativeTransportFactory({
         enableNative,
       })
       || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
-      ...(passedOptions.transportOptions ?? {}),
+      ...(userOptions.transportOptions ?? {}),
       bufferSize: maxQueueSize,
     },
     maxQueueSize,
     integrations: [],
-    stackParser: stackParserFromStackParserOptions(passedOptions.stackParser || defaultStackParser),
+    stackParser: stackParserFromStackParserOptions(userOptions.stackParser || defaultStackParser),
     beforeBreadcrumb: chainedBeforeBreadcrumb,
-    initialScope: safeFactory(passedOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
+    initialScope: safeFactory(userOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
   };
+
+  if (!('autoInitializeNativeSdk' in userOptions) && RN_GLOBAL_OBJ.__SENTRY_OPTIONS__) {
+    // We expect users to use the file options only in combination with manual native initialization
+    // eslint-disable-next-line no-console
+    console.info('Initializing Sentry JS with the options file. Expecting manual native initialization before JS. Native will not be initialized automatically.');
+    options.autoInitializeNativeSdk = false;
+  }
+
   if ('tracesSampler' in options) {
     options.tracesSampler = safeTracesSampler(options.tracesSampler);
   }
@@ -132,12 +146,12 @@ export function init(passedOptions: ReactNativeOptions): void {
     options.environment = getDefaultEnvironment();
   }
 
-  const defaultIntegrations: false | Integration[] = passedOptions.defaultIntegrations === undefined
+  const defaultIntegrations: false | Integration[] = userOptions.defaultIntegrations === undefined
     ? getDefaultIntegrations(options)
-    : passedOptions.defaultIntegrations;
+    : userOptions.defaultIntegrations;
 
   options.integrations = getIntegrationsToSetup({
-    integrations: safeFactory(passedOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
+    integrations: safeFactory(userOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
@@ -145,6 +159,10 @@ export function init(passedOptions: ReactNativeOptions): void {
   if (isExpoGo()) {
     logger.info('Offline caching, native errors features are not available in Expo Go.');
     logger.info('Use EAS Build / Native Release Build to test these features.');
+  }
+
+  if (RN_GLOBAL_OBJ.__SENTRY_OPTIONS__) {
+    logger.info('Sentry JS initialized with options from the options file.');
   }
 }
 

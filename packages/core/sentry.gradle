@@ -15,11 +15,62 @@ project.ext.shouldSentryAutoUpload = { ->
   return shouldSentryAutoUploadGeneral() && shouldSentryAutoUploadNative()
 }
 
+project.ext.shouldCopySentryOptionsFile = { -> // If not set, default to true
+    return System.getenv('SENTRY_COPY_OPTIONS_FILE') != 'false'
+}
+
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
+
+def configFile = "sentry.options.json" // Sentry configuration file
+def androidAssetsDir = new File("$rootDir/app/src/main/assets") // Path to Android assets folder
+
+tasks.register("copySentryJsonConfiguration") {
+    onlyIf { shouldCopySentryOptionsFile() }
+    doLast {
+        def appRoot = project.rootDir.parentFile ?: project.rootDir
+        def sentryOptionsFile = new File(appRoot, configFile)
+        if (sentryOptionsFile.exists()) {
+            if (!androidAssetsDir.exists()) {
+                androidAssetsDir.mkdirs()
+            }
+
+            copy {
+                from sentryOptionsFile
+                into androidAssetsDir
+                rename { String fileName -> configFile }
+            }
+            logger.lifecycle("Copied ${configFile} to Android assets")
+        } else {
+            logger.warn("${configFile} not found in app root (${appRoot})")
+        }
+    }
+}
+
+tasks.register("cleanupTemporarySentryJsonConfiguration") {
+    onlyIf { shouldCopySentryOptionsFile() }
+    doLast {
+        def sentryOptionsFile = new File(androidAssetsDir, configFile)
+        if (sentryOptionsFile.exists()) {
+            logger.lifecycle("Deleting temporary file: ${sentryOptionsFile.path}")
+            sentryOptionsFile.delete()
+        }
+    }
+}
 
 // gradle.projectsEvaluated doesn't work with --configure-on-demand
 // the task are create too late and not executed
 project.afterEvaluate {
+    // Add a task that copies the sentry.options.json file before the build starts
+    tasks.named("preBuild").configure {
+        dependsOn("copySentryJsonConfiguration")
+    }
+    // Cleanup sentry.options.json from assets after the build
+    tasks.matching { task ->
+        task.name == "build" || task.name.startsWith("assemble") || task.name.startsWith("install")
+    }.configureEach {
+        finalizedBy("cleanupTemporarySentryJsonConfiguration")
+    }
+
     def releases = extractReleasesInfo()
 
     if (config.flavorAware && config.sentryProperties) {

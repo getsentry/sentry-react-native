@@ -8,4 +8,7 @@
 #import "RNSentryReplayBreadcrumbConverter.h"
 #import "RNSentryReplayMask.h"
 #import "RNSentryReplayUnmask.h"
+#import "RNSentrySDK+Test.h"
+#import "RNSentryStart.h"
 #import "RNSentryTimeToDisplay.h"
+#import "RNSentryVersion.h"
