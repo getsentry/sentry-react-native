@@ -2,7 +2,6 @@ import { captureException } from '@sentry/core';
 
 import { NATIVE } from '../wrapper';
 
-
 // This is a placeholder to match the example code with what Sentry SDK users would see.
 const Sentry = {
   captureException,

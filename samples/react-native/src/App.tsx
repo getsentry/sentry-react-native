@@ -16,6 +16,7 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { withSentryPlayground } from '@sentry/react-native/playground';
 import { FeedbackWidget } from '@sentry/react-native';
 

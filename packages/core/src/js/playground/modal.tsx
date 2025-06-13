@@ -5,20 +5,20 @@ import {
   Animated,
   Image,
   Modal,
+  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
   useColorScheme,
   View,
-  Platform,
 } from 'react-native';
 
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
-import { hi as hiAnimation, bug as bugAnimation, thumbsup as thumbsupAnimation } from './animations';
-import { hi as hiImage, bug as bugImage, thumbsup as thumbsupImage } from './images';
+import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';
 import { nativeCrashExample, tryCatchExample, uncaughtErrorExample } from './examples';
+import { bug as bugImage, hi as hiImage, thumbsup as thumbsupImage } from './images';
 
 /**
  * Wrapper to add Sentry Playground to your application
