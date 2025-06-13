@@ -19,6 +19,8 @@ module.exports = {
     'metro.d.ts',
     'plugin/build/**/*',
     'expo.d.ts',
+    'playground.js',
+    'playground.d.ts',
   ],
   overrides: [
     {

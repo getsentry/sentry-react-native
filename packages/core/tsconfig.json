@@ -3,6 +3,8 @@
   "include": [
     "src/js/tools/**/*.ts",
     "src/js/*.ts",
+    "src/js/playground/*.ts",
+    "src/js/playground/*.tsx",
     "src/js/**/*.web.ts",
     "src/js/**/*.web.tsx",
     "src/js/*.tsx",
