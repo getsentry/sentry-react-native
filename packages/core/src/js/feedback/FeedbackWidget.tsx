@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
-import type { SendFeedbackParams } from '@sentry/core';
-import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
+import type { SendFeedbackParams, User } from '@sentry/core';
+import { captureFeedback, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
 import type { KeyboardTypeOptions ,
   NativeEventSubscription} from 'react-native';
@@ -55,8 +55,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
     const currentUser = {
       useSentryUser: {
-        email: this.props?.useSentryUser?.email || getCurrentScope()?.getUser()?.email || '',
-        name: this.props?.useSentryUser?.name || getCurrentScope()?.getUser()?.name || '',
+        email: this.props?.useSentryUser?.email || this._getUser()?.email || '',
+        name: this.props?.useSentryUser?.name || this._getUser()?.name || '',
       }
     }
 
@@ -404,6 +404,18 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   private _hasScreenshot = (): boolean => {
     return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
+  }
+
+  private _getUser = (): User | undefined => {
+    const currentUser = getCurrentScope().getUser();
+    if (currentUser) {
+      return currentUser;
+    }
+    const isolationUser = getIsolationScope().getUser();
+    if (isolationUser) {
+      return isolationUser;
+    }
+    return getGlobalScope().getUser();
   }
 
   private _showImageRetrievalDevelopmentNote = (): void => {
