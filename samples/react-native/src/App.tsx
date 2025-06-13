@@ -16,7 +16,8 @@ import Animated, {
 
 // Import the Sentry React Native SDK
 import * as Sentry from '@sentry/react-native';
-import { withSentryPlayground } from '@sentry/react-native';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { withSentryPlayground } from '@sentry/react-native/playground';
 import { FeedbackWidget } from '@sentry/react-native';
 
 import ErrorsScreen from './Screens/ErrorsScreen';
@@ -191,9 +192,8 @@ const ErrorsTabNavigator = Sentry.withProfiler(
             />
             <Stack.Screen
               name="FeedbackWidget"
-              options={{ presentation: 'modal', headerShown: false }}
-            >
-              {(props) => (
+              options={{ presentation: 'modal', headerShown: false }}>
+              {props => (
                 <FeedbackWidget
                   {...props}
                   enableScreenshot={true}
@@ -260,63 +260,61 @@ const PerformanceTabNavigator = Sentry.withProfiler(
 
 function BottomTabsNavigator() {
   return (
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      detachInactiveScreens={false} // workaround for https://github.com/react-navigation/react-navigation/issues/11384
+    >
+      <Tab.Screen
+        name="ErrorsTab"
+        component={ErrorsTabNavigator}
+        options={{
+          tabBarLabel: 'Errors',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'bug' : 'bug-outline'}
+              size={size}
+              color={color}
+              testID="errors-tab-icon"
+            />
+          ),
         }}
-        detachInactiveScreens={false} // workaround for https://github.com/react-navigation/react-navigation/issues/11384
-      >
-        <Tab.Screen
-          name="ErrorsTab"
-          component={ErrorsTabNavigator}
-          options={{
-            tabBarLabel: 'Errors',
-            // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons
-                name={focused ? 'bug' : 'bug-outline'}
-                size={size}
-                color={color}
-                testID="errors-tab-icon"
-              />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="PerformanceTab"
-          component={PerformanceTabNavigator}
-          options={{
-            tabBarLabel: 'Performance',
-            // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons
-                name={focused ? 'speedometer' : 'speedometer-outline'}
-                size={size}
-                color={color}
-                testID="performance-tab-icon"
-              />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="PlaygroundTab"
-          component={PlaygroundScreen}
-          options={{
-            tabBarLabel: 'Playground',
-            // eslint-disable-next-line react/no-unstable-nested-components
-            tabBarIcon: ({ focused, color, size }) => (
-              <Ionicons
-                name={
-                  focused ? 'american-football' : 'american-football-outline'
-                }
-                size={size}
-                color={color}
-                testID="playground-tab-icon"
-              />
-            ),
-          }}
-        />
-      </Tab.Navigator>
+      />
+      <Tab.Screen
+        name="PerformanceTab"
+        component={PerformanceTabNavigator}
+        options={{
+          tabBarLabel: 'Performance',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'speedometer' : 'speedometer-outline'}
+              size={size}
+              color={color}
+              testID="performance-tab-icon"
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="PlaygroundTab"
+        component={PlaygroundScreen}
+        options={{
+          tabBarLabel: 'Playground',
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'american-football' : 'american-football-outline'}
+              size={size}
+              color={color}
+              testID="playground-tab-icon"
+            />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 
@@ -334,7 +332,11 @@ function RootNavigationContainer() {
           headerShown: false,
         }}>
         <Stack.Screen name="BottomTabs" component={BottomTabsNavigator} />
-        <Stack.Screen name="Webview" component={WebviewScreen} options={{ headerShown: true }} />
+        <Stack.Screen
+          name="Webview"
+          component={WebviewScreen}
+          options={{ headerShown: true }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -403,7 +405,9 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withSentryPlayground(Sentry.wrap(App), {
-  projectId: '5428561',
-  organizationSlug: 'sentry-sdks',
-});
+// export default withSentryPlayground(Sentry.wrap(App), {
+//   projectId: '5428561',
+//   organizationSlug: 'sentry-sdks',
+// });
+
+export default Sentry.wrap(App);

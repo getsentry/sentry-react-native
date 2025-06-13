@@ -1,6 +1,5 @@
 module.exports = {
   dependency: {
-    assets: ['images'],
     platforms: {
       ios: {},
       android: {

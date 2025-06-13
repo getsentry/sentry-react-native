@@ -94,5 +94,3 @@ export { FeedbackWidget } from './feedback/FeedbackWidget';
 export { showFeedbackWidget, showFeedbackButton, hideFeedbackButton } from './feedback/FeedbackWidgetManager';
 
 export { getDataFromUri } from './wrapper';
-
-export { SentryPlayground as Wizard, withSentryPlayground } from './playground/modal';

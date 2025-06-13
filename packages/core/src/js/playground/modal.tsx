@@ -1,12 +1,43 @@
 /* eslint-disable max-lines */
-import { captureException } from '@sentry/core';
 import * as React from 'react';
-import { Animated, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import {
+  Animated,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 
 import { openURLInBrowser } from '../metro/openUrlInBrowser';
 import { isExpoGo, isWeb } from '../utils/environment';
-import { NATIVE } from '../wrapper';
+import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';
+import { nativeCrashExample, tryCatchExample, uncaughtErrorExample } from './examples';
+import { bug as bugImage, hi as hiImage, thumbsup as thumbsupImage } from './images';
 
+/**
+ * Wrapper to add Sentry Playground to your application
+ * to test your Sentry React Native SDK setup.
+ *
+ * @example
+ * ```tsx
+ * import * as Sentry from '@sentry/react-native';
+ * import { withSentryPlayground } from '@sentry/react-native/playground';
+ *
+ * function App() {
+ *   return <View>...</View>;
+ * }
+ *
+ * export default withSentryPlayground(Sentry.wrap(App), {
+ *   projectId: '123456',
+ *   organizationSlug: 'my-org'
+ * });
+ * ```
+ */
 export const withSentryPlayground = <P extends object>(
   Component: React.ComponentType<P>,
   options: { projectId?: string; organizationSlug?: string } = {},
@@ -22,41 +53,6 @@ export const withSentryPlayground = <P extends object>(
 
   Wrapper.displayName = 'withSentryPlayground()';
   return Wrapper;
-};
-
-// This is a placeholder to match the example code with what Sentry SDK users would see.
-const Sentry = {
-  captureException,
-  nativeCrash: (): void => {
-    NATIVE.nativeCrash();
-  },
-};
-
-/**
- * Example of error handling with Sentry integration.
- */
-const tryCatchExample = (): void => {
-  try {
-    // If you see the line below highlighted the source maps are working correctly.
-    throw new Error('This is a test caught error.');
-  } catch (e) {
-    Sentry.captureException(e);
-  }
-};
-
-/**
- * Example of an uncaught error causing a crash from JS.
- */
-const uncaughtErrorExample = (): void => {
-  // If you see the line below highlighted the source maps are working correctly.
-  throw new Error('This is a test uncaught error.');
-};
-
-/**
- * Example of a native crash.
- */
-const nativeCrashExample = (): void => {
-  Sentry.nativeCrash();
 };
 
 export const SentryPlayground = ({
@@ -192,13 +188,24 @@ export const SentryPlayground = ({
 };
 
 const Animation = ({ id }: { id: string }): React.ReactElement => {
+  const shouldFallbackToImage = Platform.OS === 'android';
+
   switch (id) {
     case 'hi':
-      return <Image source={require('../../../images/hi.gif')} style={{ width: 100, height: 100 }} />;
+      return (
+        <Image source={{ uri: shouldFallbackToImage ? hiImage : hiAnimation }} style={{ width: 100, height: 100 }} />
+      );
     case 'bug':
-      return <Image source={require('../../../images/bug.gif')} style={{ width: 100, height: 100 }} />;
+      return (
+        <Image source={{ uri: shouldFallbackToImage ? bugImage : bugAnimation }} style={{ width: 100, height: 100 }} />
+      );
     case 'thumbsup':
-      return <Image source={require('../../../images/thumbsup.gif')} style={{ width: 100, height: 100 }} />;
+      return (
+        <Image
+          source={{ uri: shouldFallbackToImage ? thumbsupImage : thumbsupAnimation }}
+          style={{ width: 100, height: 100 }}
+        />
+      );
     default:
       return null;
   }
