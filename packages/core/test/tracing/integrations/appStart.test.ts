@@ -20,8 +20,9 @@ import {
   UI_LOAD,
 } from '../../../src/js/tracing';
 import {
+  _captureAppStart,
   _clearRootComponentCreationTimestampMs,
-  _setAppStartEndTimestampMs,
+  _setAppStartEndData,
   _setRootComponentCreationTimestampMs,
   appStartIntegration,
   setRootComponentCreationTimestampMs,
@@ -788,6 +789,199 @@ describe('App Start Integration', () => {
   });
 });
 
+describe('Frame Data Integration', () => {
+  it('attaches frame data to standalone cold app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 150,
+      slowFrames: 5,
+      frozenFrames: 2,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: true });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 150,
+        'frames.slow': 5,
+        'frames.frozen': 2,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('attaches frame data to standalone warm app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 200,
+      slowFrames: 8,
+      frozenFrames: 1,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: false });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Warm App Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 200,
+        'frames.slow': 8,
+        'frames.frozen': 1,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('attaches frame data to attached cold app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 120,
+      slowFrames: 3,
+      frozenFrames: 0,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: true });
+
+    await _captureAppStart({ isManual: false });
+
+    const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 120,
+        'frames.slow': 3,
+        'frames.frozen': 0,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('attaches frame data to attached warm app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 180,
+      slowFrames: 12,
+      frozenFrames: 3,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: false });
+
+    await _captureAppStart({ isManual: false });
+
+    const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Warm App Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 180,
+        'frames.slow': 12,
+        'frames.frozen': 3,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('does not attach frame data when they are no frames', async () => {
+    const mockEndFrames = {
+      totalFrames: 0,
+      slowFrames: 0,
+      frozenFrames: 0,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: true });
+
+    await _captureAppStart({ isManual: false });
+
+    const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+
+    expect(appStartSpan!.data).not.toHaveProperty('frames.total');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.slow');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.frozen');
+  });
+
+  it('does not attach frame data when native frames are not available', async () => {
+    mockFunction(NATIVE.fetchNativeFrames).mockRejectedValue(new Error('Native frames not available'));
+
+    mockAppStart({ cold: true });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+
+    expect(appStartSpan!.data).not.toHaveProperty('frames.total');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.slow');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.frozen');
+  });
+
+  it('does not attach frame data when NATIVE is not enabled', async () => {
+    const originalEnableNative = NATIVE.enableNative;
+    (NATIVE as any).enableNative = false;
+
+    try {
+      mockAppStart({ cold: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+
+      const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+
+      expect(appStartSpan).toBeDefined();
+      expect(appStartSpan!.data).toEqual(
+        expect.objectContaining({
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+        }),
+      );
+
+      expect(appStartSpan!.data).not.toHaveProperty('frames.total');
+      expect(appStartSpan!.data).not.toHaveProperty('frames.slow');
+      expect(appStartSpan!.data).not.toHaveProperty('frames.frozen');
+    } finally {
+      (NATIVE as any).enableNative = originalEnableNative;
+    }
+  });
+});
+
 function setupIntegration() {
   const client = new TestClient(getDefaultTestClientOptions());
   const integration = appStartIntegration();
@@ -1095,7 +1289,10 @@ function mockAppStart({
       : [],
   };
 
-  _setAppStartEndTimestampMs(appStartEndTimestampMs || timeOriginMilliseconds);
+  _setAppStartEndData({
+    timestampMs: appStartEndTimestampMs || timeOriginMilliseconds,
+    endFrames: null,
+  });
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
@@ -1112,7 +1309,10 @@ function mockTooLongAppStart() {
     spans: [],
   };
 
-  _setAppStartEndTimestampMs(timeOriginMilliseconds);
+  _setAppStartEndData({
+    timestampMs: timeOriginMilliseconds,
+    endFrames: null,
+  });
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
@@ -1134,7 +1334,10 @@ function mockTooOldAppStart() {
 
   // App start finish timestamp
   // App start length is 5 seconds
-  _setAppStartEndTimestampMs(appStartEndTimestampMilliseconds);
+  _setAppStartEndData({
+    timestampMs: appStartEndTimestampMilliseconds,
+    endFrames: null,
+  });
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds - 64000);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
   // Transaction start timestamp
