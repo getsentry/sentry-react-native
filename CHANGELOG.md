@@ -13,6 +13,12 @@
 - User set by `Sentry.setUser` is prefilled in Feedback Widget ([#4901](https://github.com/getsentry/sentry-react-native/pull/4901))
   - User data are considered from all scopes in the following order current, isolation and global.
 
+### Dependencies
+
+- Bump JavaScript SDK from v8.54.0 to v9.29.0 ([#4615](https://github.com/getsentry/sentry-react-native/pull/4615))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#9290)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.29.0)
+
 ## 6.15.1
 
 ### Dependencies
