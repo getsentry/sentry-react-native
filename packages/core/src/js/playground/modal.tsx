@@ -1,4 +1,5 @@
 /* eslint-disable max-lines */
+import { logger } from '@sentry/core';
 import * as React from 'react';
 import {
   Animated,
@@ -14,7 +15,8 @@ import {
 } from 'react-native';
 
 import { openURLInBrowser } from '../metro/openUrlInBrowser';
-import { isExpoGo, isWeb } from '../utils/environment';
+import { getDevServer } from '../integrations/debugsymbolicatorutils';
+import { isExpo, isExpoGo, isWeb } from '../utils/environment';
 import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';
 import { nativeCrashExample, tryCatchExample, uncaughtErrorExample } from './examples';
 import { bug as bugImage, hi as hiImage, thumbsup as thumbsupImage } from './images';
@@ -51,7 +53,7 @@ export const withSentryPlayground = <P extends object>(
     );
   };
 
-  Wrapper.displayName = 'withSentryPlayground()';
+  Wrapper.displayName = `withSentryPlayground()`;
   return Wrapper;
 };
 
