@@ -1,7 +1,8 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { createRunOncePlugin } from 'expo/config-plugins';
 
-import { bold, sdkPackage, warnOnce } from './utils';
+import { bold, warnOnce } from './logger';
+import { PLUGIN_NAME, PLUGIN_VERSION } from './version';
 import { withSentryAndroid } from './withSentryAndroid';
 import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
 import { withSentryAndroidGradlePlugin } from './withSentryAndroidGradlePlugin';
@@ -12,6 +13,7 @@ interface PluginProps {
   project?: string;
   authToken?: string;
   url?: string;
+  useNativeInit?: boolean;
   experimental_android?: SentryAndroidGradlePluginOptions;
 }
 
@@ -26,7 +28,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   let cfg = config;
   if (sentryProperties !== null) {
     try {
-      cfg = withSentryAndroid(cfg, sentryProperties);
+      cfg = withSentryAndroid(cfg, { sentryProperties, useNativeInit: props?.useNativeInit });
     } catch (e) {
       warnOnce(`There was a problem with configuring your native Android project: ${e}`);
     }
@@ -39,7 +41,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
       }
     }
     try {
-      cfg = withSentryIOS(cfg, sentryProperties);
+      cfg = withSentryIOS(cfg, { sentryProperties, useNativeInit: props?.useNativeInit });
     } catch (e) {
       warnOnce(`There was a problem with configuring your native iOS project: ${e}`);
     }
@@ -79,6 +81,6 @@ ${authToken ? `${existingAuthTokenMessage}\nauth.token=${authToken}` : missingAu
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-const withSentry = createRunOncePlugin(withSentryPlugin, sdkPackage.name, sdkPackage.version);
+const withSentry = createRunOncePlugin(withSentryPlugin, PLUGIN_NAME, PLUGIN_VERSION);
 
 export { withSentry };
