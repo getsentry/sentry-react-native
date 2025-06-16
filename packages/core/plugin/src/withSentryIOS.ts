@@ -4,7 +4,8 @@ import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
 import { withAppDelegate, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import * as path from 'path';
 
-import { warnOnce, writeSentryPropertiesTo } from './utils';
+import { warnOnce } from './logger';
+import { writeSentryPropertiesTo } from './utils';
 
 type BuildPhase = { shellScript: string };
 

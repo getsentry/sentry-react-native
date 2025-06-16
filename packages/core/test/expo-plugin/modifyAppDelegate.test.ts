@@ -1,6 +1,6 @@
 import type { ExpoConfig } from '@expo/config-types';
 
-import { warnOnce } from '../../plugin/src/utils';
+import { warnOnce } from '../../plugin/src/logger';
 import { modifyAppDelegate } from '../../plugin/src/withSentryIOS';
 
 // Mock dependencies
@@ -9,7 +9,7 @@ jest.mock('@expo/config-plugins', () => ({
   withAppDelegate: jest.fn((config, callback) => callback(config)),
 }));
 
-jest.mock('../../plugin/src/utils', () => ({
+jest.mock('../../plugin/src/logger', () => ({
   warnOnce: jest.fn(),
 }));
 

@@ -3,7 +3,8 @@ import type { ConfigPlugin } from 'expo/config-plugins';
 import { withAppBuildGradle, withDangerousMod, withMainApplication } from 'expo/config-plugins';
 import * as path from 'path';
 
-import { warnOnce, writeSentryPropertiesTo } from './utils';
+import { warnOnce } from './logger';
+import { writeSentryPropertiesTo } from './utils';
 
 export const withSentryAndroid: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
   config,
