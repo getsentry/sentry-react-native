@@ -46,6 +46,12 @@ Sentry.init({
 
 - It is recommended to use Sentry Self Hosted version `25.2.0` or new for React Native V7 or newer
 
+### Dependencies
+
+- Bump Android SDK from v8.13.2 to v8.13.3 ([#4929](https://github.com/getsentry/sentry-react-native/pull/4929))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8133)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.13.2...8.13.3)
+
 ## 7.0.0-beta.0
 
 ### Upgrading from 6.x to 7.0
