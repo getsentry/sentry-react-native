@@ -8,6 +8,26 @@
 
 ## Unreleased
 
+### Features
+
+- Introducing `@sentry/react-native/playground` ([#4916](https://github.com/getsentry/sentry-react-native/pull/4916))
+
+  The new `withSentryPlayground` component allows developers to verify
+  that the SDK is properly configured and reports errors as expected.
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+  import { withSentryPlayground } from '@sentry/react-native/playground';
+
+  function App() {
+    return <View>...</View>;
+  }
+
+  export default withSentryPlayground(
+    Sentry.wrap(App)
+  );
+  ```
+
 ### Fixes
 
 - Report slow and frozen frames as app start span data ([#4865](https://github.com/getsentry/sentry-react-native/pull/4865))
