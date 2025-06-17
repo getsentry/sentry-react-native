@@ -101,9 +101,9 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Bump JavaScript SDK from v8.54.0 to v9.22.0 ([#4568](https://github.com/getsentry/sentry-react-native/pull/4568), [#4752](https://github.com/getsentry/sentry-react-native/pull/4752), [#4860](https://github.com/getsentry/sentry-react-native/pull/4860))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/9.22.0/CHANGELOG.md)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...9.22.0)
-- Bump Android SDK from v7.20.1 to v8.13.2 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
+- Bump Android SDK from v7.20.1 to v8.13.3 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8133)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.3)
 
 ## 6.15.0
 
