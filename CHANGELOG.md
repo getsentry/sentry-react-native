@@ -39,6 +39,7 @@ Sentry.init({
 
 ### Changes
 
+- Expose `logger` and `consoleLoggingIntegration` ([#4930](https://github.com/getsentry/sentry-react-native/pull/4930))
 - Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
 - Disable AppStart and NativeFrames in unsupported environments (web, Expo Go) ([#4897](https://github.com/getsentry/sentry-react-native/pull/4897))
 
