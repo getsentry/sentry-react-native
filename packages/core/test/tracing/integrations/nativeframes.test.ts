@@ -59,11 +59,13 @@ describe('NativeFramesInstrumentation', () => {
       totalFrames: 100,
       slowFrames: 20,
       frozenFrames: 5,
+      framesDelay: 0,
     };
     const finishFrames = {
       totalFrames: 200,
       slowFrames: 40,
       frozenFrames: 10,
+      framesDelay: 0,
     };
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
@@ -99,11 +101,13 @@ describe('NativeFramesInstrumentation', () => {
       totalFrames: 0,
       slowFrames: 0,
       frozenFrames: 0,
+      framesDelay: 0,
     };
     const finishFrames = {
       totalFrames: 100,
       slowFrames: 20,
       frozenFrames: 5,
+      framesDelay: 0,
     };
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
@@ -139,11 +143,13 @@ describe('NativeFramesInstrumentation', () => {
       totalFrames: 100,
       slowFrames: 20,
       frozenFrames: 5,
+      framesDelay: 0,
     };
     const finishFrames = {
       totalFrames: 100,
       slowFrames: 20,
       frozenFrames: 5,
+      framesDelay: 0,
     };
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
@@ -174,6 +180,7 @@ describe('NativeFramesInstrumentation', () => {
       totalFrames: 200,
       slowFrames: 40,
       frozenFrames: 10,
+      framesDelay: 0,
     };
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
@@ -203,6 +210,7 @@ describe('NativeFramesInstrumentation', () => {
       totalFrames: 100,
       slowFrames: 20,
       frozenFrames: 5,
+      framesDelay: 0,
     };
     const finishFrames: null = null;
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
@@ -244,11 +252,13 @@ describe('NativeFramesInstrumentation', () => {
       totalFrames: 100,
       slowFrames: 20,
       frozenFrames: 5,
+      framesDelay: 0,
     };
     const finishFrames = {
       totalFrames: 200,
       slowFrames: 40,
       frozenFrames: 10,
+      framesDelay: 0,
     };
     mockFunction(NATIVE.fetchNativeFrames).mockResolvedValueOnce(startFrames).mockResolvedValueOnce(finishFrames);
 
