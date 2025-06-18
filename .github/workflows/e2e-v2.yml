@@ -163,7 +163,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.79.1']
+        rn-version: ['0.65.3', '0.80.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -171,7 +171,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            rn-version: '0.79.1'
+            rn-version: '0.80.0'
             xcode-version: '16.2'
             runs-on: macos-15
           - platform: ios
@@ -182,7 +182,7 @@ jobs:
             runs-on: ubuntu-latest
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.79.1'
+          - rn-version: '0.80.0'
             engine: 'jsc'
           # exclude all rn versions lower than 0.70.0 for new architecture
           - rn-version: '0.65.3'
@@ -301,7 +301,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.79.1']
+        rn-version: ['0.65.3', '0.80.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -309,7 +309,7 @@ jobs:
         engine: ['hermes', 'jsc']
         include:
           - platform: ios
-            rn-version: '0.79.1'
+            rn-version: '0.80.0'
             runs-on: macos-15
           - platform: ios
             rn-version: '0.65.3'
@@ -323,7 +323,7 @@ jobs:
           # e2e test only the default combinations
           - rn-version: '0.65.3'
             engine: 'hermes'
-          - rn-version: '0.79.1'
+          - rn-version: '0.80.0'
             engine: 'jsc'
 
     steps:
