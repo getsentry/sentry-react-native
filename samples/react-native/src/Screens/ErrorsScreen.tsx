@@ -20,7 +20,6 @@ import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
 import { TimeToFullDisplay } from '../utils';
-import { logger } from '@sentry/browser';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -154,13 +153,13 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Log console"
           onPress={() => {
-            logger.info('info log');
-            logger.trace('trace log');
-            logger.debug('debug log');
-            logger.warn('warn log');
-            logger.error('error log');
+            Sentry.logger.info('info log');
+            Sentry.logger.trace('trace log');
+            Sentry.logger.debug('debug log');
+            Sentry.logger.warn('warn log');
+            Sentry.logger.error('error log');
 
-            logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
           }}
         />
         {Platform.OS === 'android' && (

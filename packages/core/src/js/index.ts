@@ -56,6 +56,8 @@ export {
   withProfiler,
 } from '@sentry/react';
 
+export { logger, consoleLoggingIntegration } from '@sentry/browser';
+
 export * from './integrations/exports';
 
 export { SDK_NAME, SDK_VERSION } from './version';
