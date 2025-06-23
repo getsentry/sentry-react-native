@@ -69,7 +69,10 @@ const appId = platform === 'ios' ? 'org.reactjs.native.example.RnDiffApp' : 'com
 const sentryAuthToken = env.SENTRY_AUTH_TOKEN;
 
 function runCodegenIfNeeded(rnVersion, platform, appDir) {
-  if (platform === 'android' && versionNumber >= 0.80) {
+  const versionNumber = parseFloat(rnVersion.replace(/[^\d.]/g, ''));
+  const shouldRunCodegen = platform === 'android' && versionNumber >= 0.80;
+
+  if (shouldRunCodegen) {
     console.log(`Running codegen for React Native ${rnVersion}...`);
     try {
       execSync('./gradlew generateCodegenArtifactsFromSchema', {
