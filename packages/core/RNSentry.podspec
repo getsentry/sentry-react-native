@@ -4,12 +4,32 @@ version = JSON.parse(File.read('package.json'))["version"]
 
 rn_package = parse_rn_package_json()
 rn_version = get_rn_version(rn_package)
-is_hermes_default = is_hermes_default(rn_version)
+is_hermes_default = is_hermes_default(rn_package)
 is_profiling_supported = is_profiling_supported(rn_version)
+
+# Handle case where rn_version might be a hash or string
+if rn_version.is_a?(Hash)
+  rn_version_string = "#{rn_version[:major]}.#{rn_version[:minor]}.#{rn_version[:patch] || 0}"
+else
+  rn_version_string = rn_version.to_s
+end
+rn_version_number = Gem::Version.new(rn_version_string)
+
+# Use different Folly configuration for RN 0.80.0+
+is_rn_080_or_above = rn_version_number >= Gem::Version.new("0.80.0")
+
+if is_rn_080_or_above
+  # For RN 0.80+, don't use the old Folly flags that cause issues
+  folly_compiler_flags = ''
+else
+  # For older RN versions, keep the original Folly configuration
+  folly_flags = ' -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
+  folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
+end
 
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 is_using_hermes = (ENV['USE_HERMES'] == nil && is_hermes_default) || ENV['USE_HERMES'] == '1'
-new_arch_enabled_flag = (is_new_arch_enabled ? " -DRCT_NEW_ARCH_ENABLED" : "")
+new_arch_enabled_flag = (is_new_arch_enabled ? folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED" : "")
 sentry_profiling_supported_flag = (is_profiling_supported ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
 other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_supported_flag
 
