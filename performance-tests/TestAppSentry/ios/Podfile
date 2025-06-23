@@ -31,15 +31,5 @@ target 'TestAppSentry' do
   post_install do |installer|
     react_native_post_install(installer)
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
-
-    # Fix for RNSentry Folly coroutine build issues
-    installer.pods_project.targets.each do |target|
-      if target.name == 'RNSentry'
-        target.build_configurations.each do |config|
-          flags = config.build_settings['OTHER_CPLUSPLUSFLAGS'] || ''
-          config.build_settings['OTHER_CPLUSPLUSFLAGS'] = flags + ' -DFOLLY_CFG_NO_COROUTINES=1'
-        end
-      end
-    end
   end
 end
