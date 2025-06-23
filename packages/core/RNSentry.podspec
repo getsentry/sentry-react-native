@@ -8,13 +8,13 @@ is_hermes_default = is_hermes_default(rn_version)
 is_profiling_supported = is_profiling_supported(rn_version)
 
 # Use different Folly configuration for RN 0.80.0+
-if are_folly_flags_needed(rn_version)
-  # For RN 0.80+, don't use the old Folly flags that cause issues
-  folly_compiler_flags = ''
-else
+if should_use_folly_flags(rn_version)
   # For older RN versions, keep the original Folly configuration
   folly_flags = ' -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
   folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
+else
+  # For RN 0.80+, don't use the incompatible Folly flags
+  folly_compiler_flags = ''
 end
 
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"

@@ -33,6 +33,6 @@ def is_profiling_supported(rn_version)
 end
 
 # Check if we need the old Folly flags (for RN < 0.80.0)
-def are_folly_flags_needed(rn_version)
+def should_use_folly_flags(rn_version)
   return (rn_version[:major] == 0 && rn_version[:minor] < 80)
 end
