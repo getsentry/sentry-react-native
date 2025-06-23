@@ -9,9 +9,15 @@ is_profiling_supported = is_profiling_supported(rn_version)
 
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 is_using_hermes = (ENV['USE_HERMES'] == nil && is_hermes_default) || ENV['USE_HERMES'] == '1'
+
+# Check if we need the Folly coroutine fix for RN 0.80.0 and above
+rn_version_number = Gem::Version.new(rn_version)
+needs_folly_coroutine_fix = rn_version_number >= Gem::Version.new("0.80.0")
+
 new_arch_enabled_flag = (is_new_arch_enabled ? " -DRCT_NEW_ARCH_ENABLED" : "")
 sentry_profiling_supported_flag = (is_profiling_supported ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
-other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_supported_flag
+folly_no_coroutines_flag = (needs_folly_coroutine_fix ? " -DFOLLY_CFG_NO_COROUTINES=1" : "")
+other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_supported_flag + folly_no_coroutines_flag
 
 Pod::Spec.new do |s|
   s.name           = 'RNSentry'
@@ -44,10 +50,17 @@ Pod::Spec.new do |s|
 
     if is_new_arch_enabled then
       # New Architecture on React Native 0.70 and older
-      s.pod_target_xcconfig = {
+      pod_target_xcconfig = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
       }
+
+      # Add Folly coroutine fix for C++ files if needed
+      if needs_folly_coroutine_fix
+        pod_target_xcconfig["OTHER_CPLUSPLUSFLAGS"] = "$(inherited) -DFOLLY_CFG_NO_COROUTINES=1"
+      end
+
+      s.pod_target_xcconfig = pod_target_xcconfig
 
       s.dependency "React-RCTFabric" # Required for Fabric Components (like RCTViewComponentView)
       s.dependency "React-Codegen"
