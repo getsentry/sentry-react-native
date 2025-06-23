@@ -4,21 +4,11 @@ version = JSON.parse(File.read('package.json'))["version"]
 
 rn_package = parse_rn_package_json()
 rn_version = get_rn_version(rn_package)
-is_hermes_default = is_hermes_default(rn_package)
+is_hermes_default = is_hermes_default(rn_version)
 is_profiling_supported = is_profiling_supported(rn_version)
 
-# Handle case where rn_version might be a hash or string
-if rn_version.is_a?(Hash)
-  rn_version_string = "#{rn_version[:major]}.#{rn_version[:minor]}.#{rn_version[:patch] || 0}"
-else
-  rn_version_string = rn_version.to_s
-end
-rn_version_number = Gem::Version.new(rn_version_string)
-
 # Use different Folly configuration for RN 0.80.0+
-is_rn_080_or_above = rn_version_number >= Gem::Version.new("0.80.0")
-
-if is_rn_080_or_above
+if are_folly_flags_needed(rn_version)
   # For RN 0.80+, don't use the old Folly flags that cause issues
   folly_compiler_flags = ''
 else
