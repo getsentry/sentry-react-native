@@ -30,7 +30,16 @@ jsEngine: graaljs
 # Fill out message field
 - tapOn:
     id: 'sentry-feedback-message-input'
-- inputText: 'This is a test feedback message from CI e2e tests'
+- inputText: 'This is a test feedback message with a screenshot from CI e2e tests'
+
+# Take screenshot
+- scrollUntilVisible:
+    element:
+      id: 'sentry-feedback-take-screenshot-button'
+- tapOn:
+    id: 'sentry-feedback-take-screenshot-button'
+- tapOn:
+    id: 'sentry-feedback-screenshot-button'
 
 # Hide keyboard by tapping on a non-tappable element
 - tapOn:
