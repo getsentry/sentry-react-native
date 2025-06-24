@@ -66,7 +66,8 @@ static bool hasFetchedAppStart;
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
-    NSArray<NSRegularExpression *> *_ignoreErrorPatterns;
+    NSArray<NSString *> *_ignoreErrorPatternsStr;
+    NSArray<NSRegularExpression *> *_ignoreErrorPatternsRegex;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -135,39 +136,42 @@ RCT_EXPORT_METHOD(initNativeSdk
 
 - (void)setIgnoreErrors:(NSArray<NSString *> *)ignoreErrors {
     if ([ignoreErrors isKindOfClass:[NSArray class]] && ignoreErrors.count > 0) {
-        NSMutableArray *patterns = [NSMutableArray array];
+        NSMutableArray<NSString *> *strs = [NSMutableArray array];
+        NSMutableArray<NSRegularExpression *> *regexes = [NSMutableArray array];
         for (id pattern in ignoreErrors) {
             if ([pattern isKindOfClass:[NSString class]]) {
                 NSError *error = nil;
                 NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&error];
                 if (regex && error == nil) {
-                    [patterns addObject:regex];
+                    [regexes addObject:regex];
                 } else {
-                    // If not a valid regex, treat as a plain string
-                    [patterns addObject:pattern];
+                    [strs addObject:pattern];
                 }
             }
         }
-        _ignoreErrorPatterns = [patterns copy];
+        _ignoreErrorPatternsStr = [strs copy];
+        _ignoreErrorPatternsRegex = [regexes copy];
     } else {
-        _ignoreErrorPatterns = nil;
+        _ignoreErrorPatternsStr = nil;
+        _ignoreErrorPatternsRegex = nil;
     }
 }
 
 - (BOOL)shouldIgnoreError:(NSString *)message {
-    if (![_ignoreErrorPatterns isKindOfClass:[NSArray class]] || !message) {
+    if ((![_ignoreErrorPatternsStr isKindOfClass:[NSArray class]] && ![_ignoreErrorPatternsRegex isKindOfClass:[NSArray class]]) || !message) {
         return NO;
     }
-    for (id pattern in _ignoreErrorPatterns) {
-        if ([pattern isKindOfClass:[NSRegularExpression class]]) {
-            NSRange range = NSMakeRange(0, message.length);
-            if ([pattern firstMatchInString:message options:0 range:range]) {
-                return YES;
-            }
-        } else if ([pattern isKindOfClass:[NSString class]]) {
-            if ([message isEqualToString:pattern]) {
-                return YES;
-            }
+    // Check exact string matches
+    for (NSString *str in _ignoreErrorPatternsStr) {
+        if ([message isEqualToString:str]) {
+            return YES;
+        }
+    }
+    // Check regex matches
+    for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
+        NSRange range = NSMakeRange(0, message.length);
+        if ([regex firstMatchInString:message options:0 range:range]) {
+            return YES;
         }
     }
     return NO;
@@ -186,8 +190,8 @@ RCT_EXPORT_METHOD(initNativeSdk
             return nil;
         }
 
-        // Ignore errors logic
-        if (self->_ignoreErrorPatterns) {
+        // Regex and Str are set when one of them has value so we only need to check one of them.
+        if (self->_ignoreErrorPatternsStr) {
             for (SentryException *exception in event.exceptions) {
                 if ([self shouldIgnoreError:exception.value]) {
                     return nil;
