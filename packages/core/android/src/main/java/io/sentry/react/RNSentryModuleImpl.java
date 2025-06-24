@@ -83,6 +83,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -319,6 +320,15 @@ public class RNSentryModuleImpl {
     // React native internally throws a JavascriptException.
     // we want to ignore it on the native side to avoid sending it twice.
     options.addIgnoredExceptionForType(JavascriptException.class);
+
+    if (rnOptions.hasKey("ignoreErrors")) {
+      ReadableArray arr = rnOptions.getArray("ignoreErrors");
+      if (arr != null) {
+          List<String> list = new ArrayList<>(arr.size());
+          for (int i = 0; i < arr.size(); i++) list.add(arr.getString(i));
+          options.setIgnoredErrors(list);
+      }
+    }
 
     options.setBeforeSend(
         (event, hint) -> {

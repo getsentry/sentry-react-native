@@ -37,6 +37,24 @@ Sentry.init({
 });
 ```
 
+- ignoreError now filters Native errors ([#4930](https://github.com/getsentry/sentry-react-native/pull/4930))
+
+You can use a string for filtering it or a Regex string.
+
+Android:
+* captureException:
+  use '{full classpath}: {error message}'
+  example:
+```typescript
+//        Throw new RuntimeException("I have a problem");;
+Sentry.ignoreErrors([
+    'java.lang.RuntimeException: I have a problem', // Correct
+    'RuntimeException: I have a problem,' // Incorrect
+    '(.)*I have a problem' // Correct Regex
+]);
+```
+iOS: TBA
+
 ### Changes
 
 - Expose `logger` and `consoleLoggingIntegration` ([#4930](https://github.com/getsentry/sentry-react-native/pull/4930))
