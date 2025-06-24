@@ -66,6 +66,7 @@ static bool hasFetchedAppStart;
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
+    NSArray<NSRegularExpression *> *_ignoreErrorPatterns;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -132,6 +133,46 @@ RCT_EXPORT_METHOD(initNativeSdk
     resolve(@YES);
 }
 
+- (void)setIgnoreErrors:(NSArray<NSString *> *)ignoreErrors {
+    if ([ignoreErrors isKindOfClass:[NSArray class]] && ignoreErrors.count > 0) {
+        NSMutableArray *patterns = [NSMutableArray array];
+        for (id pattern in ignoreErrors) {
+            if ([pattern isKindOfClass:[NSString class]]) {
+                NSError *error = nil;
+                NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&error];
+                if (regex && error == nil) {
+                    [patterns addObject:regex];
+                } else {
+                    // If not a valid regex, treat as a plain string
+                    [patterns addObject:pattern];
+                }
+            }
+        }
+        _ignoreErrorPatterns = [patterns copy];
+    } else {
+        _ignoreErrorPatterns = nil;
+    }
+}
+
+- (BOOL)shouldIgnoreError:(NSString *)message {
+    if (![_ignoreErrorPatterns isKindOfClass:[NSArray class]] || !message) {
+        return NO;
+    }
+    for (id pattern in _ignoreErrorPatterns) {
+        if ([pattern isKindOfClass:[NSRegularExpression class]]) {
+            NSRange range = NSMakeRange(0, message.length);
+            if ([pattern firstMatchInString:message options:0 range:range]) {
+                return YES;
+            }
+        } else if ([pattern isKindOfClass:[NSString class]]) {
+            if ([message isEqualToString:pattern]) {
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
@@ -145,8 +186,19 @@ RCT_EXPORT_METHOD(initNativeSdk
             return nil;
         }
 
-        [self setEventOriginTag:event];
+        // Ignore errors logic
+        if (self->_ignoreErrorPatterns) {
+            for (SentryException *exception in event.exceptions) {
+                if ([self shouldIgnoreError:exception.value]) {
+                    return nil;
+                }
+            }
+            if ([self shouldIgnoreError:event.message.formatted]) {
+                return nil;
+            }
+        }
 
+        [self setEventOriginTag:event];
         return event;
     };
 
@@ -210,6 +262,12 @@ RCT_EXPORT_METHOD(initNativeSdk
                 sentryOptions.spotlightUrl = defaultSpotlightUrl;
             }
         }
+    }
+    if ([mutableOptions valueForKey:@"ignoreErrors"] != nil) {
+        NSArray *ignoreErrors = [mutableOptions valueForKey:@"ignoreErrors"];
+        [self setIgnoreErrors:ignoreErrors];
+    } else {
+        [self setIgnoreErrors:nil];
     }
 
     // Enable the App start and Frames tracking measurements
