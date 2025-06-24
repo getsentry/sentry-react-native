@@ -30,6 +30,7 @@
 
 ### Fixes
 
+- Adds support for React Native 0.80 ([#4938](https://github.com/getsentry/sentry-react-native/pull/4938))
 - Report slow and frozen frames as app start span data ([#4865](https://github.com/getsentry/sentry-react-native/pull/4865))
 - User set by `Sentry.setUser` is prefilled in Feedback Widget ([#4901](https://github.com/getsentry/sentry-react-native/pull/4901))
   - User data are considered from all scopes in the following order current, isolation and global.
