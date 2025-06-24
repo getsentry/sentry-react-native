@@ -112,6 +112,43 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
 
+## 6.16.0
+
+### Features
+
+- Introducing `@sentry/react-native/playground` ([#4916](https://github.com/getsentry/sentry-react-native/pull/4916))
+
+  The new `withSentryPlayground` component allows developers to verify
+  that the SDK is properly configured and reports errors as expected.
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+  import { withSentryPlayground } from '@sentry/react-native/playground';
+
+  function App() {
+    return <View>...</View>;
+  }
+
+  export default withSentryPlayground(
+    Sentry.wrap(App)
+  );
+  ```
+
+### Fixes
+
+- Adds support for React Native 0.80 ([#4938](https://github.com/getsentry/sentry-react-native/pull/4938))
+- Report slow and frozen frames as app start span data ([#4865](https://github.com/getsentry/sentry-react-native/pull/4865))
+- User set by `Sentry.setUser` is prefilled in Feedback Widget ([#4901](https://github.com/getsentry/sentry-react-native/pull/4901))
+  - User data are considered from all scopes in the following order current, isolation and global.
+
+## 6.15.1
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.52.0 to v8.52.1 ([#4899](https://github.com/getsentry/sentry-react-native/pull/4899))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8521)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.52.0...8.52.1)
+
 ## 6.15.0
 
 ### Features

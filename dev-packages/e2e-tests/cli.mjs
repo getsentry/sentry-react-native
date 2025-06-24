@@ -68,6 +68,25 @@ const testApp = `${e2eDir}/${testAppName}`;
 const appId = platform === 'ios' ? 'org.reactjs.native.example.RnDiffApp' : 'com.rndiffapp';
 const sentryAuthToken = env.SENTRY_AUTH_TOKEN;
 
+function runCodegenIfNeeded(rnVersion, platform, appDir) {
+  const versionNumber = parseFloat(rnVersion.replace(/[^\d.]/g, ''));
+  const shouldRunCodegen = platform === 'android' && versionNumber >= 0.80;
+
+  if (shouldRunCodegen) {
+    console.log(`Running codegen for React Native ${rnVersion}...`);
+    try {
+      execSync('./gradlew generateCodegenArtifactsFromSchema', {
+        stdio: 'inherit',
+        cwd: path.join(appDir, 'android'),
+        env: env
+      });
+      console.log('Gradle codegen task completed successfully');
+    } catch (error) {
+      console.error('Codegen failed:', error.message);
+    }
+  }
+}
+
 // Build and publish the SDK - we only need to do this once in CI.
 // Locally, we may want to get updates from the latest build so do it on every app build.
 if (actions.includes('create') || (env.CI === undefined && actions.includes('build'))) {
@@ -198,6 +217,8 @@ if (actions.includes('build')) {
 
     appProduct = `${appDir}/ios/DerivedData/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
   } else if (platform == 'android') {
+    runCodegenIfNeeded(RNVersion, platform, appDir);
+
     execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86 --no-daemon`, {
       stdio: 'inherit',
       cwd: `${appDir}/android`,
