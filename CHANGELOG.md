@@ -6,6 +6,23 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+- ignoreError now filters Native errors ([#4930](https://github.com/getsentry/sentry-react-native/pull/4930))
+
+you can use strings to filter errors that contains your string or RegEx for filtering for a pattern.
+
+example:
+
+```typescript
+  ignoreErrors: [
+    '1234', // Will filter any error message that contains 1234.
+    '.*1234', // Will not filter as regex, instead will filter messages that contains '.*1234"
+    /.*1234/, // Regex will filter any error message that ends with 1234
+    /.*1234.*/ // Regex will filter any error message that contains 1234.
+  ]
+```
+
 ## 7.0.0-beta.1
 
 ### Upgrading from 6.x to 7.0
@@ -73,24 +90,6 @@ Sentry.init({
   }
 });
 ```
-
-- ignoreError now filters Native errors ([#4930](https://github.com/getsentry/sentry-react-native/pull/4930))
-
-You can use a string for filtering it or a Regex string.
-
-Android:
-* captureException:
-  use '{full classpath}: {error message}'
-  example:
-```typescript
-//        Throw new RuntimeException("I have a problem");;
-Sentry.ignoreErrors([
-    'java.lang.RuntimeException: I have a problem', // Correct
-    'RuntimeException: I have a problem,' // Incorrect
-    '(.)*I have a problem' // Correct Regex
-]);
-```
-iOS: TBA
 
 ### Changes
 
