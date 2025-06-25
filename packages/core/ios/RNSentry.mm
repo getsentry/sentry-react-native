@@ -89,7 +89,6 @@ static bool hasFetchedAppStart;
 }
 
 RCT_EXPORT_MODULE()
-
 RCT_EXPORT_METHOD(initNativeSdk
                   : (NSDictionary *_Nonnull)options resolve
                   : (RCTPromiseResolveBlock)resolve rejecter
@@ -134,40 +133,51 @@ RCT_EXPORT_METHOD(initNativeSdk
     resolve(@YES);
 }
 
-- (void)setIgnoreErrors:(NSArray<NSString *> *)ignoreErrors {
-    if ([ignoreErrors isKindOfClass:[NSArray class]] && ignoreErrors.count > 0) {
-        NSMutableArray<NSString *> *strs = [NSMutableArray array];
-        NSMutableArray<NSRegularExpression *> *regexes = [NSMutableArray array];
-        for (id pattern in ignoreErrors) {
+- (void)trySetIgnoreErrors:(NSMutableDictionary *)options {
+    NSArray *ignoreErrorsStr = nil;
+    NSArray *ignoreErrorsRegex = nil;
+
+    id strArr = [options objectForKey:@"ignoreErrorsStr"];
+    id regexArr = [options objectForKey:@"ignoreErrorsRegex"];
+    if ([strArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsStr = (NSArray *)strArr;
+    }
+    if ([regexArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsRegex = (NSArray *)regexArr;
+    }
+
+    NSMutableArray<NSString *> *strs = [NSMutableArray array];
+    NSMutableArray<NSRegularExpression *> *regexes = [NSMutableArray array];
+
+    if (ignoreErrorsStr != nil) {
+        for (id str in ignoreErrorsStr) {
+            if ([str isKindOfClass:[NSString class]]) {
+                [strs addObject:str];
+            }
+        }
+    }
+
+    if (ignoreErrorsRegex != nil) {
+        for (id pattern in ignoreErrorsRegex) {
             if ([pattern isKindOfClass:[NSString class]]) {
                 NSError *error = nil;
                 NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&error];
                 if (regex && error == nil) {
                     [regexes addObject:regex];
-                } else {
-                    [strs addObject:pattern];
                 }
             }
         }
-        _ignoreErrorPatternsStr = [strs copy];
-        _ignoreErrorPatternsRegex = [regexes copy];
-    } else {
-        _ignoreErrorPatternsStr = nil;
-        _ignoreErrorPatternsRegex = nil;
     }
+
+    _ignoreErrorPatternsStr = [strs count] > 0 ? [strs copy] : nil;
+    _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
 }
 
 - (BOOL)shouldIgnoreError:(NSString *)message {
-    if ((![_ignoreErrorPatternsStr isKindOfClass:[NSArray class]] && ![_ignoreErrorPatternsRegex isKindOfClass:[NSArray class]]) || !message) {
+    if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
         return NO;
     }
-    // Check exact string matches
-    for (NSString *str in _ignoreErrorPatternsStr) {
-        if ([message isEqualToString:str]) {
-            return YES;
-        }
-    }
-    // Check regex matches
+
     for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
         NSRange range = NSMakeRange(0, message.length);
         if ([regex firstMatchInString:message options:0 range:range]) {
@@ -175,6 +185,13 @@ RCT_EXPORT_METHOD(initNativeSdk
         }
     }
     return NO;
+
+    for (NSString *str in _ignoreErrorPatternsStr) {
+        if ([message containsString:str]) {
+            return YES;
+        }
+    }
+
 }
 
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
@@ -267,12 +284,8 @@ RCT_EXPORT_METHOD(initNativeSdk
             }
         }
     }
-    if ([mutableOptions valueForKey:@"ignoreErrors"] != nil) {
-        NSArray *ignoreErrors = [mutableOptions valueForKey:@"ignoreErrors"];
-        [self setIgnoreErrors:ignoreErrors];
-    } else {
-        [self setIgnoreErrors:nil];
-    }
+
+    [self trySetIgnoreErrors:mutableOptions];
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
