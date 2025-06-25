@@ -189,7 +189,12 @@ class RNSentryModuleImplTest {
     @Test
     fun `trySetIgnoreErrors sets only regex patterns`() {
         val options = SentryAndroidOptions()
-        val rnOptions = JavaOnlyMap.of("ignoreErrorsRegex", com.facebook.react.bridge.JavaOnlyArray.of("^Foo.*", "Bar$") )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "ignoreErrorsRegex",
+                com.facebook.react.bridge.JavaOnlyArray
+                    .of("^Foo.*", "Bar$"),
+            )
         module.trySetIgnoreErrors(options, rnOptions)
         assertEquals(listOf("^Foo.*", "Bar$"), options.ignoredErrors)
     }
@@ -197,7 +202,12 @@ class RNSentryModuleImplTest {
     @Test
     fun `trySetIgnoreErrors sets only string patterns`() {
         val options = SentryAndroidOptions()
-        val rnOptions = JavaOnlyMap.of("ignoreErrorsStr", com.facebook.react.bridge.JavaOnlyArray.of("ExactError", "AnotherError") )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "ignoreErrorsStr",
+                com.facebook.react.bridge.JavaOnlyArray
+                    .of("ExactError", "AnotherError"),
+            )
         module.trySetIgnoreErrors(options, rnOptions)
         assertEquals(listOf(".*ExactError.*", ".*AnotherError.*"), options.ignoredErrors)
     }
@@ -205,10 +215,15 @@ class RNSentryModuleImplTest {
     @Test
     fun `trySetIgnoreErrors sets both regex and string patterns`() {
         val options = SentryAndroidOptions()
-        val rnOptions = JavaOnlyMap.of(
-            "ignoreErrorsRegex", com.facebook.react.bridge.JavaOnlyArray.of("^Foo.*"),
-            "ignoreErrorsStr", com.facebook.react.bridge.JavaOnlyArray.of("ExactError")
-        )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "ignoreErrorsRegex",
+                com.facebook.react.bridge.JavaOnlyArray
+                    .of("^Foo.*"),
+                "ignoreErrorsStr",
+                com.facebook.react.bridge.JavaOnlyArray
+                    .of("ExactError"),
+            )
         module.trySetIgnoreErrors(options, rnOptions)
         assertEquals(listOf("^Foo.*", ".*ExactError.*"), options.ignoredErrors)
     }
@@ -225,13 +240,21 @@ class RNSentryModuleImplTest {
     fun `trySetIgnoreErrors with string containing regex special characters should match literally if Pattern_quote is used`() {
         val options = SentryAndroidOptions()
         val special = "I like chocolate (and tomato)."
-        val rnOptions = JavaOnlyMap.of("ignoreErrorsStr", com.facebook.react.bridge.JavaOnlyArray.of(special))
+        val rnOptions =
+            JavaOnlyMap.of(
+                "ignoreErrorsStr",
+                com.facebook.react.bridge.JavaOnlyArray
+                    .of(special),
+            )
         module.trySetIgnoreErrors(options, rnOptions)
         // The pattern should be .*(I like chocolate (and tomato).)* if not quoted, which would break literal matching
         // Here we just check that the pattern is as expected
         assertEquals(listOf(".*I like chocolate (and tomato).*"), options.ignoredErrors)
         // If you use Pattern.quote, the pattern would be .*(\Q...\E).*
-        val quotedPattern = ".*" + java.util.regex.Pattern.quote(special) + ".*"
+        val quotedPattern =
+            ".*" +
+                java.util.regex.Pattern
+                    .quote(special) + ".*"
         // This test demonstrates the difference:
         val regex = Regex(options.ignoredErrors[0])
         assertTrue(regex.matches("I like chocolate (and tomato)."))
@@ -243,7 +266,12 @@ class RNSentryModuleImplTest {
     fun `trySetIgnoreErrors with string containing star should not match everything if Pattern_quote is used`() {
         val options = SentryAndroidOptions()
         val special = "Error*WithStar"
-        val rnOptions = JavaOnlyMap.of("ignoreErrorsStr", com.facebook.react.bridge.JavaOnlyArray.of(special))
+        val rnOptions =
+            JavaOnlyMap.of(
+                "ignoreErrorsStr",
+                com.facebook.react.bridge.JavaOnlyArray
+                    .of(special),
+            )
         module.trySetIgnoreErrors(options, rnOptions)
         assertEquals(listOf(".*Error*WithStar.*"), options.ignoredErrors)
         val regex = Regex(options.ignoredErrors[0])
