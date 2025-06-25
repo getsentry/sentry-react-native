@@ -91,6 +91,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -321,14 +323,7 @@ public class RNSentryModuleImpl {
     // we want to ignore it on the native side to avoid sending it twice.
     options.addIgnoredExceptionForType(JavascriptException.class);
 
-    if (rnOptions.hasKey("ignoreErrors")) {
-      ReadableArray arr = rnOptions.getArray("ignoreErrors");
-      if (arr != null) {
-          List<String> list = new ArrayList<>(arr.size());
-          for (int i = 0; i < arr.size(); i++) list.add(arr.getString(i));
-          options.setIgnoredErrors(list);
-      }
-    }
+    trySetIgnoreErrors(options, rnOptions);
 
     options.setBeforeSend(
         (event, hint) -> {
@@ -1135,5 +1130,35 @@ public class RNSentryModuleImpl {
       return null;
     }
     return uri.getScheme() + "://" + uri.getHost();
+  }
+
+  @TestOnly
+  protected void trySetIgnoreErrors(SentryAndroidOptions options, ReadableMap rnOptions) {
+    ReadableArray regErrors = null;
+    ReadableArray strErrors = null;
+    if (rnOptions.hasKey("ignoreErrorsRegex")) {
+      regErrors = rnOptions.getArray("ignoreErrorsRegex");
+    }
+    if (rnOptions.hasKey("ignoreErrorsStr")) {
+      strErrors = rnOptions.getArray("ignoreErrorsStr");
+    }
+    if (regErrors == null && strErrors == null) {
+      return;
+    }
+
+    int regSize = regErrors != null ? regErrors.size() : 0;
+    int strSize = strErrors != null ? strErrors.size() : 0;
+    List<String> list = new ArrayList<>(regSize + strSize);
+    if (regErrors != null) {
+      for (int i = 0; i < regErrors.size(); i++) list.add(regErrors.getString(i));
+    }
+    if (strErrors != null) {
+      // Use the same behaviour of JavaScript instead of Android when dealing with strings.
+      for (int i = 0; i < strErrors.size(); i++) {
+        String pattern = ".*" + Pattern.quote(strErrors.getString(i)) + ".*";
+        list.add(pattern);
+      }
+    }
+    options.setIgnoredErrors(list);
   }
 }
