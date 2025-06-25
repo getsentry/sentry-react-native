@@ -1,6 +1,5 @@
 import type { Client, Integration } from '@sentry/core';
 import { getClient, logger } from '@sentry/core';
-
 import { isWeb } from '../utils/environment';
 import { fillTyped } from '../utils/fill';
 import { ReactNativeLibraries } from '../utils/rnlibraries';

@@ -2,7 +2,6 @@ import { logger } from '@sentry/core';
 import * as React from 'react';
 import type { HostComponent, ViewProps } from 'react-native';
 import { UIManager, View } from 'react-native';
-
 import { isExpoGo } from '../utils/environment';
 
 const NativeComponentRegistry: {
@@ -34,7 +33,7 @@ const UnmaskFallback = (viewProps: ViewProps): React.ReactElement => {
   return <View {...viewProps} />;
 };
 
-const hasViewManagerConfig = (nativeComponentName: string): boolean => UIManager.hasViewManagerConfig && UIManager.hasViewManagerConfig(nativeComponentName);
+const hasViewManagerConfig = (nativeComponentName: string): boolean => UIManager.hasViewManagerConfig?.(nativeComponentName);
 
 const Mask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
   if (isExpoGo() || !hasViewManagerConfig(MaskNativeComponentName)) {

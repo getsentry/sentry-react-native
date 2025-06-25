@@ -78,6 +78,12 @@ Sentry.init({
       didCallNativeInit,
     );
   },
+  _experiments: {
+    enableLogs: true,
+    beforeSendLog: (log) => {
+      return log;
+    },
+  },
   enableUserInteractionTracing: true,
   integrations(integrations) {
     integrations.push(

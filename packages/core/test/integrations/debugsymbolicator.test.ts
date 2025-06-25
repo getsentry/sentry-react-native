@@ -1,7 +1,4 @@
-jest.mock('../../src/js/integrations/debugsymbolicatorutils');
-
 import type { Client, Event, EventHint, StackFrame } from '@sentry/core';
-
 import { debugSymbolicatorIntegration } from '../../src/js/integrations/debugsymbolicator';
 import {
   fetchSourceContext,
@@ -10,6 +7,8 @@ import {
   symbolicateStackTrace,
 } from '../../src/js/integrations/debugsymbolicatorutils';
 import type * as ReactNative from '../../src/js/vendor/react-native';
+
+jest.mock('../../src/js/integrations/debugsymbolicatorutils');
 
 async function processEvent(mockedEvent: Event, mockedHint: EventHint): Promise<Event | null> {
   return debugSymbolicatorIntegration().processEvent!(mockedEvent, mockedHint, {} as Client);

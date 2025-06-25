@@ -1,5 +1,4 @@
 import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
-
 import { warnOnce } from '../../plugin/src/utils';
 import type { SentryAndroidGradlePluginOptions } from '../../plugin/src/withSentryAndroidGradlePlugin';
 import { withSentryAndroidGradlePlugin } from '../../plugin/src/withSentryAndroidGradlePlugin';
@@ -86,7 +85,7 @@ describe('withSentryAndroidGradlePlugin', () => {
   });
 
   it('warnOnce if failed to modify build.gradle', () => {
-    const invalidBuildGradle = `android {}`;
+    const invalidBuildGradle = 'android {}';
     const options: SentryAndroidGradlePluginOptions = { enableAndroidGradlePlugin: true };
 
     (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {

@@ -1,8 +1,8 @@
 import type { InternalGlobal } from '@sentry/core';
 import { GLOBAL_OBJ } from '@sentry/core';
 import type { ErrorUtils } from 'react-native/types';
-
 import type { ExpoGlobalObject } from './expoglobalobject';
+
 export interface HermesPromiseRejectionTrackingOptions {
   allRejections: boolean;
   onUnhandled: (id: string, error: unknown) => void;
@@ -36,8 +36,9 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
 }
 
 type TextEncoder = {
-  new (): TextEncoder;
-  encode(input?: string): Uint8Array;
+  new (): {
+    encode(input?: string): Uint8Array;
+  };
 };
 
 /** Get's the global object for the current JavaScript runtime */

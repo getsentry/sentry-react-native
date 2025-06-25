@@ -150,6 +150,18 @@ const ErrorsScreen = (_props: Props) => {
             }
           }}
         />
+        <Button
+          title="Log console"
+          onPress={() => {
+            Sentry.logger.info('info log');
+            Sentry.logger.trace('trace log');
+            Sentry.logger.debug('debug log');
+            Sentry.logger.warn('warn log');
+            Sentry.logger.error('error log');
+
+            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+          }}
+        />
         {Platform.OS === 'android' && (
           <>
             <Button
