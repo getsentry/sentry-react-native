@@ -6,9 +6,46 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 7.0.0-beta.1
 
-#### Features
+### Upgrading from 6.x to 7.0
+
+Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes based on the Sentry Javascript SDK version 9. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
+
+Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
+
+### Major Changes
+
+- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
+- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+
+### Major Changes from Sentry JS SDK v9
+
+- Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
+- `shutdownTimeout` moved from `core` to `@sentry/react-native`
+- `hasTracingEnabled` was renamed to `hasSpansEnabled`
+- You can no longer drop spans or return null on `beforeSendSpan` hook
+- Fork `scope` if custom scope is passed to `startSpanManual` or `startSpan`
+
+#### Removed types
+
+- TransactionNamingScheme
+- Request
+- Scope (prefer using the Scope class)
+
+#### Other removed items.
+
+- `autoSessionTracking` from options.
+  To enable session tracking, ensure that `enableAutoSessionTracking` is enabled.
+- `enableTracing`. Instead, set `tracesSampleRate` to a value greater than `zero` to `enable tracing`, `0` to keep tracing integrations active without sampling, or `undefined` to disable the performance integration.
+- `getCurrentHub()`, `Hub`, and `getCurrentHubShim()`
+- `spanId` from propagation `context`
+- metrics API
+- `transactionContext` from `samplingContext`
+- `@sentry/utils` package, the exports were moved to `@sentry/core`
+- Standalone `Client` interface & deprecate `BaseClient`
+
+### Features
 
 - Add experimental support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827))
 
