@@ -10,6 +10,7 @@ import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { LogBox } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { withSentryPlayground } from '@sentry/react-native/playground';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -148,5 +149,10 @@ function RootLayoutNav() {
     </ThemeProvider>
   );
 }
+
+// export default withSentryPlayground(Sentry.wrap(RootLayout), {
+//   projectId: '5428561',
+//   organizationSlug: 'sentry-sdks',
+// });
 
 export default Sentry.wrap(RootLayout);

@@ -68,15 +68,15 @@ export const startIdleNavigationSpan = (
     activeSpan.end();
   }
 
-  const finalStartStapOptions = {
+  const finalStartSpanOptions = {
     ...getDefaultIdleNavigationSpanOptions(),
     ...startSpanOption,
   };
 
-  const idleSpan = startIdleSpan(finalStartStapOptions, { finalTimeout, idleTimeout });
+  const idleSpan = startIdleSpan(finalStartSpanOptions, { finalTimeout, idleTimeout });
   logger.log(
-    `[startIdleNavigationSpan] Starting ${finalStartStapOptions.op || 'unknown op'} transaction "${
-      finalStartStapOptions.name
+    `[startIdleNavigationSpan] Starting ${finalStartSpanOptions.op || 'unknown op'} transaction "${
+      finalStartSpanOptions.name
     }" on scope`,
   );
 

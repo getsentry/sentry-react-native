@@ -12,10 +12,13 @@ const mockOnAddScreenshot = jest.fn();
 const mockOnSubmitSuccess = jest.fn();
 const mockOnFormSubmitted = jest.fn();
 const mockOnSubmitError = jest.fn();
-const mockGetUser = jest.fn(() => ({
+
+const mockCurrentScopeGetUser = jest.fn(() => ({
   email: 'test@example.com',
   name: 'Test User',
 }));
+const mockIsolationScopeGetUser = jest.fn();
+const mockGlobalScopeGetUser = jest.fn();
 
 jest.spyOn(Alert, 'alert');
 
@@ -23,7 +26,13 @@ jest.mock('@sentry/core', () => ({
   ...jest.requireActual('@sentry/core'),
   captureFeedback: jest.fn(),
   getCurrentScope: jest.fn(() => ({
-    getUser: mockGetUser,
+    getUser: mockCurrentScopeGetUser,
+  })),
+  getIsolationScope: jest.fn(() => ({
+    getUser: mockIsolationScopeGetUser,
+  })),
+  getGlobalScope: jest.fn(() => ({
+    getUser: mockGlobalScopeGetUser,
   })),
   lastEventId: jest.fn(),
 }));
@@ -98,6 +107,12 @@ const customStyles: FeedbackWidgetStyles = {
 };
 
 describe('FeedbackWidget', () => {
+  beforeEach(() => {
+    mockIsolationScopeGetUser.mockReturnValue(undefined);
+    mockGlobalScopeGetUser.mockReturnValue(undefined);
+    FeedbackWidget.reset();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -162,25 +177,77 @@ describe('FeedbackWidget', () => {
     expect(queryByTestId('sentry-logo')).toBeNull();
   });
 
-  it('name and email are prefilled when sentry user is set', () => {
-    const { getByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
+  describe('User data prefilling', () => {
+    const users = {
+      prop: { name: 'Prop User', email: 'prop@example.com' },
+      current: { name: 'Current User', email: 'current@example.com' },
+      isolation: { name: 'Isolation User', email: 'isolation@example.com' },
+      global: { name: 'Global User', email: 'global@example.com' },
+    };
 
-    const nameInput = getByPlaceholderText(defaultProps.namePlaceholder);
-    const emailInput = getByPlaceholderText(defaultProps.emailPlaceholder);
+    it('prefills from useSentryUser prop when provided', () => {
+      mockCurrentScopeGetUser.mockReturnValue(users.current);
+      const { getByPlaceholderText } = render(
+        <FeedbackWidget {...defaultProps} useSentryUser={users.prop} />,
+      );
+      expect(getByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe(users.prop.name);
+      expect(getByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe(users.prop.email);
+    });
 
-    expect(nameInput.props.value).toBe('Test User');
-    expect(emailInput.props.value).toBe('test@example.com');
+    it('prefills from currentScope when useSentryUser prop is not set', () => {
+      mockCurrentScopeGetUser.mockReturnValue(users.current);
+      mockIsolationScopeGetUser.mockReturnValue(users.isolation);
+      mockGlobalScopeGetUser.mockReturnValue(users.global);
+
+      const { getByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
+      expect(getByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe(users.current.name);
+      expect(getByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe(users.current.email);
+    });
+
+    it('prefills from isolationScope when useSentryUser prop and currentScope user are not set', () => {
+      mockCurrentScopeGetUser.mockReturnValue(undefined);
+      mockIsolationScopeGetUser.mockReturnValue(users.isolation);
+      mockGlobalScopeGetUser.mockReturnValue(users.global);
+
+      const { getByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
+      expect(getByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe(users.isolation.name);
+      expect(getByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe(users.isolation.email);
+    });
+
+    it('prefills from globalScope when useSentryUser prop, currentScope, and isolationScope users are not set', () => {
+      mockCurrentScopeGetUser.mockReturnValue(undefined);
+      mockIsolationScopeGetUser.mockReturnValue(undefined);
+      mockGlobalScopeGetUser.mockReturnValue(users.global);
+
+      const { getByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
+      expect(getByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe(users.global.name);
+      expect(getByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe(users.global.email);
+    });
+
+    it('prefills with empty strings if no user data is available from props or any scope', () => {
+      mockCurrentScopeGetUser.mockReturnValue(undefined);
+      mockIsolationScopeGetUser.mockReturnValue(undefined);
+      mockGlobalScopeGetUser.mockReturnValue(undefined);
+
+      const { getByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
+      expect(getByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('');
+      expect(getByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe('');
+    });
   });
 
-  it('ensure getUser is called only after the component is rendered', () => {
-    // Ensure getUser is not called before render
-    expect(mockGetUser).not.toHaveBeenCalled();
+  it('ensure scope getUser methods are called during initialization when useSentryUser prop is not set', () => {
+    // Ensure scope getUser methods are not called before render
+    expect(mockCurrentScopeGetUser).not.toHaveBeenCalled();
+    expect(mockIsolationScopeGetUser).not.toHaveBeenCalled();
+    expect(mockGlobalScopeGetUser).not.toHaveBeenCalled();
 
     // Render the component
-    render(<FeedbackWidget />);
+    render(<FeedbackWidget {...defaultProps} />);
 
-    // After rendering, check that getUser was called twice (email and name)
-    expect(mockGetUser).toHaveBeenCalledTimes(2);
+    // After rendering, _getUser is called twice (for name and email).
+    expect(mockCurrentScopeGetUser).toHaveBeenCalledTimes(2);
+    expect(mockIsolationScopeGetUser).toHaveBeenCalledTimes(2);
+    expect(mockGlobalScopeGetUser).toHaveBeenCalledTimes(2);
   });
 
   it('shows an error message if required fields are empty', async () => {
@@ -398,8 +465,8 @@ describe('FeedbackWidget', () => {
     unmount();
     const { queryByPlaceholderText } = render(<FeedbackWidget {...defaultProps} />);
 
-    expect(queryByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('Test User');
-    expect(queryByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe('test@example.com');
+    expect(queryByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('');
+    expect(queryByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe('');
     expect(queryByPlaceholderText(defaultProps.messagePlaceholder).props.value).toBe('');
   });
 

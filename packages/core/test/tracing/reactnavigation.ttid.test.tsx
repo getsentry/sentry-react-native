@@ -14,7 +14,7 @@ jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplayn
 import * as Sentry from '../../src/js';
 import { startSpanManual } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
-import { _setAppStartEndTimestampMs } from '../../src/js/tracing/integrations/appStart';
+import { _setAppStartEndData } from '../../src/js/tracing/integrations/appStart';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
@@ -48,7 +48,10 @@ describe('React Navigation - TTID', () => {
         type: 'cold',
         spans: [],
       });
-      _setAppStartEndTimestampMs(mockedAppStartTimeSeconds * 1000);
+      _setAppStartEndData({
+        timestampMs: mockedAppStartTimeSeconds * 1000,
+        endFrames: null
+      });
 
       const sut = createTestedInstrumentation({ enableTimeToInitialDisplay: true });
       transportSendMock = initSentry(sut).transportSendMock;

@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
-import type { SendFeedbackParams } from '@sentry/core';
-import { captureFeedback, getCurrentScope, lastEventId, logger } from '@sentry/core';
+import type { SendFeedbackParams, User } from '@sentry/core';
+import { captureFeedback, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId, logger } from '@sentry/core';
 import * as React from 'react';
 import type { KeyboardTypeOptions ,
   NativeEventSubscription} from 'react-native';
@@ -14,7 +14,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from 'react-native';
-import { isWeb, notWeb } from '../utils/environment';
+import { isExpoGo, isWeb, notWeb } from '../utils/environment';
 import type { Screenshot } from '../wrapper';
 import { getDataFromUri, NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
@@ -52,10 +52,10 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
     const currentUser = {
       useSentryUser: {
-        email: this.props?.useSentryUser?.email || getCurrentScope()?.getUser()?.email || '',
-        name: this.props?.useSentryUser?.name || getCurrentScope()?.getUser()?.name || '',
-      },
-    };
+        email: this.props?.useSentryUser?.email || this._getUser()?.email || '',
+        name: this.props?.useSentryUser?.name || this._getUser()?.name || '',
+      }
+    }
 
     this.state = {
       isVisible: true,
@@ -190,14 +190,16 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             const imageUri = result.assets[0]?.uri;
             imageUri &&
               getDataFromUri(imageUri)
-                .then(data => {
-                  if (data) {
+                .then((data) => {
+                  if (data != null) {
                     this.setState({ filename, attachment: data, attachmentUri: imageUri });
                   } else {
+                    this._showImageRetrievalDevelopmentNote();
                     logger.error('Failed to read image data from uri:', imageUri);
                   }
                 })
-                .catch(error => {
+                .catch((error) => {
+                  this._showImageRetrievalDevelopmentNote();
                   logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
                 });
           }
@@ -206,17 +208,17 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((uri: string) => {
-          getDataFromUri(uri)
-            .then(data => {
-              if (data != null) {
-                this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
-              } else {
-                logger.error('Failed to read image data from uri:', uri);
-              }
-            })
-            .catch(error => {
-              logger.error('Failed to read image data from uri:', uri, 'error: ', error);
-            });
+          getDataFromUri(uri).then((data) => {
+            if (data != null) {
+              this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
+            } else {
+              this._showImageRetrievalDevelopmentNote();
+              logger.error('Failed to read image data from uri:', uri);
+            }
+          }).catch((error) => {
+            this._showImageRetrievalDevelopmentNote();
+            logger.error('Failed to read image data from uri:', uri, 'error: ', error);
+          });
         });
       }
     } else {
@@ -354,15 +356,12 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             </View>
           )}
           {notWeb() && config.enableTakeScreenshot && !this.state.attachmentUri && (
-            <TouchableOpacity
-              style={styles.takeScreenshotButton}
-              onPress={() => {
-                hideFeedbackButton();
-                onCancel();
-                showScreenshotButton();
-              }}
-            >
-              <Text style={styles.takeScreenshotText}>{text.captureScreenshotButtonLabel}</Text>
+            <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
+              hideFeedbackButton();
+              onCancel();
+              showScreenshotButton();
+            }}>
+              <Text style={styles.takeScreenshotText} testID='sentry-feedback-take-screenshot-button'>{text.captureScreenshotButtonLabel}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
@@ -415,8 +414,27 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   };
 
   private _hasScreenshot = (): boolean => {
-    return (
-      this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined
-    );
-  };
+    return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
+  }
+
+  private _getUser = (): User | undefined => {
+    const currentUser = getCurrentScope().getUser();
+    if (currentUser) {
+      return currentUser;
+    }
+    const isolationUser = getIsolationScope().getUser();
+    if (isolationUser) {
+      return isolationUser;
+    }
+    return getGlobalScope().getUser();
+  }
+
+  private _showImageRetrievalDevelopmentNote = (): void => {
+    if (isExpoGo()) {
+      feedbackAlertDialog(
+        'Development note',
+        'The feedback widget cannot retrieve image data in Expo Go. Please build your app to test this functionality.',
+      );
+    }
+  }
 }
