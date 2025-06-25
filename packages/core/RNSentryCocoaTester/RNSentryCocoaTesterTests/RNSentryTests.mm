@@ -500,12 +500,13 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     XCTAssertTrue([actual isEqualToDictionary:expected]);
 }
 
-- (void)testIgnoreErrorsDropsMatchingExceptionValue {
+- (void)testIgnoreErrorsDropsMatchingExceptionValue
+{
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
     NSDictionary *mockedOptions = @{
-        @"dsn": @"https://abc@def.ingest.sentry.io/1234567",
-        @"ignoreErrors": @[ @"IgnoreMe.*" ]
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"ignoreErrors" : @[ @"IgnoreMe.*" ]
     };
     SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
     XCTAssertNotNil(options);
@@ -513,17 +514,18 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     SentryEvent *event = [[SentryEvent alloc] init];
     SentryException *exception = [[SentryException alloc] init];
     exception.value = @"IgnoreMe: This should be ignored";
-    event.exceptions = @[exception];
+    event.exceptions = @[ exception ];
     SentryEvent *result = options.beforeSend(event);
     XCTAssertNil(result, @"Event with matching exception.value should be dropped");
 }
 
-- (void)testIgnoreErrorsDropsMatchingEventMessage {
+- (void)testIgnoreErrorsDropsMatchingEventMessage
+{
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
     NSDictionary *mockedOptions = @{
-        @"dsn": @"https://abc@def.ingest.sentry.io/1234567",
-        @"ignoreErrors": @[ @"DropThisError" ]
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"ignoreErrors" : @[ @"DropThisError" ]
     };
     SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
     XCTAssertNotNil(options);
@@ -536,12 +538,13 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     XCTAssertNil(result, @"Event with matching event.message.formatted should be dropped");
 }
 
-- (void)testIgnoreErrorsDoesNotDropNonMatchingEvent {
+- (void)testIgnoreErrorsDoesNotDropNonMatchingEvent
+{
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
     NSDictionary *mockedOptions = @{
-        @"dsn": @"https://abc@def.ingest.sentry.io/1234567",
-        @"ignoreErrors": @[ @"IgnoreMe.*" ]
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"ignoreErrors" : @[ @"IgnoreMe.*" ]
     };
     SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
     XCTAssertNotNil(options);
@@ -549,7 +552,7 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     SentryEvent *event = [[SentryEvent alloc] init];
     SentryException *exception = [[SentryException alloc] init];
     exception.value = @"SomeOtherError: should not be ignored";
-    event.exceptions = @[exception];
+    event.exceptions = @[ exception ];
     SentryMessage *msg = [[SentryMessage alloc] init];
     msg.formatted = @"SomeOtherMessage";
     event.message = msg;
@@ -557,12 +560,13 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     XCTAssertNotNil(result, @"Event with non-matching error should not be dropped");
 }
 
-- (void)testIgnoreErrorsDropsMatchingExactString {
+- (void)testIgnoreErrorsDropsMatchingExactString
+{
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
     NSDictionary *mockedOptions = @{
-        @"dsn": @"https://abc@def.ingest.sentry.io/1234567",
-        @"ignoreErrors": @[ @"ExactError" ]
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"ignoreErrors" : @[ @"ExactError" ]
     };
     SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
     XCTAssertNotNil(options);
@@ -575,12 +579,13 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     XCTAssertNil(result, @"Event with exactly matching string should be dropped");
 }
 
-- (void)testIgnoreErrorsRegexAndStringBothWork {
+- (void)testIgnoreErrorsRegexAndStringBothWork
+{
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
     NSDictionary *mockedOptions = @{
-        @"dsn": @"https://abc@def.ingest.sentry.io/1234567",
-        @"ignoreErrors": @[ @"ExactError", @"IgnoreMe.*" ]
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+        @"ignoreErrors" : @[ @"ExactError", @"IgnoreMe.*" ]
     };
     SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
     XCTAssertNotNil(options);
@@ -589,7 +594,7 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     SentryEvent *event1 = [[SentryEvent alloc] init];
     SentryException *exception = [[SentryException alloc] init];
     exception.value = @"IgnoreMe: This should be ignored";
-    event1.exceptions = @[exception];
+    event1.exceptions = @[ exception ];
     SentryEvent *result1 = options.beforeSend(event1);
     XCTAssertNil(result1, @"Event with matching regex should be dropped");
     // Test exact string match

@@ -254,7 +254,9 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
     const ignoreErrorsStr = options.ignoreErrors?.filter(item => typeof item === 'string') as string[] | undefined;
-    const ignoreErrorsRegex = options.ignoreErrors?.filter(item => item instanceof RegExp).map(item => (item as RegExp).source) as string[] | undefined;
+    const ignoreErrorsRegex = options.ignoreErrors
+      ?.filter(item => item instanceof RegExp)
+      .map(item => (item as RegExp).source) as string[] | undefined;
 
     if (ignoreErrorsStr && ignoreErrorsStr.length > 0) {
       options.ignoreErrorsStr = ignoreErrorsStr;
@@ -265,7 +267,8 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, ...filteredOptions } = options;
+    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, ...filteredOptions } =
+      options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 

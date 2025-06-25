@@ -133,7 +133,8 @@ RCT_EXPORT_METHOD(initNativeSdk
     resolve(@YES);
 }
 
-- (void)trySetIgnoreErrors:(NSMutableDictionary *)options {
+- (void)trySetIgnoreErrors:(NSMutableDictionary *)options
+{
     NSArray *ignoreErrorsStr = nil;
     NSArray *ignoreErrorsRegex = nil;
 
@@ -161,7 +162,10 @@ RCT_EXPORT_METHOD(initNativeSdk
         for (id pattern in ignoreErrorsRegex) {
             if ([pattern isKindOfClass:[NSString class]]) {
                 NSError *error = nil;
-                NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:pattern options:0 error:&error];
+                NSRegularExpression *regex =
+                    [NSRegularExpression regularExpressionWithPattern:pattern
+                                                              options:0
+                                                                error:&error];
                 if (regex && error == nil) {
                     [regexes addObject:regex];
                 }
@@ -173,7 +177,8 @@ RCT_EXPORT_METHOD(initNativeSdk
     _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
 }
 
-- (BOOL)shouldIgnoreError:(NSString *)message {
+- (BOOL)shouldIgnoreError:(NSString *)message
+{
     if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
         return NO;
     }
@@ -191,7 +196,6 @@ RCT_EXPORT_METHOD(initNativeSdk
             return YES;
         }
     }
-
 }
 
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options

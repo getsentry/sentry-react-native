@@ -92,7 +92,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -1150,7 +1149,9 @@ public class RNSentryModuleImpl {
     int strSize = strErrors != null ? strErrors.size() : 0;
     List<String> list = new ArrayList<>(regSize + strSize);
     if (regErrors != null) {
-      for (int i = 0; i < regErrors.size(); i++) list.add(regErrors.getString(i));
+      for (int i = 0; i < regErrors.size(); i++) {
+        list.add(regErrors.getString(i));
+      }
     }
     if (strErrors != null) {
       // Use the same behaviour of JavaScript instead of Android when dealing with strings.
