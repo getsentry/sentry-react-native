@@ -248,7 +248,7 @@ class RNSentryModuleImplTest {
             )
         module.trySetIgnoreErrors(options, rnOptions)
 
-        assertEquals(listOf(".*\\QI like chocolate (and tomato).\\E.*"), options.ignoredErrors!!.map { it.filterString})
+        assertEquals(listOf(".*\\QI like chocolate (and tomato).\\E.*"), options.ignoredErrors!!.map { it.filterString })
 
         val regex = Regex(options.ignoredErrors!![0].filterString)
         assertTrue(regex.matches("I like chocolate (and tomato)."))
@@ -267,14 +267,7 @@ class RNSentryModuleImplTest {
                     .of(special),
             )
         module.trySetIgnoreErrors(options, rnOptions)
-        assertEquals(1, options.ignoredErrors!!.count())
-        val regexStr = options.ignoredErrors!![0].filterString
-        assertEquals(".*\\QError*WithStar\\E.*", regexStr)
-
-        val regex = Regex(regexStr)
-
-        assertFalse(regex.matches("ErrorrrrrWithStar"))
-        assertTrue(regex.matches(" Error*WithStar "))
+        assertEquals(listOf(".*Error*WithStar.*"), options.ignoredErrors)
         assertTrue(regex.matches("Error*WithStar"))
     }
 }
