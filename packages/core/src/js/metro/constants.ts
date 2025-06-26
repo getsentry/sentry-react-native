@@ -1,0 +1,3 @@
+export const SENTRY_MIDDLEWARE_PATH = '__sentry';
+export const SENTRY_CONTEXT_REQUEST_PATH = `${SENTRY_MIDDLEWARE_PATH}/context`;
+export const SENTRY_OPEN_URL_REQUEST_PATH = `${SENTRY_MIDDLEWARE_PATH}/open-url`;
