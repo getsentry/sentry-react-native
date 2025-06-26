@@ -182,20 +182,20 @@ RCT_EXPORT_METHOD(initNativeSdk
     if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
         return NO;
     }
-
+    
     for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
         NSRange range = NSMakeRange(0, message.length);
         if ([regex firstMatchInString:message options:0 range:range]) {
             return YES;
         }
     }
-    return NO;
-
+    
     for (NSString *str in _ignoreErrorPatternsStr) {
         if ([message containsString:str]) {
             return YES;
         }
     }
+    return NO;
 }
 
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
@@ -207,18 +207,18 @@ RCT_EXPORT_METHOD(initNativeSdk
         // react native Because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
-                != NSNotFound) {
+            != NSNotFound) {
             return nil;
         }
-
+        
         // Regex and Str are set when one of them has value so we only need to check one of them.
-        if (self->_ignoreErrorPatternsStr) {
+        if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
             for (SentryException *exception in event.exceptions) {
                 if ([self shouldIgnoreError:exception.value]) {
                     return nil;
                 }
             }
-            if ([self shouldIgnoreError:event.message.formatted]) {
+            if ([self shouldIgnoreError:event.message.message]) {
                 return nil;
             }
         }
