@@ -268,6 +268,8 @@ class RNSentryModuleImplTest {
             )
         module.trySetIgnoreErrors(options, rnOptions)
         assertEquals(listOf(".*Error*WithStar.*"), options.ignoredErrors)
+
+        val regex = Regex(options.ignoredErrors!![0].filterString)
         assertTrue(regex.matches("Error*WithStar"))
     }
 }
