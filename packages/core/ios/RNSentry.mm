@@ -206,8 +206,9 @@ RCT_EXPORT_METHOD(initNativeSdk
     {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of
         // React Native because we sent it already before the app crashed.
-        if (event.exceptions.firstObject.type != nil &&
-            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
+                != NSNotFound) {
             return nil;
         }
 
