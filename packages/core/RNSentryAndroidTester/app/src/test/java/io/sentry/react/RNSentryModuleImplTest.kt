@@ -196,7 +196,7 @@ class RNSentryModuleImplTest {
                     .of("^Foo.*", "Bar$"),
             )
         module.trySetIgnoreErrors(options, rnOptions)
-        assertEquals(listOf("^Foo.*", "Bar$"), options.ignoredErrors)
+        assertEquals(listOf("^Foo.*", "Bar$"), options.ignoredErrors!!.map { it.filterString })
     }
 
     @Test
@@ -209,7 +209,7 @@ class RNSentryModuleImplTest {
                     .of("ExactError", "AnotherError"),
             )
         module.trySetIgnoreErrors(options, rnOptions)
-        assertEquals(listOf(".*ExactError.*", ".*AnotherError.*"), options.ignoredErrors)
+        assertEquals(listOf(".*\\QExactError\\E.*", ".*\\QAnotherError\\E.*"), options.ignoredErrors!!.map { it.filterString })
     }
 
     @Test
@@ -225,7 +225,7 @@ class RNSentryModuleImplTest {
                     .of("ExactError"),
             )
         module.trySetIgnoreErrors(options, rnOptions)
-        assertEquals(listOf("^Foo.*", ".*ExactError.*"), options.ignoredErrors)
+        assertEquals(listOf("^Foo.*", ".*\\QExactError\\E.*"), options.ignoredErrors!!.map { it.filterString })
     }
 
     @Test
@@ -247,19 +247,13 @@ class RNSentryModuleImplTest {
                     .of(special),
             )
         module.trySetIgnoreErrors(options, rnOptions)
-        // The pattern should be .*(I like chocolate (and tomato).)* if not quoted, which would break literal matching
-        // Here we just check that the pattern is as expected
-        assertEquals(listOf(".*I like chocolate (and tomato).*"), options.ignoredErrors)
-        // If you use Pattern.quote, the pattern would be .*(\Q...\E).*
-        val quotedPattern =
-            ".*" +
-                java.util.regex.Pattern
-                    .quote(special) + ".*"
-        // This test demonstrates the difference:
-        val regex = Regex(options.ignoredErrors[0])
+
+        assertEquals(listOf(".*\\QI like chocolate (and tomato).\\E.*"), options.ignoredErrors!!.map { it.filterString})
+
+        val regex = Regex(options.ignoredErrors!![0].filterString)
         assertTrue(regex.matches("I like chocolate (and tomato)."))
+        assertTrue(regex.matches(" I like chocolate (and tomato). "))
         assertTrue(regex.matches("I like chocolate (and tomato). And vanilla."))
-        // This would fail if the pattern is not quoted and the string contains regex special chars
     }
 
     @Test
@@ -273,10 +267,14 @@ class RNSentryModuleImplTest {
                     .of(special),
             )
         module.trySetIgnoreErrors(options, rnOptions)
-        assertEquals(listOf(".*Error*WithStar.*"), options.ignoredErrors)
-        val regex = Regex(options.ignoredErrors[0])
-        // This will match "ErrorrrrrWithStar" if not quoted, but should only match the literal string
-        assertTrue(regex.matches("Error*WithStar"))
+        assertEquals(1, options.ignoredErrors!!.count())
+        val regexStr = options.ignoredErrors!![0].filterString
+        assertEquals(".*\\QError*WithStar\\E.*", regexStr)
+
+        val regex = Regex(regexStr)
+
         assertFalse(regex.matches("ErrorrrrrWithStar"))
+        assertTrue(regex.matches(" Error*WithStar "))
+        assertTrue(regex.matches("Error*WithStar"))
     }
 }
