@@ -210,7 +210,6 @@ RCT_EXPORT_METHOD(initNativeSdk
             return nil;
         }
 
-
         // Regex and Str are set when one of them has value so we only need to check one of them.
         if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
             for (SentryException *exception in event.exceptions) {
