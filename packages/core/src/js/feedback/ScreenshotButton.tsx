@@ -82,7 +82,7 @@ export class ScreenshotButton extends React.Component<ScreenshotButtonProps> {
         accessibilityLabel={text.triggerAriaLabel}
       >
         <Image source={{ uri: screenshotIcon }} style={styles.triggerIcon}/>
-        <Text style={styles.triggerText}>{text.triggerLabel}</Text>
+        <Text style={styles.triggerText} testID='sentry-feedback-screenshot-button'>{text.triggerLabel}</Text>
       </TouchableOpacity>
     );
   }

@@ -12,8 +12,38 @@
 
 - Automatically detect Release name and version for Expo Web ([#4910](https://github.com/getsentry/sentry-react-native/pull/4910))
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.52.1 to v8.53.1 ([#4950](https://github.com/getsentry/sentry-react-native/pull/4950))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8531)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.52.1...8.53.1)
+
+## 6.16.0
+
+### Features
+
+- Introducing `@sentry/react-native/playground` ([#4916](https://github.com/getsentry/sentry-react-native/pull/4916))
+
+  The new `withSentryPlayground` component allows developers to verify
+  that the SDK is properly configured and reports errors as expected.
+
+  ```jsx
+  import * as Sentry from '@sentry/react-native';
+  import { withSentryPlayground } from '@sentry/react-native/playground';
+
+  function App() {
+    return <View>...</View>;
+  }
+
+  export default withSentryPlayground(
+    Sentry.wrap(App)
+  );
+  ```
+
 ### Fixes
 
+- Adds support for React Native 0.80 ([#4938](https://github.com/getsentry/sentry-react-native/pull/4938))
+- Report slow and frozen frames as app start span data ([#4865](https://github.com/getsentry/sentry-react-native/pull/4865))
 - User set by `Sentry.setUser` is prefilled in Feedback Widget ([#4901](https://github.com/getsentry/sentry-react-native/pull/4901))
   - User data are considered from all scopes in the following order current, isolation and global.
 
