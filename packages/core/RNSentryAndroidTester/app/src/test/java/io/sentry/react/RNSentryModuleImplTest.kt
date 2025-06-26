@@ -233,7 +233,7 @@ class RNSentryModuleImplTest {
         val options = SentryAndroidOptions()
         val rnOptions = JavaOnlyMap.of()
         module.trySetIgnoreErrors(options, rnOptions)
-        assertEquals(emptyList<String>(), options.ignoredErrors)
+        assertNull(options.ignoredErrors)
     }
 
     @Test
@@ -267,7 +267,7 @@ class RNSentryModuleImplTest {
                     .of(special),
             )
         module.trySetIgnoreErrors(options, rnOptions)
-        assertEquals(listOf(".*Error*WithStar.*"), options.ignoredErrors)
+        assertEquals(listOf(".*\\QError*WithStar\\E.*"), options.ignoredErrors!!.map { it.filterString })
 
         val regex = Regex(options.ignoredErrors!![0].filterString)
         assertTrue(regex.matches("Error*WithStar"))
