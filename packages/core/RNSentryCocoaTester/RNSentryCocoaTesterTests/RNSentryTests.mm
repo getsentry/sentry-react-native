@@ -531,7 +531,7 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
-    SentryMessage *msg = [SentryMessage alloc] ;
+    SentryMessage *msg = [SentryMessage alloc];
     msg.message = @"DropThisError: should be dropped";
     event.message = msg;
     SentryEvent *result = options.beforeSend(event);

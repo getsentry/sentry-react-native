@@ -199,7 +199,6 @@ RCT_EXPORT_METHOD(initNativeSdk
     return NO;
 }
 
-
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
@@ -208,7 +207,7 @@ RCT_EXPORT_METHOD(initNativeSdk
         // We don't want to send an event after startup that came from a Unhandled JS Exception of
         // React Native because we sent it already before the app crashed.
         if (event.exceptions.firstObject.type != nil &&
-            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
+            NSNotFound != [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location) {
             return nil;
         }
 
