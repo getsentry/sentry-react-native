@@ -177,40 +177,40 @@ RCT_EXPORT_METHOD(initNativeSdk
     _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
 }
 
-- (BOOL)shouldIgnoreError:(NSString *)message
-{
+- (BOOL)shouldIgnoreError:(NSString *)message {
     if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
         return NO;
     }
-    
+
     for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
         NSRange range = NSMakeRange(0, message.length);
         if ([regex firstMatchInString:message options:0 range:range]) {
             return YES;
         }
     }
-    
+
     for (NSString *str in _ignoreErrorPatternsStr) {
         if ([message containsString:str]) {
             return YES;
         }
     }
+
     return NO;
 }
+
 
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
-    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event)
-    {
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event) {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of
-        // react native Because we sent it already before the app crashed.
-        if (nil != event.exceptions.firstObject.type &&
-            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
-            != NSNotFound) {
+        // React Native because we sent it already before the app crashed.
+        if (event.exceptions.firstObject.type != nil &&
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
             return nil;
         }
-        
+
+
         // Regex and Str are set when one of them has value so we only need to check one of them.
         if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
             for (SentryException *exception in event.exceptions) {
