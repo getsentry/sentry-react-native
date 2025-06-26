@@ -177,7 +177,8 @@ RCT_EXPORT_METHOD(initNativeSdk
     _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
 }
 
-- (BOOL)shouldIgnoreError:(NSString *)message {
+- (BOOL)shouldIgnoreError:(NSString *)message
+{
     if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
         return NO;
     }
@@ -202,7 +203,8 @@ RCT_EXPORT_METHOD(initNativeSdk
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
-    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event) {
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event)
+    {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of
         // React Native because we sent it already before the app crashed.
         if (event.exceptions.firstObject.type != nil &&
