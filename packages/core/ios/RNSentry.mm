@@ -183,15 +183,15 @@ RCT_EXPORT_METHOD(initNativeSdk
         return NO;
     }
 
-    for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
-        NSRange range = NSMakeRange(0, message.length);
-        if ([regex firstMatchInString:message options:0 range:range]) {
+    for (NSString *str in _ignoreErrorPatternsStr) {
+        if ([message containsString:str]) {
             return YES;
         }
     }
-
-    for (NSString *str in _ignoreErrorPatternsStr) {
-        if ([message containsString:str]) {
+    
+    for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
+        NSRange range = NSMakeRange(0, message.length);
+        if ([regex firstMatchInString:message options:0 range:range]) {
             return YES;
         }
     }
