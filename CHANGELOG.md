@@ -10,7 +10,7 @@
 
 ### Dependencies
 
-- Bump Android SDK from v8.14.0 to v8.15.1 ([#]())
+- Bump Android SDK from v8.14.0 to v8.15.1 ([#4953](https://github.com/getsentry/sentry-react-native/pull/4953))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8151)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.14.0...8.15.1)
 
