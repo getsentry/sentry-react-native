@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Automatically detect Release name and version for Expo Web ([#4910](https://github.com/getsentry/sentry-react-native/pull/4910))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.52.1 to v8.53.1 ([#4950](https://github.com/getsentry/sentry-react-native/pull/4950))
