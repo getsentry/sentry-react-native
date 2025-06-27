@@ -10,6 +10,14 @@ interface ExpoConfig {
   version?: string;
 }
 
+let Constants: { default?: { manifest?: unknown }; manifest?: unknown } | null = null;
+try {
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  Constants = require('expo-constants');
+} catch {
+  // expo-constants not available, do nothing
+}
+
 /** Release integration responsible to load release from file. */
 export const nativeReleaseIntegration = (): Integration => {
   return {
@@ -22,7 +30,7 @@ export const nativeReleaseIntegration = (): Integration => {
 };
 
 /**
- * Get Expo Web configuration name and version from environment variables
+ * Get Expo Web configuration name and version from environment variables or Constants
  */
 function getExpoWebConfig(): ExpoConfig | null {
   if (!isWeb() || !isExpo()) {
@@ -30,16 +38,44 @@ function getExpoWebConfig(): ExpoConfig | null {
   }
 
   try {
+    // Environment variables (development)
     const processEnv = (globalThis as { process?: { env?: Record<string, string> } }).process?.env;
-
-    if (processEnv) {
-      const envConfig = {
+    if (processEnv && processEnv?.EXPO_PUBLIC_APP_NAME && processEnv?.EXPO_PUBLIC_APP_VERSION) {
+      return {
         name: processEnv.EXPO_PUBLIC_APP_NAME,
         version: processEnv.EXPO_PUBLIC_APP_VERSION,
       };
+    }
 
-      if (envConfig.name && envConfig.version) {
-        return envConfig;
+    // Expo-constants (production)
+    if (Constants) {
+      const constantsObj = Constants.default || Constants;
+
+      if (constantsObj && typeof constantsObj === 'object' && 'manifest' in constantsObj) {
+        let manifest = constantsObj.manifest;
+
+        if (typeof manifest === 'string') {
+          try {
+            manifest = JSON.parse(manifest) as unknown;
+          } catch {
+            return null;
+          }
+        }
+
+        if (
+          manifest &&
+          typeof manifest === 'object' &&
+          'name' in manifest &&
+          'version' in manifest &&
+          typeof (manifest as { name: unknown }).name === 'string' &&
+          typeof (manifest as { version: unknown }).version === 'string'
+        ) {
+          const typedManifest = manifest as { name: string; version: string };
+          return {
+            name: typedManifest.name,
+            version: typedManifest.version,
+          };
+        }
       }
     }
   } catch {
@@ -75,7 +111,7 @@ async function processEvent(
     1. __sentry_release and __sentry_dist set by user with setRelease and setDist (strongest)
     2. release and dist in options passed on init
     3. Native release (mobile)
-    4. Expo Web auto-detection (web only, no additional dependencies)
+    4. Expo Web auto-detection
   */
   if (typeof event.extra?.__sentry_release === 'string') {
     event.release = `${event.extra.__sentry_release}`;
