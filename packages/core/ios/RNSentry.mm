@@ -184,8 +184,7 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     for (NSString *str in _ignoreErrorPatternsStr) {
-        if ([message containsString:str])
-        {
+        if ([message containsString:str]) {
             return YES;
         }
     }
