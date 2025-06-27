@@ -8,6 +8,23 @@
 
 ## Unreleased
 
+### Fixes
+
+- ignoreError now filters Native errors ([#4948](https://github.com/getsentry/sentry-react-native/pull/4948))
+
+You can use strings to filter errors or RegEx for filtering with a pattern.
+
+example:
+
+```typescript
+  ignoreErrors: [
+    '1234', // Will filter any error message that contains 1234.
+    '.*1234', // Will not filter as regex, instead will filter messages that contains '.*1234"
+    /.*1234/, // Regex will filter any error message that ends with 1234
+    /.*1234.*/ // Regex will filter any error message that contains 1234.
+  ]
+```
+
 ### Dependencies
 
 - Bump Android SDK from v8.14.0 to v8.15.1 ([#4953](https://github.com/getsentry/sentry-react-native/pull/4953))
