@@ -184,11 +184,12 @@ RCT_EXPORT_METHOD(initNativeSdk
     }
 
     for (NSString *str in _ignoreErrorPatternsStr) {
-        if ([message containsString:str]) {
+        if ([message containsString:str])
+        {
             return YES;
         }
     }
-    
+
     for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
         NSRange range = NSMakeRange(0, message.length);
         if ([regex firstMatchInString:message options:0 range:range]) {
@@ -236,21 +237,7 @@ RCT_EXPORT_METHOD(initNativeSdk
     // set themselves.
     [mutableOptions removeObjectForKey:@"tracesSampleRate"];
     [mutableOptions removeObjectForKey:@"tracesSampler"];
-    [mutableOptions removeObjectForKey:@"enableTracing"];
-
-#if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryReplay updateOptions:mutableOptions];
-#endif
-
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions
-                                                      didFailWithError:errorPointer];
-    if (*errorPointer != nil) {
-        return nil;
-    }
-
-    // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
-    NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
+    [mutableOptions removeObjectForKey:@lz/v7/ignore-errorsions valueForKey:@"devServerUrl"];
     sentryOptions.beforeBreadcrumb
         = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
     {
