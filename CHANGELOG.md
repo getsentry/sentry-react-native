@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Android SDK from v8.14.0 to v8.15.1 ([#]())
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8151)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.14.0...8.15.1)
+
 ## 7.0.0-beta.1
 
 ### Upgrading from 6.x to 7.0
