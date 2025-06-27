@@ -8,6 +8,8 @@
 
 ## Unreleased
 
+### Fixes
+
 - ignoreError now filters Native errors ([#4948](https://github.com/getsentry/sentry-react-native/pull/4948))
 
 you can use strings to filter errors that contains your string or RegEx for filtering for a pattern.
