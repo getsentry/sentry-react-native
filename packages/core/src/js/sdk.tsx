@@ -55,14 +55,14 @@ export function init(passedOptions: ReactNativeOptions): void {
     return;
   }
 
-  const maxQueueSize =
-    passedOptions.maxQueueSize ??
+  const maxQueueSize = passedOptions.maxQueueSize
     // eslint-disable-next-line deprecation/deprecation
-    passedOptions.transportOptions?.bufferSize ??
-    DEFAULT_OPTIONS.maxQueueSize;
+    ?? passedOptions.transportOptions?.bufferSize
+    ?? DEFAULT_OPTIONS.maxQueueSize;
 
-  const enableNative =
-    passedOptions.enableNative === undefined || passedOptions.enableNative ? NATIVE.isNativeAvailable() : false;
+  const enableNative = passedOptions.enableNative === undefined || passedOptions.enableNative
+    ? NATIVE.isNativeAvailable()
+    : false;
 
   useEncodePolyfill();
   if (enableNative) {
@@ -83,9 +83,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     return `${dsnComponents.protocol}://${dsnComponents.host}${port}`;
   };
 
-  const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, {
-    loggerMessage: 'The beforeBreadcrumb threw an error',
-  });
+  const userBeforeBreadcrumb = safeFactory(passedOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
   const devServerUrl = getDevServer()?.url;
@@ -118,12 +116,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableNative,
     enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
-    transport:
-      passedOptions.transport ||
-      makeNativeTransportFactory({
+    transport: passedOptions.transport
+      || makeNativeTransportFactory({
         enableNative,
-      }) ||
-      makeFetchTransport,
+      })
+      || makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(passedOptions.transportOptions ?? {}),
@@ -143,10 +140,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     options.environment = getDefaultEnvironment();
   }
 
-  const defaultIntegrations: false | Integration[] =
-    passedOptions.defaultIntegrations === undefined
-      ? getDefaultIntegrations(options)
-      : passedOptions.defaultIntegrations;
+  const defaultIntegrations: false | Integration[] = passedOptions.defaultIntegrations === undefined
+    ? getDefaultIntegrations(options)
+    : passedOptions.defaultIntegrations;
 
   options.integrations = getIntegrationsToSetup({
     integrations: safeFactory(passedOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
