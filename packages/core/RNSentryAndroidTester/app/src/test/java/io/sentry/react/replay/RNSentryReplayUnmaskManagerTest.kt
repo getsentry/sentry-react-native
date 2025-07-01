@@ -2,6 +2,7 @@ package io.sentry.react.replay
 
 import com.facebook.react.module.annotations.ReactModule
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
