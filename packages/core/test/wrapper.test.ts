@@ -631,6 +631,36 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE._processLevel('warning' as SeverityLevel)).toBe('warning' as SeverityLevel);
       expect(NATIVE._processLevel('error' as SeverityLevel)).toBe('error' as SeverityLevel);
     });
+
+    test('returns event unchanged if tags is undefined', () => {
+      const event: Event = { event_id: '5', tags: undefined };
+      const processed = NATIVE._processLevels(event);
+      expect(processed.tags).toBeUndefined();
+    });
+
+    test('returns event unchanged if no tags', () => {
+      const event: Event = { event_id: '1' };
+      const processed = NATIVE._processLevels(event);
+      expect(processed.tags).toBeUndefined();
+    });
+
+    test('returns event with empty tags if tags is empty object', () => {
+      const event: Event = { event_id: '2', tags: {} };
+      const processed = NATIVE._processLevels(event);
+      expect(processed.tags).toEqual({});
+    });
+
+    test('converts primitive tag values to strings', () => {
+      const event: Event = { event_id: '3', tags: { foo: 1, bar: true, baz: null } };
+      const processed = NATIVE._processLevels(event);
+      expect(processed.tags).toEqual({ foo: '1', bar: 'True', baz: '' });
+    });
+
+    test('converts mixed tag value types to strings', () => {
+      const event: Event = { event_id: '4', tags: { a: 'str', b: 42, c: false, d: undefined } };
+      const processed = NATIVE._processLevels(event);
+      expect(processed.tags).toEqual({ a: 'str', b: '42', c: 'False', d: undefined });
+    });
   });
 
   describe('closeNativeSdk', () => {

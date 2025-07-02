@@ -3,6 +3,7 @@ import { logger } from '@sentry/react';
 import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { fillTyped } from './utils/fill';
 import { convertToNormalizedObject } from './utils/normalize';
+import { PrimitiveToString } from './utils/primitiveConverter';
 import { NATIVE } from './wrapper';
 
 /**
@@ -26,14 +27,14 @@ export function enableSyncToNative(scope: Scope): void {
   });
 
   fillTyped(scope, 'setTag', original => (key, value): Scope => {
-    NATIVE.setTag(key, value as string);
+    NATIVE.setTag(key, PrimitiveToString(value));
     return original.call(scope, key, value);
   });
 
   fillTyped(scope, 'setTags', original => (tags): Scope => {
     // As native only has setTag, we just loop through each tag key.
     Object.keys(tags).forEach(key => {
-      NATIVE.setTag(key, tags[key] as string);
+      NATIVE.setTag(key, PrimitiveToString(tags[key]));
     });
     return original.call(scope, tags);
   });

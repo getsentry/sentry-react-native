@@ -6,6 +6,7 @@ import type {
   EnvelopeItem,
   Event,
   Package,
+  Primitive,
   SeverityLevel,
   User,
 } from '@sentry/core';
@@ -29,6 +30,7 @@ import type { RequiredKeysUser } from './user';
 import { encodeUTF8 } from './utils/encode';
 import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
+import { PrimitiveToString } from './utils/primitiveConverter';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { base64StringFromByteArray } from './vendor';
 
@@ -95,7 +97,7 @@ interface SentryNativeWrapper {
   clearBreadcrumbs(): void;
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
-  setTag(key: string, value: string): void;
+  setTag(key: string, value?: string): void;
 
   nativeCrash(): void;
 
@@ -396,7 +398,7 @@ export const NATIVE: SentryNativeWrapper = {
    * @param key string
    * @param value string
    */
-  setTag(key: string, value: string): void {
+  setTag(key: string, value?: string): void {
     if (!this.enableNative) {
       return;
     }
@@ -824,8 +826,17 @@ export const NATIVE: SentryNativeWrapper = {
    */
 
   _processLevels(event: Event): Event {
+    let tags: { [key: string]: Primitive } | undefined = undefined;
+    if (event.tags) {
+      tags = {};
+      Object.keys(event.tags).forEach(key => {
+        tags![key] = PrimitiveToString(event.tags![key]);
+      });
+    }
+
     const processed: Event = {
       ...event,
+      tags: tags,
       level: event.level ? this._processLevel(event.level) : undefined,
       breadcrumbs: event.breadcrumbs?.map(breadcrumb => ({
         ...breadcrumb,
