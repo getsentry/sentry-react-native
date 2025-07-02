@@ -6,7 +6,11 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 6.16.1
+
+### Fixes
+
+- Fixes Replay Custom Masking issue on Android ([#4957](https://github.com/getsentry/sentry-react-native/pull/4957))
 
 ### Dependencies
 
