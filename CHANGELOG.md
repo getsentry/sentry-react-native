@@ -10,7 +10,7 @@
 
 ### Breaking changes
 
-- Tags formatting logic updated
+- Tags formatting logic updated ([#4965](https://github.com/getsentry/sentry-react-native/pull/4965))
 Here are the altered/unaltered types, make sure to update your UI filters and alerts.
 
     Unaltered: string, null, number, and undefined values remain unchanged.
@@ -19,7 +19,7 @@ Here are the altered/unaltered types, make sure to update your UI filters and al
 
 ### Fixes
 
-- tags with symbol are now logged.
+- tags with symbol are now logged ([#4965](https://github.com/getsentry/sentry-react-native/pull/4965))
 - ignoreError now filters Native errors ([#4948](https://github.com/getsentry/sentry-react-native/pull/4948))
 
 You can use strings to filter errors or RegEx for filtering with a pattern.
