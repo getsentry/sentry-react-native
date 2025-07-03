@@ -10,7 +10,7 @@
 
 ### Features
 
-- Automatically detect Release name and version for Expo Web ([#4966](https://github.com/getsentry/sentry-react-native/pull/4966))
+- Automatically detect Release name and version for Expo Web ([#4967](https://github.com/getsentry/sentry-react-native/pull/4967))
 
 ### Fixes
 
