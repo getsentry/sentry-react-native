@@ -33,6 +33,12 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   nativePerformanceNow?: () => number;
   TextEncoder?: TextEncoder;
   alert?: (message: string) => void;
+  SENTRY_RELEASE?: {
+    /** Used by Sentry Webpack Plugin, not used by RN, only to silence TS */
+    id?: string;
+    name?: string;
+    version?: string;
+  };
 }
 
 type TextEncoder = {

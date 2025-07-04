@@ -9,7 +9,8 @@ import {
   setSentryBabelTransformerOptions,
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
-import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
+import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
+import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 export * from './sentryMetroSerializer';
@@ -44,6 +45,13 @@ export interface SentryExpoConfigOptions {
    * Pass a custom `getDefaultConfig` function to override the default Expo configuration getter.
    */
   getDefaultConfig?: typeof getSentryExpoConfig;
+
+  /**
+   * For Expo Web, inject `release` and `version` options from `app.json`, the Expo Application Config.
+   *
+   * @default true
+   */
+  injectReleaseForWeb?: boolean;
 }
 
 /**
@@ -93,7 +101,8 @@ export function getSentryExpoConfig(
     ...options,
     unstable_beforeAssetSerializationPlugins: [
       ...(options.unstable_beforeAssetSerializationPlugins || []),
-      unstable_beforeAssetSerializationPlugin,
+      ...(options.injectReleaseForWeb ?? true ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
+      unstableBeforeAssetSerializationDebugIdPlugin,
     ],
   });
 

@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Automatically detect Release name and version for Expo Web ([#4967](https://github.com/getsentry/sentry-react-native/pull/4967))
+
 ### Fixes
 
 - ignoreError now filters Native errors ([#4948](https://github.com/getsentry/sentry-react-native/pull/4948))

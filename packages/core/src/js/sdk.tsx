@@ -25,6 +25,7 @@ import { ReactNativeProfiler } from './tracing';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
+import { getDefaultRelease } from './utils/release';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -111,6 +112,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    release: passedOptions.release ?? getDefaultRelease(),
     enableNative,
     enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
