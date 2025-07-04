@@ -21,7 +21,7 @@ export default function TabOneScreen() {
       <Text>Runtime Version: {currentlyRunning.runtimeVersion}</Text>
       <View style={styles.container}>
         <ScrollView
-        >
+        >s
           <View style={styles.buttonWrapper}>
             <Button
               title="Open DevMenu"
