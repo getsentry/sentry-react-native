@@ -1,8 +1,10 @@
 import * as crypto from 'crypto';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import type { Module, ReadOnlyGraph, SerializerOptions } from 'metro';
+import type { MixedOutput, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type CountingSet from 'metro/src/lib/CountingSet';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import * as countLines from 'metro/src/lib/countLines';
 
 // Variant of MixedOutput
 // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/DeltaBundler/types.flow.js#L21
@@ -98,3 +100,83 @@ function resolveSetCreator(): () => CountingSet<string> {
 }
 
 export const createSet = resolveSetCreator();
+
+const PRELUDE_MODULE_PATH = '__prelude__';
+
+/**
+ * Prepends the module after default required prelude modules.
+ */
+export function prependModule(
+  modules: readonly Module<MixedOutput>[],
+  module: Module<VirtualJSOutput>,
+): Module<MixedOutput>[] {
+  const modifiedPreModules = [...modules];
+  if (
+    modifiedPreModules.length > 0 &&
+    modifiedPreModules[0] !== undefined &&
+    modifiedPreModules[0].path === PRELUDE_MODULE_PATH
+  ) {
+    // prelude module must be first as it measures the bundle startup time
+    modifiedPreModules.unshift(modules[0] as Module<VirtualJSOutput>);
+    modifiedPreModules[1] = module;
+  } else {
+    modifiedPreModules.unshift(module);
+  }
+  return modifiedPreModules;
+}
+
+/**
+ * Creates a virtual JS module with the given path and code.
+ */
+export function createVirtualJSModule(
+  modulePath: string,
+  moduleCode: string,
+): Module<VirtualJSOutput> & { setSource: (code: string) => void } {
+  let sourceCode = moduleCode;
+
+  return {
+    setSource: (code: string) => {
+      sourceCode = code;
+    },
+    dependencies: new Map(),
+    getSource: () => Buffer.from(sourceCode),
+    inverseDependencies: createSet(),
+    path: modulePath,
+    output: [
+      {
+        type: 'js/script/virtual',
+        data: {
+          code: sourceCode,
+          lineCount: countLines(sourceCode),
+          map: [],
+        },
+      },
+    ],
+  };
+}
+
+/**
+ * Tries to load Expo config using `@expo/config` package.
+ */
+export function getExpoConfig(projectRoot: string): Partial<{
+  name: string;
+  version: string;
+}> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+    const expoConfig = require('@expo/config') as {
+      getConfig?: (projectRoot: string) => { exp: Record<string, unknown> };
+    };
+    if (expoConfig.getConfig) {
+      const { exp } = expoConfig.getConfig(projectRoot);
+      return {
+        name: typeof exp.name === 'string' && exp.name ? exp.name : undefined,
+        version: typeof exp.version === 'string' && exp.version ? exp.version : undefined,
+      };
+    }
+  } catch {
+    // @expo/config not available, do nothing
+  }
+
+  return {};
+}

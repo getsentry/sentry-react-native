@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Automatically detect Release name and version for Expo Web ([#4967](https://github.com/getsentry/sentry-react-native/pull/4967))
+
 ### Breaking changes
 
 - Tags formatting logic updated ([#4965](https://github.com/getsentry/sentry-react-native/pull/4965))
@@ -183,6 +187,18 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Bump Android SDK from v7.20.1 to v8.13.2 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
+
+## 6.16.1
+
+### Fixes
+
+- Fixes Replay Custom Masking issue on Android ([#4957](https://github.com/getsentry/sentry-react-native/pull/4957))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.52.1 to v8.53.1 ([#4950](https://github.com/getsentry/sentry-react-native/pull/4950))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8531)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.52.1...8.53.1)
 
 ## 6.16.0
 
