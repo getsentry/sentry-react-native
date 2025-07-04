@@ -178,6 +178,18 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
 
+## 6.16.1
+
+### Fixes
+
+- Fixes Replay Custom Masking issue on Android ([#4957](https://github.com/getsentry/sentry-react-native/pull/4957))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.52.1 to v8.53.1 ([#4950](https://github.com/getsentry/sentry-react-native/pull/4950))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8531)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.52.1...8.53.1)
+
 ## 6.16.0
 
 ### Features
