@@ -2,7 +2,6 @@ import type { Span,StartSpanOptions  } from '@sentry/core';
 import { fill, getActiveSpan, getSpanDescendants, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import * as React from 'react';
 import { useState } from 'react';
-
 import { isTurboModuleEnabled } from '../utils/environment';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
@@ -99,13 +98,13 @@ export function startTimeToInitialDisplaySpan(
 ): Span | undefined {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
-    logger.warn(`[TimeToDisplay] No active span found to attach ui.load.initial_display to.`);
+    logger.warn('[TimeToDisplay] No active span found to attach ui.load.initial_display to.');
     return undefined;
   }
 
   const existingSpan = getSpanDescendants(activeSpan).find((span) => spanToJSON(span).op === 'ui.load.initial_display');
   if (existingSpan) {
-    logger.debug(`[TimeToDisplay] Found existing ui.load.initial_display span.`);
+    logger.debug('[TimeToDisplay] Found existing ui.load.initial_display span.');
     return existingSpan
   }
 
@@ -148,7 +147,7 @@ export function startTimeToFullDisplaySpan(
 ): Span | undefined {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
-    logger.warn(`[TimeToDisplay] No active span found to attach ui.load.full_display to.`);
+    logger.warn('[TimeToDisplay] No active span found to attach ui.load.full_display to.');
     return undefined;
   }
 
@@ -156,13 +155,13 @@ export function startTimeToFullDisplaySpan(
 
   const initialDisplaySpan = descendantSpans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
   if (!initialDisplaySpan) {
-    logger.warn(`[TimeToDisplay] No initial display span found to attach ui.load.full_display to.`);
+    logger.warn('[TimeToDisplay] No initial display span found to attach ui.load.full_display to.');
     return undefined;
   }
 
   const existingSpan = descendantSpans.find((span) => spanToJSON(span).op === 'ui.load.full_display');
   if (existingSpan) {
-    logger.debug(`[TimeToDisplay] Found existing ui.load.full_display span.`);
+    logger.debug('[TimeToDisplay] Found existing ui.load.full_display span.');
     return existingSpan;
   }
 
@@ -183,7 +182,7 @@ export function startTimeToFullDisplaySpan(
     fullDisplaySpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
     fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
     setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
-    logger.warn(`[TimeToDisplay] Full display span deadline_exceeded.`);
+    logger.warn('[TimeToDisplay] Full display span deadline_exceeded.');
   }, options.timeoutMs);
 
   fill(fullDisplaySpan, 'end', (originalEnd: Span['end']) => (endTimestamp?: Parameters<Span['end']>[0]) => {
@@ -216,17 +215,17 @@ export function updateInitialDisplaySpan(
     span?: Span;
   } = {}): void {
   if (!span) {
-    logger.warn(`[TimeToDisplay] No span found or created, possibly performance is disabled.`);
+    logger.warn('[TimeToDisplay] No span found or created, possibly performance is disabled.');
     return;
   }
 
   if (!activeSpan) {
-    logger.warn(`[TimeToDisplay] No active span found to attach ui.load.initial_display to.`);
+    logger.warn('[TimeToDisplay] No active span found to attach ui.load.initial_display to.');
     return;
   }
 
   if (spanToJSON(span).parent_span_id !== spanToJSON(activeSpan).span_id) {
-    logger.warn(`[TimeToDisplay] Initial display span is not a child of current active span.`);
+    logger.warn('[TimeToDisplay] Initial display span is not a child of current active span.');
     return;
   }
 
@@ -251,7 +250,7 @@ export function updateInitialDisplaySpan(
 function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
-    logger.warn(`[TimeToDisplay] No active span found to update ui.load.full_display in.`);
+    logger.warn('[TimeToDisplay] No active span found to update ui.load.full_display in.');
     return;
   }
 
@@ -268,7 +267,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     isAutoInstrumented: true,
   });
   if (!span) {
-    logger.warn(`[TimeToDisplay] No TimeToFullDisplay span found or created, possibly performance is disabled.`);
+    logger.warn('[TimeToDisplay] No TimeToFullDisplay span found or created, possibly performance is disabled.');
     return;
   }
 
@@ -279,7 +278,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   }
 
   if (initialDisplayEndTimestamp > frameTimestampSeconds) {
-    logger.warn(`[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.`);
+    logger.warn('[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.');
     span.end(initialDisplayEndTimestamp);
   } else {
     span.end(frameTimestampSeconds);
@@ -339,6 +338,6 @@ function createTimeToDisplay({
     return <Component {...props} record={focused && props.record} />;
   };
 
-  TimeToDisplayWrapper.displayName = `TimeToDisplayWrapper`;
+  TimeToDisplayWrapper.displayName = 'TimeToDisplayWrapper';
   return TimeToDisplayWrapper;
 }

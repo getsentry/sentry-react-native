@@ -4,7 +4,6 @@ jest.mock('../../src/js/tracing/utils', () => ({
 }));
 
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
-
 import { reactNativeTracingIntegration, reactNavigationIntegration } from '../../src/js';
 import { stallTrackingIntegration } from '../../src/js/tracing/integrations/stalltracking';
 import { isNearToNow } from '../../src/js/tracing/utils';

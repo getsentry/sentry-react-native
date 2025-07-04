@@ -66,6 +66,8 @@ static bool hasFetchedAppStart;
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
+    NSArray<NSString *> *_ignoreErrorPatternsStr;
+    NSArray<NSRegularExpression *> *_ignoreErrorPatternsRegex;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -87,7 +89,6 @@ static bool hasFetchedAppStart;
 }
 
 RCT_EXPORT_MODULE()
-
 RCT_EXPORT_METHOD(initNativeSdk
                   : (NSDictionary *_Nonnull)options resolve
                   : (RCTPromiseResolveBlock)resolve rejecter
@@ -132,21 +133,98 @@ RCT_EXPORT_METHOD(initNativeSdk
     resolve(@YES);
 }
 
+- (void)trySetIgnoreErrors:(NSMutableDictionary *)options
+{
+    NSArray *ignoreErrorsStr = nil;
+    NSArray *ignoreErrorsRegex = nil;
+
+    id strArr = [options objectForKey:@"ignoreErrorsStr"];
+    id regexArr = [options objectForKey:@"ignoreErrorsRegex"];
+    if ([strArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsStr = (NSArray *)strArr;
+    }
+    if ([regexArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsRegex = (NSArray *)regexArr;
+    }
+
+    NSMutableArray<NSString *> *strs = [NSMutableArray array];
+    NSMutableArray<NSRegularExpression *> *regexes = [NSMutableArray array];
+
+    if (ignoreErrorsStr != nil) {
+        for (id str in ignoreErrorsStr) {
+            if ([str isKindOfClass:[NSString class]]) {
+                [strs addObject:str];
+            }
+        }
+    }
+
+    if (ignoreErrorsRegex != nil) {
+        for (id pattern in ignoreErrorsRegex) {
+            if ([pattern isKindOfClass:[NSString class]]) {
+                NSError *error = nil;
+                NSRegularExpression *regex =
+                    [NSRegularExpression regularExpressionWithPattern:pattern
+                                                              options:0
+                                                                error:&error];
+                if (regex && error == nil) {
+                    [regexes addObject:regex];
+                }
+            }
+        }
+    }
+
+    _ignoreErrorPatternsStr = [strs count] > 0 ? [strs copy] : nil;
+    _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
+}
+
+- (BOOL)shouldIgnoreError:(NSString *)message
+{
+    if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
+        return NO;
+    }
+
+    for (NSString *str in _ignoreErrorPatternsStr) {
+        if ([message containsString:str]) {
+            return YES;
+        }
+    }
+
+    for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
+        NSRange range = NSMakeRange(0, message.length);
+        if ([regex firstMatchInString:message options:0 range:range]) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event)
     {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of
-        // react native Because we sent it already before the app crashed.
+        // React Native because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
                 != NSNotFound) {
             return nil;
         }
 
-        [self setEventOriginTag:event];
+        // Regex and Str are set when one of them has value so we only need to check one of them.
+        if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
+            for (SentryException *exception in event.exceptions) {
+                if ([self shouldIgnoreError:exception.value]) {
+                    return nil;
+                }
+            }
+            if ([self shouldIgnoreError:event.message.message]) {
+                return nil;
+            }
+        }
 
+        [self setEventOriginTag:event];
         return event;
     };
 
@@ -211,6 +289,8 @@ RCT_EXPORT_METHOD(initNativeSdk
             }
         }
     }
+
+    [self trySetIgnoreErrors:mutableOptions];
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {

@@ -137,7 +137,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 53
-        versionName "6.16.1"
+        versionName "7.0.0-beta.1"
     }
 
     signingConfigs {

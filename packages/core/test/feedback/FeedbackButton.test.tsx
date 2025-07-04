@@ -1,6 +1,5 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
-
 import { FeedbackButton } from '../../src/js/feedback/FeedbackButton';
 import type { FeedbackButtonProps, FeedbackButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
 import { showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';

@@ -10,7 +10,6 @@ import {
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';
-
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';

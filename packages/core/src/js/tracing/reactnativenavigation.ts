@@ -7,7 +7,6 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
 } from '@sentry/core';
-
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
 import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
@@ -129,7 +128,7 @@ export const reactNativeNavigationIntegration = ({
     }
 
     latestNavigationSpan = startGenericIdleNavigationSpan(
-      tracing && tracing.options.beforeStartSpan
+      tracing?.options.beforeStartSpan
         ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
         : getDefaultIdleNavigationSpanOptions(),
       idleSpanOptions,
