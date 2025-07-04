@@ -93,7 +93,7 @@ jobs:
     with:
       path: scripts/update-sentry-android-gradle-plugin.sh
       name: Sentry Android Gradle Plugin
-      pattern: '^v[0-9.]+$' # only match non-preview versions
+      pattern: '^[0-9.]+$'
       pr-strategy: update
       changelog-entry: false
     secrets:
