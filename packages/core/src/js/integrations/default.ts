@@ -27,6 +27,7 @@ import {
   modulesLoaderIntegration,
   nativeLinkedErrorsIntegration,
   nativeReleaseIntegration,
+  primtiviteTagIntegration,
   reactNativeErrorHandlersIntegration,
   reactNativeInfoIntegration,
   screenshotIntegration,
@@ -152,6 +153,8 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (__DEV__ && notWeb()) {
     integrations.push(debugSymbolicatorIntegration());
   }
+
+  integrations.push(primtiviteTagIntegration());
 
   return integrations;
 }

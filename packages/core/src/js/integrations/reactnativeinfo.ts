@@ -60,7 +60,7 @@ function processEvent(event: Event, hint: EventHint): Event {
 
   if (reactNativeContext.js_engine === 'hermes') {
     event.tags = {
-      hermes: 'true',
+      hermes: true,
       ...event.tags,
     };
   }
