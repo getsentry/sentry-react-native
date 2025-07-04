@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - antonis/sagp-updater # temporary branch to test bump script
 
 jobs:
   android:
