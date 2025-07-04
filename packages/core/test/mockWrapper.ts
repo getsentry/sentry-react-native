@@ -1,3 +1,4 @@
+import { Primitive } from '@sentry/core';
 import { type NATIVE as ORIGINAL_NATIVE } from '../src/js/wrapper';
 import type { MockInterface } from './testutils';
 
@@ -16,6 +17,7 @@ const NATIVE: MockInterface<NativeType> = {
   _processLevel: jest.fn(),
   _serializeObject: jest.fn(),
   _isModuleLoaded: <NativeType['_isModuleLoaded'] & jest.Mock>jest.fn(),
+  _setPrimitiveProcessor: jest.fn(),
 
   isNativeAvailable: jest.fn(),
 
@@ -63,6 +65,7 @@ const NATIVE: MockInterface<NativeType> = {
   popTimeToDisplayFor: jest.fn(),
   setActiveSpanId: jest.fn(),
   encodeToBase64: jest.fn(),
+  primitiveProcessor: jest.fn(),
 };
 
 NATIVE.isNativeAvailable.mockReturnValue(true);
@@ -89,7 +92,7 @@ NATIVE.getCurrentReplayId.mockReturnValue(null);
 NATIVE.crashedLastRun.mockResolvedValue(false);
 NATIVE.popTimeToDisplayFor.mockResolvedValue(null);
 NATIVE.getNewScreenTimeToDisplay.mockResolvedValue(null);
-
+NATIVE.primitiveProcessor.mockReturnValue('');
 export const getRNSentryModule = jest.fn();
 
 export { NATIVE };

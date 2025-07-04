@@ -632,35 +632,6 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE._processLevel('error' as SeverityLevel)).toBe('error' as SeverityLevel);
     });
 
-    test('returns event unchanged if tags is undefined', () => {
-      const event: Event = { event_id: '5', tags: undefined };
-      const processed = NATIVE._processLevels(event);
-      expect(processed.tags).toBeUndefined();
-    });
-
-    test('returns event unchanged if no tags', () => {
-      const event: Event = { event_id: '1' };
-      const processed = NATIVE._processLevels(event);
-      expect(processed.tags).toBeUndefined();
-    });
-
-    test('returns event with empty tags if tags is empty object', () => {
-      const event: Event = { event_id: '2', tags: {} };
-      const processed = NATIVE._processLevels(event);
-      expect(processed.tags).toEqual({});
-    });
-
-    test('converts primitive tag values to strings', () => {
-      const event: Event = { event_id: '3', tags: { foo: 1, bar: true, baz: null } };
-      const processed = NATIVE._processLevels(event);
-      expect(processed.tags).toEqual({ foo: '1', bar: 'True', baz: '' });
-    });
-
-    test('converts mixed tag value types to strings', () => {
-      const event: Event = { event_id: '4', tags: { a: 'str', b: 42, c: false, d: undefined } };
-      const processed = NATIVE._processLevels(event);
-      expect(processed.tags).toEqual({ a: 'str', b: '42', c: 'False', d: undefined });
-    });
   });
 
   describe('closeNativeSdk', () => {
@@ -866,6 +837,104 @@ describe('Tests Native Wrapper', () => {
 
       const result = await NATIVE.crashedLastRun();
       expect(result).toBeNull();
+    });
+  });
+
+  describe('primitiveProcessor and _setPrimitiveProcessor', () => {
+    describe('primitiveProcessor', () => {
+      it('default primitiveProcessor returns value as string', () => {
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+        expect(NATIVE.primitiveProcessor(123)).toBe(123);
+        expect(NATIVE.primitiveProcessor(true)).toBe(true);
+        expect(NATIVE.primitiveProcessor(null)).toBe(null);
+        expect(NATIVE.primitiveProcessor(undefined)).toBe(undefined);
+      });
+
+      it('handles all primitive types correctly', () => {
+        const testCases = [
+          { input: 'string', expected: 'string' },
+          { input: 42, expected: 42 },
+          { input: true, expected: true },
+          { input: false, expected: false },
+          { input: null, expected: null },
+          { input: undefined, expected: undefined },
+          { input: BigInt(123), expected: BigInt(123) },
+        ];
+
+        testCases.forEach(({ input, expected }) => {
+          expect(NATIVE.primitiveProcessor(input)).toBe(expected);
+        });
+      });
+    });
+
+    describe('_setPrimitiveProcessor', () => {
+      it('sets primitiveProcessor to the provided function', () => {
+        const mockProcessor = jest.fn((value) => `processed_${value}`);
+
+        NATIVE._setPrimitiveProcessor(mockProcessor);
+
+        expect(NATIVE.primitiveProcessor).toBe(mockProcessor);
+      });
+
+      it('allows custom processing of primitive values', () => {
+        const customProcessor = (value: any) => {
+          if (typeof value === 'boolean') {
+            return value ? 'YES' : 'NO';
+          }
+          if (value === null) {
+            return 'NULL';
+          }
+          return String(value);
+        };
+
+        NATIVE._setPrimitiveProcessor(customProcessor);
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('YES');
+        expect(NATIVE.primitiveProcessor(false)).toBe('NO');
+        expect(NATIVE.primitiveProcessor(null)).toBe('NULL');
+        expect(NATIVE.primitiveProcessor(42)).toBe('42');
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+      });
+
+      it('can be chained with PrimitiveToString for consistent formatting', () => {
+        const { PrimitiveToString } = require('../src/js/utils/primitiveConverter');
+
+        NATIVE._setPrimitiveProcessor(PrimitiveToString);
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('True');
+        expect(NATIVE.primitiveProcessor(false)).toBe('False');
+        expect(NATIVE.primitiveProcessor(null)).toBe('');
+        expect(NATIVE.primitiveProcessor(42)).toBe('42');
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+        expect(NATIVE.primitiveProcessor(undefined)).toBeUndefined();
+      });
+
+      it('can be reset to default behavior', () => {
+        const customProcessor = jest.fn();
+        NATIVE._setPrimitiveProcessor(customProcessor);
+        expect(NATIVE.primitiveProcessor).toBe(customProcessor);
+
+        const defaultProcessor = (value: any) => value;
+        NATIVE._setPrimitiveProcessor(defaultProcessor);
+        expect(NATIVE.primitiveProcessor).toBe(defaultProcessor);
+      });
+
+      it('works with primitiveTagIntegration', () => {
+        const { primtiviteTagIntegration } = require('../src/js/integrations/primitiveTagIntegration');
+        const { PrimitiveToString } = require('../src/js/utils/primitiveConverter');
+
+        const client = {
+          on: jest.fn(),
+        };
+
+        const integration = primtiviteTagIntegration();
+        integration.setup(client);
+        integration.afterAllSetup();
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('True');
+        expect(NATIVE.primitiveProcessor(false)).toBe('False');
+        expect(NATIVE.primitiveProcessor(null)).toBe('');
+      });
     });
   });
 });

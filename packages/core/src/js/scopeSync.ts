@@ -27,14 +27,14 @@ export function enableSyncToNative(scope: Scope): void {
   });
 
   fillTyped(scope, 'setTag', original => (key, value): Scope => {
-    NATIVE.setTag(key, PrimitiveToString(value));
+    NATIVE.setTag(key, NATIVE.primitiveProcessor(value));
     return original.call(scope, key, value);
   });
 
   fillTyped(scope, 'setTags', original => (tags): Scope => {
     // As native only has setTag, we just loop through each tag key.
     Object.keys(tags).forEach(key => {
-      NATIVE.setTag(key, PrimitiveToString(tags[key]));
+      NATIVE.setTag(key, NATIVE.primitiveProcessor(tags[key]));
     });
     return original.call(scope, tags);
   });

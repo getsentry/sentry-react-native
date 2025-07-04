@@ -30,7 +30,6 @@ import type { RequiredKeysUser } from './user';
 import { encodeUTF8 } from './utils/encode';
 import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
-import { PrimitiveToString } from './utils/primitiveConverter';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { base64StringFromByteArray } from './vendor';
 
@@ -68,6 +67,7 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
+  _setPrimitiveProcessor: (processor: (value: Primitive) => void) => void;
   _processItem(envelopeItem: EnvelopeItem): EnvelopeItem;
   _processLevels(event: Event): Event;
   _processLevel(level: SeverityLevel): SeverityLevel;
@@ -131,6 +131,8 @@ interface SentryNativeWrapper {
   setActiveSpanId(spanId: string): void;
 
   encodeToBase64(data: Uint8Array): Promise<string | null>;
+
+  primitiveProcessor (value: Primitive): string;
 }
 
 const EOL = encodeUTF8('\n');
@@ -203,7 +205,7 @@ export const NATIVE: SentryNativeWrapper = {
 
       const bytesItemHeader = encodeUTF8(serializedItemHeader);
       const newBytes = new Uint8Array(
-        envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length + EOL.length,
+        envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length + EOL.length
       );
       newBytes.set(envelopeBytes);
       newBytes.set(bytesItemHeader, envelopeBytes.length);
@@ -237,7 +239,7 @@ export const NATIVE: SentryNativeWrapper = {
     if (!options.autoInitializeNativeSdk) {
       if (options.enableNativeNagger) {
         logger.warn(
-          'Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false',
+          'Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false'
         );
       }
       this.enableNative = true;
@@ -246,7 +248,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     if (!options.dsn) {
       logger.warn(
-        'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
+        'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.'
       );
       this.enableNative = false;
       return false;
@@ -269,8 +271,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, ...filteredOptions } =
-      options;
+    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, ...filteredOptions } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
@@ -485,7 +486,7 @@ export const NATIVE: SentryNativeWrapper = {
    * @param context key-value map
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setContext(key: string, context: { [key: string]: any } | null): void {
+  setContext(key: string, context: { [key: string]: any; } | null): void {
     if (!this.enableNative) {
       return;
     }
@@ -779,6 +780,10 @@ export const NATIVE: SentryNativeWrapper = {
     }
   },
 
+  primitiveProcessor: function (value: Primitive): string {
+    return value as string;
+  },
+
   /**
    * Gets the event from envelopeItem and applies the level filter to the selected event.
    * @param data An envelope item containing the event.
@@ -808,8 +813,8 @@ export const NATIVE: SentryNativeWrapper = {
    * @param data key-value map.
    * @returns An object where all root-level values are strings.
    */
-  _serializeObject(data: { [key: string]: unknown }): { [key: string]: string } {
-    const serialized: { [key: string]: string } = {};
+  _serializeObject(data: { [key: string]: unknown; }): { [key: string]: string; } {
+    const serialized: { [key: string]: string; } = {};
 
     Object.keys(data).forEach(dataKey => {
       const value = data[dataKey];
@@ -824,19 +829,9 @@ export const NATIVE: SentryNativeWrapper = {
    * @param event
    * @returns Event with more widely supported Severity level strings
    */
-
   _processLevels(event: Event): Event {
-    let tags: { [key: string]: Primitive } | undefined = undefined;
-    if (event.tags) {
-      tags = {};
-      Object.keys(event.tags).forEach(key => {
-        tags![key] = PrimitiveToString(event.tags![key]);
-      });
-    }
-
     const processed: Event = {
       ...event,
-      tags: tags,
       level: event.level ? this._processLevel(event.level) : undefined,
       breadcrumbs: event.breadcrumbs?.map(breadcrumb => ({
         ...breadcrumb,
@@ -852,7 +847,6 @@ export const NATIVE: SentryNativeWrapper = {
    * @param level
    * @returns More widely supported Severity level strings
    */
-
   _processLevel(level: SeverityLevel): SeverityLevel {
     if (level == ('log' as SeverityLevel)) {
       return 'debug' as SeverityLevel;
@@ -867,9 +861,15 @@ export const NATIVE: SentryNativeWrapper = {
     return !!module;
   },
 
+  _setPrimitiveProcessor: function (processor: (value: Primitive) => any): void {
+    this.primitiveProcessor = processor;
+  },
+
   _DisabledNativeError: new SentryError('Native is disabled'),
 
   _NativeClientError: new SentryError("Native Client is not available, can't start on native."),
+
+
 
   enableNative: true,
   nativeIsReady: false,

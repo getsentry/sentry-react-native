@@ -23,6 +23,7 @@ import {
   httpClientIntegration,
   httpContextIntegration,
   inboundFiltersIntegration,
+  primtiviteTagIntegration,
   mobileReplayIntegration,
   modulesLoaderIntegration,
   nativeLinkedErrorsIntegration,
@@ -152,6 +153,8 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (__DEV__ && notWeb()) {
     integrations.push(debugSymbolicatorIntegration());
   }
+
+  integrations.push(primtiviteTagIntegration());
 
   return integrations;
 }
