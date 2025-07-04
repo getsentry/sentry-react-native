@@ -2,7 +2,10 @@ import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins
 
 import { warnOnce } from '../../plugin/src/utils';
 import type { SentryAndroidGradlePluginOptions } from '../../plugin/src/withSentryAndroidGradlePlugin';
-import { withSentryAndroidGradlePlugin } from '../../plugin/src/withSentryAndroidGradlePlugin';
+import {
+  sentryAndroidGradlePluginVersion,
+  withSentryAndroidGradlePlugin,
+} from '../../plugin/src/withSentryAndroidGradlePlugin';
 
 jest.mock('@expo/config-plugins', () => ({
   withProjectBuildGradle: jest.fn(),
@@ -43,7 +46,6 @@ describe('withSentryAndroidGradlePlugin', () => {
   });
 
   it('adds the Sentry plugin to build.gradle when enableAndroidGradlePlugin is enabled', () => {
-    const version = '4.14.1';
     const options: SentryAndroidGradlePluginOptions = { enableAndroidGradlePlugin: true };
 
     (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
@@ -65,13 +67,12 @@ describe('withSentryAndroidGradlePlugin', () => {
     });
 
     expect(modifiedGradle.modResults.contents).toContain(
-      `classpath("io.sentry:sentry-android-gradle-plugin:${version}")`,
+      `classpath("io.sentry:sentry-android-gradle-plugin:${sentryAndroidGradlePluginVersion}")`,
     );
   });
 
   it('warnOnce if the Sentry plugin is already included in build.gradle', () => {
-    const version = '4.14.1';
-    const includedBuildGradle = `dependencies { classpath("io.sentry:sentry-android-gradle-plugin:${version}")}`;
+    const includedBuildGradle = `dependencies { classpath("io.sentry:sentry-android-gradle-plugin:${sentryAndroidGradlePluginVersion}")}`;
     const options: SentryAndroidGradlePluginOptions = { enableAndroidGradlePlugin: true };
 
     (withProjectBuildGradle as jest.Mock).mockImplementation((config, callback) => {
