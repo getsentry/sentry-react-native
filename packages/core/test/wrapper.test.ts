@@ -631,7 +631,6 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE._processLevel('warning' as SeverityLevel)).toBe('warning' as SeverityLevel);
       expect(NATIVE._processLevel('error' as SeverityLevel)).toBe('error' as SeverityLevel);
     });
-
   });
 
   describe('closeNativeSdk', () => {
@@ -869,7 +868,7 @@ describe('Tests Native Wrapper', () => {
 
     describe('_setPrimitiveProcessor', () => {
       it('sets primitiveProcessor to the provided function', () => {
-        const mockProcessor = jest.fn((value) => `processed_${value}`);
+        const mockProcessor = jest.fn(value => `processed_${value}`);
 
         NATIVE._setPrimitiveProcessor(mockProcessor);
 
@@ -921,7 +920,6 @@ describe('Tests Native Wrapper', () => {
 
       it('works with primitiveTagIntegration', () => {
         const { primtiviteTagIntegration } = require('../src/js/integrations/primitiveTagIntegration');
-        const { PrimitiveToString } = require('../src/js/utils/primitiveConverter');
 
         const client = {
           on: jest.fn(),

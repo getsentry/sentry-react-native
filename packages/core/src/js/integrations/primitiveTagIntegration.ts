@@ -16,23 +16,22 @@ export const INTEGRATION_NAME = 'PrimitiveTagIntegration';
  *  Symbols are stringified.
  *
  */
-export const primtiviteTagIntegration = (): Integration =>
-{
+export const primtiviteTagIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setup(client) {
-      client.on('beforeSendEvent', (event) => {
+      client.on('beforeSendEvent', event => {
         if (event.tags) {
           Object.keys(event.tags).forEach(key => {
             event.tags![key] = PrimitiveToString(event.tags![key]);
           });
         }
-      })
+      });
     },
     afterAllSetup() {
       if (NATIVE.enableNative) {
         NATIVE._setPrimitiveProcessor((value: Primitive) => PrimitiveToString(value));
       }
-    }
+    },
   };
 };

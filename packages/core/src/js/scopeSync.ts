@@ -3,7 +3,6 @@ import { logger } from '@sentry/react';
 import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { fillTyped } from './utils/fill';
 import { convertToNormalizedObject } from './utils/normalize';
-import { PrimitiveToString } from './utils/primitiveConverter';
 import { NATIVE } from './wrapper';
 
 /**
