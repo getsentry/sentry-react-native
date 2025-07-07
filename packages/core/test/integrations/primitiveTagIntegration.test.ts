@@ -1,5 +1,5 @@
 import type { Client } from '@sentry/core';
-import { primtiviteTagIntegration } from '../../src/js/integrations/primitiveTagIntegration';
+import { primitiveTagIntegration } from '../../src/js/integrations/primitiveTagIntegration';
 import { NATIVE } from '../../src/js/wrapper';
 import { setupTestClient } from '../mocks/client';
 
@@ -15,7 +15,7 @@ describe('primitiveTagIntegration', () => {
 
   describe('integration setup', () => {
     it('sets up beforeSendEvent handler', () => {
-      const integration = primtiviteTagIntegration();
+      const integration = primitiveTagIntegration();
       const mockClient = {
         on: jest.fn(),
       } as any;
@@ -30,7 +30,7 @@ describe('primitiveTagIntegration', () => {
     let beforeSendEventHandler: (event: any) => void;
 
     beforeEach(() => {
-      const integration = primtiviteTagIntegration();
+      const integration = primitiveTagIntegration();
       const mockClient = {
         on: jest.fn((eventName, handler) => {
           if (eventName === 'beforeSendEvent') {
@@ -66,7 +66,7 @@ describe('primitiveTagIntegration', () => {
 
   describe('integration with native processor', () => {
     it('sets primitiveProcessor to PrimitiveToString function', () => {
-      const integration = primtiviteTagIntegration();
+      const integration = primitiveTagIntegration();
       NATIVE.enableNative = true;
       jest.spyOn(NATIVE, '_setPrimitiveProcessor');
 
@@ -83,7 +83,7 @@ describe('primitiveTagIntegration', () => {
     });
 
     it('does not set processor when native is disabled', () => {
-      const integration = primtiviteTagIntegration();
+      const integration = primitiveTagIntegration();
       NATIVE.enableNative = false;
       jest.spyOn(NATIVE, '_setPrimitiveProcessor');
 

@@ -919,13 +919,13 @@ describe('Tests Native Wrapper', () => {
       });
 
       it('works with primitiveTagIntegration', () => {
-        const { primtiviteTagIntegration } = require('../src/js/integrations/primitiveTagIntegration');
+        const { primitiveTagIntegration } = require('../src/js/integrations/primitiveTagIntegration');
 
         const client = {
           on: jest.fn(),
         };
 
-        const integration = primtiviteTagIntegration();
+        const integration = primitiveTagIntegration();
         integration.setup(client);
         integration.afterAllSetup();
 
