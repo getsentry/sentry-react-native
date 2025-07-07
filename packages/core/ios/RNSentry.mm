@@ -225,6 +225,17 @@ RCT_EXPORT_METHOD(initNativeSdk
     // Failed requests can only be enabled in one SDK to avoid duplicates
     sentryOptions.enableCaptureFailedRequests = NO;
 
+    NSDictionary *experiments = options[@"_experiments"];
+    if (experiments != nil && [experiments isKindOfClass:[NSDictionary class]]) {
+        BOOL enableUnhandledCPPExceptions =
+            [experiments[@"enableUnhandledCPPExceptionsV2"] boolValue];
+        id experimentalOptions = [sentryOptions valueForKey:@"experimental"];
+        if (experimentalOptions) {
+            [experimentalOptions setValue:@(enableUnhandledCPPExceptions)
+                                   forKey:@"enableUnhandledCPPExceptionsV2"];
+        }
+    }
+
     return sentryOptions;
 }
 

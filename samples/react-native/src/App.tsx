@@ -171,6 +171,9 @@ Sentry.init({
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
   autoInitializeNativeSdk: true,
+  _experiments: {
+    enableUnhandledCPPExceptionsV2: true,
+  },
 });
 
 const Stack = isMobileOs
