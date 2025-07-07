@@ -23,6 +23,7 @@ export { createReactNativeRewriteFrames } from './rewriteframes';
 export { appRegistryIntegration } from './appRegistry';
 export { timeToDisplayIntegration } from '../tracing/integrations/timeToDisplayIntegration';
 export { breadcrumbsIntegration } from './breadcrumbs';
+export { primtiviteTagIntegration } from './primitiveTagIntegration';
 
 export {
   browserApiErrorsIntegration,

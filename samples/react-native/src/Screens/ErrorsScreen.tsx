@@ -20,6 +20,7 @@ import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
 import { TimeToFullDisplay } from '../utils';
+import type { Event as SentryEvent } from '@sentry/core';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -226,6 +227,48 @@ const ErrorsScreen = (_props: Props) => {
             }
           }}
         />
+        <Button
+          title="Set different types of tags globally"
+          onPress={async () => {
+            Sentry.setTags({
+              number: 123,
+              boolean: true,
+              null: null,
+              undefined: undefined,
+              symbol: Symbol('symbol'),
+              string: 'string',
+              bigint: BigInt(123),
+            });
+            Sentry.captureMessage('Message with different types of tags globally');
+            Sentry.setTags({
+              number: undefined,
+              boolean: undefined,
+              null: undefined,
+              symbol: undefined,
+              string: undefined,
+              bigint: undefined,
+            });
+          }}
+        />
+        <Button
+          title="Set different types of tags in scope"
+          onPress={async () => {
+            const evt: SentryEvent = {
+              message: 'Message with different types of tags isolated',
+              tags: {
+                number: 123,
+                boolean: true,
+                null: null,
+                undefined: undefined,
+                symbol: Symbol('symbol'),
+                string: 'abc',
+                bigint: BigInt(123),
+              },
+            };
+            Sentry.captureEvent(evt);
+          }}
+        />
+
         <Button
           title="Feedback form"
           onPress={() => {
