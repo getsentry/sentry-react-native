@@ -27,7 +27,7 @@ import {
   modulesLoaderIntegration,
   nativeLinkedErrorsIntegration,
   nativeReleaseIntegration,
-  primtiviteTagIntegration,
+  primitiveTagIntegration,
   reactNativeErrorHandlersIntegration,
   reactNativeInfoIntegration,
   screenshotIntegration,
@@ -154,7 +154,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(debugSymbolicatorIntegration());
   }
 
-  integrations.push(primtiviteTagIntegration());
+  integrations.push(primitiveTagIntegration());
 
   return integrations;
 }

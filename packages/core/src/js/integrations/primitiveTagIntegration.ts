@@ -16,7 +16,7 @@ export const INTEGRATION_NAME = 'PrimitiveTagIntegration';
  *  Symbols are stringified.
  *
  */
-export const primtiviteTagIntegration = (): Integration => {
+export const primitiveTagIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
     setup(client) {
