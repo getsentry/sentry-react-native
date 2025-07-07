@@ -6,6 +6,20 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+### Features
+
+- Add experimental flag `enableUnhandledCPPExceptionsV2` on iOS ([#4975](https://github.com/getsentry/sentry-react-native/pull/4975))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      enableUnhandledCPPExceptionsV2: true,
+    },
+  });
+  ```
+
 ## 6.16.1
 
 ### Fixes
