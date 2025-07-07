@@ -6,6 +6,7 @@ import type {
   EnvelopeItem,
   Event,
   Package,
+  Primitive,
   SeverityLevel,
   User,
 } from '@sentry/core';
@@ -66,6 +67,7 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
+  _setPrimitiveProcessor: (processor: (value: Primitive) => void) => void;
   _processItem(envelopeItem: EnvelopeItem): EnvelopeItem;
   _processLevels(event: Event): Event;
   _processLevel(level: SeverityLevel): SeverityLevel;
@@ -95,7 +97,7 @@ interface SentryNativeWrapper {
   clearBreadcrumbs(): void;
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
-  setTag(key: string, value: string): void;
+  setTag(key: string, value?: string): void;
 
   nativeCrash(): void;
 
@@ -129,6 +131,8 @@ interface SentryNativeWrapper {
   setActiveSpanId(spanId: string): void;
 
   encodeToBase64(data: Uint8Array): Promise<string | null>;
+
+  primitiveProcessor(value: Primitive): string;
 }
 
 const EOL = encodeUTF8('\n');
@@ -396,7 +400,7 @@ export const NATIVE: SentryNativeWrapper = {
    * @param key string
    * @param value string
    */
-  setTag(key: string, value: string): void {
+  setTag(key: string, value?: string): void {
     if (!this.enableNative) {
       return;
     }
@@ -777,6 +781,10 @@ export const NATIVE: SentryNativeWrapper = {
     }
   },
 
+  primitiveProcessor: function (value: Primitive): string {
+    return value as string;
+  },
+
   /**
    * Gets the event from envelopeItem and applies the level filter to the selected event.
    * @param data An envelope item containing the event.
@@ -822,7 +830,6 @@ export const NATIVE: SentryNativeWrapper = {
    * @param event
    * @returns Event with more widely supported Severity level strings
    */
-
   _processLevels(event: Event): Event {
     const processed: Event = {
       ...event,
@@ -841,7 +848,6 @@ export const NATIVE: SentryNativeWrapper = {
    * @param level
    * @returns More widely supported Severity level strings
    */
-
   _processLevel(level: SeverityLevel): SeverityLevel {
     if (level == ('log' as SeverityLevel)) {
       return 'debug' as SeverityLevel;
@@ -854,6 +860,10 @@ export const NATIVE: SentryNativeWrapper = {
    */
   _isModuleLoaded(module: Spec | undefined): module is Spec {
     return !!module;
+  },
+
+  _setPrimitiveProcessor: function (processor: (value: Primitive) => any): void {
+    this.primitiveProcessor = processor;
   },
 
   _DisabledNativeError: new SentryError('Native is disabled'),
