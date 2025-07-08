@@ -167,11 +167,7 @@ project.afterEvaluate {
                           project.logger.info("file not found '$propertiesFile' for '$variant'")
                       }
 
-                      def resolvedCliPackage = null
-                      try {
-                          resolvedCliPackage = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
-                      } catch (Throwable ignored) {}
-                      def cliPackage = resolvedCliPackage != null && resolvedCliPackage.exists() ? resolvedCliPackage.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
+                      def cliPackage = resolveSentryCliPackagePath(reactRoot)
                       def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
 
                       // fix path separator for Windows
@@ -304,6 +300,32 @@ def resolveSentryReactNativeSDKPath(reactRoot) {
     } catch (Throwable ignored) {} // if the resolve fails we fallback to the default path
     def sentryPackage = resolvedSentryPath != null && resolvedSentryPath.exists() ? resolvedSentryPath.getAbsolutePath() : "$reactRoot/node_modules/@sentry/react-native"
     return sentryPackage
+}
+
+def resolveSentryCliPackagePath(reactRoot) {
+    def resolvedCliPath = null
+    try {
+        def file = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir))
+        resolvedCliPath = file.text.trim().getParentFile();
+    } catch (Throwable ignored) { // Check if it's located in .pnpm
+        try {
+            def pnpmRefPath = reactRoot.toString() + "/node_modules/@sentry/react-native/node_modules/.bin/sentry-cli"
+            def sentryCliFile = new File(pnpmRefPath)
+
+            if (sentryCliFile.exists()) {
+                def cliFileText = sentryCliFile.text
+                def matcher = cliFileText =~ /NODE_PATH="([^"]*?)@sentry\/cli\//
+
+                if (matcher.find()) {
+                    def match = matcher.group(1)
+                    resolvedCliPath = new File(match + "@sentry/cli")
+                }
+            }
+        } catch (Throwable ignored2) {} // if the resolve fails we fallback to the default path
+    }
+
+    def cliPackage = resolvedCliPath != null && resolvedCliPath.exists() ? resolvedCliPath.getAbsolutePath() : "$reactRoot/node_modules/@sentry/cli"
+    return cliPackage
 }
 
 /** Compose lookup map of build variants - to - outputs. */
