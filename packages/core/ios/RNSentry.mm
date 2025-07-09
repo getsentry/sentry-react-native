@@ -50,6 +50,7 @@
 #endif
 
 #import "RNSentryVersion.h"
+#import "RNSentryExperimentalOptions.h"
 
 @interface
 SentrySDK (RNSentry)
@@ -229,11 +230,8 @@ RCT_EXPORT_METHOD(initNativeSdk
     if (experiments != nil && [experiments isKindOfClass:[NSDictionary class]]) {
         BOOL enableUnhandledCPPExceptions =
             [experiments[@"enableUnhandledCPPExceptionsV2"] boolValue];
-        id experimentalOptions = [sentryOptions valueForKey:@"experimental"];
-        if (experimentalOptions) {
-            [experimentalOptions setValue:@(enableUnhandledCPPExceptions)
-                                   forKey:@"enableUnhandledCPPExceptionsV2"];
-        }
+        [RNSentryExperimentalOptions setEnableUnhandledCPPExceptionsV2:enableUnhandledCPPExceptions
+                                                         sentryOptions:sentryOptions];
     }
 
     return sentryOptions;
