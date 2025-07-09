@@ -6,6 +6,8 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
 ### Features
 
 - Add experimental flag `enableUnhandledCPPExceptionsV2` on iOS ([#4975](https://github.com/getsentry/sentry-react-native/pull/4975))
@@ -19,6 +21,12 @@
     },
   });
   ```
+
+### Dependencies
+
+- Bump CLI from v2.46.0 to v2.47.0 ([#4979](https://github.com/getsentry/sentry-react-native/pull/4979))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2470)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.46.0...2.47.0)
 
 ## 6.16.1
 
