@@ -58,6 +58,9 @@ const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   useDispatchedActionData: true,
 });
 
+const sampleFeatureFlagsIntegration = Sentry.featureFlagsIntegration();
+sampleFeatureFlagsIntegration.addFeatureFlag('sample-test-flag', true);
+
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: getDsn(),
@@ -149,6 +152,7 @@ Sentry.init({
         },
       }),
       Sentry.extraErrorDataIntegration(),
+      sampleFeatureFlagsIntegration,
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
