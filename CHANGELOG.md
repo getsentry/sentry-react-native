@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- SDK now Builds when using PnPM ([#4977](https://github.com/getsentry/sentry-react-native/pull/4977))
+
 ## 6.16.1
 
 ### Fixes
