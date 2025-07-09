@@ -49,8 +49,8 @@
 #    import "RNSentryRNSScreen.h"
 #endif
 
-#import "RNSentryVersion.h"
 #import "RNSentryExperimentalOptions.h"
+#import "RNSentryVersion.h"
 
 @interface
 SentrySDK (RNSentry)

@@ -3,15 +3,16 @@
 
 @implementation RNSentryExperimentalOptions
 
-+ (void)setEnableUnhandledCPPExceptionsV2:(BOOL)enabled
-                            sentryOptions:(SentryOptions *)sentryOptions {
++ (void)setEnableUnhandledCPPExceptionsV2:(BOOL)enabled sentryOptions:(SentryOptions *)sentryOptions
+{
     if (sentryOptions == nil) {
         return;
     }
     sentryOptions.experimental.enableUnhandledCPPExceptionsV2 = enabled;
 }
 
-+ (BOOL)getEnableUnhandledCPPExceptionsV2:(SentryOptions *)sentryOptions {
++ (BOOL)getEnableUnhandledCPPExceptionsV2:(SentryOptions *)sentryOptions
+{
     if (sentryOptions == nil) {
         return NO;
     }
