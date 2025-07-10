@@ -67,7 +67,7 @@
   "dependencies": {
     "@sentry/babel-plugin-component-annotate": "3.5.0",
     "@sentry/browser": "9.22.0",
-    "@sentry/cli": "2.46.0",
+    "@sentry/cli": "2.47.0",
     "@sentry/core": "9.22.0",
     "@sentry/react": "9.22.0",
     "@sentry/types": "9.22.0"
@@ -80,7 +80,7 @@
     "@sentry-internal/eslint-config-sdk": "9.22.0",
     "@sentry-internal/eslint-plugin-sdk": "9.22.0",
     "@sentry-internal/typescript": "9.22.0",
-    "@sentry/wizard": "5.1.0",
+    "@sentry/wizard": "5.3.0",
     "@testing-library/react-native": "^12.7.2",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.9.3",

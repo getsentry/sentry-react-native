@@ -263,6 +263,17 @@ export interface BaseReactNativeOptions {
      * This will be removed in the next major version.
      */
     replaysOnErrorSampleRate?: number;
+
+    /**
+     * Experiment: A more reliable way to report unhandled C++ exceptions in iOS.
+     *
+     * This approach hooks into all instances of the `__cxa_throw` function, which provides a more comprehensive and consistent exception handling across an app’s runtime, regardless of the number of C++ modules or how they’re linked. It helps in obtaining accurate stack traces.
+     *
+     * - Note: The mechanism of hooking into `__cxa_throw` could cause issues with symbolication on iOS due to caching of symbol references.
+     *
+     * @default false
+     */
+    enableUnhandledCPPExceptionsV2?: boolean;
   };
 
   /**

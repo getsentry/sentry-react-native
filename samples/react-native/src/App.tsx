@@ -86,6 +86,7 @@ Sentry.init({
     beforeSendLog: (log) => {
       return log;
     },
+    enableUnhandledCPPExceptionsV2: true,
   },
   enableUserInteractionTracing: true,
   integrations(integrations) {

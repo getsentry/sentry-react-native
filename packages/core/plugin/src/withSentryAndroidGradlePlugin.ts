@@ -12,6 +12,8 @@ export interface SentryAndroidGradlePluginOptions {
   includeSourceContext?: boolean;
 }
 
+export const sentryAndroidGradlePluginVersion = '5.8.0';
+
 /**
  * Adds the Sentry Android Gradle Plugin to the project.
  * https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#enable-sentry-agp
@@ -28,8 +30,6 @@ export function withSentryAndroidGradlePlugin(
     includeSourceContext = false,
   }: SentryAndroidGradlePluginOptions = {},
 ): any {
-  const version = '4.14.1';
-
   // Modify android/build.gradle
   const withSentryProjectBuildGradle = (config: any): any => {
     return withProjectBuildGradle(config, (projectBuildGradle: any) => {
@@ -44,7 +44,7 @@ export function withSentryAndroidGradlePlugin(
         return config;
       }
 
-      const dependency = `classpath("io.sentry:sentry-android-gradle-plugin:${version}")`;
+      const dependency = `classpath("io.sentry:sentry-android-gradle-plugin:${sentryAndroidGradlePluginVersion}")`;
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (projectBuildGradle.modResults.contents.includes(dependency)) {

@@ -192,6 +192,31 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
 
+## 6.17.0
+
+### Features
+
+- Add experimental flag `enableUnhandledCPPExceptionsV2` on iOS ([#4975](https://github.com/getsentry/sentry-react-native/pull/4975))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      enableUnhandledCPPExceptionsV2: true,
+    },
+  });
+  ```
+
+### Dependencies
+
+- Bump CLI from v2.46.0 to v2.47.0 ([#4979](https://github.com/getsentry/sentry-react-native/pull/4979))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2470)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.46.0...2.47.0)
+- Bump Android SDK from v7.22.5 to v7.22.6 ([#4985](https://github.com/getsentry/sentry-react-native/pull/4985))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7226)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.5...7.22.6)
+
 ## 6.16.1
 
 ### Fixes

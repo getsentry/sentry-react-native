@@ -49,6 +49,7 @@
 #    import "RNSentryRNSScreen.h"
 #endif
 
+#import "RNSentryExperimentalOptions.h"
 #import "RNSentryVersion.h"
 
 @interface
@@ -304,6 +305,14 @@ RCT_EXPORT_METHOD(initNativeSdk
 
     // Failed requests can only be enabled in one SDK to avoid duplicates
     sentryOptions.enableCaptureFailedRequests = NO;
+
+    NSDictionary *experiments = options[@"_experiments"];
+    if (experiments != nil && [experiments isKindOfClass:[NSDictionary class]]) {
+        BOOL enableUnhandledCPPExceptions =
+            [experiments[@"enableUnhandledCPPExceptionsV2"] boolValue];
+        [RNSentryExperimentalOptions setEnableUnhandledCPPExceptionsV2:enableUnhandledCPPExceptions
+                                                         sentryOptions:sentryOptions];
+    }
 
     return sentryOptions;
 }
