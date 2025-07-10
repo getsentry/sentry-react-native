@@ -45,9 +45,9 @@ example:
 
 ### Dependencies
 
-- Bump Android SDK from v8.14.0 to v8.16.0 ([#4953](https://github.com/getsentry/sentry-react-native/pull/4953), [#4955](https://github.com/getsentry/sentry-react-native/pull/4955))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8160)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.14.0...8.16.0)
+- Bump Android SDK from v8.14.0 to v8.17.0 ([#4953](https://github.com/getsentry/sentry-react-native/pull/4953), [#4955](https://github.com/getsentry/sentry-react-native/pull/4955), [#4987](https://github.com/getsentry/sentry-react-native/pull/4987))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8170)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.14.0...8.17.0)
 
 ## 7.0.0-beta.1
 
