@@ -56,7 +56,12 @@ export {
   withProfiler,
 } from '@sentry/react';
 
-export { logger, consoleLoggingIntegration } from '@sentry/browser';
+export {
+  logger,
+  consoleLoggingIntegration,
+  featureFlagsIntegration,
+  type FeatureFlagsIntegration,
+} from '@sentry/browser';
 
 export * from './integrations/exports';
 

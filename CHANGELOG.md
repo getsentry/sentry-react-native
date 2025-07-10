@@ -12,6 +12,10 @@
 
 - Automatically detect Release name and version for Expo Web ([#4967](https://github.com/getsentry/sentry-react-native/pull/4967))
 
+### Changes
+
+- Expose `featureFlagsIntegration` ([#4984](https://github.com/getsentry/sentry-react-native/pull/4984))
+
 ### Breaking changes
 
 - Tags formatting logic updated ([#4965](https://github.com/getsentry/sentry-react-native/pull/4965))
