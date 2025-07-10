@@ -8,6 +8,20 @@
 
 ## Unreleased
 
+### Features
+
+- Add experimental flag `enableUnhandledCPPExceptionsV2` on iOS ([#4975](https://github.com/getsentry/sentry-react-native/pull/4975))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      enableUnhandledCPPExceptionsV2: true,
+    },
+  });
+  ```
+
 ### Dependencies
 
 - Bump CLI from v2.46.0 to v2.47.0 ([#4979](https://github.com/getsentry/sentry-react-native/pull/4979))
