@@ -10,12 +10,34 @@
 
 ### Dependencies
 
-- Bump CLI from v2.46.0 to v2.47.0 ([#4979](https://github.com/getsentry/sentry-react-native/pull/4979))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2470)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.46.0...2.47.0)
 - Bump JavaScript SDK from v8.54.0 to v8.55.0 ([#4981](https://github.com/getsentry/sentry-react-native/pull/4981))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8550)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...8.55.0)
+
+## 6.17.0
+
+### Features
+
+- Add experimental flag `enableUnhandledCPPExceptionsV2` on iOS ([#4975](https://github.com/getsentry/sentry-react-native/pull/4975))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    _experiments: {
+      enableUnhandledCPPExceptionsV2: true,
+    },
+  });
+  ```
+
+### Dependencies
+
+- Bump CLI from v2.46.0 to v2.47.0 ([#4979](https://github.com/getsentry/sentry-react-native/pull/4979))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2470)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.46.0...2.47.0)
+- Bump Android SDK from v7.22.5 to v7.22.6 ([#4985](https://github.com/getsentry/sentry-react-native/pull/4985))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7226)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.5...7.22.6)
 
 ## 6.16.1
 

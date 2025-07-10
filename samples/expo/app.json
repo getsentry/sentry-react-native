@@ -5,7 +5,7 @@
     "jsEngine": "hermes",
     "newArchEnabled": true,
     "scheme": "sentry-expo-sample",
-    "version": "6.16.1",
+    "version": "6.17.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,7 +20,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "io.sentry.expo.sample",
-      "buildNumber": "51"
+      "buildNumber": "52"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +28,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "io.sentry.expo.sample",
-      "versionCode": 51
+      "versionCode": 52
     },
     "web": {
       "bundler": "metro",
