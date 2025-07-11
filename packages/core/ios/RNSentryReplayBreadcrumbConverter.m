@@ -50,10 +50,23 @@
     SentryRRWebEvent *nativeBreadcrumb = [self->defaultConverter convertFrom:breadcrumb];
 
     // ignore native navigation breadcrumbs
-    if (nativeBreadcrumb && nativeBreadcrumb.data && nativeBreadcrumb.data[@"payload"]
-        && nativeBreadcrumb.data[@"payload"][@"category"] &&
-        [nativeBreadcrumb.data[@"payload"][@"category"] isEqualToString:@"navigation"]) {
-        return nil;
+    if (nativeBreadcrumb) {
+        @try {
+            id data = [nativeBreadcrumb valueForKey:@"data"];
+            if (data && [data isKindOfClass:[NSDictionary class]]) {
+                NSDictionary *dataDict = (NSDictionary *)data;
+                id payload = dataDict[@"payload"];
+                if (payload && [payload isKindOfClass:[NSDictionary class]]) {
+                    NSDictionary *payloadDict = (NSDictionary *)payload;
+                    NSString *category = payloadDict[@"category"];
+                    if ([category isEqualToString:@"navigation"]) {
+                        return nil;
+                    }
+                }
+            }
+        } @catch (NSException *exception) {
+            // Just continue without ignoring native navigation breadcrumbs
+        }
     }
 
     return nativeBreadcrumb;
