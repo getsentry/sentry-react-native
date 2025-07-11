@@ -9,7 +9,6 @@ import {
   resolvedSyncPromise,
   setCurrentClient,
 } from '@sentry/core';
-
 import type { ReactNativeClientOptions } from '../../src/js/options';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
@@ -88,7 +87,7 @@ export class TestClient extends BaseClient<TestClientOptions> {
       super.sendEvent(event, hint);
       return;
     }
-    TestClient.sendEventCalled && TestClient.sendEventCalled(event);
+    TestClient.sendEventCalled?.(event);
   }
 
   public sendSession(session: Session): void {

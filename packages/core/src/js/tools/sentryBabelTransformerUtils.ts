@@ -1,7 +1,6 @@
 import componentAnnotatePlugin from '@sentry/babel-plugin-component-annotate';
 import { logger } from '@sentry/core';
 import * as process from 'process';
-
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
 export type SentryBabelTransformerOptions = { annotateReactComponents?: { ignoredComponents?: string[] } };
@@ -46,7 +45,7 @@ export function loadDefaultBabelTransformer(): BabelTransformer {
 export function setSentryBabelTransformerOptions(options: SentryBabelTransformerOptions): void {
   let optionsString: string | null = null;
   try {
-    logger.debug(`Stringifying Sentry Babel transformer options`, options);
+    logger.debug('Stringifying Sentry Babel transformer options', options);
     optionsString = JSON.stringify(options);
   } catch (e) {
     // eslint-disable-next-line no-console

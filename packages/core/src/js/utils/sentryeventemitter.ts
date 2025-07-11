@@ -1,7 +1,6 @@
 import { logger } from '@sentry/core';
 import type { EmitterSubscription, NativeModule } from 'react-native';
 import { NativeEventEmitter } from 'react-native';
-
 import { getRNSentryModule } from '../wrapper';
 
 export const NewFrameEventName = 'rn_sentry_new_frame';

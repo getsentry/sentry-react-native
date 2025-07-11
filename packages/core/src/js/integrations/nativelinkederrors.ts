@@ -11,7 +11,6 @@ import type {
   StackParser,
 } from '@sentry/core';
 import { isInstanceOf, isPlainObject, isString } from '@sentry/core';
-
 import type { NativeStackFrames } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
 
@@ -43,7 +42,7 @@ export const nativeLinkedErrorsIntegration = (options: Partial<LinkedErrorsOptio
 };
 
 function preprocessEvent(event: Event, hint: EventHint | undefined, client: Client, limit: number, key: string): void {
-  if (!event.exception || !event.exception.values || !hint || !isInstanceOf(hint.originalException, Error)) {
+  if (!event.exception?.values || !hint || !isInstanceOf(hint.originalException, Error)) {
     return;
   }
 
@@ -176,10 +175,10 @@ function exceptionFromAppleStackReturnAddresses(objCException: {
       type: objCException.name,
       value: objCException.message,
       stacktrace: {
-        frames: (nativeStackFrames && nativeStackFrames.frames.reverse()) || [],
+        frames: nativeStackFrames?.frames.reverse() || [],
       },
     },
-    appleDebugImages: (nativeStackFrames && (nativeStackFrames.debugMetaImages as DebugImage[])) || [],
+    appleDebugImages: (nativeStackFrames?.debugMetaImages as DebugImage[]) || [],
   };
 }
 

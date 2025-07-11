@@ -167,7 +167,7 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
     }
 
-    func testEnableViewRendererV2Default() {
+    func testEnableExperimentalViewRendererDefault() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75
@@ -177,10 +177,10 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let actualOptions = try! Options(dict: optionsDict as! [String: Any])
 
-        XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
+        XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
     }
 
-    func testEnableViewRendererV2True() {
+    func testEnableExperimentalViewRendererTrue() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75,
@@ -194,7 +194,7 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
     }
 
-    func testEnableViewRendererV2False() {
+    func testEnableExperimentalViewRendererFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75,

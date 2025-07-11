@@ -1,14 +1,16 @@
 import type { makeFetchTransport } from '@sentry/browser';
 import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
-import type { Profiler } from '@sentry/react';
+import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
 import { Platform } from 'react-native';
-
 import type { TouchEventBoundaryProps } from './touchevents';
-import { getExpoConstants } from './utils/expomodules';
+import { isExpoGo } from './utils/environment';
 
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
 type BrowserTransportOptions = Parameters<typeof makeFetchTransport>[0];
+
+type BrowserExperiments = NonNullable<BrowserOptions['_experiments']>;
+type SharedExperimentsSubset = Pick<BrowserExperiments, 'enableLogs' | 'beforeSendLog'>;
 
 export interface BaseReactNativeOptions {
   /**
@@ -235,9 +237,17 @@ export interface BaseReactNativeOptions {
   replaysOnErrorSampleRate?: number;
 
   /**
+   * Controls how many milliseconds to wait before shutting down. The default is 2 seconds. Setting this too low can cause
+   * problems for sending events from command line applications. Setting it too
+   * high can cause the application to block for users with network connectivity
+   * problems.
+   */
+  shutdownTimeout?: number;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
-  _experiments?: {
+  _experiments?: SharedExperimentsSubset & {
     [key: string]: unknown;
 
     /**
@@ -297,7 +307,7 @@ export interface ReactNativeClientOptions
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */
-  profilerProps?: ProfilerProps;
+  profilerProps?: Omit<ProfilerProps, 'updateProps' | 'children' | 'name'>;
 
   /** Props for the root touch event boundary */
   touchEventBoundaryProps?: TouchEventBoundaryProps;
@@ -319,8 +329,7 @@ export function shouldEnableNativeNagger(userOptions: unknown): boolean {
     return false;
   }
 
-  const expoConstants = getExpoConstants();
-  if (expoConstants && expoConstants.appOwnership === 'expo') {
+  if (isExpoGo()) {
     // If the app is running in Expo Go, we don't want to nag
     return false;
   }

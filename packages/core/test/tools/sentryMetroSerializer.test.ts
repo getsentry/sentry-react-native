@@ -3,7 +3,6 @@ import type { MixedOutput, Module } from 'metro';
 import CountingSet from 'metro/src/lib/CountingSet';
 import * as countLines from 'metro/src/lib/countLines';
 import { minify } from 'uglify-js';
-
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
 import { type MetroSerializer, type VirtualJSOutput, createDebugIdSnippet } from '../../src/js/tools/utils';
 
