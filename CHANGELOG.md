@@ -11,6 +11,7 @@
 ### Fixes
 
 - SDK now Builds when using PnPM ([#4977](https://github.com/getsentry/sentry-react-native/pull/4977))
+- Skip idle span creation when app is in background ([#4995](https://github.com/getsentry/sentry-react-native/pull/4995))
 
 ### Dependencies
 

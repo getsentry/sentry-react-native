@@ -12,6 +12,7 @@ import {
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
+import { AppState } from 'react-native';
 
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
@@ -101,6 +102,12 @@ export const startIdleSpan = (
   const client = getClient();
   if (!client) {
     logger.warn(`[startIdleSpan] Can't create idle span, missing client.`);
+    return new SentryNonRecordingSpan();
+  }
+
+  const currentAppState = AppState.currentState;
+  if (currentAppState === 'background') {
+    logger.debug(`[startIdleSpan] App is already in background, not starting span for ${startSpanOption.name}`);
     return new SentryNonRecordingSpan();
   }
 
