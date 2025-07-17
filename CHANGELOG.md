@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Skip idle span creation when app is in background ([#4995](https://github.com/getsentry/sentry-react-native/pull/4995))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v8.54.0 to v8.55.0 ([#4981](https://github.com/getsentry/sentry-react-native/pull/4981))
