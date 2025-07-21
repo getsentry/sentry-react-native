@@ -1,5 +1,6 @@
 #import "RNSentryReplay.h"
 #import "RNSentryReplayBreadcrumbConverterHelper.h"
+#import "RNSentryReplayQuality.h"
 #import "RNSentryVersion.h"
 #import "React/RCTTextView.h"
 #import "Replay/RNSentryReplayMask.h"
@@ -22,9 +23,12 @@
     NSLog(@"Setting up session replay");
     NSDictionary *replayOptions = options[@"mobileReplayOptions"] ?: @{};
 
+    NSString *qualityString = options[@"replaysSessionQuality"];
+
     [options setValue:@{
         @"sessionSampleRate" : options[@"replaysSessionSampleRate"] ?: [NSNull null],
         @"errorSampleRate" : options[@"replaysOnErrorSampleRate"] ?: [NSNull null],
+        @"quality" : @([RNSentryReplayQuality parseReplayQuality:qualityString]),
         @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
         @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
         @"enableViewRendererV2" : replayOptions[@"enableViewRendererV2"] ?: [NSNull null],
