@@ -18,6 +18,7 @@
   Sentry.init({
     replaysSessionSampleRate: 1.0,
     replaysSessionQuality: 'low', // possible values: low, medium (default), high
+    integrations: [Sentry.mobileReplayIntegration()],
   });
   ```
 
