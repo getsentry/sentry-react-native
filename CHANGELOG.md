@@ -10,7 +10,7 @@
 
 ### Features
 
-- Adds `replaysSessionQuality` Session Replay option ([#5001](https://github.com/getsentry/sentry-react-native/pull/5001))
+- Adds `replaysSessionQuality` Session Replay option to control replay quality and performance overhead on mobile ([#5001](https://github.com/getsentry/sentry-react-native/pull/5001))
 
   ```js
   import * as Sentry from '@sentry/react-native';
