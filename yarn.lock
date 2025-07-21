@@ -9019,74 +9019,74 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/cli-darwin@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-darwin@npm:2.47.1"
+"@sentry/cli-darwin@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-darwin@npm:2.50.0"
   conditions: os=darwin
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm64@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-linux-arm64@npm:2.47.1"
+"@sentry/cli-linux-arm64@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-linux-arm64@npm:2.50.0"
   conditions: (os=linux | os=freebsd | os=android) & cpu=arm64
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-linux-arm@npm:2.47.1"
+"@sentry/cli-linux-arm@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-linux-arm@npm:2.50.0"
   conditions: (os=linux | os=freebsd | os=android) & cpu=arm
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-i686@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-linux-i686@npm:2.47.1"
+"@sentry/cli-linux-i686@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-linux-i686@npm:2.50.0"
   conditions: (os=linux | os=freebsd | os=android) & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-x64@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-linux-x64@npm:2.47.1"
+"@sentry/cli-linux-x64@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-linux-x64@npm:2.50.0"
   conditions: (os=linux | os=freebsd | os=android) & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-arm64@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-win32-arm64@npm:2.47.1"
+"@sentry/cli-win32-arm64@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-win32-arm64@npm:2.50.0"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-i686@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-win32-i686@npm:2.47.1"
+"@sentry/cli-win32-i686@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-win32-i686@npm:2.50.0"
   conditions: os=win32 & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-x64@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli-win32-x64@npm:2.47.1"
+"@sentry/cli-win32-x64@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli-win32-x64@npm:2.50.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli@npm:2.47.1":
-  version: 2.47.1
-  resolution: "@sentry/cli@npm:2.47.1"
+"@sentry/cli@npm:2.50.0":
+  version: 2.50.0
+  resolution: "@sentry/cli@npm:2.50.0"
   dependencies:
-    "@sentry/cli-darwin": 2.47.1
-    "@sentry/cli-linux-arm": 2.47.1
-    "@sentry/cli-linux-arm64": 2.47.1
-    "@sentry/cli-linux-i686": 2.47.1
-    "@sentry/cli-linux-x64": 2.47.1
-    "@sentry/cli-win32-arm64": 2.47.1
-    "@sentry/cli-win32-i686": 2.47.1
-    "@sentry/cli-win32-x64": 2.47.1
+    "@sentry/cli-darwin": 2.50.0
+    "@sentry/cli-linux-arm": 2.50.0
+    "@sentry/cli-linux-arm64": 2.50.0
+    "@sentry/cli-linux-i686": 2.50.0
+    "@sentry/cli-linux-x64": 2.50.0
+    "@sentry/cli-win32-arm64": 2.50.0
+    "@sentry/cli-win32-i686": 2.50.0
+    "@sentry/cli-win32-x64": 2.50.0
     https-proxy-agent: ^5.0.0
     node-fetch: ^2.6.7
     progress: ^2.0.3
@@ -9111,7 +9111,7 @@ __metadata:
       optional: true
   bin:
     sentry-cli: bin/sentry-cli
-  checksum: c27f7dc927b09831433cffb2aadd3eb3bb9acb0e9db3fe71b28e1db7c4bf5ac7d3e126b70c87f37bf70627b5d7ebae90750fe1e286877e0e408f079cfa9b2105
+  checksum: 4001f37617dcc0868124de9f27dc358309c2def217358ba08ac0000ceb6837a9ec42251eea600a3e442952dfba9b66f718e81e9937abd5ffb9cf9bc36dd2fc4b
   languageName: node
   linkType: hard
 
@@ -9170,7 +9170,7 @@ __metadata:
     "@sentry-internal/typescript": 8.55.0
     "@sentry/babel-plugin-component-annotate": 3.6.0
     "@sentry/browser": 8.55.0
-    "@sentry/cli": 2.47.1
+    "@sentry/cli": 2.50.0
     "@sentry/core": 8.55.0
     "@sentry/react": 8.55.0
     "@sentry/types": 8.55.0
@@ -26852,7 +26852,7 @@ __metadata:
   dependencies:
     "@expo/swiftlint": ^0.57.1
     "@naturalcycles/ktlint": ^1.13.0
-    "@sentry/cli": 2.47.1
+    "@sentry/cli": 2.50.0
     clang-format: ^1.8.0
     downlevel-dts: ^0.11.0
     google-java-format: ^1.4.0
