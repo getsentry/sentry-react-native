@@ -50,6 +50,10 @@ if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
     fi
   fi
 fi
+
+echo "sentry-xcode-debug-files:SENTRY_CLI_PACKAGE_PATH: $SENTRY_CLI_PACKAGE_PATH"
+echo "sentry-xcode-debug-files:SENTRY_CLI_EXECUTABLE: $SENTRY_CLI_EXECUTABLE"
+
 [ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_EXECUTABLE="$SENTRY_CLI_PACKAGE_PATH"
 
 [[ $SENTRY_INCLUDE_NATIVE_SOURCES == "true" ]] && INCLUDE_SOURCES_FLAG="--include-sources" || INCLUDE_SOURCES_FLAG=""
