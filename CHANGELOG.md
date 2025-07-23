@@ -11,6 +11,7 @@
 ### Fixes
 
 - Fixed Sentry CLI executable path resolution that was causing iOS build script failures ([#5003](https://github.com/getsentry/sentry-react-native/pull/5003))
+- Fix for `sentry-cli` path discovery not working on Android ([#5009](https://github.com/getsentry/sentry-react-native/pull/5009))
 
 ### Features
 
