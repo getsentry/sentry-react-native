@@ -12,20 +12,6 @@
 
 - Fixed Sentry CLI executable path resolution that was causing iOS build script failures ([#5003](https://github.com/getsentry/sentry-react-native/pull/5003))
 
-### Features
-
-- Adds `replaysSessionQuality` Session Replay option to control replay quality and performance overhead on mobile ([#5001](https://github.com/getsentry/sentry-react-native/pull/5001))
-
-  ```js
-  import * as Sentry from '@sentry/react-native';
-
-  Sentry.init({
-    replaysSessionSampleRate: 1.0,
-    replaysSessionQuality: 'low', // possible values: low, medium (default), high
-    integrations: [Sentry.mobileReplayIntegration()],
-  });
-  ```
-
 ## 6.18.0
 
 ### Fixes
