@@ -50,7 +50,6 @@ jobs:
             xcodebuild -workspace *.xcworkspace \
             -scheme $SCHEME -configuration $CONFIGURATION \
             -destination "$DESTINATION" \
-            -quiet \
             test
 
   test-android:
