@@ -305,8 +305,7 @@ def resolveSentryReactNativeSDKPath(reactRoot) {
 def resolveSentryCliPackagePath(reactRoot) {
     def resolvedCliPath = null
     try {
-        def file = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir))
-        resolvedCliPath = file.text.trim().getParentFile();
+        resolvedCliPath = new File(["node", "--print", "require.resolve('@sentry/cli/package.json')"].execute(null, rootDir).text.trim()).getParentFile();
     } catch (Throwable ignored) { // Check if it's located in .pnpm
         try {
             def pnpmRefPath = reactRoot.toString() + "/node_modules/@sentry/react-native/node_modules/.bin/sentry-cli"
