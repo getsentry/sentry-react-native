@@ -24,7 +24,7 @@
 #import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryFormatter.h>
-#import <Sentry/SentryOptions+HybridSDKs.h>
+#import <Sentry/SentryOptionsInternal.h>
 #import <Sentry/SentryScreenFrames.h>
 
 // This guard prevents importing Hermes in JSC apps
@@ -165,7 +165,7 @@ RCT_EXPORT_METHOD(initNativeSdk
     [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions
+    SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
                                                       didFailWithError:errorPointer];
     if (*errorPointer != nil) {
         return nil;
