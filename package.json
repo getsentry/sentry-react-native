@@ -57,7 +57,8 @@
     "See: https://github.com/appium/appium-chromedriver/pull/424"
   ],
   "resolutions": {
-    "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10"
+    "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10",
+    "form-data": "4.0.4"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
