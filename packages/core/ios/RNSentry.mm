@@ -57,15 +57,7 @@
 
 #import "RNSentryExperimentalOptions.h"
 #import "RNSentryVersion.h"
-
-@interface
-SentrySDK (RNSentry)
-
-+ (void)captureEnvelope:(SentryEnvelope *)envelope;
-
-+ (void)storeEnvelope:(SentryEnvelope *)envelope;
-
-@end
+#import "SentrySDKWrapper.h"
 
 static bool hasFetchedAppStart;
 
@@ -112,7 +104,7 @@ RCT_EXPORT_METHOD(initNativeSdk
     [PrivateSentrySDKOnly addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
                                 version:REACT_NATIVE_SDK_PACKAGE_VERSION];
 
-    [SentrySDK startWithOptions:sentryOptions];
+    [SentrySDKWrapper startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive =
@@ -451,7 +443,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts
     __block NSMutableDictionary<NSString *, id> *serializedScope;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         serializedScope = [[scope serialize] mutableCopy];
 
         NSDictionary<NSString *, id> *user = [serializedScope valueForKey:@"user"];
@@ -655,7 +647,7 @@ RCT_EXPORT_METHOD(fetchViewHierarchy
 
 RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictionary *)userDataKeys)
 {
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         [scope setUser:[RNSentry userFrom:userKeys otherUserKeys:userDataKeys]];
     }];
 }
@@ -704,7 +696,7 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
 
 RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 {
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
 
@@ -718,12 +710,12 @@ RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 
 RCT_EXPORT_METHOD(clearBreadcrumbs)
 {
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) { [scope clearBreadcrumbs]; }];
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) { [scope clearBreadcrumbs]; }];
 }
 
 RCT_EXPORT_METHOD(setExtra : (NSString *)key extra : (NSString *)extra)
 {
-    [SentrySDK
+    [SentrySDKWrapper
         configureScope:^(SentryScope *_Nonnull scope) { [scope setExtraValue:extra forKey:key]; }];
 }
 
@@ -733,7 +725,7 @@ RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context
         return;
     }
 
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         if (context == nil) {
             [scope removeContextForKey:key];
         } else {
@@ -744,17 +736,17 @@ RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context
 
 RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 {
-    [SentrySDK
+    [SentrySDKWrapper
         configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
 }
 
-RCT_EXPORT_METHOD(crash) { [SentrySDK crash]; }
+RCT_EXPORT_METHOD(crash) { [SentrySDKWrapper crash]; }
 
 RCT_EXPORT_METHOD(closeNativeSdk
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject)
 {
-    [SentrySDK close];
+    [SentrySDKWrapper close];
     resolve(@YES);
 }
 
@@ -957,7 +949,7 @@ RCT_EXPORT_METHOD(crashedLastRun
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject)
 {
-    resolve(@([SentrySDK crashedLastRun]));
+    resolve(@([SentrySDKWrapper crashedLastRun]));
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.
