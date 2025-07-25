@@ -10,7 +10,6 @@
 
 ### Fixes
 
-- Fixed Sentry CLI executable path resolution that was causing iOS build script failures ([#5003](https://github.com/getsentry/sentry-react-native/pull/5003))
 - Fix for `sentry-cli` path discovery not working on Android ([#5009](https://github.com/getsentry/sentry-react-native/pull/5009))
 - Export `addIntegration` from `@sentry/core` ([#5020](https://github.com/getsentry/sentry-react-native/pull/5020))
 
@@ -37,7 +36,17 @@
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#400)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.6.1...4.0.0)
 
+## 6.18.1
+
+### Fixes
+
+- Fixed Sentry CLI executable path resolution that was causing iOS build script failures ([#5003](https://github.com/getsentry/sentry-react-native/pull/5003))
+
 ## 6.18.0
+
+> [!WARNING]
+> This release contains an issue where Sentry-CLI may not be found on iOS builds if not defined by environment variable.
+> See PR [#5003](github.com/getsentry/sentry-react-native/pull/5003) for more details.
 
 ### Fixes
 
