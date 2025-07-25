@@ -35,6 +35,9 @@
 - Bump Bundler Plugins from v3.6.1 to v4.0.0 ([#5000](https://github.com/getsentry/sentry-react-native/pull/5000))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#400)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.6.1...4.0.0)
+- Bump Android SDK from v7.22.6 to v8.17.0 ([#4471](https://github.com/getsentry/sentry-react-native/pull/4471))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8170)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.6...8.17.0)
 
 ## 6.18.1
 
