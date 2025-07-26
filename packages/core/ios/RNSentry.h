@@ -13,8 +13,13 @@
 
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
+#if CROSS_PLATFORM_TEST
+@interface
+SentrySDKInternal: NSObject
+#else
 @interface
 SentrySDK (Private)
+#endif
 @property (nonatomic, nullable, readonly, class) SentryOptions *options;
 @end
 
