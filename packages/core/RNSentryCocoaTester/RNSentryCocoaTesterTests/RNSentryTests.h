@@ -1,8 +1,13 @@
 #import <Foundation/Foundation.h>
 #import <RNSentry/RNSentry.h>
-@import Sentry;
 
+@class SentryOptions;
+
+#if CROSS_PLATFORM_TEST
+@interface SentrySDKInternal : NSObject
+#else
 @interface
-SentrySDK (PrivateTests)
-- (nullable SentryOptions *)options;
+SentrySDK (Private)
+#endif
++ (nullable SentryOptions *)options;
 @end

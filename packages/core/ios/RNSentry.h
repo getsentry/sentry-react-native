@@ -9,9 +9,10 @@
 
 #import <Sentry/Sentry.h>
 #import <Sentry/SentryDebugImageProvider.h>
-#import <Sentry/SentryOptions.h>
 
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
+
+@class SentryOptions;
 
 #if CROSS_PLATFORM_TEST
 @interface SentrySDKInternal : NSObject
