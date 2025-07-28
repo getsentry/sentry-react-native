@@ -21,9 +21,15 @@
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBinaryImageCache.h>
+#import <Sentry/SentryBreadcrumb.h>
 #import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
+#import <Sentry/SentryDebugMeta.h>
 #import <Sentry/SentryDependencyContainer.h>
+#import <Sentry/SentryEvent.h>
+#import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
+#import <Sentry/SentryOptions.h>
+#import <Sentry/SentryUser.h>
 #if __has_include(<Sentry/SentryOptions+HybridSDKs.h>)
 #    define USE_SENTRY_OPTIONS 1
 #    import <Sentry/SentryOptions+HybridSDKs.h>

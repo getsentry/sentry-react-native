@@ -4,10 +4,11 @@
 @class SentryOptions;
 
 #if CROSS_PLATFORM_TEST
-@interface SentrySDKInternal : NSObject
+@interface
+SentrySDKInternal (PrivateTests)
 #else
 @interface
-SentrySDK (Private)
+SentrySDK (PrivateTests)
 #endif
 + (nullable SentryOptions *)options;
 @end

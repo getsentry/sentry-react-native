@@ -13,6 +13,7 @@
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
 @class SentryOptions;
+@class SentryEvent;
 
 #if CROSS_PLATFORM_TEST
 @interface SentrySDKInternal : NSObject
