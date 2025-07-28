@@ -201,7 +201,7 @@ project.afterEvaluate {
 
                       project.logger.lifecycle("Sentry-CLI arguments: ${args}")
                       def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
-                      if (!System.getenv('SENTRY_DOTENV_PATH')) {
+                      if (!System.getenv('SENTRY_DOTENV_PATH') && file("$reactRoot/.env.sentry-build-plugin").exists()) {
                           environment('SENTRY_DOTENV_PATH', "$reactRoot/.env.sentry-build-plugin")
                       }
                       commandLine(*osCompatibility, *args)

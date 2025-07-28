@@ -129,7 +129,10 @@ try {
   console.warn(error);
 }
 
-loadDotenv(path.join(projectRoot, '.env.sentry-build-plugin'));
+const sentryBuildPluginPath = path.join(projectRoot, '.env.sentry-build-plugin');
+if (fs.existsSync(sentryBuildPluginPath)) {
+  loadDotenv();
+}
 
 let sentryOrg = getEnvVar(SENTRY_ORG);
 let sentryUrl = getEnvVar(SENTRY_URL);
