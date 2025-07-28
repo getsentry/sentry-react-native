@@ -14,8 +14,7 @@
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
 #if CROSS_PLATFORM_TEST
-@interface
-SentrySDKInternal: NSObject
+@interface SentrySDKInternal : NSObject
 #else
 @interface
 SentrySDK (Private)
