@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 
+import { openURLInBrowser } from '../metro/openUrlInBrowser';
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
 import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';
@@ -82,7 +83,6 @@ export const SentryPlayground = ({
     }
   };
 
-  const showOpenSentryButton = !isExpo();
   const isNativeCrashDisabled = isWeb() || isExpoGo() || __DEV__;
 
   const animationContainerYPosition = React.useRef(new Animated.Value(0)).current;
@@ -169,15 +169,13 @@ export const SentryPlayground = ({
               justifyContent: 'space-evenly', // Space between buttons
             }}
           >
-            {showOpenSentryButton && (
-              <Button
-                secondary
-                title={'Open Sentry'}
-                onPress={() => {
-                  openURLInBrowser(issuesStreamUrl);
-                }}
-              />
-            )}
+            <Button
+              secondary
+              title={'Open Sentry'}
+              onPress={() => {
+                openURLInBrowser(issuesStreamUrl);
+              }}
+            />
             <Button
               title={'Go to my App'}
               onPress={() => {
@@ -421,14 +419,3 @@ const lightStyles: typeof defaultDarkStyles = StyleSheet.create({
     backgroundColor: 'rgb(238, 235, 249)',
   },
 });
-
-function openURLInBrowser(url: string): void {
-  // This doesn't work for Expo project with Web enabled
-  // disable-next-line @typescript-eslint/no-floating-promises
-  fetch(`${getDevServer().url}open-url`, {
-    method: 'POST',
-    body: JSON.stringify({ url }),
-  }).catch(e => {
-    logger.error('Error opening URL:', e);
-  });
-}
