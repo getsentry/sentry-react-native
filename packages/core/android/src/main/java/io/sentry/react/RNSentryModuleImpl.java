@@ -45,6 +45,7 @@ import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
 import io.sentry.SentryReplayOptions;
+import io.sentry.SentryReplayOptions.SentryReplayQuality;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
@@ -87,6 +88,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -381,6 +383,12 @@ public class RNSentryModuleImpl {
             ? rnOptions.getDouble("replaysOnErrorSampleRate")
             : null);
 
+    if (rnOptions.hasKey("replaysSessionQuality")) {
+      final String qualityString = rnOptions.getString("replaysSessionQuality");
+      final SentryReplayQuality quality = parseReplayQuality(qualityString);
+      androidReplayOptions.setQuality(quality);
+    }
+
     if (!rnOptions.hasKey("mobileReplayOptions")) {
       return androidReplayOptions;
     }
@@ -407,6 +415,27 @@ public class RNSentryModuleImpl {
     androidReplayOptions.setUnmaskViewContainerClass(RNSentryReplayUnmask.class.getName());
 
     return androidReplayOptions;
+  }
+
+  private SentryReplayQuality parseReplayQuality(@Nullable String qualityString) {
+    if (qualityString == null) {
+      return SentryReplayQuality.MEDIUM;
+    }
+
+    try {
+      switch (qualityString.toLowerCase(Locale.ROOT)) {
+        case "low":
+          return SentryReplayQuality.LOW;
+        case "medium":
+          return SentryReplayQuality.MEDIUM;
+        case "high":
+          return SentryReplayQuality.HIGH;
+        default:
+          return SentryReplayQuality.MEDIUM;
+      }
+    } catch (Exception e) {
+      return SentryReplayQuality.MEDIUM;
+    }
   }
 
   public void crash() {

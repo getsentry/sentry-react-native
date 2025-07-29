@@ -17,6 +17,7 @@ export type {
 
 export {
   addBreadcrumb,
+  addIntegration,
   captureException,
   captureEvent,
   captureFeedback,

@@ -192,6 +192,69 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
 
+## 6.19.0
+
+### Fixes
+
+- Warnings when .env.sentry-build-plugin is not set on Sentry/CLI ([#5029](https://github.com/getsentry/sentry-react-native/pull/5029))
+- Fix for `sentry-cli` path discovery not working on Android ([#5009](https://github.com/getsentry/sentry-react-native/pull/5009))
+- Export `addIntegration` from `@sentry/core` ([#5020](https://github.com/getsentry/sentry-react-native/pull/5020))
+
+### Features
+
+- Adds `replaysSessionQuality` Session Replay option to control replay quality and performance overhead on mobile ([#5001](https://github.com/getsentry/sentry-react-native/pull/5001))
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    replaysSessionSampleRate: 1.0,
+    replaysSessionQuality: 'low', // possible values: low, medium (default), high
+    integrations: [Sentry.mobileReplayIntegration()],
+  });
+  ```
+
+### Dependencies
+
+- Bump CLI from v2.50.0 to v2.50.2 ([#5007](https://github.com/getsentry/sentry-react-native/pull/5007))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2502)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.50.0...2.50.2)
+- Bump Bundler Plugins from v3.6.1 to v4.0.2 ([#5000](https://github.com/getsentry/sentry-react-native/pull/5000), [#5021](https://github.com/getsentry/sentry-react-native/pull/5021), [#5030](https://github.com/getsentry/sentry-react-native/pull/5030))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#402)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.6.1...4.0.2)
+
+## 6.18.1
+
+### Fixes
+
+- Fixed Sentry CLI executable path resolution that was causing iOS build script failures ([#5003](https://github.com/getsentry/sentry-react-native/pull/5003))
+
+## 6.18.0
+
+> [!WARNING]
+> This release contains an issue where Sentry-CLI may not be found on iOS builds if not defined by environment variable.
+> See PR [#5003](github.com/getsentry/sentry-react-native/pull/5003) for more details.
+
+### Fixes
+
+- SDK now Builds when using PnPM ([#4977](https://github.com/getsentry/sentry-react-native/pull/4977))
+- Skip idle span creation when app is in background ([#4995](https://github.com/getsentry/sentry-react-native/pull/4995))
+
+### Dependencies
+
+- Bump JavaScript SDK from v8.54.0 to v8.55.0 ([#4981](https://github.com/getsentry/sentry-react-native/pull/4981))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#8550)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...8.55.0)
+- Bump Cocoa SDK from v8.53.1 to v8.53.2 ([#4986](https://github.com/getsentry/sentry-react-native/pull/4986))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8532)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.1...8.53.2)
+- Bump CLI from v2.47.0 to v2.50.0 ([#4993](https://github.com/getsentry/sentry-react-native/pull/4993), [#4999](https://github.com/getsentry/sentry-react-native/pull/4999))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2500)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.47.0...2.50.0)
+- Bump Bundler Plugins from v3.5.0 to v3.6.1 ([#4994](https://github.com/getsentry/sentry-react-native/pull/4994), [#4998](https://github.com/getsentry/sentry-react-native/pull/4998))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#361)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/3.5.0...3.6.1)
+
 ## 6.17.0
 
 ### Features

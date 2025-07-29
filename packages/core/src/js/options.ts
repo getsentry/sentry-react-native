@@ -245,6 +245,14 @@ export interface BaseReactNativeOptions {
   shutdownTimeout?: number;
 
   /**
+   * Defines the quality of the session replay. The higher the quality, the more accurate the replay
+   * will be, but also more data to transfer and more CPU load.
+   *
+   * @default 'medium'
+   */
+  replaysSessionQuality?: SentryReplayQuality;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
   _experiments?: SharedExperimentsSubset & {
@@ -284,6 +292,8 @@ export interface BaseReactNativeOptions {
    */
   useThreadsForMessageStack?: boolean;
 }
+
+export type SentryReplayQuality = 'low' | 'medium' | 'high';
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
   /**

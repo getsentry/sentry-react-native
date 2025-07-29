@@ -65,6 +65,7 @@ describe('User Interaction Tracing', () => {
     jest.useFakeTimers();
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
+    mockedAppState.currentState = 'active';
     mockedAppState.addEventListener = (_, listener) => {
       mockedAppState.listener = listener;
       return {
@@ -294,6 +295,18 @@ describe('User Interaction Tracing', () => {
         }),
       );
       expect(interactionTransactionContext!.timestamp).toBeLessThanOrEqual(routingTransactionContext!.start_timestamp!);
+    });
+
+    test('does not start UI span when app is in background', () => {
+      mockedAppState.currentState = 'background';
+
+      startUserInteractionSpan(mockedUserInteractionId);
+
+      // No active span should be created
+      expect(getActiveSpan()).toBeUndefined();
+
+      // No events should be queued
+      expect(client.eventQueue).toHaveLength(0);
     });
   });
 });

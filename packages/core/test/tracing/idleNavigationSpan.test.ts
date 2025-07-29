@@ -34,6 +34,7 @@ describe('startIdleNavigationSpan', () => {
     jest.useFakeTimers();
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
+    mockedAppState.currentState = 'active';
     mockedAppState.addEventListener = (_, listener) => {
       mockedAppState.listener = listener;
       return {
@@ -79,6 +80,37 @@ describe('startIdleNavigationSpan', () => {
     jest.runAllTimers();
 
     expect(spanToJSON(transaction!).timestamp).toBeDefined();
+  });
+
+  it('Returns non-recording span when app is already in background', () => {
+    mockedAppState.currentState = 'background';
+
+    const span = startIdleNavigationSpan({
+      name: 'test',
+    });
+
+    // Non-recording spans don't become active
+    expect(getActiveSpan()).toBeUndefined();
+
+    // Verify it's a non-recording span
+    expect(span).toBeDefined();
+    expect(span.constructor.name).toBe('SentryNonRecordingSpan');
+
+    // No AppState listener should be set up for non-recording spans
+    expect(mockedAppState.removeSubscription).not.toHaveBeenCalled();
+  });
+
+  it('Does not set up AppState listener for background spans', () => {
+    mockedAppState.currentState = 'background';
+
+    startIdleNavigationSpan({
+      name: 'test',
+    });
+
+    mockedAppState.setState('active');
+
+    // No subscription removal should happen since no listener was set up
+    expect(mockedAppState.removeSubscription).not.toHaveBeenCalled();
   });
 
   describe('Start a new active root span (without parent)', () => {
