@@ -24,7 +24,7 @@ LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 RN_PROJECT_ROOT="${PROJECT_DIR}/.."
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
-[ -z "$SENTRY_DOTENV_PATH" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
+[ -z "$SENTRY_DOTENV_PATH" ] && [ -f "$RN_PROJECT_ROOT/.env.sentry-build-plugin" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
 
 [ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
