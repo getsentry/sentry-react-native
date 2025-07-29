@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Warnings when .env.sentry-build-plugin is not set on Sentry/CLI ([#5029](https://github.com/getsentry/sentry-react-native/pull/5029))ased
+- Warnings when .env.sentry-build-plugin is not set on Sentry/CLI ([#5029](https://github.com/getsentry/sentry-react-native/pull/5029))
 - Fix for `sentry-cli` path discovery not working on Android ([#5009](https://github.com/getsentry/sentry-react-native/pull/5009))
 - Export `addIntegration` from `@sentry/core` ([#5020](https://github.com/getsentry/sentry-react-native/pull/5020))
 
