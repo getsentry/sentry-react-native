@@ -13,7 +13,7 @@ LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 RN_PROJECT_ROOT="${PROJECT_DIR}/.."
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
-[ -z "$SENTRY_DOTENV_PATH" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
+[ -z "$SENTRY_DOTENV_PATH" ] && [ -f "$RN_PROJECT_ROOT/.env.sentry-build-plugin" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
 
 if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
