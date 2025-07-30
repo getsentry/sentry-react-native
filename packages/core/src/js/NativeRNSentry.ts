@@ -24,6 +24,7 @@ export interface Spec extends TurboModule {
   fetchNativeRelease(): Promise<NativeReleaseResponse>;
   fetchNativeSdkInfo(): Promise<Package | null>;
   fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse | null>;
+  fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
