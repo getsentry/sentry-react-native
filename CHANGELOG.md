@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## 7.0.0-rc.1
+
+### Various fixes & improvements
+
+- fix(sdk): Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` (#4466) by @krystofwoldrich
+- fix(appStart): Align span description with other platforms (#4636) by @krystofwoldrich
+
 ## 7.0.0-beta.2
 
 ### Features
