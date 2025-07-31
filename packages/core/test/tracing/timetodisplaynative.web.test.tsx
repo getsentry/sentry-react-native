@@ -1,8 +1,14 @@
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
+  // Fixes TypeError: Cannot set property UIManager of #<Object> which has only a getter
+  delete RN.UIManager;
   RN.UIManager = {};
+
   return RN;
 });
+
+import { getRNSentryOnDrawReporter } from '../../src/js/tracing/timetodisplaynative';
+import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 
 jest.mock('../../src/js/utils/rnlibraries', () => {
   const webLibrary = jest.requireActual('../../src/js/utils/rnlibraries.web');
@@ -10,9 +16,6 @@ jest.mock('../../src/js/utils/rnlibraries', () => {
     ...webLibrary,
   };
 });
-
-import { getRNSentryOnDrawReporter } from '../../src/js/tracing/timetodisplaynative';
-import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 
 describe('timetodisplaynative', () => {
   test('requireNativeComponent to be undefined', () => {

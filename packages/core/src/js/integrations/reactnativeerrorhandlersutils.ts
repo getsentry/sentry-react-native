@@ -1,5 +1,4 @@
 import { logger } from '@sentry/core';
-
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 

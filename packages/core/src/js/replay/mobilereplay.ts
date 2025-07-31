@@ -1,6 +1,5 @@
 import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/core';
 import { logger } from '@sentry/core';
-
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
@@ -131,7 +130,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   const options = mergeOptions(initOptions);
 
   async function processEvent(event: Event): Promise<Event> {
-    const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
+    const hasException = event.exception?.values && event.exception.values.length > 0;
     if (!hasException) {
       // Event is not an error, will not capture replay
       return event;
@@ -178,9 +177,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
-    setupOnce() {
-      /* Noop */
-    },
     setup,
     processEvent,
     options: options,
@@ -190,9 +186,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
-    setupOnce() {
-      /* Noop */
-    },
     options: defaultOptions,
   };
 };

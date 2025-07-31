@@ -177,7 +177,7 @@ if (!sentryOrg || !sentryProject || !sentryUrl) {
       console.log(`${SENTRY_URL} resolved to ${sentryUrl} from expo config.`);
     }
     else {
-      sentryUrl = `https://sentry.io/`;
+      sentryUrl = 'https://sentry.io/';
       console.log(
         `Since it wasn't specified in the Expo config or environment variable, ${SENTRY_URL} now points to ${sentryUrl}.`
       );
@@ -217,7 +217,7 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
   }
 
   const isHermes = assets.find(asset => asset.endsWith('.hbc'));
-  const windowsCallback = process.platform === "win32" ? 'node ' : '';
+  const windowsCallback = process.platform === 'win32' ? 'node ' : '';
   execSync(`${windowsCallback}${sentryCliBin} sourcemaps upload ${isHermes ? '--debug-id-reference' : ''} ${assets.join(' ')}`, {
     env: {
       ...process.env,

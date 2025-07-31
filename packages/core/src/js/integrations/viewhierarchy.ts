@@ -1,6 +1,5 @@
 import type { Attachment, Event, EventHint, Integration } from '@sentry/core';
 import { logger } from '@sentry/core';
-
 import { NATIVE } from '../wrapper';
 
 const filename: string = 'view-hierarchy.json';
@@ -21,7 +20,7 @@ export const viewHierarchyIntegration = (): Integration => {
 };
 
 async function processEvent(event: Event, hint: EventHint): Promise<Event> {
-  const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
+  const hasException = event.exception?.values && event.exception.values.length > 0;
   if (!hasException) {
     return event;
   }

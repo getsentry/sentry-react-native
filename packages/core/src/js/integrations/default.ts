@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
+import { browserSessionIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
-
 import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
 import { notWeb } from '../utils/environment';
@@ -27,6 +27,7 @@ import {
   modulesLoaderIntegration,
   nativeLinkedErrorsIntegration,
   nativeReleaseIntegration,
+  primitiveTagIntegration,
   reactNativeErrorHandlersIntegration,
   reactNativeInfoIntegration,
   screenshotIntegration,
@@ -59,6 +60,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(browserApiErrorsIntegration());
     integrations.push(browserGlobalHandlersIntegration());
     integrations.push(browserLinkedErrorsIntegration());
+
+    if (options.enableAutoSessionTracking) {
+      integrations.push(browserSessionIntegration());
+    }
   }
 
   // @sentry/react default integrations
@@ -93,15 +98,12 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   // hasTracingEnabled from `@sentry/core` only check if tracesSampler or tracesSampleRate keys are present
   // that's different from prev imp here and might lead misconfiguration
   // `tracesSampleRate: undefined` should not enable tracing
-  const hasTracingEnabled =
-    options.enableTracing ||
-    typeof options.tracesSampleRate === 'number' ||
-    typeof options.tracesSampler === 'function';
-  if (hasTracingEnabled && options.enableAppStartTracking) {
+  const hasTracingEnabled = typeof options.tracesSampleRate === 'number' || typeof options.tracesSampler === 'function';
+  if (hasTracingEnabled && options.enableAppStartTracking && options.enableNative) {
     integrations.push(appStartIntegration());
   }
   const nativeFramesIntegrationInstance = createNativeFramesIntegrations(
-    hasTracingEnabled && options.enableNativeFramesTracking,
+    hasTracingEnabled && options.enableNativeFramesTracking && options.enableNative,
   );
   if (nativeFramesIntegrationInstance) {
     integrations.push(nativeFramesIntegrationInstance);
@@ -138,8 +140,8 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   if (!hasReplayOptions && hasExperimentsReplayOptions) {
     // Remove in the next major version (v7)
-    options.replaysOnErrorSampleRate = options._experiments.replaysOnErrorSampleRate;
-    options.replaysSessionSampleRate = options._experiments.replaysSessionSampleRate;
+    options.replaysOnErrorSampleRate = options._experiments?.replaysOnErrorSampleRate;
+    options.replaysSessionSampleRate = options._experiments?.replaysSessionSampleRate;
   }
 
   if ((hasReplayOptions || hasExperimentsReplayOptions) && notWeb()) {
@@ -151,6 +153,8 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (__DEV__ && notWeb()) {
     integrations.push(debugSymbolicatorIntegration());
   }
+
+  integrations.push(primitiveTagIntegration());
 
   return integrations;
 }

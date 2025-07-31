@@ -1,5 +1,4 @@
 import { type Client, type Event, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
-
 import {
   expoContextIntegration,
   getExpoUpdatesContext,

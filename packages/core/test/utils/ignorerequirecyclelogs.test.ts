@@ -1,5 +1,4 @@
 import { LogBox } from 'react-native';
-
 import { ignoreRequireCycleLogs } from '../../src/js/utils/ignorerequirecyclelogs';
 
 jest.mock('react-native', () => ({

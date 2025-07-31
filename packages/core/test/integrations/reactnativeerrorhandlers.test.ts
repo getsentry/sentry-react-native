@@ -3,7 +3,6 @@ jest.mock('../../src/js/utils/environment');
 
 import type { SeverityLevel } from '@sentry/core';
 import { addGlobalUnhandledRejectionInstrumentationHandler, captureException, setCurrentClient } from '@sentry/core';
-
 import { reactNativeErrorHandlersIntegration } from '../../src/js/integrations/reactnativeerrorhandlers';
 import {
   checkPromiseAndWarn,
@@ -13,6 +12,8 @@ import {
 import { isHermesEnabled, isWeb } from '../../src/js/utils/environment';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+
+jest.mock('../../src/js/integrations/reactnativeerrorhandlersutils');
 
 let errorHandlerCallback: ((error: Error, isFatal?: boolean) => Promise<void>) | null = null;
 
@@ -87,50 +88,50 @@ describe('ReactNativeErrorHandlers', () => {
   describe('onError', () => {
     test('Sets up the global error handler', () => {
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce();
+      integration.setupOnce!();
 
-      expect(RN_GLOBAL_OBJ.ErrorUtils.setGlobalHandler).toHaveBeenCalled();
+      expect(RN_GLOBAL_OBJ.ErrorUtils!.setGlobalHandler).toHaveBeenCalled();
     });
 
     test('Sets handled:false on a fatal error', async () => {
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce();
+      integration.setupOnce!();
 
       expect(errorHandlerCallback).not.toBeNull();
 
-      await errorHandlerCallback(new Error('Test Error'), true);
+      await errorHandlerCallback!(new Error('Test Error'), true);
       await client.flush();
 
       const event = client.event;
 
       expect(event?.level).toBe('fatal' as SeverityLevel);
-      expect(event?.exception?.values?.[0].mechanism?.handled).toBe(false);
-      expect(event?.exception?.values?.[0].mechanism?.type).toBe('onerror');
+      expect(event?.exception?.values?.[0]?.mechanism?.handled).toBe(false);
+      expect(event?.exception?.values?.[0]?.mechanism?.type).toBe('onerror');
     });
 
     test('Does not set handled:false on a non-fatal error', async () => {
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce();
+      integration.setupOnce!();
 
       expect(errorHandlerCallback).not.toBeNull();
 
-      await errorHandlerCallback(new Error('Test Error'), false);
+      await errorHandlerCallback!(new Error('Test Error'), false);
       await client.flush();
 
       const event = client.event;
 
       expect(event?.level).toBe('error' as SeverityLevel);
-      expect(event?.exception?.values?.[0].mechanism?.handled).toBe(true);
-      expect(event?.exception?.values?.[0].mechanism?.type).toBe('generic');
+      expect(event?.exception?.values?.[0]?.mechanism?.handled).toBe(true);
+      expect(event?.exception?.values?.[0]?.mechanism?.type).toBe('generic');
     });
 
     test('Includes original exception in hint', async () => {
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce();
+      integration.setupOnce!();
 
       expect(errorHandlerCallback).not.toBeNull();
 
-      await errorHandlerCallback(new Error('Test Error'), false);
+      await errorHandlerCallback!(new Error('Test Error'), false);
       await client.flush();
 
       const hint = client.hint;
@@ -145,7 +146,7 @@ describe('ReactNativeErrorHandlers', () => {
       (isHermesEnabled as jest.Mock).mockReturnValue(false);
 
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce();
+      integration.setupOnce!();
 
       expect(polyfillPromise).toHaveBeenCalled();
       expect(mockEnable).toHaveBeenCalledWith(
@@ -179,7 +180,7 @@ describe('ReactNativeErrorHandlers', () => {
       (isHermesEnabled as jest.Mock).mockReturnValue(false);
 
       const integration = reactNativeErrorHandlersIntegration();
-      integration.setupOnce();
+      integration.setupOnce!();
 
       const [options] = mockEnable.mock.calls[0];
       const onUnhandledHandler = options.onUnhandled;
@@ -208,7 +209,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       test('uses native Hermes promise rejection tracking', () => {
         const integration = reactNativeErrorHandlersIntegration();
-        integration.setupOnce();
+        integration.setupOnce!();
 
         expect(mockEnablePromiseRejectionTracker).toHaveBeenCalledTimes(1);
         expect(mockEnablePromiseRejectionTracker).toHaveBeenCalledWith(
@@ -224,7 +225,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       test('captures unhandled rejection with Hermes tracker', async () => {
         const integration = reactNativeErrorHandlersIntegration();
-        integration.setupOnce();
+        integration.setupOnce!();
 
         const [options] = mockEnablePromiseRejectionTracker.mock.calls[0];
         const onUnhandledHandler = options.onUnhandled;
@@ -254,7 +255,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       test('uses addGlobalUnhandledRejectionInstrumentationHandler for React Native Web', () => {
         const integration = reactNativeErrorHandlersIntegration();
-        integration.setupOnce();
+        integration.setupOnce!();
 
         expect(addGlobalUnhandledRejectionInstrumentationHandler).toHaveBeenCalledTimes(1);
         expect(addGlobalUnhandledRejectionInstrumentationHandler).toHaveBeenCalledWith(expect.any(Function));
@@ -266,7 +267,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       test('captures unhandled rejection with the callback', () => {
         const integration = reactNativeErrorHandlersIntegration();
-        integration.setupOnce();
+        integration.setupOnce!();
 
         const [callback] = (addGlobalUnhandledRejectionInstrumentationHandler as jest.Mock).mock.calls[0];
 
@@ -287,7 +288,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       test('handles non-error rejection with synthetic error', () => {
         const integration = reactNativeErrorHandlersIntegration();
-        integration.setupOnce();
+        integration.setupOnce!();
 
         const [callback] = (addGlobalUnhandledRejectionInstrumentationHandler as jest.Mock).mock.calls[0];
 
@@ -316,7 +317,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       test('uses existing polyfill for JSC environments', () => {
         const integration = reactNativeErrorHandlersIntegration();
-        integration.setupOnce();
+        integration.setupOnce!();
 
         expect(polyfillPromise).toHaveBeenCalledTimes(1);
         expect(requireRejectionTracking).toHaveBeenCalledTimes(1);
@@ -324,7 +325,7 @@ describe('ReactNativeErrorHandlers', () => {
 
       test('respects patchGlobalPromise option', () => {
         const integration = reactNativeErrorHandlersIntegration({ patchGlobalPromise: false });
-        integration.setupOnce();
+        integration.setupOnce!();
 
         expect(polyfillPromise).not.toHaveBeenCalled();
         expect(requireRejectionTracking).not.toHaveBeenCalled();

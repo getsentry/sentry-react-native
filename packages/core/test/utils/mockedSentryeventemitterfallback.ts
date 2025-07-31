@@ -1,6 +1,5 @@
 import { timestampInSeconds } from '@sentry/core';
 import * as EventEmitter from 'events';
-
 import type { NewFrameEvent } from '../../src/js/utils/sentryeventemitter';
 import type { SentryEventEmitterFallback } from '../../src/js/utils/sentryeventemitterfallback';
 import type { MockInterface } from '../testutils';
