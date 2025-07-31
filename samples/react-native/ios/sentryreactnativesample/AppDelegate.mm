@@ -14,8 +14,6 @@
 #endif
 
 #import "SentryNativeInitialiser.h"
-#import <Sentry/PrivateSentrySDKOnly.h>
-#import <Sentry/Sentry.h>
 
 @interface
 AppDelegate () <UNUserNotificationCenterDelegate> {
