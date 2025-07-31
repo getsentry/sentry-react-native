@@ -39,12 +39,9 @@ try {
 
 let sourceMapString: typeof sourceMapStringType;
 try {
-  sourceMapString = // eslint-disable-next-line @typescript-eslint/no-var-requires
-  (
-    require('metro/private/DeltaBundler/Serializers/sourceMapString') as {
-      sourceMapString: typeof sourceMapStringType;
-    }
-  ).sourceMapString;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const sourceMapStringModule = require('metro/private/DeltaBundler/Serializers/sourceMapString');
+  sourceMapString = (sourceMapStringModule as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
 } catch (e) {
   sourceMapString = require('metro/src/DeltaBundler/Serializers/sourceMapString');
   if ('sourceMapString' in sourceMapString) {
