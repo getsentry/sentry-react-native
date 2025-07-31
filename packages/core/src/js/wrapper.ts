@@ -84,6 +84,7 @@ interface SentryNativeWrapper {
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse | null>;
+  fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
@@ -282,6 +283,19 @@ export const NATIVE: SentryNativeWrapper = {
     return nativeIsReady;
   },
 
+  /**
+   * Fetches the attributes to be set into logs from Native
+   */
+  async fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchNativeLogAttributes();
+  },
   /**
    * Fetches the release from native
    */
