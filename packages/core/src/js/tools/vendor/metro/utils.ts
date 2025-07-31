@@ -26,12 +26,30 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as baseJSBundle from 'metro/src/DeltaBundler/Serializers/baseJSBundle';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as sourceMapString from 'metro/src/DeltaBundler/Serializers/sourceMapString';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as bundleToString from 'metro/src/lib/bundleToString';
+import type * as baseJSBundleType from 'metro/private/DeltaBundler/Serializers/baseJSBundle';
+import type * as sourceMapStringType from 'metro/private/DeltaBundler/Serializers/sourceMapString';
+import type * as bundleToStringType from 'metro/private/lib/bundleToString';
+
+let baseJSBundle: typeof baseJSBundleType;
+try {
+  baseJSBundle = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
+} catch (e) {
+  baseJSBundle = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
+}
+
+let sourceMapString: typeof sourceMapStringType;
+try {
+  sourceMapString = require('metro/private/DeltaBundler/Serializers/sourceMapString');
+} catch (e) {
+  sourceMapString = require('metro/src/DeltaBundler/Serializers/sourceMapString');
+}
+
+let bundleToString: typeof bundleToStringType;
+try {
+  bundleToString = require('metro/private/lib/bundleToString');
+} catch (e) {
+  bundleToString = require('metro/src/lib/bundleToString');
+}
 
 import type { MetroSerializer } from '../../utils';
 

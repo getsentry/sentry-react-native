@@ -1,12 +1,18 @@
 import * as crypto from 'crypto';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as countLines from 'metro/src/lib/countLines';
+import type * as countLinesType from 'metro/private/lib/countLines';
 
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
 import { createDebugIdSnippet, createSet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';
+
+let countLines: typeof countLinesType;
+try {
+  countLines = require('metro/private/lib/countLines');
+} catch (e) {
+  countLines = require('metro/src/lib/countLines');
+}
 
 type SourceMap = Record<string, unknown>;
 
