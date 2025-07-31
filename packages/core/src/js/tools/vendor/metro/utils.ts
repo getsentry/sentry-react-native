@@ -39,9 +39,17 @@ try {
 
 let sourceMapString: typeof sourceMapStringType;
 try {
-  sourceMapString = require('metro/private/DeltaBundler/Serializers/sourceMapString');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  sourceMapString = (
+    require('metro/private/DeltaBundler/Serializers/sourceMapString') as { sourceMapString: typeof sourceMapStringType }
+  ).sourceMapString;
 } catch (e) {
   sourceMapString = require('metro/src/DeltaBundler/Serializers/sourceMapString');
+  if ('sourceMapString' in sourceMapString) {
+    // Changed to named export in https://github.com/facebook/metro/commit/34148e61200a508923315fbe387b26d1da27bf4b
+    // Metro 0.81.0 and 0.80.10 patch
+    sourceMapString = (sourceMapString as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
+  }
 }
 
 let bundleToString: typeof bundleToStringType;
