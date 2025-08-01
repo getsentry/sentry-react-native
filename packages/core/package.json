@@ -66,11 +66,11 @@
   },
   "dependencies": {
     "@sentry/babel-plugin-component-annotate": "4.0.2",
-    "@sentry/browser": "8.55.0",
+    "@sentry/browser": "10.0.0",
     "@sentry/cli": "2.50.2",
-    "@sentry/core": "8.55.0",
-    "@sentry/react": "8.55.0",
-    "@sentry/types": "8.55.0",
+    "@sentry/core": "10.0.0",
+    "@sentry/react": "10.0.0",
+    "@sentry/types": "10.0.0",
     "@sentry/utils": "8.55.0"
   },
   "devDependencies": {
@@ -78,9 +78,9 @@
     "@expo/metro-config": "~0.20.0",
     "@mswjs/interceptors": "^0.25.15",
     "@react-native/babel-preset": "0.77.1",
-    "@sentry-internal/eslint-config-sdk": "8.55.0",
-    "@sentry-internal/eslint-plugin-sdk": "8.55.0",
-    "@sentry-internal/typescript": "8.55.0",
+    "@sentry-internal/eslint-config-sdk": "10.0.0",
+    "@sentry-internal/eslint-plugin-sdk": "10.0.0",
+    "@sentry-internal/typescript": "10.0.0",
     "@sentry/wizard": "6.1.0",
     "@testing-library/react-native": "^12.7.2",
     "@types/jest": "^29.5.13",
