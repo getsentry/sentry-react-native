@@ -1047,10 +1047,13 @@ public class RNSentryModuleImpl {
         InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope)
             .get("contexts");
 
-    if (!(contextsObj instanceof Map<?, ?> contextsMap)) {
+    if (!(contextsObj instanceof Map)) {
       promise.resolve(null);
       return;
     }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> contextsMap = (Map<String, Object>) contextsObj;
 
     Map<String, Object> contextItems = new HashMap<>();
     if (contextsMap.containsKey("os")) {
