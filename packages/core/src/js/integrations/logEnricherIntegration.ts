@@ -1,8 +1,7 @@
 /* eslint-disable complexity */
 import type { Integration, Log } from '@sentry/core';
 import { logger } from '@sentry/core';
-import { } from 'react-native';
-import { } from '../breadcrumb';
+import type { ReactNativeClient } from '../client';
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'LogEnricher';
@@ -10,18 +9,19 @@ const INTEGRATION_NAME = 'LogEnricher';
 export const logEnricherIntegration = (): Integration => {
   return {
     name: INTEGRATION_NAME,
-    setup(client) {
-      setTimeout(() => {
-        cacheLogContext().then(() => {
-          client.on('beforeCaptureLog', log => {
-            processLog(log);
-          })
-        },
+    setup(client: ReactNativeClient) {
+      client.on('afterInit', () => {
+        cacheLogContext().then(
+          () => {
+            client.on('beforeCaptureLog', (log: Log) => {
+              processLog(log);
+            });
+          },
           reason => {
             logger.log(reason);
           },
         );
-      }, 1000);
+      });
     },
   };
 };
@@ -32,8 +32,7 @@ async function cacheLogContext(): Promise<void> {
   try {
     const response = await NATIVE.fetchNativeLogAttributes();
 
-    NativeCache =
-    {
+    NativeCache = {
       ...(response?.contexts?.device && {
         brand: response.contexts.device?.brand,
         model: response.contexts.device?.model,
@@ -45,9 +44,8 @@ async function cacheLogContext(): Promise<void> {
       }),
       ...(response?.contexts?.release && {
         release: response.contexts.release,
-      })
+      }),
     };
-
   } catch (e) {
     return Promise.reject(`[LOGS]: Failed to prepare attributes from Native Layer: ${e}`);
   }
