@@ -15,10 +15,9 @@ jest.mock('@sentry/core', () => ({
 
 const mockLogger = logger as jest.Mocked<typeof logger>;
 
-function on_beforeCaptureLogCount(client: jest.Mocked<Client>){
+function on_beforeCaptureLogCount(client: jest.Mocked<Client>) {
   const beforeCaptureLogCalls = client.on.mock.calls.filter(
-  // @ts-ignore
-    ([eventName, _]) => eventName === 'beforeCaptureLog'
+    ([eventName, _]) => eventName.toString() === 'beforeCaptureLog',
   );
 
   return beforeCaptureLogCalls.length;
@@ -254,7 +253,6 @@ describe('LogEnricher Integration', () => {
     });
 
     it('should not register beforeCaptureLog handler when native fetch fails', async () => {
-
       const integration = logEnricherIntegration();
 
       mockFetchNativeLogAttributes.mockRejectedValue(new Error('Failed'));
@@ -266,7 +264,7 @@ describe('LogEnricher Integration', () => {
       await jest.runAllTimersAsync();
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('[LOGS]: Failed to prepare attributes from Native Layer')
+        expect.stringContaining('[LOGS]: Failed to prepare attributes from Native Layer'),
       );
 
       // Default client count.
@@ -297,7 +295,6 @@ describe('LogEnricher Integration', () => {
       expect(mockLog.attributes).toEqual({});
 
       expect(on_beforeCaptureLogCount(mockClient)).toBe(2);
-
     });
 
     it('should handle partial device context', async () => {
@@ -382,7 +379,7 @@ describe('LogEnricher Integration', () => {
       await jest.runAllTimersAsync();
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('[LOGS]: Failed to prepare attributes from Native Layer')
+        expect.stringContaining('[LOGS]: Failed to prepare attributes from Native Layer'),
       );
       expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('Failed to Initialize'));
 
