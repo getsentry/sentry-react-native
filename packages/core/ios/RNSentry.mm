@@ -523,7 +523,6 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
     return [self fetchNativeStackFramesBy:instructionsAddr symbolicate:dladdr];
 }
 
-
 RCT_EXPORT_METHOD(fetchNativeLogAttributes
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject)
@@ -531,7 +530,6 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes
     __block NSMutableDictionary<NSString *, id> *result = [NSMutableDictionary new];
 
     [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-
         // Serialize to get contexts dictionary
         NSDictionary *serializedScope = [scope serialize];
         NSDictionary *allContexts = serializedScope[@"context"]; // It's singular here, annoyingly
@@ -558,14 +556,16 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes
         if (extraContext) {
             NSDictionary *extraDevice = extraContext[@"device"];
             if ([extraDevice isKindOfClass:[NSDictionary class]]) {
-                NSMutableDictionary *mergedDevice = [contexts[@"device"] mutableCopy] ?: [NSMutableDictionary new];
+                NSMutableDictionary *mergedDevice =
+                    [contexts[@"device"] mutableCopy] ?: [NSMutableDictionary new];
                 [mergedDevice addEntriesFromDictionary:extraDevice];
                 contexts[@"device"] = mergedDevice;
             }
 
             NSDictionary *extraOS = extraContext[@"os"];
             if ([extraOS isKindOfClass:[NSDictionary class]]) {
-                NSMutableDictionary *mergedOS = [contexts[@"os"] mutableCopy] ?: [NSMutableDictionary new];
+                NSMutableDictionary *mergedOS =
+                    [contexts[@"os"] mutableCopy] ?: [NSMutableDictionary new];
                 [mergedOS addEntriesFromDictionary:extraOS];
                 contexts[@"os"] = mergedOS;
             }
@@ -573,7 +573,6 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes
         result[@"contexts"] = contexts;
     }];
     resolve(result);
-
 }
 
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts
