@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+
+## Unreleased
+
+## Features
+
+- Logs now contains more attributes like release, os and device information ([#5032](https://github.com/getsentry/sentry-react-native/pull/5032))
+
 ## 7.0.0-rc.1
 
 ### Various fixes & improvements
