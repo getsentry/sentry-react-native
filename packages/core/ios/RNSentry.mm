@@ -523,6 +523,58 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
     return [self fetchNativeStackFramesBy:instructionsAddr symbolicate:dladdr];
 }
 
+RCT_EXPORT_METHOD(fetchNativeLogAttributes
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    __block NSMutableDictionary<NSString *, id> *result = [NSMutableDictionary new];
+
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+        // Serialize to get contexts dictionary
+        NSDictionary *serializedScope = [scope serialize];
+        NSDictionary *allContexts = serializedScope[@"context"]; // It's singular here, annoyingly
+
+        NSMutableDictionary *contexts = [NSMutableDictionary new];
+
+        NSDictionary *device = allContexts[@"device"];
+        if ([device isKindOfClass:[NSDictionary class]]) {
+            contexts[@"device"] = device;
+        }
+
+        NSDictionary *os = allContexts[@"os"];
+        if ([os isKindOfClass:[NSDictionary class]]) {
+            contexts[@"os"] = os;
+        }
+
+        NSString *releaseName = [SentrySDK options].releaseName;
+        if (releaseName) {
+            contexts[@"release"] = releaseName;
+        }
+        // Merge extra context
+        NSDictionary *extraContext = [PrivateSentrySDKOnly getExtraContext];
+
+        if (extraContext) {
+            NSDictionary *extraDevice = extraContext[@"device"];
+            if ([extraDevice isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedDevice =
+                    [contexts[@"device"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedDevice addEntriesFromDictionary:extraDevice];
+                contexts[@"device"] = mergedDevice;
+            }
+
+            NSDictionary *extraOS = extraContext[@"os"];
+            if ([extraOS isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedOS =
+                    [contexts[@"os"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedOS addEntriesFromDictionary:extraOS];
+                contexts[@"os"] = mergedOS;
+            }
+        }
+        result[@"contexts"] = contexts;
+    }];
+    resolve(result);
+}
+
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts
                   : (RCTPromiseResolveBlock)resolve rejecter
                   : (RCTPromiseRejectBlock)reject)

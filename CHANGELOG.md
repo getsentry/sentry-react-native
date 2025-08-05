@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+## Features
+
+- Logs now contains more attributes like release, os and device information ([#5032](https://github.com/getsentry/sentry-react-native/pull/5032))
+
 ### Dependencies
 
 - Bump Android SDK from v8.17.0 to v8.18.0 ([#5034](https://github.com/getsentry/sentry-react-native/pull/5034))

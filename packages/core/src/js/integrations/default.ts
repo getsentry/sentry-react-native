@@ -23,6 +23,7 @@ import {
   httpClientIntegration,
   httpContextIntegration,
   inboundFiltersIntegration,
+  logEnricherIntegration,
   mobileReplayIntegration,
   modulesLoaderIntegration,
   nativeLinkedErrorsIntegration,
@@ -84,6 +85,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (options.enableNative) {
     integrations.push(deviceContextIntegration());
     integrations.push(modulesLoaderIntegration());
+    if (options._experiments?.enableLogs) {
+      integrations.push(logEnricherIntegration());
+    }
     if (options.attachScreenshot) {
       integrations.push(screenshotIntegration());
     }

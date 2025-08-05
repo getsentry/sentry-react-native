@@ -988,6 +988,13 @@ public class RNSentryModuleImpl {
     }
   }
 
+  public void fetchNativeLogAttributes(Promise promise) {
+    final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
+    final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
+    final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
+    fetchNativeLogContexts(promise, options, context, currentScope);
+  }
+
   public void fetchNativeDeviceContexts(Promise promise) {
     final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
     final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
@@ -1023,6 +1030,47 @@ public class RNSentryModuleImpl {
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
     final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
     promise.resolve(deviceContext);
+  }
+
+  // Basically fetchNativeDeviceContexts but filtered to only get contexts info.
+  protected void fetchNativeLogContexts(
+      Promise promise,
+      final @NotNull SentryOptions options,
+      final @Nullable Context osContext,
+      final @Nullable IScope currentScope) {
+    if (!(options instanceof SentryAndroidOptions) || osContext == null) {
+      promise.resolve(null);
+      return;
+    }
+
+    Object contextsObj =
+        InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope)
+            .get("contexts");
+
+    if (!(contextsObj instanceof Map)) {
+      promise.resolve(null);
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> contextsMap = (Map<String, Object>) contextsObj;
+
+    Map<String, Object> contextItems = new HashMap<>();
+    if (contextsMap.containsKey("os")) {
+      contextItems.put("os", contextsMap.get("os"));
+    }
+
+    if (contextsMap.containsKey("device")) {
+      contextItems.put("device", contextsMap.get("device"));
+    }
+
+    contextItems.put("release", options.getRelease());
+
+    Map<String, Object> logContext = new HashMap<>();
+    logContext.put("contexts", contextItems);
+    Object filteredContext = RNSentryMapConverter.convertToWritable(logContext);
+
+    promise.resolve(filteredContext);
   }
 
   public void fetchNativeSdkInfo(Promise promise) {
