@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Support Metro 0.83 ([#5035](https://github.com/getsentry/sentry-react-native/pull/5035))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.53.2 to v8.54.0 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036))
