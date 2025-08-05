@@ -1,10 +1,11 @@
-jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
 import type { Breadcrumb } from '@sentry/core';
 import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
-
 import { enableSyncToNative } from '../src/js/scopeSync';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
+
+jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
+
 import { NATIVE } from './mockWrapper';
 
 jest.mock('../src/js/wrapper');
@@ -134,7 +135,6 @@ describe('ScopeSync', () => {
 
     it('setUser', () => {
       expect(SentryCore.getIsolationScope().setUser).not.toBe(setUserScopeSpy);
-
       const user = { id: '123' };
       SentryCore.setUser(user);
       expect(NATIVE.setUser).toHaveBeenCalledExactlyOnceWith({ id: '123' });
@@ -142,6 +142,7 @@ describe('ScopeSync', () => {
     });
 
     it('setTag', () => {
+      jest.spyOn(NATIVE, 'primitiveProcessor').mockImplementation((value: SentryCore.Primitive) => value as string);
       expect(SentryCore.getIsolationScope().setTag).not.toBe(setTagScopeSpy);
 
       SentryCore.setTag('key', 'value');
@@ -150,6 +151,7 @@ describe('ScopeSync', () => {
     });
 
     it('setTags', () => {
+      jest.spyOn(NATIVE, 'primitiveProcessor').mockImplementation((value: SentryCore.Primitive) => value as string);
       expect(SentryCore.getIsolationScope().setTags).not.toBe(setTagsScopeSpy);
 
       SentryCore.setTags({ key: 'value', second: 'bar' });

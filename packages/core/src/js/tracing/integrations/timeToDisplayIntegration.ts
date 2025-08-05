@@ -1,6 +1,5 @@
 import type { Event, Integration, SpanJSON } from '@sentry/core';
 import { logger } from '@sentry/core';
-
 import { NATIVE } from '../../wrapper';
 import { UI_LOAD_FULL_DISPLAY, UI_LOAD_INITIAL_DISPLAY } from '../ops';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../origin';
@@ -30,7 +29,7 @@ export const timeToDisplayIntegration = (): Integration => {
         return event;
       }
 
-      const rootSpanId = event.contexts.trace.span_id;
+      const rootSpanId = event.contexts?.trace?.span_id;
       if (!rootSpanId) {
         logger.warn(`[${INTEGRATION_NAME}] No root span id found in transaction.`);
         return event;
@@ -54,17 +53,19 @@ export const timeToDisplayIntegration = (): Integration => {
       });
       const ttfdSpan = await addTimeToFullDisplay({ event, rootSpanId, transactionStartTimestampSeconds, ttidSpan });
 
-      if (ttidSpan && ttidSpan.start_timestamp && ttidSpan.timestamp) {
+      if (ttidSpan?.start_timestamp && ttidSpan?.timestamp) {
         event.measurements['time_to_initial_display'] = {
           value: (ttidSpan.timestamp - ttidSpan.start_timestamp) * 1000,
           unit: 'millisecond',
         };
       }
 
-      if (ttfdSpan && ttfdSpan.start_timestamp && ttfdSpan.timestamp) {
+      if (ttfdSpan?.start_timestamp && ttfdSpan?.timestamp) {
         const durationMs = (ttfdSpan.timestamp - ttfdSpan.start_timestamp) * 1000;
         if (isDeadlineExceeded(durationMs)) {
-          event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
+          if (event.measurements['time_to_initial_display']) {
+            event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
+          }
         } else {
           event.measurements['time_to_full_display'] = {
             value: durationMs,
@@ -100,6 +101,8 @@ async function addTimeToInitialDisplay({
 }): Promise<SpanJSON | undefined> {
   const ttidEndTimestampSeconds = await NATIVE.popTimeToDisplayFor(`ttid-${rootSpanId}`);
 
+  event.spans = event.spans || [];
+
   let ttidSpan: SpanJSON | undefined = event.spans?.find(span => span.op === UI_LOAD_INITIAL_DISPLAY);
 
   if (ttidSpan && (ttidSpan.status === undefined || ttidSpan.status === 'ok') && !ttidEndTimestampSeconds) {
@@ -117,7 +120,7 @@ async function addTimeToInitialDisplay({
     });
   }
 
-  if (ttidSpan && ttidSpan.status && ttidSpan.status !== 'ok') {
+  if (ttidSpan?.status && ttidSpan.status !== 'ok') {
     ttidSpan.status = 'ok';
     ttidSpan.timestamp = ttidEndTimestampSeconds;
     logger.debug(`[${INTEGRATION_NAME}] Updated existing ttid span.`, ttidSpan);
@@ -204,17 +207,19 @@ async function addTimeToFullDisplay({
     return undefined;
   }
 
+  event.spans = event.spans || [];
+
   let ttfdSpan = event.spans?.find(span => span.op === UI_LOAD_FULL_DISPLAY);
 
   let ttfdAdjustedEndTimestampSeconds = ttfdEndTimestampSeconds;
-  const ttfdIsBeforeTtid = ttidSpan?.timestamp && ttfdEndTimestampSeconds < ttidSpan.timestamp;
-  if (ttfdIsBeforeTtid) {
+  const ttfdIsBeforeTtid = ttidSpan.timestamp && ttfdEndTimestampSeconds < ttidSpan.timestamp;
+  if (ttfdIsBeforeTtid && ttidSpan.timestamp) {
     ttfdAdjustedEndTimestampSeconds = ttidSpan.timestamp;
   }
 
   const durationMs = (ttfdAdjustedEndTimestampSeconds - transactionStartTimestampSeconds) * 1000;
 
-  if (ttfdSpan && ttfdSpan.status && ttfdSpan.status !== 'ok') {
+  if (ttfdSpan?.status && ttfdSpan.status !== 'ok') {
     ttfdSpan.status = 'ok';
     ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
     logger.debug(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);

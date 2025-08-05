@@ -1,5 +1,4 @@
 import type { Envelope } from '@sentry/core';
-
 import { NativeTransport } from '../../src/js/transports/native';
 
 jest.mock('../../src/js/wrapper', () => ({

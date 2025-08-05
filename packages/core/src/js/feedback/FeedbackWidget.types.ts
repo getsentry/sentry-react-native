@@ -21,38 +21,38 @@ export interface FeedbackGeneralConfiguration {
    *
    * @default true
    */
-  showBranding?: boolean;
+  showBranding: boolean;
 
   /**
    * Should the email field be required?
    */
-  isEmailRequired?: boolean;
+  isEmailRequired: boolean;
 
   /**
    * Should the email field be validated?
    */
-  shouldValidateEmail?: boolean;
+  shouldValidateEmail: boolean;
 
   /**
    * Should the name field be required?
    */
-  isNameRequired?: boolean;
+  isNameRequired: boolean;
 
   /**
    * Should the email input field be visible? Note: email will still be collected if set via `Sentry.setUser()`
    */
-  showEmail?: boolean;
+  showEmail: boolean;
 
   /**
    * Should the name input field be visible? Note: name will still be collected if set via `Sentry.setUser()`
    */
-  showName?: boolean;
+  showName: boolean;
 
   /**
    * This flag determines whether the "Add Screenshot" button is displayed
    * @default false
    */
-  enableScreenshot?: boolean;
+  enableScreenshot: boolean;
 
   /**
    * This flag determines whether the "Take Screenshot" button is displayed
@@ -77,32 +77,32 @@ export interface FeedbackTextConfiguration {
   /**
    * The label for the Feedback form cancel button that closes dialog
    */
-  cancelButtonLabel?: string;
+  cancelButtonLabel: string;
 
   /**
    * The label for the Feedback form submit button that sends feedback
    */
-  submitButtonLabel?: string;
+  submitButtonLabel: string;
 
   /**
    * The title of the Feedback form
    */
-  formTitle?: string;
+  formTitle: string;
 
   /**
    * Label for the email input
    */
-  emailLabel?: string;
+  emailLabel: string;
 
   /**
    * Placeholder text for Feedback email input
    */
-  emailPlaceholder?: string;
+  emailPlaceholder: string;
 
   /**
    * Label for the message input
    */
-  messageLabel?: string;
+  messageLabel: string;
 
   /**
    * Placeholder text for Feedback message input
@@ -112,32 +112,32 @@ export interface FeedbackTextConfiguration {
   /**
    * Label for the name input
    */
-  nameLabel?: string;
+  nameLabel: string;
 
   /**
    * Message after feedback was sent successfully
    */
-  successMessageText?: string;
+  successMessageText: string;
 
   /**
    * Placeholder text for Feedback name input
    */
-  namePlaceholder?: string;
+  namePlaceholder: string;
 
   /**
    * Text which indicates that a field is required
    */
-  isRequiredLabel?: string;
+  isRequiredLabel: string;
 
   /**
    * The label for the button that adds a screenshot
    */
-  addScreenshotButtonLabel?: string;
+  addScreenshotButtonLabel: string;
 
   /**
    * The label for the button that removes a screenshot
    */
-  removeScreenshotButtonLabel?: string;
+  removeScreenshotButtonLabel: string;
 
   /**
    * The label for the button that shows the capture screenshot button
@@ -147,27 +147,27 @@ export interface FeedbackTextConfiguration {
   /**
    * The title of the error dialog
    */
-  errorTitle?: string;
+  errorTitle: string;
 
   /**
    * The error message when the form is invalid
    */
-  formError?: string;
+  formError: string;
 
   /**
    * The error message when the email is invalid
    */
-  emailError?: string;
+  emailError: string;
 
   /**
    * The error message when the capture screenshot fails
    */
-  captureScreenshotError?: string;
+  captureScreenshotError: string;
 
   /**
    * Message when there is a generic error
    */
-  genericError?: string;
+  genericError: string;
 }
 
 /**
@@ -207,34 +207,34 @@ export interface FeedbackCallbacks {
   /**
    * Callback when form is opened
    */
-  onFormOpen?: () => void;
+  onFormOpen: () => void;
 
   /**
    * Callback when form is closed and not submitted
    */
-  onFormClose?: () => void;
+  onFormClose: () => void;
 
   /**
    * Callback when a screenshot is added
    */
-  onAddScreenshot?: (addScreenshot: (uri: string) => void) => void;
+  onAddScreenshot: (addScreenshot: (uri: string) => void) => void;
 
   /**
    * Callback when feedback is successfully submitted
    *
    * After this you'll see a SuccessMessage on the screen for a moment.
    */
-  onSubmitSuccess?: (data: FeedbackFormData) => void;
+  onSubmitSuccess: (data: FeedbackFormData) => void;
 
   /**
    * Callback when feedback is unsuccessfully submitted
    */
-  onSubmitError?: (error: Error) => void;
+  onSubmitError: (error: Error) => void;
 
   /**
    * Callback when the feedback form is submitted successfully, and the SuccessMessage is complete, or dismissed
    */
-  onFormSubmitted?: () => void;
+  onFormSubmitted: () => void;
 }
 
 /**

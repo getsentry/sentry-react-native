@@ -1,12 +1,18 @@
 /* eslint-disable complexity */
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/core';
-import { captureFeedback, getClient, getGlobalScope, getIntegrationsToSetup, getIsolationScope, initAndBind, logger, makeDsn, stackParserFromStackParserOptions, withScope as coreWithScope } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
 import {
-  defaultStackParser,
-  makeFetchTransport,
-} from '@sentry/react';
+  getClient,
+  getGlobalScope,
+  getIntegrationsToSetup,
+  getIsolationScope,
+  initAndBind,
+  logger,
+  makeDsn,
+  stackParserFromStackParserOptions,
+  withScope as coreWithScope,
+} from '@sentry/core';
+import { defaultStackParser, makeFetchTransport, Profiler } from '@sentry/react';
 import * as React from 'react';
-
 import { ReactNativeClient } from './client';
 import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
@@ -18,7 +24,8 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
-import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
+import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
+import { getDefaultRelease } from './utils/release';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -63,7 +70,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableSyncToNative(getIsolationScope());
   }
 
-  const getURLFromDSN = (dsn: string | null): string | undefined => {
+  const getURLFromDSN = (dsn: string | undefined): string | undefined => {
     if (!dsn) {
       return undefined;
     }
@@ -105,6 +112,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    release: passedOptions.release ?? getDefaultRelease(),
     enableNative,
     enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
@@ -156,18 +164,21 @@ export function wrap<P extends Record<string, unknown>>(
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps ?? {}),
+    ...(options?.profilerProps),
     name: RootComponent.displayName ?? 'Root',
+    updateProps: {}
   };
 
-  const RootApp: React.FC<P> = (appProps) => {
+  const ProfilerComponent = isWeb() ? Profiler : ReactNativeProfiler;
+
+  const RootApp: React.FC<P> = appProps => {
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
-        <ReactNativeProfiler {...profilerProps}>
+        <ProfilerComponent {...profilerProps}>
           <FeedbackWidgetProvider>
             <RootComponent {...appProps} />
           </FeedbackWidgetProvider>
-        </ReactNativeProfiler>
+        </ProfilerComponent>
       </TouchEventBoundary>
     );
   };
@@ -217,20 +228,6 @@ export async function close(): Promise<void> {
   } catch (e) {
     logger.error('Failed to close the SDK');
   }
-}
-
-/**
- * Captures user feedback and sends it to Sentry.
- * @deprecated Use `Sentry.captureFeedback` instead.
- */
-export function captureUserFeedback(feedback: UserFeedback): void {
-  const feedbackParams: SendFeedbackParams = {
-    name: feedback.name,
-    email: feedback.email,
-    message: feedback.comments,
-    associatedEventId: feedback.event_id,
-  };
-  captureFeedback(feedbackParams);
 }
 
 /**

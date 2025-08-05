@@ -3,16 +3,17 @@ import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
 import * as process from 'process';
 import { env } from 'process';
-
 import { enableLogger } from './enableLogger';
+import { withSentryMiddleware } from './metroMiddleware';
 import {
   setSentryBabelTransformerOptions,
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
-import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
+import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
+import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
+
 export * from './sentryMetroSerializer';
-import { withSentryMiddleware } from './metroMiddleware';
 
 enableLogger();
 
@@ -44,6 +45,13 @@ export interface SentryExpoConfigOptions {
    * Pass a custom `getDefaultConfig` function to override the default Expo configuration getter.
    */
   getDefaultConfig?: typeof getSentryExpoConfig;
+
+  /**
+   * For Expo Web, inject `release` and `version` options from `app.json`, the Expo Application Config.
+   *
+   * @default true
+   */
+  injectReleaseForWeb?: boolean;
 }
 
 /**
@@ -93,7 +101,8 @@ export function getSentryExpoConfig(
     ...options,
     unstable_beforeAssetSerializationPlugins: [
       ...(options.unstable_beforeAssetSerializationPlugins || []),
-      unstable_beforeAssetSerializationPlugin,
+      ...(options.injectReleaseForWeb ?? true ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
+      unstableBeforeAssetSerializationDebugIdPlugin,
     ],
   });
 
@@ -140,7 +149,7 @@ export function withSentryBabelTransformer(
   config: MetroConfig,
   annotateReactComponents: true | { ignoredComponents?: string[] },
 ): MetroConfig {
-  const defaultBabelTransformerPath = config.transformer && config.transformer.babelTransformerPath;
+  const defaultBabelTransformerPath = config.transformer?.babelTransformerPath;
   logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
 
   if (!defaultBabelTransformerPath) {
@@ -270,10 +279,10 @@ export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
       originalCustomization: MetroCustomizeFrame | undefined,
     ): MetroCustomizeFrame => ({
       ...originalCustomization,
-      collapse: (originalCustomization && originalCustomization.collapse) || collapseSentryInternalFrames(frame),
+      collapse: originalCustomization?.collapse || collapseSentryInternalFrames(frame),
     });
 
-    const maybePromiseCustomization = (originalCustomizeFrame && originalCustomizeFrame(frame)) || undefined;
+    const maybePromiseCustomization = originalCustomizeFrame?.(frame) || undefined;
 
     if (maybePromiseCustomization !== undefined && 'then' in maybePromiseCustomization) {
       return maybePromiseCustomization.then<MetroCustomizeFrame>(originalCustomization =>

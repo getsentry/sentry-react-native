@@ -2,7 +2,6 @@
 import type { Client, Event, EventHint, Integration } from '@sentry/core';
 import { logger, severityLevelFromString } from '@sentry/core';
 import { AppState } from 'react-native';
-
 import { breadcrumbFromObject } from '../breadcrumb';
 import type { NativeDeviceContextsResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';

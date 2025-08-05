@@ -6,12 +6,12 @@ import type {
   EnvelopeItem,
   Event,
   Package,
+  Primitive,
   SeverityLevel,
   User,
 } from '@sentry/core';
 import { logger, normalize, SentryError } from '@sentry/core';
 import { NativeModules, Platform } from 'react-native';
-
 import { isHardCrash } from './misc';
 import type {
   NativeAppStartResponse,
@@ -27,17 +27,18 @@ import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
+import { encodeUTF8 } from './utils/encode';
 import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
 import { ReactNativeLibraries } from './utils/rnlibraries';
-import { base64StringFromByteArray, utf8ToBytes } from './vendor';
+import { base64StringFromByteArray } from './vendor';
 
 /**
  * Returns the RNSentry module. Dynamically resolves if NativeModule or TurboModule is used.
  */
 export function getRNSentryModule(): Spec | undefined {
   return isTurboModuleEnabled()
-    ? ReactNativeLibraries.TurboModuleRegistry && ReactNativeLibraries.TurboModuleRegistry.get<Spec>('RNSentry')
+    ? ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry')
     : NativeModules.RNSentry;
 }
 
@@ -52,6 +53,8 @@ export interface Screenshot {
 export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
   devServerUrl: string | undefined;
   defaultSidecarUrl: string | undefined;
+  ignoreErrorsStr?: string[] | undefined;
+  ignoreErrorsRegex?: string[] | undefined;
 } & {
   mobileReplayOptions: MobileReplayOptions | undefined;
 };
@@ -64,6 +67,7 @@ interface SentryNativeWrapper {
   _NativeClientError: Error;
   _DisabledNativeError: Error;
 
+  _setPrimitiveProcessor: (processor: (value: Primitive) => void) => void;
   _processItem(envelopeItem: EnvelopeItem): EnvelopeItem;
   _processLevels(event: Event): Event;
   _processLevel(level: SeverityLevel): SeverityLevel;
@@ -80,6 +84,7 @@ interface SentryNativeWrapper {
 
   fetchNativeRelease(): PromiseLike<NativeReleaseResponse>;
   fetchNativeDeviceContexts(): PromiseLike<NativeDeviceContextsResponse | null>;
+  fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
@@ -93,7 +98,7 @@ interface SentryNativeWrapper {
   clearBreadcrumbs(): void;
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
-  setTag(key: string, value: string): void;
+  setTag(key: string, value?: string): void;
 
   nativeCrash(): void;
 
@@ -127,9 +132,11 @@ interface SentryNativeWrapper {
   setActiveSpanId(spanId: string): void;
 
   encodeToBase64(data: Uint8Array): Promise<string | null>;
+
+  primitiveProcessor(value: Primitive): string;
 }
 
-const EOL = utf8ToBytes('\n');
+const EOL = encodeUTF8('\n');
 
 /**
  * Our internal interface for calling native functions
@@ -166,7 +173,7 @@ export const NATIVE: SentryNativeWrapper = {
     const [envelopeHeader, envelopeItems] = envelope;
 
     const headerString = JSON.stringify(envelopeHeader);
-    const headerBytes = utf8ToBytes(headerString);
+    const headerBytes = encodeUTF8(headerString);
     let envelopeBytes: Uint8Array = new Uint8Array(headerBytes.length + EOL.length);
     envelopeBytes.set(headerBytes);
     envelopeBytes.set(EOL, headerBytes.length);
@@ -179,14 +186,14 @@ export const NATIVE: SentryNativeWrapper = {
       let bytesPayload: number[] | Uint8Array | undefined;
       if (typeof itemPayload === 'string') {
         bytesContentType = 'text/plain';
-        bytesPayload = utf8ToBytes(itemPayload);
+        bytesPayload = encodeUTF8(itemPayload);
       } else if (itemPayload instanceof Uint8Array) {
         bytesContentType =
           typeof itemHeader.content_type === 'string' ? itemHeader.content_type : 'application/octet-stream';
         bytesPayload = itemPayload;
       } else {
-        bytesContentType = 'application/json';
-        bytesPayload = utf8ToBytes(JSON.stringify(itemPayload));
+        bytesContentType = 'application/vnd.sentry.items.log+json';
+        bytesPayload = encodeUTF8(JSON.stringify(itemPayload));
         if (!hardCrashed) {
           hardCrashed = isHardCrash(itemPayload);
         }
@@ -197,7 +204,7 @@ export const NATIVE: SentryNativeWrapper = {
       (itemHeader as BaseEnvelopeItemHeaders).length = bytesPayload.length;
       const serializedItemHeader = JSON.stringify(itemHeader);
 
-      const bytesItemHeader = utf8ToBytes(serializedItemHeader);
+      const bytesItemHeader = encodeUTF8(serializedItemHeader);
       const newBytes = new Uint8Array(
         envelopeBytes.length + bytesItemHeader.length + EOL.length + bytesPayload.length + EOL.length,
       );
@@ -251,10 +258,22 @@ export const NATIVE: SentryNativeWrapper = {
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
+    const ignoreErrorsStr = options.ignoreErrors?.filter(item => typeof item === 'string') as string[] | undefined;
+    const ignoreErrorsRegex = options.ignoreErrors
+      ?.filter(item => item instanceof RegExp)
+      .map(item => (item as RegExp).source) as string[] | undefined;
+
+    if (ignoreErrorsStr && ignoreErrorsStr.length > 0) {
+      options.ignoreErrorsStr = ignoreErrorsStr;
+    }
+    if (ignoreErrorsRegex && ignoreErrorsRegex.length > 0) {
+      options.ignoreErrorsRegex = ignoreErrorsRegex;
+    }
 
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ...filteredOptions } = options;
+    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, ...filteredOptions } =
+      options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
@@ -264,6 +283,19 @@ export const NATIVE: SentryNativeWrapper = {
     return nativeIsReady;
   },
 
+  /**
+   * Fetches the attributes to be set into logs from Native
+   */
+  async fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchNativeLogAttributes();
+  },
   /**
    * Fetches the release from native
    */
@@ -382,7 +414,7 @@ export const NATIVE: SentryNativeWrapper = {
    * @param key string
    * @param value string
    */
-  setTag(key: string, value: string): void {
+  setTag(key: string, value?: string): void {
     if (!this.enableNative) {
       return;
     }
@@ -731,7 +763,7 @@ export const NATIVE: SentryNativeWrapper = {
       return RNSentry.popTimeToDisplayFor(key);
     } catch (error) {
       logger.error('Error:', error);
-      return null;
+      return Promise.resolve(null);
     }
   },
 
@@ -761,6 +793,10 @@ export const NATIVE: SentryNativeWrapper = {
       logger.error('Error:', error);
       return Promise.resolve(null);
     }
+  },
+
+  primitiveProcessor: function (value: Primitive): string {
+    return value as string;
   },
 
   /**
@@ -808,7 +844,6 @@ export const NATIVE: SentryNativeWrapper = {
    * @param event
    * @returns Event with more widely supported Severity level strings
    */
-
   _processLevels(event: Event): Event {
     const processed: Event = {
       ...event,
@@ -827,7 +862,6 @@ export const NATIVE: SentryNativeWrapper = {
    * @param level
    * @returns More widely supported Severity level strings
    */
-
   _processLevel(level: SeverityLevel): SeverityLevel {
     if (level == ('log' as SeverityLevel)) {
       return 'debug' as SeverityLevel;
@@ -840,6 +874,10 @@ export const NATIVE: SentryNativeWrapper = {
    */
   _isModuleLoaded(module: Spec | undefined): module is Spec {
     return !!module;
+  },
+
+  _setPrimitiveProcessor: function (processor: (value: Primitive) => any): void {
+    this.primitiveProcessor = processor;
   },
 
   _DisabledNativeError: new SentryError('Native is disabled'),
