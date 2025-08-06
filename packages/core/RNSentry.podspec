@@ -6,6 +6,7 @@ rn_package = parse_rn_package_json()
 rn_version = get_rn_version(rn_package)
 is_hermes_default = is_hermes_default(rn_version)
 is_profiling_supported = is_profiling_supported(rn_version)
+is_new_hermes_runtime = is_new_hermes_runtime(rn_version)
 
 # Use different Folly configuration for RN 0.80.0+
 if should_use_folly_flags(rn_version)
@@ -19,9 +20,10 @@ end
 
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 is_using_hermes = (ENV['USE_HERMES'] == nil && is_hermes_default) || ENV['USE_HERMES'] == '1'
-new_arch_enabled_flag = (is_new_arch_enabled ? folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED" : "")
+new_arch_enabled_flag = (is_new_arch_enabled ? " -DRCT_NEW_ARCH_ENABLED" : "")
 sentry_profiling_supported_flag = (is_profiling_supported ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
-other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_supported_flag
+new_hermes_runtime_flag = (is_new_hermes_runtime ? " -DNEW_HERMES_RUNTIME" : "")
+other_cflags = "$(inherited)" + folly_compiler_flags + new_arch_enabled_flag + sentry_profiling_supported_flag + new_hermes_runtime_flag
 
 Pod::Spec.new do |s|
   s.name           = 'RNSentry'
