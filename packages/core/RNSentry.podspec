@@ -44,7 +44,6 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
-  # Temporary cocoa reference for testing purposes
   s.dependency 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '8501613e1809f0e4d555230c3be39c28cb394a03'
 
   if defined? install_modules_dependencies
