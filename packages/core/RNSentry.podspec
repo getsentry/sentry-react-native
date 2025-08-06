@@ -44,7 +44,7 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
-  s.dependency 'Sentry/HybridSDK', '8.54.0'
+  s.dependency 'Sentry/HybridSDK', :git => 'https://github.com/getsentry/sentry-cocoa.git', :commit => '8501613e1809f0e4d555230c3be39c28cb394a03'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
