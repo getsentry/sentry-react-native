@@ -833,7 +833,8 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
 #if SENTRY_PROFILING_ENABLED
     try {
 #    ifdef NEW_HERMES_RUNTIME
-        auto* hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(facebook::hermes::makeHermesRootAPI());
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
         if (hermesAPI) {
             hermesAPI->enableSamplingProfiler();
         }
@@ -901,7 +902,8 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 
         std::stringstream ss;
 #    ifdef NEW_HERMES_RUNTIME
-        auto* hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(facebook::hermes::makeHermesRootAPI());
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
         if (hermesAPI) {
             hermesAPI->disableSamplingProfiler();
             hermesAPI->dumpSampledTraceToStream(ss);

@@ -8,6 +8,8 @@
 
 ## Unreleased
 
+- Support New Hermes Runtime Access Pattern ([#5051](https://github.com/getsentry/sentry-react-native/pull/5051))
+
 ### Features
 
 - Support Metro 0.83 ([#5035](https://github.com/getsentry/sentry-react-native/pull/5035))
