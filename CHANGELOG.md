@@ -10,6 +10,8 @@
 
 ### Features
 
+- Support for React Native 0.81 ([#5051](https://github.com/getsentry/sentry-react-native/pull/5051))
+- Support New Hermes Runtime Access Pattern ([#5051](https://github.com/getsentry/sentry-react-native/pull/5051))
 - Support Metro 0.83 ([#5035](https://github.com/getsentry/sentry-react-native/pull/5035))
 
 ### Dependencies
