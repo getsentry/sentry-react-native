@@ -42,6 +42,14 @@ yarn test:watch
 
 ## Running the sample
 
+First, set up the Sentry CLI token.
+A recommended approach is to create a file named `.env.sentry-build-plugin` in the root folder of each sample and add:
+```sh
+SENTRY_AUTH_TOKEN=...
+```
+
+To obtain the correct token, log in to Sentry.io, then visit: `https://docs.sentry.io/cli/configuration/#to-authenticate-manually` From there, generate a token following the documentation.
+
 Now we can go into the sample project, install and build it:
 
 ```sh
