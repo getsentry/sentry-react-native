@@ -10,25 +10,21 @@ This repository contains mono repository structure with multiple React Native an
 - /dev-packages -> dev packages, ts-3.8 test runner, e2e tests components and runner
 - /performance-tests -> applications used for measuring performance in CI
 
-# Requirements
+# Setting up an Environment
 
-- nodejs 18 (with corepack globally installed)
-- yarn version specified in `package.json` (at the moment version 3.6)
+We use [Volta](https://volta.sh/) to ensure we use consistent versions of node and yarn.
 
-## Building
+`sentry-react-native` is a monorepo containing several packages, and we use `lerna` to manage them. To get started,
+install all dependencies, and then perform an initial build, so TypeScript can read all of the linked type definitions.
 
-Install dependencies using:
-
-```sh
-yarn
+```
+$ yarn
+$ yarn build
 ```
 
-Once deps are installed, you can build the project:
+With that, the repo is fully set up and you are ready to run all commands.
 
-```sh
-yarn build
-
-# Or in watch mode, for development of the SDK core
+# Watch mode, for development of the SDK core
 
 cd packages/core
 yarn build:sdk:watch
