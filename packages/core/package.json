@@ -30,7 +30,7 @@
     "clean:plugin": "expo-module clean plugin",
     "circularDepCheck": "madge --circular dist/js/index.js && madge --circular metro.js && madge --circular expo.js",
     "test": "yarn test:sdk && yarn test:tools",
-    "test:sdk": "npx jest --maxWorkers=25%",
+    "test:sdk": "npx jest --maxWorkers=8",
     "test:tools": "npx jest --config jest.config.tools.js",
     "test:watch": "npx jest --watch",
     "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/react @sentry/types",
