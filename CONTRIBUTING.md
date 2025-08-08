@@ -49,7 +49,6 @@ SENTRY_AUTH_TOKEN=...
 ```
 
 To obtain the correct token, log in to Sentry.io, then visit: `https://docs.sentry.io/cli/configuration/#to-authenticate-manually` From there, generate a token following the documentation.
-Note: If you are a Sentry contributor, be sure to select the sentry-sdks organization when creating the token.
 
 Now we can go into the sample project, install and build it:
 
