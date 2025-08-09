@@ -69,5 +69,7 @@
 			<false/>
 		</dict>
 	</array>
+	<key>NSPrivacyTracking</key>
+	<false/>
 </dict>
 </plist>
