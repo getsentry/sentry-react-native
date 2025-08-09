@@ -6,9 +6,9 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
-import delay from 'delay';
-
 import * as Sentry from '@sentry/react-native';
+
+import delay from 'delay';
 
 /**
  * An example of how to add a Sentry Transaction to a React component manually.
