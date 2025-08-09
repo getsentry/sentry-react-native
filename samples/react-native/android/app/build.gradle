@@ -3,12 +3,6 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "io.sentry.android.gradle"
 
-project.ext.vectoricons = [
-    iconFontNames: [ 'Ionicons.ttf' ] // Specify font files
-]
-
-apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
-
 def sentryReactNativePath = ["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim()
 
 project.ext.sentryCli = [
