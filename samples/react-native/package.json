@@ -71,5 +71,13 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "codegenConfig": {
+    "name": "AppSpecs",
+    "type": "all",
+    "jsSrcsDir": "tm",
+    "android": {
+      "javaPackageName": "com.facebook.fbreact.specs"
+    }
   }
 }

@@ -171,7 +171,9 @@ const ErrorsScreen = (_props: Props) => {
             <Button
               title="JVM Crash or Number"
               onPress={() => {
-                CrashModule.crashOrNumber();
+                CrashModule.crashOrNumber().then((n: number) => {
+                  console.log('Got number: ' + n);
+                });
               }}
             />
           </>
