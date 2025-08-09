@@ -14,6 +14,14 @@ export const maestro = async (test: string) => {
       stdio: 'inherit',
     });
 
+    process.stdout?.on('data', function(data) {
+      console.log('stdout: ' + data);
+    })
+
+    process.stderr?.on('data', function(data) {
+      console.log('stderr: ' + data);
+    })
+
     process.on('close', code => {
       if (code !== 0) {
         reject(`Maestro test failed with code ${code}. See logs above.`);
