@@ -30,7 +30,7 @@
   "devDependencies": {
     "@expo/swiftlint": "^0.57.1",
     "@naturalcycles/ktlint": "^1.13.0",
-    "@sentry/cli": "2.51.0",
+    "@sentry/cli": "2.51.1",
     "clang-format": "^1.8.0",
     "downlevel-dts": "^0.11.0",
     "google-java-format": "^1.4.0",
