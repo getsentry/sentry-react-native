@@ -11,7 +11,7 @@ export function isHermesEnabled(): boolean {
 
 /** Checks if the React Native TurboModules are enabled */
 export function isTurboModuleEnabled(): boolean {
-  return RN_GLOBAL_OBJ.__turboModuleProxy != null;
+  return RN_GLOBAL_OBJ.RN$Bridgeless === true || RN_GLOBAL_OBJ.__turboModuleProxy != null;
 }
 
 /** Checks if the React Native Fabric renderer is running */
