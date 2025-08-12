@@ -48,6 +48,7 @@
     "dev-packages/utils",
     "samples/react-native-macos",
     "samples/expo",
+    "samples/react-native",
     "performance-tests/TestAppPlain",
     "performance-tests/TestAppSentry"
   ],

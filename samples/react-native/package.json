@@ -67,6 +67,7 @@
     "patch-package": "^8.0.0",
     "prettier": "2.8.8",
     "react-test-renderer": "19.1.0",
+    "sentry-react-native-samples-utils": "workspace:^",
     "ts-jest": "^29.2.5",
     "typescript": "5.0.4"
   },

@@ -1,6 +1,8 @@
 const { withSentryConfig } = require('@sentry/react-native/metro');
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
+const { withMonorepo } = require('sentry-react-native-samples-utils/metro');
+
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
@@ -17,4 +19,4 @@ const sentryConfig = withSentryConfig(mergedConfig, {
   },
 });
 
-module.exports = sentryConfig;
+module.exports = withMonorepo(sentryConfig);
