@@ -15986,6 +15986,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-ft-flow@npm:^3.0.11":
+  version: 3.0.11
+  resolution: "eslint-plugin-ft-flow@npm:3.0.11"
+  dependencies:
+    lodash: ^4.17.21
+    string-natural-compare: ^3.0.1
+  peerDependencies:
+    eslint: ^8.56.0 || ^9.0.0
+    hermes-eslint: ">=0.15.0"
+  checksum: eba55022633424b7c5e491d4939eeba5525f5b1345a9fa0846a47f508885b91a0ee2a008276e4031260d0f9c1d971903b7469d8915ebc668cce67a01cdb808d0
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-import@npm:^2.22.0":
   version: 2.29.1
   resolution: "eslint-plugin-import@npm:2.29.1"
@@ -26020,6 +26033,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-is-edge-to-edge@npm:1.1.7":
+  version: 1.1.7
+  resolution: "react-native-is-edge-to-edge@npm:1.1.7"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 4cdf2b2fb5b131f2015c26d2cb7688b4a0c5f3c8474b1bf0ddfa9eabb0263df440c87262ae8f812a6ecab0d5310df0373bddad4b51f53dabb2ffee01e9ef0f44
+  languageName: node
+  linkType: hard
+
 "react-native-is-edge-to-edge@npm:^1.1.6":
   version: 1.1.6
   resolution: "react-native-is-edge-to-edge@npm:1.1.6"
@@ -26110,6 +26133,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-reanimated@npm:3.19.1":
+  version: 3.19.1
+  resolution: "react-native-reanimated@npm:3.19.1"
+  dependencies:
+    "@babel/plugin-transform-arrow-functions": ^7.0.0-0
+    "@babel/plugin-transform-class-properties": ^7.0.0-0
+    "@babel/plugin-transform-classes": ^7.0.0-0
+    "@babel/plugin-transform-nullish-coalescing-operator": ^7.0.0-0
+    "@babel/plugin-transform-optional-chaining": ^7.0.0-0
+    "@babel/plugin-transform-shorthand-properties": ^7.0.0-0
+    "@babel/plugin-transform-template-literals": ^7.0.0-0
+    "@babel/plugin-transform-unicode-regex": ^7.0.0-0
+    "@babel/preset-typescript": ^7.16.7
+    convert-source-map: ^2.0.0
+    invariant: ^2.2.4
+    react-native-is-edge-to-edge: 1.1.7
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+    react: "*"
+    react-native: "*"
+  checksum: 679c737e6fc775102a31c077552b37889c3a18eeefcfd5b213925d2014ce71d0643cf7501e03ac3b65157eea862c9976dca3987eaa2e3377d21fc095b82cb998
+  languageName: node
+  linkType: hard
+
 "react-native-reanimated@npm:3.8.1":
   version: 3.8.1
   resolution: "react-native-reanimated@npm:3.8.1"
@@ -26127,21 +26174,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 078a1e32ce1ca11488862db90663fd5cacb61aea65dc540c90cd5346d97e63cc6836f25cfc48b7acefd301fda414f05329a92ae5cb28fb83b94c571e66f147e3
-  languageName: node
-  linkType: hard
-
-"react-native-reanimated@npm:^4.0.1":
-  version: 4.0.2
-  resolution: "react-native-reanimated@npm:4.0.2"
-  dependencies:
-    react-native-is-edge-to-edge: ^1.2.1
-    semver: 7.7.2
-  peerDependencies:
-    "@babel/core": ^7.0.0-0
-    react: "*"
-    react-native: "*"
-    react-native-worklets: ">=0.4.0"
-  checksum: 8394194df230d2173bc08e2208946c5bc6bd0715831a82a7826edd07a071c681808fae305e50e80d3258eb0f1d3268c1ac4eb692fefaf48f8e803dc4555119bc
   languageName: node
   linkType: hard
 
@@ -26310,28 +26342,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 1c843206108358faef5cd8e25834de729a90319c3fa3f765923536fdd99b86b07a3e850b89ebe6503725a022dd9dddd5de76ef6e102d290cc5935dcf9c60198d
-  languageName: node
-  linkType: hard
-
-"react-native-worklets@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "react-native-worklets@npm:0.4.1"
-  dependencies:
-    "@babel/plugin-transform-arrow-functions": ^7.0.0-0
-    "@babel/plugin-transform-class-properties": ^7.0.0-0
-    "@babel/plugin-transform-classes": ^7.0.0-0
-    "@babel/plugin-transform-nullish-coalescing-operator": ^7.0.0-0
-    "@babel/plugin-transform-optional-chaining": ^7.0.0-0
-    "@babel/plugin-transform-shorthand-properties": ^7.0.0-0
-    "@babel/plugin-transform-template-literals": ^7.0.0-0
-    "@babel/plugin-transform-unicode-regex": ^7.0.0-0
-    "@babel/preset-typescript": ^7.16.7
-    convert-source-map: ^2.0.0
-  peerDependencies:
-    "@babel/core": ^7.0.0-0
-    react: "*"
-    react-native: "*"
-  checksum: c6b0f0598ddc9eb7a6053b72bb86a374fc4b159fbc9dd740dde900fccdfb87bb7439a354d309618511c20bef4b4ab72ca31507b414fb8bd306b78bd31e1c507b
   languageName: node
   linkType: hard
 
@@ -28047,7 +28057,8 @@ __metadata:
     "@react-navigation/native-stack": ^7.3.24
     "@react-navigation/stack": ^7.4.5
     "@reduxjs/toolkit": ^2.8.2
-    "@sentry/babel-plugin-component-annotate": 4.0.2
+    "@sentry/babel-plugin-component-annotate": 4.1.0
+    "@sentry/core": 8.55.0
     "@sentry/react": ^10.2.0
     "@sentry/react-native": ^6.19.0
     "@shopify/flash-list": ^2.0.2
@@ -28056,6 +28067,7 @@ __metadata:
     "@types/react-test-renderer": ^19.1.0
     delay: ^6.0.0
     eslint: ^8.19.0
+    eslint-plugin-ft-flow: ^3.0.11
     jest: ^29.6.3
     patch-package: ^8.0.0
     prettier: 2.8.8
@@ -28064,12 +28076,11 @@ __metadata:
     react-native-gesture-handler: ^2.28.0
     react-native-image-picker: ^8.2.1
     react-native-launch-arguments: ^4.1.0
-    react-native-reanimated: ^4.0.1
+    react-native-reanimated: 3.19.1
     react-native-safe-area-context: ^5.5.2
     react-native-screens: ^4.13.1
     react-native-svg: ^15.12.1
     react-native-webview: ^13.15.0
-    react-native-worklets: ^0.4.1
     react-redux: ^9.2.0
     react-test-renderer: 19.1.0
     sentry-react-native-samples-utils: "workspace:^"

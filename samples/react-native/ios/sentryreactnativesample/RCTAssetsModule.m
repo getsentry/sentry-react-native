@@ -2,8 +2,9 @@
 
 @implementation RCTAssetsModule
 
-RCT_EXPORT_METHOD(getExampleAssetData: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getExampleAssetData
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 {
     NSDataAsset *data = [[NSDataAsset alloc] initWithName:@"ExampleBinaryData"];
     if (data == nil) {

@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 
-import ErrorsScreen from '../screens/ErrorsScreen';
+import ErrorsScreen from '../Screens/ErrorsScreen';
 import store from '../store';
 
 const styles = StyleSheet.create({

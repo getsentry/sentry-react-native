@@ -46,9 +46,9 @@
     "dev-packages/e2e-tests",
     "dev-packages/type-check",
     "dev-packages/utils",
+    "samples/react-native",
     "samples/react-native-macos",
     "samples/expo",
-    "samples/react-native",
     "performance-tests/TestAppPlain",
     "performance-tests/TestAppSentry"
   ],

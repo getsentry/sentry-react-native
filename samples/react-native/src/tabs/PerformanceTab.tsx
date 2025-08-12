@@ -6,14 +6,14 @@ import * as Sentry from '@sentry/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 
-import GesturesTracingScreen from '../screens/GesturesTracingScreen';
-import HeavyNavigationScreen from '../screens/HeavyNavigationScreen';
-import ManualTrackerScreen from '../screens/ManualTrackerScreen';
-import PerformanceScreen from '../screens/PerformanceScreen';
-import PerformanceTimingScreen from '../screens/PerformanceTimingScreen';
-import ReduxScreen from '../screens/ReduxScreen';
-import SpaceflightNewsScreen from '../screens/SpaceflightNewsScreen';
-import TrackerScreen from '../screens/TrackerScreen';
+import GesturesTracingScreen from '../Screens/GesturesTracingScreen';
+import HeavyNavigationScreen from '../Screens/HeavyNavigationScreen';
+import ManualTrackerScreen from '../Screens/ManualTrackerScreen';
+import PerformanceScreen from '../Screens/PerformanceScreen';
+import PerformanceTimingScreen from '../Screens/PerformanceTimingScreen';
+import ReduxScreen from '../Screens/ReduxScreen';
+import SpaceflightNewsScreen from '../Screens/SpaceflightNewsScreen';
+import TrackerScreen from '../Screens/TrackerScreen';
 import store from '../store';
 
 const styles = StyleSheet.create({

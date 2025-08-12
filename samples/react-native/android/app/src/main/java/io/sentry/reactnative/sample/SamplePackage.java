@@ -1,8 +1,8 @@
 package io.sentry.reactnative.sample;
 
 import com.facebook.react.ReactPackage;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;

@@ -15,7 +15,7 @@ import { Platform } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 
 import RunningIndicator from './components/RunningIndicator';
-import WebviewScreen from './screens/WebviewScreen';
+import WebviewScreen from './Screens/WebviewScreen';
 import getErrorsTab from './tabs/ErrorsTab';
 import getPerformanceTab from './tabs/PerformanceTab';
 import getPlaygroundTab from './tabs/PlaygroundTab';
@@ -89,8 +89,8 @@ Sentry.init({
       patchGlobalPromise:
         Platform.OS === 'ios' && isTurboModuleEnabled()
           ? // The global patch doesn't work on iOS with the New Architecture in this Sample app
-            // In
-            false
+          // In
+          false
           : true,
     }),
     Sentry.feedbackIntegration({
