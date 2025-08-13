@@ -36,3 +36,7 @@ end
 def should_use_folly_flags(rn_version)
   return (rn_version[:major] == 0 && rn_version[:minor] < 80)
 end
+
+def is_new_hermes_runtime(rn_version)
+  return (rn_version[:major] >= 1 || (rn_version[:major] == 0 && rn_version[:minor] >= 81))
+end

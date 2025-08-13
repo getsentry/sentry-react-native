@@ -817,7 +817,15 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
 {
 #if SENTRY_PROFILING_ENABLED
     try {
+#    ifdef NEW_HERMES_RUNTIME
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
+        if (hermesAPI) {
+            hermesAPI->enableSamplingProfiler();
+        }
+#    else
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
+#    endif
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0 && platformProfilers) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [RNSentryId newId];
@@ -877,10 +885,19 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         nativeProfileTraceId = nil;
         nativeProfileStartTime = 0;
 
-        facebook::hermes::HermesRuntime::disableSamplingProfiler();
         std::stringstream ss;
+#    ifdef NEW_HERMES_RUNTIME
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
+        if (hermesAPI) {
+            hermesAPI->disableSamplingProfiler();
+            hermesAPI->dumpSampledTraceToStream(ss);
+        }
+#    else
+        facebook::hermes::HermesRuntime::disableSamplingProfiler();
         // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
         facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
+#    endif
 
         std::string s = ss.str();
         NSString *data = [NSString stringWithCString:s.c_str()

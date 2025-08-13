@@ -1,7 +1,6 @@
 name: '🐞 Bug Report'
 description: "Tell us about something that's not working the way we (probably) intend."
-labels: ['Platform: React-Native', 'Type: 🪲 Bug']
-type: Bug
+labels: ['React-Native', 'Bug']
 body:
   - type: dropdown
     id: environment
@@ -53,11 +52,11 @@ body:
         'Output of the command `npx react-native@latest info` or manully describe your development environment?'
       value: |-
         ````
-        ⬇  Place the `npx react-native@latest info` output here. ⬇ 
-        
-        
-        
-        
+        ⬇  Place the `npx react-native@latest info` output here. ⬇
+
+
+
+
         ````
 
   - type: textarea
