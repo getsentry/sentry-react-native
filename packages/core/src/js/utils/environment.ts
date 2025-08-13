@@ -11,6 +11,7 @@ export function isHermesEnabled(): boolean {
 
 /** Checks if the React Native TurboModules are enabled */
 export function isTurboModuleEnabled(): boolean {
+  // Reference: https://github.com/facebook/react-native/blob/641a79dc5137b69a3c0813413b9fb82d0b9df783/packages/react-native/src/private/featureflags/ReactNativeFeatureFlagsBase.js#L110
   return RN_GLOBAL_OBJ.RN$Bridgeless === true || RN_GLOBAL_OBJ.__turboModuleProxy != null;
 }
 
