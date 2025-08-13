@@ -14,6 +14,10 @@
 - Support New Hermes Runtime Access Pattern ([#5051](https://github.com/getsentry/sentry-react-native/pull/5051))
 - Support Metro 0.83 ([#5035](https://github.com/getsentry/sentry-react-native/pull/5035))
 
+### Fixes
+
+- Correct detection of whether turbo modules are available ([#5064](https://github.com/getsentry/sentry-react-native/pull/5064))
+
 ### Dependencies
 
 - Bump CLI from v2.50.2 to v2.51.1 ([#5053](https://github.com/getsentry/sentry-react-native/pull/5053), [#5058](https://github.com/getsentry/sentry-react-native/pull/5058))
