@@ -17,6 +17,7 @@
 ### Fixes
 
 - Correct detection of whether turbo modules are available ([#5064](https://github.com/getsentry/sentry-react-native/pull/5064))
+- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
 
 ### Dependencies
 
