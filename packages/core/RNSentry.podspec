@@ -46,6 +46,7 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
+# Todo: revert change after testing 
   s.dependency 'Sentry/HybridSDK', '8.54.1-alpha.2'
 
   if defined? install_modules_dependencies
