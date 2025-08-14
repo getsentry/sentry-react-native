@@ -8,7 +8,7 @@ RCT_EXPORT_METHOD(getExampleAssetData
 {
     NSDataAsset *data = [[NSDataAsset alloc] initWithName:@"ExampleBinaryData"];
     if (data == nil) {
-        reject(@"SampleSentryReactNative", @"Failed to load exmaple binary data asset.", nil);
+        reject(@"SampleSentryReactNative", @"Failed to load example binary data asset.", nil);
     }
 
     NSMutableArray *array = [NSMutableArray arrayWithCapacity:data.data.length];
