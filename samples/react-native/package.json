@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "6.19.0",
+  "version": "6.20.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -27,7 +27,7 @@
     "@react-navigation/native-stack": "7.3.12",
     "@react-navigation/stack": "7.3.1",
     "@sentry/core": "8.55.0",
-    "@sentry/react-native": "6.19.0",
+    "@sentry/react-native": "6.20.0",
     "@shopify/flash-list": "1.8.0",
     "delay": "^6.0.0",
     "react": "19.0.0",
@@ -55,7 +55,7 @@
     "@react-native/eslint-config": "0.77.1",
     "@react-native/metro-config": "0.77.1",
     "@react-native/typescript-config": "0.77.1",
-    "@sentry/babel-plugin-component-annotate": "4.1.0",
+    "@sentry/babel-plugin-component-annotate": "4.1.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.1",
     "@types/react": "^19.0.0",

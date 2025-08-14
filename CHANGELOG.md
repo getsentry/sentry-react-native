@@ -8,6 +8,14 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.53.2 to v8.55.0 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8550)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.55.0)
+
+## 6.20.0
+
 ### Features
 
 - Support for React Native 0.81 ([#5051](https://github.com/getsentry/sentry-react-native/pull/5051))
@@ -26,9 +34,9 @@
 - Bump Bundler Plugins from v4.0.2 to v4.1.0 ([#5062](https://github.com/getsentry/sentry-react-native/pull/5062))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#410)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.0.2...4.1.0)
-- Bump Cocoa SDK from v8.53.2 to v8.54.0 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8540)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.54.0)
+- Bump Bundler Plugins from v4.0.2 to v4.1.1 ([#5062](https://github.com/getsentry/sentry-react-native/pull/5062), [#5072](https://github.com/getsentry/sentry-react-native/pull/5072))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#411)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.0.2...4.1.1)
 
 ## 6.19.0
 
