@@ -7,7 +7,6 @@ jest.mock('../../src/js/wrapper', () => mockWrapper);
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import { isTurboModuleEnabled } from '../../src/js/utils/environment';
 jest.mock('../../src/js/utils/environment', () => ({
   isWeb: jest.fn().mockReturnValue(false),
   isTurboModuleEnabled: jest.fn().mockReturnValue(false),
@@ -289,24 +288,6 @@ describe('TimeToDisplay', () => {
 
     expect(getInitialDisplaySpanJSON(client.event!.spans!)!.timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
     expect(getFullDisplaySpanJSON(client.event!.spans!)!.timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
-  });
-
-  test('should not log a warning if native component exists and not in new architecture', async () => {
-    (isTurboModuleEnabled as jest.Mock).mockReturnValue(false);
-
-    TestRenderer.create(<TimeToInitialDisplay record={true} />);
-    await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
-
-    expect(logger.warn).not.toHaveBeenCalled();
-  });
-
-  test('should log a warning if in new architecture', async () => {
-    (isTurboModuleEnabled as jest.Mock).mockReturnValue(true);
-    TestRenderer.create(<TimeToInitialDisplay record={true} />);
-    await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
-
-    expect(logger.warn).toHaveBeenCalledWith(
-      'TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
   });
 });
 

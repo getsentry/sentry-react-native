@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+## Fixes
+
+- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
+
 ## 6.20.0
 
 ### Features
