@@ -19,7 +19,7 @@ env:
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
   REACT_NATIVE_SAMPLE_PATH: samples/react-native
   IOS_DEVICE: 'iPhone 16'
-  IOS_VERSION: '18.6'
+  IOS_VERSION: '18.1'
   ANDROID_API_LEVEL: '30'
 
 jobs:

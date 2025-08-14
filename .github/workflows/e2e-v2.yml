@@ -16,7 +16,7 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '1.41.0'
   IOS_DEVICE: 'iPhone 16'
-  IOS_VERSION: '18.6'
+  IOS_VERSION: '18.1'
 
 jobs:
   diff_check:
