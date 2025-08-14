@@ -20,6 +20,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   };
   Promise: unknown;
   __turboModuleProxy: unknown;
+  RN$Bridgeless: unknown;
   nativeFabricUIManager: unknown;
   ErrorUtils?: ErrorUtils;
   expo?: ExpoGlobalObject;
