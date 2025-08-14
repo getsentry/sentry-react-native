@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 
-@interface SentryNativeInitialiser : NSObject
+@interface SentryNativeInitializer : NSObject
 
 + (void)initializeSentry;
 

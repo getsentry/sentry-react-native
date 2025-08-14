@@ -13,7 +13,7 @@
 #    import <NativeSampleModule.h>
 #endif
 
-#import "SentryNativeInitialiser.h"
+#import "SentryNativeInitializer.h"
 
 @interface
 AppDelegate () <UNUserNotificationCenterDelegate> {
@@ -27,7 +27,7 @@ AppDelegate () <UNUserNotificationCenterDelegate> {
 {
     // When the native init is enabled the `autoInitializeNativeSdk`
     // in JS has to be set to `false`
-    // [SentryNativeInitialiser initializeSentry];
+    // [SentryNativeInitializer initializeSentry];
     self.reactNativeFactory = [[RCTReactNativeFactory alloc] initWithDelegate:self];
     self.dependencyProvider = [RCTAppDependencyProvider new];
 

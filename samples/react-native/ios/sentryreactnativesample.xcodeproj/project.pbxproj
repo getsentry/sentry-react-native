@@ -16,7 +16,7 @@
 		5ACADB1A9924EDD0850FACBA /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */; };
 		723FB93385E08A7032AE82F4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 916F55A329D66130A4DFF319 /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		AE3C91AE2E3BB9B400DC7C20 /* SentryNativeInitialiser.m in Sources */ = {isa = PBXBuildFile; fileRef = AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitialiser.m */; };
+		AE3C91AE2E3BB9B400DC7C20 /* SentryNativeInitializer.m in Sources */ = {isa = PBXBuildFile; fileRef = AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitializer.m */; };
 		F998F5A3F1731876C4EDA235 /* libPods-sentryreactnativesample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA08EE94AE203638B8C8B74B /* libPods-sentryreactnativesample.a */; };
 /* End PBXBuildFile section */
 
@@ -50,8 +50,8 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = sentryreactnativesample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample-sentryreactnativesampleTests/Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		916F55A329D66130A4DFF319 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = sentryreactnativesample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		AE3C91AC2E3BB98B00DC7C20 /* SentryNativeInitialiser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SentryNativeInitialiser.h; sourceTree = "<group>"; };
-		AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitialiser.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SentryNativeInitialiser.m; sourceTree = "<group>"; };
+		AE3C91AC2E3BB98B00DC7C20 /* SentryNativeInitializer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SentryNativeInitializer.h; sourceTree = "<group>"; };
+		AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitializer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SentryNativeInitializer.m; sourceTree = "<group>"; };
 		AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample-sentryreactnativesampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA08EE94AE203638B8C8B74B /* libPods-sentryreactnativesample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -97,8 +97,8 @@
 		13B07FAE1A68108700A75B9A /* sentryreactnativesample */ = {
 			isa = PBXGroup;
 			children = (
-				AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitialiser.m */,
-				AE3C91AC2E3BB98B00DC7C20 /* SentryNativeInitialiser.h */,
+				AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitializer.m */,
+				AE3C91AC2E3BB98B00DC7C20 /* SentryNativeInitializer.h */,
 				338BBBC72B614FA10035844C /* NativePlatformSampleModule.h */,
 				338BBBC62B614FA10035844C /* NativePlatformSampleModule.mm */,
 				33E2D62929A7719600B5042B /* RCTAssetsModule.h */,
@@ -448,7 +448,7 @@
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				338BBBC82B614FA10035844C /* NativePlatformSampleModule.mm in Sources */,
 				33E2D62A29A7719600B5042B /* RCTAssetsModule.m in Sources */,
-				AE3C91AE2E3BB9B400DC7C20 /* SentryNativeInitialiser.m in Sources */,
+				AE3C91AE2E3BB9B400DC7C20 /* SentryNativeInitializer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

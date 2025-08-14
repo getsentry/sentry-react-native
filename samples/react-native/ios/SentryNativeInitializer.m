@@ -1,7 +1,7 @@
-#import "SentryNativeInitialiser.h"
+#import "SentryNativeInitializer.h"
 @import Sentry;
 
-@implementation SentryNativeInitialiser
+@implementation SentryNativeInitializer
 
 + (void)initializeSentry
 {
