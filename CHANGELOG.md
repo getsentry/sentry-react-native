@@ -8,8 +8,6 @@
 
 ## 6.20.0
 
-- Update the sample app to React Native 0.80, update other dependencies, improve code quality of the sample app ([#5057](https://github.com/getsentry/sentry-react-native/pull/5057))
-
 ### Features
 
 - Support for React Native 0.81 ([#5051](https://github.com/getsentry/sentry-react-native/pull/5051))

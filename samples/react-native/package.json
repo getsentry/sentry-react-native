@@ -31,7 +31,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@sentry/core": "8.55.0",
     "@sentry/react": "^10.2.0",
-    "@sentry/react-native": "^6.20.0",
+    "@sentry/react-native": "6.20.0",
     "@shopify/flash-list": "^2.0.2",
     "delay": "^6.0.0",
     "react": "19.1.0",
