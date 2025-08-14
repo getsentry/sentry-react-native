@@ -15,7 +15,7 @@ if should_use_folly_flags(rn_version)
   folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
 else
   # For RN 0.80+, don't use the incompatible Folly flags
-  folly_compiler_flags = ''
+  folly_compiler_flags = ' -DFOLLY_CFG_NO_COROUTINES=1'
 end
 
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
