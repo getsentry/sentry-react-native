@@ -17,6 +17,7 @@ export default function TabOneScreen() {
   const { currentlyRunning } = useUpdates();
   return (
     <View style={styles.container}>
+      {/* <Image source={require('../..//hi.gif')} style={{ width: 100, height: 100 }} /> */}
       <Sentry.TimeToInitialDisplay record />
       <Text>Welcome to Sentry Expo Sample App!</Text>
       <Text>Update ID: {currentlyRunning.updateId}</Text>
