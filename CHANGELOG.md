@@ -8,6 +8,22 @@
 
 ## Unreleased
 
+### Important Changes
+
+- **fix(browser): Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`** ([#???](https://github.com/getsentry/sentry-react-native/pull/??))
+
+This release includes a fix for a [behaviour change](https://docs.sentry.io/platforms/javascript/migration/v8-to-v9/#behavior-changes)
+that was originally introduced with v9 of the JavaScript SDK: User IP Addresses should only be added to Sentry events automatically,
+if `sendDefaultPii` was set to `true`.
+
+However, the change in v9 required further internal adjustment, which should have been included in v10 of the SDK.
+To avoid making a major bump, the fix was patched on the current version and not by bumping to V10.
+There is _no API_ breakage involved and hence it is safe to update.
+However, after updating the SDK, events (errors, traces, replays, etc.) sent from the browser, will only include
+user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` options.
+
+We apologize for any inconvenience caused!
+
 ## Features
 
 - Logs now contains more attributes like release, os and device information ([#5032](https://github.com/getsentry/sentry-react-native/pull/5032))
