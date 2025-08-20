@@ -128,7 +128,7 @@ describe('Sdk Info', () => {
         if (eventName === 'beforeSendEvent') {
           mockHandler.mockImplementation(cb);
         }
-      }
+      },
     };
 
     sdkInfoIntegration().setup!(client as any);
@@ -148,7 +148,7 @@ describe('Sdk Info', () => {
         if (eventName === 'beforeSendEvent') {
           mockHandler.mockImplementation(cb);
         }
-      }
+      },
     };
 
     sdkInfoIntegration().setup!(client as any);
@@ -160,7 +160,11 @@ describe('Sdk Info', () => {
   });
 });
 
-function processEvent(mockedEvent: Event, mockedHint: EventHint = {}, sendDefaultPii?: boolean): Event | null | PromiseLike<Event | null> {
+function processEvent(
+  mockedEvent: Event,
+  mockedHint: EventHint = {},
+  sendDefaultPii?: boolean,
+): Event | null | PromiseLike<Event | null> {
   const integration = sdkInfoIntegration();
   if (sendDefaultPii != null) {
     const mockClient: jest.Mocked<Client> = {

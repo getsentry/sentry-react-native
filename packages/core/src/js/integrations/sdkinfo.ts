@@ -11,7 +11,6 @@ interface IpPatchedSdkInfo extends SdkInfoType {
   };
 }
 
-
 const INTEGRATION_NAME = 'SdkInfo';
 
 type DefaultSdkInfo = Pick<Required<SdkInfoType>, 'name' | 'packages' | 'version'>;
@@ -38,11 +37,11 @@ export const sdkInfoIntegration = (): Integration => {
       const options = client.getOptions();
       DefaultPii = options.sendDefaultPii;
       if (DefaultPii) {
-        client.on('beforeSendEvent', (event => {
+        client.on('beforeSendEvent', event => {
           if (event.user?.ip_address === '{{auto}}') {
             delete event.user.ip_address;
           }
-        }));
+        });
       }
     },
     setupOnce: () => {
@@ -69,7 +68,7 @@ async function processEvent(event: Event, fetchNativeSdkInfo: () => Promise<Pack
   sdk.settings = {
     infer_ip: DefaultPii ? 'auto' : 'never',
     // purposefully allowing already passed settings to override the default
-    ...sdk.settings
+    ...sdk.settings,
   };
 
   event.sdk = sdk;
