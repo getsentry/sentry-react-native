@@ -63,6 +63,7 @@ Sentry.init({
   dsn: getDsn(),
   debug: true,
   environment: 'dev',
+  sendDefaultPii: true,
   beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
