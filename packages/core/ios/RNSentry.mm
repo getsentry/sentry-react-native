@@ -29,15 +29,9 @@
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryOptions.h>
-#import <Sentry/SentryUser.h>
-#if __has_include(<Sentry/SentryOptions+HybridSDKs.h>)
-#    define USE_SENTRY_OPTIONS 1
-#    import <Sentry/SentryOptions+HybridSDKs.h>
-#else
-#    define USE_SENTRY_OPTIONS 0
-#    import <Sentry/SentryOptionsInternal.h>
-#endif
+#import <Sentry/SentryOptionsInternal.h>
 #import <Sentry/SentryScreenFrames.h>
+#import <Sentry/SentryUser.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -169,13 +163,8 @@ RCT_EXPORT_METHOD(initNativeSdk
     [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
-#if USE_SENTRY_OPTIONS
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions
-                                                      didFailWithError:errorPointer];
-#else
     SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
                                                       didFailWithError:errorPointer];
-#endif
     if (*errorPointer != nil) {
         return nil;
     }
@@ -361,11 +350,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
 - (NSDictionary *)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                symbolicate:(SymbolicateCallbackType)symbolicate
 {
-#if CROSS_PLATFORM_TEST
     BOOL shouldSymbolicateLocally = [SentrySDKInternal.options debug];
-#else
-    BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
-#endif
     NSString *appPackageName = [[NSBundle mainBundle] executablePath];
 
     NSMutableSet<NSString *> *_Nonnull imagesAddrToRetrieveDebugMetaImages =
