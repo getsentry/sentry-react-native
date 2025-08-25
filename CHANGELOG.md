@@ -25,6 +25,12 @@ user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` optio
 
 We apologize for any inconvenience caused!
 
+### Dependencies
+
+- Bump Android SDK from v7.22.6 to v8.20.0 ([#4471](https://github.com/getsentry/sentry-react-native/pull/4471))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8200)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.22.6...8.20.0)
+
 ## Fixes
 
 - Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
