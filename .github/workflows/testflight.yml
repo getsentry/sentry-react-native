@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - antonis/testflight-macos
 
   pull_request:
     paths:
