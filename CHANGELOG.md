@@ -25,6 +25,12 @@ user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` optio
 
 We apologize for any inconvenience caused!
 
+### Dependencies
+
+- Bump CLI from v2.51.1 to v2.52.0 ([#5075](https://github.com/getsentry/sentry-react-native/pull/5075))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2520)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.51.1...2.52.0)
+
 ## Fixes
 
 - Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
