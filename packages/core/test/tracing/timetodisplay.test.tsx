@@ -14,8 +14,8 @@ jest.mock('../../src/js/utils/environment', () => ({
 }));
 
 import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
+import { render } from '@testing-library/react-native';
 import * as React from "react";
-import * as TestRenderer from 'react-test-renderer';
 
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
@@ -64,7 +64,7 @@ describe('TimeToDisplay', () => {
       },
        (activeSpan: Span | undefined) => {
         startTimeToInitialDisplaySpan();
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
         mockRecordedTimeToDisplay({
           ttid: {
             [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
@@ -93,8 +93,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -126,7 +126,7 @@ describe('TimeToDisplay', () => {
       },
       (activeSpan: Span | undefined) => {
         startTimeToFullDisplaySpan();
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttfd: {
@@ -156,7 +156,7 @@ describe('TimeToDisplay', () => {
         startTime: secondAgoTimestampMs(),
       },
       (activeSpan: Span | undefined) => {
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -186,8 +186,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -221,8 +221,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -261,8 +261,7 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
-
+        const timeToDisplayComponent = render(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
         timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
 
         mockRecordedTimeToDisplay({
@@ -294,7 +293,7 @@ describe('TimeToDisplay', () => {
   test('should not log a warning if native component exists and not in new architecture', async () => {
     (isTurboModuleEnabled as jest.Mock).mockReturnValue(false);
 
-    TestRenderer.create(<TimeToInitialDisplay record={true} />);
+    render(<TimeToInitialDisplay record={true} />);
     await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
 
     expect(logger.warn).not.toHaveBeenCalled();
@@ -302,7 +301,7 @@ describe('TimeToDisplay', () => {
 
   test('should log a warning if in new architecture', async () => {
     (isTurboModuleEnabled as jest.Mock).mockReturnValue(true);
-    TestRenderer.create(<TimeToInitialDisplay record={true} />);
+    render(<TimeToInitialDisplay record={true} />);
     await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
 
     expect(logger.warn).toHaveBeenCalledWith(
