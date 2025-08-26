@@ -8,6 +8,7 @@
 
 ## Unreleased
 
+
 ### Important Changes
 
 - **fix(browser): Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`** ([#5092](https://github.com/getsentry/sentry-react-native/pull/5092))
@@ -23,6 +24,10 @@ However, after updating the SDK, events (errors, traces, replays, etc.) sent fro
 user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` options.
 
 We apologize for any inconvenience caused!
+
+## Fixes
+
+- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
 
 ## 6.20.0
 
