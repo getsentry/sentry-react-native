@@ -58,7 +58,7 @@ jobs:
           - ios-use-frameworks: 'dynamic-frameworks'
             platform: 'macos'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Enable Corepack
         run: npm i -g corepack
@@ -229,7 +229,7 @@ jobs:
             build-type: 'production'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
