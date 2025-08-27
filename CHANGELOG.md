@@ -8,7 +8,6 @@
 
 ## Unreleased
 
-
 ### Important Changes
 
 - **fix(browser): Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`** ([#5092](https://github.com/getsentry/sentry-react-native/pull/5092))
@@ -27,6 +26,7 @@ We apologize for any inconvenience caused!
 
 ## Fixes
 
+- Fix Expo prebuild failed on cached builds ([#5098](https://github.com/getsentry/sentry-react-native/pull/5098))
 - Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
 
 ## 6.20.0
