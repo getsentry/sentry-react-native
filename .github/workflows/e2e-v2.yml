@@ -63,7 +63,7 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: "adopt"
@@ -234,7 +234,7 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: ${{ matrix.rn-version == '0.65.3' && '11' || '17' }}
           distribution: 'adopt'
@@ -313,7 +313,7 @@ jobs:
             runs-on: macos-14
           - platform: ios
             rn-version: '0.65.3'
-            runs-on: macos-15
+            runs-on: macos-14
           - platform: android
             runs-on: ubuntu-latest
         exclude:
@@ -360,7 +360,7 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'adopt'

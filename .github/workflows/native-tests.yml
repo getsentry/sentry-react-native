@@ -18,7 +18,7 @@ jobs:
 
   test-ios:
     name: ios
-    runs-on: macos-15
+    runs-on: macos-14
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -63,7 +63,7 @@ jobs:
 
       - uses: ./.github/actions/disk-cleanup
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'adopt'
