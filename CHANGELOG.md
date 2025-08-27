@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix Expo prebuild failed on cached builds ([#5098](https://github.com/getsentry/sentry-react-native/pull/5098))
+
 ## 6.20.0
 
 ### Features
