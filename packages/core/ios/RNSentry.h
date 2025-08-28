@@ -33,7 +33,8 @@ SentrySDK (Private)
 
 @end
 
-@interface RNSentry (fetchNativeStack)
+@interface
+RNSentry (fetchNativeStack)
 
 - (NSDictionary *_Nonnull)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                        symbolicate:(SymbolicateCallbackType)symbolicate;
