@@ -42,7 +42,10 @@ describe('profiling integration', () => {
         type: 'sourcemap',
       },
     ]);
-    jest.useFakeTimers();
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
   });
 
   afterEach(async () => {

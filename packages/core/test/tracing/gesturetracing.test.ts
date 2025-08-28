@@ -54,7 +54,10 @@ describe('GestureTracing', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      jest.useFakeTimers();
+      jest.useFakeTimers({
+        advanceTimers: true,
+        doNotFake: ['performance'], // Keep real performance API
+      });
       client = setupTestClient({
         enableUserInteractionTracing: true,
       });

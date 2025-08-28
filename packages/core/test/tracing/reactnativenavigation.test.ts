@@ -43,7 +43,10 @@ interface MockEventsRegistry extends EventsRegistry {
   onBottomTabPressed(event: BottomTabPressedEvent): void;
 }
 
-jest.useFakeTimers({ advanceTimers: true });
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'], // Keep real performance API
+});
 
 describe('React Native Navigation Instrumentation', () => {
   let mockEventsRegistry: MockEventsRegistry;

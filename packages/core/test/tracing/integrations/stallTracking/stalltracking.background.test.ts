@@ -20,7 +20,10 @@ describe('BackgroundEventListener', () => {
     stallTracking['_internalState']['lastIntervalMs'] = currentTime;
     stallTracking['_internalState']['timeout'] = setTimeout(() => {}, LOOP_TIMEOUT_INTERVAL_MS); // Create a fake timeout to simulate a running interval
     stallTracking['_internalState']['isBackground'] = true;
-    jest.useFakeTimers(); // Enable fake timers to control timeouts
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     stallTracking['_internalState']['backgroundEventListener']('active' as AppStateStatus);
     // Check if _isBackground is set to false and _lastIntervalMs is updated correctly
     expect(stallTracking['_internalState']['isBackground']).toBe(false);
@@ -39,7 +42,10 @@ describe('BackgroundEventListener', () => {
     stallTracking['_internalState']['timeout'] = null;
     // Mock _iteration
     stallTracking['_internalState']['iteration'] = jest.fn();
-    jest.useFakeTimers(); // Enable fake timers to control timeouts
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     stallTracking['_internalState']['backgroundEventListener']('active' as AppStateStatus);
 
     expect(stallTracking['_internalState']['iteration']).not.toBeCalled();
@@ -49,7 +55,10 @@ describe('BackgroundEventListener', () => {
     stallTracking['_internalState']['timeout'] = setTimeout(() => {}, 500);
     // Mock _iteration
     stallTracking['_internalState']['iteration'] = jest.fn(); // Create a fake timeout to simulate a running interval
-    jest.useFakeTimers(); // Enable fake timers to control timeouts
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     stallTracking['_internalState']['backgroundEventListener']('active' as AppStateStatus);
     expect(stallTracking['_internalState']['iteration']).toBeCalled();
   });

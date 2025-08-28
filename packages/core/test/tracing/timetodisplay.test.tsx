@@ -29,7 +29,10 @@ jest.mock('../../src/js/utils/environment', () => ({
 
 const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } = mockedtimetodisplaynative;
 
-jest.useFakeTimers({advanceTimers: true});
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'] // Keep real performance API
+});
 
 describe('TimeToDisplay', () => {
   let client: TestClient;
