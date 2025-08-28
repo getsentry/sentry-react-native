@@ -30,9 +30,9 @@ We apologize for any inconvenience caused!
 
 ### Dependencies
 
-- Bump Android SDK from v8.17.0 to v8.19.0 ([#5034](https://github.com/getsentry/sentry-react-native/pull/5034), [#5063](https://github.com/getsentry/sentry-react-native/pull/5063))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8190)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.17.0...8.19.0)
+- Bump Android SDK from v8.17.0 to v8.20.0 ([#5034](https://github.com/getsentry/sentry-react-native/pull/5034), [#5063](https://github.com/getsentry/sentry-react-native/pull/5063), [#5106](https://github.com/getsentry/sentry-react-native/pull/5106))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8200)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.17.0...8.20.0)
 
 ## 7.0.0-rc.1
 
