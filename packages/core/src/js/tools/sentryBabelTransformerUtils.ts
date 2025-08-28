@@ -1,5 +1,5 @@
 import componentAnnotatePlugin from '@sentry/babel-plugin-component-annotate';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import * as process from 'process';
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
@@ -13,7 +13,7 @@ export const SENTRY_BABEL_TRANSFORMER_OPTIONS = 'SENTRY_BABEL_TRANSFORMER_OPTION
  */
 export function setSentryDefaultBabelTransformerPathEnv(defaultBabelTransformerPath: string): void {
   process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH] = defaultBabelTransformerPath;
-  logger.debug(`Saved default Babel transformer path ${defaultBabelTransformerPath}`);
+  debug.log(`Saved default Babel transformer path ${defaultBabelTransformerPath}`);
 }
 
 /**
@@ -34,7 +34,7 @@ export function loadDefaultBabelTransformer(): BabelTransformer {
     );
   }
 
-  logger.debug(`Loading default Babel transformer from ${defaultBabelTransformerPath}`);
+  debug.log(`Loading default Babel transformer from ${defaultBabelTransformerPath}`);
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require(defaultBabelTransformerPath);
 }
@@ -45,7 +45,7 @@ export function loadDefaultBabelTransformer(): BabelTransformer {
 export function setSentryBabelTransformerOptions(options: SentryBabelTransformerOptions): void {
   let optionsString: string | null = null;
   try {
-    logger.debug('Stringifying Sentry Babel transformer options', options);
+    debug.log('Stringifying Sentry Babel transformer options', options);
     optionsString = JSON.stringify(options);
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -56,7 +56,7 @@ export function setSentryBabelTransformerOptions(options: SentryBabelTransformer
     return;
   }
 
-  logger.debug(`Sentry Babel transformer options set to ${SENTRY_BABEL_TRANSFORMER_OPTIONS}`, optionsString);
+  debug.log(`Sentry Babel transformer options set to ${SENTRY_BABEL_TRANSFORMER_OPTIONS}`, optionsString);
   process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = optionsString;
 }
 
@@ -66,14 +66,12 @@ export function setSentryBabelTransformerOptions(options: SentryBabelTransformer
 export function getSentryBabelTransformerOptions(): SentryBabelTransformerOptions | undefined {
   const optionsString = process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS];
   if (!optionsString) {
-    logger.debug(
-      `Sentry Babel transformer options environment variable ${SENTRY_BABEL_TRANSFORMER_OPTIONS} is not set`,
-    );
+    debug.log(`Sentry Babel transformer options environment variable ${SENTRY_BABEL_TRANSFORMER_OPTIONS} is not set`);
     return undefined;
   }
 
   try {
-    logger.debug(`Parsing Sentry Babel transformer options from ${optionsString}`);
+    debug.log(`Parsing Sentry Babel transformer options from ${optionsString}`);
     return JSON.parse(optionsString);
   } catch (e) {
     // eslint-disable-next-line no-console

@@ -1,5 +1,5 @@
 import type { Attachment, Event, EventHint, Integration } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { NATIVE } from '../wrapper';
 
 const filename: string = 'view-hierarchy.json';
@@ -29,7 +29,7 @@ async function processEvent(event: Event, hint: EventHint): Promise<Event> {
   try {
     viewHierarchy = await NATIVE.fetchViewHierarchy();
   } catch (e) {
-    logger.error('Failed to get view hierarchy from native.', e);
+    debug.error('Failed to get view hierarchy from native.', e);
   }
 
   if (viewHierarchy) {

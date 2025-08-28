@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import type { Integration, Log } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import type { ReactNativeClient } from '../client';
 import { NATIVE } from '../wrapper';
 
@@ -18,7 +18,7 @@ export const logEnricherIntegration = (): Integration => {
             });
           },
           reason => {
-            logger.log(reason);
+            debug.log(reason);
           },
         );
       });

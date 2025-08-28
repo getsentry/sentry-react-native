@@ -1,4 +1,4 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import * as React from 'react';
 import { type NativeEventSubscription, type NativeScrollEvent,type NativeSyntheticEvent, Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
 import { notWeb } from '../utils/environment';
@@ -128,7 +128,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
           easing: Easing.in(Easing.quad),
         }),
       ]).start(() => {
-        logger.info('FeedbackWidgetProvider componentDidUpdate');
+        debug.log('FeedbackWidgetProvider componentDidUpdate');
       });
     } else if (prevState.isVisible && !this.state.isVisible) {
       this.state.backgroundOpacity.setValue(0);
@@ -140,7 +140,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
    */
   public render(): React.ReactNode {
     if (!isModalSupported()) {
-      logger.error('FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.');
+      debug.error('FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.');
       return <>{this.props.children}</>;
     }
 

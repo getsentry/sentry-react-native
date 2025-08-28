@@ -1,5 +1,5 @@
 import type { DebugImage } from '@sentry/core';
-import { GLOBAL_OBJ, logger } from '@sentry/core';
+import { debug, GLOBAL_OBJ } from '@sentry/core';
 import { DEFAULT_BUNDLE_NAME } from './hermes';
 
 /**
@@ -21,9 +21,7 @@ export function getDebugMetadata(): DebugImage[] {
   }
 
   if (debugIdsKeys.length > 1) {
-    logger.warn(
-      '[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...',
-    );
+    debug.warn('[Profiling] Multiple debug images found, but only one one bundle is supported. Using the first one...');
     return [];
   }
 

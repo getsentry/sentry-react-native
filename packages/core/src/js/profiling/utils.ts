@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import type { Envelope, Event, ThreadCpuProfile } from '@sentry/core';
-import { forEachEnvelopeItem, logger } from '@sentry/core';
+import { debug, forEachEnvelopeItem } from '@sentry/core';
 import { getDefaultEnvironment } from '../utils/environment';
 import { getDebugMetadata } from './debugid';
 import type {
@@ -21,7 +21,7 @@ export function isValidProfile(profile: ThreadCpuProfile): profile is RawThreadC
       // Log a warning if the profile has less than 2 samples so users can know why
       // they are not seeing any profiling data and we cant avoid the back and forth
       // of asking them to provide us with a dump of the profile data.
-      logger.log('[Profiling] Discarding profile because it contains less than 2 samples');
+      debug.log('[Profiling] Discarding profile because it contains less than 2 samples');
     }
     return false;
   }
@@ -81,7 +81,7 @@ export function enrichCombinedProfileWithEventContext(
   // warn users that this is happening if they enable debug flag
   if (trace_id?.length !== 32) {
     if (__DEV__) {
-      logger.log(`[Profiling] Invalid traceId: ${trace_id} on profiled event`);
+      debug.log(`[Profiling] Invalid traceId: ${trace_id} on profiled event`);
     }
   }
 

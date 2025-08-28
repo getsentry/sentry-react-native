@@ -1,5 +1,5 @@
 import type { SeverityLevel } from '@sentry/core';
-import { addBreadcrumb, dropUndefinedKeys, getClient, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
+import { addBreadcrumb, debug, dropUndefinedKeys, getClient, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import * as React from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
@@ -121,7 +121,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
     const root = touchPath[0];
     if (!root) {
-      logger.warn('[TouchEvents] No root component found in touch path.');
+      debug.warn('[TouchEvents] No root component found in touch path.');
       return;
     }
 
@@ -135,7 +135,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     };
     addBreadcrumb(crumb);
 
-    logger.log(`[TouchEvents] ${crumb.message}`);
+    debug.log(`[TouchEvents] ${crumb.message}`);
   }
 
   /**

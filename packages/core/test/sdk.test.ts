@@ -1,5 +1,5 @@
 import type { BaseTransportOptions, Breadcrumb, BreadcrumbHint, ClientOptions, Integration, Scope } from '@sentry/core';
-import { initAndBind, logger } from '@sentry/core';
+import { debug, initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
 import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import { init, withScope } from '../src/js/sdk';
@@ -11,7 +11,7 @@ import { RN_GLOBAL_OBJ } from '../src/js/utils/worldwide';
 import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
 
-jest.spyOn(logger, 'error');
+jest.spyOn(debug, 'error');
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
 jest.mock('../src/js/utils/environment');
 jest.mock('@sentry/core', () => ({

@@ -1,5 +1,5 @@
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/core';
-import { createEnvelope, logger } from '@sentry/core';
+import { createEnvelope, debug } from '@sentry/core';
 import * as RN from 'react-native';
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
@@ -108,7 +108,7 @@ describe('Tests Native Wrapper', () => {
     });
 
     test('warns if there is no dsn', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         enableNative: true,
@@ -118,13 +118,13 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
-      expect(logger.warn).toHaveBeenLastCalledWith(
+      expect(debug.warn).toHaveBeenLastCalledWith(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
     });
 
     test('does not call native module with enableNative: false', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         dsn: 'test',
@@ -137,7 +137,7 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
-      expect(logger.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
+      expect(debug.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
     test('filter beforeSend when initializing Native SDK', async () => {
@@ -214,7 +214,7 @@ describe('Tests Native Wrapper', () => {
 
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
       NATIVE.enableNative = false;
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         dsn: 'test',
@@ -258,7 +258,7 @@ describe('Tests Native Wrapper', () => {
     });
 
     test('enableNative: false takes precedence over autoInitializeNativeSdk: false', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         devServerUrl: undefined,

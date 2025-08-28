@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import type { SendFeedbackParams, User } from '@sentry/core';
-import { captureFeedback, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId, logger } from '@sentry/core';
+import { captureFeedback, debug, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId } from '@sentry/core';
 import * as React from 'react';
 import type { KeyboardTypeOptions ,
   NativeEventSubscription} from 'react-native';
@@ -147,7 +147,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       const errorString = `Feedback form submission failed: ${error}`;
       onSubmitError(new Error(errorString));
       feedbackAlertDialog(text.errorTitle, text.genericError);
-      logger.error(`Feedback form submission failed: ${error}`);
+      debug.error(`Feedback form submission failed: ${error}`);
     }
   };
 
@@ -163,7 +163,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           ? () => imagePicker.launchImageLibrary?.({ mediaType: 'photo', includeBase64: isWeb() })
           : null;
         if (!launchImageLibrary) {
-          logger.warn('No compatible image picker library found. Please provide a valid image picker library.');
+          debug.warn('No compatible image picker library found. Please provide a valid image picker library.');
           if (__DEV__) {
             feedbackAlertDialog(
               'Development note',
@@ -183,7 +183,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             if (data) {
               this.setState({ filename, attachment: data, attachmentUri: imageUri });
             } else {
-              logger.error('Failed to read image data on the web');
+              debug.error('Failed to read image data on the web');
             }
           } else {
             const filename = result.assets[0]?.fileName;
@@ -195,12 +195,12 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                     this.setState({ filename, attachment: data, attachmentUri: imageUri });
                   } else {
                     this._showImageRetrievalDevelopmentNote();
-                    logger.error('Failed to read image data from uri:', imageUri);
+                    debug.error('Failed to read image data from uri:', imageUri);
                   }
                 })
                 .catch((error) => {
                   this._showImageRetrievalDevelopmentNote();
-                  logger.error('Failed to read image data from uri:', imageUri, 'error: ', error);
+                  debug.error('Failed to read image data from uri:', imageUri, 'error: ', error);
                 });
           }
         }
@@ -213,11 +213,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
               this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
             } else {
               this._showImageRetrievalDevelopmentNote();
-              logger.error('Failed to read image data from uri:', uri);
+              debug.error('Failed to read image data from uri:', uri);
             }
           }).catch((error) => {
             this._showImageRetrievalDevelopmentNote();
-            logger.error('Failed to read image data from uri:', uri, 'error: ', error);
+            debug.error('Failed to read image data from uri:', uri, 'error: ', error);
           });
         });
       }
@@ -380,21 +380,21 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   private _setCapturedScreenshot = (screenshot: Screenshot): void => {
     if (screenshot.data != null) {
-      logger.debug('Setting captured screenshot:', screenshot.filename);
+      debug.log('Setting captured screenshot:', screenshot.filename);
       NATIVE.encodeToBase64(screenshot.data)
         .then(base64String => {
           if (base64String != null) {
             const dataUri = `data:${screenshot.contentType};base64,${base64String}`;
             this.setState({ filename: screenshot.filename, attachment: screenshot.data, attachmentUri: dataUri });
           } else {
-            logger.error('Failed to read image data from:', screenshot.filename);
+            debug.error('Failed to read image data from:', screenshot.filename);
           }
         })
         .catch(error => {
-          logger.error('Failed to read image data from:', screenshot.filename, 'error: ', error);
+          debug.error('Failed to read image data from:', screenshot.filename, 'error: ', error);
         });
     } else {
-      logger.error('Failed to read image data from:', screenshot.filename);
+      debug.error('Failed to read image data from:', screenshot.filename);
     }
   };
 

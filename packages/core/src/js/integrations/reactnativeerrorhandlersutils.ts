@@ -1,4 +1,4 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
@@ -13,7 +13,7 @@ import { RN_GLOBAL_OBJ } from '../utils/worldwide';
  */
 export function polyfillPromise(): void {
   if (!ReactNativeLibraries.Utilities) {
-    logger.warn('Could not polyfill Promise. React Native Libraries Utilities not found.');
+    debug.warn('Could not polyfill Promise. React Native Libraries Utilities not found.');
     return;
   }
 
@@ -65,7 +65,7 @@ export function checkPromiseAndWarn(): void {
     const UsedPromisePolyfill = getPromisePolyfill();
 
     if (ReactNativePromise !== PromisePackagePromise) {
-      logger.warn(
+      debug.warn(
         'You appear to have multiple versions of the "promise" package installed. ' +
           'This may cause unexpected behavior like undefined `Promise.allSettled`. ' +
           'Please install the `promise` package manually using the exact version as the React Native package. ' +
@@ -75,16 +75,16 @@ export function checkPromiseAndWarn(): void {
 
     // This only make sense if the user disabled the integration Polyfill
     if (UsedPromisePolyfill !== RN_GLOBAL_OBJ.Promise) {
-      logger.warn(
+      debug.warn(
         'Unhandled promise rejections will not be caught by Sentry. ' +
           'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
       );
     } else {
-      logger.log('Unhandled promise rejections will be caught by Sentry.');
+      debug.log('Unhandled promise rejections will be caught by Sentry.');
     }
   } catch (e) {
     // Do Nothing
-    logger.warn(
+    debug.warn(
       'Unhandled promise rejections will not be caught by Sentry. ' +
         'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
     );

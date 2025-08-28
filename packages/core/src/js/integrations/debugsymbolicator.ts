@@ -1,5 +1,5 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import type { ExtendedError } from '../utils/error';
 import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
@@ -70,7 +70,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
 
     const prettyStack = await symbolicateStackTrace(parsedStack);
     if (!prettyStack) {
-      logger.error('React Native DevServer could not symbolicate the stack trace.');
+      debug.error('React Native DevServer could not symbolicate the stack trace.');
       return null;
     }
 
@@ -92,7 +92,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
     return await fetchSourceContext(sentryFrames);
   } catch (error) {
     if (error instanceof Error) {
-      logger.warn(`Unable to symbolicate stack trace: ${error.message}`);
+      debug.warn(`Unable to symbolicate stack trace: ${error.message}`);
     }
     return null;
   }

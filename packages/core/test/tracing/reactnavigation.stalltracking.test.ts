@@ -12,7 +12,10 @@ import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { expectStallMeasurements } from './integrations/stallTracking/stalltrackingutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
-jest.useFakeTimers({ advanceTimers: 1 });
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'], // Keep real performance API
+});
 
 describe('StallTracking with ReactNavigation', () => {
   let client: TestClient;

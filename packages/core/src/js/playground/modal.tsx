@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import * as React from 'react';
 import {
   Animated,
@@ -430,9 +430,9 @@ function openURLInBrowser(url: string): void {
       method: 'POST',
       body: JSON.stringify({ url }),
     }).catch(e => {
-      logger.error('Error opening URL:', e);
+      debug.error('Error opening URL:', e);
     });
   } else {
-    logger.error('Dev server URL not available');
+    debug.error('Dev server URL not available');
   }
 }

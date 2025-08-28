@@ -16,7 +16,10 @@ jest.mock('../../../src/js/wrapper', () => {
   };
 });
 
-jest.useFakeTimers({ advanceTimers: true });
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'], // Keep real performance API
+});
 
 const mockDate = new Date(2024, 7, 14); // Set your desired mock date here
 const originalDateNow = Date.now; // Store the original Date.now function

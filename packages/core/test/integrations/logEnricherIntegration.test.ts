@@ -1,5 +1,5 @@
 import type { Client, Log } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { logEnricherIntegration } from '../../src/js/integrations/logEnricherIntegration';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';
@@ -8,12 +8,12 @@ import { NATIVE } from '../../src/js/wrapper';
 jest.mock('../../src/js/wrapper');
 jest.mock('@sentry/core', () => ({
   ...jest.requireActual('@sentry/core'),
-  logger: {
+  debug: {
     log: jest.fn(),
   },
 }));
 
-const mockLogger = logger as jest.Mocked<typeof logger>;
+const mockLogger = debug as jest.Mocked<typeof debug>;
 
 function on_beforeCaptureLogCount(client: jest.Mocked<Client>) {
   const beforeCaptureLogCalls = client.on.mock.calls.filter(

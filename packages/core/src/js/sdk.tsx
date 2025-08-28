@@ -1,12 +1,12 @@
 /* eslint-disable complexity */
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
 import {
+  debug,
   getClient,
   getGlobalScope,
   getIntegrationsToSetup,
   getIsolationScope,
   initAndBind,
-  logger,
   makeDsn,
   stackParserFromStackParserOptions,
   withScope as coreWithScope,
@@ -76,7 +76,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     }
     const dsnComponents = makeDsn(dsn);
     if (!dsnComponents) {
-      logger.error('Failed to extract url from DSN: ', dsn);
+      debug.error('Failed to extract url from DSN: ', dsn);
       return undefined;
     }
     const port = dsnComponents.port ? `:${dsnComponents.port}` : '';
@@ -151,8 +151,8 @@ export function init(passedOptions: ReactNativeOptions): void {
   initAndBind(ReactNativeClient, options);
 
   if (isExpoGo()) {
-    logger.info('Offline caching, native errors features are not available in Expo Go.');
-    logger.info('Use EAS Build / Native Release Build to test these features.');
+    debug.log('Offline caching, native errors features are not available in Expo Go.');
+    debug.log('Use EAS Build / Native Release Build to test these features.');
   }
 }
 
@@ -210,7 +210,7 @@ export async function flush(): Promise<boolean> {
     // eslint-disable-next-line no-empty
   } catch (_) { }
 
-  logger.error('Failed to flush the event queue.');
+  debug.error('Failed to flush the event queue.');
 
   return false;
 }
@@ -226,7 +226,7 @@ export async function close(): Promise<void> {
       await client.close();
     }
   } catch (e) {
-    logger.error('Failed to close the SDK');
+    debug.error('Failed to close the SDK');
   }
 }
 
@@ -248,7 +248,7 @@ export function withScope<T>(callback: (scope: Scope) => T): T | undefined {
     try {
       return callback(scope);
     } catch (e) {
-      logger.error('Error while running withScope callback', e);
+      debug.error('Error while running withScope callback', e);
       return undefined;
     }
   };

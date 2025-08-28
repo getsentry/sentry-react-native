@@ -62,7 +62,10 @@ describe('User Interaction Tracing', () => {
   let mockedUserInteractionId: { elementId: string | undefined; op: string };
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
     mockedAppState.currentState = 'active';
