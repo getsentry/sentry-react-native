@@ -14,7 +14,7 @@ import {
   _INTERNAL_flushLogsBuffer,
   addAutoIpAddressToSession,
   addAutoIpAddressToUser,
-  BaseClient,
+  Client,
   dateTimestampInSeconds,
   logger,
   SentryError,
@@ -40,7 +40,7 @@ const DEFAULT_FLUSH_INTERVAL = 5000;
  * @see ReactNativeClientOptions for documentation on configuration options.
  * @see SentryClient for usage documentation.
  */
-export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
+export class ReactNativeClient extends Client<ReactNativeClientOptions> {
   private _outcomesBuffer: Outcome[];
   private _logFlushIdleTimeout: ReturnType<typeof setTimeout> | undefined;
 

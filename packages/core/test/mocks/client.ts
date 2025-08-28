@@ -1,6 +1,6 @@
 import type { Event, EventHint, Integration, Outcome, ParameterizedString, Session, SeverityLevel } from '@sentry/core';
 import {
-  BaseClient,
+  Client,
   createTransport,
   getCurrentScope,
   getGlobalScope,
@@ -36,7 +36,7 @@ export interface TestClientOptions extends ReactNativeClientOptions {
   defaultIntegrations?: Integration[] | false;
 }
 
-export class TestClient extends BaseClient<TestClientOptions> {
+export class TestClient extends Client<TestClientOptions> {
   public static instance?: TestClient;
   public static sendEventCalled?: (event: Event) => void;
 

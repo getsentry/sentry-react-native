@@ -40,7 +40,7 @@ async function processEvent(event: Event, fetchNativeSdkInfo: () => Promise<Pack
   event.sdk.name = event.sdk.name || defaultSdkInfo.name;
   event.sdk.version = event.sdk.version || defaultSdkInfo.version;
   event.sdk.packages = [
-    // default packages are added by baseclient and should not be added here
+    // default packages are added by js client and should not be added here
     ...(event.sdk.packages || []),
     ...((nativeSdkPackage && [nativeSdkPackage]) || []),
   ];
