@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import type { SendFeedbackParams, User } from '@sentry/core';
-import { captureFeedback, debug,getCurrentScope, getGlobalScope, getIsolationScope, lastEventId } from '@sentry/core';
+import { captureFeedback, debug, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId } from '@sentry/core';
 import * as React from 'react';
 import type { KeyboardTypeOptions ,
   NativeEventSubscription} from 'react-native';
