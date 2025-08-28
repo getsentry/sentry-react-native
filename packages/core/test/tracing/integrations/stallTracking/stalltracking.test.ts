@@ -15,7 +15,7 @@ import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stall
 
 jest.useFakeTimers({
   advanceTimers: true,
-  doNotFake: ['Date', 'performance'] // Keep real Date/performance APIs
+  doNotFake: ['Date', 'performance'], // Keep real Date/performance APIs
 });
 
 const expensiveOperation = () => {
