@@ -26,7 +26,7 @@
     "@react-navigation/native": "7.1.8",
     "@react-navigation/native-stack": "7.3.12",
     "@react-navigation/stack": "7.3.1",
-    "@sentry/core": "9.22.0",
+    "@sentry/core": "9.44.2",
     "@sentry/react-native": "7.0.0-rc.1",
     "@shopify/flash-list": "1.8.0",
     "delay": "^6.0.0",
