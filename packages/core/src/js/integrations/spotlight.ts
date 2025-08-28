@@ -1,5 +1,5 @@
 import type { BaseTransportOptions, Client, ClientOptions, Envelope, Integration } from '@sentry/core';
-import { logger, serializeEnvelope } from '@sentry/core';
+import { debug, serializeEnvelope } from '@sentry/core';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 
@@ -21,7 +21,7 @@ type SpotlightReactNativeIntegrationOptions = {
 export function spotlightIntegration({
   sidecarUrl = getDefaultSidecarUrl(),
 }: SpotlightReactNativeIntegrationOptions = {}): Integration {
-  logger.info('[Spotlight] Using Sidecar URL', sidecarUrl);
+  debug.log('[Spotlight] Using Sidecar URL', sidecarUrl);
 
   return {
     name: 'Spotlight',
@@ -56,7 +56,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
 
     const xhr = createStealthXhr();
     if (!xhr) {
-      logger.error('[Spotlight] Sentry SDK can not create XHR object');
+      debug.error('[Spotlight] Sentry SDK can not create XHR object');
       return;
     }
 
@@ -70,7 +70,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
           // The request has been completed successfully
         } else {
           // Handle the error
-          logger.error(
+          debug.error(
             "[Spotlight] Sentry SDK can't connect to Spotlight is it running? See https://spotlightjs.com to download it.",
             new Error(xhr.statusText),
           );

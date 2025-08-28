@@ -5,8 +5,8 @@ const path = require('path');
 const { argv, env } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/core');
-logger.enable();
+const { debug } = require('@sentry/core');
+debug.enable();
 
 const SENTRY_RELEASE = env.SENTRY_RELEASE;
 const SENTRY_DIST = env.SENTRY_DIST;
@@ -16,7 +16,7 @@ if (!args.app) {
   throw new Error('Missing --app');
 }
 
-logger.info('Patching RN App.(js|tsx)', args.app);
+debug.log('Patching RN App.(js|tsx)', args.app);
 
 const initPatch = `
 import * as Sentry from '@sentry/react-native';
@@ -59,7 +59,7 @@ if (!isPatched) {
     .replace(exportDefaultRex, 'export default Sentry.wrap(App);');
 
   fs.writeFileSync(appPath, patched);
-  logger.info('Patched RN App.(js|tsx) successfully!');
+  debug.log('Patched RN App.(js|tsx) successfully!');
 } else {
-  logger.info('App.(js|tsx) already patched!');
+  debug.log('App.(js|tsx) already patched!');
 }

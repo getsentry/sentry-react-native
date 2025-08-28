@@ -16,7 +16,7 @@ import {
   addAutoIpAddressToUser,
   Client,
   dateTimestampInSeconds,
-  logger,
+  debug,
   SentryError,
 } from '@sentry/core';
 import { Alert } from 'react-native';
@@ -147,13 +147,13 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
           // SentryError is thrown by SyncPromise
           shouldClearOutcomesBuffer = false;
           // If this is called asynchronously we want the _outcomesBuffer to be cleared
-          logger.error('SentryError while sending event, keeping outcomes buffer:', reason);
+          debug.error('SentryError while sending event, keeping outcomes buffer:', reason);
         } else {
-          logger.error('Error while sending event:', reason);
+          debug.error('Error while sending event:', reason);
         }
       });
     } else {
-      logger.error('Transport disabled');
+      debug.error('Transport disabled');
     }
 
     if (shouldClearOutcomesBuffer) {
@@ -219,7 +219,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
         this.emit('afterInit');
       })
       .then(undefined, error => {
-        logger.error('The OnReady callback threw an error: ', error);
+        debug.error('The OnReady callback threw an error: ', error);
       });
   }
 

@@ -1,5 +1,5 @@
 import type { Event, Integration, SpanJSON } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { NATIVE } from '../../wrapper';
 import { UI_LOAD_FULL_DISPLAY, UI_LOAD_INITIAL_DISPLAY } from '../ops';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../origin';
@@ -31,14 +31,14 @@ export const timeToDisplayIntegration = (): Integration => {
 
       const rootSpanId = event.contexts?.trace?.span_id;
       if (!rootSpanId) {
-        logger.warn(`[${INTEGRATION_NAME}] No root span id found in transaction.`);
+        debug.warn(`[${INTEGRATION_NAME}] No root span id found in transaction.`);
         return event;
       }
 
       const transactionStartTimestampSeconds = event.start_timestamp;
       if (!transactionStartTimestampSeconds) {
         // This should never happen
-        logger.warn(`[${INTEGRATION_NAME}] No transaction start timestamp found in transaction.`);
+        debug.warn(`[${INTEGRATION_NAME}] No transaction start timestamp found in transaction.`);
         return event;
       }
 
@@ -106,12 +106,12 @@ async function addTimeToInitialDisplay({
   let ttidSpan: SpanJSON | undefined = event.spans?.find(span => span.op === UI_LOAD_INITIAL_DISPLAY);
 
   if (ttidSpan && (ttidSpan.status === undefined || ttidSpan.status === 'ok') && !ttidEndTimestampSeconds) {
-    logger.debug(`[${INTEGRATION_NAME}] Ttid span already exists and is ok.`, ttidSpan);
+    debug.log(`[${INTEGRATION_NAME}] Ttid span already exists and is ok.`, ttidSpan);
     return ttidSpan;
   }
 
   if (!ttidEndTimestampSeconds) {
-    logger.debug(`[${INTEGRATION_NAME}] No manual ttid end timestamp found for span ${rootSpanId}.`);
+    debug.log(`[${INTEGRATION_NAME}] No manual ttid end timestamp found for span ${rootSpanId}.`);
     return addAutomaticTimeToInitialDisplay({
       event,
       rootSpanId,
@@ -123,7 +123,7 @@ async function addTimeToInitialDisplay({
   if (ttidSpan?.status && ttidSpan.status !== 'ok') {
     ttidSpan.status = 'ok';
     ttidSpan.timestamp = ttidEndTimestampSeconds;
-    logger.debug(`[${INTEGRATION_NAME}] Updated existing ttid span.`, ttidSpan);
+    debug.log(`[${INTEGRATION_NAME}] Updated existing ttid span.`, ttidSpan);
     return ttidSpan;
   }
 
@@ -138,7 +138,7 @@ async function addTimeToInitialDisplay({
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
   });
-  logger.debug(`[${INTEGRATION_NAME}] Added ttid span to transaction.`, ttidSpan);
+  debug.log(`[${INTEGRATION_NAME}] Added ttid span to transaction.`, ttidSpan);
   event.spans.push(ttidSpan);
   return ttidSpan;
 }
@@ -159,7 +159,7 @@ async function addAutomaticTimeToInitialDisplay({
 
   const hasBeenSeen = event.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN];
   if (hasBeenSeen && !enableTimeToInitialDisplayForPreloadedRoutes) {
-    logger.debug(
+    debug.log(
       `[${INTEGRATION_NAME}] Route has been seen and time to initial display is disabled for preloaded routes.`,
     );
     return undefined;
@@ -167,7 +167,7 @@ async function addAutomaticTimeToInitialDisplay({
 
   const ttidTimestampSeconds = ttidNativeTimestampSeconds ?? ttidFallbackTimestampSeconds;
   if (!ttidTimestampSeconds) {
-    logger.debug(`[${INTEGRATION_NAME}] No automatic ttid end timestamp found for span ${rootSpanId}.`);
+    debug.log(`[${INTEGRATION_NAME}] No automatic ttid end timestamp found for span ${rootSpanId}.`);
     return undefined;
   }
 
@@ -222,7 +222,7 @@ async function addTimeToFullDisplay({
   if (ttfdSpan?.status && ttfdSpan.status !== 'ok') {
     ttfdSpan.status = 'ok';
     ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
-    logger.debug(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);
+    debug.log(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);
     return ttfdSpan;
   }
 
@@ -238,7 +238,7 @@ async function addTimeToFullDisplay({
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
   });
-  logger.debug(`[${INTEGRATION_NAME}] Added ttfd span to transaction.`, ttfdSpan);
+  debug.log(`[${INTEGRATION_NAME}] Added ttfd span to transaction.`, ttfdSpan);
   event.spans.push(ttfdSpan);
   return ttfdSpan;
 }

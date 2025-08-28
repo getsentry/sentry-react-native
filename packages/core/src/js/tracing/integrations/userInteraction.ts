@@ -1,9 +1,9 @@
 import type { Integration, Span, StartSpanOptions } from '@sentry/core';
 import {
+  debug,
   getActiveSpan,
   getClient,
   getCurrentScope,
-  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   spanToJSON,
 } from '@sentry/core';
@@ -36,29 +36,29 @@ export const startUserInteractionSpan = (userInteractionId: {
 
   const tracing = getCurrentReactNativeTracingIntegration();
   if (!tracing) {
-    logger.log(`[${INTEGRATION_NAME}] Tracing integration is not available. Can not start user interaction span.`);
+    debug.log(`[${INTEGRATION_NAME}] Tracing integration is not available. Can not start user interaction span.`);
     return undefined;
   }
 
   const options = client.getOptions() as ReactNativeClientOptions;
   const { elementId, op } = userInteractionId;
   if (!options.enableUserInteractionTracing) {
-    logger.log(`[${INTEGRATION_NAME}] User Interaction Tracing is disabled.`);
+    debug.log(`[${INTEGRATION_NAME}] User Interaction Tracing is disabled.`);
     return undefined;
   }
   if (!elementId) {
-    logger.log(`[${INTEGRATION_NAME}] User Interaction Tracing can not create transaction with undefined elementId.`);
+    debug.log(`[${INTEGRATION_NAME}] User Interaction Tracing can not create transaction with undefined elementId.`);
     return undefined;
   }
   if (!tracing.state.currentRoute) {
-    logger.log(`[${INTEGRATION_NAME}] User Interaction Tracing can not create transaction without a current route.`);
+    debug.log(`[${INTEGRATION_NAME}] User Interaction Tracing can not create transaction without a current route.`);
     return undefined;
   }
 
   const activeTransaction = getActiveSpan();
   const activeTransactionIsNotInteraction = activeTransaction && !isSentryInteractionSpan(activeTransaction);
   if (activeTransaction && activeTransactionIsNotInteraction) {
-    logger.warn(
+    debug.warn(
       `[${INTEGRATION_NAME}] Did not create ${op} transaction because active transaction ${
         spanToJSON(activeTransaction).description
       } exists on the scope.`,
@@ -72,7 +72,7 @@ export const startUserInteractionSpan = (userInteractionId: {
     spanToJSON(activeTransaction).description === name &&
     spanToJSON(activeTransaction).op === op
   ) {
-    logger.warn(
+    debug.warn(
       `[${INTEGRATION_NAME}] Did not create ${op} transaction because it the same transaction ${
         spanToJSON(activeTransaction).description
       } already exists on the scope.`,
@@ -93,6 +93,6 @@ export const startUserInteractionSpan = (userInteractionId: {
   });
   newSpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_MANUAL_INTERACTION);
   onlySampleIfChildSpans(client, newSpan);
-  logger.log(`[${INTEGRATION_NAME}] User Interaction Tracing Created ${op} transaction ${name}.`);
+  debug.log(`[${INTEGRATION_NAME}] User Interaction Tracing Created ${op} transaction ${name}.`);
   return newSpan;
 };

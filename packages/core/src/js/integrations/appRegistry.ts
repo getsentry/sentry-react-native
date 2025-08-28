@@ -1,5 +1,5 @@
 import type { Client, Integration } from '@sentry/core';
-import { getClient, logger } from '@sentry/core';
+import { debug, getClient } from '@sentry/core';
 import { isWeb } from '../utils/environment';
 import { fillTyped } from '../utils/fill';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
@@ -22,7 +22,7 @@ export const appRegistryIntegration = (): Integration & {
     },
     onRunApplication: (callback: () => void) => {
       if (callbacks.includes(callback)) {
-        logger.debug('[AppRegistryIntegration] Callback already registered.');
+        debug.log('[AppRegistryIntegration] Callback already registered.');
         return;
       }
       callbacks.push(callback);

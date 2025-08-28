@@ -10,7 +10,7 @@ import type {
   SeverityLevel,
   User,
 } from '@sentry/core';
-import { logger, normalize, SentryError } from '@sentry/core';
+import { debug, normalize, SentryError } from '@sentry/core';
 import { NativeModules, Platform } from 'react-native';
 import { isHardCrash } from './misc';
 import type {
@@ -162,7 +162,7 @@ export const NATIVE: SentryNativeWrapper = {
    */
   async sendEnvelope(envelope: Envelope): Promise<void> {
     if (!this.enableNative) {
-      logger.warn('Event was skipped as native SDK is not enabled.');
+      debug.warn('Event was skipped as native SDK is not enabled.');
       return;
     }
 
@@ -232,14 +232,14 @@ export const NATIVE: SentryNativeWrapper = {
 
     if (!options.enableNative) {
       if (options.enableNativeNagger) {
-        logger.warn('Note: Native Sentry SDK is disabled.');
+        debug.warn('Note: Native Sentry SDK is disabled.');
       }
       this.enableNative = false;
       return false;
     }
     if (!options.autoInitializeNativeSdk) {
       if (options.enableNativeNagger) {
-        logger.warn(
+        debug.warn(
           'Note: Native Sentry SDK was not initialized automatically, you will need to initialize it manually. If you wish to disable the native SDK and get rid of this warning, pass enableNative: false',
         );
       }
@@ -248,7 +248,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     if (!options.dsn) {
-      logger.warn(
+      debug.warn(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
       this.enableNative = false;
@@ -340,11 +340,11 @@ export const NATIVE: SentryNativeWrapper = {
 
   async fetchNativeAppStart(): Promise<NativeAppStartResponse | null> {
     if (!this.enableNative) {
-      logger.warn(this._DisabledNativeError);
+      debug.warn(this._DisabledNativeError);
       return null;
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      logger.error(this._NativeClientError);
+      debug.error(this._NativeClientError);
       return null;
     }
 
@@ -453,7 +453,7 @@ export const NATIVE: SentryNativeWrapper = {
       const normalizedExtra = normalize(extra);
       stringifiedExtra = JSON.stringify(normalizedExtra);
     } catch (e) {
-      logger.error('Extra for key ${key} not passed to native SDK, because it contains non-stringifiable values', e);
+      debug.error('Extra for key ${key} not passed to native SDK, because it contains non-stringifiable values', e);
     }
 
     if (typeof stringifiedExtra === 'string') {
@@ -517,7 +517,7 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       normalizedContext = convertToNormalizedObject(context);
     } catch (e) {
-      logger.error('Context for key ${key} not passed to native SDK, because it contains non-serializable values', e);
+      debug.error('Context for key ${key} not passed to native SDK, because it contains non-serializable values', e);
     }
 
     if (normalizedContext) {
@@ -571,11 +571,11 @@ export const NATIVE: SentryNativeWrapper = {
 
   async captureScreenshot(): Promise<Screenshot[] | null> {
     if (!this.enableNative) {
-      logger.warn(this._DisabledNativeError);
+      debug.warn(this._DisabledNativeError);
       return null;
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      logger.error(this._NativeClientError);
+      debug.error(this._NativeClientError);
       return null;
     }
 
@@ -583,7 +583,7 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       raw = await RNSentry.captureScreenshot();
     } catch (e) {
-      logger.warn('Failed to capture screenshot', e);
+      debug.warn('Failed to capture screenshot', e);
     }
 
     if (raw) {
@@ -618,9 +618,9 @@ export const NATIVE: SentryNativeWrapper = {
 
     const { started, error } = RNSentry.startProfiling(platformProfilers);
     if (started) {
-      logger.log('[NATIVE] Start Profiling');
+      debug.log('[NATIVE] Start Profiling');
     } else {
-      logger.error('[NATIVE] Start Profiling Failed', error);
+      debug.error('[NATIVE] Start Profiling Failed', error);
     }
 
     return !!started;
@@ -640,14 +640,14 @@ export const NATIVE: SentryNativeWrapper = {
 
     const { profile, nativeProfile, androidProfile, error } = RNSentry.stopProfiling();
     if (!profile || error) {
-      logger.error('[NATIVE] Stop Profiling Failed', error);
+      debug.error('[NATIVE] Stop Profiling Failed', error);
       return null;
     }
     if (Platform.OS === 'ios' && !nativeProfile) {
-      logger.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
+      debug.warn('[NATIVE] Stop Profiling Failed: No Native Profile');
     }
     if (Platform.OS === 'android' && !androidProfile) {
-      logger.warn('[NATIVE] Stop Profiling Failed: No Android Profile');
+      debug.warn('[NATIVE] Stop Profiling Failed: No Android Profile');
     }
 
     try {
@@ -657,7 +657,7 @@ export const NATIVE: SentryNativeWrapper = {
         androidProfile: androidProfile as NativeAndroidProfileEvent | undefined,
       };
     } catch (e) {
-      logger.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
+      debug.error('[NATIVE] Failed to parse Hermes Profile JSON', e);
       return null;
     }
   },
@@ -697,11 +697,11 @@ export const NATIVE: SentryNativeWrapper = {
 
   async captureReplay(isHardCrash: boolean): Promise<string | null> {
     if (!this.enableNative) {
-      logger.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is disabled.`);
+      debug.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is disabled.`);
       return Promise.resolve(null);
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      logger.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is not available.`);
+      debug.warn(`[NATIVE] \`${this.captureReplay.name}\` is not available when native is not available.`);
       return Promise.resolve(null);
     }
 
@@ -710,11 +710,11 @@ export const NATIVE: SentryNativeWrapper = {
 
   getCurrentReplayId(): string | null {
     if (!this.enableNative) {
-      logger.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is disabled.`);
+      debug.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is disabled.`);
       return null;
     }
     if (!this._isModuleLoaded(RNSentry)) {
-      logger.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is not available.`);
+      debug.warn(`[NATIVE] \`${this.getCurrentReplayId.name}\` is not available when native is not available.`);
       return null;
     }
 
@@ -749,7 +749,7 @@ export const NATIVE: SentryNativeWrapper = {
       const data: number[] = await RNSentry.getDataFromUri(uri);
       return new Uint8Array(data);
     } catch (error) {
-      logger.error('Error:', error);
+      debug.error('Error:', error);
       return null;
     }
   },
@@ -762,7 +762,7 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       return RNSentry.popTimeToDisplayFor(key);
     } catch (error) {
-      logger.error('Error:', error);
+      debug.error('Error:', error);
       return Promise.resolve(null);
     }
   },
@@ -775,7 +775,7 @@ export const NATIVE: SentryNativeWrapper = {
     try {
       RNSentry.setActiveSpanId(spanId);
     } catch (error) {
-      logger.error('Error:', error);
+      debug.error('Error:', error);
       return undefined;
     }
   },
@@ -790,7 +790,7 @@ export const NATIVE: SentryNativeWrapper = {
       const base64 = await RNSentry.encodeToBase64(byteArray);
       return base64 || null;
     } catch (error) {
-      logger.error('Error:', error);
+      debug.error('Error:', error);
       return Promise.resolve(null);
     }
   },

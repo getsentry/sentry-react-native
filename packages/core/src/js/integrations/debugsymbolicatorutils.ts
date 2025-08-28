@@ -1,5 +1,5 @@
 import type { StackFrame as SentryStackFrame } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 import type * as ReactNative from '../vendor/react-native';
@@ -21,7 +21,7 @@ export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<Se
 
       const url = getSentryMetroSourceContextUrl();
       if (!url) {
-        logger.error('Could not fetch source context. No dev server URL found.');
+        debug.error('Could not fetch source context. No dev server URL found.');
         resolve(frames);
         return;
       }
@@ -52,7 +52,7 @@ export async function fetchSourceContext(frames: SentryStackFrame[]): Promise<Se
         resolve(frames);
       };
     } catch (error) {
-      logger.error('Could not fetch source context.', error);
+      debug.error('Could not fetch source context.', error);
       resolve(frames);
     }
   });

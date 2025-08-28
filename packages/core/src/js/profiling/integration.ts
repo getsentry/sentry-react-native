@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/core';
-import { getActiveSpan, getClient, logger, spanIsSampled, uuid4 } from '@sentry/core';
+import { debug, getActiveSpan, getClient, spanIsSampled, uuid4 } from '@sentry/core';
 import { Platform } from 'react-native';
 import type { ReactNativeClient } from '../client';
 import { isHermesEnabled } from '../utils/environment';
@@ -59,7 +59,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
     isReady = true;
 
     if (!isHermesEnabled()) {
-      logger.log('[Profiling] Hermes is not enabled, not adding profiling integration.');
+      debug.log('[Profiling] Hermes is not enabled, not adding profiling integration.');
       return;
     }
 
@@ -81,7 +81,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
 
       const profiledTransactions = findProfiledTransactionsFromEnvelope(envelope);
       if (!profiledTransactions.length) {
-        logger.log('[Profiling] no profiled transactions found in envelope');
+        debug.log('[Profiling] no profiled transactions found in envelope');
         return;
       }
 
@@ -122,7 +122,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
 
   const _shouldStartProfiling = (activeSpan: Span): boolean => {
     if (!spanIsSampled(activeSpan)) {
-      logger.log('[Profiling] Transaction is not sampled, skipping profiling');
+      debug.log('[Profiling] Transaction is not sampled, skipping profiling');
       return false;
     }
 
@@ -132,13 +132,13 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
     const profilesSampleRate =
       options && typeof options.profilesSampleRate === 'number' ? options.profilesSampleRate : undefined;
     if (profilesSampleRate === undefined) {
-      logger.log('[Profiling] Profiling disabled, enable it by setting `profilesSampleRate` option to SDK init call.');
+      debug.log('[Profiling] Profiling disabled, enable it by setting `profilesSampleRate` option to SDK init call.');
       return false;
     }
 
     // Check if we should sample this profile
     if (Math.random() > profilesSampleRate) {
-      logger.log('[Profiling] Skip profiling transaction due to sampling.');
+      debug.log('[Profiling] Skip profiling transaction due to sampling.');
       return false;
     }
 
@@ -160,7 +160,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
       startTimestampNs: profileStartTimestampNs,
     };
     activeSpan.setAttribute('profile_id', _currentProfile.profile_id);
-    logger.log('[Profiling] started profiling: ', _currentProfile.profile_id);
+    debug.log('[Profiling] started profiling: ', _currentProfile.profile_id);
   };
 
   /**
@@ -172,7 +172,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
     }
 
     if (span.spanContext().spanId !== _currentProfile?.span_id) {
-      logger.log(
+      debug.log(
         `[Profiling] Span (${span.spanContext().spanId}) ended is not the currently profiled span (${
           _currentProfile?.span_id
         }). Not stopping profiling.`,
@@ -194,14 +194,14 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
 
     const profile = stopProfiling(_currentProfile.startTimestampNs);
     if (!profile) {
-      logger.warn('[Profiling] Stop failed. Cleaning up...');
+      debug.warn('[Profiling] Stop failed. Cleaning up...');
       _currentProfile = undefined;
       return;
     }
 
     PROFILE_QUEUE.add(_currentProfile.profile_id, profile);
 
-    logger.log('[Profiling] finished profiling: ', _currentProfile.profile_id);
+    debug.log('[Profiling] finished profiling: ', _currentProfile.profile_id);
     _currentProfile = undefined;
   };
 
@@ -209,7 +209,7 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
     const profile_id = profiledTransaction?.contexts?.trace?.data?.profile_id;
 
     if (typeof profile_id !== 'string') {
-      logger.log('[Profiling] cannot find profile for a transaction without a profile context');
+      debug.log('[Profiling] cannot find profile for a transaction without a profile context');
       return null;
     }
 
@@ -222,12 +222,12 @@ export const hermesProfilingIntegration = (initOptions: HermesProfilingOptions =
     PROFILE_QUEUE.delete(profile_id);
 
     if (!profile) {
-      logger.log(`[Profiling] cannot find profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
+      debug.log(`[Profiling] cannot find profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
       return null;
     }
 
     const profileWithEvent = enrichCombinedProfileWithEventContext(profile_id, profile, profiledTransaction);
-    logger.log(`[Profiling] Created profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
+    debug.log(`[Profiling] Created profile ${profile_id} for transaction ${profiledTransaction.event_id}`);
 
     return profileWithEvent;
   };

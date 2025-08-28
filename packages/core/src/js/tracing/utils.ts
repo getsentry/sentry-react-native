@@ -1,8 +1,8 @@
 import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/core';
 import {
+  debug,
   dropUndefinedKeys,
   getSpanDescendants,
-  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_UNIT,
   SEMANTIC_ATTRIBUTE_SENTRY_MEASUREMENT_VALUE,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
@@ -97,7 +97,7 @@ export function getLatestChildSpanEndTimestamp(span: Span): number | undefined {
 export function getBundleStartTimestampMs(): number | undefined {
   const bundleStartTime = RN_GLOBAL_OBJ.__BUNDLE_START_TIME__;
   if (!bundleStartTime) {
-    logger.warn('Missing the bundle start time on the global object.');
+    debug.warn('Missing the bundle start time on the global object.');
     return undefined;
   }
 

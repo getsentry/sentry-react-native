@@ -1,5 +1,5 @@
 import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/core';
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
@@ -115,12 +115,12 @@ type MobileReplayIntegration = Integration & {
  */
 export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defaultOptions): MobileReplayIntegration => {
   if (isExpoGo()) {
-    logger.warn(
+    debug.warn(
       `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} is not supported in Expo Go. Use EAS Build or \`expo prebuild\` to enable it.`,
     );
   }
   if (notMobileOs()) {
-    logger.warn(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} is not supported on this platform.`);
+    debug.warn(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} is not supported on this platform.`);
   }
 
   if (isExpoGo() || notMobileOs()) {
@@ -138,7 +138,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
     const recordingReplayId = NATIVE.getCurrentReplayId();
     if (recordingReplayId) {
-      logger.debug(
+      debug.log(
         `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
       );
       return event;
@@ -146,7 +146,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
     const replayId = await NATIVE.captureReplay(isHardCrash(event));
     if (!replayId) {
-      logger.debug(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
+      debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
       return event;
     }
 

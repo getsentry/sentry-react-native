@@ -1,5 +1,5 @@
 import type { Breadcrumb } from '@sentry/core';
-import { addBreadcrumb, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
+import { addBreadcrumb, debug, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import { startUserInteractionSpan } from './integrations/userInteraction';
 import { UI_ACTION } from './ops';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';
@@ -46,17 +46,17 @@ export function sentryTraceGesture<GestureT>(
 ): GestureT {
   const gestureCandidate = gesture as unknown as BaseGesture | undefined | null;
   if (!gestureCandidate) {
-    logger.warn('[GestureTracing] Gesture can not be undefined');
+    debug.warn('[GestureTracing] Gesture can not be undefined');
     return gesture;
   }
   if (!gestureCandidate.handlers) {
-    logger.warn(
+    debug.warn(
       '[GestureTracing] Can not wrap gesture without handlers. If you want to wrap a gesture composition wrap individual gestures.',
     );
     return gesture;
   }
   if (!label) {
-    logger.warn('[GestureTracing] Can not wrap gesture without name.');
+    debug.warn('[GestureTracing] Can not wrap gesture without name.');
     return gesture;
   }
   const name =
@@ -122,7 +122,7 @@ function addGestureBreadcrumb(
 
   addBreadcrumb(crumb);
 
-  logger.log(`[GestureTracing] ${crumb.message}`);
+  debug.log(`[GestureTracing] ${crumb.message}`);
 }
 
 /**

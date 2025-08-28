@@ -1,4 +1,4 @@
-import { getClient, logger, setCurrentClient } from '@sentry/core';
+import { debug, getClient, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Appearance, Text } from 'react-native';
@@ -20,7 +20,7 @@ const consoleWarnSpy = jest.spyOn(console, 'warn');
 const mockedIsModalSupported = isModalSupported as jest.MockedFunction<typeof isModalSupported>;
 
 beforeEach(() => {
-  logger.error = jest.fn();
+  debug.error = jest.fn();
 });
 
 describe('FeedbackWidgetManager', () => {
@@ -59,7 +59,7 @@ describe('FeedbackWidgetManager', () => {
 
     expect(queryByTestId('feedback-form-modal')).toBeNull();
     expect(getByText('App Components')).toBeTruthy();
-    expect(logger.error).toHaveBeenLastCalledWith(
+    expect(debug.error).toHaveBeenLastCalledWith(
       'FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.',
     );
   });

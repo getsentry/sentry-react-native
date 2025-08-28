@@ -1,7 +1,7 @@
 import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
-import { getCurrentScope, getGlobalScope, getIsolationScope, logger , setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
+import { debug , getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
 
-jest.spyOn(logger, 'warn');
+jest.spyOn(debug, 'warn');
 
 import * as mockWrapper from '../mockWrapper';
 
@@ -299,7 +299,7 @@ describe('TimeToDisplay', () => {
     TestRenderer.create(<TimeToInitialDisplay record={true} />);
     await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
 
-    expect(logger.warn).not.toHaveBeenCalled();
+    expect(debug.warn).not.toHaveBeenCalled();
   });
 
   test('should log a warning if in new architecture', async () => {
@@ -307,7 +307,7 @@ describe('TimeToDisplay', () => {
     TestRenderer.create(<TimeToInitialDisplay record={true} />);
     await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
 
-    expect(logger.warn).toHaveBeenCalledWith(
+    expect(debug.warn).toHaveBeenCalledWith(
       'TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
   });
 });

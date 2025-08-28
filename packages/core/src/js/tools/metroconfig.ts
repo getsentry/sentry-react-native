@@ -1,4 +1,4 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
 import * as process from 'process';
@@ -150,7 +150,7 @@ export function withSentryBabelTransformer(
   annotateReactComponents: true | { ignoredComponents?: string[] },
 ): MetroConfig {
   const defaultBabelTransformerPath = config.transformer?.babelTransformerPath;
-  logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
+  debug.log('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
 
   if (!defaultBabelTransformerPath) {
     // This has to be console.warn because the options is enabled but won't be used
@@ -272,7 +272,7 @@ export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
   const collapseSentryInternalFrames = (frame: MetroFrame): boolean =>
     typeof frame.file === 'string' &&
     (frame.file.includes('node_modules/@sentry/core/cjs/instrument.js') ||
-      frame.file.includes('node_modules/@sentry/core/cjs/logger.js'));
+      frame.file.includes('node_modules/@sentry/core/cjs/debug.js'));
 
   const customizeFrame = (frame: MetroFrame): MetroCustomizeFrameReturnValue => {
     const originalOrSentryCustomizeFrame = (

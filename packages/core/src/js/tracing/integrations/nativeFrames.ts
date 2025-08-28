@@ -1,5 +1,5 @@
 import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
-import { logger, timestampInSeconds } from '@sentry/core';
+import { debug, timestampInSeconds } from '@sentry/core';
 import type { NativeFramesResponse } from '../../NativeRNSentry';
 import { AsyncExpiringMap } from '../../utils/AsyncExpiringMap';
 import { isRootSpan } from '../../utils/span';
@@ -70,7 +70,7 @@ export const nativeFramesIntegration = (): Integration => {
    */
   const setup = (client: Client): void => {
     if (!NATIVE.enableNative) {
-      logger.warn(
+      debug.warn(
         `[${INTEGRATION_NAME}] This is not available on the Web, Expo Go and other platforms without native modules.`,
       );
       return undefined;
@@ -87,14 +87,14 @@ export const nativeFramesIntegration = (): Integration => {
     }
 
     const spanId = rootSpan.spanContext().spanId;
-    logger.debug(`[${INTEGRATION_NAME}] Fetching frames for root span start (${spanId}).`);
+    debug.log(`[${INTEGRATION_NAME}] Fetching frames for root span start (${spanId}).`);
     _spanToNativeFramesAtStartMap.set(
       spanId,
       new Promise<NativeFramesResponse | null>(resolve => {
         fetchNativeFrames()
           .then(frames => resolve(frames))
           .then(undefined, error => {
-            logger.debug(`[${INTEGRATION_NAME}] Error while fetching native frames.`, error);
+            debug.log(`[${INTEGRATION_NAME}] Error while fetching native frames.`, error);
             resolve(null);
           });
       }),
@@ -112,7 +112,7 @@ export const nativeFramesIntegration = (): Integration => {
         return;
       }
 
-      logger.debug(`[${INTEGRATION_NAME}] Fetch frames for root span end (${spanId}).`);
+      debug.log(`[${INTEGRATION_NAME}] Fetch frames for root span end (${spanId}).`);
       _spanToNativeFramesAtEndMap.set(
         spanId,
         new Promise<NativeFramesResponseWithTimestamp | null>(resolve => {
@@ -124,14 +124,14 @@ export const nativeFramesIntegration = (): Integration => {
               });
             })
             .then(undefined, error => {
-              logger.debug(`[${INTEGRATION_NAME}] Error while fetching native frames.`, error);
+              debug.log(`[${INTEGRATION_NAME}] Error while fetching native frames.`, error);
               resolve(null);
             });
         }),
       );
       return undefined;
     } else {
-      logger.debug(`[${INTEGRATION_NAME}] Fetch frames for child span end (${spanId}).`);
+      debug.log(`[${INTEGRATION_NAME}] Fetch frames for child span end (${spanId}).`);
       fetchNativeFrames()
         .then(frames => {
           _lastChildSpanEndFrames = {
@@ -139,7 +139,7 @@ export const nativeFramesIntegration = (): Integration => {
             nativeFrames: frames,
           };
         })
-        .catch(error => logger.debug(`[${INTEGRATION_NAME}] Error while fetching native frames.`, error));
+        .catch(error => debug.log(`[${INTEGRATION_NAME}] Error while fetching native frames.`, error));
     }
   };
 
@@ -159,7 +159,7 @@ export const nativeFramesIntegration = (): Integration => {
     const spanId = event.contexts.trace.span_id;
     const startFrames = await _spanToNativeFramesAtStartMap.pop(spanId);
     if (!startFrames) {
-      logger.warn(
+      debug.warn(
         `[${INTEGRATION_NAME}] Start frames of transaction ${event.transaction} (eventId, ${event.event_id}) are missing, but the transaction already ended.`,
       );
       return event;
@@ -170,15 +170,15 @@ export const nativeFramesIntegration = (): Integration => {
 
     if (endFrames && isClose(endFrames.timestamp, event.timestamp)) {
       // Must be in the margin of error of the actual transaction finish time (finalEndTimestamp)
-      logger.debug(`[${INTEGRATION_NAME}] Using frames from root span end (spanId, ${spanId}).`);
+      debug.log(`[${INTEGRATION_NAME}] Using frames from root span end (spanId, ${spanId}).`);
       finalEndFrames = endFrames.nativeFrames;
     } else if (_lastChildSpanEndFrames && isClose(_lastChildSpanEndFrames.timestamp, event.timestamp)) {
       // Fallback to the last span finish if it is within the margin of error of the actual finish timestamp.
       // This should be the case for trimEnd.
-      logger.debug(`[${INTEGRATION_NAME}] Using native frames from last child span end (spanId, ${spanId}).`);
+      debug.log(`[${INTEGRATION_NAME}] Using native frames from last child span end (spanId, ${spanId}).`);
       finalEndFrames = _lastChildSpanEndFrames.nativeFrames;
     } else {
-      logger.warn(
+      debug.warn(
         `[${INTEGRATION_NAME}] Frames were collected within larger than margin of error delay for spanId (${spanId}). Dropping the inaccurate values.`,
       );
       return event;
@@ -204,13 +204,13 @@ export const nativeFramesIntegration = (): Integration => {
       measurements.frames_slow.value <= 0 &&
       measurements.frames_total.value <= 0
     ) {
-      logger.warn(
+      debug.warn(
         `[${INTEGRATION_NAME}] Detected zero slow or frozen frames. Not adding measurements to spanId (${spanId}).`,
       );
       return event;
     }
 
-    logger.log(
+    debug.log(
       `[${INTEGRATION_NAME}] Adding measurements to ${traceOp} transaction ${event.transaction}: ${JSON.stringify(
         measurements,
         undefined,
