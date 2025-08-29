@@ -24,6 +24,11 @@ user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` optio
 
 We apologize for any inconvenience caused!
 
+### Fixes
+
+- Fix Expo prebuild failed on cached builds ([#5098](https://github.com/getsentry/sentry-react-native/pull/5098))
+- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
+
 ### Dependencies
 
 - Bump CLI from v2.51.1 to v2.52.0 ([#5075](https://github.com/getsentry/sentry-react-native/pull/5075))
@@ -32,11 +37,6 @@ We apologize for any inconvenience caused!
 - Bump Bundler Plugins from v4.1.1 to v4.2.0 ([#5113](https://github.com/getsentry/sentry-react-native/pull/5113))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#420)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.1.1...4.2.0)
-
-## Fixes
-
-- Fix Expo prebuild failed on cached builds ([#5098](https://github.com/getsentry/sentry-react-native/pull/5098))
-- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
 
 ## 6.20.0
 
