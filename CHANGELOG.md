@@ -10,7 +10,7 @@
 
 ### Important Changes
 
-- Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`** ([#5111](https://github.com/getsentry/sentry-react-native/pull/5111))
+- Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5111](https://github.com/getsentry/sentry-react-native/pull/5111))
 
 This release includes a fix for a [behaviour change](https://docs.sentry.io/platforms/javascript/migration/v8-to-v9/#behavior-changes)
 that was originally introduced with v9 of the JavaScript SDK included in v7.0.0-beta.0: User IP Addresses should only be added to Sentry events automatically,
