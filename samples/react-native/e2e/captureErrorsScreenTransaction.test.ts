@@ -42,6 +42,7 @@ describe('Capture Errors Screen Transaction', () => {
         type: 'transaction',
       }),
       expect.objectContaining({
+        breadcrumbs: expect.anything(),
         platform: 'javascript',
         transaction: 'ErrorsScreen',
         contexts: expect.objectContaining({
@@ -75,6 +76,7 @@ describe('Capture Errors Screen Transaction', () => {
 
     expect(item?.[1]).toEqual(
       expect.objectContaining({
+        breadcrumbs: expect.anything(),
         measurements: expect.objectContaining({
           time_to_initial_display: {
             unit: 'millisecond',
