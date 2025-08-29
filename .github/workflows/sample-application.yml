@@ -135,14 +135,6 @@ jobs:
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
-
-          # Set preprocessor flags for dev builds
-          if [[ "${{ matrix.build-type }}" == "dev" ]]; then
-            EXTRA_FLAGS="GCC_PREPROCESSOR_DEFINITIONS=\$(inherited) SDK_V9=0"
-          else
-            EXTRA_FLAGS=""
-          fi
-
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
           set -o pipefail && xcodebuild \
@@ -153,7 +145,6 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             ONLY_ACTIVE_ARCH=yes \
             -derivedDataPath "$derivedData" \
-            $EXTRA_FLAGS \
             build \
             | tee xcodebuild.log \
             | xcbeautify --quieter --is-ci --disable-colored-output
