@@ -6,9 +6,19 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 7.0.0-rc.2
 
-## Features
+### Important Changes
+
+- Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5111](https://github.com/getsentry/sentry-react-native/pull/5111))
+
+This release includes a fix for a [behaviour change](https://docs.sentry.io/platforms/javascript/migration/v8-to-v9/#behavior-changes)
+that was originally introduced with v9 of the JavaScript SDK included in v7.0.0-beta.0: User IP Addresses should only be added to Sentry events automatically,
+if `sendDefaultPii` was set to `true`.
+
+We apologize for any inconvenience caused!
+
+### Features
 
 - Logs now contains more attributes like release, os and device information ([#5032](https://github.com/getsentry/sentry-react-native/pull/5032))
 
