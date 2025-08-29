@@ -27,12 +27,12 @@ const TrackerScreen = () => {
   const loadData = async () => {
     setCases(null);
 
-    await Sentry.startSpan(
+    await Sentry.startSpanManual(
       {
         name: 'Fetch Covid19 data from API',
         op: 'http',
       },
-      async (span: Span | undefined) => {
+      async (span: Span) => {
         const response = await fetch('https://api.covid19api.com/summary', {
           method: 'GET',
           headers: {
@@ -44,13 +44,13 @@ const TrackerScreen = () => {
           response.json(),
         );
         setCases(json.Global);
-        span?.setData('json', json);
+        span.setAttribute('json', json);
       },
     );
   };
 
   React.useEffect(() => {
-    Sentry.getActiveSpan()?.finish();
+    Sentry.getActiveSpan()?.end();
     Sentry.startSpan(
       {
         name: 'Manual Tracker',

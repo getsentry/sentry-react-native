@@ -2,6 +2,7 @@ package io.sentry.reactnative.sample;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -66,9 +67,9 @@ public class SamplePackage implements ReactPackage {
           }
 
           @ReactMethod
-          public int crashOrNumber() {
+          public void crashOrNumber(Promise promise) {
             this.crashNow();
-            return 42;
+            promise.resolve(42);
           }
 
           private void crashNow() {

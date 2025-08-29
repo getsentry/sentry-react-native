@@ -15,14 +15,11 @@ const PerformanceTimingScreen = () => {
   const [dateTime, setDateTime] = React.useState(0);
 
   React.useEffect(() => {
-    // @ts-expect-error
     if (typeof global.performance !== 'undefined') {
       initialDate.current = Date.now();
-      // @ts-expect-error
       initialPerformance.current = global.performance.now();
 
       const interval = setInterval(() => {
-        // @ts-expect-error
         setPerformanceTime(global.performance.now());
         setDateTime(Date.now());
       }, 1000);
