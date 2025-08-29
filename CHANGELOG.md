@@ -8,11 +8,38 @@
 
 ## Unreleased
 
+### Important Changes
+
+- **fix(browser): Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`** ([#5092](https://github.com/getsentry/sentry-react-native/pull/5092))
+
+This release includes a fix for a [behaviour change](https://docs.sentry.io/platforms/javascript/migration/v8-to-v9/#behavior-changes)
+that was originally introduced with v9 of the JavaScript SDK: User IP Addresses should only be added to Sentry events automatically,
+if `sendDefaultPii` was set to `true`.
+
+However, the change in v9 required further internal adjustment, which should have been included in v10 of the SDK.
+To avoid making a major bump, the fix was patched on the current version and not by bumping to V10.
+There is _no API_ breakage involved and hence it is safe to update.
+However, after updating the SDK, events (errors, traces, replays, etc.) sent from the browser, will only include
+user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` options.
+
+We apologize for any inconvenience caused!
+
 ### Dependencies
 
+- Bump CLI from v2.51.1 to v2.52.0 ([#5075](https://github.com/getsentry/sentry-react-native/pull/5075))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2520)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.51.1...2.52.0)
+- Bump Bundler Plugins from v4.1.1 to v4.2.0 ([#5113](https://github.com/getsentry/sentry-react-native/pull/5113))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#420)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.1.1...4.2.0)
 - Bump Cocoa SDK from v8.53.2 to v8.55.0 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8550)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.55.0)
+
+## Fixes
+
+- Fix Expo prebuild failed on cached builds ([#5098](https://github.com/getsentry/sentry-react-native/pull/5098))
+- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
 
 ## 6.20.0
 
