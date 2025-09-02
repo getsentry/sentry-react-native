@@ -10,7 +10,7 @@
 
 ### Important Changes
 
-- The `_experiments.enableLogs` and `_experiments.beforeSendLog` options were removed, use the top-level `enableLogs` and `beforeSendLog` options instead.
+- The `_experiments.enableLogs` and `_experiments.beforeSendLog` options were removed, use the top-level `enableLogs` and `beforeSendLog` options instead. ([#5122](https://github.com/getsentry/sentry-react-native/pull/5122))
 
 ```js
 // before
