@@ -4,19 +4,19 @@ import * as path from 'path';
 import { warnOnce, writeSentryPropertiesTo } from './utils';
 
 export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties: string) => {
-  const cfg = withAppBuildGradle(config, config => {
-    if (config.modResults.language === 'groovy') {
-      config.modResults.contents = modifyAppBuildGradle(config.modResults.contents);
+  const cfg = withAppBuildGradle(config, appBuildGradle => {
+    if (appBuildGradle.modResults.language === 'groovy') {
+      appBuildGradle.modResults.contents = modifyAppBuildGradle(appBuildGradle.modResults.contents);
     } else {
       throw new Error('Cannot configure Sentry in the app gradle because the build.gradle is not groovy');
     }
-    return config;
+    return appBuildGradle;
   });
   return withDangerousMod(cfg, [
     'android',
-    config => {
-      writeSentryPropertiesTo(path.resolve(config.modRequest.projectRoot, 'android'), sentryProperties);
-      return config;
+    dangerousMod => {
+      writeSentryPropertiesTo(path.resolve(dangerousMod.modRequest.projectRoot, 'android'), sentryProperties);
+      return dangerousMod;
     },
   ]);
 };

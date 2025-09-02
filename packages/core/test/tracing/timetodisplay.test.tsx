@@ -11,14 +11,13 @@ import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
+import { render } from '@testing-library/react-native';
 import * as React from 'react';
-import * as TestRenderer from 'react-test-renderer';
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME , SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
-import { isTurboModuleEnabled } from '../../src/js/utils/environment';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
 
@@ -69,7 +68,7 @@ describe('TimeToDisplay', () => {
       },
        (activeSpan: Span | undefined) => {
         startTimeToInitialDisplaySpan();
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
         mockRecordedTimeToDisplay({
           ttid: {
             [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
@@ -98,8 +97,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -131,7 +130,7 @@ describe('TimeToDisplay', () => {
       },
       (activeSpan: Span | undefined) => {
         startTimeToFullDisplaySpan();
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttfd: {
@@ -161,7 +160,7 @@ describe('TimeToDisplay', () => {
         startTime: secondAgoTimestampMs(),
       },
       (activeSpan: Span | undefined) => {
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -191,8 +190,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -226,8 +225,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -266,8 +265,7 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
-
+        const timeToDisplayComponent = render(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
         timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
 
         mockRecordedTimeToDisplay({
@@ -294,24 +292,6 @@ describe('TimeToDisplay', () => {
 
     expect(getInitialDisplaySpanJSON(client.event!.spans!)!.timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
     expect(getFullDisplaySpanJSON(client.event!.spans!)!.timestamp).toEqual(initialDisplayEndTimestampMs / 1_000);
-  });
-
-  test('should not log a warning if native component exists and not in new architecture', async () => {
-    (isTurboModuleEnabled as jest.Mock).mockReturnValue(false);
-
-    TestRenderer.create(<TimeToInitialDisplay record={true} />);
-    await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
-
-    expect(debug.warn).not.toHaveBeenCalled();
-  });
-
-  test('should log a warning if in new architecture', async () => {
-    (isTurboModuleEnabled as jest.Mock).mockReturnValue(true);
-    TestRenderer.create(<TimeToInitialDisplay record={true} />);
-    await jest.runOnlyPendingTimersAsync(); // Flush setTimeout.
-
-    expect(debug.warn).toHaveBeenCalledWith(
-      'TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
   });
 });
 

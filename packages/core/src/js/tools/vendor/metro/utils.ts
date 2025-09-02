@@ -26,13 +26,38 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as baseJSBundle from 'metro/src/DeltaBundler/Serializers/baseJSBundle';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as sourceMapString from 'metro/src/DeltaBundler/Serializers/sourceMapString';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as bundleToString from 'metro/src/lib/bundleToString';
+import type * as baseJSBundleType from 'metro/private/DeltaBundler/Serializers/baseJSBundle';
+import type * as sourceMapStringType from 'metro/private/DeltaBundler/Serializers/sourceMapString';
+import type * as bundleToStringType from 'metro/private/lib/bundleToString';
 import type { MetroSerializer } from '../../utils';
+
+let baseJSBundle: typeof baseJSBundleType;
+try {
+  baseJSBundle = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
+} catch (e) {
+  baseJSBundle = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
+}
+
+let sourceMapString: typeof sourceMapStringType;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const sourceMapStringModule = require('metro/private/DeltaBundler/Serializers/sourceMapString');
+  sourceMapString = (sourceMapStringModule as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
+} catch (e) {
+  sourceMapString = require('metro/src/DeltaBundler/Serializers/sourceMapString');
+  if ('sourceMapString' in sourceMapString) {
+    // Changed to named export in https://github.com/facebook/metro/commit/34148e61200a508923315fbe387b26d1da27bf4b
+    // Metro 0.81.0 and 0.80.10 patch
+    sourceMapString = (sourceMapString as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
+  }
+}
+
+let bundleToString: typeof bundleToStringType;
+try {
+  bundleToString = require('metro/private/lib/bundleToString');
+} catch (e) {
+  bundleToString = require('metro/src/lib/bundleToString');
+}
 
 type NewSourceMapStringExport = {
   // Since Metro v0.80.10 https://github.com/facebook/metro/compare/v0.80.9...v0.80.10#diff-1b836d1729e527a725305eef0cec22e44605af2700fa413f4c2489ea1a03aebcL28

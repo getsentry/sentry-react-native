@@ -2,12 +2,9 @@ import type { Span,StartSpanOptions  } from '@sentry/core';
 import { debug, fill, getActiveSpan, getSpanDescendants, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import * as React from 'react';
 import { useState } from 'react';
-import { isTurboModuleEnabled } from '../utils/environment';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
-import { getRNSentryOnDrawReporter, nativeComponentExists } from './timetodisplaynative';
+import { getRNSentryOnDrawReporter } from './timetodisplaynative';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
-
-let nativeComponentMissingLogged = false;
 
 /**
  * Flags of active spans with manual initial display.
@@ -61,17 +58,6 @@ function TimeToDisplay(props: {
   parentSpanId?: string;
 }): React.ReactElement {
   const RNSentryOnDrawReporter = getRNSentryOnDrawReporter();
-  const isNewArchitecture = isTurboModuleEnabled();
-
-  if (__DEV__ && (isNewArchitecture || (!nativeComponentExists && !nativeComponentMissingLogged))){
-    nativeComponentMissingLogged = true;
-    // Using setTimeout with a delay of 0 milliseconds to defer execution and avoid printing the React stack trace.
-    setTimeout(() => {
-      debug.warn(
-          'TimeToInitialDisplay and TimeToFullDisplay are not supported on the web, Expo Go and New Architecture. Run native build or report an issue at https://github.com/getsentry/sentry-react-native');
-    }, 0);
-  }
-
   return (
     <>
       <RNSentryOnDrawReporter

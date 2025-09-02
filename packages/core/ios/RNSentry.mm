@@ -20,7 +20,6 @@
 #import "RNSentryId.h"
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
-#import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryBreadcrumb.h>
 #import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <Sentry/SentryDebugMeta.h>
@@ -30,6 +29,7 @@
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryOptions.h>
 #import <Sentry/SentryUser.h>
+
 #if __has_include(<Sentry/SentryOptions+HybridSDKs.h>)
 #    define USE_SENTRY_OPTIONS 1
 #    import <Sentry/SentryOptions+HybridSDKs.h>
@@ -436,85 +436,6 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
 {
     NSString *packageName = [[NSBundle mainBundle] executablePath];
     return packageName;
-}
-
-- (NSDictionary *)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
-                               symbolicate:(SymbolicateCallbackType)symbolicate
-{
-#if CROSS_PLATFORM_TEST
-    BOOL shouldSymbolicateLocally = [SentrySDKInternal.options debug];
-#else
-    BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
-#endif
-    NSString *appPackageName = [[NSBundle mainBundle] executablePath];
-
-    NSMutableSet<NSString *> *_Nonnull imagesAddrToRetrieveDebugMetaImages =
-        [[NSMutableSet alloc] init];
-    NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedFrames =
-        [[NSMutableArray alloc] init];
-
-    for (NSNumber *addr in instructionsAddr) {
-        SentryBinaryImageInfo *_Nullable image = [[[SentryDependencyContainer sharedInstance]
-            binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
-        if (image != nil) {
-            NSString *imageAddr = sentry_formatHexAddressUInt64([image address]);
-            [imagesAddrToRetrieveDebugMetaImages addObject:imageAddr];
-
-            NSDictionary<NSString *, id> *_Nonnull nativeFrame = @{
-                @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
-                @"package" : [image name],
-                @"image_addr" : imageAddr,
-                @"in_app" : [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
-            };
-
-            if (shouldSymbolicateLocally) {
-                Dl_info symbolsBuffer;
-                bool symbols_succeed = false;
-                symbols_succeed
-                    = symbolicate((void *)[addr unsignedLongLongValue], &symbolsBuffer) != 0;
-                if (symbols_succeed) {
-                    NSMutableDictionary<NSString *, id> *_Nonnull symbolicated
-                        = nativeFrame.mutableCopy;
-                    symbolicated[@"symbol_addr"]
-                        = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
-                    symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname
-                                                                   encoding:NSUTF8StringEncoding];
-
-                    nativeFrame = symbolicated;
-                }
-            }
-
-            [serializedFrames addObject:nativeFrame];
-        } else {
-            [serializedFrames addObject:@{
-                @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
-            }];
-        }
-    }
-
-    if (shouldSymbolicateLocally) {
-        return @{
-            @"frames" : serializedFrames,
-        };
-    } else {
-        NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedDebugMetaImages =
-            [[NSMutableArray alloc] init];
-
-        NSArray<SentryDebugMeta *> *debugMetaImages =
-            [[[SentryDependencyContainer sharedInstance] debugImageProvider]
-                getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
-
-        for (SentryDebugMeta *debugImage in debugMetaImages) {
-            [serializedDebugMetaImages addObject:[debugImage serialize]];
-        }
-
-        return @{
-            @"frames" : serializedFrames,
-            @"debugMetaImages" : serializedDebugMetaImages,
-        };
-    }
 }
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
@@ -964,7 +885,15 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
 {
 #if SENTRY_PROFILING_ENABLED
     try {
+#    ifdef NEW_HERMES_RUNTIME
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
+        if (hermesAPI) {
+            hermesAPI->enableSamplingProfiler();
+        }
+#    else
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
+#    endif
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0 && platformProfilers) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [RNSentryId newId];
@@ -1024,10 +953,19 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         nativeProfileTraceId = nil;
         nativeProfileStartTime = 0;
 
-        facebook::hermes::HermesRuntime::disableSamplingProfiler();
         std::stringstream ss;
+#    ifdef NEW_HERMES_RUNTIME
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
+        if (hermesAPI) {
+            hermesAPI->disableSamplingProfiler();
+            hermesAPI->dumpSampledTraceToStream(ss);
+        }
+#    else
+        facebook::hermes::HermesRuntime::disableSamplingProfiler();
         // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
         facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
+#    endif
 
         std::string s = ss.str();
         NSString *data = [NSString stringWithCString:s.c_str()

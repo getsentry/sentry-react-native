@@ -1,5 +1,5 @@
 import type { Module } from 'metro';
-import * as countLines from 'metro/src/lib/countLines';
+import * as countLines from 'metro/private/lib/countLines';
 import type { VirtualJSOutput } from '../../src/js/tools/utils';
 import { createSet, getExpoConfig, prependModule } from '../../src/js/tools/utils';
 
