@@ -8,6 +8,12 @@
 
 ## 7.0.0
 
+### Upgrading from 6.x to 7.0
+
+Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes based on the Sentry Javascript SDK versions 9 and 10. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
+
+Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
+
 ### Major Changes
 
 - Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5111](https://github.com/getsentry/sentry-react-native/pull/5111))
