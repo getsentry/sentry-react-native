@@ -82,11 +82,11 @@ Sentry.init({
     );
   },
   _experiments: {
-    enableLogs: true,
-    beforeSendLog: (log) => {
-      return log;
-    },
     enableUnhandledCPPExceptionsV2: true,
+  },
+  enableLogs: true,
+  beforeSendLog: (log) => {
+    return log;
   },
   enableUserInteractionTracing: true,
   integrations(integrations) {

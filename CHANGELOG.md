@@ -6,6 +6,32 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Important Changes
+
+- The `_experiments.enableLogs` and `_experiments.beforeSendLog` options were removed, use the top-level `enableLogs` and `beforeSendLog` options instead. ([#5122](https://github.com/getsentry/sentry-react-native/pull/5122))
+
+```js
+// before
+Sentry.init({
+  _experiments: {
+    enableLogs: true,
+    beforeSendLog: log => {
+      return log;
+    },
+  },
+});
+
+// after
+Sentry.init({
+  enableLogs: true,
+  beforeSendLog: log => {
+    return log;
+  },
+});
+```
+
 ## 7.0.0-rc.2
 
 ### Important Changes
