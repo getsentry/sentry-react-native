@@ -12,7 +12,7 @@
 
 Version 7 of the Sentry React Native SDK primarily introduces API cleanup and version support changes based on the Sentry Javascript SDK versions 9 and 10. This update contains behavioral changes that will not be caught by type checkers, linters, or tests, so we recommend carefully reading through the entire migration guide instead of relying on automatic tooling.
 
-Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or higher (unchanged from v6). Lower versions may continue to work, but may not support all features.
+Version 7 of the SDK is compatible with Sentry self-hosted versions 25.2.0 or higher (up from 24.4.2 for v6). Lower versions may continue to work, but may not support all features.
 
 ### Major Changes
 
