@@ -32,6 +32,12 @@ Sentry.init({
 });
 ```
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.7.0 to v10.8.0 ([#5123](https://github.com/getsentry/sentry-react-native/pull5123))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#1080)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.7.0...10.8.0)
+
 ## 7.0.0-rc.2
 
 ### Important Changes
