@@ -284,7 +284,7 @@ public class RNSentryModuleImpl {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
     if (rnOptions.hasKey("enableLogs")) {
-        options.getLogs().setEnabled(rnOptions.getBoolean("enableLogs"));
+      options.getLogs().setEnabled(rnOptions.getBoolean("enableLogs"));
     }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
