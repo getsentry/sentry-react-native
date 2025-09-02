@@ -127,9 +127,8 @@ example:
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2530)
 - Bump Bundler Plugins to v4.2.0 ([#5113](https://github.com/getsentry/sentry-react-native/pull/5113), [#4805](https://github.com/getsentry/sentry-react-native/pull/4805))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#340)
-- Bump Cocoa SDK from v8.49.2 to v8.50.0 ([#4807](https://github.com/getsentry/sentry-react-native/pull/4807))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8500)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.49.2...8.50.0)
+- Bump Cocoa SDK to v8.53.2 ([#4986](https://github.com/getsentry/sentry-react-native/pull/4986))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8532)
 
 ## 7.0.0-rc.2
 
@@ -166,6 +165,9 @@ We apologize for any inconvenience caused!
 
 ### Dependencies
 
+- Bump Cocoa SDK from v8.53.1 to v8.53.2 ([#4986](https://github.com/getsentry/sentry-react-native/pull/4986))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8532)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.1...8.53.2)
 - Bump CLI from v2.47.0 to v2.50.2 ([#5007](https://github.com/getsentry/sentry-react-native/pull/5007))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2502)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.47.0...2.50.2)
@@ -215,6 +217,9 @@ example:
 - Bump Android SDK from v8.14.0 to v8.17.0 ([#4953](https://github.com/getsentry/sentry-react-native/pull/4953), [#4955](https://github.com/getsentry/sentry-react-native/pull/4955), [#4987](https://github.com/getsentry/sentry-react-native/pull/4987))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8170)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.14.0...8.17.0)
+- Bump Cocoa SDK from v8.52.1 to v8.53.1 ([#4950](https://github.com/getsentry/sentry-react-native/pull/4950))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8531)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.52.1...8.53.1)
 - Bump CLI from v2.46.0 to v2.47.0 ([#4979](https://github.com/getsentry/sentry-react-native/pull/4979))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2470)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.46.0...2.47.0)
@@ -302,6 +307,9 @@ Sentry.init({
 - Bump Android SDK from v8.13.2 to v8.14.0 ([#4929](https://github.com/getsentry/sentry-react-native/pull/4929), [#4934](https://github.com/getsentry/sentry-react-native/pull/4934))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8140)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.13.2...8.14.0)
+- Bump Cocoa SDK from v8.52.0 to v8.52.1 ([#4899](https://github.com/getsentry/sentry-react-native/pull/4899))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8521)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.52.0...8.52.1)
 
 ## 7.0.0-beta.0
 
@@ -361,6 +369,9 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Bump Android SDK from v7.20.1 to v8.13.2 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
+- Bump Cocoa SDK from v8.50.0 to v8.52.0 ([#4887](https://github.com/getsentry/sentry-react-native/pull/4887))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8520)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.50.0...8.52.0)
 - Bump CLI from v2.43.0 to v2.46.0 ([#4866]([???](https://github.com/getsentry/sentry-react-native/pull/4866)))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2460)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.43.0...2.46.0)
