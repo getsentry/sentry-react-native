@@ -40,22 +40,6 @@ import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environ
 import * as ImagePicker from 'react-native-image-picker';
 import SpaceflightNewsScreen from './Screens/SpaceflightNewsScreen';
 
-type HiddenBoolean = boolean & { readonly __hidden?: unique symbol };
-interface test {
-  /** @internal dont use for now */
-  boom: boolean
-}
-
-let x: test = {
-
-
-
- };
-
-
-
-test.boom;
-
 /* false by default to avoid issues in e2e tests waiting for the animation end */
 const RUNNING_INDICATOR = false;
 
