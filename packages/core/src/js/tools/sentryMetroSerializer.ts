@@ -1,31 +1,28 @@
 import * as crypto from 'crypto';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
-import type * as countLinesType from 'metro/private/lib/countLines';
-
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
-import { createDebugIdSnippet, createSet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
+import {
+  createDebugIdSnippet,
+  createVirtualJSModule,
+  determineDebugIdFromBundleSource,
+  prependModule,
+  stringToUUID,
+} from './utils';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';
-
-let countLines: typeof countLinesType;
-try {
-  countLines = require('metro/private/lib/countLines');
-} catch (e) {
-  countLines = require('metro/src/lib/countLines');
-}
 
 type SourceMap = Record<string, unknown>;
 
 const DEBUG_ID_PLACE_HOLDER = '__debug_id_place_holder__';
 const DEBUG_ID_MODULE_PATH = '__debugid__';
-const PRELUDE_MODULE_PATH = '__prelude__';
+
 const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
 
 /**
  * Adds Sentry Debug ID polyfill module to the bundle.
  */
-export function unstable_beforeAssetSerializationPlugin({
+export function unstableBeforeAssetSerializationDebugIdPlugin({
   premodules,
   debugId,
 }: {
@@ -45,7 +42,7 @@ export function unstable_beforeAssetSerializationPlugin({
   }
 
   const debugIdModule = createDebugIdModule(debugId);
-  return [...addDebugIdModule(premodules, debugIdModule)];
+  return prependModule(premodules, debugIdModule);
 }
 
 /**
@@ -70,7 +67,7 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
 
     const debugIdModule = createDebugIdModule(DEBUG_ID_PLACE_HOLDER);
     options.sentryBundleCallback = createSentryBundleCallback(debugIdModule);
-    const modifiedPreModules = addDebugIdModule(preModules, debugIdModule);
+    const modifiedPreModules = prependModule(preModules, debugIdModule);
 
     // Run wrapped serializer
     const serializerResult = serializer(entryPoint, modifiedPreModules, graph, options);
@@ -127,25 +124,6 @@ function createSentryBundleCallback(debugIdModule: Module<VirtualJSOutput> & { s
   };
 }
 
-function addDebugIdModule(
-  preModules: readonly Module<MixedOutput>[],
-  debugIdModule: Module<VirtualJSOutput>,
-): readonly Module<MixedOutput>[] {
-  const modifiedPreModules = [...preModules];
-  if (
-    modifiedPreModules.length > 0 &&
-    modifiedPreModules[0] !== undefined &&
-    modifiedPreModules[0].path === PRELUDE_MODULE_PATH
-  ) {
-    // prelude module must be first as it measures the bundle startup time
-    modifiedPreModules.unshift(preModules[0] as Module<VirtualJSOutput>);
-    modifiedPreModules[1] = debugIdModule;
-  } else {
-    modifiedPreModules.unshift(debugIdModule);
-  }
-  return modifiedPreModules;
-}
-
 async function extractSerializerResult(serializerResult: MetroSerializerOutput): Promise<SerializedBundle> {
   if (typeof serializerResult === 'string') {
     return { code: serializerResult, map: '{}' };
@@ -164,27 +142,7 @@ async function extractSerializerResult(serializerResult: MetroSerializerOutput):
 }
 
 function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSource: (code: string) => void } {
-  let debugIdCode = createDebugIdSnippet(debugId);
-
-  return {
-    setSource: (code: string) => {
-      debugIdCode = code;
-    },
-    dependencies: new Map(),
-    getSource: () => Buffer.from(debugIdCode),
-    inverseDependencies: createSet(),
-    path: DEBUG_ID_MODULE_PATH,
-    output: [
-      {
-        type: 'js/script/virtual',
-        data: {
-          code: debugIdCode,
-          lineCount: countLines(debugIdCode),
-          map: [],
-        },
-      },
-    ],
-  };
+  return createVirtualJSModule(DEBUG_ID_MODULE_PATH, createDebugIdSnippet(debugId));
 }
 
 function calculateDebugId(bundle: Bundle): string {

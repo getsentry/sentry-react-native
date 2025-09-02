@@ -9,7 +9,6 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { LogBox } from 'react-native';
-import { isWeb } from '../utils/isWeb';
 import * as ImagePicker from 'expo-image-picker';
 import { withSentryPlayground } from '@sentry/react-native/playground';
 
@@ -58,6 +57,15 @@ Sentry.init({
       }),
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllText: true,
+        maskAllVectors: true,
+      }),
+      Sentry.browserReplayIntegration({
+        maskAllInputs: true,
+        maskAllText: true,
+      }),
       Sentry.feedbackIntegration({
         enableScreenshot: true,
         enableTakeScreenshot: true,
@@ -71,16 +79,11 @@ Sentry.init({
         },
       }),
     );
-    if (isWeb()) {
-      integrations.push(Sentry.browserReplayIntegration());
-    }
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
-  // This will capture ALL TRACES and likely use up all your quota
-  enableTracing: true,
   tracesSampleRate: 1.0,
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
   attachStacktrace: true,

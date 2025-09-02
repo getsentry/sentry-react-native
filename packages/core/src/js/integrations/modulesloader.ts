@@ -1,6 +1,5 @@
 import type { Event, Integration } from '@sentry/core';
-import { logger } from '@sentry/core';
-
+import { debug } from '@sentry/core';
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'ModulesLoader';
@@ -25,7 +24,7 @@ function createProcessEvent(): (event: Event) => Promise<Event> {
       try {
         modules = await NATIVE.fetchModules();
       } catch (e) {
-        logger.log(`Failed to get modules from native: ${e}`);
+        debug.log(`Failed to get modules from native: ${e}`);
       }
       isSetup = true;
     }

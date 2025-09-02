@@ -1,5 +1,4 @@
-import { RN_GLOBAL_OBJ } from '../utils/worldwide';
-import { utf8ToBytes } from '../vendor';
+import { encodeUTF8 } from '../utils/encode';
 
 /** Convert a Content-Length header to number/undefined. */
 export function parseContentLengthHeader(header: string | null | undefined): number | undefined {
@@ -21,16 +20,16 @@ export function getBodySize(body: RequestBody): number | undefined {
 
   try {
     if (typeof body === 'string') {
-      return _encode(body).length;
+      return encodeUTF8(body).length;
     }
 
     if (body instanceof URLSearchParams) {
-      return _encode(body.toString()).length;
+      return encodeUTF8(body.toString()).length;
     }
 
     if (body instanceof FormData) {
       const formDataStr = _serializeFormData(body);
-      return _encode(formDataStr).length;
+      return encodeUTF8(formDataStr).length;
     }
 
     if (body instanceof Blob) {
@@ -47,13 +46,6 @@ export function getBodySize(body: RequestBody): number | undefined {
   }
 
   return undefined;
-}
-
-function _encode(input: string): number[] | Uint8Array {
-  if (RN_GLOBAL_OBJ.TextEncoder) {
-    return new RN_GLOBAL_OBJ.TextEncoder().encode(input);
-  }
-  return utf8ToBytes(input);
 }
 
 function _serializeFormData(formData: FormData): string {

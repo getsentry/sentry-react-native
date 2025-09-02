@@ -1,5 +1,4 @@
 import type { Breadcrumb } from '@sentry/core';
-
 import { enrichXhrBreadcrumbsForMobileReplay } from '../../src/js/replay/xhrUtils';
 
 describe('xhrUtils', () => {

@@ -1,17 +1,17 @@
 import type { BaseTransportOptions, Breadcrumb, BreadcrumbHint, ClientOptions, Integration, Scope } from '@sentry/core';
-import { initAndBind, logger } from '@sentry/core';
+import { debug, initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-
 import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
+import { RN_GLOBAL_OBJ } from '../src/js/utils/worldwide';
 import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
 
-jest.spyOn(logger, 'error');
+jest.spyOn(debug, 'error');
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
 jest.mock('../src/js/utils/environment');
 jest.mock('@sentry/core', () => ({
@@ -137,6 +137,45 @@ describe('Tests the SDK functionality', () => {
           environment: undefined,
         });
         expect(usedOptions()?.environment).toBe(undefined);
+      });
+    });
+
+    describe('release', () => {
+      afterEach(() => {
+        (notWeb as jest.Mock).mockReset();
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = undefined;
+      });
+
+      it('uses release from global for web', () => {
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = {
+          name: 'test',
+          version: '1.0.0',
+        };
+        (notWeb as jest.Mock).mockImplementation(() => false);
+        init({});
+        expect(usedOptions()?.release).toEqual('test@1.0.0');
+      });
+
+      it('uses release from options for web', () => {
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = {
+          name: 'test',
+          version: '1.0.0',
+        };
+        (notWeb as jest.Mock).mockImplementation(() => false);
+        init({
+          release: 'custom@2.0.0',
+        });
+        expect(usedOptions()?.release).toEqual('custom@2.0.0');
+      });
+
+      it('uses undefined for others', () => {
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = {
+          name: 'test',
+          version: '1.0.0',
+        };
+        (notWeb as jest.Mock).mockImplementation(() => true);
+        init({});
+        expect(usedOptions()?.release).toBeUndefined();
       });
     });
 
@@ -620,6 +659,36 @@ describe('Tests the SDK functionality', () => {
       expectIntegration('HermesProfiling');
     });
 
+    it('adds browserSessionIntegration on web when enableAutoSessionTracking is set true', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({ enableAutoSessionTracking: true });
+
+      expectIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on web when enableAutoSessionTracking is set false', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({ enableAutoSessionTracking: false });
+
+      expectNotIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on web when enableAutoSessionTracking is not set', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({});
+
+      expectNotIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on mobile', () => {
+      init({ enableAutoSessionTracking: true });
+
+      expectNotIntegration('BrowserSession');
+    });
+
     it('no spotlight integration by default', () => {
       init({});
 
@@ -649,6 +718,15 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('AppStart');
     });
 
+    it('when tracing enabled app start without native (on web, Expo Go) integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableNative: false,
+      });
+
+      expectNotIntegration('AppStart');
+    });
+
     it('no native frames integration by default', () => {
       init({});
 
@@ -667,6 +745,15 @@ describe('Tests the SDK functionality', () => {
       init({
         tracesSampleRate: 0.5,
         enableNativeFramesTracking: false,
+      });
+
+      expectNotIntegration('NativeFrames');
+    });
+
+    it('when tracing enabled (on web, Expo Go) native frames integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableNative: false,
       });
 
       expectNotIntegration('NativeFrames');

@@ -1,5 +1,4 @@
-import { type DeviceContext, type Event, type Integration, type OsContext, logger } from '@sentry/core';
-
+import { type DeviceContext, type Event, type Integration, type OsContext, debug } from '@sentry/core';
 import type { ReactNativeClient } from '../client';
 import { isExpo, isExpoGo } from '../utils/environment';
 import { getExpoDevice, getExpoUpdates } from '../utils/expomodules';
@@ -34,7 +33,7 @@ export const expoContextIntegration = (): Integration => {
       // Ensures native errors and crashes have the same context as JS errors
       NATIVE.setContext(OTA_UPDATES_CONTEXT_KEY, expoUpdates);
     } catch (error) {
-      logger.error('Error setting Expo updates context:', error);
+      debug.error('Error setting Expo updates context:', error);
     }
   }
 

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { NativeEventSubscription} from 'react-native';
 import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
-
 import type { Screenshot } from '../wrapper';
 import { NATIVE } from '../wrapper';
 import { defaultScreenshotButtonConfiguration } from './defaults';
@@ -38,7 +37,7 @@ export const getCapturedScreenshot = (): Screenshot | 'ErrorCapturingScreenshot'
  * Implements a screenshot button that takes a screenshot.
  */
 export class ScreenshotButton extends React.Component<ScreenshotButtonProps> {
-  private _themeListener: NativeEventSubscription;
+  private _themeListener: NativeEventSubscription | undefined;
 
   public constructor(props: ScreenshotButtonProps) {
     super(props);
@@ -78,7 +77,7 @@ export class ScreenshotButton extends React.Component<ScreenshotButtonProps> {
     return (
       <TouchableOpacity
         style={styles.triggerButton}
-        onPress={ takeScreenshot }
+        onPress={takeScreenshot}
         accessibilityLabel={text.triggerAriaLabel}
       >
         <Image source={{ uri: screenshotIcon }} style={styles.triggerIcon}/>

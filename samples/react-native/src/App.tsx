@@ -58,6 +58,9 @@ const reactNavigationIntegration = Sentry.reactNavigationIntegration({
   useDispatchedActionData: true,
 });
 
+const sampleFeatureFlagsIntegration = Sentry.featureFlagsIntegration();
+sampleFeatureFlagsIntegration.addFeatureFlag('sample-test-flag', true);
+
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: getDsn(),
@@ -77,6 +80,13 @@ Sentry.init({
       'onReady called with didCallNativeInit:',
       didCallNativeInit,
     );
+  },
+  _experiments: {
+    enableUnhandledCPPExceptionsV2: true,
+  },
+  enableLogs: true,
+  beforeSendLog: (log) => {
+    return log;
   },
   enableUserInteractionTracing: true,
   integrations(integrations) {
@@ -143,14 +153,13 @@ Sentry.init({
         },
       }),
       Sentry.extraErrorDataIntegration(),
+      sampleFeatureFlagsIntegration,
     );
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 30000,
-  // This will capture ALL TRACES and likely use up all your quota
-  enableTracing: true,
   tracesSampleRate: 1.0,
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
   attachStacktrace: true,
@@ -167,14 +176,12 @@ Sentry.init({
   profilesSampleRate: 1.0,
   replaysSessionSampleRate: 1.0,
   replaysOnErrorSampleRate: 1.0,
+  ignoreErrors: ['should', /(.)*2(.)*/],
   replaysSessionQuality: 'medium', // default
   spotlight: true,
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
   autoInitializeNativeSdk: true,
-  _experiments: {
-    enableUnhandledCPPExceptionsV2: true,
-  },
 });
 
 const Stack = isMobileOs
