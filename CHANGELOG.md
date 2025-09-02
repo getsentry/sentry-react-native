@@ -38,6 +38,38 @@ Sentry.init({
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#1080)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.7.0...10.8.0)
 
+## 6.21.0
+
+### Important Changes
+
+- **fix(browser): Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`** ([#5092](https://github.com/getsentry/sentry-react-native/pull/5092))
+
+This release includes a fix for a [behaviour change](https://docs.sentry.io/platforms/javascript/migration/v8-to-v9/#behavior-changes)
+that was originally introduced with v9 of the JavaScript SDK: User IP Addresses should only be added to Sentry events automatically,
+if `sendDefaultPii` was set to `true`.
+
+However, the change in v9 required further internal adjustment, which should have been included in v10 of the SDK.
+To avoid making a major bump, the fix was patched on the current version and not by bumping to V10.
+There is _no API_ breakage involved and hence it is safe to update.
+However, after updating the SDK, events (errors, traces, replays, etc.) sent from the browser, will only include
+user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` options.
+
+We apologize for any inconvenience caused!
+
+### Fixes
+
+- Fix Expo prebuild failed on cached builds ([#5098](https://github.com/getsentry/sentry-react-native/pull/5098))
+- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
+
+### Dependencies
+
+- Bump CLI from v2.51.1 to v2.53.0 ([#5075](https://github.com/getsentry/sentry-react-native/pull/5075), [#5120](https://github.com/getsentry/sentry-react-native/pull/5120))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2530)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.51.1...2.53.0)
+- Bump Bundler Plugins from v4.1.1 to v4.2.0 ([#5113](https://github.com/getsentry/sentry-react-native/pull/5113))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#420)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.1.1...4.2.0)
+
 ## 7.0.0-rc.2
 
 ### Important Changes
@@ -256,38 +288,6 @@ Version 7 of the SDK is compatible with Sentry self-hosted versions 24.4.2 or hi
 - Bump Android SDK from v7.20.1 to v8.13.2 ([#4490](https://github.com/getsentry/sentry-react-native/pull/4490), [#4847](https://github.com/getsentry/sentry-react-native/pull/4847))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8132)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.13.2)
-
-## 6.21.0
-
-### Important Changes
-
-- **fix(browser): Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`** ([#5092](https://github.com/getsentry/sentry-react-native/pull/5092))
-
-This release includes a fix for a [behaviour change](https://docs.sentry.io/platforms/javascript/migration/v8-to-v9/#behavior-changes)
-that was originally introduced with v9 of the JavaScript SDK: User IP Addresses should only be added to Sentry events automatically,
-if `sendDefaultPii` was set to `true`.
-
-However, the change in v9 required further internal adjustment, which should have been included in v10 of the SDK.
-To avoid making a major bump, the fix was patched on the current version and not by bumping to V10.
-There is _no API_ breakage involved and hence it is safe to update.
-However, after updating the SDK, events (errors, traces, replays, etc.) sent from the browser, will only include
-user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` options.
-
-We apologize for any inconvenience caused!
-
-### Fixes
-
-- Fix Expo prebuild failed on cached builds ([#5098](https://github.com/getsentry/sentry-react-native/pull/5098))
-- Remove the warning that used to indicate that Time To Initial Display and Time To Full Display are not supported ([#5081](https://github.com/getsentry/sentry-react-native/pull/5081))
-
-### Dependencies
-
-- Bump CLI from v2.51.1 to v2.53.0 ([#5075](https://github.com/getsentry/sentry-react-native/pull/5075), [#5120](https://github.com/getsentry/sentry-react-native/pull/5120))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2530)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.51.1...2.53.0)
-- Bump Bundler Plugins from v4.1.1 to v4.2.0 ([#5113](https://github.com/getsentry/sentry-react-native/pull/5113))
-  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#420)
-  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.1.1...4.2.0)
 
 ## 6.20.0
 
