@@ -10,7 +10,7 @@ type ProfilerProps = React.ComponentProps<typeof Profiler>;
 type BrowserTransportOptions = Parameters<typeof makeFetchTransport>[0];
 
 type BrowserExperiments = NonNullable<BrowserOptions['_experiments']>;
-type SharedExperimentsSubset = Pick<BrowserExperiments, 'enableLogs' | 'beforeSendLog'>;
+type SharedExperimentsSubset = BrowserExperiments;
 
 export interface BaseReactNativeOptions {
   /**
