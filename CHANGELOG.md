@@ -10,20 +10,50 @@
 
 ### Important Changes
 
-- The `_experiments.enableLogs` and `_experiments.beforeSendLog` options were removed, use the top-level `enableLogs` and `beforeSendLog` options instead. ([#5122](https://github.com/getsentry/sentry-react-native/pull/5122))
+- Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5111](https://github.com/getsentry/sentry-react-native/pull/5111))
+- Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466))
+- `Sentry.captureUserFeedback` removed, use `Sentry.captureFeedback` instead ([#4855](https://github.com/getsentry/sentry-react-native/pull/4855))
+- Exceptions from `captureConsoleIntegration` are now marked as handled: true by default
+- `shutdownTimeout` moved from `core` to `@sentry/react-native`
+- `hasTracingEnabled` was renamed to `hasSpansEnabled`
+- You can no longer drop spans or return null on `beforeSendSpan` hook
+- Tags formatting logic updated ([#4965](https://github.com/getsentry/sentry-react-native/pull/4965))
+Here are the altered/unaltered types, make sure to update your UI filters and alerts.
+
+    Unaltered: string, null, number, and undefined values remain unchanged.
+
+    Altered: Boolean values are now capitalized: true -> True, false -> False.
+
+### Changes
+
+- Expose `featureFlagsIntegration` ([#4984](https://github.com/getsentry/sentry-react-native/pull/4984))
+- Expose `logger` and `consoleLoggingIntegration` ([#4930](https://github.com/getsentry/sentry-react-native/pull/4930))
+- Remove deprecated `appOwnership` constant use in Expo Go detection ([#4893](https://github.com/getsentry/sentry-react-native/pull/4893))
+- Disable AppStart and NativeFrames in unsupported environments (web, Expo Go) ([#4897](https://github.com/getsentry/sentry-react-native/pull/4897))
+- Use `Replay` interface for `browserReplayIntegration` return type ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
+- Allow using `browserReplayIntegration` without `isWeb` guard ([#4858](https://github.com/getsentry/sentry-react-native/pull/4858))
+  - The integration returns noop in non-browser environments
+- Use single `encodeUTF8` implementation through the SDK ([#4885](https://github.com/getsentry/sentry-react-native/pull/4885))
+- Use global `TextEncoder` (available with Hermes in React Native 0.74 or higher) to improve envelope encoding performance. ([#4874](https://github.com/getsentry/sentry-react-native/pull/4874))
+- `breadcrumbsIntegration` disables React Native incompatible options automatically ([#4886](https://github.com/getsentry/sentry-react-native/pull/4886))
+- On React Native Web, `browserSessionIntegration` is added when `enableAutoSessionTracking` is set to `True` ([#4732](https://github.com/getsentry/sentry-react-native/pull/4732))
+- Change `Cold/Warm App Start` span description to `Cold/Warm Start` ([#4636](https://github.com/getsentry/sentry-react-native/pull/4636))
+
+### Features
+
+- Add support for Log tracing ([#4827](https://github.com/getsentry/sentry-react-native/pull/4827), [#5122](https://github.com/getsentry/sentry-react-native/pull/5122))
+
+To enable it add the following code to your Sentry Options:
 
 ```js
-// before
 Sentry.init({
-  _experiments: {
-    enableLogs: true,
-    beforeSendLog: log => {
-      return log;
-    },
-  },
+  enableLogs: true,
 });
+```
 
-// after
+You can also filter the logs being collected by adding `beforeSendLogs`
+
+```js
 Sentry.init({
   enableLogs: true,
   beforeSendLog: log => {
@@ -32,11 +62,40 @@ Sentry.init({
 });
 ```
 
+- Automatically detect Release name and version for Expo Web ([#4967](https://github.com/getsentry/sentry-react-native/pull/4967))
+
+### Fixes
+
+- Align span description with other platforms (#4636) by @krystofwoldrich
+- Tags with symbol are now logged ([#4965](https://github.com/getsentry/sentry-react-native/pull/4965))
+- IgnoreError now filters Native errors ([#4948](https://github.com/getsentry/sentry-react-native/pull/4948))
+
+You can use strings to filter errors or RegEx for filtering with a pattern.
+
+example:
+
+```typescript
+  ignoreErrors: [
+    '1234', // Will filter any error message that contains 1234.
+    '.*1234', // Will not filter as regex, instead will filter messages that contains '.*1234"
+    /.*1234/, // Regex will filter any error message that ends with 1234
+    /.*1234.*/ // Regex will filter any error message that contains 1234.
+  ]
+```
+
+- Expo Updates Context is passed to native after native init to be available for crashes ([#4808](https://github.com/getsentry/sentry-react-native/pull/4808))
+- Expo Updates Context values should all be lowercase ([#4809](https://github.com/getsentry/sentry-react-native/pull/4809))
+- Avoid duplicate network requests (fetch, xhr) by default ([#4816](https://github.com/getsentry/sentry-react-native/pull/4816))
+  - `traceFetch` is disabled by default on mobile as RN uses a polyfill which will be traced by `traceXHR`
+
 ### Dependencies
 
-- Bump JavaScript SDK from v10.7.0 to v10.8.0 ([#5123](https://github.com/getsentry/sentry-react-native/pull5123))
+- Bump JavaScript SDK from v8.54.0 to v10.8.0 ([#5123](https://github.com/getsentry/sentry-react-native/pull5123))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#1080)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.7.0...10.8.0)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.54.0...10.8.0)
+- Bump Android SDK from v7.20.1 to v8.20.0 ([#5106](https://github.com/getsentry/sentry-react-native/pull/5106))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8200)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.20.0)
 
 ## 7.0.0-rc.2
 
