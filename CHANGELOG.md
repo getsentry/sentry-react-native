@@ -91,7 +91,7 @@ Sentry.init({
 
 ### Fixes
 
-- Align span description with other platforms (#4636) by @krystofwoldrich
+- Align span description with other platforms ([#4636](https://github.com/getsentry/sentry-react-native/pull/4636)) by @krystofwoldrich
 - Tags with symbol are now logged ([#4965](https://github.com/getsentry/sentry-react-native/pull/4965))
 - IgnoreError now filters Native errors ([#4948](https://github.com/getsentry/sentry-react-native/pull/4948))
 
@@ -152,8 +152,8 @@ We apologize for any inconvenience caused!
 
 ### Various fixes & improvements
 
-- fix(sdk): Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` (#4466) by @krystofwoldrich
-- fix(appStart): Align span description with other platforms (#4636) by @krystofwoldrich
+- fix(sdk): Set `{{auto}}` if `user.ip_address` is `undefined` and `sendDefaultPii: true` ([#4466](https://github.com/getsentry/sentry-react-native/pull/4466)) by @krystofwoldrich
+- fix(appStart): Align span description with other platforms ([#4636](https://github.com/getsentry/sentry-react-native/pull/4636)) by @krystofwoldrich
 
 ## 7.0.0-beta.2
 
