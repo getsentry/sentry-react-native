@@ -21,7 +21,7 @@ user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` optio
 
 We apologize for any inconvenience caused!
 
-## Fixes
+### Fixes
 
 - Ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5138](https://github.com/getsentry/sentry-react-native/pull/5137))
 
