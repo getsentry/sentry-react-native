@@ -13,7 +13,6 @@ import type {
 import {
   _INTERNAL_flushLogsBuffer,
   addAutoIpAddressToSession,
-  addAutoIpAddressToUser,
   Client,
   dateTimestampInSeconds,
   debug,
@@ -52,6 +51,15 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
     ignoreRequireCycleLogs(ReactNativeLibraries.ReactNativeVersion?.version);
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
+
+    // Only allow IP inferral by Relay if sendDefaultPii is true
+    if (options._metadata?.sdk) {
+      options._metadata.sdk.settings = {
+        infer_ip: options.sendDefaultPii ? 'auto' : 'never',
+        ...options._metadata.sdk.settings,
+      };
+    }
+
     // We default this to true, as it is the safer scenario
     options.parentSpanIsAlwaysRootSpan =
       options.parentSpanIsAlwaysRootSpan === undefined ? true : options.parentSpanIsAlwaysRootSpan;
@@ -60,7 +68,6 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
     this._outcomesBuffer = [];
 
     if (options.sendDefaultPii === true) {
-      this.on('postprocessEvent', addAutoIpAddressToUser);
       this.on('beforeSendSession', addAutoIpAddressToSession);
     }
 
