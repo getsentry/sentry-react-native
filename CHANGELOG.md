@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Bundler Plugins from v4.2.0 to v4.3.0 ([#5131](https://github.com/getsentry/sentry-react-native/pull/5131))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#430)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.2.0...4.3.0)
+
 ## 7.0.0
 
 ### Upgrading from 6.x to 7.0
