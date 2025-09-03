@@ -470,7 +470,7 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes
 #if CROSS_PLATFORM_TEST
         NSString *releaseName = SentrySDKInternal.options.releaseName;
 #else
-         NSString *releaseName = [SentrySDK options].releaseName;
+        NSString *releaseName = [SentrySDK options].releaseName;
 #endif
         if (releaseName) {
             contexts[@"release"] = releaseName;
