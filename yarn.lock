@@ -9421,7 +9421,7 @@ __metadata:
     "@sentry/core": 10.8.0
     "@sentry/react": 10.8.0
     "@sentry/types": 10.8.0
-    "@sentry/wizard": 6.3.0
+    "@sentry/wizard": 6.4.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -9504,9 +9504,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:6.3.0":
-  version: 6.3.0
-  resolution: "@sentry/wizard@npm:6.3.0"
+"@sentry/wizard@npm:6.4.0":
+  version: 6.4.0
+  resolution: "@sentry/wizard@npm:6.4.0"
   dependencies:
     "@clack/prompts": 0.7.0
     "@sentry/node": ^7.119.2
@@ -9524,7 +9524,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 15ef7f1820ab9cbb5b0c3a840ff2f43c29b7969a8999980dae5e775efe0fa3ee99b64dbb7218d53d8c78f2f9e77fde86133a562710437f85d287ec2b21725579
+  checksum: b95f76ef04f5c4d135c0ad01b612ab86cdde6f2a1de4c2e1be24539e2f371967a8488c8966fb9a2bde4c63d3ad04250f25efbd458e5bf227f3cb4cb1bec41082
   languageName: node
   linkType: hard
 
