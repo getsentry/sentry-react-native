@@ -9,12 +9,14 @@ import {
   startSpanManual,
   timestampInSeconds,
 } from '@sentry/core';
-
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';
 import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
 
-jest.useFakeTimers({ advanceTimers: true });
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['Date', 'performance'], // Keep real Date/performance APIs
+});
 
 const expensiveOperation = () => {
   const expensiveObject: { value: string[] } = {

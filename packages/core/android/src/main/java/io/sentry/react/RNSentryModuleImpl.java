@@ -31,12 +31,12 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.JavascriptException;
 import io.sentry.Breadcrumb;
-import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
+import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
@@ -84,13 +84,16 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -280,6 +283,9 @@ public class RNSentryModuleImpl {
     if (rnOptions.hasKey("enableNdk")) {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
+    if (rnOptions.hasKey("enableLogs")) {
+      options.getLogs().setEnabled(rnOptions.getBoolean("enableLogs"));
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
@@ -314,6 +320,8 @@ public class RNSentryModuleImpl {
     // React native internally throws a JavascriptException.
     // we want to ignore it on the native side to avoid sending it twice.
     options.addIgnoredExceptionForType(JavascriptException.class);
+
+    trySetIgnoreErrors(options, rnOptions);
 
     options.setBeforeSend(
         (event, hint) -> {
@@ -557,7 +565,7 @@ public class RNSentryModuleImpl {
   }
 
   public void captureReplay(boolean isHardCrash, Promise promise) {
-    Sentry.getCurrentHub().getOptions().getReplayController().captureReplay(isHardCrash);
+    Sentry.getCurrentScopes().getOptions().getReplayController().captureReplay(isHardCrash);
     promise.resolve(getCurrentReplayId());
   }
 
@@ -653,7 +661,7 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    ISerializer serializer = HubAdapter.getInstance().getOptions().getSerializer();
+    ISerializer serializer = ScopesAdapter.getInstance().getOptions().getSerializer();
     final @Nullable byte[] bytes =
         JsonSerializationUtils.bytesFrom(serializer, logger, viewHierarchy);
     if (bytes == null) {
@@ -706,10 +714,6 @@ public class RNSentryModuleImpl {
 
               if (userKeys.hasKey("ip_address")) {
                 userInstance.setIpAddress(userKeys.getString("ip_address"));
-              }
-
-              if (userKeys.hasKey("segment")) {
-                userInstance.setSegment(userKeys.getString("segment"));
               }
             }
 
@@ -872,8 +876,7 @@ public class RNSentryModuleImpl {
             (int) SECONDS.toMicros(1) / profilingTracesHz,
             new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
             executorService,
-            logger,
-            buildInfo);
+            logger);
   }
 
   public WritableMap startProfiling(boolean platformProfilers) {
@@ -897,7 +900,7 @@ public class RNSentryModuleImpl {
   }
 
   public WritableMap stopProfiling() {
-    final boolean isDebug = HubAdapter.getInstance().getOptions().isDebug();
+    final boolean isDebug = ScopesAdapter.getInstance().getOptions().isDebug();
     final WritableMap result = new WritableNativeMap();
     File output = null;
     try {
@@ -982,8 +985,15 @@ public class RNSentryModuleImpl {
     }
   }
 
+  public void fetchNativeLogAttributes(Promise promise) {
+    final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
+    final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
+    final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
+    fetchNativeLogContexts(promise, options, context, currentScope);
+  }
+
   public void fetchNativeDeviceContexts(Promise promise) {
-    final @NotNull SentryOptions options = HubAdapter.getInstance().getOptions();
+    final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
     final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
     final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
     fetchNativeDeviceContexts(promise, options, context, currentScope);
@@ -1019,8 +1029,50 @@ public class RNSentryModuleImpl {
     promise.resolve(deviceContext);
   }
 
+  // Basically fetchNativeDeviceContexts but filtered to only get contexts info.
+  protected void fetchNativeLogContexts(
+      Promise promise,
+      final @NotNull SentryOptions options,
+      final @Nullable Context osContext,
+      final @Nullable IScope currentScope) {
+    if (!(options instanceof SentryAndroidOptions) || osContext == null) {
+      promise.resolve(null);
+      return;
+    }
+
+    Object contextsObj =
+        InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope)
+            .get("contexts");
+
+    if (!(contextsObj instanceof Map)) {
+      promise.resolve(null);
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> contextsMap = (Map<String, Object>) contextsObj;
+
+    Map<String, Object> contextItems = new HashMap<>();
+    if (contextsMap.containsKey("os")) {
+      contextItems.put("os", contextsMap.get("os"));
+    }
+
+    if (contextsMap.containsKey("device")) {
+      contextItems.put("device", contextsMap.get("device"));
+    }
+
+    contextItems.put("release", options.getRelease());
+
+    Map<String, Object> logContext = new HashMap<>();
+    logContext.put("contexts", contextItems);
+    Object filteredContext = RNSentryMapConverter.convertToWritable(logContext);
+
+    promise.resolve(filteredContext);
+  }
+
   public void fetchNativeSdkInfo(Promise promise) {
-    final @Nullable SdkVersion sdkVersion = HubAdapter.getInstance().getOptions().getSdkVersion();
+    final @Nullable SdkVersion sdkVersion =
+        ScopesAdapter.getInstance().getOptions().getSdkVersion();
     if (sdkVersion == null) {
       promise.resolve(null);
     } else {
@@ -1108,14 +1160,14 @@ public class RNSentryModuleImpl {
     if (eventSdk != null
         && "sentry.javascript.react-native".equals(eventSdk.getName())
         && sdk != null) {
-      List<SentryPackage> sentryPackages = sdk.getPackages();
+      Set<SentryPackage> sentryPackages = sdk.getPackageSet();
       if (sentryPackages != null) {
         for (SentryPackage sentryPackage : sentryPackages) {
           eventSdk.addPackage(sentryPackage.getName(), sentryPackage.getVersion());
         }
       }
 
-      List<String> integrations = sdk.getIntegrations();
+      Set<String> integrations = sdk.getIntegrationSet();
       if (integrations != null) {
         for (String integration : integrations) {
           eventSdk.addIntegration(integration);
@@ -1151,5 +1203,37 @@ public class RNSentryModuleImpl {
       return null;
     }
     return uri.getScheme() + "://" + uri.getHost();
+  }
+
+  @TestOnly
+  protected void trySetIgnoreErrors(SentryAndroidOptions options, ReadableMap rnOptions) {
+    ReadableArray regErrors = null;
+    ReadableArray strErrors = null;
+    if (rnOptions.hasKey("ignoreErrorsRegex")) {
+      regErrors = rnOptions.getArray("ignoreErrorsRegex");
+    }
+    if (rnOptions.hasKey("ignoreErrorsStr")) {
+      strErrors = rnOptions.getArray("ignoreErrorsStr");
+    }
+    if (regErrors == null && strErrors == null) {
+      return;
+    }
+
+    int regSize = regErrors != null ? regErrors.size() : 0;
+    int strSize = strErrors != null ? strErrors.size() : 0;
+    List<String> list = new ArrayList<>(regSize + strSize);
+    if (regErrors != null) {
+      for (int i = 0; i < regErrors.size(); i++) {
+        list.add(regErrors.getString(i));
+      }
+    }
+    if (strErrors != null) {
+      // Use the same behaviour of JavaScript instead of Android when dealing with strings.
+      for (int i = 0; i < strErrors.size(); i++) {
+        String pattern = ".*" + Pattern.quote(strErrors.getString(i)) + ".*";
+        list.add(pattern);
+      }
+    }
+    options.setIgnoredErrors(list);
   }
 }

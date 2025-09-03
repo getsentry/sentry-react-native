@@ -5,7 +5,6 @@ import CountingSet from 'metro/private/lib/CountingSet';
 // eslint-disable-next-line import/no-unresolved
 import * as countLines from 'metro/private/lib/countLines';
 import { minify } from 'uglify-js';
-
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
 import { type MetroSerializer, type VirtualJSOutput, createDebugIdSnippet } from '../../src/js/tools/utils';
 

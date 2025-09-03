@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import * as React from 'react';
 import {
   Animated,
@@ -13,7 +13,6 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
 import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';
@@ -52,7 +51,7 @@ export const withSentryPlayground = <P extends object>(
     );
   };
 
-  Wrapper.displayName = `withSentryPlayground()`;
+  Wrapper.displayName = 'withSentryPlayground()';
   return Wrapper;
 };
 
@@ -191,7 +190,7 @@ export const SentryPlayground = ({
   );
 };
 
-const Animation = ({ id }: { id: string }): React.ReactElement => {
+const Animation = ({ id }: { id: string }): React.ReactElement | null => {
   const shouldFallbackToImage = Platform.OS === 'android';
 
   switch (id) {
@@ -219,7 +218,7 @@ const Row = ({
   last = false,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   action = () => {},
-  actionDescription,
+  actionDescription = '',
   title,
   description,
   disabled = false,
@@ -423,12 +422,17 @@ const lightStyles: typeof defaultDarkStyles = StyleSheet.create({
 });
 
 function openURLInBrowser(url: string): void {
-  // This doesn't work for Expo project with Web enabled
-  // disable-next-line @typescript-eslint/no-floating-promises
-  fetch(`${getDevServer().url}open-url`, {
-    method: 'POST',
-    body: JSON.stringify({ url }),
-  }).catch(e => {
-    logger.error('Error opening URL:', e);
-  });
+  const devServer = getDevServer();
+  if (devServer?.url) {
+    // This doesn't work for Expo project with Web enabled
+    // disable-next-line @typescript-eslint/no-floating-promises
+    fetch(`${devServer.url}open-url`, {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    }).catch(e => {
+      debug.error('Error opening URL:', e);
+    });
+  } else {
+    debug.error('Dev server URL not available');
+  }
 }

@@ -1,12 +1,18 @@
 /* eslint-disable complexity */
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope, SendFeedbackParams, UserFeedback } from '@sentry/core';
-import { captureFeedback, getClient, getGlobalScope, getIntegrationsToSetup, getIsolationScope, initAndBind, logger, makeDsn, stackParserFromStackParserOptions, withScope as coreWithScope } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
 import {
-  defaultStackParser,
-  makeFetchTransport,
-} from '@sentry/react';
+  debug,
+  getClient,
+  getGlobalScope,
+  getIntegrationsToSetup,
+  getIsolationScope,
+  initAndBind,
+  makeDsn,
+  stackParserFromStackParserOptions,
+  withScope as coreWithScope,
+} from '@sentry/core';
+import { defaultStackParser, makeFetchTransport, Profiler } from '@sentry/react';
 import * as React from 'react';
-
 import { ReactNativeClient } from './client';
 import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
@@ -18,7 +24,8 @@ import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
-import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer } from './utils/environment';
+import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
+import { getDefaultRelease } from './utils/release';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { NATIVE } from './wrapper';
 
@@ -63,13 +70,13 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableSyncToNative(getIsolationScope());
   }
 
-  const getURLFromDSN = (dsn: string | null): string | undefined => {
+  const getURLFromDSN = (dsn: string | undefined): string | undefined => {
     if (!dsn) {
       return undefined;
     }
     const dsnComponents = makeDsn(dsn);
     if (!dsnComponents) {
-      logger.error('Failed to extract url from DSN: ', dsn);
+      debug.error('Failed to extract url from DSN: ', dsn);
       return undefined;
     }
     const port = dsnComponents.port ? `:${dsnComponents.port}` : '';
@@ -105,6 +112,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   const options: ReactNativeClientOptions = {
     ...DEFAULT_OPTIONS,
     ...passedOptions,
+    release: passedOptions.release ?? getDefaultRelease(),
     enableNative,
     enableNativeNagger: shouldEnableNativeNagger(passedOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
@@ -143,8 +151,8 @@ export function init(passedOptions: ReactNativeOptions): void {
   initAndBind(ReactNativeClient, options);
 
   if (isExpoGo()) {
-    logger.info('Offline caching, native errors features are not available in Expo Go.');
-    logger.info('Use EAS Build / Native Release Build to test these features.');
+    debug.log('Offline caching, native errors features are not available in Expo Go.');
+    debug.log('Use EAS Build / Native Release Build to test these features.');
   }
 }
 
@@ -156,18 +164,21 @@ export function wrap<P extends Record<string, unknown>>(
   options?: ReactNativeWrapperOptions
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps ?? {}),
+    ...(options?.profilerProps),
     name: RootComponent.displayName ?? 'Root',
+    updateProps: {}
   };
 
-  const RootApp: React.FC<P> = (appProps) => {
+  const ProfilerComponent = isWeb() ? Profiler : ReactNativeProfiler;
+
+  const RootApp: React.FC<P> = appProps => {
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
-        <ReactNativeProfiler {...profilerProps}>
+        <ProfilerComponent {...profilerProps}>
           <FeedbackWidgetProvider>
             <RootComponent {...appProps} />
           </FeedbackWidgetProvider>
-        </ReactNativeProfiler>
+        </ProfilerComponent>
       </TouchEventBoundary>
     );
   };
@@ -199,7 +210,7 @@ export async function flush(): Promise<boolean> {
     // eslint-disable-next-line no-empty
   } catch (_) { }
 
-  logger.error('Failed to flush the event queue.');
+  debug.error('Failed to flush the event queue.');
 
   return false;
 }
@@ -215,22 +226,8 @@ export async function close(): Promise<void> {
       await client.close();
     }
   } catch (e) {
-    logger.error('Failed to close the SDK');
+    debug.error('Failed to close the SDK');
   }
-}
-
-/**
- * Captures user feedback and sends it to Sentry.
- * @deprecated Use `Sentry.captureFeedback` instead.
- */
-export function captureUserFeedback(feedback: UserFeedback): void {
-  const feedbackParams: SendFeedbackParams = {
-    name: feedback.name,
-    email: feedback.email,
-    message: feedback.comments,
-    associatedEventId: feedback.event_id,
-  };
-  captureFeedback(feedbackParams);
 }
 
 /**
@@ -251,7 +248,7 @@ export function withScope<T>(callback: (scope: Scope) => T): T | undefined {
     try {
       return callback(scope);
     } catch (e) {
-      logger.error('Error while running withScope callback', e);
+      debug.error('Error while running withScope callback', e);
       return undefined;
     }
   };

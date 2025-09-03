@@ -10,9 +10,15 @@ import type {
   TransportMakeRequestResponse,
   UserFeedback,
 } from '@sentry/core';
-import { BaseClient, dateTimestampInSeconds, logger, SentryError } from '@sentry/core';
+import {
+  _INTERNAL_flushLogsBuffer,
+  addAutoIpAddressToSession,
+  Client,
+  dateTimestampInSeconds,
+  debug,
+  SentryError,
+} from '@sentry/core';
 import { Alert } from 'react-native';
-
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
@@ -25,14 +31,17 @@ import { mergeOutcomes } from './utils/outcome';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { NATIVE } from './wrapper';
 
+const DEFAULT_FLUSH_INTERVAL = 5000;
+
 /**
  * The Sentry React Native SDK Client.
  *
  * @see ReactNativeClientOptions for documentation on configuration options.
  * @see SentryClient for usage documentation.
  */
-export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
+export class ReactNativeClient extends Client<ReactNativeClientOptions> {
   private _outcomesBuffer: Outcome[];
+  private _logFlushIdleTimeout: ReturnType<typeof setTimeout> | undefined;
 
   /**
    * Creates a new React Native SDK instance.
@@ -42,12 +51,41 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
     ignoreRequireCycleLogs(ReactNativeLibraries.ReactNativeVersion?.version);
     options._metadata = options._metadata || {};
     options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
+
+    // Only allow IP inferral by Relay if sendDefaultPii is true
+    if (options._metadata?.sdk) {
+      options._metadata.sdk.settings = {
+        infer_ip: options.sendDefaultPii ? 'auto' : 'never',
+        ...options._metadata.sdk.settings,
+      };
+    }
+
     // We default this to true, as it is the safer scenario
     options.parentSpanIsAlwaysRootSpan =
       options.parentSpanIsAlwaysRootSpan === undefined ? true : options.parentSpanIsAlwaysRootSpan;
     super(options);
 
     this._outcomesBuffer = [];
+
+    if (options.sendDefaultPii === true) {
+      this.on('beforeSendSession', addAutoIpAddressToSession);
+    }
+
+    if (options.enableLogs) {
+      this.on('flush', () => {
+        _INTERNAL_flushLogsBuffer(this);
+      });
+
+      this.on('afterCaptureLog', () => {
+        if (this._logFlushIdleTimeout) {
+          clearTimeout(this._logFlushIdleTimeout);
+        }
+
+        this._logFlushIdleTimeout = setTimeout(() => {
+          _INTERNAL_flushLogsBuffer(this);
+        }, DEFAULT_FLUSH_INTERVAL);
+      });
+    }
   }
 
   /**
@@ -116,13 +154,13 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
           // SentryError is thrown by SyncPromise
           shouldClearOutcomesBuffer = false;
           // If this is called asynchronously we want the _outcomesBuffer to be cleared
-          logger.error('SentryError while sending event, keeping outcomes buffer:', reason);
+          debug.error('SentryError while sending event, keeping outcomes buffer:', reason);
         } else {
-          logger.error('Error while sending event:', reason);
+          debug.error('Error while sending event:', reason);
         }
       });
     } else {
-      logger.error('Transport disabled');
+      debug.error('Transport disabled');
     }
 
     if (shouldClearOutcomesBuffer) {
@@ -188,7 +226,7 @@ export class ReactNativeClient extends BaseClient<ReactNativeClientOptions> {
         this.emit('afterInit');
       })
       .then(undefined, error => {
-        logger.error('The OnReady callback threw an error: ', error);
+        debug.error('The OnReady callback threw an error: ', error);
       });
   }
 

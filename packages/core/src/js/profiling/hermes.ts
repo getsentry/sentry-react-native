@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-
 import { ANDROID_DEFAULT_BUNDLE_NAME, IOS_DEFAULT_BUNDLE_NAME } from '../integrations/rewriteframes';
 
 export type StackFrameId = number;
