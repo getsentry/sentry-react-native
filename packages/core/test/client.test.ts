@@ -687,25 +687,45 @@ describe('Tests ReactNativeClient', () => {
       });
 
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
-        expect.objectContaining({ ip_address: '{{auto}}' }),
+        expect.objectContaining({ ip_address: undefined }),
+      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'never'
+          }
+        }
+        ),
       );
     });
 
-    test('adds ip_address {{auto}} to user if not set', () => {
+    test('adds ip_address undefined to user if not set', () => {
       client.captureEvent({
         user: {},
       });
 
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
-        expect.objectContaining({ ip_address: '{{auto}}' }),
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toBeEmptyObject();
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'never'
+          }
+        }
+        ),
       );
     });
 
-    test('adds ip_address {{auto}} to undefined user', () => {
+    test('leaves ip_address undefined to undefined user', () => {
       client.captureEvent({});
 
-      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
-        expect.objectContaining({ ip_address: '{{auto}}' }),
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toBeUndefined();
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'never'
+          }
+        }
+        ),
       );
     });
 
@@ -724,15 +744,14 @@ describe('Tests ReactNativeClient', () => {
       expect(
         mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user?.ip_address,
       ).toBeUndefined();
-    });
-
-    test('uses ip address hooks if sendDefaultPii is true', () => {
-      const { onSpy } = createClientWithSpy({
-        sendDefaultPii: true,
-      });
-
-      expect(onSpy).toHaveBeenCalledWith('postprocessEvent', addAutoIpAddressToUser);
-      expect(onSpy).toHaveBeenCalledWith('beforeSendSession', addAutoIpAddressToSession);
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'never'
+          }
+        }
+        ),
+      );
     });
 
     test('does not add ip_address {{auto}} to session if sendDefaultPii is false', () => {
