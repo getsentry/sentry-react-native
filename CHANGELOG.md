@@ -31,20 +31,6 @@ We apologize for any inconvenience caused!
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#430)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.2.0...4.3.0)
 
-### Important Changes
-
-This release includes a fix for a [behaviour change](https://docs.sentry.io/platforms/javascript/migration/v8-to-v9/#behavior-changes)
-that was originally fixed on version 6.21.0 of the React Native SDK: User IP Addresses should only be added to Sentry events automatically,
-if `sendDefaultPii` was set to `true`.
-
-To avoid making a major bump, the fix was patched on the current version and not by bumping to V8.
-There is _no API_ breakage involved and hence it is safe to update.
-However, after updating the SDK, events (errors, traces, replays, etc.) sent from the browser, will only include
-user IP addresses, if you set `sendDefaultPii: true` in your `Sentry.init` options.
-
-We apologize for any inconvenience caused!
-
-
 ## 7.0.0
 
 ### Upgrading from 6.x to 7.0
