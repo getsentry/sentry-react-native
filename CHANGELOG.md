@@ -503,9 +503,6 @@ We apologize for any inconvenience caused!
 - Bump Bundler Plugins from v4.1.1 to v4.2.0 ([#5113](https://github.com/getsentry/sentry-react-native/pull/5113))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#420)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.1.1...4.2.0)
-- Bump Cocoa SDK from v8.53.2 to v8.55.0 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8550)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.55.0)
 
 ## 6.20.0
 
