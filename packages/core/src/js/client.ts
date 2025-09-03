@@ -13,7 +13,6 @@ import type {
 import {
   _INTERNAL_flushLogsBuffer,
   addAutoIpAddressToSession,
-  addAutoIpAddressToUser,
   Client,
   dateTimestampInSeconds,
   debug,

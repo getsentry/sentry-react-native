@@ -692,10 +692,9 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
         expect.objectContaining({
           settings: {
-            infer_ip: 'never'
-          }
-        }
-        ),
+            infer_ip: 'never',
+          },
+        }),
       );
     });
 
@@ -708,10 +707,9 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
         expect.objectContaining({
           settings: {
-            infer_ip: 'never'
-          }
-        }
-        ),
+            infer_ip: 'never',
+          },
+        }),
       );
     });
 
@@ -722,10 +720,9 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
         expect.objectContaining({
           settings: {
-            infer_ip: 'never'
-          }
-        }
-        ),
+            infer_ip: 'never',
+          },
+        }),
       );
     });
 
@@ -747,10 +744,9 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
         expect.objectContaining({
           settings: {
-            infer_ip: 'never'
-          }
-        }
-        ),
+            infer_ip: 'never',
+          },
+        }),
       );
     });
 
