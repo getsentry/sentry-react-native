@@ -117,12 +117,10 @@ example:
 
 ### Dependencies
 
-- Bump JavaScript SDK from v8.55.0 to v10.8.0 ([#5123](https://github.com/getsentry/sentry-react-native/pull5123))
+- Bump JavaScript SDK v10.8.0 ([#5123](https://github.com/getsentry/sentry-react-native/pull/5123))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#1080)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/8.55.0...10.8.0)
-- Bump Android SDK from v7.20.1 to v8.20.0 ([#5106](https://github.com/getsentry/sentry-react-native/pull/5106))
+- Bump Android SDK to v8.20.0 ([#5106](https://github.com/getsentry/sentry-react-native/pull/5106))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8200)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.20.1...8.20.0)
 - Bump CLI to v2.53.0 ([5120](https://github.com/getsentry/sentry-react-native/pull/5120). [#4804](https://github.com/getsentry/sentry-react-native/pull/4804), [#4818](https://github.com/getsentry/sentry-react-native/pull/4818))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2530)
 - Bump Bundler Plugins to v4.2.0 ([#5113](https://github.com/getsentry/sentry-react-native/pull/5113), [#4805](https://github.com/getsentry/sentry-react-native/pull/4805))
