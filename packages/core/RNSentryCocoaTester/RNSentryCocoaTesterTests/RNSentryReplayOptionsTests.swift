@@ -67,11 +67,7 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
         XCTAssertEqual(actualOptions.sessionReplay.sessionSampleRate, 0.75)
     }
 
@@ -82,11 +78,7 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
         XCTAssertEqual(actualOptions.sessionReplay.onErrorSampleRate, 0.75)
     }
 
@@ -116,11 +108,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllImages, true)
         assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
@@ -135,11 +123,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllImages, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
@@ -154,11 +138,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, true)
         assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTTextView")
@@ -182,11 +162,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
@@ -200,11 +176,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
     }
@@ -218,11 +190,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
     }
@@ -236,11 +204,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertFalse(actualOptions.sessionReplay.enableViewRendererV2)
     }
@@ -253,11 +217,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
@@ -271,11 +231,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertTrue(actualOptions.sessionReplay.enableFastViewRendering)
     }
@@ -289,15 +245,11 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
-    
+
     func testReplayQualityDefault() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
@@ -306,11 +258,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.medium)
     }
@@ -324,11 +272,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.low)
     }
@@ -342,11 +286,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.medium)
     }
@@ -360,11 +300,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.high)
     }
@@ -378,11 +314,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        #if CROSS_PLATFORM_TEST
         let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
-        #else
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
-        #endif
 
         XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.medium)
     }

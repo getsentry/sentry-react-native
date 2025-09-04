@@ -22,11 +22,7 @@ RNSentry (fetchNativeStack)
 - (NSDictionary *)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                symbolicate:(SymbolicateCallbackType)symbolicate
 {
-#if CROSS_PLATFORM_TEST
     BOOL shouldSymbolicateLocally = [SentrySDKInternal.options debug];
-#else
-    BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
-#endif
     NSString *appPackageName = [[NSBundle mainBundle] executablePath];
 
     NSMutableSet<NSString *> *_Nonnull imagesAddrToRetrieveDebugMetaImages =
