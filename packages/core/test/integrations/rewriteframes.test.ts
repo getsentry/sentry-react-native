@@ -2,7 +2,6 @@ import type { Exception } from '@sentry/browser';
 import { defaultStackParser, eventFromException } from '@sentry/browser';
 import type { Client, Event, EventHint } from '@sentry/core';
 import { Platform } from 'react-native';
-
 import { createReactNativeRewriteFrames } from '../../src/js/integrations/rewriteframes';
 import { isExpo, isHermesEnabled } from '../../src/js/utils/environment';
 import { mockFunction } from '../testutils';

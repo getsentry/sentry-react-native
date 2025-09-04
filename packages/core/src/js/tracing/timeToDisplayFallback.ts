@@ -13,6 +13,6 @@ export const addTimeToInitialDisplayFallback = (
   spanIdToTimeToInitialDisplayFallback.set(spanId, timestampSeconds);
 };
 
-export const getTimeToInitialDisplayFallback = async (spanId: string): Promise<number | undefined> => {
+export const getTimeToInitialDisplayFallback = async (spanId: string): Promise<number | undefined | null> => {
   return spanIdToTimeToInitialDisplayFallback.get(spanId);
 };

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { View } from 'react-native';
-
 import type { RNSentryOnDrawReporterProps } from '../../src/js/tracing/timetodisplaynative.types';
 import { NATIVE } from '../mockWrapper';
 

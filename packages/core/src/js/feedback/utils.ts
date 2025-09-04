@@ -1,5 +1,4 @@
 import { Alert } from 'react-native';
-
 import { isFabricEnabled, isWeb } from '../utils/environment';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { ReactNativeLibraries } from './../utils/rnlibraries';
@@ -15,7 +14,7 @@ declare global {
  */
 export function isModalSupported(): boolean {
   const { major, minor } = ReactNativeLibraries.ReactNativeVersion?.version || {};
-  return !(isFabricEnabled() && major === 0 && minor < 71);
+  return !(isFabricEnabled() && major === 0 && minor && minor < 71);
 }
 
 /**
@@ -24,7 +23,7 @@ export function isModalSupported(): boolean {
  */
 export function isNativeDriverSupportedForColorAnimations(): boolean {
   const { major, minor } = ReactNativeLibraries.ReactNativeVersion?.version || {};
-  return major > 0 || minor >= 69;
+  return (major && major > 0) || (minor && minor >= 69) || false;
 }
 
 export const isValidEmail = (email: string): boolean => {

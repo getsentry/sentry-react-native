@@ -20,6 +20,7 @@ import { FallbackRender } from '@sentry/react';
 import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
 import { TimeToFullDisplay } from '../utils';
+import type { Event as SentryEvent } from '@sentry/core';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -150,6 +151,18 @@ const ErrorsScreen = (_props: Props) => {
             }
           }}
         />
+        <Button
+          title="Log console"
+          onPress={() => {
+            Sentry.logger.info('info log');
+            Sentry.logger.trace('trace log');
+            Sentry.logger.debug('debug log');
+            Sentry.logger.warn('warn log');
+            Sentry.logger.error('error log');
+
+            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+          }}
+        />
         {Platform.OS === 'android' && (
           <>
             <Button
@@ -214,6 +227,48 @@ const ErrorsScreen = (_props: Props) => {
             }
           }}
         />
+        <Button
+          title="Set different types of tags globally"
+          onPress={async () => {
+            Sentry.setTags({
+              number: 123,
+              boolean: true,
+              null: null,
+              undefined: undefined,
+              symbol: Symbol('symbol'),
+              string: 'string',
+              bigint: BigInt(123),
+            });
+            Sentry.captureMessage('Message with different types of tags globally');
+            Sentry.setTags({
+              number: undefined,
+              boolean: undefined,
+              null: undefined,
+              symbol: undefined,
+              string: undefined,
+              bigint: undefined,
+            });
+          }}
+        />
+        <Button
+          title="Set different types of tags in scope"
+          onPress={async () => {
+            const evt: SentryEvent = {
+              message: 'Message with different types of tags isolated',
+              tags: {
+                number: 123,
+                boolean: true,
+                null: null,
+                undefined: undefined,
+                symbol: Symbol('symbol'),
+                string: 'abc',
+                bigint: BigInt(123),
+              },
+            };
+            Sentry.captureEvent(evt);
+          }}
+        />
+
         <Button
           title="Feedback form"
           onPress={() => {

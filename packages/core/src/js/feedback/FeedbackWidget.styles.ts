@@ -1,5 +1,4 @@
 import type { ViewStyle } from 'react-native';
-
 import type { FeedbackWidgetTheme } from './FeedbackWidget.theme';
 import type { FeedbackButtonStyles, FeedbackWidgetStyles } from './FeedbackWidget.types';
 

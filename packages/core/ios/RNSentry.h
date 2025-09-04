@@ -31,6 +31,11 @@ SentrySDK (Private)
 
 - (void)setEventOriginTag:(SentryEvent *)event;
 
+@end
+
+@interface
+RNSentry (fetchNativeStack)
+
 - (NSDictionary *_Nonnull)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                        symbolicate:(SymbolicateCallbackType)symbolicate;
 

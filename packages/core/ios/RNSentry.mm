@@ -20,7 +20,6 @@
 #import "RNSentryId.h"
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
-#import <Sentry/SentryBinaryImageCache.h>
 #import <Sentry/SentryBreadcrumb.h>
 #import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <Sentry/SentryDebugMeta.h>
@@ -30,6 +29,7 @@
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryOptions.h>
 #import <Sentry/SentryUser.h>
+
 #if __has_include(<Sentry/SentryOptions+HybridSDKs.h>)
 #    define USE_SENTRY_OPTIONS 1
 #    import <Sentry/SentryOptions+HybridSDKs.h>
@@ -71,6 +71,8 @@ static bool hasFetchedAppStart;
     bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
+    NSArray<NSString *> *_ignoreErrorPatternsStr;
+    NSArray<NSRegularExpression *> *_ignoreErrorPatternsRegex;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -92,7 +94,6 @@ static bool hasFetchedAppStart;
 }
 
 RCT_EXPORT_MODULE()
-
 RCT_EXPORT_METHOD(initNativeSdk
                   : (NSDictionary *_Nonnull)options resolve
                   : (RCTPromiseResolveBlock)resolve rejecter
@@ -137,21 +138,98 @@ RCT_EXPORT_METHOD(initNativeSdk
     resolve(@YES);
 }
 
+- (void)trySetIgnoreErrors:(NSMutableDictionary *)options
+{
+    NSArray *ignoreErrorsStr = nil;
+    NSArray *ignoreErrorsRegex = nil;
+
+    id strArr = [options objectForKey:@"ignoreErrorsStr"];
+    id regexArr = [options objectForKey:@"ignoreErrorsRegex"];
+    if ([strArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsStr = (NSArray *)strArr;
+    }
+    if ([regexArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsRegex = (NSArray *)regexArr;
+    }
+
+    NSMutableArray<NSString *> *strs = [NSMutableArray array];
+    NSMutableArray<NSRegularExpression *> *regexes = [NSMutableArray array];
+
+    if (ignoreErrorsStr != nil) {
+        for (id str in ignoreErrorsStr) {
+            if ([str isKindOfClass:[NSString class]]) {
+                [strs addObject:str];
+            }
+        }
+    }
+
+    if (ignoreErrorsRegex != nil) {
+        for (id pattern in ignoreErrorsRegex) {
+            if ([pattern isKindOfClass:[NSString class]]) {
+                NSError *error = nil;
+                NSRegularExpression *regex =
+                    [NSRegularExpression regularExpressionWithPattern:pattern
+                                                              options:0
+                                                                error:&error];
+                if (regex && error == nil) {
+                    [regexes addObject:regex];
+                }
+            }
+        }
+    }
+
+    _ignoreErrorPatternsStr = [strs count] > 0 ? [strs copy] : nil;
+    _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
+}
+
+- (BOOL)shouldIgnoreError:(NSString *)message
+{
+    if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
+        return NO;
+    }
+
+    for (NSString *str in _ignoreErrorPatternsStr) {
+        if ([message containsString:str]) {
+            return YES;
+        }
+    }
+
+    for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
+        NSRange range = NSMakeRange(0, message.length);
+        if ([regex firstMatchInString:message options:0 range:range]) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
     SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event)
     {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of
-        // react native Because we sent it already before the app crashed.
+        // React Native because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
                 != NSNotFound) {
             return nil;
         }
 
-        [self setEventOriginTag:event];
+        // Regex and Str are set when one of them has value so we only need to check one of them.
+        if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
+            for (SentryException *exception in event.exceptions) {
+                if ([self shouldIgnoreError:exception.value]) {
+                    return nil;
+                }
+            }
+            if ([self shouldIgnoreError:event.message.message]) {
+                return nil;
+            }
+        }
 
+        [self setEventOriginTag:event];
         return event;
     };
 
@@ -221,6 +299,8 @@ RCT_EXPORT_METHOD(initNativeSdk
             }
         }
     }
+
+    [self trySetIgnoreErrors:mutableOptions];
 
     // Enable the App start and Frames tracking measurements
     if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
@@ -358,89 +438,66 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
     return packageName;
 }
 
-- (NSDictionary *)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
-                               symbolicate:(SymbolicateCallbackType)symbolicate
-{
-#if CROSS_PLATFORM_TEST
-    BOOL shouldSymbolicateLocally = [SentrySDKInternal.options debug];
-#else
-    BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
-#endif
-    NSString *appPackageName = [[NSBundle mainBundle] executablePath];
-
-    NSMutableSet<NSString *> *_Nonnull imagesAddrToRetrieveDebugMetaImages =
-        [[NSMutableSet alloc] init];
-    NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedFrames =
-        [[NSMutableArray alloc] init];
-
-    for (NSNumber *addr in instructionsAddr) {
-        SentryBinaryImageInfo *_Nullable image = [[[SentryDependencyContainer sharedInstance]
-            binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
-        if (image != nil) {
-            NSString *imageAddr = sentry_formatHexAddressUInt64([image address]);
-            [imagesAddrToRetrieveDebugMetaImages addObject:imageAddr];
-
-            NSDictionary<NSString *, id> *_Nonnull nativeFrame = @{
-                @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
-                @"package" : [image name],
-                @"image_addr" : imageAddr,
-                @"in_app" : [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
-            };
-
-            if (shouldSymbolicateLocally) {
-                Dl_info symbolsBuffer;
-                bool symbols_succeed = false;
-                symbols_succeed
-                    = symbolicate((void *)[addr unsignedLongLongValue], &symbolsBuffer) != 0;
-                if (symbols_succeed) {
-                    NSMutableDictionary<NSString *, id> *_Nonnull symbolicated
-                        = nativeFrame.mutableCopy;
-                    symbolicated[@"symbol_addr"]
-                        = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
-                    symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname
-                                                                   encoding:NSUTF8StringEncoding];
-
-                    nativeFrame = symbolicated;
-                }
-            }
-
-            [serializedFrames addObject:nativeFrame];
-        } else {
-            [serializedFrames addObject:@{
-                @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
-            }];
-        }
-    }
-
-    if (shouldSymbolicateLocally) {
-        return @{
-            @"frames" : serializedFrames,
-        };
-    } else {
-        NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedDebugMetaImages =
-            [[NSMutableArray alloc] init];
-
-        NSArray<SentryDebugMeta *> *debugMetaImages =
-            [[[SentryDependencyContainer sharedInstance] debugImageProvider]
-                getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
-
-        for (SentryDebugMeta *debugImage in debugMetaImages) {
-            [serializedDebugMetaImages addObject:[debugImage serialize]];
-        }
-
-        return @{
-            @"frames" : serializedFrames,
-            @"debugMetaImages" : serializedDebugMetaImages,
-        };
-    }
-}
-
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
                                     : (NSArray *)instructionsAddr)
 {
     return [self fetchNativeStackFramesBy:instructionsAddr symbolicate:dladdr];
+}
+
+RCT_EXPORT_METHOD(fetchNativeLogAttributes
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    __block NSMutableDictionary<NSString *, id> *result = [NSMutableDictionary new];
+
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+        // Serialize to get contexts dictionary
+        NSDictionary *serializedScope = [scope serialize];
+        NSDictionary *allContexts = serializedScope[@"context"]; // It's singular here, annoyingly
+
+        NSMutableDictionary *contexts = [NSMutableDictionary new];
+
+        NSDictionary *device = allContexts[@"device"];
+        if ([device isKindOfClass:[NSDictionary class]]) {
+            contexts[@"device"] = device;
+        }
+
+        NSDictionary *os = allContexts[@"os"];
+        if ([os isKindOfClass:[NSDictionary class]]) {
+            contexts[@"os"] = os;
+        }
+
+#if CROSS_PLATFORM_TEST
+        NSString *releaseName = SentrySDKInternal.options.releaseName;
+#else
+        NSString *releaseName = [SentrySDK options].releaseName;
+#endif
+        if (releaseName) {
+            contexts[@"release"] = releaseName;
+        }
+        // Merge extra context
+        NSDictionary *extraContext = [PrivateSentrySDKOnly getExtraContext];
+
+        if (extraContext) {
+            NSDictionary *extraDevice = extraContext[@"device"];
+            if ([extraDevice isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedDevice =
+                    [contexts[@"device"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedDevice addEntriesFromDictionary:extraDevice];
+                contexts[@"device"] = mergedDevice;
+            }
+
+            NSDictionary *extraOS = extraContext[@"os"];
+            if ([extraOS isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedOS =
+                    [contexts[@"os"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedOS addEntriesFromDictionary:extraOS];
+                contexts[@"os"] = mergedOS;
+            }
+        }
+        result[@"contexts"] = contexts;
+    }];
+    resolve(result);
 }
 
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts

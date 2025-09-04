@@ -1,21 +1,18 @@
-import { getCurrentScope, getGlobalScope, getIsolationScope, logger , setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
-jest.spyOn(logger, 'warn');
+import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
+import { debug , getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
+
+jest.spyOn(debug, 'warn');
 
 import * as mockWrapper from '../mockWrapper';
+
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
+
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-jest.mock('../../src/js/utils/environment', () => ({
-  isWeb: jest.fn().mockReturnValue(false),
-  isTurboModuleEnabled: jest.fn().mockReturnValue(false),
-}));
-
-import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
-import * as React from "react";
-import * as TestRenderer from 'react-test-renderer';
-
+import { render } from '@testing-library/react-native';
+import * as React from 'react';
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
@@ -24,9 +21,17 @@ import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDi
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
 
+jest.mock('../../src/js/utils/environment', () => ({
+  isWeb: jest.fn().mockReturnValue(false),
+  isTurboModuleEnabled: jest.fn().mockReturnValue(false),
+}));
+
 const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } = mockedtimetodisplaynative;
 
-jest.useFakeTimers({advanceTimers: true});
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'] // Keep real performance API
+});
 
 describe('TimeToDisplay', () => {
   let client: TestClient;
@@ -63,7 +68,7 @@ describe('TimeToDisplay', () => {
       },
        (activeSpan: Span | undefined) => {
         startTimeToInitialDisplaySpan();
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
         mockRecordedTimeToDisplay({
           ttid: {
             [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
@@ -92,8 +97,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -125,7 +130,7 @@ describe('TimeToDisplay', () => {
       },
       (activeSpan: Span | undefined) => {
         startTimeToFullDisplaySpan();
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttfd: {
@@ -155,7 +160,7 @@ describe('TimeToDisplay', () => {
         startTime: secondAgoTimestampMs(),
       },
       (activeSpan: Span | undefined) => {
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -185,8 +190,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -220,8 +225,8 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        TestRenderer.create(<TimeToInitialDisplay record={true} />);
-        TestRenderer.create(<TimeToFullDisplay record={true} />);
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
 
         mockRecordedTimeToDisplay({
           ttid: {
@@ -260,8 +265,7 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        const timeToDisplayComponent = TestRenderer.create(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
-
+        const timeToDisplayComponent = render(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
         timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
 
         mockRecordedTimeToDisplay({
@@ -302,7 +306,7 @@ function getFullDisplaySpanJSON(spans: SpanJSON[]) {
 function expectFinishedInitialDisplaySpan(event: Event) {
   expect(getInitialDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
-      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.initial_display",
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.initial_display',
       [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
@@ -318,7 +322,7 @@ function expectFinishedInitialDisplaySpan(event: Event) {
 function expectFinishedFullDisplaySpan(event: Event) {
   expect(getFullDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
-      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.full_display",
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.full_display',
       [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
@@ -335,7 +339,7 @@ function expectFinishedFullDisplaySpan(event: Event) {
 function expectDeadlineExceededFullDisplaySpan(event: Event) {
   expect(getFullDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
     data: {
-      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: "ui.load.full_display",
+      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.full_display',
       [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },

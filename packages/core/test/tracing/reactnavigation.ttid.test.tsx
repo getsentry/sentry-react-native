@@ -1,11 +1,11 @@
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'
-import * as React from "react";
-
+import * as React from 'react';
 import * as mockWrapper from '../mockWrapper';
 import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitterfallback';
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
+
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/utils/sentryeventemitterfallback', () => mockedSentryEventEmitter);
@@ -23,6 +23,7 @@ import { MOCK_DSN } from '../mockDsn';
 import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
 import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
 
@@ -258,7 +259,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -299,7 +300,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -330,7 +331,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
           ]),
           measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
@@ -681,7 +682,7 @@ function initSentry(sut: ReturnType<typeof Sentry.reactNavigationIntegration>): 
   const transportSendMock = jest.fn<ReturnType<Transport['send']>, Parameters<Transport['send']>>();
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
-    enableTracing: true,
+    tracesSampleRate: 1.0,
     enableStallTracking: false,
     integrations: [
       sut,

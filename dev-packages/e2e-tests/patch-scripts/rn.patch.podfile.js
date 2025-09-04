@@ -4,8 +4,8 @@ const fs = require('fs');
 const { argv } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/core');
-logger.enable();
+const { debug } = require('@sentry/core');
+debug.enable();
 
 const args = parseArgs(argv.slice(2));
 if (!args['pod-file']) {
@@ -21,7 +21,7 @@ if (enableHermes === null) {
   throw new Error('Invalid engine');
 }
 
-logger.info('Patching Podfile', args['pod-file']);
+debug.log('Patching Podfile', args['pod-file']);
 const content = fs.readFileSync(args['pod-file'], 'utf8');
 
 const isHermesEnabled = content.includes(':hermes_enabled => true,');
@@ -32,11 +32,11 @@ if (shouldPatch) {
     enableHermes ? ':hermes_enabled => true,' : ':hermes_enabled => false,',
   );
   if (enableHermes) {
-    logger.info('Patching Podfile for Hermes');
+    debug.log('Patching Podfile for Hermes');
   } else {
-    logger.info('Patching Podfile for JSC');
+    debug.log('Patching Podfile for JSC');
   }
   fs.writeFileSync(args['pod-file'], patched);
 } else {
-  logger.info('Podfile is already patched!');
+  debug.log('Podfile is already patched!');
 }

@@ -1,11 +1,10 @@
-import { logger, setCurrentClient } from '@sentry/core';
-
+import { debug, setCurrentClient } from '@sentry/core';
 import { crashedLastRun, flush } from '../src/js/sdk';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 import { NATIVE } from './mockWrapper';
 
 jest.mock('../src/js/wrapper.ts', () => jest.requireActual('./mockWrapper'));
-jest.spyOn(logger, 'error');
+jest.spyOn(debug, 'error');
 
 describe('Tests the SDK functionality', () => {
   let client: TestClient;
@@ -33,7 +32,7 @@ describe('Tests the SDK functionality', () => {
 
       expect(client.flush).toBeCalled();
       expect(flushResult).toBe(false);
-      expect(logger.error).toBeCalledWith('Failed to flush the event queue.');
+      expect(debug.error).toBeCalledWith('Failed to flush the event queue.');
     });
   });
 
