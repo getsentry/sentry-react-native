@@ -465,13 +465,8 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     SentryOptions *sentryOptions = [[SentryOptions alloc] init];
     sentryOptions.debug = debug; // no local symbolication
 
-#if CROSS_PLATFORM_TEST
     id sentrySDKMock = OCMClassMock([SentrySDKInternal class]);
     OCMStub([(Class)sentrySDKMock options]).andReturn(sentryOptions);
-#else
-    id sentrySDKMock = OCMClassMock([SentrySDK class]);
-    OCMStub([(Class)sentrySDKMock options]).andReturn(sentryOptions);
-#endif
 
     id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
     OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance]))
