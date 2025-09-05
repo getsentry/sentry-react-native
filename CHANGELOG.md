@@ -10,9 +10,9 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.8.0 to v10.9.0 ([#5142](https://github.com/getsentry/sentry-react-native/pull/5142))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#1090)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.8.0...10.9.0)
+- Bump JavaScript SDK from v10.8.0 to v10.10.0 ([#5142](https://github.com/getsentry/sentry-react-native/pull/5142), [#5145](https://github.com/getsentry/sentry-react-native/pull/5145))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10100)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.8.0...10.10.0)
 
 ## 7.0.1
 
