@@ -57,7 +57,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -228,7 +228,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -259,7 +259,7 @@ jobs:
         # The old node has to be enabled after creating the test app
         # to avoid issues with the old node version
       - run: corepack disable
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           node-version: 16
@@ -354,7 +354,7 @@ jobs:
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: 'yarn'

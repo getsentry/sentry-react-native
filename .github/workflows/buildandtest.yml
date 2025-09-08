@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -60,7 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -83,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -126,7 +126,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -156,7 +156,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
@@ -190,7 +190,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 18
           cache: 'yarn'
