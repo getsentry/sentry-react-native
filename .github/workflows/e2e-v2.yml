@@ -59,6 +59,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -230,6 +231,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -262,6 +264,7 @@ jobs:
       - uses: actions/setup-node@v5
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
+          package-manager-cache: false
           node-version: 16
 
       - uses: ruby/setup-ruby@v1
@@ -356,6 +359,7 @@ jobs:
         run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock

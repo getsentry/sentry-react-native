@@ -26,6 +26,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -44,6 +45,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -62,6 +64,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -85,6 +88,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -128,6 +132,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -158,6 +163,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -192,6 +198,7 @@ jobs:
       - run: npm i -g corepack
       - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
