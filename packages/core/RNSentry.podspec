@@ -46,7 +46,7 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
-  s.dependency 'Sentry/HybridSDK', '8.56.0-alpha.2'
+  s.dependency 'Sentry/HybridSDK', '8.56.0-alpha.3'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
