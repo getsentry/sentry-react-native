@@ -14,7 +14,7 @@ export const logEnricherIntegration = (): Integration => {
         cacheLogContext().then(
           () => {
             client.on('beforeCaptureLog', (log: Log) => {
-              processLog(log);
+              processLog(log, client);
             });
           },
           reason => {
@@ -27,6 +27,25 @@ export const logEnricherIntegration = (): Integration => {
 };
 
 let NativeCache: Record<string, unknown> | undefined = undefined;
+
+/**
+ * Sets a log attribute if the value exists and the attribute key is not already present.
+ *
+ * @param logAttributes - The log attributes object to modify.
+ * @param key - The attribute key to set.
+ * @param value - The value to set (only sets if truthy and key not present).
+ * @param setEvenIfPresent - Whether to set the attribute if it is present. Defaults to true.
+ */
+function setLogAttribute(
+  logAttributes: Record<string, unknown>,
+  key: string,
+  value: unknown,
+  setEvenIfPresent = true,
+): void {
+  if (value && (!logAttributes[key] || setEvenIfPresent)) {
+    logAttributes[key] = value;
+  }
+}
 
 async function cacheLogContext(): Promise<void> {
   try {
@@ -52,16 +71,26 @@ async function cacheLogContext(): Promise<void> {
   return Promise.resolve();
 }
 
-function processLog(log: Log): void {
+function processLog(log: Log, client: ReactNativeClient): void {
   if (NativeCache === undefined) {
     return;
   }
 
-  log.attributes = log.attributes ?? {};
-  NativeCache.brand && (log.attributes['device.brand'] = NativeCache.brand);
-  NativeCache.model && (log.attributes['device.model'] = NativeCache.model);
-  NativeCache.family && (log.attributes['device.family'] = NativeCache.family);
-  NativeCache.os && (log.attributes['os.name'] = NativeCache.os);
-  NativeCache.version && (log.attributes['os.version'] = NativeCache.version);
-  NativeCache.release && (log.attributes['sentry.release'] = NativeCache.release);
+  // Save log.attributes to a new variable
+  const logAttributes = log.attributes ?? {};
+
+  // Use setLogAttribute with the variable instead of direct assignment
+  setLogAttribute(logAttributes, 'device.brand', NativeCache.brand);
+  setLogAttribute(logAttributes, 'device.model', NativeCache.model);
+  setLogAttribute(logAttributes, 'device.family', NativeCache.family);
+  setLogAttribute(logAttributes, 'os.name', NativeCache.os);
+  setLogAttribute(logAttributes, 'os.version', NativeCache.version);
+  setLogAttribute(logAttributes, 'sentry.release', NativeCache.release);
+
+  const replay = client.getIntegrationByName<Integration & { getReplayId: () => string | null }>('MobileReplay');
+  setLogAttribute(logAttributes, 'sentry.replay_id', replay?.getReplayId());
+
+
+  // Set log.attributes to the variable
+  log.attributes = logAttributes;
 }

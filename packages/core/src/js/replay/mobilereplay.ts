@@ -95,6 +95,7 @@ function mergeOptions(initOptions: Partial<MobileReplayOptions>): Required<Mobil
 
 type MobileReplayIntegration = Integration & {
   options: Required<MobileReplayOptions>;
+  getReplayId: () => string | null;
 };
 
 /**
@@ -173,6 +174,11 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     client.on('beforeAddBreadcrumb', enrichXhrBreadcrumbsForMobileReplay);
   }
 
+  function getReplayId(): string | null {
+    return NATIVE.getCurrentReplayId();
+    ;
+  }
+
   // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
   // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
@@ -180,6 +186,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     setup,
     processEvent,
     options: options,
+    getReplayId: getReplayId
   };
 };
 
@@ -187,5 +194,6 @@ const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     options: defaultOptions,
+    getReplayId: () => null, // Mock implementation for noop version
   };
 };
