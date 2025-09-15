@@ -176,7 +176,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
   function getReplayId(): string | null {
     return NATIVE.getCurrentReplayId();
-    ;
   }
 
   // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
@@ -186,7 +185,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     setup,
     processEvent,
     options: options,
-    getReplayId: getReplayId
+    getReplayId: getReplayId,
   };
 };
 

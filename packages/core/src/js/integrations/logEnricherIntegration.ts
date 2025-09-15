@@ -90,7 +90,6 @@ function processLog(log: Log, client: ReactNativeClient): void {
   const replay = client.getIntegrationByName<Integration & { getReplayId: () => string | null }>('MobileReplay');
   setLogAttribute(logAttributes, 'sentry.replay_id', replay?.getReplayId());
 
-
   // Set log.attributes to the variable
   log.attributes = logAttributes;
 }
