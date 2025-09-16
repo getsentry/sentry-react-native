@@ -11,6 +11,16 @@
 ### Fixes
 
 - Session Replay: Allow excluding `sentry-android-replay` from android targets ([#5174](https://github.com/getsentry/sentry-react-native/pull/5174))
+  - If you are not interested in using Session Replay, you can exclude the `sentry-android-replay` module from your Android targets as follows (saves nearly 40KB compressed and 80KB uncompressed off the bundle size):
+
+  ```gradle
+  // from the android's root build.gradle file
+  subprojects {
+    configurations.all {
+      exclude group: 'io.sentry', module: 'sentry-android-replay'
+    }
+  }
+  ```
 
 ### Dependencies
 
