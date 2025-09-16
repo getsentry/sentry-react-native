@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Session Replay: Allow excluding `sentry-android-replay` from android targets ([#5174](https://github.com/getsentry/sentry-react-native/pull/5174))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.8.0 to v10.11.0 ([#5142](https://github.com/getsentry/sentry-react-native/pull/5142), [#5145](https://github.com/getsentry/sentry-react-native/pull/5145), [#5157](https://github.com/getsentry/sentry-react-native/pull/5157))
