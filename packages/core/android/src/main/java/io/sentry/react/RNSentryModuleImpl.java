@@ -72,6 +72,7 @@ import io.sentry.react.replay.RNSentryReplayUnmask;
 import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.FileUtils;
 import io.sentry.util.JsonSerializationUtils;
+import io.sentry.util.LoadClass;
 import io.sentry.vendor.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -141,12 +142,14 @@ public class RNSentryModuleImpl {
   private long maxTraceFileSize = 5 * 1024 * 1024;
 
   private final @NotNull SentryDateProvider dateProvider;
+  private final @NotNull LoadClass loadClass;
 
   public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
     packageInfo = getPackageInfo(reactApplicationContext);
     this.reactApplicationContext = reactApplicationContext;
     this.emitNewFrameEvent = createEmitNewFrameEvent();
     this.dateProvider = new SentryAndroidDateProvider();
+    this.loadClass = new LoadClass();
   }
 
   private ReactApplicationContext getReactApplicationContext() {
@@ -298,7 +301,11 @@ public class RNSentryModuleImpl {
 
     SentryReplayOptions replayOptions = getReplayOptions(rnOptions);
     options.setSessionReplay(replayOptions);
-    if (isReplayEnabled(replayOptions)) {
+    // Check if the replay integration is available on the classpath. It's already kept from R8
+    // shrinking by sentry-android-core
+    final boolean isReplayAvailable =
+        loadClass.isClassAvailable("io.sentry.android.replay.ReplayIntegration", logger);
+    if (isReplayEnabled(replayOptions) && isReplayAvailable) {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
 

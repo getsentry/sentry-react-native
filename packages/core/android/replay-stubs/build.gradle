@@ -1,0 +1,22 @@
+allprojects {
+  repositories {
+    mavenCentral()
+  }
+}
+
+apply plugin: 'java-library'
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.named('jar', Jar) {
+  archiveBaseName.set('replay-stubs')
+  archiveVersion.set('')
+  destinationDirectory.set(file("$rootDir/../libs"))
+}
+
+dependencies {
+  compileOnly 'io.sentry:sentry:8.21.1'
+}

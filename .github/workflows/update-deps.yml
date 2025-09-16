@@ -19,6 +19,15 @@ jobs:
     secrets:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
+  android-stubs:
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
+    with:
+      path: scripts/update-android-stubs.sh
+      name: Android SDK Stubs
+      pr-strategy: update
+    secrets:
+      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+
   cocoa:
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
