@@ -8,11 +8,25 @@
 
 ## Unreleased
 
+### Fixes
+
+- Session Replay: Allow excluding `sentry-android-replay` from android targets ([#5174](https://github.com/getsentry/sentry-react-native/pull/5174))
+  - If you are not interested in using Session Replay, you can exclude the `sentry-android-replay` module from your Android targets as follows (saves nearly 40KB compressed and 80KB uncompressed off the bundle size):
+
+  ```gradle
+  // from the android's root build.gradle file
+  subprojects {
+    configurations.all {
+      exclude group: 'io.sentry', module: 'sentry-android-replay'
+    }
+  }
+  ```
+
 ### Dependencies
 
-- Bump JavaScript SDK from v10.8.0 to v10.11.0 ([#5142](https://github.com/getsentry/sentry-react-native/pull/5142), [#5145](https://github.com/getsentry/sentry-react-native/pull/5145), [#5157](https://github.com/getsentry/sentry-react-native/pull/5157))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10110)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.8.0...10.11.0)
+- Bump JavaScript SDK from v10.8.0 to v10.12.0 ([#5142](https://github.com/getsentry/sentry-react-native/pull/5142), [#5145](https://github.com/getsentry/sentry-react-native/pull/5145), [#5157](https://github.com/getsentry/sentry-react-native/pull/5157), [#5175](https://github.com/getsentry/sentry-react-native/pull/5175))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10120)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.8.0...10.12.0)
 - Bump Cocoa SDK from v8.53.2 to v8.56.0 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036), [#5172](https://github.com/getsentry/sentry-react-native/pull/5172))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8560)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.56.0)
