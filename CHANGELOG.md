@@ -14,7 +14,6 @@
 
 ## 7.1.0
 
-
 ### Fixes
 
 - Session Replay: Allow excluding `sentry-android-replay` from android targets ([#5174](https://github.com/getsentry/sentry-react-native/pull/5174))
