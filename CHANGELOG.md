@@ -6,11 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 7.1.0
+### Unreleased
 
 ### Features
 
 - Add mobile replay attributes to logs  ([#5165](https://github.com/getsentry/sentry-react-native/pull/5165))
+
+## 7.1.0
+
 
 ### Fixes
 
