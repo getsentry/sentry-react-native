@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "7.0.1",
+  "version": "7.1.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -20,7 +20,7 @@
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
-    "@sentry/react-native": "7.0.1",
+    "@sentry/react-native": "7.1.0",
     "@types/react": "~19.0.10",
     "expo": "^53.0.0",
     "expo-constants": "~17.1.5",
