@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add mobile replay attributes to logs  ([#5165](https://github.com/getsentry/sentry-react-native/pull/5165))
+
 ### Fixes
 
 - Session Replay: Allow excluding `sentry-android-replay` from android targets ([#5174](https://github.com/getsentry/sentry-react-native/pull/5174))
