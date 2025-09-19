@@ -650,7 +650,6 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
   >
     <Modal
       animationType="none"
-      hardwareAccelerated={false}
       onRequestClose={[Function]}
       testID="feedback-form-modal"
       transparent={true}
@@ -1003,7 +1002,6 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
   >
     <Modal
       animationType="none"
-      hardwareAccelerated={false}
       onRequestClose={[Function]}
       testID="feedback-form-modal"
       transparent={true}
@@ -1356,7 +1354,6 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
   >
     <Modal
       animationType="none"
-      hardwareAccelerated={false}
       onRequestClose={[Function]}
       testID="feedback-form-modal"
       transparent={true}
@@ -1709,7 +1706,6 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
   >
     <Modal
       animationType="none"
-      hardwareAccelerated={false}
       onRequestClose={[Function]}
       testID="feedback-form-modal"
       transparent={true}
@@ -2062,7 +2058,6 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
   >
     <Modal
       animationType="none"
-      hardwareAccelerated={false}
       onRequestClose={[Function]}
       testID="feedback-form-modal"
       transparent={true}
@@ -2415,7 +2410,6 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
   >
     <Modal
       animationType="none"
-      hardwareAccelerated={false}
       onRequestClose={[Function]}
       testID="feedback-form-modal"
       transparent={true}
@@ -2768,7 +2762,6 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
   >
     <Modal
       animationType="none"
-      hardwareAccelerated={false}
       onRequestClose={[Function]}
       testID="feedback-form-modal"
       transparent={true}
