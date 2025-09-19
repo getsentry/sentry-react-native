@@ -12,6 +12,12 @@
 
 - Add mobile replay attributes to logs  ([#5165](https://github.com/getsentry/sentry-react-native/pull/5165))
 
+### Dependencies
+
+- Bump CLI from v2.53.0 to v2.54.0 ([#5179](https://github.com/getsentry/sentry-react-native/pull/5179))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2540)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.53.0...2.54.0)
+
 ## 7.1.0
 
 ### Fixes
