@@ -27,6 +27,7 @@ describe('LogEnricher Integration', () => {
   let mockClient: jest.Mocked<Client>;
   let mockOn: jest.Mock;
   let mockFetchNativeLogAttributes: jest.Mock;
+  let mockGetIntegrationByName: jest.Mock;
 
   const triggerAfterInit = () => {
     const afterInitCallback = mockOn.mock.calls.find(call => call[0] === 'afterInit')?.[1] as (() => void) | undefined;
@@ -40,9 +41,11 @@ describe('LogEnricher Integration', () => {
 
     mockOn = jest.fn();
     mockFetchNativeLogAttributes = jest.fn();
+    mockGetIntegrationByName = jest.fn();
 
     mockClient = {
       on: mockOn,
+      getIntegrationByName: mockGetIntegrationByName,
     } as unknown as jest.Mocked<Client>;
 
     (NATIVE as jest.Mocked<typeof NATIVE>).fetchNativeLogAttributes = mockFetchNativeLogAttributes;
@@ -402,6 +405,115 @@ describe('LogEnricher Integration', () => {
       await jest.runAllTimersAsync();
 
       expect(mockOn).toHaveBeenCalledWith('beforeCaptureLog', expect.any(Function));
+    });
+  });
+
+  describe('replay log functionality', () => {
+    let logHandler: (log: Log) => void;
+    let mockLog: Log;
+    let mockGetIntegrationByName: jest.Mock;
+
+    beforeEach(async () => {
+      const integration = logEnricherIntegration();
+
+      const mockNativeResponse: NativeDeviceContextsResponse = {
+        contexts: {
+          device: {
+            brand: 'Apple',
+            model: 'iPhone 14',
+            family: 'iPhone',
+          } as Record<string, unknown>,
+          os: {
+            name: 'iOS',
+            version: '16.0',
+          } as Record<string, unknown>,
+          release: '1.0.0' as unknown as Record<string, unknown>,
+        },
+      };
+
+      mockFetchNativeLogAttributes.mockResolvedValue(mockNativeResponse);
+      mockGetIntegrationByName = jest.fn();
+
+      mockClient = {
+        on: mockOn,
+        getIntegrationByName: mockGetIntegrationByName,
+      } as unknown as jest.Mocked<Client>;
+
+      integration.setup(mockClient);
+
+      triggerAfterInit();
+
+      await jest.runAllTimersAsync();
+
+      const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
+      expect(beforeCaptureLogCall).toBeDefined();
+      logHandler = beforeCaptureLogCall![1] as (log: Log) => void;
+
+      mockLog = {
+        message: 'Test log message',
+        level: 'info',
+        attributes: {},
+      };
+    });
+
+    it('should add replay_id when MobileReplay integration is available and returns a replay ID', () => {
+      const mockReplayId = 'replay-123-abc';
+      const mockReplayIntegration = {
+        getReplayId: jest.fn().mockReturnValue(mockReplayId),
+      };
+
+      mockGetIntegrationByName.mockReturnValue(mockReplayIntegration);
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toEqual({
+        'device.brand': 'Apple',
+        'device.model': 'iPhone 14',
+        'device.family': 'iPhone',
+        'os.name': 'iOS',
+        'os.version': '16.0',
+        'sentry.release': '1.0.0',
+        'sentry.replay_id': mockReplayId,
+      });
+      expect(mockGetIntegrationByName).toHaveBeenCalledWith('MobileReplay');
+      expect(mockReplayIntegration.getReplayId).toHaveBeenCalled();
+    });
+
+    it('should not add replay_id when MobileReplay integration returns null', () => {
+      const mockReplayIntegration = {
+        getReplayId: jest.fn().mockReturnValue(null),
+      };
+
+      mockGetIntegrationByName.mockReturnValue(mockReplayIntegration);
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toEqual({
+        'device.brand': 'Apple',
+        'device.model': 'iPhone 14',
+        'device.family': 'iPhone',
+        'os.name': 'iOS',
+        'os.version': '16.0',
+        'sentry.release': '1.0.0',
+      });
+      expect(mockGetIntegrationByName).toHaveBeenCalledWith('MobileReplay');
+      expect(mockReplayIntegration.getReplayId).toHaveBeenCalled();
+    });
+
+    it('should not add replay_id when MobileReplay integration is not available', () => {
+      mockGetIntegrationByName.mockReturnValue(undefined);
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toEqual({
+        'device.brand': 'Apple',
+        'device.model': 'iPhone 14',
+        'device.family': 'iPhone',
+        'os.name': 'iOS',
+        'os.version': '16.0',
+        'sentry.release': '1.0.0',
+      });
+      expect(mockGetIntegrationByName).toHaveBeenCalledWith('MobileReplay');
     });
   });
 });
