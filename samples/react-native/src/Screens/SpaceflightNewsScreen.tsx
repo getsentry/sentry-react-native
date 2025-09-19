@@ -1,10 +1,19 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, { useState, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, RefreshControl, Text, Pressable } from 'react-native';
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  RefreshControl,
+  Text,
+  Pressable,
+} from 'react-native';
+
 import { FlashList } from '@shopify/flash-list';
+import { useFocusEffect } from '@react-navigation/native';
+
 import { ArticleCard } from '../components/ArticleCard';
 import type { Article } from '../types/api';
-import { useFocusEffect } from '@react-navigation/native';
 
 const ITEMS_PER_PAGE = 2; // Small limit to create more spans
 const AUTO_LOAD_LIMIT = 1; // One auto load at the end of the list then shows button
@@ -120,7 +129,6 @@ export default function NewsScreen() {
       <FlashList
         data={articles}
         renderItem={({ item }) => <ArticleCard article={item} />}
-        estimatedItemSize={350}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
