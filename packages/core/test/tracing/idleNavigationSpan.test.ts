@@ -1,6 +1,7 @@
 import type { Span } from '@sentry/core';
 import { getActiveSpan, getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
-import type { AppState, AppStateStatus } from 'react-native';
+import type { AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 import type { ScopeWithMaybeSpan } from '../../src/js/tracing/span';
 import { SCOPE_SPAN_FIELD, startIdleNavigationSpan } from '../../src/js/tracing/span';
 import { NATIVE } from '../../src/js/wrapper';
@@ -11,23 +12,28 @@ type MockAppState = {
   listener: (newState: AppStateStatus) => void;
   removeSubscription: jest.Func;
 };
-const mockedAppState: AppState & MockAppState = {
-  removeSubscription: jest.fn(),
-  listener: jest.fn(),
-  isAvailable: true,
-  currentState: 'active',
-  addEventListener: (_, listener) => {
-    mockedAppState.listener = listener;
-    return {
-      remove: mockedAppState.removeSubscription,
-    };
-  },
-  setState: (state: AppStateStatus) => {
-    mockedAppState.currentState = state;
-    mockedAppState.listener(state);
-  },
-};
-jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
+jest.mock('react-native', () => {
+  const mockedAppState: AppState & MockAppState = {
+    removeSubscription: jest.fn(),
+    listener: jest.fn(),
+    isAvailable: true,
+    currentState: 'active',
+    addEventListener: jest.fn(),
+    setState: (state: AppStateStatus) => {
+      mockedAppState.currentState = state;
+      mockedAppState.listener(state);
+    },
+  };
+  return {
+    AppState: mockedAppState,
+    Platform: { OS: 'ios' },
+    NativeModules: {
+      RNSentry: {},
+    },
+  };
+});
+
+const mockedAppState = AppState as jest.Mocked<typeof AppState & MockAppState>;
 
 describe('startIdleNavigationSpan', () => {
   beforeEach(() => {
@@ -35,12 +41,10 @@ describe('startIdleNavigationSpan', () => {
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
     mockedAppState.currentState = 'active';
-    mockedAppState.addEventListener = (_, listener) => {
+    (mockedAppState.addEventListener as jest.Mock).mockImplementation((_, listener) => {
       mockedAppState.listener = listener;
-      return {
-        remove: mockedAppState.removeSubscription,
-      };
-    };
+      return { remove: mockedAppState.removeSubscription };
+    });
     setupTestClient();
   });
 
@@ -66,9 +70,9 @@ describe('startIdleNavigationSpan', () => {
 
   it('Does not crash when AppState is not available', async () => {
     mockedAppState.isAvailable = false;
-    mockedAppState.addEventListener = ((): void => {
+    (mockedAppState.addEventListener as jest.Mock).mockImplementation(() => {
       return undefined;
-    }) as unknown as (typeof mockedAppState)['addEventListener']; // RN Web can return undefined
+    });
 
     startIdleNavigationSpan({
       name: 'test',
@@ -94,7 +98,7 @@ describe('startIdleNavigationSpan', () => {
 
     // Verify it's a non-recording span
     expect(span).toBeDefined();
-    expect(span.constructor.name).toBe('SentryNonRecordingSpan');
+    expect(span?.constructor.name).toBe('SentryNonRecordingSpan');
 
     // No AppState listener should be set up for non-recording spans
     expect(mockedAppState.removeSubscription).not.toHaveBeenCalled();
@@ -140,7 +144,7 @@ describe('startIdleNavigationSpan', () => {
         name: 'test',
       });
 
-      firstSpan.end();
+      firstSpan?.end();
 
       const secondSpan = startIdleNavigationSpan({
         name: 'test',
