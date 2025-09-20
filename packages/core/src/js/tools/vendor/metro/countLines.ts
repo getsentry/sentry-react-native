@@ -30,5 +30,4 @@
 
 const newline = /\r\n?|\n|\u2028|\u2029/g;
 
-export default (string: string): number =>
-  (string.match(newline) || []).length + 1;
+export default (string: string): number => (string.match(newline) || []).length + 1;
