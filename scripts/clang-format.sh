@@ -56,7 +56,7 @@ cmd="find . -type f \( \
     -path \"**/node_modules/**\" -or \
     -path \"**/gems/**\" -or \
     -path \"**/Pods/**\" \) \
-    | xargs \"$CLANG_FORMAT_PATH\" -i -style=file"
+    | xargs \"$CLANG_FORMAT_PATH\" --Werror --verbose -i -style=file"
 
 # Add --replace flag if mode is 'fix'
 if [ "$mode" = "fix" ]; then
