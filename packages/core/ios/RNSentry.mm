@@ -288,6 +288,13 @@ RCT_EXPORT_METHOD(initNativeSdk
         }
     }
 
+    if ([mutableOptions valueForKey:@"enableLogs"] != nil) {
+        id enableLogsValue = [mutableOptions valueForKey:@"enableLogs"];
+        if ([enableLogsValue isKindOfClass:[NSNumber class]]) {
+            [RNSentryExperimentalOptions setEnableLogs:[enableLogsValue boolValue]
+                                                             sentryOptions:sentryOptions];
+        }
+    }
     [self trySetIgnoreErrors:mutableOptions];
 
     // Enable the App start and Frames tracking measurements
