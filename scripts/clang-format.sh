@@ -19,7 +19,7 @@ if [ -z "$CLANG_FORMAT_PATH" ]; then
     echo ""
     echo "To install clang-format:"
     echo "  * macOS: brew install clang-format"
-    echo "  * Ubuntu: install package clang-format or clang-tools-extra"
+    echo "  * Ubuntu: follow steps used on file .github/workflows/buildandtest.yml clang-format setup."
     echo "  * Arch: pacman -S clang llvm llvm-libs"
     exit 1
 fi
