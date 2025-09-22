@@ -2,6 +2,30 @@
 
 set -eo pipefail
 
+echo "💡 If you get 'spawn Unknown system error -86', try running this script manually:"
+echo "   ./scripts/clang-format.sh $1"
+echo ""
+
+# Prioritize finding clang-format executable from brew since the run-s may introduce X86/ARM64 mismatch.
+CLANG_FORMAT_PATH=""
+if [ -f "/opt/homebrew/bin/clang-format" ]; then
+    CLANG_FORMAT_PATH="/opt/homebrew/bin/clang-format"
+elif [ -f "/usr/local/bin/clang-format" ]; then
+    CLANG_FORMAT_PATH="/usr/local/bin/clang-format"
+else
+    CLANG_FORMAT_PATH=$(which clang-format 2>/dev/null)
+fi
+
+if [ -z "$CLANG_FORMAT_PATH" ]; then
+    echo "❌ clang-format is not installed or not found in PATH"
+    echo ""
+    echo "To install clang-format:"
+    echo "  • macOS: brew install clang-format"
+    echo "  • Linux: install package clang-format or clang-tools-extra"
+    echo ""
+    exit 1
+fi
+
 # Check if an argument is provided
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <fix|lint>"
@@ -32,7 +56,7 @@ cmd="find . -type f \( \
     -path \"**/node_modules/**\" -or \
     -path \"**/gems/**\" -or \
     -path \"**/Pods/**\" \) \
-    | xargs npx clang-format --Werror --verbose -i -style=file"
+    | xargs \"$CLANG_FORMAT_PATH\" -i -style=file"
 
 # Add --replace flag if mode is 'fix'
 if [ "$mode" = "fix" ]; then

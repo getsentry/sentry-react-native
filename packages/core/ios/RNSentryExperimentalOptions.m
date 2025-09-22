@@ -19,7 +19,7 @@
     return sentryOptions.experimental.enableUnhandledCPPExceptionsV2;
 }
 
-+ (void)setEnableLogs:(BOOL)enabled  sentryOptions:(SentryOptions *)sentryOptions
++ (void)setEnableLogs:(BOOL)enabled sentryOptions:(SentryOptions *)sentryOptions
 {
     if (sentryOptions == nil) {
         return;

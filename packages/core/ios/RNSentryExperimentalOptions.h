@@ -26,7 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param sentryOptions The SentryOptions instance to configure
  * @param enabled Whether logs from sentry Cocoa should be enabled
  */
-+ (void)setEnableLogs:(BOOL)enabled  sentryOptions:(SentryOptions *)sentryOptions;
++ (void)setEnableLogs:(BOOL)enabled sentryOptions:(SentryOptions *)sentryOptions;
 
 @end
 
