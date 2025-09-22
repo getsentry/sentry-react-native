@@ -53,7 +53,8 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Setup clang-format
-        run: sudo apt install clang-format
+        run: sudo apt install clang-21 lldb-21 lld-21
+
       - name: Lint
         run: yarn lint
 
