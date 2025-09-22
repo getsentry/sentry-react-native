@@ -35,7 +35,6 @@ jobs:
       - name: Test
         run: yarn test
 
-
   job_lint:
     name: Lint
     runs-on: ubuntu-latest
