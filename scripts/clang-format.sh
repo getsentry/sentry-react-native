@@ -26,6 +26,8 @@ if [ -z "$CLANG_FORMAT_PATH" ]; then
     exit 1
 fi
 
+echo "clang-format version: $($CLANG_FORMAT_PATH --version)"
+
 # Check if an argument is provided
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <fix|lint>"
