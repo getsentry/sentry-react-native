@@ -21,7 +21,6 @@ import { UserFeedbackModal } from '../components/UserFeedbackModal';
 import { setScopeProperties } from '../setScopeProperties';
 import { TimeToFullDisplay } from '../utils';
 import type { Event as SentryEvent } from '@sentry/core';
-import { debug } from '@sentry/core';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
