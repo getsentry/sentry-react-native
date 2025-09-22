@@ -52,8 +52,21 @@ jobs:
           cache-dependency-path: yarn.lock
       - name: Install Dependencies
         run: yarn install
-      - name: Setup clang-format
-        run: sudo apt install clang-21 lldb-21 lld-21
+
+      # Default of ubuntu and apt packages are too old compared to macos packages.
+      # This is required for using a newer version of clang-format.
+      - name: Install LLVM 20
+        run: |
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" 20
+          sudo apt-get install -y clang-20 clang-format-20 lld-20 lldb-20
+
+      - name: Set Clang 20 as default
+        run: |
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-20 200
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-20 200
+          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-20 200
+          clang --version
+          clang-format --version
 
       - name: Lint
         run: yarn lint
