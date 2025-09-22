@@ -10,6 +10,7 @@
 
 ### Features
 
+- Enable logs on native side of iOS ([#5190](https://github.com/getsentry/sentry-react-native/pull/5190))
 - Add mobile replay attributes to logs  ([#5165](https://github.com/getsentry/sentry-react-native/pull/5165))
 
 ### Fixes
