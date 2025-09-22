@@ -159,79 +159,13 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Log console"
           onPress={() => {
+            Sentry.logger.info('info log');
+            Sentry.logger.trace('trace log');
+            Sentry.logger.debug('debug log');
+            Sentry.logger.warn('warn log');
+            Sentry.logger.error('error log');
 
-                // Single bad item based on loop level
-                const badItems = [
-                  "{'a': 1}", // bad1 - single quotes
-                  '{"a": 1,}', // bad2 - trailing comma
-                  '{"a":"line\nbreak"}', // bad3 - literal newline
-                  '{"a": NaN}', // bad4 - NaN  / PROBLEMATIC
-                  '{"a":"\uD800"}', // bad5 - lone surrogate / PROBLEMATIC
-                  '/* comment */{"a":1}', // bad6 - C-style comments
-                  '{"a": 0x1}', // bad7 - hex literal
-                  null, // bad8
-                  undefined, // bad9
-                  false, // bad10
-                  0x1, // bad11 - hex
-                  1, // bad12
-                  '\n', // bad13 // ALSO BAD
-                  '}', // bad14
-                  1.1, // bad15
-                  Number.MAX_SAFE_INTEGER, // bad16
-                  Number.MIN_SAFE_INTEGER, // bad17
-                  Number.MAX_VALUE, // bad18
-                  Number.MIN_VALUE, // bad19
-                  '{"a": Infinity}', // bad20 - Infinity
-                  '{"a": 1', // bad21
-                  123n, // bad22 - BigInt → JSON.stringify throws
-                  { a: undefined }, // bad23 - undefined in object → dropped
-                  { a: () => 42 }, // bad24 - function in object → dropped
-                  { a: Symbol('x') }, // bad25 - symbol in object → dropped
-                  [1, undefined, () => {}, Symbol('y')], // bad26 - array weirdness → nulls
-                  { a: NaN, b: Infinity, c: -Infinity }, // bad27 - become null
-                  { a: new Date() }, // bad28 - becomes ISO string
-                  { a: /abc/ }, // bad29 - regex → dropped
-                  { a: new Map([['k', 1]]) }, // bad30 - Map → {}
-                  { a: new Set([1, 2, 3]) }, // bad31 - Set → {}
-                  new Array(50).fill(0), // bad32 - huge array → memory issues
-                  [,], // bad33
-                  [1, , 1], //bad34
-                  {}, // bad35
-                  '\0', // bad36
-                  '\x2550000000000000000000000000000000000000000000000000000000000000000', // bad37
-                  '{\n', // bad38
-                  { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x: { x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{X:['hi']}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}, //bad39
-                ];
-
-
-            // Loop with 20 iterations, each executing every 10 seconds
-            for (let loopLevel = 1; loopLevel <= badItems.length + 1; loopLevel++) {
-              setTimeout(() => {
-                debug.log(`lets break this (LVL ${loopLevel})`);
-
-                const badItem = badItems[loopLevel - 1]; // Get the bad item for this loop level
-
-                Sentry.logger.error(`lets break this (LVL ${loopLevel})`, {
-                  [`bad${loopLevel}`]: badItem,
-                  ['release']: badItem,
-                });
-
-                // Generate healthy logs for this loop level
-                for (let i = 0; i < 30; i++){
-                  Sentry.logger.info(`LOOP ${loopLevel} healthy log 0 - ${i + 1}`);
-                }
-                Sentry.logger.error(`lets break this (LVL ${loopLevel})`, {
-                  [`bad${loopLevel}`]: badItem,
-                  ['release']: badItem,
-                });
-
-
-                Sentry.logger.error(`lets break this (LVL ${loopLevel})`, {
-                  [`bad${loopLevel}`]: badItem,
-                  ['release']: badItem,
-                });
-              }, loopLevel * 10000); // Each loop executes 10 seconds after the previous one
-            }
+            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
           }}
         />
         {Platform.OS === 'android' && (
