@@ -164,7 +164,7 @@ const ErrorsScreen = (_props: Props) => {
             Sentry.logger.warn('warn log');
             Sentry.logger.error('error log');
 
-            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
           }}
         />
         {Platform.OS === 'android' && (
