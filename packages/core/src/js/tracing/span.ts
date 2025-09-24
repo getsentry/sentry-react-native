@@ -58,6 +58,7 @@ export const startIdleNavigationSpan = (
   }
 
   const activeSpan = getActiveSpan();
+  console.log(activeSpan);
   clearActiveSpanFromScope(getCurrentScope());
   if (activeSpan && isRootSpan(activeSpan) && isSentryInteractionSpan(activeSpan)) {
     debug.log(
