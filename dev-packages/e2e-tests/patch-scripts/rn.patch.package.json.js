@@ -28,16 +28,10 @@ try { pkg = JSON.parse(raw); } catch (e) { throw new Error(`Invalid JSON: ${e.me
 
 const METRO = '0.83.1';
 
-// For npm/pnpm users
 pkg.overrides = pkg.overrides || {};
 pkg.overrides.metro = METRO;
-
-// For Yarn (Berry)
 pkg.resolutions = pkg.resolutions || {};
-// Either of these works in Yarn; keeping the simple one:
 pkg.resolutions['metro'] = METRO;
-// If you ever need to be extra explicit, you can also add:
-// pkg.resolutions['**/metro'] = METRO;
 
 fs.writeFileSync(pkgPath + '.bak', raw);
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
