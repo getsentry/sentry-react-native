@@ -125,6 +125,12 @@ if (actions.includes('create')) {
   // yarn v3 won't install dependencies in a sub project without a yarn.lock file present
   fs.writeFileSync(`${appDir}/yarn.lock`, '');
 
+  execSync(`${patchScriptsDir}/rn.patch.package.json.js --path package.json`, {
+    stdio: 'inherit',
+    cwd: appDir,
+    env: env,
+  });
+
   execSync(`yarn install`, {
     stdio: 'inherit',
     cwd: appDir,
