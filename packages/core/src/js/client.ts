@@ -57,8 +57,8 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
           // Only allow IP inferral by Relay if sendDefaultPii is true
           infer_ip: options.sendDefaultPii ? 'auto' : 'never',
           ...options._metadata?.sdk?.settings,
-        }
-      }
+        },
+      },
     };
 
     // We default this to true, as it is the safer scenario
