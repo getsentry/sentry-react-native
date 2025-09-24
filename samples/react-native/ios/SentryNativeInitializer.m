@@ -11,8 +11,7 @@
         options.dsn = @"https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561";
         options.debug = YES; // Enabled debug when first installing is always helpful
 
-        options.beforeSend = ^SentryEvent *(SentryEvent *event)
-        {
+        options.beforeSend = ^SentryEvent *(SentryEvent *event) {
             // We don't want to send an event after startup that came from a Unhandled JS Exception
             // of react native Because we sent it already before the app crashed.
             if (nil != event.exceptions.firstObject.type &&

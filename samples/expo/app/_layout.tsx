@@ -31,6 +31,7 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
+  enableLogs: true,
   beforeSend: (event: Sentry.ErrorEvent) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
