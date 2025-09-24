@@ -33,9 +33,9 @@ import type { MetroSerializer } from '../../utils';
 
 let baseJSBundle: typeof baseJSBundleType;
 try {
-  baseJSBundle = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
+  baseJSBundle = require('metro/private/DeltaBundler/Serializers/baseJSBundle').default;
 } catch (e) {
-  baseJSBundle = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
+  baseJSBundle = require('metro/src/DeltaBundler/Serializers/baseJSBundle').default;
 }
 
 let sourceMapString: typeof sourceMapStringType;
@@ -54,9 +54,9 @@ try {
 
 let bundleToString: typeof bundleToStringType;
 try {
-  bundleToString = require('metro/private/lib/bundleToString');
+  bundleToString = require('metro/private/lib/bundleToString').default;
 } catch (e) {
-  bundleToString = require('metro/src/lib/bundleToString');
+  bundleToString = require('metro/src/lib/bundleToString').default;
 }
 
 type NewSourceMapStringExport = {
