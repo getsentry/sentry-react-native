@@ -160,7 +160,7 @@ jobs:
       USE_FRAMEWORKS: ${{ matrix.ios-use-frameworks }}
       PRODUCTION: ${{ matrix.build-type == 'production' && '1' || '0' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.rn-architecture == 'new' && '1' || '0' }}
-      SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
