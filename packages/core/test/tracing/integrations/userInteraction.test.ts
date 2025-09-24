@@ -43,8 +43,8 @@ jest.mock('react-native', () => {
     AppState: mockedAppState,
     Platform: { OS: 'ios' },
     NativeModules: {
-      RNSentry: {}
-    }
+      RNSentry: {},
+    },
   };
 });
 
