@@ -21,6 +21,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (BOOL)getEnableUnhandledCPPExceptionsV2:(SentryOptions *)sentryOptions;
 
+/**
+ * Sets the enableLogs experimental option on SentryOptions
+ * @param sentryOptions The SentryOptions instance to configure
+ * @param enabled Whether logs from sentry Cocoa should be enabled
+ */
++ (void)setEnableLogs:(BOOL)enabled sentryOptions:(SentryOptions *)sentryOptions;
+
 @end
 
 NS_ASSUME_NONNULL_END

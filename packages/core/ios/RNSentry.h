@@ -28,8 +28,7 @@ typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
 @end
 
-@interface
-RNSentry (fetchNativeStack)
+@interface RNSentry (fetchNativeStack)
 
 - (NSDictionary *_Nonnull)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                        symbolicate:(SymbolicateCallbackType)symbolicate;

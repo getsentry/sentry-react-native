@@ -16,8 +16,7 @@
 
 // This method was moved to a new category so we can use `@import Sentry` to use Sentry's Swift
 // classes
-@implementation
-RNSentry (fetchNativeStack)
+@implementation RNSentry (fetchNativeStack)
 
 - (NSDictionary *)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                symbolicate:(SymbolicateCallbackType)symbolicate

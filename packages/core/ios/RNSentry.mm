@@ -87,10 +87,8 @@ static bool hasFetchedAppStart;
 }
 
 RCT_EXPORT_MODULE()
-RCT_EXPORT_METHOD(initNativeSdk
-                  : (NSDictionary *_Nonnull)options resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSError *error = nil;
     SentryOptions *sentryOptions = [self createOptionsWithDictionary:options error:&error];
@@ -200,8 +198,7 @@ RCT_EXPORT_METHOD(initNativeSdk
 - (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
                                                   error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
-    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event)
-    {
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event) {
         // We don't want to send an event after startup that came from a Unhandled JS Exception of
         // React Native because we sent it already before the app crashed.
         if (nil != event.exceptions.firstObject.type &&
@@ -288,6 +285,13 @@ RCT_EXPORT_METHOD(initNativeSdk
         }
     }
 
+    if ([mutableOptions valueForKey:@"enableLogs"] != nil) {
+        id enableLogsValue = [mutableOptions valueForKey:@"enableLogs"];
+        if ([enableLogsValue isKindOfClass:[NSNumber class]]) {
+            [RNSentryExperimentalOptions setEnableLogs:[enableLogsValue boolValue]
+                                         sentryOptions:sentryOptions];
+        }
+    }
     [self trySetIgnoreErrors:mutableOptions];
 
     // Enable the App start and Frames tracking measurements
@@ -355,9 +359,8 @@ RCT_EXPORT_METHOD(initNativeSdk
     event.tags = newTags;
 }
 
-RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
     if ([[NSThread currentThread] isMainThread]) {
@@ -399,9 +402,8 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
     return @[ RNSentryNewFrameEvent ];
 }
 
-RCT_EXPORT_METHOD(fetchNativeSdkInfo
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeSdkInfo : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     resolve(@ {
         @"name" : PrivateSentrySDKOnly.getSdkName,
@@ -409,9 +411,8 @@ RCT_EXPORT_METHOD(fetchNativeSdkInfo
     });
 }
 
-RCT_EXPORT_METHOD(fetchModules
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchModules : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSString *filePath = [[NSBundle mainBundle] pathForResource:@"modules" ofType:@"json"];
     NSString *modulesString = [NSString stringWithContentsOfFile:filePath
@@ -426,15 +427,14 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
     return packageName;
 }
 
-RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
-                                    : (NSArray *)instructionsAddr)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(
+    NSDictionary *, fetchNativeStackFramesBy : (NSArray *)instructionsAddr)
 {
     return [self fetchNativeStackFramesBy:instructionsAddr symbolicate:dladdr];
 }
 
-RCT_EXPORT_METHOD(fetchNativeLogAttributes
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeLogAttributes : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
 {
     __block NSMutableDictionary<NSString *, id> *result = [NSMutableDictionary new];
 
@@ -484,9 +484,8 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes
     resolve(result);
 }
 
-RCT_EXPORT_METHOD(fetchNativeDeviceContexts
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
 {
     if (PrivateSentrySDKOnly.options.debug) {
         NSLog(@"Bridge call to: deviceContexts");
@@ -546,9 +545,8 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts
     resolve(serializedScope);
 }
 
-RCT_EXPORT_METHOD(fetchNativeAppStart
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeAppStart : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
     NSDictionary<NSString *, id> *measurements =
@@ -573,9 +571,8 @@ RCT_EXPORT_METHOD(fetchNativeAppStart
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchNativeFrames
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeFrames : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
@@ -604,9 +601,8 @@ RCT_EXPORT_METHOD(fetchNativeFrames
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchNativeRelease
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeRelease : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
     resolve(@ {
@@ -616,11 +612,8 @@ RCT_EXPORT_METHOD(fetchNativeRelease
     });
 }
 
-RCT_EXPORT_METHOD(captureEnvelope
-                  : (NSString *_Nonnull)rawBytes options
-                  : (NSDictionary *_Nonnull)options resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(captureEnvelope : (NSString *_Nonnull)rawBytes options : (NSDictionary *_Nonnull)
+        options resolve : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSData *data = [[NSData alloc] initWithBase64EncodedString:rawBytes options:0];
 
@@ -643,9 +636,8 @@ RCT_EXPORT_METHOD(captureEnvelope
     resolve(@YES);
 }
 
-RCT_EXPORT_METHOD(captureScreenshot
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    captureScreenshot : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSArray<NSData *> *rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
@@ -677,9 +669,8 @@ RCT_EXPORT_METHOD(captureScreenshot
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchViewHierarchy
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchViewHierarchy : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSData *rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
@@ -793,9 +784,8 @@ RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 
 RCT_EXPORT_METHOD(crash) { [SentrySDKWrapper crash]; }
 
-RCT_EXPORT_METHOD(closeNativeSdk
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    closeNativeSdk : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     [SentrySDKWrapper close];
     resolve(@YES);
@@ -814,10 +804,8 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
-RCT_EXPORT_METHOD(captureReplay
-                  : (BOOL)isHardCrash resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [PrivateSentrySDKOnly captureReplay];
@@ -827,10 +815,8 @@ RCT_EXPORT_METHOD(captureReplay
 #endif
 }
 
-RCT_EXPORT_METHOD(getDataFromUri
-                  : (NSString *_Nonnull)uri resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getDataFromUri : (NSString *_Nonnull)uri resolve : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSURL *fileURL = [NSURL URLWithString:uri];
@@ -1013,9 +999,8 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 #endif
 }
 
-RCT_EXPORT_METHOD(crashedLastRun
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    crashedLastRun : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     resolve(@([SentrySDKWrapper crashedLastRun]));
 }
@@ -1029,17 +1014,14 @@ RCT_EXPORT_METHOD(crashedLastRun
 }
 #endif
 
-RCT_EXPORT_METHOD(getNewScreenTimeToDisplay
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getNewScreenTimeToDisplay : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
 {
     [_timeToDisplay getTimeToDisplay:resolve];
 }
 
-RCT_EXPORT_METHOD(popTimeToDisplayFor
-                  : (NSString *)key resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(popTimeToDisplayFor : (NSString *)key resolver : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     resolve([RNSentryTimeToDisplay popTimeToDisplayFor:key]);
 }
@@ -1050,10 +1032,8 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)sp
     return @YES; // The return ensures that the method is synchronous
 }
 
-RCT_EXPORT_METHOD(encodeToBase64
-                  : (NSArray *)array resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(encodeToBase64 : (NSArray *)array resolver : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSUInteger count = array.count;
     uint8_t *bytes = (uint8_t *)malloc(count);

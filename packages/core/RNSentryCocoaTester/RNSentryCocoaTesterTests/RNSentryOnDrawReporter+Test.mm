@@ -28,8 +28,7 @@
 
 @end
 
-@implementation
-RNSentryOnDrawReporterView (Testing)
+@implementation RNSentryOnDrawReporterView (Testing)
 
 + (instancetype)createWithMockedListener
 {

@@ -10,7 +10,12 @@
 
 ### Features
 
+- Enable logs on native side of iOS ([#5190](https://github.com/getsentry/sentry-react-native/pull/5190))
 - Add mobile replay attributes to logs  ([#5165](https://github.com/getsentry/sentry-react-native/pull/5165))
+
+### Fixes
+
+- Vendor `metro/countLines` function to avoid issues with the private import ([#5185](https://github.com/getsentry/sentry-react-native/pull/5185))
 
 ## 7.1.0
 

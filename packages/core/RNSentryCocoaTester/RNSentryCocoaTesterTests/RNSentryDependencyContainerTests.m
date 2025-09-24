@@ -22,7 +22,7 @@
     OCMStub([(SentryDependencyContainer *)sentryDependencyContainerMock framesTracker])
         .andReturn(frameTrackerMock);
 
-    RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) {};
+    RNSentryEmitNewFrameEvent emitNewFrameEvent = ^(NSNumber *newFrameTimestampInSeconds) { };
     [[RNSentryDependencyContainer sharedInstance]
         initializeFramesTrackerListenerWith:emitNewFrameEvent];
     XCTAssertNotNil([[RNSentryDependencyContainer sharedInstance] framesTrackerListener]);

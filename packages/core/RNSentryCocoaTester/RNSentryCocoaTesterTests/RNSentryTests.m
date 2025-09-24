@@ -316,6 +316,50 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
         enableUnhandledCPPExceptions, @"enableUnhandledCPPExceptionsV2 should default to disabled");
 }
 
+- (void)testCreateOptionsWithDictionaryEnableLogsEnabled
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableLogs" : @YES,
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableLogs = [[experimentalOptions valueForKey:@"enableLogs"] boolValue];
+    XCTAssertTrue(enableLogs, @"enableLogs should be enabled");
+}
+
+- (void)testCreateOptionsWithDictionaryEnableLogsDisabled
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableLogs" : @NO,
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableLogs = [[experimentalOptions valueForKey:@"enableLogs"] boolValue];
+    XCTAssertFalse(enableLogs, @"enableLogs should be disabled");
+}
+
 - (void)testPassesErrorOnWrongDsn
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];

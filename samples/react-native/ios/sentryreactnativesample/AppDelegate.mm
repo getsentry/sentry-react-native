@@ -15,8 +15,7 @@
 
 #import "SentryNativeInitializer.h"
 
-@interface
-AppDelegate () <UNUserNotificationCenterDelegate> {
+@interface AppDelegate () <UNUserNotificationCenterDelegate> {
 }
 @end
 
