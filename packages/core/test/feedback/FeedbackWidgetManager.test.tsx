@@ -275,7 +275,9 @@ describe('FeedbackButtonManager', () => {
     });
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
-    listener({ colorScheme: 'dark' });
+    await act(async () => {
+      listener({ colorScheme: 'dark' });
+    })
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -391,8 +393,8 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     await act(async () => {
-      showFeedbackWidget();
-    });
+      showFeedbackButton();
+    })
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -408,7 +410,7 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackButton();
     });
 
     expect(toJSON()).toMatchSnapshot();
@@ -427,11 +429,13 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackButton();
     });
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
-    listener({ colorScheme: 'dark' });
+    await act(async () => {
+      listener({ colorScheme: 'dark' });
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -454,7 +458,7 @@ describe('FeedbackButtonManager', () => {
     getClient()?.addIntegration(integration);
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackButton();
     });
 
     expect(toJSON()).toMatchSnapshot();
@@ -478,7 +482,7 @@ describe('FeedbackButtonManager', () => {
     getClient()?.addIntegration(integration);
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackButton();
     });
 
     expect(toJSON()).toMatchSnapshot();
@@ -504,7 +508,7 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackButton();
     });
 
     expect(toJSON()).toMatchSnapshot();
@@ -530,7 +534,7 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackButton();
     });
 
     expect(toJSON()).toMatchSnapshot();
