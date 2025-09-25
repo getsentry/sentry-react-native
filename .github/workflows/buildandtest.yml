@@ -37,7 +37,7 @@ jobs:
 
   job_lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04@20250907.24.1
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
