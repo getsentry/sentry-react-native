@@ -58,12 +58,18 @@ try {
   }
 }
 
-let bundleToString: typeof bundleToStringType;
+let bundleToStringModule: any;
 try {
-  bundleToString = require('metro/private/lib/bundleToString');
-} catch (e) {
-  bundleToString = require('metro/src/lib/bundleToString');
+  bundleToStringModule = require('metro/private/lib/bundleToString');
+} catch {
+  bundleToStringModule = require('metro/src/lib/bundleToString');
 }
+
+const bundleToString: typeof bundleToStringType =
+  typeof bundleToStringModule === 'function'
+    ? bundleToStringModule
+    : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      bundleToStringModule?.bundleToString ?? bundleToStringModule?.default;
 
 type NewSourceMapStringExport = {
   // Since Metro v0.80.10 https://github.com/facebook/metro/compare/v0.80.9...v0.80.10#diff-1b836d1729e527a725305eef0cec22e44605af2700fa413f4c2489ea1a03aebcL28
