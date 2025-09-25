@@ -16,6 +16,7 @@
 ### Fixes
 
 - Vendor `metro/countLines` function to avoid issues with the private import ([#5185](https://github.com/getsentry/sentry-react-native/pull/5185))
+- Fix baseJSBundle and bundleToString TypeErrors with Metro 0.83.2 ([#5206](https://github.com/getsentry/sentry-react-native/pull/5206))
 
 ## 7.1.0
 
