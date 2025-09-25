@@ -131,6 +131,19 @@ if (actions.includes('create')) {
     env: env,
   });
 
+  // Only apply the package.json patch for newer RN versions
+  const versionNumber = parseFloat(RNVersion.replace(/[^\d.]/g, ''));
+  if (versionNumber >= 0.80) {
+    execSync(`${patchScriptsDir}/rn.patch.package.json.js --path package.json`, {
+      stdio: 'inherit',
+      cwd: appDir,
+      env: env,
+    });
+  } else {
+    console.log(`Skipping rn.patch.package.json.js for RN ${RNVersion} (< 0.80)`);
+  }
+
+
   execSync(`yarn install`, {
     stdio: 'inherit',
     cwd: appDir,
