@@ -31,12 +31,18 @@ import type * as sourceMapStringType from 'metro/private/DeltaBundler/Serializer
 import type * as bundleToStringType from 'metro/private/lib/bundleToString';
 import type { MetroSerializer } from '../../utils';
 
-let baseJSBundle: typeof baseJSBundleType;
+let baseJSBundleModule: any;
 try {
-  baseJSBundle = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
-} catch (e) {
-  baseJSBundle = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
+  baseJSBundleModule = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
+} catch {
+  baseJSBundleModule = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
 }
+
+const baseJSBundle: typeof baseJSBundleType =
+  typeof baseJSBundleModule === 'function'
+    ? baseJSBundleModule
+    : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      baseJSBundleModule?.baseJSBundle ?? baseJSBundleModule?.default;
 
 let sourceMapString: typeof sourceMapStringType;
 try {
