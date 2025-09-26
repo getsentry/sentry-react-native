@@ -50,21 +50,6 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - name: Install Swiftly
-        run: |
-          SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
-          curl -sL https://download.swift.org/swiftly/linux/swiftly-x86_64.tar.gz -o $SWIFTLY_FILE
-          tar zxf $SWIFTLY_FILE
-
-          ./swiftly init --quiet-shell-followup
-          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
-          hash -r
-          sudo apt-get -y install libcurl4-openssl-dev
-
-      - name: Check Swift 6.2.0
-        run: |
-          swift --version
-
       - name: Install Dependencies
         run: yarn install
 
@@ -82,6 +67,17 @@ jobs:
           sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-20 200
           clang --version
           clang-format --version
+
+      - name: Install Swiftly
+        run: |
+          SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
+          curl -sL https://download.swift.org/swiftly/linux/swiftly-x86_64.tar.gz -o $SWIFTLY_FILE
+          tar zxf $SWIFTLY_FILE
+
+          ./swiftly init --quiet-shell-followup
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+          hash -r
+          sudo apt-get -y install libcurl4-openssl-dev
 
       - name: Lint
         run: yarn lint
