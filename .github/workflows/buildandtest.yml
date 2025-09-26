@@ -67,12 +67,16 @@ jobs:
           clang --version
           clang-format --version
 
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@682457186b71c25a884c45c06f859febbe259240 # 2.3.0
-        env:
-          SWIFT_VERIFY: false #probably fixes https://github.com/swift-actions/setup-swift/pull/772
-        with:
-          swift-version: '6.1.0'
+      - name: Install Swift via Swiftly
+        run: |
+          SWIFTLY_HOME_DIR="$GITHUB_WORKSPACE/.swiftlint/swiftly"
+          mkdir -p "$SWIFTLY_HOME_DIR"
+          curl -sL https://github.com/compnerd/swift-build/releases/latest/download/swiftly-linux.tar.gz | tar xz -C "$SWIFTLY_HOME_DIR"
+
+          export SWIFTLY_HOME_DIR="$SWIFTLY_HOME_DIR"
+          export SWIFTLY_PLATFORM=ubuntu20.04   # pick 20.04 or 22.04
+          . "$SWIFTLY_HOME_DIR/env.sh"
+          hash -r
 
       - name: Lint
         run: yarn lint
