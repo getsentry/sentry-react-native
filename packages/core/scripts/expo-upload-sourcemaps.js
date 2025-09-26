@@ -131,7 +131,7 @@ try {
 
 const sentryBuildPluginPath = path.join(projectRoot, '.env.sentry-build-plugin');
 if (fs.existsSync(sentryBuildPluginPath)) {
-  loadDotenv();
+  loadDotenv(sentryBuildPluginPath);
 }
 
 let sentryOrg = getEnvVar(SENTRY_ORG);
