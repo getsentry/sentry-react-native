@@ -59,12 +59,11 @@ jobs:
           ./swiftly init --quiet-shell-followup
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
+          sudo apt-get -y install libcurl4-openssl-dev
 
-      - name: Install Swift 6.2.0
+      - name: Check Swift 6.2.0
         run: |
-          swiftly install swift 6.2.0
           swift --version
-
 
       - name: Install Dependencies
         run: yarn install
