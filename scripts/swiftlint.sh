@@ -64,7 +64,7 @@ CMD="$(dirname "$0")/../swiftlint/swiftlint"
 if [ "$mode" = "fix" ]; then
     $CMD --fix
 elif [ "$mode" = "lint" ]; then
-    $CMD --strict --no-cache
+    $CMD --strict
 else
     echo "Invalid mode. Use 'fix' or 'lint'."
     exit 1
