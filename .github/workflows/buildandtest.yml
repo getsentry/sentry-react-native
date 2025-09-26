@@ -70,7 +70,7 @@ jobs:
       - name: Setup Swift
         uses: swift-actions/setup-swift@682457186b71c25a884c45c06f859febbe259240 # 2.3.0
         with:
-          version: '6.2.0'
+          version: '6.1.0'
 
       - name: Lint
         run: yarn lint
