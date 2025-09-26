@@ -69,10 +69,12 @@ jobs:
 
       - name: Install Swiftly
         run: |
-          curl -sL https://github.com/compnerd/swift-build/releases/latest/download/swiftly-$(uname -m).tar.gz && \
-          tar zxf swiftly-$(uname -m).tar.gz && \
-          ./swiftly init --quiet-shell-followup && \
-          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh" && \
+          SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
+          curl -sL https://github.com/compnerd/swift-build/releases/latest/download/$SWIFTLY_FILE -o $SWIFTLY_FILE
+          tar zxf $SWIFTLY_FILE
+
+          ./swiftly init --quiet-shell-followup
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
 
       - name: Install Swift 6.2.0
