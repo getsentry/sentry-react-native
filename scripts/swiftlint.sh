@@ -56,6 +56,10 @@ else
     rm "$SWIFTLINT_DIR/swiftlint.zip"
 fi
 
+if [ ! -f "$SHA_FILE" ] || [ "$(cat "$SHA_FILE")" != "$EXPECTED_SHA" ]; then
+    echo "Invalid SwiftLint, sha doesn't match the expected download."
+    exit 1
+fi
 
 DARWIN_PATH="$(dirname "$0")/../node_modules/@expo/swiftlint/bin/darwin-arm64/swiftlint"
 LINUX_PATH="$(dirname "$0")/../node_modules/@expo/swiftlint/bin/linux-x64/swiftlint"
