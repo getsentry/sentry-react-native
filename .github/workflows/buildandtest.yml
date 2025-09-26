@@ -69,8 +69,10 @@ jobs:
 
       - name: Setup Swift
         uses: swift-actions/setup-swift@682457186b71c25a884c45c06f859febbe259240 # 2.3.0
+        env:
+          SWIFT_VERIFY: false #probably fixes https://github.com/swift-actions/setup-swift/pull/772
         with:
-          version: '6.1.0'
+          swift-version: '6.1.0'
 
       - name: Lint
         run: yarn lint
