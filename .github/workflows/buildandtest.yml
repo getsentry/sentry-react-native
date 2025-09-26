@@ -49,7 +49,6 @@ jobs:
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
-
       - name: Install Dependencies
         run: yarn install
 

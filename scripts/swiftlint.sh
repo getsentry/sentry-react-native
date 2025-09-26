@@ -16,7 +16,6 @@ SWIFT_PATH=$(which swift 2>/dev/null || true)
 if [ -z "$SWIFT_PATH" ]; then
     echo "SwiftLint requires swift, which is not installed or not found in PATH"
     echo "To install Swift:"
-    echo "  * macOS: brew install swift"
     echo "  * ubuntu: follow steps here: https://www.swift.org/install/"
     echo "  * arch: yay -S swift-bin"
     exit 1
@@ -69,7 +68,7 @@ CMD="$(dirname "$0")/../swiftlint/swiftlint"
 if [ "$mode" = "fix" ]; then
     $CMD --fix
 elif [ "$mode" = "lint" ]; then
-    $CMD --strict --no-cache
+    $CMD --strict
 else
     echo "Invalid mode. Use 'fix' or 'lint'."
     exit 1
