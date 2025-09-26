@@ -23,7 +23,7 @@ fi
 if [ "$mode" = "fix" ]; then
     $CMD --fix
 elif [ "$mode" = "lint" ]; then
-    $CMD --strict
+    $CMD --strict --no-cache
 else
     echo "Invalid mode. Use 'fix' or 'lint'."
     exit 1
