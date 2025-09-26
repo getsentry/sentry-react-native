@@ -16,22 +16,15 @@
 ### Fixes
 
 - Vendor `metro/countLines` function to avoid issues with the private import ([#5185](https://github.com/getsentry/sentry-react-native/pull/5185))
+- Fix baseJSBundle and bundleToString TypeErrors with Metro 0.83.2 ([#5206](https://github.com/getsentry/sentry-react-native/pull/5206))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.56.0 to v8.56.1 ([#5197](https://github.com/getsentry/sentry-react-native/pull/5197))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8561)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.0...8.56.1)
 
 ## 7.1.0
-
-### Fixes
-
-- Session Replay: Allow excluding `sentry-android-replay` from android targets ([#5174](https://github.com/getsentry/sentry-react-native/pull/5174))
-  - If you are not interested in using Session Replay, you can exclude the `sentry-android-replay` module from your Android targets as follows (saves nearly 40KB compressed and 80KB uncompressed off the bundle size):
-
-  ```gradle
-  // from the android's root build.gradle file
-  subprojects {
-    configurations.all {
-      exclude group: 'io.sentry', module: 'sentry-android-replay'
-    }
-  }
-  ```
 
 ### Fixes
 
