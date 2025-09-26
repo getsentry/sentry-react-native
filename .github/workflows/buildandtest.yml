@@ -69,6 +69,7 @@ jobs:
 
       - name: Install Swiftly
         run: |
+          curl -sL https://github.com/compnerd/swift-build/releases/latest/download/swiftly-$(uname -m).tar.gz && \
           tar zxf swiftly-$(uname -m).tar.gz && \
           ./swiftly init --quiet-shell-followup && \
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh" && \
