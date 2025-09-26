@@ -22,8 +22,6 @@ if [ -z "$SWIFT_PATH" ]; then
     exit 1
 fi
 
-
-
 LINUX_BIN="https://github.com/realm/SwiftLint/releases/download/0.61.0/swiftlint_linux_amd64.zip"
 LINUX_SHA="sha256:02f4f580bbb27fb618dbfa24ce2f14c926461c85c26941289f58340151b63ae4"
 DARWIN_BIN="https://github.com/realm/SwiftLint/releases/download/0.61.0/portable_swiftlint.zip"
