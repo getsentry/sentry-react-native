@@ -60,9 +60,6 @@ if [ ! -f "$SHA_FILE" ] || [ "$(cat "$SHA_FILE")" != "$EXPECTED_SHA" ]; then
     exit 1
 fi
 
-DARWIN_PATH="$(dirname "$0")/../node_modules/@expo/swiftlint/bin/darwin-arm64/swiftlint"
-LINUX_PATH="$(dirname "$0")/../node_modules/@expo/swiftlint/bin/linux-x64/swiftlint"
-
 CMD="$(dirname "$0")/../swiftlint/swiftlint"
 
 if [ "$mode" = "fix" ]; then
