@@ -8,6 +8,17 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.56.1 to v8.56.2 ([#5214](https://github.com/getsentry/sentry-react-native/pull/5214))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8562)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.1...8.56.2)
+- Bump Android SDK from v8.21.1 to v8.22.0 ([#5193](https://github.com/getsentry/sentry-react-native/pull/5193), [#5194](https://github.com/getsentry/sentry-react-native/pull/5194))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8220)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.21.1...8.22.0)
+
+## 7.2.0
+
 ### Features
 
 - Enable logs on native side of iOS ([#5190](https://github.com/getsentry/sentry-react-native/pull/5190))
@@ -20,6 +31,9 @@
 
 ### Dependencies
 
+- Bump CLI from v2.53.0 to v2.55.0 ([#5179](https://github.com/getsentry/sentry-react-native/pull/5179))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2550)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.53.0...2.55.0)
 - Bump Cocoa SDK from v8.56.0 to v8.56.1 ([#5197](https://github.com/getsentry/sentry-react-native/pull/5197))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8561)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.0...8.56.1)
