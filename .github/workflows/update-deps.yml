@@ -83,15 +83,16 @@ jobs:
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sample-rn:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-rn.sh
-      name: React Native
-      pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
-      pr-strategy: update
-      changelog-entry: false
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-rn.sh
+          name: React Native
+          pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
+          pr-strategy: update
+          changelog-entry: false
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   maestro:
     runs-on: ubuntu-latest
