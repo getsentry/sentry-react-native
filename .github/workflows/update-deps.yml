@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - antonis/fix-worflows-for-v3
 
 jobs:
   android:
