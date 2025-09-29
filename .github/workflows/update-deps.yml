@@ -11,68 +11,75 @@ on:
 
 jobs:
   android:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-android.sh
-      name: Android SDK
-      pr-strategy: update
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-android.sh
+          name: Android SDK
+          pr-strategy: update
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   android-stubs:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-android-stubs.sh
-      name: Android SDK Stubs
-      pr-strategy: update
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-android-stubs.sh
+          name: Android SDK Stubs
+          pr-strategy: update
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cocoa:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-cocoa.sh
-      name: Cocoa SDK
-      pr-strategy: update
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-cocoa.sh
+          name: Cocoa SDK
+          pr-strategy: update
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   javascript:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-javascript.sh
-      name: JavaScript SDK
-      pr-strategy: update
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-javascript.sh
+          name: JavaScript SDK
+          pr-strategy: update
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   wizard:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-wizard.sh
-      name: Wizard
-      pr-strategy: update
-      changelog-entry: false
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-wizard.sh
+          name: Wizard
+          pr-strategy: update
+          changelog-entry: false
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cli:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-cli.sh
-      name: CLI
-      pr-strategy: update
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-cli.sh
+          name: CLI
+          pr-strategy: update
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   bundler-plugins:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-bundler-plugins.sh
-      name: Bundler Plugins
-      pr-strategy: update
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-bundler-plugins.sh
+          name: Bundler Plugins
+          pr-strategy: update
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sample-rn:
     uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
@@ -86,23 +93,25 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   maestro:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-maestro.sh
-      name: Maestro
-      pattern: '^v[0-9.]+$' # only match non-preview versions
-      pr-strategy: update
-      changelog-entry: false
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-maestro.sh
+          name: Maestro
+          pattern: '^v[0-9.]+$' # only match non-preview versions
+          pr-strategy: update
+          changelog-entry: false
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sentry-android-gradle-plugin:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
-    with:
-      path: scripts/update-sentry-android-gradle-plugin.sh
-      name: Sentry Android Gradle Plugin
-      pattern: '^[0-9.]+$'
-      pr-strategy: update
-      changelog-entry: false
-    secrets:
-      api-token: ${{ secrets.CI_DEPLOY_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: getsentry/github-workflows/updater@v3
+        with:
+          path: scripts/update-sentry-android-gradle-plugin.sh
+          name: Sentry Android Gradle Plugin
+          pattern: '^[0-9.]+$'
+          pr-strategy: update
+          changelog-entry: false
+          api-token: ${{ secrets.CI_DEPLOY_KEY }}
