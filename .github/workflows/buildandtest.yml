@@ -49,6 +49,18 @@ jobs:
           cache-dependency-path: yarn.lock
       - name: Install Dependencies
         run: yarn install
+
+      - name: Install Swiftly
+        run: |
+          SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
+          curl -sL https://download.swift.org/swiftly/linux/swiftly-x86_64.tar.gz -o $SWIFTLY_FILE
+          tar zxf $SWIFTLY_FILE
+
+          ./swiftly init --quiet-shell-followup
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+          hash -r
+          sudo apt-get -y install libcurl4-openssl-dev
+
       - name: Lint
         run: yarn lint
 

@@ -5916,15 +5916,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/swiftlint@npm:^0.57.1":
-  version: 0.57.1
-  resolution: "@expo/swiftlint@npm:0.57.1"
-  dependencies:
-    "@expo/spawn-async": ^1.5.0
-  checksum: 87f744bb45cc3a4aa2a40424d21995547c138eef4d4918a3990859c9f143acd3ce463ff3f0c421c0b3e95a694abf7d8fcb8c8545dbe00d81767fc461a68c8378
-  languageName: node
-  linkType: hard
-
 "@expo/vector-icons@npm:^14.0.0":
   version: 14.0.2
   resolution: "@expo/vector-icons@npm:14.0.2"
@@ -27493,7 +27484,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sentry-react-native@workspace:."
   dependencies:
-    "@expo/swiftlint": ^0.57.1
     "@naturalcycles/ktlint": ^1.13.0
     "@sentry/cli": 2.53.0
     clang-format: ^1.8.0
