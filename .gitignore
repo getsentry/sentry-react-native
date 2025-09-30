@@ -94,3 +94,6 @@ node_modules.bak
 
 # SwiftLint
 swiftlint/*
+
+# Android SDK Replay Stubs
+packages/core/android/libs/replay-stubs.jar
