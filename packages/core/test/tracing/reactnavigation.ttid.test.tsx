@@ -1,4 +1,3 @@
-// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'
@@ -286,10 +285,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id!]: nowInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id!]: nowInSeconds(),
         },
       });
 
@@ -363,10 +362,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds() - 1,
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds() - 1,
         },
       });
 
@@ -390,10 +389,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id!]: timestampInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id!]: timestampInSeconds(),
         },
       });
 
@@ -490,7 +489,7 @@ describe('React Navigation - TTID', () => {
       timeToDisplayComponent.update(<TimeToInitialDisplay record />);
       mockRecordedTimeToDisplay({
         ttid: {
-          [spanToJSON(getActiveSpan()!).span_id!]: manualInitialDisplayEndTimestampMs / 1_000,
+          [spanToJSON(getActiveSpan()).span_id]: manualInitialDisplayEndTimestampMs / 1_000,
         },
       });
 
@@ -671,7 +670,7 @@ describe('React Navigation - TTID', () => {
 function mockAutomaticTimeToDisplay(): void {
   mockRecordedTimeToDisplay({
     ttidNavigation: {
-      [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+      [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
     },
   });
 }

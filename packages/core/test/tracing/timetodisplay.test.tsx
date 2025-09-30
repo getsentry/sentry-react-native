@@ -1,4 +1,3 @@
-// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { Event, Measurements, Span, SpanJSON } from '@sentry/core';
 import { debug , getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
 
@@ -72,7 +71,7 @@ describe('TimeToDisplay', () => {
         render(<TimeToInitialDisplay record={true} />);
         mockRecordedTimeToDisplay({
           ttid: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
         });
 
@@ -103,10 +102,10 @@ describe('TimeToDisplay', () => {
 
         mockRecordedTimeToDisplay({
           ttid: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
           ttfd: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
         });
 
@@ -135,7 +134,7 @@ describe('TimeToDisplay', () => {
 
         mockRecordedTimeToDisplay({
           ttfd: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
         });
 
@@ -165,7 +164,7 @@ describe('TimeToDisplay', () => {
 
         mockRecordedTimeToDisplay({
           ttid: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
         });
 
@@ -196,10 +195,10 @@ describe('TimeToDisplay', () => {
 
         mockRecordedTimeToDisplay({
           ttid: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
           ttfd: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
         });
 
@@ -231,10 +230,10 @@ describe('TimeToDisplay', () => {
 
         mockRecordedTimeToDisplay({
           ttid: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds(),
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
           },
           ttfd: {
-            [spanToJSON(activeSpan!).span_id!]: nowInSeconds() + 40,
+            [spanToJSON(activeSpan).span_id]: nowInSeconds() + 40,
           },
         });
 
@@ -271,10 +270,10 @@ describe('TimeToDisplay', () => {
 
         mockRecordedTimeToDisplay({
           ttfd: {
-            [spanToJSON(activeSpan!).span_id!]: fullDisplayEndTimestampMs / 1_000,
+            [spanToJSON(activeSpan).span_id]: fullDisplayEndTimestampMs / 1_000,
           },
           ttid: {
-            [spanToJSON(activeSpan!).span_id!]: initialDisplayEndTimestampMs / 1_000,
+            [spanToJSON(activeSpan).span_id]: initialDisplayEndTimestampMs / 1_000,
           },
         });
 

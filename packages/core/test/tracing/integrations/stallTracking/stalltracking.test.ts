@@ -1,4 +1,3 @@
-// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { Span } from '@sentry/core';
 import {
   getCurrentScope,
@@ -154,7 +153,7 @@ describe('StallTracking', () => {
       jest.runOnlyPendingTimers();
     });
     jest.runOnlyPendingTimers();
-    rootSpan!.end(childSpanEnd);
+    rootSpan.end(childSpanEnd);
 
     await client.flush();
 
@@ -170,7 +169,7 @@ describe('StallTracking', () => {
       jest.runOnlyPendingTimers();
     });
     jest.runOnlyPendingTimers();
-    rootSpan!.end(childSpanEnd! + 20);
+    rootSpan.end(childSpanEnd! + 20);
 
     await client.flush();
 

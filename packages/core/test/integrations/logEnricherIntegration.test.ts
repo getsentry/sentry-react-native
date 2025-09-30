@@ -161,7 +161,7 @@ describe('LogEnricher Integration', () => {
       // Extract the log handler
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      logHandler = beforeCaptureLogCall![1];
+      logHandler = beforeCaptureLogCall[1];
 
       mockLog = {
         message: 'Test log message',
@@ -245,7 +245,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const newLogHandler = beforeCaptureLogCall![1];
+      const newLogHandler = beforeCaptureLogCall[1];
 
       newLogHandler(mockLog);
 
@@ -291,7 +291,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const emptyLogHandler = beforeCaptureLogCall![1];
+      const emptyLogHandler = beforeCaptureLogCall[1];
 
       emptyLogHandler(mockLog);
 
@@ -323,7 +323,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const partialLogHandler = beforeCaptureLogCall![1];
+      const partialLogHandler = beforeCaptureLogCall[1];
 
       partialLogHandler(mockLog);
 
@@ -357,7 +357,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const partialLogHandler = beforeCaptureLogCall![1];
+      const partialLogHandler = beforeCaptureLogCall[1];
 
       partialLogHandler(mockLog);
 
@@ -447,7 +447,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      logHandler = beforeCaptureLogCall![1];
+      logHandler = beforeCaptureLogCall[1];
 
       mockLog = {
         message: 'Test log message',

@@ -1,4 +1,3 @@
-// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { ErrorEvent, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCurrentScope,
@@ -1198,7 +1197,7 @@ function expectEventWithStandaloneColdAppStart(
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
         span_id: expect.any(String),
-        parent_span_id: actualEvent!.contexts!.trace!.span_id,
+        parent_span_id: actualEvent.contexts.trace.span_id,
         origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
@@ -1249,7 +1248,7 @@ function expectEventWithStandaloneWarmAppStart(
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
         span_id: expect.any(String),
-        parent_span_id: actualEvent!.contexts!.trace!.span_id,
+        parent_span_id: actualEvent.contexts.trace.span_id,
         origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
