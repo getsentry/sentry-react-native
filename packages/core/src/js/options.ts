@@ -291,6 +291,20 @@ export interface BaseReactNativeOptions {
    * @deprecated This option will be removed in the next major version. Use `beforeSend` instead.
    */
   useThreadsForMessageStack?: boolean;
+
+  /**
+   * If set to `true`, the SDK propagates the W3C `traceparent` header to any outgoing requests,
+   * in addition to the `sentry-trace` and `baggage` headers. Use the {@link CoreOptions.tracePropagationTargets}
+   * option to control to which outgoing requests the header will be attached.
+   *
+   * **Important:** If you set this option to `true`, make sure that you configured your servers'
+   * CORS settings to allow the `traceparent` header. Otherwise, requests might get blocked.
+   *
+   * @see https://www.w3.org/TR/trace-context/
+   *
+   * @default false
+   */
+  propagateTraceparent?: boolean;
 }
 
 export type SentryReplayQuality = 'low' | 'medium' | 'high';
