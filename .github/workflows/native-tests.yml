@@ -69,6 +69,12 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
+      - name: Install SDK JS Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
 
