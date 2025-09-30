@@ -46,7 +46,7 @@
     OCMStub([(SentryDependencyContainer *)sentryDependencyContainerMock framesTracker])
         .andReturn(frameTrackerMock);
 
-    RNSentryEmitNewFrameEvent mockEventEmitter = ^(NSNumber *newFrameTimestampInSeconds) {};
+    RNSentryEmitNewFrameEvent mockEventEmitter = ^(NSNumber *newFrameTimestampInSeconds) { };
 
     RNSentryFramesTrackerListener *actualListener = [[RNSentryFramesTrackerListener alloc]
         initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]
@@ -66,7 +66,7 @@
     OCMStub([(SentryDependencyContainer *)sentryDependencyContainerMock framesTracker])
         .andReturn(frameTrackerMock);
 
-    RNSentryEmitNewFrameEvent mockEventEmitter = ^(NSNumber *newFrameTimestampInSeconds) {};
+    RNSentryEmitNewFrameEvent mockEventEmitter = ^(NSNumber *newFrameTimestampInSeconds) { };
 
     RNSentryFramesTrackerListener *actualListener = [[RNSentryFramesTrackerListener alloc]
         initWithSentryFramesTracker:[[SentryDependencyContainer sharedInstance] framesTracker]

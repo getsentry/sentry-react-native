@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
-import type { Article } from '../types/api';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+
 import * as Sentry from '@sentry/react-native';
+
+import type { Article } from '../types/api';
 import { TimeToFullDisplay } from '../utils';
 
 interface ArticleCardProps {

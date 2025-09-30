@@ -192,6 +192,20 @@ export default function TabOneScreen() {
             }}
           />
         </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Sentry Logger"
+            onPress={() => {
+              Sentry.logger.info('expo info log');
+              Sentry.logger.trace('expo trace log');
+              Sentry.logger.debug('expo debug log');
+              Sentry.logger.warn('expo warn log');
+              Sentry.logger.error('expo error log');
+
+              Sentry.logger.info('expo info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+            }}
+          />
+        </View>
       </View>
     </ScrollView>
   );

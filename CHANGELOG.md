@@ -8,14 +8,67 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
+
 ### Dependencies
 
-- Bump JavaScript SDK from v10.8.0 to v10.10.0 ([#5142](https://github.com/getsentry/sentry-react-native/pull/5142), [#5145](https://github.com/getsentry/sentry-react-native/pull/5145))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10100)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.8.0...10.10.0)
-- Bump Cocoa SDK from v8.53.2 to v8.55.1 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8551)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.55.1)
+- Bump Cocoa SDK from v8.56.1 to v8.56.2 ([#5214](https://github.com/getsentry/sentry-react-native/pull/5214))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8562)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.1...8.56.2)
+- Bump Android SDK from v8.21.1 to v8.22.0 ([#5193](https://github.com/getsentry/sentry-react-native/pull/5193), [#5194](https://github.com/getsentry/sentry-react-native/pull/5194))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8220)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.21.1...8.22.0)
+
+## 7.2.0
+
+### Features
+
+- Enable logs on native side of iOS ([#5190](https://github.com/getsentry/sentry-react-native/pull/5190))
+- Add mobile replay attributes to logs  ([#5165](https://github.com/getsentry/sentry-react-native/pull/5165))
+
+### Fixes
+
+- Vendor `metro/countLines` function to avoid issues with the private import ([#5185](https://github.com/getsentry/sentry-react-native/pull/5185))
+- Fix baseJSBundle and bundleToString TypeErrors with Metro 0.83.2 ([#5206](https://github.com/getsentry/sentry-react-native/pull/5206))
+
+### Dependencies
+
+- Bump CLI from v2.53.0 to v2.55.0 ([#5179](https://github.com/getsentry/sentry-react-native/pull/5179))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2550)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.53.0...2.55.0)
+- Bump Cocoa SDK from v8.56.0 to v8.56.1 ([#5197](https://github.com/getsentry/sentry-react-native/pull/5197))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8561)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.0...8.56.1)
+
+## 7.1.0
+
+### Fixes
+
+- Session Replay: Allow excluding `sentry-android-replay` from android targets ([#5174](https://github.com/getsentry/sentry-react-native/pull/5174))
+  - If you are not interested in using Session Replay, you can exclude the `sentry-android-replay` module from your Android targets as follows (saves nearly 40KB compressed and 80KB uncompressed off the bundle size):
+
+  ```gradle
+  // from the android's root build.gradle file
+  subprojects {
+    configurations.all {
+      exclude group: 'io.sentry', module: 'sentry-android-replay'
+    }
+  }
+  ```
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.8.0 to v10.12.0 ([#5142](https://github.com/getsentry/sentry-react-native/pull/5142), [#5145](https://github.com/getsentry/sentry-react-native/pull/5145), [#5157](https://github.com/getsentry/sentry-react-native/pull/5157), [#5175](https://github.com/getsentry/sentry-react-native/pull/5175))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10120)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.8.0...10.12.0)
+- Bump Cocoa SDK from v8.53.2 to v8.56.0 ([#5036](https://github.com/getsentry/sentry-react-native/pull/5036), [#5172](https://github.com/getsentry/sentry-react-native/pull/5172))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8560)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.56.0)
+- Bump Android SDK from v8.20.0 to v8.21.1 ([#5155](https://github.com/getsentry/sentry-react-native/pull/5155))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8211)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.20.0...8.21.1)
 
 ## 7.0.1
 
