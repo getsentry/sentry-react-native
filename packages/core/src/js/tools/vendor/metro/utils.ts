@@ -64,15 +64,12 @@ try {
   bundleToStringModule = require('metro/src/lib/bundleToString');
 }
 
-<<<<<<< HEAD
 import type { MetroSerializer } from '../../utils';
-=======
 const bundleToString: typeof bundleToStringType =
   typeof bundleToStringModule === 'function'
     ? bundleToStringModule
     : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       bundleToStringModule?.bundleToString ?? bundleToStringModule?.default;
->>>>>>> 1b4d7642 (fix(metro): Fixes Metro 0.83.2 breakages (#5206))
 
 type NewSourceMapStringExport = {
   // Since Metro v0.80.10 https://github.com/facebook/metro/compare/v0.80.9...v0.80.10#diff-1b836d1729e527a725305eef0cec22e44605af2700fa413f4c2489ea1a03aebcL28
