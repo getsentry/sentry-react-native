@@ -285,10 +285,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()).span_id!]: nowInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()).span_id!]: nowInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
         },
       });
 
@@ -389,10 +389,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
       });
 

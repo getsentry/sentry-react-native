@@ -212,7 +212,7 @@ describe('User Interaction Tracing', () => {
           op: 'different.op',
         }),
       );
-      expect(firstTransactionEvent.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction).start_timestamp!);
+      expect(firstTransactionEvent.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction).start_timestamp);
     });
 
     test('different UI event and same element finish first transaction with last span', () => {
@@ -297,7 +297,7 @@ describe('User Interaction Tracing', () => {
           timestamp: expect.any(Number),
         }),
       );
-      expect(interactionTransactionContext.timestamp).toBeLessThanOrEqual(routingTransactionContext.start_timestamp!);
+      expect(interactionTransactionContext.timestamp).toBeLessThanOrEqual(routingTransactionContext.start_timestamp);
     });
 
     test('does not start UI span when app is in background', () => {
