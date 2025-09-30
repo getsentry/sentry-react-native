@@ -43,6 +43,7 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
+            xcode-version: '16.2'
             runs-on: macos-14
           - platform: macos
             runs-on: macos-15
@@ -83,6 +84,9 @@ jobs:
 
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
+
+      - run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' }}
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
