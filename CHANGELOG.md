@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.56.1 to v8.56.2 ([#5214](https://github.com/getsentry/sentry-react-native/pull/5214))
