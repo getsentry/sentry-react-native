@@ -64,12 +64,13 @@
   ],
   "peerDependencies": {
     "expo": ">=49.0.0",
+    "react": ">=17.0.0",
     "react-native": ">=0.65.0"
   },
   "dependencies": {
     "@sentry/babel-plugin-component-annotate": "4.3.0",
     "@sentry/browser": "10.12.0",
-    "@sentry/cli": "2.53.0",
+    "@sentry/cli": "2.55.0",
     "@sentry/core": "10.12.0",
     "@sentry/react": "10.12.0",
     "@sentry/types": "10.12.0"
@@ -82,7 +83,7 @@
     "@sentry-internal/eslint-config-sdk": "10.12.0",
     "@sentry-internal/eslint-plugin-sdk": "10.12.0",
     "@sentry-internal/typescript": "10.12.0",
-    "@sentry/wizard": "6.4.0",
+    "@sentry/wizard": "6.5.0",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.9.3",
