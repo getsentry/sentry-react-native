@@ -1,4 +1,3 @@
-// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { Client, Log } from '@sentry/core';
 import { debug } from '@sentry/core';
 import { logEnricherIntegration } from '../../src/js/integrations/logEnricherIntegration';
@@ -162,7 +161,7 @@ describe('LogEnricher Integration', () => {
       // Extract the log handler
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      logHandler = beforeCaptureLogCall![1] as (log: Log) => void;
+      logHandler = beforeCaptureLogCall![1];
 
       mockLog = {
         message: 'Test log message',
@@ -246,7 +245,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const newLogHandler = beforeCaptureLogCall![1] as (log: Log) => void;
+      const newLogHandler = beforeCaptureLogCall![1];
 
       newLogHandler(mockLog);
 
@@ -292,7 +291,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const emptyLogHandler = beforeCaptureLogCall![1] as (log: Log) => void;
+      const emptyLogHandler = beforeCaptureLogCall![1];
 
       emptyLogHandler(mockLog);
 
@@ -324,7 +323,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const partialLogHandler = beforeCaptureLogCall![1] as (log: Log) => void;
+      const partialLogHandler = beforeCaptureLogCall![1];
 
       partialLogHandler(mockLog);
 
@@ -358,7 +357,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      const partialLogHandler = beforeCaptureLogCall![1] as (log: Log) => void;
+      const partialLogHandler = beforeCaptureLogCall![1];
 
       partialLogHandler(mockLog);
 
@@ -448,7 +447,7 @@ describe('LogEnricher Integration', () => {
 
       const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
       expect(beforeCaptureLogCall).toBeDefined();
-      logHandler = beforeCaptureLogCall![1] as (log: Log) => void;
+      logHandler = beforeCaptureLogCall![1];
 
       mockLog = {
         message: 'Test log message',
