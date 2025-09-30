@@ -286,8 +286,8 @@ function getLabelValue(props: Record<string, unknown>, labelKey: string | undefi
     ? props[SENTRY_LABEL_PROP_KEY]
     // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
     // the "check-label" if sentence, so we have to assign it to a variable here first
-    : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && props[labelKey].length > 0
-      ? props[labelKey]
+    : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
+      ? props[labelKey] as string
       : undefined;
 }
 

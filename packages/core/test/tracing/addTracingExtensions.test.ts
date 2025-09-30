@@ -1,3 +1,4 @@
+// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { Span } from '@sentry/core';
 import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
 import { reactNativeTracingIntegration } from '../../src/js';

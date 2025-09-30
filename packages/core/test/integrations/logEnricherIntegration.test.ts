@@ -1,3 +1,4 @@
+// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { Client, Log } from '@sentry/core';
 import { debug } from '@sentry/core';
 import { logEnricherIntegration } from '../../src/js/integrations/logEnricherIntegration';

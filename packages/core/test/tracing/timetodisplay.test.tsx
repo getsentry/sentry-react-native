@@ -1,4 +1,5 @@
-import type { Event, Measurements, Span, SpanJSON} from '@sentry/core';
+// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
+import type { Event, Measurements, Span, SpanJSON } from '@sentry/core';
 import { debug , getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
 
 jest.spyOn(debug, 'warn');

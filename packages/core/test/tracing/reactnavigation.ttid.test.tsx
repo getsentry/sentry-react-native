@@ -1,3 +1,4 @@
+// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'

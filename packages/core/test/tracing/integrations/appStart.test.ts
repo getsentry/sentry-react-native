@@ -1,3 +1,4 @@
+// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
 import type { ErrorEvent, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   getCurrentScope,
