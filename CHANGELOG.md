@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+## Fixes
+
+- Updates `sentry-xcode.sh` and the default settings for the `project.pbxproj` to fix the issue with escape patterns in Xcode that leaded to errors during "Bundle React Native code and images" stage ([#5221](https://github.com/getsentry/sentry-react-native/pull/5221))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.56.1 to v8.56.2 ([#5214](https://github.com/getsentry/sentry-react-native/pull/5214))
