@@ -15,7 +15,7 @@
 ### Fixes
 
 - Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
-- Fixes the issue with changing immutable metadata structure in the contructor of `ReactNativeClient`. This structure is getting re-created instead of being modified to ensure IP address is only inferred by Relay if `sendDefaultPii` is `true`.
+- Fixes the issue with changing immutable metadata structure in the contructor of `ReactNativeClient`. This structure is getting re-created instead of being modified to ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5202](https://github.com/getsentry/sentry-react-native/pull/5202))
 
 ### Dependencies
 
