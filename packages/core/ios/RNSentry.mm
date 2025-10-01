@@ -28,16 +28,9 @@
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryOptions.h>
-#import <Sentry/SentryUser.h>
-
-#if __has_include(<Sentry/SentryOptions+HybridSDKs.h>)
-#    define USE_SENTRY_OPTIONS 1
-#    import <Sentry/SentryOptions+HybridSDKs.h>
-#else
-#    define USE_SENTRY_OPTIONS 0
-#    import <Sentry/SentryOptionsInternal.h>
-#endif
+#import <Sentry/SentryOptionsInternal.h>
 #import <Sentry/SentryScreenFrames.h>
+#import <Sentry/SentryUser.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -169,13 +162,8 @@ RCT_EXPORT_METHOD(initNativeSdk
     [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
-#if USE_SENTRY_OPTIONS
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions
-                                                      didFailWithError:errorPointer];
-#else
     SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
                                                       didFailWithError:errorPointer];
-#endif
     if (*errorPointer != nil) {
         return nil;
     }
@@ -362,6 +350,58 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
                                     : (NSArray *)instructionsAddr)
 {
     return [self fetchNativeStackFramesBy:instructionsAddr symbolicate:dladdr];
+}
+
+RCT_EXPORT_METHOD(fetchNativeLogAttributes
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
+{
+    __block NSMutableDictionary<NSString *, id> *result = [NSMutableDictionary new];
+
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+        // Serialize to get contexts dictionary
+        NSDictionary *serializedScope = [scope serialize];
+        NSDictionary *allContexts = serializedScope[@"context"]; // It's singular here, annoyingly
+
+        NSMutableDictionary *contexts = [NSMutableDictionary new];
+
+        NSDictionary *device = allContexts[@"device"];
+        if ([device isKindOfClass:[NSDictionary class]]) {
+            contexts[@"device"] = device;
+        }
+
+        NSDictionary *os = allContexts[@"os"];
+        if ([os isKindOfClass:[NSDictionary class]]) {
+            contexts[@"os"] = os;
+        }
+
+        NSString *releaseName = SentrySDKInternal.options.releaseName;
+        if (releaseName) {
+            contexts[@"release"] = releaseName;
+        }
+        // Merge extra context
+        NSDictionary *extraContext = [PrivateSentrySDKOnly getExtraContext];
+
+        if (extraContext) {
+            NSDictionary *extraDevice = extraContext[@"device"];
+            if ([extraDevice isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedDevice =
+                    [contexts[@"device"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedDevice addEntriesFromDictionary:extraDevice];
+                contexts[@"device"] = mergedDevice;
+            }
+
+            NSDictionary *extraOS = extraContext[@"os"];
+            if ([extraOS isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedOS =
+                    [contexts[@"os"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedOS addEntriesFromDictionary:extraOS];
+                contexts[@"os"] = mergedOS;
+            }
+        }
+        result[@"contexts"] = contexts;
+    }];
+    resolve(result);
 }
 
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts

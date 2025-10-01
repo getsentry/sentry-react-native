@@ -5916,15 +5916,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/swiftlint@npm:^0.57.1":
-  version: 0.57.1
-  resolution: "@expo/swiftlint@npm:0.57.1"
-  dependencies:
-    "@expo/spawn-async": ^1.5.0
-  checksum: 87f744bb45cc3a4aa2a40424d21995547c138eef4d4918a3990859c9f143acd3ce463ff3f0c421c0b3e95a694abf7d8fcb8c8545dbe00d81767fc461a68c8378
-  languageName: node
-  linkType: hard
-
 "@expo/vector-icons@npm:^14.0.0":
   version: 14.0.2
   resolution: "@expo/vector-icons@npm:14.0.2"
@@ -9405,7 +9396,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@6.21.0, @sentry/react-native@workspace:packages/core":
+"@sentry/react-native@6.22.0, @sentry/react-native@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
@@ -11129,7 +11120,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
-    "@sentry/react-native": 6.21.0
+    "@sentry/react-native": 6.22.0
     metro-react-native-babel-preset: ^0.72.3
     react: 18.1.0
     react-native: 0.70.15
@@ -27323,7 +27314,7 @@ __metadata:
     "@babel/preset-env": ^7.25.3
     "@babel/preset-typescript": ^7.18.6
     "@sentry/core": 8.55.0
-    "@sentry/react-native": 6.21.0
+    "@sentry/react-native": 6.22.0
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
     appium: 2.4.1
@@ -27352,7 +27343,7 @@ __metadata:
     "@babel/core": ^7.26.0
     "@babel/preset-env": ^7.26.0
     "@sentry/babel-plugin-component-annotate": 4.2.0
-    "@sentry/react-native": 6.21.0
+    "@sentry/react-native": 6.22.0
     "@types/node": 20.10.4
     "@types/react": ~19.0.10
     expo: ^53.0.0
@@ -27392,7 +27383,7 @@ __metadata:
     "@react-navigation/stack": ^6.3.20
     "@sentry/core": 8.55.0
     "@sentry/react": 8.55.0
-    "@sentry/react-native": 6.21.0
+    "@sentry/react-native": 6.22.0
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
     "@typescript-eslint/eslint-plugin": ^5.37.0
@@ -27438,7 +27429,7 @@ __metadata:
     "@react-navigation/stack": 7.3.1
     "@sentry/babel-plugin-component-annotate": 4.2.0
     "@sentry/core": 8.55.0
-    "@sentry/react-native": 6.21.0
+    "@sentry/react-native": 6.22.0
     "@shopify/flash-list": 1.8.0
     "@testing-library/react-native": ^13.2.2
     "@types/jest": ^29.5.14
@@ -27493,7 +27484,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sentry-react-native@workspace:."
   dependencies:
-    "@expo/swiftlint": ^0.57.1
     "@naturalcycles/ktlint": ^1.13.0
     "@sentry/cli": 2.53.0
     clang-format: ^1.8.0

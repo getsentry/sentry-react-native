@@ -6,6 +6,20 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## 6.22.0
+
+### Fixes
+
+- Vendor `metro/countLines` function to avoid issues with the private import ([#5185](https://github.com/getsentry/sentry-react-native/pull/5185))
+- Fix baseJSBundle and bundleToString TypeErrors with Metro 0.83.2 ([#5206](https://github.com/getsentry/sentry-react-native/pull/5206))
+- Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.53.2 to v8.56.2 ([#5214](https://github.com/getsentry/sentry-react-native/pull/5214))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8562)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.53.2...8.56.2)
+
 ## 6.21.0
 
 ### Important Changes
