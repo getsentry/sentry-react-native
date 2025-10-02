@@ -33,19 +33,17 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - run: npm i -g corepack
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-
       - name: Check Replay Stubs
         env:
-          DANGER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx danger@latest ci --dangerfile scripts/check-replay-stubs.js
 
