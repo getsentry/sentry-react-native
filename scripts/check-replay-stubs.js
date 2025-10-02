@@ -9,7 +9,7 @@ const replayJarChanged = danger.git.modified_files.includes(
 
 if (!replayJarChanged) {
   console.log("replay-stubs.jar not changed, skipping check.");
-  return;
+  process.exit(0);
 }
 
 function validatePath(dirPath) {
