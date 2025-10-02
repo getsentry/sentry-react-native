@@ -6,7 +6,7 @@ on:
       - 'packages/core/android/libs/replay-stubs.jar'
 
 jobs:
-  danger:
+  check-replay-stubs:
     runs-on: ubuntu-latest
 
     steps:
