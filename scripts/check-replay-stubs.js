@@ -1,5 +1,5 @@
 import { danger, warn } from "danger";
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -23,7 +23,7 @@ const oldSrc = path.join(process.cwd(), "replay-stubs-old-src");
 
 // Tool for decompiling JARs.
 execSync(`curl -L -o ${jsDist}/jd-cli.zip https://github.com/intoolswetrust/jd-cli/releases/download/jd-cli-1.2.0/jd-cli-1.2.0-dist.zip`);
-execSync(`unzip -o ${jsDist}/jd-cli.zip -d ${jsDist}`);
+execFileSync("unzip", ["-o", `${jsDist}/jd-cli.zip`, "-d", jsDist]);
 
 const newJarPath = path.join(jsDist, "replay-stubs.jar");
 fs.copyFileSync("packages/core/android/libs/replay-stubs.jar", newJarPath);
