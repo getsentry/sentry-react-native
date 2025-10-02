@@ -8,9 +8,10 @@
 
 ## Unreleased
 
-## Fixes
+### Fixes
 
 - Updates `sentry-xcode.sh` and the default settings for the `project.pbxproj` to fix the issue with escape patterns in Xcode that leaded to errors during "Bundle React Native code and images" stage ([#5221](https://github.com/getsentry/sentry-react-native/pull/5221))
+- Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
 
 ### Dependencies
 
@@ -20,6 +21,9 @@
 - Bump Android SDK from v8.21.1 to v8.22.0 ([#5193](https://github.com/getsentry/sentry-react-native/pull/5193), [#5194](https://github.com/getsentry/sentry-react-native/pull/5194))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8220)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.21.1...8.22.0)
+- Bump CLI from v2.55.0 to v2.56.0 ([#5223](https://github.com/getsentry/sentry-react-native/pull/5223))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2560)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.55.0...2.56.0)
 
 ## 7.2.0
 
