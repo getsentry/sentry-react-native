@@ -7,3 +7,44 @@ on:
 jobs:
   danger:
     uses: getsentry/github-workflows/.github/workflows/danger.yml@v2
+
+  # Check if replay-stubs.jar has changed
+  replay-stubs-path-check:
+    runs-on: ubuntu-latest
+    outputs:
+      replay-stubs-changed: ${{ steps.changes.outputs.replay-stubs-changed }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: |
+            replay-stubs-changed:
+              - 'packages/core/android/libs/replay-stubs.jar'
+
+  # Replay stubs check - runs after main danger and only if replay-stubs.jar changed
+  replay-stubs-check:
+    runs-on: ubuntu-latest
+    needs: [danger, replay-stubs-path-check]
+    if: needs.replay-stubs-path-check.outputs.replay-stubs-changed == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Check Replay Stubs
+        env:
+          DANGER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx danger@latest ci --dangerfile scripts/check-replay-stubs.js
+

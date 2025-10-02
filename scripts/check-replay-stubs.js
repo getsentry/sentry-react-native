@@ -3,8 +3,11 @@ import { execSync, execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
-// Create a unique comment ID for replay stub checks
-const COMMENT_ID = "replay-stub-check";
+// Helper function to create sectioned warnings that merge with main Danger
+const createSectionWarning = (title, content, icon = "🤖") => {
+  const sectionContent = `### ${icon} ${title}\n\n${content}\n`;
+  return { message: sectionContent };
+};
 
 const replayJarChanged = danger.git.modified_files.includes(
   "packages/core/android/libs/replay-stubs.jar"
@@ -80,7 +83,8 @@ console.log(`File sizes - New: ${newJarSize} bytes, Baseline: ${baseJarSize} byt
 
 if (baseJarSize === 0) {
   console.log('⚠️ Baseline jar is empty, skipping decompilation comparison.');
-  warn(`:robot: **Replay Stubs Check**\n\n⚠️ Could not retrieve baseline replay-stubs.jar for comparison. This may be the first time this file is being added.`, COMMENT_ID);
+  const warning = createSectionWarning("Replay Stubs Check", "⚠️ Could not retrieve baseline replay-stubs.jar for comparison. This may be the first time this file is being added.");
+  warn(warning.message, warning.commentId);
 } else {
   console.log(`Decompiling Stubs.`);
   try {
@@ -88,21 +92,54 @@ if (baseJarSize === 0) {
     execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", oldSrc, baseJarPath]);
   } catch (error) {
     console.log('Error during decompilation:', error.message);
-    warn(`:robot: **Replay Stubs Check**\n\n❌ Error during JAR decompilation: ${error.message}`, COMMENT_ID);
+    const errorWarning = createSectionWarning("Replay Stubs Check", `❌ Error during JAR decompilation: ${error.message}`);
+    warn(errorWarning.message, errorWarning.commentId);
     process.exit(0);
   }
 
   console.log(`Comparing Stubs.`);
+
+  // Get complete directory listings with all details
   const newListing = execFileSync("ls", ["-lR", newSrc]).toString();
   const oldListing = execFileSync("ls", ["-lR", oldSrc]).toString();
 
-  console.log('New listing length:', newListing.length);
-  console.log('Old listing length:', oldListing.length);
+  // Remove timestamps for structural comparison (keep only file types, names, sizes, permissions)
+  const normalizeListing = (listing) => {
+    return listing
+      .split('\n')
+      .map(line => {
+        if (!line.trim()) return line;
 
-  if (newListing !== oldListing) {
-    warn(`:robot: **Replay Stubs Check**\n\n⚠️ replay-stubs.jar changes detected. Directory listing diff:\n\`\`\`\n${oldListing}\n---\n${newListing}\n•\`\`\``, COMMENT_ID);
+        if (line.includes(':')) {
+          return line;
+        }
+
+        return line.replace(/\s+\w{3}\s+\d{1,2}\s+\d{1,2}:\d{2}/, ' [TIMESTAMP]');
+      })
+      .join('\n');
+  };
+
+  const normalizedNew = normalizeListing(newListing);
+  const normalizedOld = normalizeListing(oldListing);
+
+  console.log('Normalized listings comparison...');
+
+  if (normalizedNew !== normalizedOld) {
+    // Structural changes detected
+    const diff = execFileSync("diff", ["-u", "--", oldSrc, newSrc]).toString();
+    const structWarning = createSectionWarning("Replay Stubs Check", `🚨 **Structural changes detected** in replay-stubs.jar:\n\`\`\`diff\n${diff}\n•\`\`\``);
+    warn(structWarning.message, structWarning.commentId);
   } else {
-    console.log("✅ replay-stubs.jar structure unchanged.");
-    warn(`:robot: **Replay Stubs Check**\n\n✅ replay-stubs.jar structure unchanged.`, COMMENT_ID);
+    // Only timestamps changed - check if it's just rebuild artifacts
+    const originalNew = newListing;
+    const originalOld = oldListing;
+
+    if (originalNew !== originalOld) {
+      console.log("✅ Structure unchanged, but timestamps differ.");
+        const timestampWarning = createSectionWarning("Replay Stubs Check", `📅 Only file timestamps were updated in replay-stubs.jar. This typically indicates a rebuild without structural changes.\n\n💡 **No action required** - this is likely just compilation artifacts.`);
+        warn(timestampWarning.message, timestampWarning.commentId);
+    } else {
+      console.log("✅ replay-stubs.jar completely unchanged.");
+    }
   }
 }
