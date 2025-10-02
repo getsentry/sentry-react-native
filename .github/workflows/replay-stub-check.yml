@@ -20,6 +20,8 @@ jobs:
         with:
           node-version: '20'
 
+      - run: npm i -g corepack
+
       - name: Install Danger
         run: |
           yarn install
