@@ -2,7 +2,9 @@ import { danger, warn } from "danger";
 import { execSync, execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import http from "http";
+
+// Create a unique comment ID for replay stub checks
+const COMMENT_ID = "replay-stub-check";
 
 const replayJarChanged = danger.git.modified_files.includes(
   "packages/core/android/libs/replay-stubs.jar"
@@ -80,5 +82,8 @@ const newListing = execFileSync("ls", ["-lR", newSrc]).toString();
 const oldListing = execFileSync("ls", ["-lR", oldSrc]).toString();
 
 if (newListing !== oldListing) {
-  warn(`⚠️ replay-stubs.jar changes detected. Directory listing diff:\n\`\`\`\n${oldListing}\n---\n${newListing}\n\`\`\``);
+  warn(`:robot: **Replay Stubs Check**\n\n⚠️ replay-stubs.jar changes detected. Directory listing diff:\n\`\`\`\n${oldListing}\n---\n${newListing}\n\`\`\``, COMMENT_ID);
+} else {
+  console.log("✅ replay-stubs.jar structure unchanged.");
+  warn(`:robot: **Replay Stubs Check**\n\n✅ replay-stubs.jar structure unchanged.`, COMMENT_ID);
 }
