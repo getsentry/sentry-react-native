@@ -1,22 +1,12 @@
-import { danger, warn } from "danger";
+import { danger, warn, schedule } from "danger";
 import { execSync, execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
-// Helper function to create sectioned warnings that merge with main Danger
+// Helper function to create sectioned warnings
 const createSectionWarning = (title, content, icon = "🤖") => {
-  const sectionContent = `### ${icon} ${title}\n\n${content}\n`;
-  return { message: sectionContent };
+  return `### ${icon} ${title}\n\n${content}\n`;
 };
-
-const replayJarChanged = danger.git.modified_files.includes(
-  "packages/core/android/libs/replay-stubs.jar"
-);
-
-if (!replayJarChanged) {
-  console.log("replay-stubs.jar not changed, skipping check.");
-  process.exit(0);
-}
 
 function validatePath(dirPath) {
   const resolved = path.resolve(dirPath);
@@ -27,7 +17,6 @@ function validatePath(dirPath) {
   return resolved;
 }
 
-
 // Cleanup handler for temporary files
 function cleanup() {
   [jsDist, newSrc, oldSrc].forEach(dir => {
@@ -37,64 +26,74 @@ function cleanup() {
   });
 }
 
-const jsDist = validatePath(path.join(process.cwd(), "js-dist"));
-const newSrc = validatePath(path.join(process.cwd(), "replay-stubs-src"));
-const oldSrc = validatePath(path.join(process.cwd(), "replay-stubs-old-src"));
+schedule(async () => {
+  const replayJarChanged = danger.git.modified_files.includes(
+    "packages/core/android/libs/replay-stubs.jar"
+  );
 
-[jsDist, newSrc, oldSrc].forEach(dir => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-});
+  if (!replayJarChanged) {
+    console.log("replay-stubs.jar not changed, skipping check.");
+    return;
+  }
 
+  console.log("Running replay stubs check...");
 
+  const jsDist = validatePath(path.join(process.cwd(), "js-dist"));
+  const newSrc = validatePath(path.join(process.cwd(), "replay-stubs-src"));
+  const oldSrc = validatePath(path.join(process.cwd(), "replay-stubs-old-src"));
 
-process.on('exit', cleanup);
-process.on('SIGINT', cleanup);
-process.on('SIGTERM', cleanup);
+  [jsDist, newSrc, oldSrc].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+  });
 
-// Tool for decompiling JARs.
-execSync(`curl -L -o ${jsDist}/jd-cli.zip https://github.com/intoolswetrust/jd-cli/releases/download/jd-cli-1.2.0/jd-cli-1.2.0-dist.zip`);
-execFileSync("unzip", ["-o", `${jsDist}/jd-cli.zip`, "-d", jsDist]);
+  process.on('exit', cleanup);
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
 
-const newJarPath = path.join(jsDist, "replay-stubs.jar");
-fs.copyFileSync("packages/core/android/libs/replay-stubs.jar", newJarPath);
+  // Tool for decompiling JARs.
+  execSync(`curl -L -o ${jsDist}/jd-cli.zip https://github.com/intoolswetrust/jd-cli/releases/download/jd-cli-1.2.0/jd-cli-1.2.0-dist.zip`);
+  execFileSync("unzip", ["-o", `${jsDist}/jd-cli.zip`, "-d", jsDist]);
 
+  const newJarPath = path.join(jsDist, "replay-stubs.jar");
+  fs.copyFileSync("packages/core/android/libs/replay-stubs.jar", newJarPath);
 
-const baseJarPath = path.join(jsDist, "replay-stubs-old.jar");
+  const baseJarPath = path.join(jsDist, "replay-stubs-old.jar");
 
-// Validate git ref to prevent command injection
-const baseRef = danger.github.pr.base.ref;
-if (!/^[a-zA-Z0-9/_-]+$/.test(baseRef)) {
-  throw new Error(`Invalid git ref: ${baseRef}`);
-}
+  // Validate git ref to prevent command injection
+  const baseRef = danger.github.pr.base.ref;
+  if (!/^[a-zA-Z0-9/_-]+$/.test(baseRef)) {
+    throw new Error(`Invalid git ref: ${baseRef}`);
+  }
 
-try {
-  const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
-  console.log(`Downloading baseline jar from: ${baseJarUrl}`);
-  execSync(`curl -L -o "${baseJarPath}" "${baseJarUrl}"`);
-} catch (error) {
-  console.log('⚠️ Warning: Could not retrieve baseline replay-stubs.jar. Using empty file as fallback.');
-  fs.writeFileSync(baseJarPath, '');
-}
+  try {
+    const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
+    console.log(`Downloading baseline jar from: ${baseJarUrl}`);
+    execSync(`curl -L -o "${baseJarPath}" "${baseJarUrl}"`);
+  } catch (error) {
+    console.log('⚠️ Warning: Could not retrieve baseline replay-stubs.jar. Using empty file as fallback.');
+    fs.writeFileSync(baseJarPath, '');
+  }
 
-const newJarSize = fs.statSync(newJarPath).size;
-const baseJarSize = fs.existsSync(baseJarPath) ? fs.statSync(baseJarPath).size : 0;
+  const newJarSize = fs.statSync(newJarPath).size;
+  const baseJarSize = fs.existsSync(baseJarPath) ? fs.statSync(baseJarPath).size : 0;
 
-console.log(`File sizes - New: ${newJarSize} bytes, Baseline: ${baseJarSize} bytes`);
+  console.log(`File sizes - New: ${newJarSize} bytes, Baseline: ${baseJarSize} bytes`);
 
-if (baseJarSize === 0) {
-  console.log('⚠️ Baseline jar is empty, skipping decompilation comparison.');
-  const warning = createSectionWarning("Replay Stubs Check", "⚠️ Could not retrieve baseline replay-stubs.jar for comparison. This may be the first time this file is being added.");
-  warn(warning.message, warning.commentId);
-} else {
+  if (baseJarSize === 0) {
+    console.log('⚠️ Baseline jar is empty, skipping decompilation comparison.');
+    warn(createSectionWarning("Replay Stubs Check", "⚠️ Could not retrieve baseline replay-stubs.jar for comparison. This may be the first time this file is being added."));
+    return;
+
+  }
+
   console.log(`Decompiling Stubs.`);
   try {
     execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", newSrc, newJarPath]);
     execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", oldSrc, baseJarPath]);
   } catch (error) {
     console.log('Error during decompilation:', error.message);
-    const errorWarning = createSectionWarning("Replay Stubs Check", `❌ Error during JAR decompilation: ${error.message}`);
-    warn(errorWarning.message, errorWarning.commentId);
-    process.exit(0);
+    warn(createSectionWarning("Replay Stubs Check", `❌ Error during JAR decompilation: ${error.message}`));
+    return;
   }
 
   console.log(`Comparing Stubs.`);
@@ -127,8 +126,7 @@ if (baseJarSize === 0) {
   if (normalizedNew !== normalizedOld) {
     // Structural changes detected
     const diff = execFileSync("diff", ["-u", "--", oldSrc, newSrc]).toString();
-    const structWarning = createSectionWarning("Replay Stubs Check", `🚨 **Structural changes detected** in replay-stubs.jar:\n\`\`\`diff\n${diff}\n•\`\`\``);
-    warn(structWarning.message, structWarning.commentId);
+    warn(createSectionWarning("Replay Stubs Check", `🚨 **Structural changes detected** in replay-stubs.jar:\n\`\`\`diff\n${diff}\n\`\`\``));
   } else {
     // Only timestamps changed - check if it's just rebuild artifacts
     const originalNew = newListing;
@@ -136,10 +134,10 @@ if (baseJarSize === 0) {
 
     if (originalNew !== originalOld) {
       console.log("✅ Structure unchanged, but timestamps differ.");
-        const timestampWarning = createSectionWarning("Replay Stubs Check", `📅 Only file timestamps were updated in replay-stubs.jar. This typically indicates a rebuild without structural changes.\n\n💡 **No action required** - this is likely just compilation artifacts.`);
-        warn(timestampWarning.message, timestampWarning.commentId);
+      warn(createSectionWarning("Replay Stubs Check", `📅 Only file timestamps were updated in replay-stubs.jar. This typically indicates a rebuild without structural changes.\n\n💡 **No action required** - this is likely just compilation artifacts.`));
     } else {
       console.log("✅ replay-stubs.jar completely unchanged.");
     }
   }
-}
+});
+
