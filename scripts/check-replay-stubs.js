@@ -62,22 +62,20 @@ if (!/^[a-zA-Z0-9/_-]+$/.test(baseRef)) {
   throw new Error(`Invalid git ref: ${baseRef}`);
 }
 
-// Download baseline jar from GitHub raw URL
-const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
 console.log(`Downloading baseline jar from: ${baseJarUrl}`);
-
 try {
+  const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
   execSync(`curl -L -o "${baseJarPath}" "${baseJarUrl}"`);
 } catch (error) {
   console.log('⚠️ Warning: Could not retrieve baseline replay-stubs.jar. Using empty file as fallback.');
   fs.writeFileSync(baseJarPath, '');
 }
 
-// Decompile both JARs
+console.log(`Decompiling Stubs.`);
 execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", newSrc, newJarPath]);
 execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", oldSrc, baseJarPath]);
 
-// Compare directory listings
+console.log(`Comparing Stubs.`);
 const newListing = execFileSync("ls", ["-lR", newSrc]).toString();
 const oldListing = execFileSync("ls", ["-lR", oldSrc]).toString();
 
