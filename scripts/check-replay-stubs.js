@@ -2,6 +2,7 @@ import { danger, warn } from "danger";
 import { execSync, execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import http from "http";
 
 const replayJarChanged = danger.git.modified_files.includes(
   "packages/core/android/libs/replay-stubs.jar"
@@ -21,13 +22,6 @@ function validatePath(dirPath) {
   return resolved;
 }
 
-const jsDist = validatePath(path.join(process.cwd(), "js-dist"));
-const newSrc = validatePath(path.join(process.cwd(), "replay-stubs-src"));
-const oldSrc = validatePath(path.join(process.cwd(), "replay-stubs-old-src"));
-
-[jsDist, newSrc, oldSrc].forEach(dir => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-});
 
 // Cleanup handler for temporary files
 function cleanup() {
@@ -37,6 +31,16 @@ function cleanup() {
     }
   });
 }
+
+const jsDist = validatePath(path.join(process.cwd(), "js-dist"));
+const newSrc = validatePath(path.join(process.cwd(), "replay-stubs-src"));
+const oldSrc = validatePath(path.join(process.cwd(), "replay-stubs-old-src"));
+
+[jsDist, newSrc, oldSrc].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+});
+
+
 
 process.on('exit', cleanup);
 process.on('SIGINT', cleanup);
@@ -49,6 +53,7 @@ execFileSync("unzip", ["-o", `${jsDist}/jd-cli.zip`, "-d", jsDist]);
 const newJarPath = path.join(jsDist, "replay-stubs.jar");
 fs.copyFileSync("packages/core/android/libs/replay-stubs.jar", newJarPath);
 
+
 const baseJarPath = path.join(jsDist, "replay-stubs-old.jar");
 
 // Validate git ref to prevent command injection
@@ -57,8 +62,16 @@ if (!/^[a-zA-Z0-9/_-]+$/.test(baseRef)) {
   throw new Error(`Invalid git ref: ${baseRef}`);
 }
 
-const baseJarContent = execSync(`git show ${baseRef}:packages/core/android/libs/replay-stubs.jar`);
-fs.writeFileSync(baseJarPath, baseJarContent);
+// Download baseline jar from GitHub raw URL
+const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
+console.log(`Downloading baseline jar from: ${baseJarUrl}`);
+
+try {
+  execSync(`curl -L -o "${baseJarPath}" "${baseJarUrl}"`);
+} catch (error) {
+  console.log('⚠️ Warning: Could not retrieve baseline replay-stubs.jar. Using empty file as fallback.');
+  fs.writeFileSync(baseJarPath, '');
+}
 
 // Decompile both JARs
 execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", newSrc, newJarPath]);
