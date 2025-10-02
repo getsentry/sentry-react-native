@@ -103,6 +103,18 @@ if (actions.includes('create')) {
     env: env,
   });
 
+  // Only apply the package.json patch for newer RN versions
+  const versionNumber = parseFloat(RNVersion.replace(/[^\d.]/g, ''));
+  if (versionNumber >= 0.80) {
+    execSync(`${patchScriptsDir}/rn.patch.package.json.js --path package.json`, {
+      stdio: 'inherit',
+      cwd: appDir,
+      env: env,
+    });
+  } else {
+    console.log(`Skipping rn.patch.package.json.js for RN ${RNVersion} (< 0.80)`);
+  }
+
   // Install dependencies
   // yalc add doesn't fail if the package is not found - it skips silently.
   let yalcAddOutput = execSync(`yalc add @sentry/react-native`, { cwd: appDir, env: env, encoding: 'utf-8' });
@@ -124,19 +136,6 @@ if (actions.includes('create')) {
   fs.writeFileSync(`${appDir}/.yarnrc.yml`, 'nodeLinker: node-modules', { encoding: 'utf-8' });
   // yarn v3 won't install dependencies in a sub project without a yarn.lock file present
   fs.writeFileSync(`${appDir}/yarn.lock`, '');
-
-  // Only apply the package.json patch for newer RN versions
-  const versionNumber = parseFloat(RNVersion.replace(/[^\d.]/g, ''));
-  if (versionNumber >= 0.80) {
-    execSync(`${patchScriptsDir}/rn.patch.package.json.js --path package.json`, {
-      stdio: 'inherit',
-      cwd: appDir,
-      env: env,
-    });
-  } else {
-    console.log(`Skipping rn.patch.package.json.js for RN ${RNVersion} (< 0.80)`);
-  }
-
 
   execSync(`yarn install`, {
     stdio: 'inherit',
