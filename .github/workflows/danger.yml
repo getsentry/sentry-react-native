@@ -37,12 +37,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - run: npm i -g corepack
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: '20'
 
-      - run: npm i -g corepack
 
       - name: Check Replay Stubs
         env:
