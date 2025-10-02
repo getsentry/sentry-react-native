@@ -43,7 +43,9 @@ jobs:
           node-version: '20'
 
       - name: Check Replay Stubs
+
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx danger@latest ci --dangerfile scripts/check-replay-stubs.js
+          EXTRA_DANGERFILE: scripts/check-replay-stubs.js
+        uses: lucas-zimerman/sentry-github-workflows/danger@lz/ext-danger
+
 

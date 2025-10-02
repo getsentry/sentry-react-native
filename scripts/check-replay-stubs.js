@@ -1,4 +1,3 @@
-import { danger, warn, schedule } from "danger";
 import { execSync, execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
@@ -26,7 +25,7 @@ function cleanup() {
   });
 }
 
-schedule(async () => {
+module.exports = async function ({ _, warn, __, ___, danger }) {
   const replayJarChanged = danger.git.modified_files.includes(
     "packages/core/android/libs/replay-stubs.jar"
   );
@@ -139,5 +138,5 @@ schedule(async () => {
       console.log("✅ replay-stubs.jar completely unchanged.");
     }
   }
-});
+};
 
