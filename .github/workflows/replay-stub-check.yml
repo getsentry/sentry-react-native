@@ -1,0 +1,31 @@
+name: Check Replay Stubs
+
+on:
+  pull_request:
+    paths:
+      - 'packages/core/android/libs/replay-stubs.jar'
+
+jobs:
+  danger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Danger
+        run: |
+          yarn install
+          yarn add --save-dev danger
+
+      - name: Check Replay Stubs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx danger ci --dangerfile scripts/check-replay-stubs.js
