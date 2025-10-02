@@ -47,5 +47,6 @@ jobs:
         env:
           EXTRA_DANGERFILE: scripts/check-replay-stubs.js
         uses: lucas-zimerman/sentry-github-workflows/danger@lz/ext-danger
+          api-token: ${{ secrets.GITHUB_TOKEN }}
 
 
