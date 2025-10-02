@@ -46,7 +46,7 @@ jobs:
         env:
           EXTRA_DANGERFILE: scripts/check-replay-stubs.js
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: lucas-zimerman/sentry-github-workflows/danger@lz/ext-danger
+        uses: lucas-zimerman/sentry-github-workflows/danger@lz/ext-danger@9e3e08b646be60a71cb355cc410988a83af23a89
         with:
           api-token: ${{ secrets.GITHUB_TOKEN }}
           permissions: write
