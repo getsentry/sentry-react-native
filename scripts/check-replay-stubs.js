@@ -73,17 +73,36 @@ try {
   fs.writeFileSync(baseJarPath, '');
 }
 
-console.log(`Decompiling Stubs.`);
-execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", newSrc, newJarPath]);
-execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", oldSrc, baseJarPath]);
+const newJarSize = fs.statSync(newJarPath).size;
+const baseJarSize = fs.existsSync(baseJarPath) ? fs.statSync(baseJarPath).size : 0;
 
-console.log(`Comparing Stubs.`);
-const newListing = execFileSync("ls", ["-lR", newSrc]).toString();
-const oldListing = execFileSync("ls", ["-lR", oldSrc]).toString();
+console.log(`File sizes - New: ${newJarSize} bytes, Baseline: ${baseJarSize} bytes`);
 
-if (newListing !== oldListing) {
-  warn(`:robot: **Replay Stubs Check**\n\n⚠️ replay-stubs.jar changes detected. Directory listing diff:\n\`\`\`\n${oldListing}\n---\n${newListing}\n\`\`\``, COMMENT_ID);
+if (baseJarSize === 0) {
+  console.log('⚠️ Baseline jar is empty, skipping decompilation comparison.');
+  warn(`:robot: **Replay Stubs Check**\n\n⚠️ Could not retrieve baseline replay-stubs.jar for comparison. This may be the first time this file is being added.`, COMMENT_ID);
 } else {
-  console.log("✅ replay-stubs.jar structure unchanged.");
-  warn(`:robot: **Replay Stubs Check**\n\n✅ replay-stubs.jar structure unchanged.`, COMMENT_ID);
+  console.log(`Decompiling Stubs.`);
+  try {
+    execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", newSrc, newJarPath]);
+    execFileSync("java", ["-jar", `${jsDist}/jd-cli.jar`, "-od", oldSrc, baseJarPath]);
+  } catch (error) {
+    console.log('Error during decompilation:', error.message);
+    warn(`:robot: **Replay Stubs Check**\n\n❌ Error during JAR decompilation: ${error.message}`, COMMENT_ID);
+    process.exit(0);
+  }
+
+  console.log(`Comparing Stubs.`);
+  const newListing = execFileSync("ls", ["-lR", newSrc]).toString();
+  const oldListing = execFileSync("ls", ["-lR", oldSrc]).toString();
+
+  console.log('New listing length:', newListing.length);
+  console.log('Old listing length:', oldListing.length);
+
+  if (newListing !== oldListing) {
+    warn(`:robot: **Replay Stubs Check**\n\n⚠️ replay-stubs.jar changes detected. Directory listing diff:\n\`\`\`\n${oldListing}\n---\n${newListing}\n•\`\`\``, COMMENT_ID);
+  } else {
+    console.log("✅ replay-stubs.jar structure unchanged.");
+    warn(`:robot: **Replay Stubs Check**\n\n✅ replay-stubs.jar structure unchanged.`, COMMENT_ID);
+  }
 }
