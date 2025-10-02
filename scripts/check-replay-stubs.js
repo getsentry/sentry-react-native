@@ -64,9 +64,9 @@ if (!/^[a-zA-Z0-9/_-]+$/.test(baseRef)) {
   throw new Error(`Invalid git ref: ${baseRef}`);
 }
 
-console.log(`Downloading baseline jar from: ${baseJarUrl}`);
 try {
   const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
+  console.log(`Downloading baseline jar from: ${baseJarUrl}`);
   execSync(`curl -L -o "${baseJarPath}" "${baseJarUrl}"`);
 } catch (error) {
   console.log('⚠️ Warning: Could not retrieve baseline replay-stubs.jar. Using empty file as fallback.');
