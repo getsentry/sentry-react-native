@@ -20,14 +20,7 @@ jobs:
         with:
           node-version: '20'
 
-      - run: npm i -g corepack
-
-      - name: Install Danger
-        run: |
-          yarn install
-          yarn add --save-dev danger
-
       - name: Check Replay Stubs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx danger ci --dangerfile scripts/check-replay-stubs.js
+        run: npx danger@latest ci --dangerfile scripts/check-replay-stubs.js
