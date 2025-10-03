@@ -11,7 +11,7 @@ on:
 
 jobs:
   android:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-android.sh
       name: Android SDK
@@ -20,7 +20,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   android-stubs:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-android-stubs.sh
       name: Android SDK Stubs
@@ -29,7 +29,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cocoa:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-cocoa.sh
       name: Cocoa SDK
@@ -38,7 +38,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   javascript:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-javascript.sh
       name: JavaScript SDK
@@ -47,7 +47,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   wizard:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-wizard.sh
       name: Wizard
@@ -57,7 +57,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cli:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-cli.sh
       name: CLI
@@ -66,7 +66,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   bundler-plugins:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-bundler-plugins.sh
       name: Bundler Plugins
@@ -75,7 +75,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sample-rn:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-rn.sh
       name: React Native
@@ -86,7 +86,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   maestro:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-maestro.sh
       name: Maestro
@@ -97,7 +97,7 @@ jobs:
       api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sentry-android-gradle-plugin:
-    uses: getsentry/github-workflows/.github/workflows/updater.yml@v3
+    uses: getsentry/github-workflows/.github/workflows/updater.yml@v2
     with:
       path: scripts/update-sentry-android-gradle-plugin.sh
       name: Sentry Android Gradle Plugin
