@@ -56,6 +56,7 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
   const replayJarChanged = danger.git.modified_files.includes(
     "packages/core/android/libs/replay-stubs.jar"
   );
+  execFileSync('uname -a');
 
   if (!replayJarChanged) {
     console.log("replay-stubs.jar not changed, skipping check.");
