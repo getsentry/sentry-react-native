@@ -7,29 +7,36 @@ const createSectionWarning = (title, content, icon = "🤖") => {
   return `### ${icon} ${title}\n\n${content}\n`;
 };
 
-function aptInstall(package) {
-  execSync(`apt-get update -y && apt-get install -y ${package}`);
+// Docker-compatible package installation for Alpine Linux
+function installPackage(package) {
+  try {
+    execSync(`apk add --no-cache ${package}`);
+    console.log(`Installed ${package}`);
+  } catch (error) {
+    console.log(`Failed to install ${package}:`, error.message);
+  }
 }
 
 function whichExists(package) {
   try {
-    execSync(`which ${package}`);
+    execSync(`which ${package}`, { stdio: 'ignore' });
     console.log(`${package} exists`);
     return true;
   } catch (error) {
-    console.log(error);
+    return false;
   }
-  return false;
 }
 
-function aptInstallIfNotExists() {
-  console.log(`Checking apt`);
-  whichExists('vi');
+function ensurePackages() {
+  console.log(`Checking required packages...`);
   if (!whichExists('curl')) {
-    aptInstall('curl');
+    installPackage('curl');
   }
   if (!whichExists('unzip')) {
-    aptInstall('unzip');
+    installPackage('unzip');
+  }
+  if (!whichExists('java')) {
+    installPackage('openjdk11-jre');
   }
 }
 
@@ -56,13 +63,14 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
   const replayJarChanged = danger.git.modified_files.includes(
     "packages/core/android/libs/replay-stubs.jar"
   );
-  execFileSync('uname -a');
 
   if (!replayJarChanged) {
     console.log("replay-stubs.jar not changed, skipping check.");
     return;
   }
-  aptInstallIfNotExists();
+
+  // Ensure required packages are available in Docker container
+  ensurePackages();
 
   console.log("Running replay stubs check...");
 
