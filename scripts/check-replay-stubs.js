@@ -92,15 +92,15 @@ function ensurePackages() {
   console.log(`Missing packages: ${missingPackages.join(', ')}`);
 
   // Try to detect OS and use appropriate package names
-  let javaPackage = 'openjdk11-jre';
+  let javaPackage = 'default-jre';
   try {
     const osRelease = execSync('cat /etc/os-release', { encoding: 'utf8' });
     if (osRelease.includes('Alpine')) {
-      javaPackage = 'openjdk11-jre';
+      javaPackage = 'default-jre';
     } else if (osRelease.includes('Ubuntu') || osRelease.includes('Debian')) {
-      javaPackage = 'openjdk-11-jre-headless';
+      javaPackage = 'default-jre';
     } else {
-      javaPackage = 'java-11-openjdk';
+      javaPackage = 'default-jre';
     }
   } catch {
     // Fallback to default
