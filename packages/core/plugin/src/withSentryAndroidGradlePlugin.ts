@@ -13,7 +13,7 @@ export interface SentryAndroidGradlePluginOptions {
   includeSourceContext?: boolean;
 }
 
-export const sentryAndroidGradlePluginVersion = '5.9.0';
+export const sentryAndroidGradlePluginVersion = '5.12.1';
 
 /**
  * Adds the Sentry Android Gradle Plugin to the project.

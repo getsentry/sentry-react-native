@@ -3,8 +3,7 @@
 
 @class SentryOptions;
 
-@interface
-SentrySDKInternal (PrivateTests)
+@interface SentrySDKInternal (PrivateTests)
 
 + (nullable SentryOptions *)options;
 @end

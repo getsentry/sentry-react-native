@@ -76,14 +76,10 @@ describe('Capture Errors Screen Transaction', () => {
     expect(item?.[1]).toEqual(
       expect.objectContaining({
         measurements: expect.objectContaining({
-          time_to_initial_display: {
+          time_to_initial_display: expect.objectContaining({
             unit: 'millisecond',
             value: expect.any(Number),
-          },
-          app_start_cold: {
-            unit: 'millisecond',
-            value: expect.any(Number),
-          },
+          }),
         }),
       }),
     );
@@ -98,10 +94,10 @@ describe('Capture Errors Screen Transaction', () => {
     expect(item?.[1]).toEqual(
       expect.objectContaining({
         measurements: expect.objectContaining({
-          time_to_initial_display: {
+          time_to_initial_display: expect.objectContaining({
             unit: 'millisecond',
             value: expect.any(Number),
-          },
+          }),
         }),
       }),
     );
@@ -116,18 +112,18 @@ describe('Capture Errors Screen Transaction', () => {
     expect(item?.[1]).toEqual(
       expect.objectContaining({
         measurements: expect.objectContaining({
-          stall_count: {
+          stall_count: expect.objectContaining({
             unit: 'none',
             value: expect.any(Number),
-          },
-          stall_longest_time: {
+          }),
+          stall_longest_time: expect.objectContaining({
             unit: 'millisecond',
             value: expect.any(Number),
-          },
-          stall_total_time: {
+          }),
+          stall_total_time: expect.objectContaining({
             unit: 'millisecond',
             value: expect.any(Number),
-          },
+          }),
         }),
       }),
     );

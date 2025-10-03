@@ -172,5 +172,5 @@ export function getCurrentReactNativeTracingIntegration(): ReactNativeTracingInt
  * Returns React Native Tracing integration of given client.
  */
 export function getReactNativeTracingIntegration(client: Client): ReactNativeTracingIntegration | undefined {
-  return client.getIntegrationByName(INTEGRATION_NAME) as ReactNativeTracingIntegration | undefined;
+  return client.getIntegrationByName(INTEGRATION_NAME);
 }

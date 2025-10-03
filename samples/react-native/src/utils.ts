@@ -6,8 +6,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SENTRY_INTERNAL_DSN } from './dsn';
 
 export function logWithoutTracing(...args: unknown[]) {
-  if ('__sentry_original__' in console.log) {
-    console.log.__sentry_original__(...args);
+  if ('__sentry_original__' in (console.log as any)) {
+    (console.log as any).__sentry_original__(...args);
   } else {
     console.log(...args);
   }

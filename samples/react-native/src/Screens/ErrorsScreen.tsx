@@ -1,24 +1,24 @@
 import React, { useEffect } from 'react';
 import {
-  StatusBar,
-  ScrollView,
-  Text,
-  Button as NativeButton,
-  View,
   ButtonProps,
-  StyleSheet,
+  Button as NativeButton,
   NativeModules,
   Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
+import { StackNavigationProp } from '@react-navigation/stack';
+import { FallbackRender } from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
 
-import { setScopeProperties } from '../setScopeProperties';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { UserFeedbackModal } from '../components/UserFeedbackModal';
-import { FallbackRender } from '@sentry/react';
-import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
+import NativeSampleModule from '../../tm/NativeSampleModule';
+import { UserFeedbackModal } from '../components/UserFeedbackModal';
+import { setScopeProperties } from '../setScopeProperties';
 import { TimeToFullDisplay } from '../utils';
 import type { Event as SentryEvent } from '@sentry/core';
 
@@ -32,7 +32,8 @@ const ErrorsScreen = (_props: Props) => {
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
   const [isFeedbackVisible, setFeedbackVisible] = React.useState(false);
-  const [isFeedbackButtonVisible, setFeedbackButtonVisible] = React.useState(false);
+  const [isFeedbackButtonVisible, setFeedbackButtonVisible] =
+    React.useState(false);
 
   const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
     <Text>Error boundary caught with event id: {eventId}</Text>
@@ -75,8 +76,11 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Capture exception with breadcrumb"
           onPress={() => {
-            Sentry.captureException(new Error('Captured exception with breadcrumb'),
-              context => context.addBreadcrumb({ message: 'error with breadcrumb' }));
+            Sentry.captureException(
+              new Error('Captured exception with breadcrumb'),
+              context =>
+                context.addBreadcrumb({ message: 'error with breadcrumb' }),
+            );
           }}
         />
         <Button
@@ -160,7 +164,7 @@ const ErrorsScreen = (_props: Props) => {
             Sentry.logger.warn('warn log');
             Sentry.logger.error('error log');
 
-            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
           }}
         />
         {Platform.OS === 'android' && (
@@ -180,7 +184,9 @@ const ErrorsScreen = (_props: Props) => {
             <Button
               title="JVM Crash or Number"
               onPress={() => {
-                CrashModule.crashOrNumber();
+                CrashModule.crashOrNumber().then((n: number) => {
+                  console.log('Got number: ' + n);
+                });
               }}
             />
           </>
