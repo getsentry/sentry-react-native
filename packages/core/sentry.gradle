@@ -15,6 +15,11 @@ project.ext.shouldSentryAutoUpload = { ->
   return shouldSentryAutoUploadGeneral() && shouldSentryAutoUploadNative()
 }
 
+interface InjectedExecOps {
+    @Inject //@javax.inject.Inject
+    ExecOperations getExecOps()
+}
+
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
 // gradle.projectsEvaluated doesn't work with --configure-on-demand
@@ -122,9 +127,10 @@ project.afterEvaluate {
                   ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
                   : "$sentryPackage/scripts/has-sourcemap-debugid.js"
 
+              def injected = project.objects.newInstance(InjectedExecOps)
               doFirst {
                   // Copy Debug ID from packager source map to Hermes composed source map
-                  exec {
+                  injected.execOps.exec {
                       def args = ["node",
                           copyDebugIdScript,
                           packagerSourcemapOutput,
@@ -146,7 +152,7 @@ project.afterEvaluate {
               }
 
               doLast {
-                  exec {
+                  injected.execOps.exec {
                       workingDir reactRoot
 
                       def propertiesFile = config.sentryProperties

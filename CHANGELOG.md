@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Adds support for Gradle 9 ([#5233](https://github.com/getsentry/sentry-react-native/pull/5233))
+
 ### Fixes
 
 - Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
