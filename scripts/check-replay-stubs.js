@@ -8,7 +8,7 @@ const createSectionWarning = (title, content, icon = "🤖") => {
 };
 
 function aptInstall(package) {
-  execSync(`sudo apt-get install -y ${package}`);
+  execSync(`apt -y update && apt -y install ${package}`);
 }
 
 function whichExists(package) {
