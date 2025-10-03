@@ -1,6 +1,6 @@
-import { execSync, execFileSync } from "child_process";
-import fs from "fs";
-import path from "path";
+const { execSync, execFileSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
 // Helper function to create sectioned warnings
 const createSectionWarning = (title, content, icon = "🤖") => {
