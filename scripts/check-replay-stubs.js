@@ -14,16 +14,16 @@ function aptInstall(package) {
 function whichExists(package) {
   try {
     execSync(`which ${package}`);
-    warn(`${package} exists`);
+    console.log(`${package} exists`);
     return true;
   } catch (error) {
-    warn(error);
+    console.log(error);
   }
   return false;
 }
 
 function aptInstallIfNotExists() {
-  warn(`Checking apt`);
+  console.log(`Checking apt`);
   whichExists('vi');
   if (!whichExists('curl')) {
     aptInstall('curl');
@@ -78,7 +78,7 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
   process.on('SIGTERM', cleanup);
 
   // Tool for decompiling JARs.
-  execSync(`curl -L -o ${jsDist}/jd-cli.zip https://github.com/intoolswetrust/jd-cli/releases/download/jd-cli-1.2.0/jd-cli-1.2.0-dist.zip`);
+  execFileSync("curl", ["-L", "-o", `${jsDist}/jd-cli.zip`, "https://github.com/intoolswetrust/jd-cli/releases/download/jd-cli-1.2.0/jd-cli-1.2.0-dist.zip"]);
   execFileSync("unzip", ["-o", `${jsDist}/jd-cli.zip`, "-d", jsDist]);
 
   const newJarPath = path.join(jsDist, "replay-stubs.jar");
@@ -96,7 +96,7 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
   try {
     const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
     console.log(`Downloading baseline jar from: ${baseJarUrl}`);
-    execSync(`curl -L -o "${baseJarPath}" "${baseJarUrl}"`);
+    execFileSync("curl", ["-L", "-o", baseJarPath, baseJarUrl]);
   } catch (error) {
     console.log('⚠️ Warning: Could not retrieve baseline replay-stubs.jar. Using empty file as fallback.');
     fs.writeFileSync(baseJarPath, '');
@@ -167,5 +167,5 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
       console.log("✅ replay-stubs.jar completely unchanged.");
     }
   }
-};
+}); // End of schedule function
 
