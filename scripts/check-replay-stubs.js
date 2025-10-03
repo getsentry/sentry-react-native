@@ -40,7 +40,8 @@ function installPackage(package) {
         cmd = `apk add --no-cache ${package}`;
         break;
       case 'apt-get':
-        cmd = `apt-get update && apt-get install -y ${package}`;
+        // Handle Debian Buster EOL repositories
+        cmd = `apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false && apt-get install -y ${package}`;
         break;
       case 'yum':
         cmd = `yum install -y ${package}`;
@@ -50,6 +51,19 @@ function installPackage(package) {
     console.log(`Installed ${package} using ${pm}`);
   } catch (error) {
     console.log(`Failed to install ${package} using ${pm}:`, error.message);
+    // Try alternative approach for Debian Buster
+    if (pm === 'apt-get') {
+      try {
+        console.log(`Trying alternative installation for ${package}...`);
+        execSync(`apt-get install -y --allow-unauthenticated ${package}`);
+        console.log(`Installed ${package} using fallback method`);
+      } catch (fallbackError) {
+        console.log(`Fallback installation also failed for ${package}:`, fallbackError.message);
+        throw fallbackError;
+      }
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -66,6 +80,17 @@ function whichExists(package) {
 function ensurePackages() {
   console.log(`Checking required packages...`);
 
+  // Check if all required packages are already available
+  const requiredPackages = ['curl', 'unzip', 'java'];
+  const missingPackages = requiredPackages.filter(pkg => !whichExists(pkg));
+
+  if (missingPackages.length === 0) {
+    console.log('All required packages are already available');
+    return;
+  }
+
+  console.log(`Missing packages: ${missingPackages.join(', ')}`);
+
   // Try to detect OS and use appropriate package names
   let javaPackage = 'openjdk11-jre';
   try {
@@ -81,14 +106,29 @@ function ensurePackages() {
     // Fallback to default
   }
 
-  if (!whichExists('curl')) {
-    installPackage('curl');
+  // Install missing packages
+  if (missingPackages.includes('curl')) {
+    try {
+      installPackage('curl');
+    } catch (error) {
+      console.log('curl installation failed, continuing without it');
+    }
   }
-  if (!whichExists('unzip')) {
-    installPackage('unzip');
+
+  if (missingPackages.includes('unzip')) {
+    try {
+      installPackage('unzip');
+    } catch (error) {
+      console.log('unzip installation failed, continuing without it');
+    }
   }
-  if (!whichExists('java')) {
-    installPackage(javaPackage);
+
+  if (missingPackages.includes('java')) {
+    try {
+      installPackage(javaPackage);
+    } catch (error) {
+      console.log('java installation failed, continuing without it');
+    }
   }
 }
 
