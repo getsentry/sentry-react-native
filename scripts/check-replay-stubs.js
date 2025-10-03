@@ -8,9 +8,9 @@ const createSectionWarning = (title, content, icon = "🤖") => {
 };
 
 function installPackage(package) {
-  cmd = `apt-get update && apt-get install -y ${package}`;
   try {
-    execFileSync(cmd);
+    execFileSync("apt-get", ["update"], { stdio: "inherit" });
+    execFileSync("apt-get", ["install", "-y", package], { stdio: "inherit" });
     console.log(`Installed ${package}`);
   } catch (error) {
     console.log(`Failed to install ${package}`, error.message);
