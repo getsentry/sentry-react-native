@@ -2,8 +2,6 @@ const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-
-
 // Helper function to create sectioned warnings
 const createSectionWarning = (title, content, icon = "🤖") => {
   return `### ${icon} ${title}\n\n${content}\n`;
@@ -31,7 +29,6 @@ function aptInstallIfNotExists() {
   }
 }
 
-function curlDownload(url, output) {
 
 function validatePath(dirPath) {
   const resolved = path.resolve(dirPath);
