@@ -26,6 +26,9 @@
 - Bump JavaScript SDK from v10.12.0 to v10.17.0 ([#5195](https://github.com/getsentry/sentry-react-native/pull/5195))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10170)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.12.0...10.17.0)
+- Bump Android SDK Stubs from v8.22.0 to v8.23.0 ([#5231](https://github.com/getsentry/sentry-react-native/pull/5231))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8230)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.22.0...8.23.0)
 
 ## 7.2.0
 
