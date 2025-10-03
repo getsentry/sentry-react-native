@@ -26,14 +26,25 @@ const raw = fs.readFileSync(pkgPath, 'utf8');
 let pkg;
 try { pkg = JSON.parse(raw); } catch (e) { throw new Error(`Invalid JSON: ${e.message}`); }
 
-const METRO = '0.83.2';
+const METRO_VERSION = '0.83.2';
+
+// List of Metro packages that need to be pinned
+const METRO_PACKAGES = [
+  'metro',
+  'metro-config'
+];
 
 pkg.overrides = pkg.overrides || {};
-pkg.overrides.metro = METRO;
+METRO_PACKAGES.forEach(pkgName => {
+  pkg.overrides[pkgName] = METRO_VERSION;
+});
+
 pkg.resolutions = pkg.resolutions || {};
-pkg.resolutions['metro'] = METRO;
+METRO_PACKAGES.forEach(pkgName => {
+  pkg.resolutions[pkgName] = METRO_VERSION;
+});
 
 fs.writeFileSync(pkgPath + '.bak', raw);
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 
-debug.log('Patched package.json: overrides.metro and resolutions.metro set to', METRO);
+debug.log('Patched package.json: Metro packages set to', METRO_VERSION);
