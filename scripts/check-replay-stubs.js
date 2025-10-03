@@ -14,13 +14,16 @@ function aptInstall(package) {
 function whichExists(package) {
   try {
     execSync(`which ${package}`);
+    warn(`${package} exists`);
     return true;
   } catch (error) {
+    warn(error);
   }
   return false;
 }
 
 function aptInstallIfNotExists() {
+  whichExists('vi');
   if (!whichExists('curl')) {
     aptInstall('curl');
   }
@@ -57,6 +60,7 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
     console.log("replay-stubs.jar not changed, skipping check.");
     return;
   }
+  aptInstallIfNotExists();
 
   console.log("Running replay stubs check...");
 
@@ -87,7 +91,6 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
     throw new Error(`Invalid git ref: ${baseRef}`);
   }
 
-  aptInstallIfNotExists();
 
   try {
     const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
