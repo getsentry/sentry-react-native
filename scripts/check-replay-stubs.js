@@ -23,6 +23,7 @@ function whichExists(package) {
 }
 
 function aptInstallIfNotExists() {
+  warn(`Checking apt`);
   whichExists('vi');
   if (!whichExists('curl')) {
     aptInstall('curl');
