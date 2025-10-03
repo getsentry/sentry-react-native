@@ -1,6 +1,8 @@
 #import "SentryScreenFramesWrapper.h"
 @import Sentry;
 
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+
 @implementation SentryScreenFramesWrapper
 
 + (BOOL)canTrackFrames
@@ -33,3 +35,5 @@
 }
 
 @end
+
+#endif // TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
