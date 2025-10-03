@@ -6,4 +6,7 @@ on:
 
 jobs:
   danger:
-    uses: getsentry/github-workflows/.github/workflows/danger.yml@v2
+    uses: lucas-zimerman/sentry-github-workflows/.github/workflows/danger.yml@lz/ext-danger
+    with:
+      extra-dangerfile: scripts/check-replay-stubs.js
+# test9
