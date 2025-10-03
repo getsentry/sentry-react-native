@@ -167,5 +167,5 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
       console.log("✅ replay-stubs.jar completely unchanged.");
     }
   }
-}); // End of schedule function
+};
 
