@@ -153,7 +153,7 @@ describe('StallTracking', () => {
       jest.runOnlyPendingTimers();
     });
     jest.runOnlyPendingTimers();
-    rootSpan!.end(childSpanEnd);
+    rootSpan.end(childSpanEnd);
 
     await client.flush();
 
@@ -169,7 +169,7 @@ describe('StallTracking', () => {
       jest.runOnlyPendingTimers();
     });
     jest.runOnlyPendingTimers();
-    rootSpan!.end(childSpanEnd! + 20);
+    rootSpan.end(childSpanEnd! + 20);
 
     await client.flush();
 

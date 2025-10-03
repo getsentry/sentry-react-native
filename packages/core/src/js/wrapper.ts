@@ -259,6 +259,7 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
     const ignoreErrorsStr = options.ignoreErrors?.filter(item => typeof item === 'string') as string[] | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const ignoreErrorsRegex = options.ignoreErrors
       ?.filter(item => item instanceof RegExp)
       .map(item => (item as RegExp).source) as string[] | undefined;

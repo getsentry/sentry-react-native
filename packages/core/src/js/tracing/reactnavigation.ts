@@ -177,7 +177,7 @@ export const reactNavigationIntegration = ({
       debug.log(`${INTEGRATION_NAME} Navigation container ref is the same as the one already registered.`);
       return;
     }
-    navigationContainer = newNavigationContainer as NavigationContainer;
+    navigationContainer = newNavigationContainer;
 
     if (!navigationContainer) {
       debug.warn(`${INTEGRATION_NAME} Received invalid navigation container ref!`);
