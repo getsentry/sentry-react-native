@@ -7,13 +7,49 @@ const createSectionWarning = (title, content, icon = "🤖") => {
   return `### ${icon} ${title}\n\n${content}\n`;
 };
 
-// Docker-compatible package installation for Alpine Linux
-function installPackage(package) {
+// Detect and use appropriate package manager
+function detectPackageManager() {
   try {
-    execSync(`apk add --no-cache ${package}`);
-    console.log(`Installed ${package}`);
+    execSync('which apk', { stdio: 'ignore' });
+    return 'apk';
+  } catch {
+    try {
+      execSync('which apt-get', { stdio: 'ignore' });
+      return 'apt-get';
+    } catch {
+      try {
+        execSync('which yum', { stdio: 'ignore' });
+        return 'yum';
+      } catch {
+        return null;
+      }
+    }
+  }
+}
+
+function installPackage(package) {
+  const pm = detectPackageManager();
+  if (!pm) {
+    throw new Error(`No package manager found, skipping ${package} installation`);
+  }
+
+  try {
+    let cmd;
+    switch (pm) {
+      case 'apk':
+        cmd = `apk add --no-cache ${package}`;
+        break;
+      case 'apt-get':
+        cmd = `apt-get update && apt-get install -y ${package}`;
+        break;
+      case 'yum':
+        cmd = `yum install -y ${package}`;
+        break;
+    }
+    execSync(cmd);
+    console.log(`Installed ${package} using ${pm}`);
   } catch (error) {
-    console.log(`Failed to install ${package}:`, error.message);
+    console.log(`Failed to install ${package} using ${pm}:`, error.message);
   }
 }
 
@@ -29,6 +65,22 @@ function whichExists(package) {
 
 function ensurePackages() {
   console.log(`Checking required packages...`);
+
+  // Try to detect OS and use appropriate package names
+  let javaPackage = 'openjdk11-jre';
+  try {
+    const osRelease = execSync('cat /etc/os-release', { encoding: 'utf8' });
+    if (osRelease.includes('Alpine')) {
+      javaPackage = 'openjdk11-jre';
+    } else if (osRelease.includes('Ubuntu') || osRelease.includes('Debian')) {
+      javaPackage = 'openjdk-11-jre-headless';
+    } else {
+      javaPackage = 'java-11-openjdk';
+    }
+  } catch {
+    // Fallback to default
+  }
+
   if (!whichExists('curl')) {
     installPackage('curl');
   }
@@ -36,7 +88,7 @@ function ensurePackages() {
     installPackage('unzip');
   }
   if (!whichExists('java')) {
-    installPackage('openjdk11-jre');
+    installPackage(javaPackage);
   }
 }
 
@@ -67,6 +119,24 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
   if (!replayJarChanged) {
     console.log("replay-stubs.jar not changed, skipping check.");
     return;
+  }
+
+  // Debug: Check what's available in the container
+  try {
+    console.log('=== Container Debug Info ===');
+    console.log('OS Release:', execSync('cat /etc/os-release', { encoding: 'utf8' }));
+    console.log('Available package managers:');
+    ['apk', 'apt-get', 'yum', 'dnf', 'pacman'].forEach(pm => {
+      try {
+        execSync(`which ${pm}`, { stdio: 'ignore' });
+        console.log(`✓ ${pm} found`);
+      } catch {
+        console.log(`✗ ${pm} not found`);
+      }
+    });
+    console.log('===========================');
+  } catch (error) {
+    console.log('Debug info failed:', error.message);
   }
 
   // Ensure required packages are available in Docker container
