@@ -7,69 +7,20 @@ const createSectionWarning = (title, content, icon = "🤖") => {
   return `### ${icon} ${title}\n\n${content}\n`;
 };
 
-// Detect and use appropriate package manager
-function detectPackageManager() {
-  try {
-    execSync('which apk', { stdio: 'ignore' });
-    return 'apk';
-  } catch {
-    try {
-      execSync('which apt-get', { stdio: 'ignore' });
-      return 'apt-get';
-    } catch {
-      try {
-        execSync('which yum', { stdio: 'ignore' });
-        return 'yum';
-      } catch {
-        return null;
-      }
-    }
-  }
-}
-
 function installPackage(package) {
-  const pm = detectPackageManager();
-  if (!pm) {
-    throw new Error(`No package manager found, skipping ${package} installation`);
-  }
-
+  cmd = `apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false && apt-get install -y ${package}`;
   try {
-    let cmd;
-    switch (pm) {
-      case 'apk':
-        cmd = `apk add --no-cache ${package}`;
-        break;
-      case 'apt-get':
-        // Handle Debian Buster EOL repositories
-        cmd = `apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false && apt-get install -y ${package}`;
-        break;
-      case 'yum':
-        cmd = `yum install -y ${package}`;
-        break;
-    }
-    execSync(cmd);
-    console.log(`Installed ${package} using ${pm}`);
+    execFileSync(cmd);
+    console.log(`Installed ${package}`);
   } catch (error) {
-    console.log(`Failed to install ${package} using ${pm}:`, error.message);
-    // Try alternative approach for Debian Buster
-    if (pm === 'apt-get') {
-      try {
-        console.log(`Trying alternative installation for ${package}...`);
-        execSync(`apt-get install -y --allow-unauthenticated ${package}`);
-        console.log(`Installed ${package} using fallback method`);
-      } catch (fallbackError) {
-        console.log(`Fallback installation also failed for ${package}:`, fallbackError.message);
-        throw fallbackError;
-      }
-    } else {
-      throw error;
-    }
+    console.log(`Failed to install ${package}`, error.message);
+    throw error;
   }
 }
 
 function whichExists(package) {
   try {
-    execSync(`which ${package}`, { stdio: 'ignore' });
+    execFileSync(`which ${package}`, { stdio: 'ignore' });
     console.log(`${package} exists`);
     return true;
   } catch (error) {
@@ -80,9 +31,7 @@ function whichExists(package) {
 function ensurePackages() {
   console.log(`Checking required packages...`);
 
-  // Check if all required packages are already available
-  const requiredPackages = ['curl', 'unzip', 'java'];
-  const missingPackages = requiredPackages.filter(pkg => !whichExists(pkg));
+  const missingPackages = ['curl', 'unzip', 'java'].filter(pkg => !whichExists(pkg));
 
   if (missingPackages.length === 0) {
     console.log('All required packages are already available');
@@ -91,44 +40,17 @@ function ensurePackages() {
 
   console.log(`Missing packages: ${missingPackages.join(', ')}`);
 
-  // Try to detect OS and use appropriate package names
-  let javaPackage = 'default-jre';
-  try {
-    const osRelease = execSync('cat /etc/os-release', { encoding: 'utf8' });
-    if (osRelease.includes('Alpine')) {
-      javaPackage = 'default-jre';
-    } else if (osRelease.includes('Ubuntu') || osRelease.includes('Debian')) {
-      javaPackage = 'default-jre';
-    } else {
-      javaPackage = 'default-jre';
-    }
-  } catch {
-    // Fallback to default
-  }
-
   // Install missing packages
   if (missingPackages.includes('curl')) {
-    try {
       installPackage('curl');
-    } catch (error) {
-      console.log('curl installation failed, continuing without it');
-    }
   }
 
   if (missingPackages.includes('unzip')) {
-    try {
       installPackage('unzip');
-    } catch (error) {
-      console.log('unzip installation failed, continuing without it');
-    }
   }
 
   if (missingPackages.includes('java')) {
-    try {
-      installPackage(javaPackage);
-    } catch (error) {
-      console.log('java installation failed, continuing without it');
-    }
+      installPackage('default-jre');
   }
 }
 
@@ -161,25 +83,6 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
     return;
   }
 
-  // Debug: Check what's available in the container
-  try {
-    console.log('=== Container Debug Info ===');
-    console.log('OS Release:', execSync('cat /etc/os-release', { encoding: 'utf8' }));
-    console.log('Available package managers:');
-    ['apk', 'apt-get', 'yum', 'dnf', 'pacman'].forEach(pm => {
-      try {
-        execSync(`which ${pm}`, { stdio: 'ignore' });
-        console.log(`✓ ${pm} found`);
-      } catch {
-        console.log(`✗ ${pm} not found`);
-      }
-    });
-    console.log('===========================');
-  } catch (error) {
-    console.log('Debug info failed:', error.message);
-  }
-
-  // Ensure required packages are available in Docker container
   ensurePackages();
 
   console.log("Running replay stubs check...");
@@ -211,7 +114,6 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
     throw new Error(`Invalid git ref: ${baseRef}`);
   }
 
-
   try {
     const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
     console.log(`Downloading baseline jar from: ${baseJarUrl}`);
@@ -230,7 +132,6 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
     console.log('⚠️ Baseline jar is empty, skipping decompilation comparison.');
     warn(createSectionWarning("Replay Stubs Check", "⚠️ Could not retrieve baseline replay-stubs.jar for comparison. This may be the first time this file is being added."));
     return;
-
   }
 
   console.log(`Decompiling Stubs.`);
@@ -267,6 +168,8 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
 
   const normalizedNew = normalizeListing(newListing);
   const normalizedOld = normalizeListing(oldListing);
+console.log(normalizedNew);
+console.log(normalizedOld);
 
   console.log('Normalized listings comparison...');
 
