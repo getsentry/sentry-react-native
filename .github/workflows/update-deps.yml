@@ -18,7 +18,6 @@ jobs:
         with:
           path: scripts/update-android.sh
           name: Android SDK
-          pr-strategy: update
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   android-stubs:
@@ -28,7 +27,6 @@ jobs:
         with:
           path: scripts/update-android-stubs.sh
           name: Android SDK Stubs
-          pr-strategy: update
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   cocoa:
@@ -38,7 +36,6 @@ jobs:
         with:
           path: scripts/update-cocoa.sh
           name: Cocoa SDK
-          pr-strategy: update
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   javascript:
@@ -48,7 +45,6 @@ jobs:
         with:
           path: scripts/update-javascript.sh
           name: JavaScript SDK
-          pr-strategy: update
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   wizard:
@@ -58,7 +54,6 @@ jobs:
         with:
           path: scripts/update-wizard.sh
           name: Wizard
-          pr-strategy: update
           changelog-entry: false
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
@@ -69,7 +64,6 @@ jobs:
         with:
           path: scripts/update-cli.sh
           name: CLI
-          pr-strategy: update
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   bundler-plugins:
@@ -79,7 +73,6 @@ jobs:
         with:
           path: scripts/update-bundler-plugins.sh
           name: Bundler Plugins
-          pr-strategy: update
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
   sample-rn:
@@ -90,7 +83,6 @@ jobs:
           path: scripts/update-rn.sh
           name: React Native
           pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
-          pr-strategy: update
           changelog-entry: false
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
@@ -102,7 +94,6 @@ jobs:
           path: scripts/update-maestro.sh
           name: Maestro
           pattern: '^v[0-9.]+$' # only match non-preview versions
-          pr-strategy: update
           changelog-entry: false
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
 
@@ -114,6 +105,5 @@ jobs:
           path: scripts/update-sentry-android-gradle-plugin.sh
           name: Sentry Android Gradle Plugin
           pattern: '^[0-9.]+$'
-          pr-strategy: update
           changelog-entry: false
           api-token: ${{ secrets.CI_DEPLOY_KEY }}
