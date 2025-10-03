@@ -212,7 +212,7 @@ describe('User Interaction Tracing', () => {
           op: 'different.op',
         }),
       );
-      expect(firstTransactionEvent!.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction!).start_timestamp!);
+      expect(firstTransactionEvent.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction).start_timestamp);
     });
 
     test('different UI event and same element finish first transaction with last span', () => {
@@ -252,9 +252,9 @@ describe('User Interaction Tracing', () => {
 
       const firstTransactionContext = spanToJSON(firstTransaction!);
       const secondTransactionContext = spanToJSON(secondTransaction!);
-      expect(firstTransactionContext!.timestamp).toEqual(expect.any(Number));
-      expect(secondTransactionContext!.timestamp).toEqual(expect.any(Number));
-      expect(firstTransactionContext!.span_id).not.toEqual(secondTransactionContext!.span_id);
+      expect(firstTransactionContext.timestamp).toEqual(expect.any(Number));
+      expect(secondTransactionContext.timestamp).toEqual(expect.any(Number));
+      expect(firstTransactionContext.span_id).not.toEqual(secondTransactionContext.span_id);
     });
 
     test('do not start UI event transaction if active transaction on scope', () => {
@@ -297,7 +297,7 @@ describe('User Interaction Tracing', () => {
           timestamp: expect.any(Number),
         }),
       );
-      expect(interactionTransactionContext!.timestamp).toBeLessThanOrEqual(routingTransactionContext!.start_timestamp!);
+      expect(interactionTransactionContext.timestamp).toBeLessThanOrEqual(routingTransactionContext.start_timestamp);
     });
 
     test('does not start UI span when app is in background', () => {
