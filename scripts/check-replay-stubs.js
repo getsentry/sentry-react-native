@@ -2,10 +2,36 @@ const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
+
+
 // Helper function to create sectioned warnings
 const createSectionWarning = (title, content, icon = "🤖") => {
   return `### ${icon} ${title}\n\n${content}\n`;
 };
+
+function aptInstall(package) {
+  execSync(`sudo apt-get install -y ${package}`);
+}
+
+function whichExists(package) {
+  try {
+    execSync(`which ${package}`);
+    return true;
+  } catch (error) {
+  }
+  return false;
+}
+
+function aptInstallIfNotExists() {
+  if (!whichExists('curl')) {
+    aptInstall('curl');
+  }
+  if (!whichExists('unzip')) {
+    aptInstall('unzip');
+  }
+}
+
+function curlDownload(url, output) {
 
 function validatePath(dirPath) {
   const resolved = path.resolve(dirPath);
@@ -63,6 +89,8 @@ module.exports = async function ({ _, warn, __, ___, danger }) {
   if (!/^[a-zA-Z0-9/_-]+$/.test(baseRef)) {
     throw new Error(`Invalid git ref: ${baseRef}`);
   }
+
+  aptInstallIfNotExists();
 
   try {
     const baseJarUrl = `https://github.com/getsentry/sentry-react-native/raw/${baseRef}/packages/core/android/libs/replay-stubs.jar`;
