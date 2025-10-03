@@ -8,7 +8,7 @@ const createSectionWarning = (title, content, icon = "🤖") => {
 };
 
 function installPackage(package) {
-  cmd = `apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false && apt-get install -y ${package}`;
+  cmd = `apt-get update && apt-get install -y ${package}`;
   try {
     execFileSync(cmd);
     console.log(`Installed ${package}`);
