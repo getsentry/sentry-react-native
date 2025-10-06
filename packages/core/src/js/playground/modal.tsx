@@ -7,7 +7,6 @@ import {
   Modal,
   Platform,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   useColorScheme,
@@ -116,7 +115,7 @@ export const SentryPlayground = ({
         setShow(false);
       }}
     >
-      <SafeAreaView style={styles.background}>
+      <View style={styles.background}>
         <View style={styles.container}>
           <Text style={styles.welcomeText}>Welcome to Sentry Playground!</Text>
           <Animated.View
@@ -185,7 +184,7 @@ export const SentryPlayground = ({
             />
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
