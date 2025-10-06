@@ -116,7 +116,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
   public close(): PromiseLike<boolean> {
     // As super.close() flushes queued events, we wait for that to finish before closing the native SDK.
     return super.close().then((result: boolean) => {
-      return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
+      return NATIVE.closeNativeSdk().then(() => result);
     });
   }
 
