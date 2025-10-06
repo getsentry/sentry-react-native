@@ -14,6 +14,7 @@
 
 ### Fixes
 
+- Updates `sentry-xcode.sh` and the default settings for the `project.pbxproj` to fix the issue with escape patterns in Xcode that leaded to errors during "Bundle React Native code and images" stage ([#5221](https://github.com/getsentry/sentry-react-native/pull/5221))
 - Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
 - Fixes the issue with changing immutable metadata structure in the contructor of `ReactNativeClient`. This structure is getting re-created instead of being modified to ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5202](https://github.com/getsentry/sentry-react-native/pull/5202))
 
