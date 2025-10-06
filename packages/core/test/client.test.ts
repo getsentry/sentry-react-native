@@ -679,7 +679,7 @@ describe('Tests ReactNativeClient', () => {
       );
     });
 
-    test('adds ip_address {{auto}} to user if set to undefined', () => {
+    test("doesn't change infer_ip if the ip_address is set to undefined", () => {
       client.captureEvent({
         user: {
           ip_address: undefined,
@@ -692,13 +692,13 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
         expect.objectContaining({
           settings: {
-            infer_ip: 'never',
+            infer_ip: 'auto',
           },
         }),
       );
     });
 
-    test('adds ip_address undefined to user if not set', () => {
+    test("doesn't change infer_ip if the user is not set", () => {
       client.captureEvent({
         user: {},
       });
@@ -707,20 +707,20 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
         expect.objectContaining({
           settings: {
-            infer_ip: 'never',
+            infer_ip: 'auto',
           },
         }),
       );
     });
 
-    test('leaves ip_address undefined to undefined user', () => {
+    test("doesn't change infer_ip if the event is empty", () => {
       client.captureEvent({});
 
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toBeUndefined();
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
         expect.objectContaining({
           settings: {
-            infer_ip: 'never',
+            infer_ip: 'auto',
           },
         }),
       );

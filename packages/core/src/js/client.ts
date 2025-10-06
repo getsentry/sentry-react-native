@@ -49,16 +49,17 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
    */
   public constructor(options: ReactNativeClientOptions) {
     ignoreRequireCycleLogs(ReactNativeLibraries.ReactNativeVersion?.version);
-    options._metadata = options._metadata || {};
-    options._metadata.sdk = options._metadata.sdk || defaultSdkInfo;
-
-    // Only allow IP inferral by Relay if sendDefaultPii is true
-    if (options._metadata?.sdk) {
-      options._metadata.sdk.settings = {
-        infer_ip: options.sendDefaultPii ? 'auto' : 'never',
-        ...options._metadata.sdk.settings,
-      };
-    }
+    options._metadata = {
+      ...options._metadata,
+      sdk: {
+        ...(options._metadata?.sdk || defaultSdkInfo),
+        settings: {
+          // Only allow IP inferral by Relay if sendDefaultPii is true
+          infer_ip: options.sendDefaultPii ? 'auto' : 'never',
+          ...options._metadata?.sdk?.settings,
+        },
+      },
+    };
 
     // We default this to true, as it is the safer scenario
     options.parentSpanIsAlwaysRootSpan =
@@ -116,7 +117,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
   public close(): PromiseLike<boolean> {
     // As super.close() flushes queued events, we wait for that to finish before closing the native SDK.
     return super.close().then((result: boolean) => {
-      return NATIVE.closeNativeSdk().then(() => result) as PromiseLike<boolean>;
+      return NATIVE.closeNativeSdk().then(() => result);
     });
   }
 
