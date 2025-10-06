@@ -679,7 +679,7 @@ describe('Tests ReactNativeClient', () => {
       );
     });
 
-    test('doesn\'t change infer_ip if the ip_address is set to undefined', () => {
+    test("doesn't change infer_ip if the ip_address is set to undefined", () => {
       client.captureEvent({
         user: {
           ip_address: undefined,
@@ -698,7 +698,7 @@ describe('Tests ReactNativeClient', () => {
       );
     });
 
-    test('doesn\'t change infer_ip if the user is not set', () => {
+    test("doesn't change infer_ip if the user is not set", () => {
       client.captureEvent({
         user: {},
       });
@@ -713,7 +713,7 @@ describe('Tests ReactNativeClient', () => {
       );
     });
 
-    test('doesn\'t change infer_ip if the event is empty', () => {
+    test("doesn't change infer_ip if the event is empty", () => {
       client.captureEvent({});
 
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toBeUndefined();
