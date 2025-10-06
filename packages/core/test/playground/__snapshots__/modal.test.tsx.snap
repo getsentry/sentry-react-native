@@ -8,7 +8,7 @@ exports[`PlaygroundComponent matches the snapshot with no props 1`] = `
   presentationStyle="formSheet"
   visible={true}
 >
-  <RCTSafeAreaView
+  <View
     style={
       {
         "alignItems": "center",
@@ -765,7 +765,7 @@ exports[`PlaygroundComponent matches the snapshot with no props 1`] = `
         </View>
       </View>
     </View>
-  </RCTSafeAreaView>
+  </View>
 </Modal>
 `;
 
@@ -777,7 +777,7 @@ exports[`PlaygroundComponent matches the snapshot with project id and organizati
   presentationStyle="formSheet"
   visible={true}
 >
-  <RCTSafeAreaView
+  <View
     style={
       {
         "alignItems": "center",
@@ -1534,6 +1534,6 @@ exports[`PlaygroundComponent matches the snapshot with project id and organizati
         </View>
       </View>
     </View>
-  </RCTSafeAreaView>
+  </View>
 </Modal>
 `;
