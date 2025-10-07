@@ -105,14 +105,14 @@ if (actions.includes('create')) {
 
   // Only apply the package.json patch for newer RN versions
   const versionNumber = parseFloat(RNVersion.replace(/[^\d.]/g, ''));
-  if (versionNumber >= 0.80) {
+  if (versionNumber >= 0.69) {
     execSync(`${patchScriptsDir}/rn.patch.package.json.js --path package.json`, {
       stdio: 'inherit',
       cwd: appDir,
       env: env,
     });
   } else {
-    console.log(`Skipping rn.patch.package.json.js for RN ${RNVersion} (< 0.80)`);
+    console.log(`Skipping rn.patch.package.json.js for RN ${RNVersion} (< 0.69)`);
   }
 
   // Install dependencies
