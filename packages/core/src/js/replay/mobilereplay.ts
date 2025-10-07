@@ -137,19 +137,25 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       return event;
     }
 
+    const hardCrash = isHardCrash(event);
+
     const recordingReplayId = NATIVE.getCurrentReplayId();
-    if (recordingReplayId) {
+    if (!hardCrash && recordingReplayId) {
       debug.log(
         `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
       );
       return event;
     }
 
-    const replayId = await NATIVE.captureReplay(isHardCrash(event));
+    const replayId = await NATIVE.captureReplay(hardCrash);
     if (!replayId) {
       debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
       return event;
     }
+
+    debug.log(
+      `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Captured recording replay ${replayId} for event ${event.event_id}.`,
+    );
 
     return event;
   }
