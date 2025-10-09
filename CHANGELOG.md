@@ -6,11 +6,20 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 7.3.0
+
+### Features
+
+- Adds support for Gradle 9 ([#5233](https://github.com/getsentry/sentry-react-native/pull/5233))
 
 ### Fixes
 
+- Updates `sentry-xcode.sh` and the default settings for the `project.pbxproj` to fix the issue with escape patterns in Xcode that leaded to errors during "Bundle React Native code and images" stage ([#5221](https://github.com/getsentry/sentry-react-native/pull/5221))
 - Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
+- Fixes the issue with changing immutable metadata structure in the contructor of `ReactNativeClient`. This structure is getting re-created instead of being modified to ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5202](https://github.com/getsentry/sentry-react-native/pull/5202))
+- Removes usage of deprecated `SafeAreaView` ([#5241](https://github.com/getsentry/sentry-react-native/pull/5241))
+- Fixes session replay recording for uncaught errors ([#5243](https://github.com/getsentry/sentry-react-native/pull/5243))
+- Fixes TypeScript errors when using custom Metro configurations with Expo SDK 54 ([#5246](https://github.com/getsentry/sentry-react-native/pull/5246))
 
 ### Dependencies
 
@@ -23,9 +32,9 @@
 - Bump CLI from v2.55.0 to v2.56.0 ([#5223](https://github.com/getsentry/sentry-react-native/pull/5223))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2560)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.55.0...2.56.0)
-- Bump JavaScript SDK from v10.12.0 to v10.17.0 ([#5195](https://github.com/getsentry/sentry-react-native/pull/5195))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10170)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.12.0...10.17.0)
+- Bump JavaScript SDK from v10.12.0 to v10.18.0 ([#5195](https://github.com/getsentry/sentry-react-native/pull/5195), [#5245](https://github.com/getsentry/sentry-react-native/pull/5245))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10180)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.12.0...10.18.0)
 - Bump Android SDK Stubs from v8.22.0 to v8.23.0 ([#5231](https://github.com/getsentry/sentry-react-native/pull/5231))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8230)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.22.0...8.23.0)
