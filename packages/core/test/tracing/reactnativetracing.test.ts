@@ -57,7 +57,6 @@ describe('ReactNativeTracing', () => {
       const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
       setupTestClient({
         tracePropagationTargets: ['test1', 'test2'],
-        propagateTraceparent: true,
         enableStallTracking: false,
         integrations: [reactNativeTracingIntegration()],
       });
@@ -66,7 +65,6 @@ describe('ReactNativeTracing', () => {
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: ['test1', 'test2'],
-          propagateTraceparent: true,
         }),
       );
     });
