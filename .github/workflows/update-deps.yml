@@ -14,7 +14,7 @@ jobs:
   android:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@cda95c29fd5a63763654785ed64022805dc27e98
+      - uses: getsentry/github-workflows/updater@06e4c9b5d343bd79d77fed33b30906214ca767f6
         with:
           path: scripts/update-android.sh
           name: Android SDK
