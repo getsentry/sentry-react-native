@@ -44,7 +44,7 @@ export interface SentryExpoConfigOptions {
   /**
    * Pass a custom `getDefaultConfig` function to override the default Expo configuration getter.
    */
-  getDefaultConfig?: typeof getSentryExpoConfig;
+  getDefaultConfig?: (projectRoot: string, options?: Record<string, unknown>) => Record<string, unknown>;
 
   /**
    * For Expo Web, inject `release` and `version` options from `app.json`, the Expo Application Config.
