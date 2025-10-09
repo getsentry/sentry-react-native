@@ -19,6 +19,7 @@
 - Fixes the issue with changing immutable metadata structure in the contructor of `ReactNativeClient`. This structure is getting re-created instead of being modified to ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5202](https://github.com/getsentry/sentry-react-native/pull/5202))
 - Removes usage of deprecated `SafeAreaView` ([#5241](https://github.com/getsentry/sentry-react-native/pull/5241))
 - Fixes session replay recording for uncaught errors ([#5243](https://github.com/getsentry/sentry-react-native/pull/5243))
+- Fixes TypeScript errors when using custom Metro configurations with Expo SDK 54 ([#5246](https://github.com/getsentry/sentry-react-native/pull/5246))
 
 ### Dependencies
 
