@@ -55,7 +55,6 @@ plugins.withId('com.android.application') {
                 //     .join('\n')
 
                 def currentVariants = extractCurrentVariants(bundleTask, v)
-                println(currentVariants)
                 if (currentVariants == null) return
 
                 def previousCliTask = null
