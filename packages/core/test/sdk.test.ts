@@ -1165,20 +1165,20 @@ it('propagateTraceparent is false by default', () => {
   expect(actualOptions).toEqual(
     expect.objectContaining({
       propagateTraceparent: false,
-    })
-  )
+    }),
+  );
 });
 
 it('propagateTraceparent is getting passed to the client', () => {
-  init({propagateTraceparent: true});
+  init({ propagateTraceparent: true });
 
   const actualOptions = usedOptions();
   expect(actualOptions).toEqual(
     expect.objectContaining({
       propagateTraceparent: true,
-    })
-  )
-})
+    }),
+  );
+});
 
 function expectIntegration(name: string): void {
   const actualOptions = usedOptions();
