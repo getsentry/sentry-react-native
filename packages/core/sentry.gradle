@@ -89,7 +89,7 @@ plugins.withId('com.android.application') {
                     try { tasks.named(nameCliTask); return } catch (Exception e) {}
 
                     /** Upload source map file to the sentry server via CLI call. */
-                    def cliTask = tasks.create(nameCliTask) {
+                    def cliTask = tasks.register(nameCliTask) {
                         onlyIf { shouldSentryAutoUploadGeneral() }
                         description = "upload debug symbols to sentry"
                         group = 'sentry.io'
@@ -194,7 +194,7 @@ plugins.withId('com.android.application') {
                         enabled true
                     }
 
-                    modulesTask = tasks.create(nameModulesTask, Exec) {
+                    modulesTask = tasks.register(nameModulesTask, Exec) {
                         description = "collect javascript modules from bundle source map"
                         group = 'sentry.io'
 
@@ -232,34 +232,23 @@ plugins.withId('com.android.application') {
                     // chain the upload tasks so they run sequentially in order to run
                     // the cliCleanUpTask after the final upload task is run
                     if (previousCliTask != null) {
-                        previousCliTask.finalizedBy cliTask
+                        previousCliTask.configure { finalizedBy cliTask }
                     } else {
-                        bundleTask.finalizedBy cliTask
+                        bundleTask.configure { finalizedBy cliTask }
                     }
                     previousCliTask = cliTask
-                    cliTask.finalizedBy modulesTask
+                    cliTask.configure { finalizedBy modulesTask }
                 }
 
-                def modulesCleanUpTask = tasks.create(name: nameModulesCleanup, type: Delete) {
+                def modulesCleanUpTask = tasks.register(nameModulesCleanup, Delete) {
                     description = "clean up collected modules generated file"
                     group = 'sentry.io'
 
                     delete modulesOutput
                 }
 
-                def packageTasks = tasks.findAll {
-                task -> (
-                    "package${applicationVariant}".equalsIgnoreCase(task.name)
-                    || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name)
-                    ) && task.enabled
-                }
-                packageTasks.each { packageTask ->
-                    packageTask.dependsOn modulesTask
-                    packageTask.finalizedBy modulesCleanUpTask
-                }
-
                 /** Delete sourcemap files */
-                def cliCleanUpTask = tasks.create(name: nameCleanup, type: Delete) {
+                def cliCleanUpTask = tasks.register(nameCleanup, Delete) {
                     description = "clean up extra sourcemap"
                     group = 'sentry.io'
 
@@ -269,10 +258,18 @@ plugins.withId('com.android.application') {
                 }
 
                 // register clean task extension
-                cliCleanUpTask.onlyIf { shouldCleanUp }
+                cliCleanUpTask.configure { onlyIf { shouldCleanUp } }
                 // due to chaining the last value of previousCliTask will be the final
                 // upload task, after which the cleanup can be done
-                previousCliTask.finalizedBy cliCleanUpTask
+                previousCliTask.configure { finalizedBy cliCleanUpTask }
+
+                def packageTasks = tasks.matching {
+                    task -> ("package${applicationVariant}".equalsIgnoreCase(task.name) || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name)) && task.enabled
+                }
+                packageTasks.configureEach { packageTask ->
+                    packageTask.dependsOn modulesTask
+                    packageTask.finalizedBy modulesCleanUpTask
+                }
             }
         }
     }
