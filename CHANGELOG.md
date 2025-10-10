@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
+  - The licenses json file is correctly generated and placed into the `res/` folder now
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.18.0 to v10.19.0 ([#5254](https://github.com/getsentry/sentry-react-native/pull/5254))
