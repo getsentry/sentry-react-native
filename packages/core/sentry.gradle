@@ -23,9 +23,9 @@ interface InjectedExecOps {
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
 plugins.withId('com.android.application') {
-    def ac = extensions.getByName("androidComponents")
+    def androidComponents = extensions.getByName("androidComponents")
 
-    ac.onVariants(androidComponents.selector().all()) { v ->
+    androidComponents.onVariants(androidComponents.selector().all()) { v ->
         if (!v.name.toLowerCase().contains("debug")) {
             // separately we then hook into the bundle task of react native to inject
             // sourcemap generation parameters.  In case for whatever reason no release
@@ -465,9 +465,7 @@ static extractCurrentVariants(bundleTask, variant) {
         def variantName = variant.name
         variant.outputs.each { output ->
             def defaultVersionCode = output.versionCode.getOrElse(0)
-            def versionCodeEnv     = System.getenv('SENTRY_DIST')
-            def versionCode        = (versionCodeEnv ?: defaultVersionCode) as Integer
-
+            def versionCode        = System.getenv('SENTRY_DIST') ?: defaultVersionCode
             def appId              = variant.applicationId.get()
             def versionName        = output.versionName.getOrElse('')  // may be empty if not set
             def defaultReleaseName = "${appId}@${versionName}+${versionCode}"
