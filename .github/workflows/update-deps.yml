@@ -14,7 +14,7 @@ jobs:
   android:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-android.sh
           name: Android SDK
@@ -23,7 +23,7 @@ jobs:
   android-stubs:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-android-stubs.sh
           name: Android SDK Stubs
@@ -32,7 +32,7 @@ jobs:
   cocoa:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-cocoa.sh
           name: Cocoa SDK
@@ -41,7 +41,7 @@ jobs:
   javascript:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-javascript.sh
           name: JavaScript SDK
@@ -50,7 +50,7 @@ jobs:
   wizard:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-wizard.sh
           name: Wizard
@@ -60,7 +60,7 @@ jobs:
   cli:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-cli.sh
           name: CLI
@@ -69,7 +69,7 @@ jobs:
   bundler-plugins:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-bundler-plugins.sh
           name: Bundler Plugins
@@ -78,7 +78,7 @@ jobs:
   sample-rn:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-rn.sh
           name: React Native
@@ -89,7 +89,7 @@ jobs:
   maestro:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-maestro.sh
           name: Maestro
@@ -100,7 +100,7 @@ jobs:
   sentry-android-gradle-plugin:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/updater@0d0d99af4c699109099fd8199cfec30d24ac8f60
+      - uses: getsentry/github-workflows/updater@v3
         with:
           path: scripts/update-sentry-android-gradle-plugin.sh
           name: Sentry Android Gradle Plugin
