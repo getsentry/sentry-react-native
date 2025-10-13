@@ -10,6 +10,29 @@
 
 ### Features
 
+- Adds support for `propagateTraceparent` ([#5277](https://github.com/getsentry/sentry-react-native/pull/5227))
+
+### Fixes
+
+- Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
+  - The licenses json file is correctly generated and placed into the `res/` folder now
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.18.0 to v10.19.0 ([#5254](https://github.com/getsentry/sentry-react-native/pull/5254))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10190)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.18.0...10.19.0)
+- Bump CLI from v2.56.0 to v2.56.1 ([#5257](https://github.com/getsentry/sentry-react-native/pull/5257))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2561)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.56.0...2.56.1)
+- Bump Bundler Plugins from v4.3.0 to v4.4.0 ([#5256](https://github.com/getsentry/sentry-react-native/pull/5256))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#440)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.3.0...4.4.0)
+
+## 7.3.0
+
+### Features
+
 - Adds support for Gradle 9 ([#5233](https://github.com/getsentry/sentry-react-native/pull/5233))
 
 ### Fixes
@@ -18,6 +41,8 @@
 - Fixes .env file loading in Expo sourcemap uploads ([#5210](https://github.com/getsentry/sentry-react-native/pull/5210))
 - Fixes the issue with changing immutable metadata structure in the contructor of `ReactNativeClient`. This structure is getting re-created instead of being modified to ensure IP address is only inferred by Relay if `sendDefaultPii` is `true` ([#5202](https://github.com/getsentry/sentry-react-native/pull/5202))
 - Removes usage of deprecated `SafeAreaView` ([#5241](https://github.com/getsentry/sentry-react-native/pull/5241))
+- Fixes session replay recording for uncaught errors ([#5243](https://github.com/getsentry/sentry-react-native/pull/5243))
+- Fixes TypeScript errors when using custom Metro configurations with Expo SDK 54 ([#5246](https://github.com/getsentry/sentry-react-native/pull/5246))
 
 ### Dependencies
 
@@ -30,9 +55,9 @@
 - Bump CLI from v2.55.0 to v2.56.0 ([#5223](https://github.com/getsentry/sentry-react-native/pull/5223))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2560)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.55.0...2.56.0)
-- Bump JavaScript SDK from v10.12.0 to v10.17.0 ([#5195](https://github.com/getsentry/sentry-react-native/pull/5195))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10170)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.12.0...10.17.0)
+- Bump JavaScript SDK from v10.12.0 to v10.18.0 ([#5195](https://github.com/getsentry/sentry-react-native/pull/5195), [#5245](https://github.com/getsentry/sentry-react-native/pull/5245))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10180)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.12.0...10.18.0)
 - Bump Android SDK Stubs from v8.22.0 to v8.23.0 ([#5231](https://github.com/getsentry/sentry-react-native/pull/5231))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8230)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.22.0...8.23.0)
