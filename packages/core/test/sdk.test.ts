@@ -1156,6 +1156,28 @@ describe('Tests the SDK functionality', () => {
       }),
     );
   });
+
+  it('propagateTraceparent is false by default', () => {
+    init({});
+
+    const actualOptions = usedOptions();
+    expect(actualOptions).toEqual(
+      expect.objectContaining({
+        propagateTraceparent: false,
+      }),
+    );
+  });
+
+  it('propagateTraceparent is getting passed to the client', () => {
+    init({ propagateTraceparent: true });
+
+    const actualOptions = usedOptions();
+    expect(actualOptions).toEqual(
+      expect.objectContaining({
+        propagateTraceparent: true,
+      }),
+    );
+  });
 });
 
 function expectIntegration(name: string): void {

@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Adds support for `propagateTraceparent` ([#5277](https://github.com/getsentry/sentry-react-native/pull/5227))
+
 ### Fixes
 
 - Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
