@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Adds support for `propagateTraceparent` ([#5277](https://github.com/getsentry/sentry-react-native/pull/5227))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.18.0 to v10.19.0 ([#5254](https://github.com/getsentry/sentry-react-native/pull/5254))
