@@ -31,22 +31,34 @@ describe('Capture Errors Screen Transaction', () => {
   });
 
   it('envelope contains transaction context', async () => {
-    const item = getItemOfTypeFrom<EventItem>(
-      getErrorsEnvelope(),
-      'transaction',
-    );
+    const envelope = getErrorsEnvelope();
 
-    expect(item).toEqual([
+    const items = envelope[1];
+    const transactions = items.filter(([header]) => header.type === 'transaction');
+    const appStartTransaction = transactions.find(([_header, payload]) => {
+      const event = payload as any;
+      return event.transaction === 'ErrorsScreen' &&
+            event.contexts?.trace?.origin === 'auto.app.start';
+    });
+
+    expect(appStartTransaction).toBeDefined();
+
+    const [header, payload] = appStartTransaction!;
+
+    expect(header).toEqual(
       expect.objectContaining({
         length: expect.any(Number),
         type: 'transaction',
-      }),
+      })
+    );
+
+    expect(payload).toEqual(
       expect.objectContaining({
         platform: 'javascript',
         transaction: 'ErrorsScreen',
         contexts: expect.objectContaining({
-          trace: {
-            data: {
+          trace: expect.objectContaining({
+            data: expect.objectContaining({
               'route.has_been_seen': false,
               'route.key': expect.stringMatching(/^ErrorsScreen/),
               'route.name': 'ErrorsScreen',
@@ -56,15 +68,15 @@ describe('Capture Errors Screen Transaction', () => {
               'sentry.sample_rate': 1,
               'sentry.source': 'component',
               'thread.name': 'javascript',
-            },
+            }),
             op: 'ui.load',
             origin: 'auto.app.start',
             span_id: expect.any(String),
             trace_id: expect.any(String),
-          },
+          }),
         }),
-      }),
-    ]);
+      })
+    );
   });
 
   it('contains app start measurements', async () => {
