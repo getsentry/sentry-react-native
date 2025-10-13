@@ -10,6 +10,7 @@
 
 ### Features
 
+- Adds Console logs as Sentry Logs. ([#5261](https://github.com/getsentry/sentry-react-native/pull/5261))
 - Adds support for `propagateTraceparent` ([#5277](https://github.com/getsentry/sentry-react-native/pull/5227))
 
 ### Fixes
