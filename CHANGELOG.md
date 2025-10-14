@@ -17,6 +17,7 @@
 
 - Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
   - The licenses json file is correctly generated and placed into the `res/` folder now
+- Handle missing shouldAddToIgnoreList callback in Metro ([#5260](https://github.com/getsentry/sentry-react-native/pull/5260))
 
 ### Dependencies
 
