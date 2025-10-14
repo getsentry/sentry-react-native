@@ -29,7 +29,7 @@
 #import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryOptions.h>
 #import <Sentry/SentryOptionsInternal.h>
-#import <Sentry/SentryScreenFrames.h>
+// #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryUser.h>
 
 // This guard prevents importing Hermes in JSC apps
