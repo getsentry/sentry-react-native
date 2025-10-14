@@ -60,7 +60,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -232,7 +232,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
