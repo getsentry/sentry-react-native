@@ -36,7 +36,6 @@ XCTAssertNotNil(
 XCTAssertEqual(
     actualOptions.tracesSampleRate, nil, @"Traces sample rate should not be passed to native");
 XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be passed to native");
-XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be passed to native");
 }
 
 - (void)testCaptureFailedRequestsIsDisabled
