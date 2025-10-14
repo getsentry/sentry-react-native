@@ -24,7 +24,7 @@
     if (sentryOptions == nil) {
         return;
     }
-    sentryOptions.experimental.enableLogs = enabled;
+    sentryOptions.enableLogs = enabled;
 }
 
 @end
