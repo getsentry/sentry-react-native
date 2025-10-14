@@ -50,10 +50,48 @@ describe('Sentry Metro Serializer', () => {
     expect(bundle.code).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture`, 'utf8'));
     expect(bundle.map).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture.map`, 'utf8'));
   });
+
+  test('works when shouldAddToIgnoreList is undefined', async () => {
+    const serializer = createSentryMetroSerializer();
+    const args = mockMinSerializerArgs({ shouldAddToIgnoreList: undefined });
+
+    const bundle = await serializer(...args);
+
+    expect(bundle).toBeDefined();
+    if (typeof bundle !== 'string') {
+      expect(bundle.code).toBeDefined();
+      expect(bundle.map).toBeDefined();
+      const debugId = determineDebugIdFromBundleSource(bundle.code);
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    }
+  });
 });
 
-function mockMinSerializerArgs(): Parameters<MetroSerializer> {
+function mockMinSerializerArgs(options?: {
+  shouldAddToIgnoreList?: ((module: Module<MixedOutput>) => boolean) | undefined;
+}): Parameters<MetroSerializer> {
   let modulesCounter = 0;
+
+  const baseOptions: Record<string, any> = {
+    asyncRequireModulePath: 'asyncRequire',
+    createModuleId: (_filePath: string): number => modulesCounter++,
+    dev: false,
+    getRunModuleStatement: (_moduleId: string | number): string => '',
+    includeAsyncPaths: false,
+    modulesOnly: false,
+    processModuleFilter: (_module: Module<MixedOutput>) => true,
+    projectRoot: '/project/root',
+    runBeforeMainModule: [],
+    runModule: false,
+    serverRoot: '/server/root',
+  };
+
+  if (options && 'shouldAddToIgnoreList' in options) {
+    baseOptions.shouldAddToIgnoreList = options.shouldAddToIgnoreList;
+  } else {
+    baseOptions.shouldAddToIgnoreList = (_module: Module<MixedOutput>) => false;
+  }
+
   return [
     'index.js',
     [],
@@ -68,20 +106,7 @@ function mockMinSerializerArgs(): Parameters<MetroSerializer> {
         unstable_transformProfile: 'hermes-stable',
       },
     },
-    {
-      asyncRequireModulePath: 'asyncRequire',
-      createModuleId: (_filePath: string): number => modulesCounter++,
-      dev: false,
-      getRunModuleStatement: (_moduleId: string | number): string => '',
-      includeAsyncPaths: false,
-      modulesOnly: false,
-      processModuleFilter: (_module: Module<MixedOutput>) => true,
-      projectRoot: '/project/root',
-      runBeforeMainModule: [],
-      runModule: false,
-      serverRoot: '/server/root',
-      shouldAddToIgnoreList: (_module: Module<MixedOutput>) => false,
-    },
+    baseOptions as any,
   ];
 }
 

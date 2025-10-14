@@ -1,5 +1,5 @@
 /* eslint-disable complexity */
-import { browserSessionIntegration } from '@sentry/browser';
+import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
 import type { ReactNativeClientOptions } from '../options';
 import { reactNativeTracingIntegration } from '../tracing';
@@ -87,6 +87,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(modulesLoaderIntegration());
     if (options.enableLogs) {
       integrations.push(logEnricherIntegration());
+      integrations.push(consoleLoggingIntegration());
     }
     if (options.attachScreenshot) {
       integrations.push(screenshotIntegration());
