@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Get auth token
         id: token
-        uses: actions/create-github-app-token@0d564482f06ca65fa9e77e2510873638c82206f2 # v1.11.5
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         with:
           app-id: ${{ vars.SENTRY_RELEASE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.SENTRY_RELEASE_BOT_PRIVATE_KEY }}
@@ -28,7 +28,7 @@ jobs:
         with:
           token: ${{ steps.token.outputs.token }}
           fetch-depth: 0
-      - run: corepack enable
+      - run: npm i -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 18

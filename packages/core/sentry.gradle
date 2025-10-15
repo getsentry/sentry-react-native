@@ -21,7 +21,7 @@ project.ext.shouldCopySentryOptionsFile = { -> // If not set, default to true
 
 def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
 
-def configFile = "sentry.options.json" // Sentry condiguration file
+def configFile = "sentry.options.json" // Sentry configuration file
 def androidAssetsDir = new File("$rootDir/app/src/main/assets") // Path to Android assets folder
 
 tasks.register("copySentryJsonConfiguration") {
@@ -57,7 +57,9 @@ tasks.register("cleanupTemporarySentryJsonConfiguration") {
     }
 }
 
-gradle.projectsEvaluated {
+// gradle.projectsEvaluated doesn't work with --configure-on-demand
+// the task are create too late and not executed
+project.afterEvaluate {
     // Add a task that copies the sentry.options.json file before the build starts
     tasks.named("preBuild").configure {
         dependsOn("copySentryJsonConfiguration")

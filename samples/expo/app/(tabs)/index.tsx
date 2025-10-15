@@ -2,19 +2,33 @@ import { Button, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import * as Sentry from '@sentry/react-native';
 import { reloadAppAsync } from 'expo';
+import * as DevClient from 'expo-dev-client';
 
 import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
 import React from 'react';
 import * as WebBrowser from 'expo-web-browser';
+import { useUpdates } from 'expo-updates';
+import { isWeb } from '../../utils/isWeb';
 
-const isRunningInExpoGo = Constants.appOwnership === 'expo'
+const isRunningInExpoGo = Constants.appOwnership === 'expo';
 
 export default function TabOneScreen() {
+  const { currentlyRunning } = useUpdates();
   return (
     <View style={styles.container}>
       <Sentry.TimeToInitialDisplay record />
       <Text>Welcome to Sentry Expo Sample App!</Text>
+      <Text>Update ID: {currentlyRunning.updateId}</Text>
+      <Text>Channel: {currentlyRunning.channel}</Text>
+      <Text>Runtime Version: {currentlyRunning.runtimeVersion}</Text>
+      <Button
+        title="Open DevMenu"
+        onPress={() => {
+          DevClient.openMenu();
+        }}
+        disabled={isWeb()}
+      />
       <Button
         title="Capture message"
         onPress={() => {
@@ -30,8 +44,8 @@ export default function TabOneScreen() {
       <Button
         title="Capture exception with cause"
         onPress={() => {
-          const error = new Error('Captured exception')
-          error.cause = new Error('Cause of captured exception')
+          const error = new Error('Captured exception');
+          error.cause = new Error('Cause of captured exception');
           Sentry.captureException(error);
         }}
       />
@@ -62,6 +76,12 @@ export default function TabOneScreen() {
         title="Show feedback form"
         onPress={() => {
           Sentry.showFeedbackWidget();
+        }}
+      />
+      <Button
+        title="Show feedback button"
+        onPress={() => {
+          Sentry.showFeedbackButton();
         }}
       />
       <Button

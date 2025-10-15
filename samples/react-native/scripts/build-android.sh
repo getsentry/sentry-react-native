@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Exit on error and print commands
-set -xe
+# Exit on error
+set -e
 
 thisFilePath=$(dirname "$0")
 
@@ -21,7 +21,7 @@ fi
 
 echo "Building $CONFIG"
 
-assembleConfig=$(python -c "print(\"${CONFIG}\".capitalize())")
+assembleConfig=$(python3 -c "print(\"${CONFIG}\".capitalize())")
 
 ./gradlew ":app:assemble${assembleConfig}" app:assembleAndroidTest -DtestBuildType=$CONFIG "$@"
 

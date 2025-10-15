@@ -1,5 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { isRunningInExpoGo } from 'expo';
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { useEffect } from 'react';
@@ -7,8 +8,6 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
-import { ErrorEvent } from '@sentry/core';
-import { isExpoGo } from '../utils/isExpoGo';
 import { LogBox } from 'react-native';
 import { isWeb } from '../utils/isWeb';
 import * as ImagePicker from 'expo-image-picker';
@@ -24,7 +23,7 @@ LogBox.ignoreAllLogs();
 SplashScreen.preventAutoHideAsync();
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
-  enableTimeToInitialDisplay: !isExpoGo(), // This is not supported in Expo Go.
+  enableTimeToInitialDisplay: !isRunningInExpoGo(), // This is not supported in Expo Go.
 });
 
 Sentry.init({
@@ -32,11 +31,11 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
-  beforeSend: (event: ErrorEvent) => {
+  beforeSend: (event: Sentry.ErrorEvent) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
   },
-  beforeSendTransaction(event) {
+  beforeSendTransaction(event: Sentry.TransactionEvent) {
     console.log('Transaction beforeSend:', event.event_id);
     return event;
   },
@@ -59,7 +58,16 @@ Sentry.init({
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
       Sentry.feedbackIntegration({
+        enableScreenshot: true,
+        enableTakeScreenshot: true,
         imagePicker: ImagePicker,
+        buttonOptions: {
+          styles: {
+            triggerButton: {
+              marginBottom: 40, // Place the feedback button above the tab bar
+            },
+          },
+        },
       }),
     );
     if (isWeb()) {

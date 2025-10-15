@@ -14,19 +14,19 @@ jobs:
 
   upload_to_testflight:
     name: Build and Upload React Native Sample to Testflight
-    runs-on: macos-14
+    runs-on: macos-15
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - run: sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
       - uses: ruby/setup-ruby@v1
         with:
           working-directory: samples/react-native
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
-      - run: corepack enable
+      - run: npm i -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 18

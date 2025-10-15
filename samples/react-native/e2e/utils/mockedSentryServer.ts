@@ -16,10 +16,16 @@ export function createSentryServer({ port = 8961 } = {}): {
     predicate: (envelope: Envelope) => boolean,
   ) => Promise<Envelope>;
   close: () => Promise<void>;
-  start: () => void;
+  start: () => Promise<void>;
   getEnvelope: (predicate: (envelope: Envelope) => boolean) => Envelope;
+  getAllEnvelopes: (predicate: (envelope: Envelope) => boolean) => Envelope[];
 } {
-  let onNextRequestCallback: (request: RecordedRequest) => void = () => {};
+  const nextRequestCallbacks: (typeof onNextRequestCallback)[] = [];
+  let onNextRequestCallback: (request: RecordedRequest) => void = (
+    request: RecordedRequest,
+  ) => {
+    nextRequestCallbacks.forEach(callback => callback(request));
+  };
   const requests: RecordedRequest[] = [];
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
@@ -50,15 +56,26 @@ export function createSentryServer({ port = 8961 } = {}): {
     });
   });
 
+  const getAllEnvelopes = (predicate: (envelope: Envelope) => boolean) => {
+    return requests
+      .filter(request => request.envelope && predicate(request.envelope))
+      .map(request => request.envelope);
+  };
+
   return {
     start: () => {
-      server.listen(port);
+      return new Promise<void>((resolve, _reject) => {
+        server.listen(port, () => {
+          console.log(`Sentry server listening on port ${port}`);
+          resolve();
+        });
+      });
     },
     waitForEnvelope: async (
       predicate: (envelope: Envelope) => boolean,
     ): Promise<Envelope> => {
       return new Promise<Envelope>((resolve, reject) => {
-        onNextRequestCallback = (request: RecordedRequest) => {
+        nextRequestCallbacks.push((request: RecordedRequest) => {
           try {
             if (predicate(request.envelope)) {
               resolve(request.envelope);
@@ -68,7 +85,7 @@ export function createSentryServer({ port = 8961 } = {}): {
             reject(e);
             return;
           }
-        };
+        });
       });
     },
     close: async () => {
@@ -77,16 +94,14 @@ export function createSentryServer({ port = 8961 } = {}): {
       });
     },
     getEnvelope: (predicate: (envelope: Envelope) => boolean) => {
-      const envelope = requests.find(
-        request => request.envelope && predicate(request.envelope),
-      )?.envelope;
-
+      const [envelope] = getAllEnvelopes(predicate);
       if (!envelope) {
         throw new Error('Envelope not found');
       }
 
       return envelope;
     },
+    getAllEnvelopes,
   };
 }
 
@@ -115,6 +130,10 @@ export function containingEventWithMessage(message: string) {
     );
 }
 
+export function containingTransaction(envelope: Envelope) {
+  return envelope[1].some(item => itemHeaderIsType(item[0], 'transaction'));
+}
+
 export function containingTransactionWithName(name: string) {
   return (envelope: Envelope) =>
     envelope[1].some(
@@ -124,6 +143,22 @@ export function containingTransactionWithName(name: string) {
         item[1].transaction &&
         item[1].transaction.includes(name),
     );
+}
+
+export function takeSecond(predicate: (envelope: Envelope) => boolean) {
+  const take = 2;
+  let counter = 0;
+  return (envelope: Envelope) => {
+    if (predicate(envelope)) {
+      counter++;
+    }
+
+    if (counter === take) {
+      return true;
+    }
+
+    return false;
+  };
 }
 
 export function itemBodyIsEvent(itemBody: EnvelopeItem[1]): itemBody is Event {

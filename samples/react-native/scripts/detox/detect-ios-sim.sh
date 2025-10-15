@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Exit on error and print commands
-set -xe
+# Exit on error
+set -e
 
 if [ -z "$IOS_DEVICE" ]; then
   # Get the first booted simulator device type and version

@@ -5,8 +5,8 @@ set -xe
 
 thisFilePath=$(dirname "$0")
 
-cd "${thisFilePath}/.."
+cd "${thisFilePath}/../.."
 
 "${thisFilePath}/detect-ios-sim.sh"
 
-detox test --configuration ci.sim.auto --app-launch-args="--sentry-disable-native-start"
+detox test --configuration ci.sim.manual

@@ -13,7 +13,7 @@ export function setAndroidDsn() {
 }
 
 function setDsn(dsn) {
-  const sentryOptionsPath = path.join(__dirname, '../sentry.options.json');
+  const sentryOptionsPath = path.join(__dirname, '../../sentry.options.json');
   const sentryOptions = JSON.parse(fs.readFileSync(sentryOptionsPath, 'utf8'));
   sentryOptions.dsn = dsn;
   fs.writeFileSync(
