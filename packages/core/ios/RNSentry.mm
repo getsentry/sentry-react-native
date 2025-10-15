@@ -236,6 +236,7 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     BOOL isSessionReplayEnabled = [RNSentryReplay updateOptions:mutableOptions];
 #else
+    // Defaulting to false for unsupported targets
     BOOL isSessionReplayEnabled = NO;
 #endif
 
