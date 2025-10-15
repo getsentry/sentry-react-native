@@ -17,7 +17,7 @@
     NSNumber *sessionSampleRate = options[@"replaysSessionSampleRate"];
     NSNumber *errorSampleRate = options[@"replaysOnErrorSampleRate"];
 
-    if (sessionSampleRate == nil && errorSampleRate) {
+    if (sessionSampleRate == nil && errorSampleRate == nil) {
         NSLog(@"Session replay disabled via configuration");
         return NO;
     }
