@@ -14,8 +14,10 @@
 
 + (BOOL)updateOptions:(NSMutableDictionary *)options
 {
-    if (options[@"replaysSessionSampleRate"] == nil
-        && options[@"replaysOnErrorSampleRate"] == nil) {
+    NSNumber *sessionSampleRate = options[@"replaysSessionSampleRate"];
+    NSNumber *errorSampleRate = options[@"replaysOnErrorSampleRate"];
+
+    if (sessionSampleRate == nil && errorSampleRate) {
         NSLog(@"Session replay disabled via configuration");
         return NO;
     }
@@ -26,8 +28,8 @@
     NSString *qualityString = options[@"replaysSessionQuality"];
 
     [options setValue:@{
-        @"sessionSampleRate" : options[@"replaysSessionSampleRate"] ?: [NSNull null],
-        @"errorSampleRate" : options[@"replaysOnErrorSampleRate"] ?: [NSNull null],
+        @"sessionSampleRate" : sessionSampleRate ?: [NSNull null],
+        @"errorSampleRate" : errorSampleRate ?: [NSNull null],
         @"quality" : @([RNSentryReplayQuality parseReplayQuality:qualityString]),
         @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
         @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
@@ -38,7 +40,8 @@
             @ { @"name" : REACT_NATIVE_SDK_NAME, @"version" : REACT_NATIVE_SDK_PACKAGE_VERSION }
     }
                forKey:@"sessionReplay"];
-    return YES;
+    return (errorSampleRate != nil && [errorSampleRate doubleValue] > 0)
+        || (sessionSampleRate != nil && [sessionSampleRate doubleValue] > 0);
 }
 
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
