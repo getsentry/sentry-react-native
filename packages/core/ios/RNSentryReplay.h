@@ -1,7 +1,11 @@
 
 @interface RNSentryReplay : NSObject
 
-+ (void)updateOptions:(NSMutableDictionary *)options;
+/**
+ * Updates the session replay options
+ * @return true when session replay is enabled
+ */
++ (BOOL)updateOptions:(NSMutableDictionary *)options;
 
 + (void)postInit;
 
