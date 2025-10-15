@@ -18,6 +18,8 @@
 - Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
   - The licenses json file is correctly generated and placed into the `res/` folder now
 - Handle missing shouldAddToIgnoreList callback in Metro ([#5260](https://github.com/getsentry/sentry-react-native/pull/5260))
+- Overrides the default Cocoa SDK behavior that disables Session Replay on iOS 26.0 ([#5268](https://github.com/getsentry/sentry-react-native/pull/5268))
+  - If you are using Apple's Liquid Glass we recommend that you disable Session Replay on iOS to prevent potential PII leaks (see [sentry-cocoa 8.57.0 release note warning](https://github.com/getsentry/sentry-cocoa/releases/tag/8.57.0))
 
 ### Dependencies
 
@@ -30,6 +32,9 @@
 - Bump Bundler Plugins from v4.3.0 to v4.4.0 ([#5256](https://github.com/getsentry/sentry-react-native/pull/5256))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#440)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.3.0...4.4.0)
+- Bump Cocoa SDK from v8.56.2 to v8.57.0 ([#5263](https://github.com/getsentry/sentry-react-native/pull/5263))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8570)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.2...8.57.0)
 
 ## 7.3.0
 
