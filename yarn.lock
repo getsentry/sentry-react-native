@@ -9749,7 +9749,7 @@ __metadata:
     "@sentry/core": 10.19.0
     "@sentry/react": 10.19.0
     "@sentry/types": 10.19.0
-    "@sentry/wizard": 6.5.0
+    "@sentry/wizard": 6.6.0
     "@testing-library/react-native": ^12.7.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -9832,13 +9832,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:6.5.0":
-  version: 6.5.0
-  resolution: "@sentry/wizard@npm:6.5.0"
+"@sentry/wizard@npm:6.6.0":
+  version: 6.6.0
+  resolution: "@sentry/wizard@npm:6.6.0"
   dependencies:
     "@clack/prompts": 0.7.0
     "@sentry/node": ^7.119.2
-    axios: 1.8.2
+    axios: 1.12.0
     chalk: ^2.4.1
     glob: 9.3.5
     inquirer: ^6.2.0
@@ -9852,7 +9852,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 567da52a3dbdee340a520adf0ea1f77b360e857ffa3de5accd2efe8b661c2c21efa5c200b1d4cff444376c23e8f6d8e25bc2f12b3dbe004c631cb20afdd16f32
+  checksum: 93c2d9ec054d1f0ff086dcda4a3f2c3e08cafdc1158869b90a761ce34db03ba8080e293404d8cbe64d89a2b9135b25194687daede1d6f3bdeec96dd7afa16fac
   languageName: node
   linkType: hard
 
@@ -12576,6 +12576,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:1.12.0":
+  version: 1.12.0
+  resolution: "axios@npm:1.12.0"
+  dependencies:
+    follow-redirects: ^1.15.6
+    form-data: ^4.0.4
+    proxy-from-env: ^1.1.0
+  checksum: f2a109efea16711907ae86acc46434d52da28e889bf1d2fc2b66844e82c9908f6d96d988ad9043b37d4146abc182e67d61abd87367152bbbc1cd73afa3c5de71
+  languageName: node
+  linkType: hard
+
 "axios@npm:1.6.3":
   version: 1.6.3
   resolution: "axios@npm:1.6.3"
@@ -12606,17 +12617,6 @@ __metadata:
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
   checksum: bc304d6da974922342aed7c33155934354429cdc7e1ba9d399ab9ff3ac76103f3697eeedf042a634d43cdae682182bcffd942291db42d2be45b750597cdd5eef
-  languageName: node
-  linkType: hard
-
-"axios@npm:1.8.2":
-  version: 1.8.2
-  resolution: "axios@npm:1.8.2"
-  dependencies:
-    follow-redirects: ^1.15.6
-    form-data: ^4.0.0
-    proxy-from-env: ^1.1.0
-  checksum: c47a43b79a058aa9e53a65bec9ade35c9f6e76a3999c795a79a2d205fb5f803fd4245497a0209a9727cbbe4f558791dd852ad2c168c5fc030259c11598ed8fd7
   languageName: node
   linkType: hard
 
