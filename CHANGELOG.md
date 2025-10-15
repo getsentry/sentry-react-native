@@ -18,6 +18,8 @@
 - Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
   - The licenses json file is correctly generated and placed into the `res/` folder now
 - Handle missing shouldAddToIgnoreList callback in Metro ([#5260](https://github.com/getsentry/sentry-react-native/pull/5260))
+- Overrides the default Cocoa SDK behavior that disables Session Replay on iOS 26.0 ([#5268](https://github.com/getsentry/sentry-react-native/pull/5268))
+  - If you are using Apple's Liquid Glass we recommend that you disable Session Replay on iOS to prevent potential PII leaks
 
 ### Dependencies
 
