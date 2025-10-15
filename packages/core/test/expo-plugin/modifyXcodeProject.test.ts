@@ -1,7 +1,7 @@
-import { warnOnce } from '../../plugin/src/utils';
+import { warnOnce } from '../../plugin/src/logger';
 import { modifyExistingXcodeBuildScript } from '../../plugin/src/withSentryIOS';
 
-jest.mock('../../plugin/src/utils');
+jest.mock('../../plugin/src/logger');
 
 const buildScriptWithoutSentry = {
   shellScript: JSON.stringify(`"
