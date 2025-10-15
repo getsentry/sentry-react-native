@@ -119,7 +119,9 @@ describe('Capture Spaceflight News Screen Transaction', () => {
     console.log(spans);
 
     const httpSpans = spans?.filter(
-      span => span.data?.['sentry.op'] === 'http.client',
+      span =>
+        span.data?.['sentry.op'] === 'http.client' &&
+        span.data?.['server.address'] === 'api.spaceflightnewsapi.net'
     );
     expect(httpSpans).toHaveLength(2);
   });
