@@ -70,7 +70,7 @@ const sentryAuthToken = env.SENTRY_AUTH_TOKEN;
 
 function runCodegenIfNeeded(rnVersion, platform, appDir) {
   const versionNumber = parseFloat(rnVersion.replace(/[^\d.]/g, ''));
-  const shouldRunCodegen = platform === 'android' && versionNumber >= 0.80;
+  const shouldRunCodegen = platform === 'android' && versionNumber >= 0.79;
 
   if (shouldRunCodegen) {
     console.log(`Running codegen for React Native ${rnVersion}...`);
