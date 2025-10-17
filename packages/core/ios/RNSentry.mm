@@ -234,7 +234,10 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     [mutableOptions removeObjectForKey:@"enableTracing"];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryReplay updateOptions:mutableOptions];
+    BOOL isSessionReplayEnabled = [RNSentryReplay updateOptions:mutableOptions];
+#else
+    // Defaulting to false for unsupported targets
+    BOOL isSessionReplayEnabled = NO;
 #endif
 
     SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
@@ -313,6 +316,11 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
             [experiments[@"enableUnhandledCPPExceptionsV2"] boolValue];
         [RNSentryExperimentalOptions setEnableUnhandledCPPExceptionsV2:enableUnhandledCPPExceptions
                                                          sentryOptions:sentryOptions];
+    }
+
+    if (isSessionReplayEnabled) {
+        [RNSentryExperimentalOptions setEnableSessionReplayInUnreliableEnvironment:YES
+                                                                     sentryOptions:sentryOptions];
     }
 
     return sentryOptions;
