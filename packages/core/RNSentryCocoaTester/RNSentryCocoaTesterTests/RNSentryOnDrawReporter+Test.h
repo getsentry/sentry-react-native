@@ -1,3 +1,4 @@
+#import "RNSentryEmitNewFrameEvent.h"
 #import "RNSentryOnDrawReporter.h"
 #import <Foundation/Foundation.h>
 
