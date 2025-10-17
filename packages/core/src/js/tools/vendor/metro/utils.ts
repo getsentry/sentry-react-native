@@ -140,7 +140,7 @@ Please check the version of Metro you are using and report the issue at http://w
     // Always generate source maps, can't use Sentry without source maps
     const map = sourceMapStringFunction([...preModules, ...getSortedModules(graph, options)], {
       processModuleFilter: options.processModuleFilter,
-      shouldAddToIgnoreList: options.shouldAddToIgnoreList,
+      shouldAddToIgnoreList: options.shouldAddToIgnoreList || (() => false),
     });
     return { code, map };
   };
