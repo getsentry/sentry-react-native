@@ -36,7 +36,6 @@ XCTAssertNotNil(
 XCTAssertEqual(
     actualOptions.tracesSampleRate, nil, @"Traces sample rate should not be passed to native");
 XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be passed to native");
-XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be passed to native");
 }
 
 - (void)testCaptureFailedRequestsIsDisabled
@@ -331,10 +330,7 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
 
-    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
-    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
-
-    BOOL enableLogs = [[experimentalOptions valueForKey:@"enableLogs"] boolValue];
+    BOOL enableLogs = [[actualOptions valueForKey:@"enableLogs"] boolValue];
     XCTAssertTrue(enableLogs, @"enableLogs should be enabled");
 }
 
@@ -352,11 +348,8 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-
-    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
-    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
-
-    BOOL enableLogs = [[experimentalOptions valueForKey:@"enableLogs"] boolValue];
+    
+    BOOL enableLogs = [[actualOptions valueForKey:@"enableLogs"] boolValue];
     XCTAssertFalse(enableLogs, @"enableLogs should be disabled");
 }
 
