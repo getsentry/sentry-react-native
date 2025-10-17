@@ -1,5 +1,7 @@
 #import "RNSentryOnDrawReporter.h"
 #import "RNSentryTimeToDisplay.h"
+#import "RNSentryFramesTrackerListener.h"
+#import "RNSentryEmitNewFrameEvent.h"
 
 #if SENTRY_HAS_UIKIT
 

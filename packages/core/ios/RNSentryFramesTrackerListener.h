@@ -4,9 +4,9 @@
 
 #    import <Foundation/Foundation.h>
 #    import <React/RCTEventEmitter.h>
-#    import <Sentry/SentryFramesTracker.h>
+#    import "RNSentryEmitNewFrameEvent.h"
 
-typedef void (^RNSentryEmitNewFrameEvent)(NSNumber *newFrameTimestampInSeconds);
+@import Sentry;
 
 @protocol RNSentryFramesTrackerListenerProtocol <SentryFramesTrackerListener>
 
