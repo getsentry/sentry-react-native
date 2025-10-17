@@ -2,9 +2,9 @@
 
 #if SENTRY_HAS_UIKIT
 
+#    import "RNSentryEmitNewFrameEvent.h"
 #    import <Foundation/Foundation.h>
 #    import <React/RCTEventEmitter.h>
-#    import "RNSentryEmitNewFrameEvent.h"
 
 @import Sentry;
 
