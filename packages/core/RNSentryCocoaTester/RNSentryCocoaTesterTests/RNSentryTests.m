@@ -1,7 +1,6 @@
 #import "RNSentryTests.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
