@@ -11,4 +11,4 @@ jobs:
       - uses: lucas-zimerman/sentry-github-workflows/danger@lz/ext-danger
         with:
           extra-dangerfile: scripts/check-replay-stubs.js
-          extra-install-packages: "curl unzip openjdk-17-jre-headless evilpackagedoesntexist"
+          extra-install-packages: "curl unzip openjdk-17-jre-headless"
