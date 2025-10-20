@@ -161,7 +161,7 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
   ignoreErrors: ['should', /(.)*2(.)*/],
   replaysSessionQuality: 'medium', // default
-  spotlight: true,
+  spotlight: false,
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
   autoInitializeNativeSdk: true,
