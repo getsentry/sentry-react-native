@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -89,7 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -113,7 +113,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -157,7 +157,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -188,7 +188,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -223,7 +223,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18

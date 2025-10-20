@@ -6,13 +6,35 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 7.4.0
+
+### Features
+
+- Adds Console logs as Sentry Logs. ([#5261](https://github.com/getsentry/sentry-react-native/pull/5261))
+- Adds support for `propagateTraceparent` ([#5277](https://github.com/getsentry/sentry-react-native/pull/5227))
+
+### Fixes
+
+- Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
+  - The licenses json file is correctly generated and placed into the `res/` folder now
+- Handle missing shouldAddToIgnoreList callback in Metro ([#5260](https://github.com/getsentry/sentry-react-native/pull/5260))
+- Overrides the default Cocoa SDK behavior that disables Session Replay on iOS 26.0 ([#5268](https://github.com/getsentry/sentry-react-native/pull/5268))
+  - If you are using Apple's Liquid Glass we recommend that you disable Session Replay on iOS to prevent potential PII leaks (see [sentry-cocoa 8.57.0 release note warning](https://github.com/getsentry/sentry-cocoa/releases/tag/8.57.0))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.18.0 to v10.19.0 ([#5254](https://github.com/getsentry/sentry-react-native/pull/5254))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10190)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.18.0...10.19.0)
+- Bump JavaScript SDK from v10.18.0 to v10.20.0 ([#5254](https://github.com/getsentry/sentry-react-native/pull/5254), [#5272](https://github.com/getsentry/sentry-react-native/pull/5272))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10200)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.18.0...10.20.0)
+- Bump CLI from v2.56.0 to v2.56.1 ([#5257](https://github.com/getsentry/sentry-react-native/pull/5257))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2561)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.56.0...2.56.1)
+- Bump Bundler Plugins from v4.3.0 to v4.4.0 ([#5256](https://github.com/getsentry/sentry-react-native/pull/5256))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#440)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.3.0...4.4.0)
+- Bump Cocoa SDK from v8.56.2 to v8.57.0 ([#5263](https://github.com/getsentry/sentry-react-native/pull/5263))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8570)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.2...8.57.0)
 
 ## 7.3.0
 

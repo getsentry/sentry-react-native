@@ -1,7 +1,6 @@
 #import "RNSentryTests.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
@@ -734,6 +733,131 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     event3.message = msg3;
     SentryEvent *result3 = options.beforeSend(event3);
     XCTAssertNotNil(result3, @"Event with non-matching error should not be dropped");
+}
+
+- (void)testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentDefault
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertFalse(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be disabled");
+}
+
+- (void)testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentWithErrorSampleRate
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @1.0,
+        @"replaysSessionSampleRate" : @0
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertTrue(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be enabled");
+}
+
+- (void)
+    testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentWithSessionSampleRate
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @0.0,
+        @"replaysSessionSampleRate" : @0.1
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertTrue(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be enabled");
+}
+
+- (void)
+    testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentWithSessionSampleRates
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @1.0,
+        @"replaysSessionSampleRate" : @0.1
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertTrue(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be enabled");
+}
+
+- (void)testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentDisabled
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @0,
+        @"replaysSessionSampleRate" : @0
+    };
+    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
+                                                                   error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertFalse(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be disabled");
 }
 
 @end

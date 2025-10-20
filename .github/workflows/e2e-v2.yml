@@ -14,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.0.5'
+  MAESTRO_VERSION: '2.0.6'
   IOS_DEVICE: 'iPhone 16'
   IOS_VERSION: '18.1'
 
@@ -57,10 +57,10 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -229,10 +229,10 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -261,7 +261,7 @@ jobs:
         # The old node has to be enabled after creating the test app
         # to avoid issues with the old node version
       - run: corepack disable
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         if: ${{ matrix.rn-version == '0.65.3' }}
         with:
           package-manager-cache: false
@@ -357,7 +357,7 @@ jobs:
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 20

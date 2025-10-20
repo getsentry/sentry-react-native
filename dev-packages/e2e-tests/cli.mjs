@@ -103,18 +103,6 @@ if (actions.includes('create')) {
     env: env,
   });
 
-  // Only apply the package.json patch for newer RN versions
-  const versionNumber = parseFloat(RNVersion.replace(/[^\d.]/g, ''));
-  if (versionNumber >= 0.80) {
-    execSync(`${patchScriptsDir}/rn.patch.package.json.js --path package.json`, {
-      stdio: 'inherit',
-      cwd: appDir,
-      env: env,
-    });
-  } else {
-    console.log(`Skipping rn.patch.package.json.js for RN ${RNVersion} (< 0.80)`);
-  }
-
   // Install dependencies
   // yalc add doesn't fail if the package is not found - it skips silently.
   let yalcAddOutput = execSync(`yalc add @sentry/react-native`, { cwd: appDir, env: env, encoding: 'utf-8' });
