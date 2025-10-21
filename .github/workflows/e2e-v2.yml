@@ -66,13 +66,17 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           java-version: '17'
-          distribution: "adopt"
+          distribution: 'adopt'
+
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
+
       - name: Install Global Dependencies
         run: npm i -g react-native-cli @sentry/cli
+
       - name: Install Dependencies
         run: yarn install
+
       - name: Build SDK
         run: yarn build
 
@@ -86,6 +90,7 @@ jobs:
           # we removed the lock file of the app due to monorepo changes, we use the package.json instead
           # to avoid frequent rebuilds of the app
           key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('performance-tests/TestAppSentry/package.json') }}
+
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./performance-tests/TestAppPlain
@@ -113,6 +118,7 @@ jobs:
           MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
+
       - name: Build app with Sentry
         working-directory: ./performance-tests/TestAppSentry
         run: |
