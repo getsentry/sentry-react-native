@@ -1,5 +1,5 @@
 #import "RNSentryDependencyContainer.h"
-#import <Sentry/SentryDependencyContainer.h>
+@import Sentry;
 
 @implementation RNSentryDependencyContainer {
     NSObject *sentryDependencyContainerLock;

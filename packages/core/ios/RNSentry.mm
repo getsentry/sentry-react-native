@@ -23,7 +23,6 @@
 #import <Sentry/SentryBreadcrumb.h>
 #import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <Sentry/SentryDebugMeta.h>
-#import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
