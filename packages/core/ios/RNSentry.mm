@@ -22,7 +22,6 @@
 #import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBreadcrumb.h>
 #import <Sentry/SentryDebugMeta.h>
-#import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>

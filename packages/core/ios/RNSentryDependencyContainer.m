@@ -1,6 +1,5 @@
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryFramesTrackerListener.h"
-#import <Sentry/SentryDependencyContainer.h>
 
 @implementation RNSentryDependencyContainer {
     NSObject *sentryDependencyContainerLock;

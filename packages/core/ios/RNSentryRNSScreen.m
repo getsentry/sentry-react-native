@@ -4,7 +4,6 @@
 
 #    import "RNSentryDependencyContainer.h"
 #    import "RNSentryFramesTrackerListener.h"
-#    import <Sentry/SentryDependencyContainer.h>
 #    import <Sentry/SentrySwizzle.h>
 @import Sentry;
 

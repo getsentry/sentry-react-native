@@ -5,8 +5,6 @@
 
 #if SENTRY_HAS_UIKIT
 
-#    import <Sentry/SentryDependencyContainer.h>
-
 @implementation RNSentryOnDrawReporter
 
 RCT_EXPORT_MODULE(RNSentryOnDrawReporter)
