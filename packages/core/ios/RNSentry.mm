@@ -723,10 +723,6 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
         if ([username isKindOfClass:NSString.class]) {
             [userInstance setUsername:username];
         }
-        id segment = [userKeys valueForKey:@"segment"];
-        if ([segment isKindOfClass:NSString.class]) {
-            [userInstance setSegment:segment];
-        }
 
         if ([userDataKeys isKindOfClass:NSDictionary.class]) {
             [userInstance setData:userDataKeys];
