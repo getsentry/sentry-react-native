@@ -1,5 +1,4 @@
 import type { Client, Event, EventHint } from '@sentry/core';
-
 import type { ReactNativeError } from '../../src/js/integrations/debugsymbolicator';
 import type { ReactNativeContext } from '../../src/js/integrations/reactnativeinfo';
 import { reactNativeInfoIntegration } from '../../src/js/integrations/reactnativeinfo';
@@ -61,7 +60,7 @@ describe('React Native Info', () => {
         },
       },
       tags: {
-        hermes: 'true',
+        hermes: true,
       },
     });
   });
@@ -72,7 +71,7 @@ describe('React Native Info', () => {
     const actualEvent = await executeIntegrationFor({}, {});
 
     expectMocksToBeCalledOnce();
-    expect(actualEvent?.tags?.hermes).toEqual('true');
+    expect(actualEvent?.tags?.hermes).toBeTrue();
     expect(actualEvent?.contexts?.react_native_context).toEqual(
       expect.objectContaining({
         js_engine: 'hermes',

@@ -1,8 +1,7 @@
 #import "RNSentryOnDrawReporter.h"
 #import <Foundation/Foundation.h>
 
-@interface
-RNSentryOnDrawReporterView (Testing)
+@interface RNSentryOnDrawReporterView (Testing)
 
 + (instancetype)createWithMockedListener;
 - (RNSentryEmitNewFrameEvent)createEmitNewFrameEvent;

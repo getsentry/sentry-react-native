@@ -1,6 +1,5 @@
 export type {
   Breadcrumb,
-  Request,
   SdkInfo,
   Event,
   Exception,
@@ -18,6 +17,7 @@ export type {
 
 export {
   addBreadcrumb,
+  addIntegration,
   captureException,
   captureEvent,
   captureFeedback,
@@ -45,7 +45,6 @@ export {
   getClient,
   setCurrentClient,
   addEventProcessor,
-  metricsDefault as metrics,
   lastEventId,
 } from '@sentry/core';
 
@@ -58,13 +57,20 @@ export {
   withProfiler,
 } from '@sentry/react';
 
+export {
+  logger,
+  consoleLoggingIntegration,
+  featureFlagsIntegration,
+  type FeatureFlagsIntegration,
+} from '@sentry/browser';
+
 export * from './integrations/exports';
 
 export { SDK_NAME, SDK_VERSION } from './version';
 export type { ReactNativeOptions } from './options';
 export { ReactNativeClient } from './client';
 
-export { init, wrap, nativeCrash, flush, close, captureUserFeedback, withScope, crashedLastRun } from './sdk';
+export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
 export {

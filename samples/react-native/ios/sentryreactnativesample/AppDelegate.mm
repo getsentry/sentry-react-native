@@ -16,9 +16,9 @@
 #import <RNSentry/RNSentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/Sentry.h>
+#import "SentryNativeInitializer.h"
 
-@interface
-AppDelegate () <UNUserNotificationCenterDelegate> {
+@interface AppDelegate () <UNUserNotificationCenterDelegate> {
 }
 @end
 
@@ -36,6 +36,10 @@ AppDelegate () <UNUserNotificationCenterDelegate> {
                                        reason:@"This was intentional test crash before JS started."
                                      userInfo:nil];
     }
+
+    // When the native init is enabled the `autoInitializeNativeSdk`
+    // in JS has to be set to `false`
+    // [SentryNativeInitializer initializeSentry];
 
     self.reactNativeFactory = [[RCTReactNativeFactory alloc] initWithDelegate:self];
     self.dependencyProvider = [RCTAppDependencyProvider new];

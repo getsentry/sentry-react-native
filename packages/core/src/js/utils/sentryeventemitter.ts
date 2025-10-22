@@ -1,7 +1,6 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import type { EmitterSubscription, NativeModule } from 'react-native';
 import { NativeEventEmitter } from 'react-native';
-
 import { getRNSentryModule } from '../wrapper';
 
 export const NewFrameEventName = 'rn_sentry_new_frame';
@@ -41,7 +40,7 @@ export function createSentryEventEmitter(
   const addListener = function (eventType: NewFrameEventName, listener: (event: NewFrameEvent) => void): void {
     const map = listenersMap.get(eventType);
     if (!map) {
-      logger.warn(`EventEmitter was not initialized for event type: ${eventType}`);
+      debug.warn(`EventEmitter was not initialized for event type: ${eventType}`);
       return;
     }
     listenersMap.get(eventType)?.set(listener, true);
@@ -93,19 +92,19 @@ export function createSentryEventEmitter(
 function createNoopSentryEventEmitter(): SentryEventEmitter {
   return {
     initAsync: () => {
-      logger.warn('Noop SentryEventEmitter: initAsync');
+      debug.warn('Noop SentryEventEmitter: initAsync');
     },
     closeAllAsync: () => {
-      logger.warn('Noop SentryEventEmitter: closeAllAsync');
+      debug.warn('Noop SentryEventEmitter: closeAllAsync');
     },
     addListener: () => {
-      logger.warn('Noop SentryEventEmitter: addListener');
+      debug.warn('Noop SentryEventEmitter: addListener');
     },
     removeListener: () => {
-      logger.warn('Noop SentryEventEmitter: removeListener');
+      debug.warn('Noop SentryEventEmitter: removeListener');
     },
     once: () => {
-      logger.warn('Noop SentryEventEmitter: once');
+      debug.warn('Noop SentryEventEmitter: once');
     },
   };
 }

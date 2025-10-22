@@ -2,7 +2,7 @@ import { logger } from '@sentry/core';
 import * as fs from 'fs';
 import type { MetroConfig, Module } from 'metro';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import * as countLines from 'metro/src/lib/countLines';
+import countLines from './vendor/metro/countLines';
 import * as path from 'path';
 
 import type { MetroCustomSerializer, VirtualJSOutput } from './utils';

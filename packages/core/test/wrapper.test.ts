@@ -1,7 +1,6 @@
 import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/core';
-import { createEnvelope, logger } from '@sentry/core';
+import { createEnvelope, debug } from '@sentry/core';
 import * as RN from 'react-native';
-
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
 import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';
@@ -109,7 +108,7 @@ describe('Tests Native Wrapper', () => {
     });
 
     test('warns if there is no dsn', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         enableNative: true,
@@ -119,13 +118,13 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
-      expect(logger.warn).toHaveBeenLastCalledWith(
+      expect(debug.warn).toHaveBeenLastCalledWith(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
     });
 
     test('does not call native module with enableNative: false', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         dsn: 'test',
@@ -138,7 +137,7 @@ describe('Tests Native Wrapper', () => {
 
       expect(RNSentry.initNativeSdk).not.toBeCalled();
       expect(NATIVE.enableNative).toBe(false);
-      expect(logger.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
+      expect(debug.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
     test('filter beforeSend when initializing Native SDK', async () => {
@@ -215,7 +214,7 @@ describe('Tests Native Wrapper', () => {
 
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
       NATIVE.enableNative = false;
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         dsn: 'test',
@@ -259,7 +258,7 @@ describe('Tests Native Wrapper', () => {
     });
 
     test('enableNative: false takes precedence over autoInitializeNativeSdk: false', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         devServerUrl: undefined,
@@ -281,6 +280,37 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setTag).not.toBeCalled();
       expect(RNSentry.setContext).not.toBeCalled();
       expect(RNSentry.setExtra).not.toBeCalled();
+    });
+
+    test('sets ignoreErrorsStr and ignoreErrorsRegex correctly when ignoreErrors contains strings and regex', async () => {
+      const regex1 = /foo/;
+      const regex2 = new RegExp('bar');
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        ignoreErrors: ['string1', regex1, 'string2', regex2],
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.ignoreErrorsStr).toEqual(['string1', 'string2']);
+      expect(initParameter.ignoreErrorsRegex).toEqual([regex1.source, regex2.source]);
+    });
+
+    test('does not set ignoreErrorsStr or ignoreErrorsRegex if ignoreErrors is not provided', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      expect(RNSentry.initNativeSdk).toBeCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.ignoreErrorsStr).toBeUndefined();
+      expect(initParameter.ignoreErrorsRegex).toBeUndefined();
     });
   });
 
@@ -305,7 +335,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":87}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":87}\n' +
               '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
           ),
         ),
@@ -337,7 +367,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":93}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":93}\n' +
               '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
           ),
         ),
@@ -380,7 +410,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":50}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":50}\n' +
               '{"event_id":"event0","message":{"message":"test"}}\n',
           ),
         ),
@@ -419,7 +449,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":124}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":124}\n' +
               '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
@@ -448,7 +478,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":58}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":58}\n' +
               '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
@@ -487,7 +517,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/json","length":132}\n' +
+              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":132}\n' +
               '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":"onerror"}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
@@ -806,6 +836,103 @@ describe('Tests Native Wrapper', () => {
 
       const result = await NATIVE.crashedLastRun();
       expect(result).toBeNull();
+    });
+  });
+
+  describe('primitiveProcessor and _setPrimitiveProcessor', () => {
+    describe('primitiveProcessor', () => {
+      it('default primitiveProcessor returns value as string', () => {
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+        expect(NATIVE.primitiveProcessor(123)).toBe(123);
+        expect(NATIVE.primitiveProcessor(true)).toBe(true);
+        expect(NATIVE.primitiveProcessor(null)).toBe(null);
+        expect(NATIVE.primitiveProcessor(undefined)).toBe(undefined);
+      });
+
+      it('handles all primitive types correctly', () => {
+        const testCases = [
+          { input: 'string', expected: 'string' },
+          { input: 42, expected: 42 },
+          { input: true, expected: true },
+          { input: false, expected: false },
+          { input: null, expected: null },
+          { input: undefined, expected: undefined },
+          { input: BigInt(123), expected: BigInt(123) },
+        ];
+
+        testCases.forEach(({ input, expected }) => {
+          expect(NATIVE.primitiveProcessor(input)).toBe(expected);
+        });
+      });
+    });
+
+    describe('_setPrimitiveProcessor', () => {
+      it('sets primitiveProcessor to the provided function', () => {
+        const mockProcessor = jest.fn(value => `processed_${value}`);
+
+        NATIVE._setPrimitiveProcessor(mockProcessor);
+
+        expect(NATIVE.primitiveProcessor).toBe(mockProcessor);
+      });
+
+      it('allows custom processing of primitive values', () => {
+        const customProcessor = (value: any) => {
+          if (typeof value === 'boolean') {
+            return value ? 'YES' : 'NO';
+          }
+          if (value === null) {
+            return 'NULL';
+          }
+          return String(value);
+        };
+
+        NATIVE._setPrimitiveProcessor(customProcessor);
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('YES');
+        expect(NATIVE.primitiveProcessor(false)).toBe('NO');
+        expect(NATIVE.primitiveProcessor(null)).toBe('NULL');
+        expect(NATIVE.primitiveProcessor(42)).toBe('42');
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+      });
+
+      it('can be chained with PrimitiveToString for consistent formatting', () => {
+        const { PrimitiveToString } = require('../src/js/utils/primitiveConverter');
+
+        NATIVE._setPrimitiveProcessor(PrimitiveToString);
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('True');
+        expect(NATIVE.primitiveProcessor(false)).toBe('False');
+        expect(NATIVE.primitiveProcessor(null)).toBe('');
+        expect(NATIVE.primitiveProcessor(42)).toBe('42');
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+        expect(NATIVE.primitiveProcessor(undefined)).toBeUndefined();
+      });
+
+      it('can be reset to default behavior', () => {
+        const customProcessor = jest.fn();
+        NATIVE._setPrimitiveProcessor(customProcessor);
+        expect(NATIVE.primitiveProcessor).toBe(customProcessor);
+
+        const defaultProcessor = (value: any) => value;
+        NATIVE._setPrimitiveProcessor(defaultProcessor);
+        expect(NATIVE.primitiveProcessor).toBe(defaultProcessor);
+      });
+
+      it('works with primitiveTagIntegration', () => {
+        const { primitiveTagIntegration } = require('../src/js/integrations/primitiveTagIntegration');
+
+        const client = {
+          on: jest.fn(),
+        };
+
+        const integration = primitiveTagIntegration();
+        integration.setup(client);
+        integration.afterAllSetup();
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('True');
+        expect(NATIVE.primitiveProcessor(false)).toBe('False');
+        expect(NATIVE.primitiveProcessor(null)).toBe('');
+      });
     });
   });
 });

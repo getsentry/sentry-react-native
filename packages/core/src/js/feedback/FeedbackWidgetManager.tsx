@@ -1,11 +1,14 @@
-import { logger } from '@sentry/core';
-
+import { debug } from '@sentry/core';
 import { isWeb  } from '../utils/environment';
 import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration, lazyLoadAutoInjectScreenshotButtonIntegration } from './lazy';
 
 export const PULL_DOWN_CLOSE_THRESHOLD = 200;
 export const SLIDE_ANIMATION_DURATION = 200;
 export const BACKGROUND_ANIMATION_DURATION = 200;
+
+const NOOP_SET_VISIBILITY = (): void => {
+  // No-op
+};
 
 abstract class FeedbackManager {
   protected static _isVisible = false;
@@ -24,11 +27,11 @@ abstract class FeedbackManager {
    */
   public static reset(): void {
     this._isVisible = false;
-    this._setVisibility = undefined;
+    this._setVisibility = NOOP_SET_VISIBILITY;
   }
 
   public static show(): void {
-    if (this._setVisibility) {
+    if (this._setVisibility !== NOOP_SET_VISIBILITY) {
       this._isVisible = true;
       this._setVisibility(true);
     } else {
@@ -39,7 +42,7 @@ abstract class FeedbackManager {
   }
 
   public static hide(): void {
-    if (this._setVisibility) {
+    if (this._setVisibility !== NOOP_SET_VISIBILITY) {
       this._isVisible = false;
       this._setVisibility(false);
     } else {
@@ -114,7 +117,7 @@ const resetFeedbackButtonManager = (): void => {
 
 const showScreenshotButton = (): void => {
   if (isWeb()) {
-    logger.warn('ScreenshotButton is not supported on Web.');
+    debug.warn('ScreenshotButton is not supported on Web.');
     return;
   }
   lazyLoadAutoInjectScreenshotButtonIntegration();

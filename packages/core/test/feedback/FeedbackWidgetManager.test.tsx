@@ -1,8 +1,7 @@
-import { getClient, logger, setCurrentClient } from '@sentry/core';
+import { debug, getClient, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Appearance, Text } from 'react-native';
-
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
 import { hideFeedbackButton,resetFeedbackButtonManager, resetFeedbackWidgetManager, showFeedbackButton, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
 import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
@@ -21,7 +20,7 @@ const consoleWarnSpy = jest.spyOn(console, 'warn');
 const mockedIsModalSupported = isModalSupported as jest.MockedFunction<typeof isModalSupported>;
 
 beforeEach(() => {
-  logger.error = jest.fn();
+  debug.error = jest.fn();
 });
 
 describe('FeedbackWidgetManager', () => {
@@ -60,7 +59,7 @@ describe('FeedbackWidgetManager', () => {
 
     expect(queryByTestId('feedback-form-modal')).toBeNull();
     expect(getByText('App Components')).toBeTruthy();
-    expect(logger.error).toHaveBeenLastCalledWith(
+    expect(debug.error).toHaveBeenLastCalledWith(
       'FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.',
     );
   });
@@ -116,7 +115,7 @@ describe('FeedbackWidgetManager', () => {
 
     showFeedbackWidget();
 
-    expect(consoleWarnSpy).toHaveBeenLastCalledWith(`[Sentry] FeedbackWidget requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackWidget()'.`);
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith('[Sentry] FeedbackWidget requires \'Sentry.wrap(RootComponent)\' to be called before \'showFeedbackWidget()\'.');
   });
 
   it('showFeedbackWidget does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {
@@ -196,7 +195,7 @@ describe('FeedbackButtonManager', () => {
   it('showFeedbackButton warns about missing feedback provider', () => {
     showFeedbackButton();
 
-    expect(consoleWarnSpy).toHaveBeenLastCalledWith(`[Sentry] FeedbackButton requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackButton()'.`);
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith('[Sentry] FeedbackButton requires \'Sentry.wrap(RootComponent)\' to be called before \'showFeedbackButton()\'.');
   });
 
   it('showFeedbackButton does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {

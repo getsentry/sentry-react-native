@@ -10,7 +10,6 @@ import {
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';
-
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
@@ -44,7 +43,10 @@ jest.mock('../../src/js/wrapper.ts', () => jest.requireActual('../mockWrapper.ts
 jest.mock('./../../src/js/integrations/debugsymbolicatorutils', () => ({
   getDevServer: jest.fn(),
 }));
-jest.useFakeTimers({ advanceTimers: true });
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'], // Keep real performance API
+});
 
 class MockNavigationContainer {
   currentRoute: NavigationRoute | undefined = dummyRoute;

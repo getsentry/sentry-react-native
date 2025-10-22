@@ -1,20 +1,21 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
 import * as process from 'process';
 import { env } from 'process';
-
 import { enableLogger } from './enableLogger';
+import { withSentryMiddleware } from './metroMiddleware';
 import {
   setSentryBabelTransformerOptions,
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
-import { createSentryMetroSerializer, unstable_beforeAssetSerializationPlugin } from './sentryMetroSerializer';
+import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
+import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
-export * from './sentryMetroSerializer';
-import { withSentryMiddleware } from './metroMiddleware';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 import type { MetroCustomSerializer } from './utils';
+
+export * from './sentryMetroSerializer';
 
 enableLogger();
 
@@ -53,7 +54,14 @@ export interface SentryExpoConfigOptions {
   /**
    * Pass a custom `getDefaultConfig` function to override the default Expo configuration getter.
    */
-  getDefaultConfig?: typeof getSentryExpoConfig;
+  getDefaultConfig?: (projectRoot: string, options?: Record<string, unknown>) => Record<string, unknown>;
+
+  /**
+   * For Expo Web, inject `release` and `version` options from `app.json`, the Expo Application Config.
+   *
+   * @default true
+   */
+  injectReleaseForWeb?: boolean;
 }
 
 /**
@@ -107,7 +115,8 @@ export function getSentryExpoConfig(
     ...options,
     unstable_beforeAssetSerializationPlugins: [
       ...(options.unstable_beforeAssetSerializationPlugins || []),
-      unstable_beforeAssetSerializationPlugin,
+      ...(options.injectReleaseForWeb ?? true ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
+      unstableBeforeAssetSerializationDebugIdPlugin,
     ],
   });
 
@@ -158,15 +167,15 @@ export function withSentryBabelTransformer(
   config: MetroConfig,
   annotateReactComponents: true | { ignoredComponents?: string[] },
 ): MetroConfig {
-  const defaultBabelTransformerPath = config.transformer && config.transformer.babelTransformerPath;
-  logger.debug('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
+  const defaultBabelTransformerPath = config.transformer?.babelTransformerPath;
+  debug.log('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
 
   if (!defaultBabelTransformerPath) {
     // This has to be console.warn because the options is enabled but won't be used
     // eslint-disable-next-line no-console
-    console.warn('`transformer.babelTransformerPath` is undefined.');
+    debug.warn('`transformer.babelTransformerPath` is undefined.');
     // eslint-disable-next-line no-console
-    console.warn('Sentry Babel transformer cannot be used. Not adding it...');
+    debug.warn('Sentry Babel transformer cannot be used. Not adding it...');
     return config;
   }
 
@@ -241,7 +250,7 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
     // Prior 0.68, resolve context.resolveRequest is sentryResolver itself, where on later version it is the default resolver.
     if (context.resolveRequest === sentryResolverRequest) {
       // eslint-disable-next-line no-console
-      console.error(
+      debug.error(
         `Error: [@sentry/react-native/metro] Can not resolve the defaultResolver on Metro older than 0.68.
 Please follow one of the following options:
 - Include your resolverRequest on your metroconfig.
@@ -279,17 +288,17 @@ export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
   const collapseSentryInternalFrames = (frame: MetroFrame): boolean =>
     typeof frame.file === 'string' &&
     (frame.file.includes('node_modules/@sentry/core/cjs/instrument.js') ||
-      frame.file.includes('node_modules/@sentry/core/cjs/logger.js'));
+      frame.file.includes('node_modules/@sentry/core/cjs/debug.js'));
 
   const customizeFrame = (frame: MetroFrame): MetroCustomizeFrameReturnValue => {
     const originalOrSentryCustomizeFrame = (
       originalCustomization: MetroCustomizeFrame | undefined,
     ): MetroCustomizeFrame => ({
       ...originalCustomization,
-      collapse: (originalCustomization && originalCustomization.collapse) || collapseSentryInternalFrames(frame),
+      collapse: originalCustomization?.collapse || collapseSentryInternalFrames(frame),
     });
 
-    const maybePromiseCustomization = (originalCustomizeFrame && originalCustomizeFrame(frame)) || undefined;
+    const maybePromiseCustomization = originalCustomizeFrame?.(frame) || undefined;
 
     if (maybePromiseCustomization !== undefined && 'then' in maybePromiseCustomization) {
       return maybePromiseCustomization.then<MetroCustomizeFrame>(originalCustomization =>

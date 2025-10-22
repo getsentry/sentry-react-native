@@ -3,7 +3,7 @@
     "index.ts",
   ],
   "compilerOptions": {
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "noEmit": true,
     "importHelpers": true,
     "types": [],

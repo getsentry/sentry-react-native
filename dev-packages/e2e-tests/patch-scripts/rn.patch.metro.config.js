@@ -4,15 +4,15 @@ const fs = require('fs');
 const { argv } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/core');
-logger.enable();
+const { debug } = require('@sentry/core');
+debug.enable();
 
 const args = parseArgs(argv.slice(2));
 if (!args.path) {
   throw new Error('Missing --path');
 }
 
-logger.info('Patching Metro config: ', args.path);
+debug.log('Patching Metro config: ', args.path);
 
 const configFilePath = args.path;
 
@@ -52,7 +52,7 @@ if (!isPatched) {
   }
 
   fs.writeFileSync(configFilePath, config.join('\n'), 'utf8');
-  logger.info('Patched Metro config successfully!');
+  debug.log('Patched Metro config successfully!');
 } else {
-  logger.info('Metro config already patched!');
+  debug.log('Metro config already patched!');
 }

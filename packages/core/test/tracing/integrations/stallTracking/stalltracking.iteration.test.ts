@@ -19,7 +19,10 @@ describe('Iteration', () => {
     stallTracking['isTracking'] = false;
     stallTracking['_internalState']['isBackground'] = false;
     stallTracking['_internalState']['lastIntervalMs'] = Date.now() - 1000; // Force a timeout
-    jest.useFakeTimers();
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     // Invokes the private _interaction function.
     stallTracking['_internalState']['iteration']();
     expect(stallTracking['_internalState']['timeout']).toBeNull();
@@ -29,7 +32,10 @@ describe('Iteration', () => {
     stallTracking['isTracking'] = true;
     stallTracking['_internalState']['isBackground'] = true;
     stallTracking['_internalState']['lastIntervalMs'] = Date.now() - 1000; // Force a timeout
-    jest.useFakeTimers();
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     // Invokes the private _interaction function.
     stallTracking['_internalState']['iteration']();
     expect(stallTracking['_internalState']['timeout']).toBeNull();
@@ -38,7 +44,10 @@ describe('Iteration', () => {
     const stallTracking = stallTrackingIntegration() as StallTrackingWithTestProperties;
     stallTracking['isTracking'] = true;
     stallTracking['_internalState']['isBackground'] = false;
-    jest.useFakeTimers();
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     stallTracking['_internalState']['lastIntervalMs'] = Date.now(); // Force a timeout
     // Invokes the private _interaction function.
     stallTracking['_internalState']['iteration']();
@@ -50,7 +59,10 @@ describe('Iteration', () => {
     const _minimumStallThreshold = 100;
     // Call _iteration with totalTimeTaken >= LOOP_TIMEOUT_INTERVAL_MS + _minimumStallThreshold
     const totalTimeTaken = LOOP_TIMEOUT_INTERVAL_MS + _minimumStallThreshold;
-    jest.useFakeTimers();
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     stallTracking['_internalState']['lastIntervalMs'] = Date.now() - totalTimeTaken;
     stallTracking['_internalState']['statsByTransaction'] = new Map();
     stallTracking['_internalState']['iteration']();

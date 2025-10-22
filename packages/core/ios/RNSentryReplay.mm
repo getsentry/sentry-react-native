@@ -1,5 +1,6 @@
 #import "RNSentryReplay.h"
 #import "RNSentryReplayBreadcrumbConverterHelper.h"
+#import "RNSentryReplayQuality.h"
 #import "RNSentryVersion.h"
 #import "React/RCTTextView.h"
 #import "Replay/RNSentryReplayMask.h"
@@ -11,20 +12,25 @@
 @implementation RNSentryReplay {
 }
 
-+ (void)updateOptions:(NSMutableDictionary *)options
++ (BOOL)updateOptions:(NSMutableDictionary *)options
 {
-    if (options[@"replaysSessionSampleRate"] == nil
-        && options[@"replaysOnErrorSampleRate"] == nil) {
+    NSNumber *sessionSampleRate = options[@"replaysSessionSampleRate"];
+    NSNumber *errorSampleRate = options[@"replaysOnErrorSampleRate"];
+
+    if (sessionSampleRate == nil && errorSampleRate == nil) {
         NSLog(@"Session replay disabled via configuration");
-        return;
+        return NO;
     }
 
     NSLog(@"Setting up session replay");
     NSDictionary *replayOptions = options[@"mobileReplayOptions"] ?: @{};
 
+    NSString *qualityString = options[@"replaysSessionQuality"];
+
     [options setValue:@{
-        @"sessionSampleRate" : options[@"replaysSessionSampleRate"] ?: [NSNull null],
-        @"errorSampleRate" : options[@"replaysOnErrorSampleRate"] ?: [NSNull null],
+        @"sessionSampleRate" : sessionSampleRate ?: [NSNull null],
+        @"errorSampleRate" : errorSampleRate ?: [NSNull null],
+        @"quality" : @([RNSentryReplayQuality parseReplayQuality:qualityString]),
         @"maskAllImages" : replayOptions[@"maskAllImages"] ?: [NSNull null],
         @"maskAllText" : replayOptions[@"maskAllText"] ?: [NSNull null],
         @"enableViewRendererV2" : replayOptions[@"enableViewRendererV2"] ?: [NSNull null],
@@ -34,6 +40,8 @@
             @ { @"name" : REACT_NATIVE_SDK_NAME, @"version" : REACT_NATIVE_SDK_PACKAGE_VERSION }
     }
                forKey:@"sessionReplay"];
+    return (errorSampleRate != nil && [errorSampleRate doubleValue] > 0)
+        || (sessionSampleRate != nil && [sessionSampleRate doubleValue] > 0);
 }
 
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions

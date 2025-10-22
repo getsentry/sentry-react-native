@@ -1,7 +1,6 @@
 name: 💡 Feature Request
 description: Tell us about a problem our SDK could solve but doesn't.
-labels: ['Platform: React-Native', 'enhancement']
-type: Feature
+labels: ['React-Native', 'Feature']
 body:
   - type: textarea
     id: problem

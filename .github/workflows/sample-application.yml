@@ -13,7 +13,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '1.40.3'
+  MAESTRO_VERSION: '2.0.6'
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -43,7 +43,8 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            runs-on: macos-15
+            xcode-version: '16.2'
+            runs-on: macos-14
           - platform: macos
             runs-on: macos-15
           - platform: android
@@ -58,12 +59,13 @@ jobs:
           - ios-use-frameworks: 'dynamic-frameworks'
             platform: 'macos'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -76,13 +78,16 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
+
+      - run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' }}
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
@@ -327,7 +332,7 @@ jobs:
       matrix:
         include:
           - platform: ios
-            runs-on: macos-15
+            runs-on: macos-14
             rn-architecture: 'new'
             ios-use-frameworks: 'no-frameworks'
             build-type: 'production'
@@ -338,7 +343,7 @@ jobs:
             build-type: 'production'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -347,14 +352,14 @@ jobs:
 
       - name: Download iOS App Archive
         if: ${{ matrix.platform == 'ios' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.platform }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Download Android APK
         if: ${{ matrix.platform == 'android' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
@@ -373,8 +378,9 @@ jobs:
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock

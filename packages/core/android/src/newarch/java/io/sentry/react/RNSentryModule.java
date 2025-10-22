@@ -128,6 +128,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void fetchNativeLogAttributes(Promise promise) {
+    this.impl.fetchNativeLogAttributes(promise);
+  }
+
+  @Override
   public void fetchNativeDeviceContexts(Promise promise) {
     this.impl.fetchNativeDeviceContexts(promise);
   }

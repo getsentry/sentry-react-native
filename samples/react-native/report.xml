@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="iPhone 16 - iOS 18.6 - 46D41479-E021-4289-9516-C27C5D934C7E" tests="1" failures="1" time="1.0">
+    <testcase id="captureSpaceflightNewsScreenTransaction.test" name="captureSpaceflightNewsScreenTransaction.test" classname="captureSpaceflightNewsScreenTransaction.test" time="1.0" status="ERROR">
+      <failure>Unknown error</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

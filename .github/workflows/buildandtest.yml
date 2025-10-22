@@ -22,10 +22,11 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -40,15 +41,43 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
       - name: Install Dependencies
         run: yarn install
+
+      # Default of ubuntu and apt packages are too old compared to macos packages.
+      # This is required for using a newer version of clang-format.
+      - name: Setup clang-format V20
+        run: |
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" 20
+          sudo apt-get install -y clang-20 clang-format-20 lld-20 lldb-20
+
+      - name: Set clang-format V20 as default
+        run: |
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-20 200
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-20 200
+          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-20 200
+          clang --version
+          clang-format --version
+
+      - name: Install Swiftly
+        run: |
+          SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
+          curl -sL https://download.swift.org/swiftly/linux/swiftly-x86_64.tar.gz -o $SWIFTLY_FILE
+          tar zxf $SWIFTLY_FILE
+
+          ./swiftly init --quiet-shell-followup
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+          hash -r
+          sudo apt-get -y install libcurl4-openssl-dev
+
       - name: Lint
         run: yarn lint
 
@@ -58,10 +87,11 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -81,10 +111,11 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -124,22 +155,23 @@ jobs:
     env:
       YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist
           path: packages/core/dist
       - name: Download ts3.8
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ts3.8
           path: packages/core/ts3.8
@@ -154,22 +186,23 @@ jobs:
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist
           path: packages/core/dist
       - name: Download Expo Plugin
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: expo-plugin
           path: packages/core/plugin/build
@@ -188,10 +221,11 @@ jobs:
         platform: ['ios', 'android']
         dev: [true, false]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock

@@ -1,5 +1,4 @@
-import { logger, timestampInSeconds } from '@sentry/core';
-
+import { debug, timestampInSeconds } from '@sentry/core';
 import { NATIVE } from '../wrapper';
 import type { NewFrameEvent, SentryEventEmitter } from './sentryeventemitter';
 import { createSentryEventEmitter, NewFrameEventName } from './sentryeventemitter';
@@ -49,7 +48,7 @@ export function createSentryFallbackEventEmitter(
         nativeNewFrameTimestampSeconds = resolve ?? undefined;
       })
       .catch(reason => {
-        logger.error('Failed to receive Native fallback timestamp.', reason);
+        debug.error('Failed to receive Native fallback timestamp.', reason);
       });
   }
 
@@ -73,20 +72,20 @@ export function createSentryFallbackEventEmitter(
       };
       fallbackTimeout = setTimeout(() => {
         if (nativeNewFrameTimestampSeconds) {
-          logger.log('Native event emitter did not reply in time');
+          debug.log('Native event emitter did not reply in time');
           return listener({
             newFrameTimestampInSeconds: nativeNewFrameTimestampSeconds,
             isFallback: true,
           });
         } else if (animationFrameTimestampSeconds) {
-          logger.log('[Sentry] Native event emitter did not reply in time. Using JavaScript fallback emitter.');
+          debug.log('[Sentry] Native event emitter did not reply in time. Using JavaScript fallback emitter.');
           return listener({
             newFrameTimestampInSeconds: animationFrameTimestampSeconds,
             isFallback: true,
           });
         } else {
           emitter.removeListener(NewFrameEventName, internalListener);
-          logger.error('Failed to receive any fallback timestamp.');
+          debug.error('Failed to receive any fallback timestamp.');
         }
       }, fallbackTimeoutMs);
 

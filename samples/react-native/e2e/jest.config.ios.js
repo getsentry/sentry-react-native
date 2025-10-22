@@ -5,4 +5,5 @@ const baseConfig = require('./jest.config.base');
 module.exports = {
   ...baseConfig,
   globalSetup: path.resolve(__dirname, 'setup.ios.ts'),
+  testTimeout: 300000,
 };

@@ -1,9 +1,8 @@
 /* eslint-disable max-lines */
 import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
-import { getRootSpan, logger, spanToJSON, timestampInSeconds } from '@sentry/core';
+import { debug, getRootSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
-
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../../measurements';
 import { isRootSpan } from '../../utils/span';
 import { getLatestChildSpanEndTimestamp, isNearToNow, setSpanMeasurement } from '../utils';
@@ -125,7 +124,7 @@ export const stallTrackingIntegration = ({
     }
 
     if (statsByRootSpan.has(rootSpan)) {
-      logger.error(
+      debug.error(
         '[StallTracking] Tried to start stall tracking on a transaction already being tracked. Measurements might be lost.',
       );
       return;
@@ -149,7 +148,7 @@ export const stallTrackingIntegration = ({
 
     if (!transactionStats) {
       // Transaction has been flushed out somehow, we return null.
-      logger.log('[StallTracking] Stall measurements were not added to transaction due to exceeding the max count.');
+      debug.log('[StallTracking] Stall measurements were not added to transaction due to exceeding the max count.');
 
       statsByRootSpan.delete(rootSpan);
       _shouldStopTracking();
@@ -170,13 +169,13 @@ export const stallTrackingIntegration = ({
 
       const latestChildSpanEnd = getLatestChildSpanEndTimestamp(rootSpan);
       if (latestChildSpanEnd !== endTimestamp) {
-        logger.log(
+        debug.log(
           '[StallTracking] Stall measurements not added due to a custom `endTimestamp` (root end is not equal to the latest child span end).',
         );
       }
 
       if (!transactionStats.atTimestamp) {
-        logger.log(
+        debug.log(
           '[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now. And no previous stats from child end were found.',
         );
       }
@@ -191,7 +190,7 @@ export const stallTrackingIntegration = ({
 
     if (!statsOnFinish) {
       if (typeof endTimestamp !== 'undefined') {
-        logger.log(
+        debug.log(
           '[StallTracking] Stall measurements not added due to `endTimestamp` not being close to now.',
           'endTimestamp',
           endTimestamp,
@@ -241,7 +240,7 @@ export const stallTrackingIntegration = ({
     const previousStats = statsByRootSpan.get(rootSpan);
     if (previousStats) {
       if (Math.abs(timestampInSeconds() - childSpanEndTime) > MARGIN_OF_ERROR_SECONDS) {
-        logger.log(
+        debug.log(
           '[StallTracking] Span end not logged due to end timestamp being outside the margin of error from now.',
         );
 

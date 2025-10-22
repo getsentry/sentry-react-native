@@ -1,8 +1,7 @@
 import type { Client, Span } from '@sentry/core';
-import { getSpanDescendants, logger, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
+import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
-
 import { isRootSpan, isSentrySpan } from '../utils/span';
 
 /**
@@ -19,7 +18,7 @@ export function onThisSpanEnd(client: Client, span: Span, callback: (span: Span)
 
 export const adjustTransactionDuration = (client: Client, span: Span, maxDurationMs: number): void => {
   if (!isRootSpan(span)) {
-    logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
+    debug.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
     return;
   }
 
@@ -44,19 +43,19 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
   });
 };
 
-export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span): void => {
+export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span | undefined): void => {
   if (!client) {
-    logger.warn('Could not hook on spanEnd event because client is not defined.');
+    debug.warn('Could not hook on spanEnd event because client is not defined.');
     return;
   }
 
   if (!span) {
-    logger.warn('Could not hook on spanEnd event because span is not defined.');
+    debug.warn('Could not hook on spanEnd event because span is not defined.');
     return;
   }
 
   if (!isRootSpan(span) || !isSentrySpan(span)) {
-    logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
+    debug.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
     return;
   }
 
@@ -79,7 +78,7 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
 
     if (filtered.length <= 0) {
       // filter children must include at least one span not created by the navigation automatic instrumentation
-      logger.log(
+      debug.log(
         'Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
       );
       // Route has been seen before and has no child spans.
@@ -94,7 +93,7 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
  */
 export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
   if (!isRootSpan(span) || !isSentrySpan(span)) {
-    logger.warn('Not sampling childless spans only works for Sentry Transactions (Root Spans).');
+    debug.warn('Not sampling childless spans only works for Sentry Transactions (Root Spans).');
     return;
   }
 
@@ -107,7 +106,7 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 
     if (children.length <= 1) {
       // Span always has at lest one child, itself
-      logger.log(`Not sampling as ${spanToJSON(span).op} transaction has no child spans.`);
+      debug.log(`Not sampling as ${spanToJSON(span).op} transaction has no child spans.`);
       span['_sampled'] = false;
     }
   });
@@ -119,7 +118,7 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 export const cancelInBackground = (client: Client, span: Span): void => {
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
-      logger.debug(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
+      debug.log(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
       span.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
       span.end();
     }
@@ -128,8 +127,8 @@ export const cancelInBackground = (client: Client, span: Span): void => {
   subscription &&
     client.on('spanEnd', (endedSpan: Span) => {
       if (endedSpan === span) {
-        logger.debug(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
-        subscription && subscription.remove && subscription.remove();
+        debug.log(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
+        subscription?.remove?.();
       }
     });
 };

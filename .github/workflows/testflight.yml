@@ -14,11 +14,11 @@ jobs:
 
   upload_to_testflight:
     name: Build and Upload React Native Sample to Testflight
-    runs-on: macos-15
+    runs-on: macos-14
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
       - uses: ruby/setup-ruby@v1
         with:
@@ -27,8 +27,9 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock

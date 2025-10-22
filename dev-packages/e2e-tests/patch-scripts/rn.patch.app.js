@@ -5,8 +5,8 @@ const path = require('path');
 const { argv, env } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/core');
-logger.enable();
+const { debug } = require('@sentry/core');
+debug.enable();
 
 const SENTRY_RELEASE = env.SENTRY_RELEASE;
 const SENTRY_DIST = env.SENTRY_DIST;
@@ -16,7 +16,7 @@ if (!args.app) {
   throw new Error('Missing --app');
 }
 
-logger.info('Patching RN App.(js|tsx)', args.app);
+debug.log('Patching RN App.(js|tsx)', args.app);
 
 const initPatch = `
 import * as Sentry from '@sentry/react-native';
@@ -32,13 +32,17 @@ Sentry.init({
   },
   integrations: [
     Sentry.mobileReplayIntegration(),
+    Sentry.feedbackIntegration({
+      enableTakeScreenshot: true,
+    }),
   ],
 });
 `;
 const e2eComponentPatch = '<EndToEndTestsScreen />';
 const lastImportRex = /^([^]*)(import\s+[^;]*?;$)/m;
 const patchRex = '@sentry/react-native';
-const headerComponentRex = /<ScrollView/gm;
+// Support both older RN versions with ScrollView and newer versions with NewAppScreen
+const headerComponentRex = /(<ScrollView|<NewAppScreen)/gm;
 const exportDefaultRex = /export\s+default\s+App;/m;
 
 const jsPath = path.join(args.app, 'App.js');
@@ -55,7 +59,7 @@ if (!isPatched) {
     .replace(exportDefaultRex, 'export default Sentry.wrap(App);');
 
   fs.writeFileSync(appPath, patched);
-  logger.info('Patched RN App.(js|tsx) successfully!');
+  debug.log('Patched RN App.(js|tsx) successfully!');
 } else {
-  logger.info('App.(js|tsx) already patched!');
+  debug.log('App.(js|tsx) already patched!');
 }

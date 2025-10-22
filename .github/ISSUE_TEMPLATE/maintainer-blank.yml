@@ -1,6 +1,6 @@
 name: Blank Issue
 description: Blank Issue. Reserved for maintainers.
-labels: ["Platform: React-Native"]
+labels: ['React-Native']
 body:
   - type: textarea
     id: description

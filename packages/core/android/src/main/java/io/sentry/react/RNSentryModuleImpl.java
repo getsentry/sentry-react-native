@@ -29,17 +29,21 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import io.sentry.Breadcrumb;
-import io.sentry.HubAdapter;
 import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
+import io.sentry.Integration;
+import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
+import io.sentry.SentryReplayOptions;
+import io.sentry.SentryReplayOptions.SentryReplayQuality;
+import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
 import io.sentry.android.core.BuildInfoProvider;
@@ -57,6 +61,7 @@ import io.sentry.protocol.ViewHierarchy;
 import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.FileUtils;
 import io.sentry.util.JsonSerializationUtils;
+import io.sentry.util.LoadClass;
 import io.sentry.vendor.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -67,12 +72,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -120,12 +129,14 @@ public class RNSentryModuleImpl {
   private long maxTraceFileSize = 5 * 1024 * 1024;
 
   private final @NotNull SentryDateProvider dateProvider;
+  private final @NotNull LoadClass loadClass;
 
   public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
     packageInfo = getPackageInfo(reactApplicationContext);
     this.reactApplicationContext = reactApplicationContext;
     this.emitNewFrameEvent = createEmitNewFrameEvent();
     this.dateProvider = new SentryAndroidDateProvider();
+    this.loadClass = new LoadClass();
   }
 
   private ReactApplicationContext getReactApplicationContext() {
@@ -309,7 +320,7 @@ public class RNSentryModuleImpl {
   }
 
   public void captureReplay(boolean isHardCrash, Promise promise) {
-    Sentry.getCurrentHub().getOptions().getReplayController().captureReplay(isHardCrash);
+    Sentry.getCurrentScopes().getOptions().getReplayController().captureReplay(isHardCrash);
     promise.resolve(getCurrentReplayId());
   }
 
@@ -405,7 +416,7 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    ISerializer serializer = HubAdapter.getInstance().getOptions().getSerializer();
+    ISerializer serializer = ScopesAdapter.getInstance().getOptions().getSerializer();
     final @Nullable byte[] bytes =
         JsonSerializationUtils.bytesFrom(serializer, logger, viewHierarchy);
     if (bytes == null) {
@@ -458,10 +469,6 @@ public class RNSentryModuleImpl {
 
               if (userKeys.hasKey("ip_address")) {
                 userInstance.setIpAddress(userKeys.getString("ip_address"));
-              }
-
-              if (userKeys.hasKey("segment")) {
-                userInstance.setSegment(userKeys.getString("segment"));
               }
             }
 
@@ -624,8 +631,7 @@ public class RNSentryModuleImpl {
             (int) SECONDS.toMicros(1) / profilingTracesHz,
             new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
             executorService,
-            logger,
-            buildInfo);
+            logger);
   }
 
   public WritableMap startProfiling(boolean platformProfilers) {
@@ -649,7 +655,7 @@ public class RNSentryModuleImpl {
   }
 
   public WritableMap stopProfiling() {
-    final boolean isDebug = HubAdapter.getInstance().getOptions().isDebug();
+    final boolean isDebug = ScopesAdapter.getInstance().getOptions().isDebug();
     final WritableMap result = new WritableNativeMap();
     File output = null;
     try {
@@ -734,8 +740,15 @@ public class RNSentryModuleImpl {
     }
   }
 
+  public void fetchNativeLogAttributes(Promise promise) {
+    final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
+    final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
+    final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
+    fetchNativeLogContexts(promise, options, context, currentScope);
+  }
+
   public void fetchNativeDeviceContexts(Promise promise) {
-    final @NotNull SentryOptions options = HubAdapter.getInstance().getOptions();
+    final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
     final @Nullable Context context = this.getReactApplicationContext().getApplicationContext();
     final @Nullable IScope currentScope = InternalSentrySdk.getCurrentScope();
     fetchNativeDeviceContexts(promise, options, context, currentScope);
@@ -771,8 +784,50 @@ public class RNSentryModuleImpl {
     promise.resolve(deviceContext);
   }
 
+  // Basically fetchNativeDeviceContexts but filtered to only get contexts info.
+  protected void fetchNativeLogContexts(
+      Promise promise,
+      final @NotNull SentryOptions options,
+      final @Nullable Context osContext,
+      final @Nullable IScope currentScope) {
+    if (!(options instanceof SentryAndroidOptions) || osContext == null) {
+      promise.resolve(null);
+      return;
+    }
+
+    Object contextsObj =
+        InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope)
+            .get("contexts");
+
+    if (!(contextsObj instanceof Map)) {
+      promise.resolve(null);
+      return;
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> contextsMap = (Map<String, Object>) contextsObj;
+
+    Map<String, Object> contextItems = new HashMap<>();
+    if (contextsMap.containsKey("os")) {
+      contextItems.put("os", contextsMap.get("os"));
+    }
+
+    if (contextsMap.containsKey("device")) {
+      contextItems.put("device", contextsMap.get("device"));
+    }
+
+    contextItems.put("release", options.getRelease());
+
+    Map<String, Object> logContext = new HashMap<>();
+    logContext.put("contexts", contextItems);
+    Object filteredContext = RNSentryMapConverter.convertToWritable(logContext);
+
+    promise.resolve(filteredContext);
+  }
+
   public void fetchNativeSdkInfo(Promise promise) {
-    final @Nullable SdkVersion sdkVersion = HubAdapter.getInstance().getOptions().getSdkVersion();
+    final @Nullable SdkVersion sdkVersion =
+        ScopesAdapter.getInstance().getOptions().getSdkVersion();
     if (sdkVersion == null) {
       promise.resolve(null);
     } else {

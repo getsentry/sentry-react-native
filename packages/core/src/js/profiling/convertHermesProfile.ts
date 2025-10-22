@@ -1,6 +1,5 @@
 import type { FrameId, StackId, ThreadCpuFrame, ThreadCpuSample, ThreadCpuStack, ThreadId } from '@sentry/core';
-import { logger } from '@sentry/core';
-
+import { debug } from '@sentry/core';
 import { MAX_PROFILE_DURATION_MS } from './constants';
 import type * as Hermes from './hermes';
 import { DEFAULT_BUNDLE_NAME } from './hermes';
@@ -26,7 +25,7 @@ const JS_THREAD_PRIORITY = 1;
  */
 export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThreadCpuProfile | null {
   if (hermesProfile.samples.length === 0) {
-    logger.warn('[Profiling] No samples found in profile.');
+    debug.warn('[Profiling] No samples found in profile.');
     return null;
   }
 
@@ -43,7 +42,7 @@ export function convertToSentryProfile(hermesProfile: Hermes.Profile): RawThread
   for (const sample of samples) {
     const sentryStackId = hermesStackToSentryStackMap.get(sample.stack_id);
     if (sentryStackId === undefined) {
-      logger.error(`[Profiling] Hermes Stack ID ${sample.stack_id} not found when mapping to Sentry Stack ID.`);
+      debug.error(`[Profiling] Hermes Stack ID ${sample.stack_id} not found when mapping to Sentry Stack ID.`);
       sample.stack_id = UNKNOWN_STACK_ID;
     } else {
       sample.stack_id = sentryStackId;
@@ -82,18 +81,28 @@ export function mapSamples(
   hermesStacks: Set<Hermes.StackFrameId>;
   jsThreads: Set<ThreadId>;
 } {
+  const samples: ThreadCpuSample[] = [];
   const jsThreads = new Set<ThreadId>();
   const hermesStacks = new Set<Hermes.StackFrameId>();
 
-  const start = Number(hermesSamples[0].ts);
-  const samples: ThreadCpuSample[] = [];
+  const firstSample = hermesSamples[0];
+  if (!firstSample) {
+    debug.warn('[Profiling] No samples found in profile.');
+    return {
+      samples,
+      hermesStacks,
+      jsThreads,
+    };
+  }
+
+  const start = Number(firstSample.ts);
   for (const hermesSample of hermesSamples) {
     jsThreads.add(hermesSample.tid);
     hermesStacks.add(hermesSample.sf);
 
     const elapsed_since_start_ns = (Number(hermesSample.ts) - start) * 1e3;
     if (elapsed_since_start_ns >= maxElapsedSinceStartNs) {
-      logger.warn(
+      debug.warn(
         `[Profiling] Sample has elapsed time since start ${elapsed_since_start_ns}ns ` +
           `greater than the max elapsed time ${maxElapsedSinceStartNs}ns.`,
       );
@@ -130,8 +139,12 @@ function mapFrames(hermesStackFrames: Record<Hermes.StackFrameId, Hermes.StackFr
     if (!Object.prototype.hasOwnProperty.call(hermesStackFrames, key)) {
       continue;
     }
-    hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
-    frames.push(parseHermesJSStackFrame(hermesStackFrames[key]));
+
+    const hermesStackFrame = hermesStackFrames[key];
+    if (hermesStackFrame) {
+      hermesStackFrameIdToSentryFrameIdMap.set(Number(key), frames.length);
+      frames.push(parseHermesJSStackFrame(hermesStackFrame));
+    }
   }
 
   return {
@@ -163,7 +176,7 @@ function mapStacks(
     while (currentHermesFrameId !== undefined) {
       const sentryFrameId = hermesStackFrameIdToSentryFrameIdMap.get(currentHermesFrameId);
       sentryFrameId !== undefined && stack.push(sentryFrameId);
-      currentHermesFrameId = hermesStackFrames[currentHermesFrameId] && hermesStackFrames[currentHermesFrameId].parent;
+      currentHermesFrameId = hermesStackFrames[currentHermesFrameId]?.parent;
     }
     stacks.push(stack);
   }

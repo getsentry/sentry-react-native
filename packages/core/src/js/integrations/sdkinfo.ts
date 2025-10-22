@@ -1,6 +1,5 @@
 import type { Event, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/core';
-import { logger } from '@sentry/core';
-
+import { debug } from '@sentry/core';
 import { isExpoGo, notWeb } from '../utils/environment';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../version';
 import { NATIVE } from '../wrapper';
@@ -41,7 +40,7 @@ async function processEvent(event: Event, fetchNativeSdkInfo: () => Promise<Pack
   event.sdk.name = event.sdk.name || defaultSdkInfo.name;
   event.sdk.version = event.sdk.version || defaultSdkInfo.version;
   event.sdk.packages = [
-    // default packages are added by baseclient and should not be added here
+    // default packages are added by js client and should not be added here
     ...(event.sdk.packages || []),
     ...((nativeSdkPackage && [nativeSdkPackage]) || []),
   ];
@@ -68,7 +67,7 @@ function createCachedFetchNativeSdkInfo(): () => Promise<Package | null> {
       nativeSdkPackageCache = await NATIVE.fetchNativeSdkInfo();
       isCached = true;
     } catch (e) {
-      logger.warn('Could not fetch native sdk info.', e);
+      debug.warn('Could not fetch native sdk info.', e);
     }
 
     return nativeSdkPackageCache;

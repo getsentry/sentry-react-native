@@ -1,22 +1,21 @@
 /* eslint-disable complexity, max-lines */
 import type { Client, Event, Integration, Span, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
+  debug,
   getCapturedScopesOnSpan,
   getClient,
   getCurrentScope,
-  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
-
 import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
-import type { NativeAppStartResponse } from '../../NativeRNSentry';
+import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
 import type { ReactNativeClientOptions } from '../../options';
 import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
@@ -49,7 +48,12 @@ const MAX_APP_START_AGE_MS = 60_000;
 /** App Start transaction name */
 const APP_START_TX_NAME = 'App Start';
 
-let recordedAppStartEndTimestampMs: number | undefined = undefined;
+interface AppStartEndData {
+  timestampMs: number;
+  endFrames: NativeFramesResponse | null;
+}
+
+let appStartEndData: AppStartEndData | undefined = undefined;
 let isRecordedAppStartEndTimestampMsManual = false;
 
 let rootComponentCreationTimestampMs: number | undefined = undefined;
@@ -71,12 +75,29 @@ export function captureAppStart(): Promise<void> {
 export async function _captureAppStart({ isManual }: { isManual: boolean }): Promise<void> {
   const client = getClient();
   if (!client) {
-    logger.warn('[AppStart] Could not capture App Start, missing client.');
+    debug.warn('[AppStart] Could not capture App Start, missing client.');
     return;
   }
 
   isRecordedAppStartEndTimestampMsManual = isManual;
-  _setAppStartEndTimestampMs(timestampInSeconds() * 1000);
+
+  const timestampMs = timestampInSeconds() * 1000;
+  let endFrames: NativeFramesResponse | null = null;
+
+  if (NATIVE.enableNative) {
+    try {
+      endFrames = await NATIVE.fetchNativeFrames();
+      debug.log('[AppStart] Captured end frames for app start.', endFrames);
+    } catch (error) {
+      debug.log('[AppStart] Failed to capture end frames for app start.', error);
+    }
+  }
+
+  _setAppStartEndData({
+    timestampMs,
+    endFrames,
+  });
+
   await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
 }
 
@@ -85,9 +106,8 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
  * Used automatically by `Sentry.wrap` and `Sentry.ReactNativeProfiler`.
  */
 export function setRootComponentCreationTimestampMs(timestampMs: number): void {
-  recordedAppStartEndTimestampMs &&
-    logger.warn('Setting Root component creation timestamp after app start end is set.');
-  rootComponentCreationTimestampMs && logger.warn('Overwriting already set root component creation timestamp.');
+  appStartEndData?.timestampMs && debug.warn('Setting Root component creation timestamp after app start end is set.');
+  rootComponentCreationTimestampMs && debug.warn('Overwriting already set root component creation timestamp.');
   rootComponentCreationTimestampMs = timestampMs;
   isRootComponentCreationTimestampMsManual = true;
 }
@@ -107,9 +127,9 @@ export function _setRootComponentCreationTimestampMs(timestampMs: number): void 
  *
  * @private
  */
-export const _setAppStartEndTimestampMs = (timestampMs: number): void => {
-  recordedAppStartEndTimestampMs && logger.warn('Overwriting already set app start.');
-  recordedAppStartEndTimestampMs = timestampMs;
+export const _setAppStartEndData = (data: AppStartEndData): void => {
+  appStartEndData && debug.warn('Overwriting already set app start end data.');
+  appStartEndData = data;
 };
 
 /**
@@ -119,6 +139,29 @@ export const _setAppStartEndTimestampMs = (timestampMs: number): void => {
  */
 export function _clearRootComponentCreationTimestampMs(): void {
   rootComponentCreationTimestampMs = undefined;
+}
+
+/**
+ * Attaches frame data to a span's data object.
+ */
+function attachFrameDataToSpan(span: SpanJSON, frames: NativeFramesResponse): void {
+  if (frames.totalFrames <= 0 && frames.slowFrames <= 0 && frames.totalFrames <= 0) {
+    debug.warn(`[AppStart] Detected zero slow or frozen frames. Not adding measurements to spanId (${span.span_id}).`);
+    return;
+  }
+  span.data = span.data || {};
+  span.data['frames.total'] = frames.totalFrames;
+  span.data['frames.slow'] = frames.slowFrames;
+  span.data['frames.frozen'] = frames.frozenFrames;
+
+  debug.log('[AppStart] Attached frame data to span.', {
+    spanId: span.span_id,
+    frameData: {
+      total: frames.totalFrames,
+      slow: frames.slowFrames,
+      frozen: frames.frozenFrames,
+    },
+  });
 }
 
 /**
@@ -147,7 +190,7 @@ export const appStartIntegration = ({
 
     if (!enableAppStartTracking) {
       isEnabled = false;
-      logger.warn('[AppStart] App start tracking is disabled.');
+      debug.warn('[AppStart] App start tracking is disabled.');
     }
 
     client.on('spanStart', recordFirstStartedActiveRootSpanId);
@@ -163,11 +206,11 @@ export const appStartIntegration = ({
 
     getAppRegistryIntegration(client)?.onRunApplication(() => {
       if (appStartDataFlushed) {
-        logger.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
+        debug.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
         appStartDataFlushed = false;
         firstStartedActiveRootSpanId = undefined;
       } else {
-        logger.log(
+        debug.log(
           '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
         );
       }
@@ -207,18 +250,40 @@ export const appStartIntegration = ({
    */
   const setFirstStartedActiveRootSpanId = (spanId: string | undefined): void => {
     firstStartedActiveRootSpanId = spanId;
-    logger.debug('[AppStart] First started active root span id recorded.', firstStartedActiveRootSpanId);
+    debug.log('[AppStart] First started active root span id recorded.', firstStartedActiveRootSpanId);
   };
 
   async function captureStandaloneAppStart(): Promise<void> {
+    if (!_client) {
+      // If client is not set, SDK was not initialized, logger is thus disabled
+      // eslint-disable-next-line no-console
+      console.warn('[AppStart] Could not capture App Start, missing client, call `Sentry.init` first.');
+      return;
+    }
+
     if (!standalone) {
-      logger.debug(
+      debug.log(
         '[AppStart] App start tracking is enabled. App start will be added to the first transaction as a child span.',
       );
       return;
     }
 
-    logger.debug('[AppStart] App start tracking standalone root span (transaction).');
+    debug.log('[AppStart] App start tracking standalone root span (transaction).');
+
+    if (!appStartEndData?.endFrames && NATIVE.enableNative) {
+      try {
+        const endFrames = await NATIVE.fetchNativeFrames();
+        debug.log('[AppStart] Captured end frames for standalone app start.', endFrames);
+
+        const currentTimestamp = appStartEndData?.timestampMs || timestampInSeconds() * 1000;
+        _setAppStartEndData({
+          timestampMs: currentTimestamp,
+          endFrames,
+        });
+      } catch (error) {
+        debug.log('[AppStart] Failed to capture frames for standalone app start.', error);
+      }
+    }
 
     const span = startInactiveSpan({
       forceTransaction: true,
@@ -235,7 +300,7 @@ export const appStartIntegration = ({
 
     const event = convertSpanToTransaction(span);
     if (!event) {
-      logger.warn('[AppStart] Failed to convert App Start span to transaction.');
+      debug.warn('[AppStart] Failed to convert App Start span to transaction.');
       return;
     }
 
@@ -256,17 +321,17 @@ export const appStartIntegration = ({
     }
 
     if (!firstStartedActiveRootSpanId) {
-      logger.warn('[AppStart] No first started active root span id recorded. Can not attach app start.');
+      debug.warn('[AppStart] No first started active root span id recorded. Can not attach app start.');
       return;
     }
 
-    if (!event.contexts || !event.contexts.trace) {
-      logger.warn('[AppStart] Transaction event is missing trace context. Can not attach app start.');
+    if (!event.contexts?.trace) {
+      debug.warn('[AppStart] Transaction event is missing trace context. Can not attach app start.');
       return;
     }
 
     if (firstStartedActiveRootSpanId !== event.contexts.trace.span_id) {
-      logger.warn(
+      debug.warn(
         '[AppStart] First started active root span id does not match the transaction event span id. Can not attached app start.',
       );
       return;
@@ -274,24 +339,24 @@ export const appStartIntegration = ({
 
     const appStart = await NATIVE.fetchNativeAppStart();
     if (!appStart) {
-      logger.warn('[AppStart] Failed to retrieve the app start metrics from the native layer.');
+      debug.warn('[AppStart] Failed to retrieve the app start metrics from the native layer.');
       return;
     }
     if (appStart.has_fetched) {
-      logger.warn('[AppStart] Measured app start metrics were already reported from the native layer.');
+      debug.warn('[AppStart] Measured app start metrics were already reported from the native layer.');
       return;
     }
 
     const appStartTimestampMs = appStart.app_start_timestamp_ms;
     if (!appStartTimestampMs) {
-      logger.warn('[AppStart] App start timestamp could not be loaded from the native layer.');
+      debug.warn('[AppStart] App start timestamp could not be loaded from the native layer.');
       return;
     }
 
-    const appStartEndTimestampMs = recordedAppStartEndTimestampMs || getBundleStartTimestampMs();
+    const appStartEndTimestampMs = appStartEndData?.timestampMs || getBundleStartTimestampMs();
     if (!appStartEndTimestampMs) {
-      logger.warn(
-        '[AppStart] Javascript failed to record app start end. `setAppStartEndTimestampMs` was not called nor could the bundle start be found.',
+      debug.warn(
+        '[AppStart] Javascript failed to record app start end. `_setAppStartEndData` was not called nor could the bundle start be found.',
       );
       return;
     }
@@ -299,14 +364,14 @@ export const appStartIntegration = ({
     const isAppStartWithinBounds =
       !!event.start_timestamp && appStartTimestampMs >= event.start_timestamp * 1_000 - MAX_APP_START_AGE_MS;
     if (!__DEV__ && !isAppStartWithinBounds) {
-      logger.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
+      debug.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
       return;
     }
 
     const appStartDurationMs = appStartEndTimestampMs - appStartTimestampMs;
     if (!__DEV__ && appStartDurationMs >= MAX_APP_START_DURATION_MS) {
       // Dev builds can have long app start waiting over minute for the first bundle to be produced
-      logger.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
+      debug.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
       return;
     }
 
@@ -314,7 +379,7 @@ export const appStartIntegration = ({
       // This can happen when MainActivity on Android is recreated,
       // and the app start end timestamp is not updated, for example
       // due to missing `Sentry.wrap(RootComponent)` call.
-      logger.warn(
+      debug.warn(
         '[AppStart] Last recorded app start end timestamp is before the app start timestamp.',
         'This is usually caused by missing `Sentry.wrap(RootComponent)` call.',
       );
@@ -352,7 +417,7 @@ export const appStartIntegration = ({
 
     const appStartEndTimestampSeconds = appStartEndTimestampMs / 1000;
     if (event.timestamp && event.timestamp < appStartEndTimestampSeconds) {
-      logger.debug(
+      debug.log(
         '[AppStart] Transaction event timestamp is before app start end. Adjusting transaction event timestamp.',
       );
       event.timestamp = appStartEndTimestampSeconds;
@@ -361,13 +426,18 @@ export const appStartIntegration = ({
     const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
     const appStartSpanJSON: SpanJSON = createSpanJSON({
       op,
-      description: appStart.type === 'cold' ? 'Cold App Start' : 'Warm App Start',
+      description: appStart.type === 'cold' ? 'Cold Start' : 'Warm Start',
       start_timestamp: appStartTimestampSeconds,
       timestamp: appStartEndTimestampSeconds,
       trace_id: event.contexts.trace.trace_id,
       parent_span_id: event.contexts.trace.span_id,
       origin,
     });
+
+    if (appStartEndData?.endFrames) {
+      attachFrameDataToSpan(appStartSpanJSON, appStartEndData.endFrames);
+    }
+
     const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
 
     const appStartSpans = [
@@ -377,7 +447,7 @@ export const appStartIntegration = ({
     ];
 
     children.push(...appStartSpans);
-    logger.debug('[AppStart] Added app start spans to transaction event.', JSON.stringify(appStartSpans, undefined, 2));
+    debug.log('[AppStart] Added app start spans to transaction event.', JSON.stringify(appStartSpans, undefined, 2));
 
     const measurementKey = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
     const measurementValue = {
@@ -386,8 +456,8 @@ export const appStartIntegration = ({
     };
     event.measurements = event.measurements || {};
     event.measurements[measurementKey] = measurementValue;
-    logger.debug(
-      `[AppStart] Added app start measurement to transaction event.`,
+    debug.log(
+      '[AppStart] Added app start measurement to transaction event.',
       JSON.stringify(measurementValue, undefined, 2),
     );
   }
@@ -404,7 +474,7 @@ export const appStartIntegration = ({
 
 function setSpanDurationAsMeasurementOnTransactionEvent(event: TransactionEvent, label: string, span: SpanJSON): void {
   if (!span.timestamp || !span.start_timestamp) {
-    logger.warn('Span is missing start or end timestamp. Cam not set measurement on transaction event.');
+    debug.warn('Span is missing start or end timestamp. Cam not set measurement on transaction event.');
     return;
   }
 
@@ -429,12 +499,12 @@ function createJSExecutionStartSpan(
 
   const bundleStartTimestampSeconds = bundleStartTimestampMs / 1000;
   if (bundleStartTimestampSeconds < parentSpan.start_timestamp) {
-    logger.warn('Bundle start timestamp is before the app start span start timestamp. Skipping JS execution span.');
+    debug.warn('Bundle start timestamp is before the app start span start timestamp. Skipping JS execution span.');
     return undefined;
   }
 
   if (!rootComponentCreationTimestampMs) {
-    logger.warn('Missing the root component first constructor call timestamp.');
+    debug.warn('Missing the root component first constructor call timestamp.');
     return createChildSpanJSON(parentSpan, {
       description: 'JS Bundle Execution Start',
       start_timestamp: bundleStartTimestampSeconds,

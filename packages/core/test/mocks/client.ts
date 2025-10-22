@@ -1,6 +1,6 @@
 import type { Event, EventHint, Integration, Outcome, ParameterizedString, Session, SeverityLevel } from '@sentry/core';
 import {
-  BaseClient,
+  Client,
   createTransport,
   getCurrentScope,
   getGlobalScope,
@@ -9,7 +9,6 @@ import {
   resolvedSyncPromise,
   setCurrentClient,
 } from '@sentry/core';
-
 import type { ReactNativeClientOptions } from '../../src/js/options';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
@@ -37,7 +36,7 @@ export interface TestClientOptions extends ReactNativeClientOptions {
   defaultIntegrations?: Integration[] | false;
 }
 
-export class TestClient extends BaseClient<TestClientOptions> {
+export class TestClient extends Client<TestClientOptions> {
   public static instance?: TestClient;
   public static sendEventCalled?: (event: Event) => void;
 
@@ -88,7 +87,7 @@ export class TestClient extends BaseClient<TestClientOptions> {
       super.sendEvent(event, hint);
       return;
     }
-    TestClient.sendEventCalled && TestClient.sendEventCalled(event);
+    TestClient.sendEventCalled?.(event);
   }
 
   public sendSession(session: Session): void {

@@ -1,9 +1,9 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { existsSync, readFileSync, rmdirSync, unlinkSync } from 'fs';
 import { dirname } from 'path';
 
 jest.mock('@sentry/core');
-(logger.enable as jest.Mock).mockImplementation(() => {});
+(debug.enable as jest.Mock).mockImplementation(() => {});
 
 import ModulesCollector from '../../src/js/tools/ModulesCollector';
 

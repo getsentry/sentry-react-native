@@ -4,8 +4,8 @@ const fs = require('fs');
 const { argv } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/core');
-logger.enable();
+const { debug } = require('@sentry/core');
+debug.enable();
 
 const args = parseArgs(argv.slice(2));
 if (!args['gradle-properties']) {
@@ -21,7 +21,7 @@ if (enableHermes === null) {
   throw new Error('Invalid engine');
 }
 
-logger.info('Patching gradle.properties', args['gradle-properties']);
+debug.log('Patching gradle.properties', args['gradle-properties']);
 let content = fs.readFileSync(args['gradle-properties'], 'utf8');
 
 const isHermesEnabled = content.includes('hermesEnabled=true');
@@ -31,9 +31,9 @@ if (enableHermes !== isHermesEnabled) {
     ? content.replace(/hermesEnabled=.*/g, patch)
     : content.concat(`\n${patch}`);
   if (enableHermes) {
-    logger.info('Patching gradle.properties for Hermes');
+    debug.log('Patching gradle.properties for Hermes');
   } else {
-    logger.info('Patching gradle.properties for JSC');
+    debug.log('Patching gradle.properties for JSC');
   }
 }
 

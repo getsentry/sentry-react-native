@@ -1,7 +1,6 @@
 #import <RNSentry/RNSentry.h>
 
-@interface
-RNSentry (RNSentryInternal)
+@interface RNSentry (RNSentryInternal)
 
 + (SentryUser *_Nullable)userFrom:(NSDictionary *)userKeys
                     otherUserKeys:(NSDictionary *)userDataKeys;

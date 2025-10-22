@@ -13,7 +13,6 @@ export const maestro = async (test: string) => {
       cwd: path.join(__dirname, '..'),
       stdio: 'inherit',
     });
-
     process.on('close', code => {
       if (code !== 0) {
         reject(`Maestro test failed with code ${code}. See logs above.`);

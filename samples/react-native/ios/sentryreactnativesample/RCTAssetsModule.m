@@ -2,13 +2,12 @@
 
 @implementation RCTAssetsModule
 
-RCT_EXPORT_METHOD(getExampleAssetData
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    getExampleAssetData : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSDataAsset *data = [[NSDataAsset alloc] initWithName:@"ExampleBinaryData"];
     if (data == nil) {
-        reject(@"SampleSentryReactNative", @"Failed to load exmaple binary data asset.", nil);
+        reject(@"SampleSentryReactNative", @"Failed to load example binary data asset.", nil);
     }
 
     NSMutableArray *array = [NSMutableArray arrayWithCapacity:data.data.length];
