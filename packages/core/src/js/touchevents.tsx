@@ -1,9 +1,8 @@
 import type { SeverityLevel } from '@sentry/core';
-import { addBreadcrumb, dropUndefinedKeys, getClient, logger, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
+import { addBreadcrumb, debug, dropUndefinedKeys, getClient, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import * as React from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
-
 import { createIntegration } from './integrations/factory';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
@@ -121,8 +120,12 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     const level = 'info' as SeverityLevel;
 
     const root = touchPath[0];
-    const detail = label ? label : `${root.name}${root.file ? ` (${root.file})` : ''}`;
+    if (!root) {
+      debug.warn('[TouchEvents] No root component found in touch path.');
+      return;
+    }
 
+    const detail = label ? label : `${root.name}${root.file ? ` (${root.file})` : ''}`;
     const crumb = {
       category: this.props.breadcrumbCategory,
       data: { path: touchPath },
@@ -132,7 +135,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     };
     addBreadcrumb(crumb);
 
-    logger.log(`[TouchEvents] ${crumb.message}`);
+    debug.log(`[TouchEvents] ${crumb.message}`);
   }
 
   /**
@@ -280,7 +283,7 @@ function getFileName(props: Record<string, unknown>): string | undefined {
 
 function getLabelValue(props: Record<string, unknown>, labelKey: string | undefined): string | undefined {
   return typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0
-    ? props[SENTRY_LABEL_PROP_KEY] as string
+    ? props[SENTRY_LABEL_PROP_KEY]
     // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
     // the "check-label" if sentence, so we have to assign it to a variable here first
     : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0

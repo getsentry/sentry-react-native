@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
-
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
-import { getExpoConstants } from './expomodules';
+import { getExpoConstants, getExpoGo } from './expomodules';
 import { ReactNativeLibraries } from './rnlibraries';
 
 /** Checks if the React Native Hermes engine is running */
@@ -11,7 +10,8 @@ export function isHermesEnabled(): boolean {
 
 /** Checks if the React Native TurboModules are enabled */
 export function isTurboModuleEnabled(): boolean {
-  return RN_GLOBAL_OBJ.__turboModuleProxy != null;
+  // Reference: https://github.com/facebook/react-native/blob/641a79dc5137b69a3c0813413b9fb82d0b9df783/packages/react-native/src/private/featureflags/ReactNativeFeatureFlagsBase.js#L110
+  return RN_GLOBAL_OBJ.RN$Bridgeless === true || RN_GLOBAL_OBJ.__turboModuleProxy != null;
 }
 
 /** Checks if the React Native Fabric renderer is running */
@@ -35,8 +35,8 @@ export function isExpo(): boolean {
 
 /** Check if JS runs in Expo Go */
 export function isExpoGo(): boolean {
-  const expoConstants = getExpoConstants();
-  return (expoConstants && expoConstants.appOwnership) === 'expo';
+  const expoGo = getExpoGo();
+  return !!expoGo;
 }
 
 /** Check Expo Go version if available */
@@ -75,11 +75,7 @@ export function notMobileOs(): boolean {
 
 /** Returns Hermes Version if hermes is present in the runtime */
 export function getHermesVersion(): string | undefined {
-  return (
-    RN_GLOBAL_OBJ.HermesInternal &&
-    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties &&
-    RN_GLOBAL_OBJ.HermesInternal.getRuntimeProperties()['OSS Release Version']
-  );
+  return RN_GLOBAL_OBJ.HermesInternal?.getRuntimeProperties?.()['OSS Release Version'];
 }
 
 /** Returns default environment based on __DEV__ */
@@ -91,8 +87,7 @@ export function getDefaultEnvironment(): 'development' | 'production' {
 export function isRunningInMetroDevServer(): boolean {
   if (
     typeof RN_GLOBAL_OBJ.process !== 'undefined' &&
-    RN_GLOBAL_OBJ.process.env &&
-    RN_GLOBAL_OBJ.process.env.___SENTRY_METRO_DEV_SERVER___ === 'true'
+    RN_GLOBAL_OBJ.process.env?.___SENTRY_METRO_DEV_SERVER___ === 'true'
   ) {
     return true;
   }

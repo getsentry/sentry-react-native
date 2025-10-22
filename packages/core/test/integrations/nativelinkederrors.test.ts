@@ -1,6 +1,5 @@
 import { defaultStackParser } from '@sentry/browser';
 import type { Client, DebugImage, Event, EventHint, ExtendedError } from '@sentry/core';
-
 import { nativeLinkedErrorsIntegration } from '../../src/js/integrations/nativelinkederrors';
 import type { NativeStackFrames } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';

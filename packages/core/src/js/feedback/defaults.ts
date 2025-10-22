@@ -23,7 +23,7 @@ const CAPTURE_SCREENSHOT_LABEL = 'Take a screenshot';
 const REMOVE_SCREENSHOT_LABEL = 'Remove screenshot';
 const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.';
 
-export const defaultConfiguration: Partial<FeedbackWidgetProps> = {
+export const defaultConfiguration: FeedbackWidgetProps = {
   // FeedbackCallbacks
   onFormOpen: () => {
     // Does nothing by default

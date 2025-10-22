@@ -48,7 +48,7 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 8)
+        XCTAssertEqual(replayOptions.count, 9)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["maskAllImages"])
@@ -57,6 +57,7 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertNotNil(replayOptions["sdkInfo"])
         XCTAssertNotNil(replayOptions["enableViewRendererV2"])
         XCTAssertNotNil(replayOptions["enableFastViewRendering"])
+        XCTAssertNotNil(replayOptions["quality"])
     }
 
     func testSessionSampleRate() {
@@ -66,7 +67,7 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
         XCTAssertEqual(actualOptions.sessionReplay.sessionSampleRate, 0.75)
     }
 
@@ -77,7 +78,7 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
         XCTAssertEqual(actualOptions.sessionReplay.onErrorSampleRate, 0.75)
     }
 
@@ -107,7 +108,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllImages, true)
         assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
@@ -122,7 +123,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllImages, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
@@ -137,7 +138,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, true)
         assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTTextView")
@@ -161,13 +162,13 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
     }
 
-    func testEnableViewRendererV2Default() {
+    func testEnableExperimentalViewRendererDefault() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75
@@ -175,12 +176,12 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
-        XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
+        XCTAssertTrue(actualOptions.sessionReplay.enableExperimentalViewRenderer)
     }
 
-    func testEnableViewRendererV2True() {
+    func testEnableExperimentalViewRendererTrue() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75,
@@ -189,12 +190,12 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertTrue(actualOptions.sessionReplay.enableViewRendererV2)
     }
 
-    func testEnableViewRendererV2False() {
+    func testEnableExperimentalViewRendererFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
             "replaysOnErrorSampleRate": 0.75,
@@ -203,7 +204,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertFalse(actualOptions.sessionReplay.enableViewRendererV2)
     }
@@ -216,7 +217,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
@@ -230,7 +231,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertTrue(actualOptions.sessionReplay.enableFastViewRendering)
     }
@@ -244,9 +245,77 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! Options(dict: optionsDict as! [String: Any])
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
 
         XCTAssertFalse(actualOptions.sessionReplay.enableFastViewRendering)
     }
 
+    func testReplayQualityDefault() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.medium)
+    }
+
+    func testReplayQualityLow() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "replaysSessionQuality": "low"
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.low)
+    }
+
+    func testReplayQualityMedium() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "replaysSessionQuality": "medium"
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.medium)
+    }
+
+    func testReplayQualityHigh() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "replaysSessionQuality": "high"
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.high)
+    }
+
+    func testReplayQualityInvalidFallsBackToMedium() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "replaysSessionQuality": "invalid"
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.sessionReplay.quality, SentryReplayOptions.SentryReplayQuality.medium)
+    }
 }

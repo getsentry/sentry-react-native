@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { NativeEventSubscription} from 'react-native';
 import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
-
 import { defaultButtonConfiguration } from './defaults';
 import { defaultButtonStyles } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
@@ -15,7 +14,7 @@ import { lazyLoadFeedbackIntegration } from './lazy';
  * Implements a feedback button that opens the FeedbackForm.
  */
 export class FeedbackButton extends React.Component<FeedbackButtonProps> {
-  private _themeListener: NativeEventSubscription;
+  private _themeListener: NativeEventSubscription | undefined;
 
   public constructor(props: FeedbackButtonProps) {
     super(props);
@@ -58,8 +57,10 @@ export class FeedbackButton extends React.Component<FeedbackButtonProps> {
         onPress={showFeedbackWidget}
         accessibilityLabel={text.triggerAriaLabel}
       >
-        <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon}/>
-        <Text style={styles.triggerText} testID='sentry-feedback-button'>{text.triggerLabel}</Text>
+        <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon} />
+        <Text style={styles.triggerText} testID="sentry-feedback-button">
+          {text.triggerLabel}
+        </Text>
       </TouchableOpacity>
     );
   }

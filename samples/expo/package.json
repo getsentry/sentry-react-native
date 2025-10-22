@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "6.15.1",
+  "version": "7.4.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -10,8 +10,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "ts:check": "tsc",
-    "export": "expo export --dump-sourcemap --clear --platform all",
-    "export:web": "expo export --dump-sourcemap --clear --platform web",
+    "export": "expo export --source-maps --clear --platform all",
+    "export:web": "expo export --source-maps --clear --platform web",
     "prebuild": "expo prebuild --clean --no-install",
     "set-version": "npx react-native-version --skip-tag --never-amend",
     "eas-build-pre-install": "npm i -g corepack && yarn install --no-immutable --inline-builds && yarn workspace @sentry/react-native build",
@@ -20,7 +20,7 @@
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
-    "@sentry/react-native": "6.15.1",
+    "@sentry/react-native": "7.4.0",
     "@types/react": "~19.0.10",
     "expo": "^53.0.0",
     "expo-constants": "~17.1.5",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
-    "@sentry/babel-plugin-component-annotate": "3.5.0",
+    "@sentry/babel-plugin-component-annotate": "4.4.0",
     "@types/node": "20.10.4",
     "sentry-react-native-samples-utils": "workspace:^"
   },

@@ -8,7 +8,6 @@ import {
   setCurrentClient,
   timestampInSeconds,
 } from '@sentry/core';
-
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
@@ -20,8 +19,9 @@ import {
   UI_LOAD,
 } from '../../../src/js/tracing';
 import {
+  _captureAppStart,
   _clearRootComponentCreationTimestampMs,
-  _setAppStartEndTimestampMs,
+  _setAppStartEndData,
   _setRootComponentCreationTimestampMs,
   appStartIntegration,
   setRootComponentCreationTimestampMs,
@@ -161,7 +161,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Start',
       );
@@ -169,7 +169,7 @@ describe('App Start Integration', () => {
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
-          description: 'Cold App Start',
+          description: 'Cold Start',
           op: APP_START_COLD_OP,
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
@@ -199,7 +199,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Before React Root',
       );
@@ -207,7 +207,7 @@ describe('App Start Integration', () => {
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
-          description: 'Cold App Start',
+          description: 'Cold Start',
           op: APP_START_COLD_OP,
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
@@ -238,13 +238,13 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
           span_id: expect.any(String),
-          description: 'Cold App Start',
+          description: 'Cold Start',
           op: APP_START_COLD_OP,
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
@@ -482,14 +482,14 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Start',
       );
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -522,14 +522,14 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Before React Root',
       );
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -562,14 +562,14 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const bundleStartSpan = actualEvent!.spans!.find(
         ({ description }) => description === 'JS Bundle Execution Before React Root',
       );
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -603,12 +603,12 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
 
-      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold App Start');
+      const appStartRootSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
       const nativeSpan = actualEvent!.spans!.find(({ description }) => description === 'test native app start span');
 
       expect(appStartRootSpan).toEqual(
         expect.objectContaining(<Partial<SpanJSON>>{
-          description: 'Cold App Start',
+          description: 'Cold Start',
           span_id: expect.any(String),
           op: APP_START_COLD_OP,
           origin: SPAN_ORIGIN_AUTO_APP_START,
@@ -788,6 +788,199 @@ describe('App Start Integration', () => {
   });
 });
 
+describe('Frame Data Integration', () => {
+  it('attaches frame data to standalone cold app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 150,
+      slowFrames: 5,
+      frozenFrames: 2,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: true });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 150,
+        'frames.slow': 5,
+        'frames.frozen': 2,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('attaches frame data to standalone warm app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 200,
+      slowFrames: 8,
+      frozenFrames: 1,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: false });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Warm Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 200,
+        'frames.slow': 8,
+        'frames.frozen': 1,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('attaches frame data to attached cold app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 120,
+      slowFrames: 3,
+      frozenFrames: 0,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: true });
+
+    await _captureAppStart({ isManual: false });
+
+    const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 120,
+        'frames.slow': 3,
+        'frames.frozen': 0,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('attaches frame data to attached warm app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 180,
+      slowFrames: 12,
+      frozenFrames: 3,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: false });
+
+    await _captureAppStart({ isManual: false });
+
+    const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Warm Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 180,
+        'frames.slow': 12,
+        'frames.frozen': 3,
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_WARM_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+  });
+
+  it('does not attach frame data when they are no frames', async () => {
+    const mockEndFrames = {
+      totalFrames: 0,
+      slowFrames: 0,
+      frozenFrames: 0,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+
+    mockAppStart({ cold: true });
+
+    await _captureAppStart({ isManual: false });
+
+    const actualEvent = await processEvent(getMinimalTransactionEvent());
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+
+    expect(appStartSpan!.data).not.toHaveProperty('frames.total');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.slow');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.frozen');
+  });
+
+  it('does not attach frame data when native frames are not available', async () => {
+    mockFunction(NATIVE.fetchNativeFrames).mockRejectedValue(new Error('Native frames not available'));
+
+    mockAppStart({ cold: true });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+      }),
+    );
+
+    expect(appStartSpan!.data).not.toHaveProperty('frames.total');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.slow');
+    expect(appStartSpan!.data).not.toHaveProperty('frames.frozen');
+  });
+
+  it('does not attach frame data when NATIVE is not enabled', async () => {
+    const originalEnableNative = NATIVE.enableNative;
+    (NATIVE as any).enableNative = false;
+
+    try {
+      mockAppStart({ cold: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+
+      const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+
+      expect(appStartSpan).toBeDefined();
+      expect(appStartSpan!.data).toEqual(
+        expect.objectContaining({
+          [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_COLD_OP,
+          [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+        }),
+      );
+
+      expect(appStartSpan!.data).not.toHaveProperty('frames.total');
+      expect(appStartSpan!.data).not.toHaveProperty('frames.slow');
+      expect(appStartSpan!.data).not.toHaveProperty('frames.frozen');
+    } finally {
+      (NATIVE as any).enableNative = originalEnableNative;
+    }
+  });
+});
+
 function setupIntegration() {
   const client = new TestClient(getDefaultTestClientOptions());
   const integration = appStartIntegration();
@@ -849,6 +1042,7 @@ function getMinimalTransactionEvent({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {},
       },
     ],
   };
@@ -883,7 +1077,7 @@ function expectEventWithAttachedColdAppStart({
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_COLD_OP,
-        description: 'Cold App Start',
+        description: 'Cold Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
@@ -903,6 +1097,7 @@ function expectEventWithAttachedColdAppStart({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {},
       },
     ]),
   });
@@ -939,7 +1134,7 @@ function expectEventWithAttachedWarmAppStart({
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_WARM_OP,
-        description: 'Warm App Start',
+        description: 'Warm Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
@@ -959,6 +1154,7 @@ function expectEventWithAttachedWarmAppStart({
         description: 'Test',
         span_id: '123',
         trace_id: '456',
+        data: {},
       },
     ]),
   });
@@ -996,12 +1192,12 @@ function expectEventWithStandaloneColdAppStart(
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_COLD_OP,
-        description: 'Cold App Start',
+        description: 'Cold Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
         span_id: expect.any(String),
-        parent_span_id: actualEvent!.contexts!.trace!.span_id,
+        parent_span_id: actualEvent.contexts.trace.span_id,
         origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
@@ -1047,12 +1243,12 @@ function expectEventWithStandaloneWarmAppStart(
     spans: expect.arrayContaining<SpanJSON>([
       {
         op: APP_START_WARM_OP,
-        description: 'Warm App Start',
+        description: 'Warm Start',
         start_timestamp: appStartTimeMilliseconds / 1000,
         timestamp: expect.any(Number),
         trace_id: expect.any(String),
         span_id: expect.any(String),
-        parent_span_id: actualEvent!.contexts!.trace!.span_id,
+        parent_span_id: actualEvent.contexts.trace.span_id,
         origin: SPAN_ORIGIN_AUTO_APP_START,
         status: 'ok',
         data: {
@@ -1095,7 +1291,10 @@ function mockAppStart({
       : [],
   };
 
-  _setAppStartEndTimestampMs(appStartEndTimestampMs || timeOriginMilliseconds);
+  _setAppStartEndData({
+    timestampMs: appStartEndTimestampMs || timeOriginMilliseconds,
+    endFrames: null,
+  });
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
@@ -1112,7 +1311,10 @@ function mockTooLongAppStart() {
     spans: [],
   };
 
-  _setAppStartEndTimestampMs(timeOriginMilliseconds);
+  _setAppStartEndData({
+    timestampMs: timeOriginMilliseconds,
+    endFrames: null,
+  });
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
 
@@ -1134,7 +1336,10 @@ function mockTooOldAppStart() {
 
   // App start finish timestamp
   // App start length is 5 seconds
-  _setAppStartEndTimestampMs(appStartEndTimestampMilliseconds);
+  _setAppStartEndData({
+    timestampMs: appStartEndTimestampMilliseconds,
+    endFrames: null,
+  });
   mockFunction(getTimeOriginMilliseconds).mockReturnValue(timeOriginMilliseconds - 64000);
   mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
   // Transaction start timestamp

@@ -1,11 +1,11 @@
 import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native'
-import * as React from "react";
-
+import * as React from 'react';
 import * as mockWrapper from '../mockWrapper';
 import * as mockedSentryEventEmitter from '../utils/mockedSentryeventemitterfallback';
 import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
+
 jest.mock('../../src/js/wrapper', () => mockWrapper);
 jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/utils/sentryeventemitterfallback', () => mockedSentryEventEmitter);
@@ -14,7 +14,7 @@ jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplayn
 import * as Sentry from '../../src/js';
 import { startSpanManual } from '../../src/js';
 import { TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing';
-import { _setAppStartEndTimestampMs } from '../../src/js/tracing/integrations/appStart';
+import { _setAppStartEndData } from '../../src/js/tracing/integrations/appStart';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { isHermesEnabled, notWeb } from '../../src/js/utils/environment';
@@ -23,6 +23,7 @@ import { MOCK_DSN } from '../mockDsn';
 import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
 import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+
 
 const SCOPE_SPAN_FIELD = '_sentrySpan';
 
@@ -47,7 +48,10 @@ describe('React Navigation - TTID', () => {
         type: 'cold',
         spans: [],
       });
-      _setAppStartEndTimestampMs(mockedAppStartTimeSeconds * 1000);
+      _setAppStartEndData({
+        timestampMs: mockedAppStartTimeSeconds * 1000,
+        endFrames: null
+      });
 
       const sut = createTestedInstrumentation({ enableTimeToInitialDisplay: true });
       transportSendMock = initSentry(sut).transportSendMock;
@@ -255,7 +259,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -281,10 +285,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
         },
       });
 
@@ -296,7 +300,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
             expect.objectContaining<Partial<SpanJSON>>({
               data: {
@@ -327,7 +331,7 @@ describe('React Navigation - TTID', () => {
           type: 'transaction',
           spans: expect.arrayContaining([
             expect.objectContaining<Partial<SpanJSON>>({
-              description: 'Cold App Start',
+              description: 'Cold Start',
             }),
           ]),
           measurements: expect.objectContaining<Required<TransactionEvent>['measurements']>({
@@ -358,10 +362,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds() - 1,
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds() - 1,
         },
       });
 
@@ -385,10 +389,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()!).span_id!]: timestampInSeconds(),
+          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
       });
 
@@ -485,7 +489,7 @@ describe('React Navigation - TTID', () => {
       timeToDisplayComponent.update(<TimeToInitialDisplay record />);
       mockRecordedTimeToDisplay({
         ttid: {
-          [spanToJSON(getActiveSpan()!).span_id!]: manualInitialDisplayEndTimestampMs / 1_000,
+          [spanToJSON(getActiveSpan()).span_id]: manualInitialDisplayEndTimestampMs / 1_000,
         },
       });
 
@@ -666,7 +670,7 @@ describe('React Navigation - TTID', () => {
 function mockAutomaticTimeToDisplay(): void {
   mockRecordedTimeToDisplay({
     ttidNavigation: {
-      [spanToJSON(getActiveSpan()!).span_id!]: nowInSeconds(),
+      [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
     },
   });
 }
@@ -678,7 +682,7 @@ function initSentry(sut: ReturnType<typeof Sentry.reactNavigationIntegration>): 
   const transportSendMock = jest.fn<ReturnType<Transport['send']>, Parameters<Transport['send']>>();
   const options: Sentry.ReactNativeOptions = {
     dsn: MOCK_DSN,
-    enableTracing: true,
+    tracesSampleRate: 1.0,
     enableStallTracking: false,
     integrations: [
       sut,

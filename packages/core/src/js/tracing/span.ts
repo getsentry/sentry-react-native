@@ -1,10 +1,10 @@
 import type { Client, Scope, Span, SpanJSON, StartSpanOptions } from '@sentry/core';
 import {
-  generatePropagationContext,
+  debug,
+  generateTraceId,
   getActiveSpan,
   getClient,
   getCurrentScope,
-  logger,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
@@ -12,7 +12,7 @@ import {
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
-
+import { AppState } from 'react-native';
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import {
@@ -53,14 +53,14 @@ export const startIdleNavigationSpan = (
 ): Span | undefined => {
   const client = getClient();
   if (!client) {
-    logger.warn(`[startIdleNavigationSpan] Can't create route change span, missing client.`);
+    debug.warn("[startIdleNavigationSpan] Can't create route change span, missing client.");
     return undefined;
   }
 
   const activeSpan = getActiveSpan();
   clearActiveSpanFromScope(getCurrentScope());
   if (activeSpan && isRootSpan(activeSpan) && isSentryInteractionSpan(activeSpan)) {
-    logger.log(
+    debug.log(
       `[startIdleNavigationSpan] Canceling ${
         spanToJSON(activeSpan).op
       } transaction because of a new navigation root span.`,
@@ -75,7 +75,7 @@ export const startIdleNavigationSpan = (
   };
 
   const idleSpan = startIdleSpan(finalStartSpanOptions, { finalTimeout, idleTimeout });
-  logger.log(
+  debug.log(
     `[startIdleNavigationSpan] Starting ${finalStartSpanOptions.op || 'unknown op'} transaction "${
       finalStartSpanOptions.name
     }" on scope`,
@@ -100,11 +100,17 @@ export const startIdleSpan = (
 ): Span => {
   const client = getClient();
   if (!client) {
-    logger.warn(`[startIdleSpan] Can't create idle span, missing client.`);
+    debug.warn("[startIdleSpan] Can't create idle span, missing client.");
     return new SentryNonRecordingSpan();
   }
 
-  getCurrentScope().setPropagationContext(generatePropagationContext());
+  const currentAppState = AppState.currentState;
+  if (currentAppState === 'background') {
+    debug.log(`[startIdleSpan] App is already in background, not starting span for ${startSpanOption.name}`);
+    return new SentryNonRecordingSpan();
+  }
+
+  getCurrentScope().setPropagationContext({ traceId: generateTraceId(), sampleRand: Math.random() });
 
   const span = coreStartIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
   cancelInBackground(client, span);
@@ -127,7 +133,7 @@ export function getDefaultIdleNavigationSpanOptions(): StartSpanOptions {
  * Checks if the span is a Sentry User Interaction span.
  */
 export function isSentryInteractionSpan(span: Span): boolean {
-  return [SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION].includes(spanToJSON(span).origin);
+  return [SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION].includes(spanToJSON(span).origin || '');
 }
 
 export const SCOPE_SPAN_FIELD = '_sentrySpan';

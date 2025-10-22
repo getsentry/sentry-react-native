@@ -8,20 +8,24 @@
 #import <dlfcn.h>
 
 #import <Sentry/Sentry.h>
-#import <Sentry/SentryDebugImageProvider.h>
-#import <Sentry/SentryOptions.h>
 
 // This import exposes public RNSentrySDK start
 #import "RNSentrySDK.h"
 
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
-@interface
-SentrySDK (Private)
+@class SentryOptions;
+@class SentryEvent;
+
+@interface SentrySDKInternal : NSObject
 @property (nonatomic, nullable, readonly, class) SentryOptions *options;
 @end
 
 @interface RNSentry : RCTEventEmitter <RCTBridgeModule>
+
+@end
+
+@interface RNSentry (fetchNativeStack)
 
 - (NSDictionary *_Nonnull)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
                                        symbolicate:(SymbolicateCallbackType)symbolicate;

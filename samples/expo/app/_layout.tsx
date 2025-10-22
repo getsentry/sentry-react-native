@@ -9,8 +9,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 import * as Sentry from '@sentry/react-native';
 import { LogBox } from 'react-native';
-import { isWeb } from '../utils/isWeb';
 import * as ImagePicker from 'expo-image-picker';
+import { withSentryPlayground } from '@sentry/react-native/playground';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -31,6 +31,7 @@ Sentry.init({
   dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
+  enableLogs: true,
   beforeSend: (event: Sentry.ErrorEvent) => {
     console.log('Event beforeSend:', event.event_id);
     return event;
@@ -57,6 +58,15 @@ Sentry.init({
       }),
       navigationIntegration,
       Sentry.reactNativeTracingIntegration(),
+      Sentry.mobileReplayIntegration({
+        maskAllImages: true,
+        maskAllText: true,
+        maskAllVectors: true,
+      }),
+      Sentry.browserReplayIntegration({
+        maskAllInputs: true,
+        maskAllText: true,
+      }),
       Sentry.feedbackIntegration({
         enableScreenshot: true,
         enableTakeScreenshot: true,
@@ -70,16 +80,11 @@ Sentry.init({
         },
       }),
     );
-    if (isWeb()) {
-      integrations.push(Sentry.browserReplayIntegration());
-    }
     return integrations.filter(i => i.name !== 'Dedupe');
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 5000,
-  // This will capture ALL TRACES and likely use up all your quota
-  enableTracing: true,
   tracesSampleRate: 1.0,
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
   attachStacktrace: true,
@@ -143,5 +148,10 @@ function RootLayoutNav() {
     </ThemeProvider>
   );
 }
+
+// export default withSentryPlayground(Sentry.wrap(RootLayout), {
+//   projectId: '5428561',
+//   organizationSlug: 'sentry-sdks',
+// });
 
 export default Sentry.wrap(RootLayout);

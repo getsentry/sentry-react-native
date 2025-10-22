@@ -1,6 +1,5 @@
 import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/core';
-import { logger } from '@sentry/core';
-
+import { debug } from '@sentry/core';
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
@@ -96,6 +95,7 @@ function mergeOptions(initOptions: Partial<MobileReplayOptions>): Required<Mobil
 
 type MobileReplayIntegration = Integration & {
   options: Required<MobileReplayOptions>;
+  getReplayId: () => string | null;
 };
 
 /**
@@ -116,12 +116,12 @@ type MobileReplayIntegration = Integration & {
  */
 export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defaultOptions): MobileReplayIntegration => {
   if (isExpoGo()) {
-    logger.warn(
+    debug.warn(
       `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} is not supported in Expo Go. Use EAS Build or \`expo prebuild\` to enable it.`,
     );
   }
   if (notMobileOs()) {
-    logger.warn(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} is not supported on this platform.`);
+    debug.warn(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} is not supported on this platform.`);
   }
 
   if (isExpoGo() || notMobileOs()) {
@@ -131,24 +131,26 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   const options = mergeOptions(initOptions);
 
   async function processEvent(event: Event): Promise<Event> {
-    const hasException = event.exception && event.exception.values && event.exception.values.length > 0;
+    const hasException = event.exception?.values && event.exception.values.length > 0;
     if (!hasException) {
       // Event is not an error, will not capture replay
       return event;
     }
 
-    const recordingReplayId = NATIVE.getCurrentReplayId();
-    if (recordingReplayId) {
-      logger.debug(
-        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
-      );
-      return event;
-    }
-
     const replayId = await NATIVE.captureReplay(isHardCrash(event));
     if (!replayId) {
-      logger.debug(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
-      return event;
+      const recordingReplayId = NATIVE.getCurrentReplayId();
+      if (recordingReplayId) {
+        debug.log(
+          `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
+        );
+      } else {
+        debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
+      }
+    } else {
+      debug.log(
+        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Captured recording replay ${replayId} for event ${event.event_id}.`,
+      );
     }
 
     return event;
@@ -174,25 +176,25 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     client.on('beforeAddBreadcrumb', enrichXhrBreadcrumbsForMobileReplay);
   }
 
+  function getReplayId(): string | null {
+    return NATIVE.getCurrentReplayId();
+  }
+
   // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
   // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
-    setupOnce() {
-      /* Noop */
-    },
     setup,
     processEvent,
     options: options,
+    getReplayId: getReplayId,
   };
 };
 
 const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
-    setupOnce() {
-      /* Noop */
-    },
     options: defaultOptions,
+    getReplayId: () => null, // Mock implementation for noop version
   };
 };

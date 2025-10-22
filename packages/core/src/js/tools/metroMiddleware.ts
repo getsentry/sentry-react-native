@@ -1,5 +1,5 @@
 import type { StackFrame } from '@sentry/core';
-import { addContextToFrame, logger } from '@sentry/core';
+import { addContextToFrame, debug } from '@sentry/core';
 import { readFile } from 'fs';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { InputConfigT, Middleware } from 'metro-config';
@@ -15,7 +15,7 @@ export const stackFramesContextMiddleware: Middleware = async (
   request: IncomingMessage,
   response: ServerResponse,
 ): Promise<void> => {
-  logger.debug('[@sentry/react-native/metro] Received request for stack frames context.');
+  debug.log('[@sentry/react-native/metro] Received request for stack frames context.');
   request.setEncoding('utf8');
   const rawBody = await getRawBody(request);
 
@@ -25,14 +25,14 @@ export const stackFramesContextMiddleware: Middleware = async (
   try {
     body = JSON.parse(rawBody);
   } catch (e) {
-    logger.debug('[@sentry/react-native/metro] Could not parse request body.', e);
+    debug.log('[@sentry/react-native/metro] Could not parse request body.', e);
     badRequest(response, 'Invalid request body. Expected a JSON object.');
     return;
   }
 
   const stack = body.stack;
   if (!Array.isArray(stack)) {
-    logger.debug('[@sentry/react-native/metro] Invalid stack frames.', stack);
+    debug.log('[@sentry/react-native/metro] Invalid stack frames.', stack);
     badRequest(response, 'Invalid stack frames. Expected an array.');
     return;
   }
@@ -41,7 +41,7 @@ export const stackFramesContextMiddleware: Middleware = async (
   response.setHeader('Content-Type', 'application/json');
   response.statusCode = 200;
   response.end(JSON.stringify({ stack: stackWithSourceContext }));
-  logger.debug('[@sentry/react-native/metro] Sent stack frames context.');
+  debug.log('[@sentry/react-native/metro] Sent stack frames context.');
 };
 
 async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
@@ -51,7 +51,7 @@ async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
 
   try {
     if (typeof frame.filename !== 'string') {
-      logger.warn('[@sentry/react-native/metro] Could not read source context for frame without filename.');
+      debug.warn('[@sentry/react-native/metro] Could not read source context for frame without filename.');
       return frame;
     }
 
@@ -59,7 +59,7 @@ async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
     const lines = source.split('\n');
     addContextToFrame(lines, frame);
   } catch (error) {
-    logger.warn('[@sentry/react-native/metro] Could not read source context for frame.', error);
+    debug.warn('[@sentry/react-native/metro] Could not read source context for frame.', error);
   }
   return frame;
 }

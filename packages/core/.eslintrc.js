@@ -19,6 +19,8 @@ module.exports = {
     'metro.d.ts',
     'plugin/build/**/*',
     'expo.d.ts',
+    'playground.js',
+    'playground.d.ts',
   ],
   overrides: [
     {
@@ -38,6 +40,7 @@ module.exports = {
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/unbound-method': 'off',
+        'import/first': 'off',
       },
     },
     {

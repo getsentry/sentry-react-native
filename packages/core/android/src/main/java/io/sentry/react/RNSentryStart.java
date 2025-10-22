@@ -147,6 +147,9 @@ final class RNSentryStart {
     if (rnOptions.hasKey("enableNdk")) {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
+    if (rnOptions.hasKey("enableLogs")) {                                                                              |  -----------------------------------------------------------------------------------------------------------------------
+      options.getLogs().setEnabled(rnOptions.getBoolean("enableLogs"));                                                |  -----------------------------------------------------------------------------------------------------------------------
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
@@ -159,9 +162,15 @@ final class RNSentryStart {
 
     SentryReplayOptions replayOptions = getReplayOptions(rnOptions);
     options.setSessionReplay(replayOptions);
-    if (isReplayEnabled(replayOptions)) {
+    // Check if the replay integration is available on the classpath. It's already kept from R8
+    // shrinking by sentry-android-core
+    final boolean isReplayAvailable =
+        loadClass.isClassAvailable("io.sentry.android.replay.ReplayIntegration", logger);
+    if (isReplayEnabled(replayOptions) && isReplayAvailable) {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
+
+    trySetIgnoreErrors(options, rnOptions);
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     String dsn = getURLFromDSN(rnOptions.getString("dsn"));
@@ -191,6 +200,38 @@ final class RNSentryStart {
     }
     logger.log(
         SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
+  }
+
+  @TestOnly
+  protected void trySetIgnoreErrors(SentryAndroidOptions options, ReadableMap rnOptions) {
+    ReadableArray regErrors = null;
+    ReadableArray strErrors = null;
+    if (rnOptions.hasKey("ignoreErrorsRegex")) {
+      regErrors = rnOptions.getArray("ignoreErrorsRegex");
+    }
+    if (rnOptions.hasKey("ignoreErrorsStr")) {
+      strErrors = rnOptions.getArray("ignoreErrorsStr");
+    }
+    if (regErrors == null && strErrors == null) {
+      return;
+    }
+
+    int regSize = regErrors != null ? regErrors.size() : 0;
+    int strSize = strErrors != null ? strErrors.size() : 0;
+    List<String> list = new ArrayList<>(regSize + strSize);
+    if (regErrors != null) {
+      for (int i = 0; i < regErrors.size(); i++) {
+        list.add(regErrors.getString(i));
+      }
+    }
+    if (strErrors != null) {
+      // Use the same behaviour of JavaScript instead of Android when dealing with strings.
+      for (int i = 0; i < strErrors.size(); i++) {
+        String pattern = ".*" + Pattern.quote(strErrors.getString(i)) + ".*";
+        list.add(pattern);
+      }
+    }
+    options.setIgnoredErrors(list);
   }
 
   /**
@@ -277,6 +318,12 @@ final class RNSentryStart {
             ? rnOptions.getDouble("replaysOnErrorSampleRate")
             : null);
 
+    if (rnOptions.hasKey("replaysSessionQuality")) {
+      final String qualityString = rnOptions.getString("replaysSessionQuality");
+      final SentryReplayQuality quality = parseReplayQuality(qualityString);
+      androidReplayOptions.setQuality(quality);
+    }
+
     if (!rnOptions.hasKey("mobileReplayOptions")) {
       return androidReplayOptions;
     }
@@ -347,6 +394,27 @@ final class RNSentryStart {
       }
 
       event.setSdk(eventSdk);
+    }
+  }
+
+  private SentryReplayQuality parseReplayQuality(@Nullable String qualityString) {
+    if (qualityString == null) {
+      return SentryReplayQuality.MEDIUM;
+    }
+
+    try {
+      switch (qualityString.toLowerCase(Locale.ROOT)) {
+        case "low":
+          return SentryReplayQuality.LOW;
+        case "medium":
+          return SentryReplayQuality.MEDIUM;
+        case "high":
+          return SentryReplayQuality.HIGH;
+        default:
+          return SentryReplayQuality.MEDIUM;
+      }
+    } catch (Exception e) {
+      return SentryReplayQuality.MEDIUM;
     }
   }
 

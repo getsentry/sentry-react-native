@@ -3,11 +3,11 @@ import {
   addExceptionMechanism,
   addGlobalUnhandledRejectionInstrumentationHandler,
   captureException,
+  debug,
   getClient,
   getCurrentScope,
-  logger,
 } from '@sentry/core';
-
+import type { ReactNativeClientOptions } from '../options';
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -58,7 +58,7 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
       RN_GLOBAL_OBJ.HermesInternal?.enablePromiseRejectionTracker &&
       RN_GLOBAL_OBJ?.HermesInternal?.hasPromise?.()
     ) {
-      logger.log('Using Hermes native promise rejection tracking');
+      debug.log('Using Hermes native promise rejection tracking');
 
       RN_GLOBAL_OBJ.HermesInternal.enablePromiseRejectionTracker({
         allRejections: true,
@@ -66,9 +66,9 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
         onHandled: promiseRejectionTrackingOptions.onHandled,
       });
 
-      logger.log('Unhandled promise rejections will be caught by Sentry.');
+      debug.log('Unhandled promise rejections will be caught by Sentry.');
     } else if (isWeb()) {
-      logger.log('Using Browser JS promise rejection tracking for React Native Web');
+      debug.log('Using Browser JS promise rejection tracking for React Native Web');
 
       // Use Sentry's built-in global unhandled rejection handler
       addGlobalUnhandledRejectionInstrumentationHandler((error: unknown) => {
@@ -85,10 +85,10 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
       checkPromiseAndWarn();
     } else {
       // For JSC and other environments, patching was disabled by user configuration
-      logger.log('Unhandled promise rejections will not be caught by Sentry.');
+      debug.log('Unhandled promise rejections will not be caught by Sentry.');
     }
   } catch (e) {
-    logger.warn(
+    debug.warn(
       'Failed to set up promise rejection tracking. ' +
         'Unhandled promise rejections will not be caught by Sentry.' +
         'See https://docs.sentry.io/platforms/react-native/troubleshooting/ for more details.',
@@ -99,7 +99,7 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
 const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
   onUnhandled: (id, error: unknown, rejection = {}) => {
     if (__DEV__) {
-      logger.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
+      debug.warn(`Possible Unhandled Promise Rejection (id: ${id}):\n${rejection}`);
     }
 
     // Marking the rejection as handled to avoid breaking crash rate calculations.
@@ -113,7 +113,7 @@ const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
   },
   onHandled: id => {
     if (__DEV__) {
-      logger.warn(
+      debug.warn(
         `Promise Rejection Handled (id: ${id})\n` +
           'This means you can ignore any previous messages of the form ' +
           `"Possible Unhandled Promise Rejection (id: ${id}):"`,
@@ -137,11 +137,11 @@ function setupErrorUtilsGlobalHandler(): void {
 
   const errorUtils = RN_GLOBAL_OBJ.ErrorUtils;
   if (!errorUtils) {
-    logger.warn('ErrorUtils not found. Can be caused by different environment for example react-native-web.');
+    debug.warn('ErrorUtils not found. Can be caused by different environment for example react-native-web.');
     return;
   }
 
-  const defaultHandler = errorUtils.getGlobalHandler && errorUtils.getGlobalHandler();
+  const defaultHandler = errorUtils.getGlobalHandler?.();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
@@ -149,7 +149,7 @@ function setupErrorUtilsGlobalHandler(): void {
     const shouldHandleFatal = isFatal && !__DEV__;
     if (shouldHandleFatal) {
       if (handlingFatal) {
-        logger.log('Encountered multiple fatals in a row. The latest:', error);
+        debug.log('Encountered multiple fatals in a row. The latest:', error);
         return;
       }
       handlingFatal = true;
@@ -158,7 +158,7 @@ function setupErrorUtilsGlobalHandler(): void {
     const client = getClient();
 
     if (!client) {
-      logger.error('Sentry client is missing, the error event might be lost.', error);
+      debug.error('Sentry client is missing, the error event might be lost.', error);
 
       // If there is no client something is fishy, anyway we call the default handler
       defaultHandler(error, isFatal);
@@ -197,12 +197,12 @@ function setupErrorUtilsGlobalHandler(): void {
       return;
     }
 
-    void client.flush(client.getOptions().shutdownTimeout || 2000).then(
+    void client.flush((client.getOptions() as ReactNativeClientOptions).shutdownTimeout || 2000).then(
       () => {
         defaultHandler(error, isFatal);
       },
       (reason: unknown) => {
-        logger.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
+        debug.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
       },
     );
   });

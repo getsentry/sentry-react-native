@@ -7,13 +7,13 @@
     "clean": "lerna run clean",
     "circularDepCheck": "lerna run circularDepCheck",
     "test": "lerna run test",
-    "fix": "run-s fix:lerna fix:android fix:clang fix:swift fix:kotlin",
+    "fix": "run-s fix:lerna fix:android fix:kotlin fix:clang fix:swift",
     "fix:lerna": "lerna run fix",
     "fix:android": "run-s 'java:format fix' java:pmd",
     "fix:clang": "run-s 'clang:format fix'",
     "fix:swift": "run-s 'swift:lint fix'",
     "fix:kotlin": "npx ktlint --relative --format '!**/node_modules/**'",
-    "lint": "run-s lint:lerna lint:android lint:clang lint:swift lint:kotlin",
+    "lint": "run-s lint:lerna lint:android lint:kotlin lint:clang lint:swift ",
     "lint:lerna": "lerna run lint",
     "lint:android": "run-s 'java:format lint' java:pmd",
     "lint:clang": "run-s 'clang:format lint'",
@@ -28,10 +28,8 @@
     "set-version-samples": "lerna run set-version"
   },
   "devDependencies": {
-    "@expo/swiftlint": "^0.57.1",
     "@naturalcycles/ktlint": "^1.13.0",
-    "@sentry/cli": "2.46.0",
-    "clang-format": "^1.8.0",
+    "@sentry/cli": "2.56.1",
     "downlevel-dts": "^0.11.0",
     "google-java-format": "^1.4.0",
     "lerna": "^8.1.8",
@@ -56,8 +54,13 @@
     "Appium has a dependency on @xmldom/xmldom@^0.x, which causes chromedrive build to fail yarn install",
     "See: https://github.com/appium/appium-chromedriver/pull/424"
   ],
+  "volta": {
+    "node": "18.20.8",
+    "yarn": "3.6.4"
+  },
   "resolutions": {
-    "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10"
+    "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10",
+    "form-data": "4.0.4"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",

@@ -10,6 +10,10 @@ jobs:
   diff_check:
     runs-on: ubuntu-latest
     continue-on-error: true
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      BASE_REF: ${{ github.base_ref }}
+      HEAD_REF: ${{ github.head_ref }}
     outputs:
       skip_ci:
         ${{ steps.check_diff.outputs.skip_ci }}
@@ -17,7 +21,7 @@ jobs:
       - name: Check if is PR
         id: check-pr
         run: |
-          if [ -z "${{ github.event.pull_request.number }}" ] || [ -z "${{ github.base_ref }}" ] || [ -z "${{ github.head_ref }}" ]; then
+          if [ -z "$PR_NUMBER" ] || [ -z "$BASE_REF" ] || [ -z "$HEAD_REF" ]; then
             echo "This action is intended to be run on pull requests only."
             echo "is-pr=false" >> $GITHUB_OUTPUT
           else
@@ -26,7 +30,7 @@ jobs:
 
       - name: Checkout PR Base Branch
         if: steps.check-pr.outputs.is-pr == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ github.base_ref }}
@@ -34,8 +38,8 @@ jobs:
       - name: Checkout PR Head Branch
         if: steps.check-pr.outputs.is-pr == 'true'
         run: |
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:${{ github.head_ref }}
-          git checkout ${{ github.head_ref }}
+          git fetch origin "pull/$PR_NUMBER/head:$HEAD_REF"
+          git checkout "$HEAD_REF"
 
       - name: Check diff from Pull Request
         if: steps.check-pr.outputs.is-pr == 'true'
@@ -43,7 +47,7 @@ jobs:
         run: |
           skipList=(".github/CODEOWNERS" ".prettierignore")
           # Ignores changelog.md, readme.md,...
-          fileChangesArray=($(git diff --name-only ${{ github.base_ref }}...${{ github.head_ref }} | grep -v '\.md$' || true))
+          fileChangesArray=($(git diff --name-only "$BASE_REF...$HEAD_REF" | grep -v '\.md$' || true))
           printf '%s\n' "${fileChangesArray[@]}"
           for item in "${fileChangesArray[@]}"
           do

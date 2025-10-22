@@ -7,7 +7,6 @@
  * https://github.com/expo/expo/blob/b51b5139f2caa2a9495e4132437d7ca612276158/packages/expo-manifests/src/Manifests.ts
  */
 export interface ExpoConstants {
-  appOwnership?: 'standalone' | 'expo' | 'guest';
   /**
    * Deprecated. But until removed we can use it as user ID to match the native SDKs.
    */
@@ -65,10 +64,13 @@ export interface ExpoUpdates {
   createdAt?: Date | null;
 }
 
+export type ExpoGo = unknown;
+
 export interface ExpoGlobalObject {
   modules?: {
     ExponentConstants?: ExpoConstants;
     ExpoDevice?: ExpoDevice;
     ExpoUpdates?: ExpoUpdates;
+    ExpoGo?: ExpoGo;
   };
 }

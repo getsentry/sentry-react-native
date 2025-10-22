@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { StackFrame } from '@sentry/core';
 import * as fs from 'fs';
-
 import * as metroMiddleware from '../../src/js/tools/metroMiddleware';
 
 const { withSentryMiddleware, createSentryMetroMiddleware, stackFramesContextMiddleware } = metroMiddleware;

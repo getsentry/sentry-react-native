@@ -99,6 +99,72 @@
     return sentryOptions;
 }
 
+- (void)trySetIgnoreErrors:(NSMutableDictionary *)options
+{
+    NSArray *ignoreErrorsStr = nil;
+    NSArray *ignoreErrorsRegex = nil;
+
+    id strArr = [options objectForKey:@"ignoreErrorsStr"];
+    id regexArr = [options objectForKey:@"ignoreErrorsRegex"];
+    if ([strArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsStr = (NSArray *)strArr;
+    }
+    if ([regexArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsRegex = (NSArray *)regexArr;
+    }
+
+    NSMutableArray<NSString *> *strs = [NSMutableArray array];
+    NSMutableArray<NSRegularExpression *> *regexes = [NSMutableArray array];
+
+    if (ignoreErrorsStr != nil) {
+        for (id str in ignoreErrorsStr) {
+            if ([str isKindOfClass:[NSString class]]) {
+                [strs addObject:str];
+            }
+        }
+    }
+
+    if (ignoreErrorsRegex != nil) {
+        for (id pattern in ignoreErrorsRegex) {
+            if ([pattern isKindOfClass:[NSString class]]) {
+                NSError *error = nil;
+                NSRegularExpression *regex =
+                    [NSRegularExpression regularExpressionWithPattern:pattern
+                                                              options:0
+                                                                error:&error];
+                if (regex && error == nil) {
+                    [regexes addObject:regex];
+                }
+            }
+        }
+    }
+
+    _ignoreErrorPatternsStr = [strs count] > 0 ? [strs copy] : nil;
+    _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
+}
+
+- (BOOL)shouldIgnoreError:(NSString *)message
+{
+    if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
+        return NO;
+    }
+
+    for (NSString *str in _ignoreErrorPatternsStr) {
+        if ([message containsString:str]) {
+            return YES;
+        }
+    }
+
+    for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
+        NSRange range = NSMakeRange(0, message.length);
+        if ([regex firstMatchInString:message options:0 range:range]) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
 /**
  * This function updates the options with RNSentry defaults. These default can be
  * overwritten by users during manual native initialization.
@@ -129,6 +195,18 @@
             [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
                 != NSNotFound) {
             return nil;
+        }
+        
+        // Regex and Str are set when one of them has value so we only need to check one of them.
+        if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
+            for (SentryException *exception in event.exceptions) {
+                if ([self shouldIgnoreError:exception.value]) {
+                    return nil;
+                }
+            }
+            if ([self shouldIgnoreError:event.message.message]) {
+                return nil;
+            }
         }
 
         [self setEventOriginTag:event];

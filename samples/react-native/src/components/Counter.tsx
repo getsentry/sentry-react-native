@@ -1,30 +1,22 @@
 import * as React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { CounterState } from '../reduxApp';
+import { Text, TouchableOpacity, View } from 'react-native';
+
+import { useDispatch, useSelector } from 'react-redux';
+
+import { increment, IRootState, reset } from '../store';
 
 const Counter = () => {
-  const counter = useSelector((state: CounterState) => state.counter);
+  const count = useSelector((state: IRootState) => state.counter.value);
   const dispatch = useDispatch();
 
   return (
     <View>
       <Text>Count:</Text>
-      <Text>{counter}</Text>
-      <TouchableOpacity
-        onPress={() =>
-          dispatch({
-            type: 'COUNTER_INCREMENT',
-          })
-        }>
+      <Text>{count}</Text>
+      <TouchableOpacity onPress={() => dispatch(increment())}>
         <Text>Increment</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() =>
-          dispatch({
-            type: 'COUNTER_RESET',
-          })
-        }>
+      <TouchableOpacity onPress={() => dispatch(reset())}>
         <Text>Reset</Text>
       </TouchableOpacity>
     </View>

@@ -3,6 +3,8 @@
   "include": [
     "./src/js/*.ts",
     "./src/js/*.tsx",
+    "./src/js/playground/*.ts",
+    "./src/js/playground/*.tsx",
     "./src/js/**/*.web.ts",
     "./src/js/**/*.web.tsx",
     "./typings/react-native.d.ts"
@@ -25,9 +27,7 @@
     "target": "es6",
     "module": "es6",
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
     "strictBindCallApply": true,
-    "strictNullChecks": false,
     "importHelpers": false
   }
 }
