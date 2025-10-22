@@ -14,7 +14,6 @@
     [expected setIpAddress:@"192.168.1.1"];
     [expected setEmail:@"test@example.com"];
     [expected setUsername:@"testuser"];
-    [expected setSegment:@"testsegment"];
     [expected setData:@{
         @"foo" : @"bar",
         @"baz" : @123,
@@ -26,7 +25,6 @@
         @"ip_address" : @"192.168.1.1",
         @"email" : @"test@example.com",
         @"username" : @"testuser",
-        @"segment" : @"testsegment",
     }
                               otherUserKeys:@{
                                   @"foo" : @"bar",
@@ -67,7 +65,6 @@
         @"ip_address" : @ {},
         @"email" : @ {},
         @"username" : @ {},
-        @"segment" : @[],
     }
                               otherUserKeys:nil];
 
@@ -84,7 +81,6 @@
         @"ip_address" : @ {},
         @"email" : @ {},
         @"username" : @ {},
-        @"segment" : @[],
     }
                               otherUserKeys:nil];
 
@@ -100,7 +96,6 @@
         @"ip_address" : [NSNull null],
         @"email" : [NSNull null],
         @"username" : [NSNull null],
-        @"segment" : [NSNull null],
     }
                               otherUserKeys:nil];
 
