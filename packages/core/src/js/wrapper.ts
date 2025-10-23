@@ -394,14 +394,13 @@ export const NATIVE: SentryNativeWrapper = {
     let userKeys = null;
     let userDataKeys = null;
     if (user) {
-      const { id, ip_address, email, username, segment, ...otherKeys } = user;
+      const { id, ip_address, email, username, ...otherKeys } = user;
       // TODO: Update native impl to use geo
       const requiredUser: Omit<RequiredKeysUser, 'geo'> = {
         id,
         ip_address,
         email,
         username,
-        segment,
       };
       userKeys = this._serializeObject(requiredUser);
       userDataKeys = this._serializeObject(otherKeys);
