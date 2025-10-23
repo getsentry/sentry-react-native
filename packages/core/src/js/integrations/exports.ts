@@ -12,7 +12,7 @@ export { screenshotIntegration } from './screenshot';
 export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';
 export { spotlightIntegration } from './spotlight';
-export { mobileReplayIntegration } from '../replay/mobilereplay';
+export { mobileReplayIntegration, ScreenshotStrategy } from '../replay/mobilereplay';
 export { feedbackIntegration } from '../feedback/integration';
 export { browserReplayIntegration } from '../replay/browserReplay';
 export { appStartIntegration } from '../tracing/integrations/appStart';
