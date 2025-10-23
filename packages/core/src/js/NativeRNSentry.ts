@@ -135,7 +135,6 @@ export type NativeDeviceContextsResponse = {
     email?: string;
     username?: string;
     ipAddress?: string;
-    segment?: string;
     data?: Record<string, unknown>;
   };
   dist?: string;
