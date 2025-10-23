@@ -724,6 +724,31 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
             [userInstance setUsername:username];
         }
 
+        id geo = [userKeys valueForKey:@"geo"];
+        if ([geo isKindOfClass:NSDictionary.class]) {
+            NSDictionary *geoDict = (NSDictionary *)geo;
+            NSMutableDictionary *geoData = [[NSMutableDictionary alloc] init];
+
+            id city = [geoDict valueForKey:@"city"];
+            if ([city isKindOfClass:NSString.class]) {
+                [geoData setObject:city forKey:@"city"];
+            }
+
+            id countryCode = [geoDict valueForKey:@"country_code"];
+            if ([countryCode isKindOfClass:NSString.class]) {
+                [geoData setObject:countryCode forKey:@"country_code"];
+            }
+
+            id region = [geoDict valueForKey:@"region"];
+            if ([region isKindOfClass:NSString.class]) {
+                [geoData setObject:region forKey:@"region"];
+            }
+
+            if ([geoData count] > 0) {
+                [userInstance setData:@{ @"geo" : geoData }];
+            }
+        }
+
         if ([userDataKeys isKindOfClass:NSDictionary.class]) {
             [userInstance setData:userDataKeys];
         }

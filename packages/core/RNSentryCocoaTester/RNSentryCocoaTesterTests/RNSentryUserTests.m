@@ -102,4 +102,63 @@
     XCTAssertTrue([actual isEqualToUser:expected]);
 }
 
+- (void)testUserWithGeo
+{
+    SentryUser *expected = [[SentryUser alloc] init];
+    [expected setUserId:@"123"];
+    [expected setEmail:@"test@example.com"];
+    [expected setUsername:@"testuser"];
+    [expected setData:@{
+        @"geo" :
+            @ { @"city" : @"San Francisco", @"country_code" : @"US", @"region" : @"California" }
+    }];
+
+    SentryUser *actual = [RNSentry userFrom:@{
+        @"id" : @"123",
+        @"email" : @"test@example.com",
+        @"username" : @"testuser",
+        @"geo" :
+            @ { @"city" : @"San Francisco", @"country_code" : @"US", @"region" : @"California" }
+    }
+                              otherUserKeys:nil];
+
+    XCTAssertTrue([actual isEqualToUser:expected]);
+}
+
+- (void)testUserWithPartialGeo
+{
+    SentryUser *expected = [[SentryUser alloc] init];
+    [expected setUserId:@"123"];
+    [expected setData:@{ @"geo" : @ { @"city" : @"New York", @"country_code" : @"US" } }];
+
+    SentryUser *actual = [RNSentry userFrom:@{
+        @"id" : @"123",
+        @"geo" : @ { @"city" : @"New York", @"country_code" : @"US" }
+    }
+                              otherUserKeys:nil];
+
+    XCTAssertTrue([actual isEqualToUser:expected]);
+}
+
+- (void)testUserWithEmptyGeo
+{
+    SentryUser *expected = [[SentryUser alloc] init];
+    [expected setUserId:@"123"];
+
+    SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @ {} } otherUserKeys:nil];
+
+    XCTAssertTrue([actual isEqualToUser:expected]);
+}
+
+- (void)testUserWithInvalidGeo
+{
+    SentryUser *expected = [[SentryUser alloc] init];
+    [expected setUserId:@"123"];
+
+    SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @"invalid_geo_data" }
+                              otherUserKeys:nil];
+
+    XCTAssertTrue([actual isEqualToUser:expected]);
+}
+
 @end
