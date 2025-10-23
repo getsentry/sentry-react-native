@@ -8,8 +8,12 @@
 
 ## Unreleased
 
-### Dependencies
+### Features
 
+- Supabase integration ([#5296](https://github.com/getsentry/sentry-react-native/pull/5296))
+
+### Dependencies
+z
 - Bump Bundler Plugins from v4.4.0 to v4.5.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#450)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.4.0...4.5.0)

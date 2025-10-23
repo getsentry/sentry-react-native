@@ -20,7 +20,7 @@ describe('supabase', () => {
   // is covered by the integration tests in the @sentry/browser package
   it('passes React Native options to browserSupabaseIntegration', () => {
     const mockClient = createMockClient();
-    supabaseIntegration({supabaseClient: mockClient});
+    supabaseIntegration({ supabaseClient: mockClient });
 
     expect(browserSupabaseIntegration).toHaveBeenCalledWith({
       supabaseClient: mockClient,
