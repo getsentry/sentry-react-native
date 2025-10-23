@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Adds GraphQL integration ([#5299](https://github.com/getsentry/sentry-react-native/pull/5299))
+
 ### Dependencies
 
 - Bump Bundler Plugins from v4.4.0 to v4.5.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283))
@@ -19,6 +23,12 @@
 - Bump CLI from v2.56.1 to v2.57.0 ([#5295](https://github.com/getsentry/sentry-react-native/pull/5295))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2570)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.56.1...2.57.0)
+- Bump Android SDK from v8.23.0 to v8.24.0 ([#5292](https://github.com/getsentry/sentry-react-native/pull/5292))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8240)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.23.0...8.24.0)
+- Bump Android SDK Stubs from v8.23.0 to v8.24.0 ([#5293](https://github.com/getsentry/sentry-react-native/pull/5293))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8240)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.23.0...8.24.0)
 
 ## 7.4.0
 
