@@ -10,7 +10,7 @@
 
 ### Features
 
-- Supabase integration ([#5296](https://github.com/getsentry/sentry-react-native/pull/5296))
+- Adds Supabase integration ([#5296](https://github.com/getsentry/sentry-react-native/pull/5296))
 
 ### Dependencies
 z
