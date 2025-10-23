@@ -287,8 +287,6 @@ class RNSentryModuleImplTest {
         )
         val userDataKeys = JavaOnlyMap.of("customField", "customValue")
 
-        // This test verifies that the setUser method can handle geo data without throwing exceptions
-        // The actual verification would require mocking Sentry.configureScope, but this ensures the method runs
         module.setUser(userKeys, userDataKeys)
     }
 

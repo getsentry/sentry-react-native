@@ -76,13 +76,6 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Capture exception with breadcrumb"
           onPress={() => {
-            Sentry.setUser({
-              geo: {
-                city: 'green field',
-                country_code: 'GF',
-                region: 'idk'
-              }
-            });
             Sentry.captureException(
               new Error('Captured exception with breadcrumb'),
               context =>
