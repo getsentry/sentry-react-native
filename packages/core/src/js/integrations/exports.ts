@@ -25,6 +25,7 @@ export { timeToDisplayIntegration } from '../tracing/integrations/timeToDisplayI
 export { breadcrumbsIntegration } from './breadcrumbs';
 export { primitiveTagIntegration } from './primitiveTagIntegration';
 export { logEnricherIntegration } from './logEnricherIntegration';
+export { graphqlIntegration } from './graphql';
 
 export {
   browserApiErrorsIntegration,

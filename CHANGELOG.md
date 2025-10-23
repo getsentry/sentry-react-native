@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Adds GraphQL integration ([#5299](https://github.com/getsentry/sentry-react-native/pull/5299))
+
 ### Dependencies
 
 - Bump Bundler Plugins from v4.4.0 to v4.5.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283))
