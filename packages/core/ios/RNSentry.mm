@@ -25,11 +25,11 @@
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
+#import <Sentry/SentryGeo.h>
 #import <Sentry/SentryOptions.h>
 #import <Sentry/SentryOptionsInternal.h>
 #import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryUser.h>
-#import <Sentry/SentryGeo.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
