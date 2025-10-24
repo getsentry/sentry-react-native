@@ -37,6 +37,7 @@ import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
 import io.sentry.ScopesAdapter;
+import io.sentry.ScreenshotStrategyType;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
@@ -415,10 +416,34 @@ public class RNSentryModuleImpl {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
     }
 
+    if (rnMobileReplayOptions.hasKey("screenshotStrategy")) {
+      final String screenshotStrategyString = rnMobileReplayOptions.getString("screenshotStrategy");
+      final ScreenshotStrategyType screenshotStrategy =
+          parseScreenshotStrategy(screenshotStrategyString);
+      androidReplayOptions.setScreenshotStrategy(screenshotStrategy);
+    }
+
     androidReplayOptions.setMaskViewContainerClass(RNSentryReplayMask.class.getName());
     androidReplayOptions.setUnmaskViewContainerClass(RNSentryReplayUnmask.class.getName());
 
     return androidReplayOptions;
+  }
+
+  private ScreenshotStrategyType parseScreenshotStrategy(@Nullable String strategyString) {
+    if (strategyString == null) {
+      return ScreenshotStrategyType.PIXEL_COPY;
+    }
+
+    try {
+      switch (strategyString.toLowerCase(Locale.ROOT)) {
+        case "canvas":
+          return ScreenshotStrategyType.CANVAS;
+        default:
+          return ScreenshotStrategyType.PIXEL_COPY;
+      }
+    } catch (Exception e) {
+      return ScreenshotStrategyType.PIXEL_COPY;
+    }
   }
 
   private SentryReplayQuality parseReplayQuality(@Nullable String qualityString) {
