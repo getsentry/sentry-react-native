@@ -426,19 +426,15 @@ public class RNSentryModuleImpl {
       return SentryReplayQuality.MEDIUM;
     }
 
-    try {
-      switch (qualityString.toLowerCase(Locale.ROOT)) {
-        case "low":
-          return SentryReplayQuality.LOW;
-        case "medium":
-          return SentryReplayQuality.MEDIUM;
-        case "high":
-          return SentryReplayQuality.HIGH;
-        default:
-          return SentryReplayQuality.MEDIUM;
-      }
-    } catch (Exception e) {
-      return SentryReplayQuality.MEDIUM;
+    switch (qualityString.toLowerCase(Locale.ROOT)) {
+      case "low":
+        return SentryReplayQuality.LOW;
+      case "medium":
+        return SentryReplayQuality.MEDIUM;
+      case "high":
+        return SentryReplayQuality.HIGH;
+      default:
+        return SentryReplayQuality.MEDIUM;
     }
   }
 
