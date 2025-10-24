@@ -728,7 +728,7 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
         id geo = [userKeys valueForKey:@"geo"];
         if ([geo isKindOfClass:NSDictionary.class]) {
             NSDictionary *geoDict = (NSDictionary *)geo;
-            SentryGeo *sentryGeo = [[SentryGeo alloc] init];
+            SentryGeo *sentryGeo = [SentryGeo alloc];
 
             id city = [geoDict valueForKey:@"city"];
             if ([city isKindOfClass:NSString.class]) {
