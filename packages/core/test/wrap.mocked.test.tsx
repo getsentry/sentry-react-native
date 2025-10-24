@@ -116,7 +116,7 @@ describe('Sentry.wrap', () => {
           includeRender: true,
           includeUpdates: true,
         }),
-        expect.anything(),
+        expect.toBeNil()
       );
 
       expect(ReactNativeProfiler).not.toHaveBeenCalledWith(
@@ -137,7 +137,7 @@ describe('Sentry.wrap', () => {
           name: 'Root',
           updateProps: {},
         }),
-        expect.anything(),
+        expect.toBeNil(),
       );
     });
   });
