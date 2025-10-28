@@ -305,7 +305,7 @@ jobs:
         platform: ['android', 'ios']
         build-type: ['production']
         ios-use-frameworks: ['no'] # test only no framworks
-        engine: ['hermes', 'jsc']
+        engine: ['hermes']
         include:
           - platform: ios
             rn-version: '0.81.0'
@@ -319,11 +319,6 @@ jobs:
           # exclude all rn versions lower than 0.80.0 for new architecture
           - rn-version: '0.71.11'
             rn-architecture: 'new'
-          # e2e test only the default combinations
-          - rn-version: '0.71.11'
-            engine: 'hermes'
-          - rn-version: '0.81.0'
-            engine: 'jsc'
 
     steps:
       - uses: actions/checkout@v5
