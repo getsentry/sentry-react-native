@@ -130,7 +130,7 @@
 
 - (void)testUserWithPartialGeo
 {
-    SentryUser *expected = [SentryUser alloc];
+    SentryUser *expected = [SentryUser alloc] init];
     [expected setUserId:@"123"];
 
     SentryGeo *expectedGeo = [SentryGeo alloc];
@@ -153,7 +153,7 @@
     [expected setUserId:@"123"];
 
     // Empty geo dictionary creates an empty SentryGeo object
-    SentryGeo *expectedGeo = [[SentryGeo alloc] init];
+    SentryGeo *expectedGeo = [SentryGeo alloc]
     [expected setGeo:expectedGeo];
 
     SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @ {} } otherUserKeys:nil];
