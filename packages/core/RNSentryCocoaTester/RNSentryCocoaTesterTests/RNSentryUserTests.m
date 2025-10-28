@@ -153,7 +153,7 @@
     [expected setUserId:@"123"];
 
     // Empty geo dictionary creates an empty SentryGeo object
-    SentryGeo *expectedGeo = [SentryGeo alloc]
+    SentryGeo *expectedGeo = [SentryGeo alloc];
     [expected setGeo:expectedGeo];
 
     SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @ {} } otherUserKeys:nil];
