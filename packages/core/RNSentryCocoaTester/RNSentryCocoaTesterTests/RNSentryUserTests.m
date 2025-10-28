@@ -130,7 +130,7 @@
 
 - (void)testUserWithPartialGeo
 {
-    SentryUser *expected = [SentryUser alloc] init];
+    SentryUser *expected = [[SentryUser alloc] init];
     [expected setUserId:@"123"];
 
     SentryGeo *expectedGeo = [SentryGeo alloc];
