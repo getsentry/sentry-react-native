@@ -105,12 +105,12 @@
 
 - (void)testUserWithGeo
 {
-    SentryUser *expected = [[SentryUser alloc] init];
+    SentryUser *expected = [SentryUser alloc];
     [expected setUserId:@"123"];
     [expected setEmail:@"test@example.com"];
     [expected setUsername:@"testuser"];
 
-    SentryGeo *expectedGeo = [[SentryGeo alloc] init];
+    SentryGeo *expectedGeo = [SentryGeo alloc];
     [expectedGeo setCity:@"San Francisco"];
     [expectedGeo setCountryCode:@"US"];
     [expectedGeo setRegion:@"California"];
@@ -130,10 +130,10 @@
 
 - (void)testUserWithPartialGeo
 {
-    SentryUser *expected = [[SentryUser alloc] init];
+    SentryUser *expected = [SentryUser alloc];
     [expected setUserId:@"123"];
 
-    SentryGeo *expectedGeo = [[SentryGeo alloc] init];
+    SentryGeo *expectedGeo = [SentryGeo alloc];
     [expectedGeo setCity:@"New York"];
     [expectedGeo setCountryCode:@"US"];
     [expected setGeo:expectedGeo];
