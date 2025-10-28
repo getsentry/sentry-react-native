@@ -1,5 +1,6 @@
 #import "RNSentry+Test.h"
 #import "RNSentryTests.h"
+#import <Sentry/SentryGeo.h>
 #import <XCTest/XCTest.h>
 
 @interface RNSentryUserTests : XCTestCase
@@ -108,10 +109,12 @@
     [expected setUserId:@"123"];
     [expected setEmail:@"test@example.com"];
     [expected setUsername:@"testuser"];
-    [expected setData:@{
-        @"geo" :
-            @ { @"city" : @"San Francisco", @"country_code" : @"US", @"region" : @"California" }
-    }];
+
+    SentryGeo *expectedGeo = [[SentryGeo alloc] init];
+    [expectedGeo setCity:@"San Francisco"];
+    [expectedGeo setCountryCode:@"US"];
+    [expectedGeo setRegion:@"California"];
+    [expected setGeo:expectedGeo];
 
     SentryUser *actual = [RNSentry userFrom:@{
         @"id" : @"123",
@@ -129,7 +132,11 @@
 {
     SentryUser *expected = [[SentryUser alloc] init];
     [expected setUserId:@"123"];
-    [expected setData:@{ @"geo" : @ { @"city" : @"New York", @"country_code" : @"US" } }];
+
+    SentryGeo *expectedGeo = [[SentryGeo alloc] init];
+    [expectedGeo setCity:@"New York"];
+    [expectedGeo setCountryCode:@"US"];
+    [expected setGeo:expectedGeo];
 
     SentryUser *actual = [RNSentry userFrom:@{
         @"id" : @"123",
@@ -144,6 +151,10 @@
 {
     SentryUser *expected = [[SentryUser alloc] init];
     [expected setUserId:@"123"];
+
+    // Empty geo dictionary creates an empty SentryGeo object
+    SentryGeo *expectedGeo = [[SentryGeo alloc] init];
+    [expected setGeo:expectedGeo];
 
     SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @ {} } otherUserKeys:nil];
 
