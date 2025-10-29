@@ -11,15 +11,32 @@
 ### Features
 
 - Adds GraphQL integration ([#5299](https://github.com/getsentry/sentry-react-native/pull/5299))
+- Adds Supabase integration ([#5296](https://github.com/getsentry/sentry-react-native/pull/5296))
+- Add new _experimental_ Canvas Capture Strategy for Session Replay ([#5301](https://github.com/getsentry/sentry-react-native/pull/5301))
+  - A new screenshot capture strategy that uses Android's Canvas API for more accurate and reliable text and image masking
+  - Any `.drawText()` or `.drawBitmap()` calls are replaced by rectangles, ensuring no text or images are present in the resulting output
+  - Note: If this strategy is used, all text and images will be masked, regardless of any masking configuration
+  - To enable this feature, set the `screenshotStrategy` to `canvas`:
+    ```js
+    import * as Sentry from '@sentry/react-native';
+
+    Sentry.init({
+      integrations: [
+        Sentry.mobileReplayIntegration({
+          screenshotStrategy: 'canvas',
+        }),
+      ],
+    });
+    ```
 
 ### Dependencies
 
 - Bump Bundler Plugins from v4.4.0 to v4.5.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#450)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.4.0...4.5.0)
-- Bump JavaScript SDK from v10.20.0 to v10.21.0 ([#5289](https://github.com/getsentry/sentry-react-native/pull/5289))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10210)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.20.0...10.21.0)
+- Bump JavaScript SDK from v10.20.0 to v10.22.0 ([#5289](https://github.com/getsentry/sentry-react-native/pull/5289), [#5306](https://github.com/getsentry/sentry-react-native/pull/5306))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10220)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.20.0...10.22.0)
 - Bump CLI from v2.56.1 to v2.57.0 ([#5295](https://github.com/getsentry/sentry-react-native/pull/5295))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2570)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.56.1...2.57.0)
