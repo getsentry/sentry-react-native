@@ -434,15 +434,11 @@ public class RNSentryModuleImpl {
       return ScreenshotStrategyType.PIXEL_COPY;
     }
 
-    try {
-      switch (strategyString.toLowerCase(Locale.ROOT)) {
-        case "canvas":
-          return ScreenshotStrategyType.CANVAS;
-        default:
-          return ScreenshotStrategyType.PIXEL_COPY;
-      }
-    } catch (Exception e) {
-      return ScreenshotStrategyType.PIXEL_COPY;
+    switch (strategyString.toLowerCase(Locale.ROOT)) {
+      case "canvas":
+        return ScreenshotStrategyType.CANVAS;
+      default:
+        return ScreenshotStrategyType.PIXEL_COPY;
     }
   }
 
