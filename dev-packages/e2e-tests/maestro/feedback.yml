@@ -24,6 +24,6 @@ jsEngine: graaljs
       platform: iOS
 
 - runFlow:
-    file: feedback/captureFlow-android.yml
+    file: feedback/captureFlow-ios.yml
     when:
       platform: Android
