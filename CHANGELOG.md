@@ -12,6 +12,22 @@
 
 - Adds GraphQL integration ([#5299](https://github.com/getsentry/sentry-react-native/pull/5299))
 - Adds Supabase integration ([#5296](https://github.com/getsentry/sentry-react-native/pull/5296))
+- Add new _experimental_ Canvas Capture Strategy for Session Replay ([#5301](https://github.com/getsentry/sentry-react-native/pull/5301))
+  - A new screenshot capture strategy that uses Android's Canvas API for more accurate and reliable text and image masking
+  - Any `.drawText()` or `.drawBitmap()` calls are replaced by rectangles, ensuring no text or images are present in the resulting output
+  - Note: If this strategy is used, all text and images will be masked, regardless of any masking configuration
+  - To enable this feature, set the `screenshotStrategy` to `canvas`:
+    ```js
+    import * as Sentry from '@sentry/react-native';
+
+    Sentry.init({
+      integrations: [
+        Sentry.mobileReplayIntegration({
+          screenshotStrategy: 'canvas',
+        }),
+      ],
+    });
+    ```
 
 ### Dependencies
 
