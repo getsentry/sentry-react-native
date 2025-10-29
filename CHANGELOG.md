@@ -31,9 +31,9 @@
 
 ### Dependencies
 
-- Bump Bundler Plugins from v4.4.0 to v4.5.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283))
-  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#450)
-  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.4.0...4.5.0)
+- Bump Bundler Plugins from v4.4.0 to v4.6.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283), [#5314](https://github.com/getsentry/sentry-react-native/pull/5314))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#460)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.4.0...4.6.0)
 - Bump JavaScript SDK from v10.20.0 to v10.22.0 ([#5289](https://github.com/getsentry/sentry-react-native/pull/5289), [#5306](https://github.com/getsentry/sentry-react-native/pull/5306))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10220)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.20.0...10.22.0)
