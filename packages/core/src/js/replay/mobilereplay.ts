@@ -48,6 +48,7 @@ export interface MobileReplayOptions {
    * - Experiment: This is an experimental feature and is therefore disabled by default.
    *
    * @deprecated Use `enableViewRendererV2` instead.
+   * @platform ios
    */
   enableExperimentalViewRenderer?: boolean;
 
@@ -62,6 +63,7 @@ export interface MobileReplayOptions {
    *               Eventually, we will remove this feature flag and use the new view renderer by default.
    *
    * @default true
+   * @platform ios
    */
   enableViewRendererV2?: boolean;
 
@@ -75,6 +77,7 @@ export interface MobileReplayOptions {
    * - Experiment: This is an experimental feature and is therefore disabled by default.
    *
    * @default false
+   * @platform ios
    */
   enableFastViewRendering?: boolean;
 
