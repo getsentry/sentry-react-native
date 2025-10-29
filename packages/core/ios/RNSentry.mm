@@ -22,7 +22,6 @@
 #import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBreadcrumb.h>
 #import <Sentry/SentryDebugMeta.h>
-#import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
@@ -265,9 +264,7 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
         BOOL enableNativeCrashHandling = [mutableOptions[@"enableNativeCrashHandling"] boolValue];
 
         if (!enableNativeCrashHandling) {
-            NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
-            [integrations removeObject:@"SentryCrashIntegration"];
-            sentryOptions.integrations = integrations;
+            sentryOptions.enableCrashHandler = NO;
         }
     }
 
@@ -723,10 +720,6 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
         id username = [userKeys valueForKey:@"username"];
         if ([username isKindOfClass:NSString.class]) {
             [userInstance setUsername:username];
-        }
-        id segment = [userKeys valueForKey:@"segment"];
-        if ([segment isKindOfClass:NSString.class]) {
-            [userInstance setSegment:segment];
         }
 
         if ([userDataKeys isKindOfClass:NSDictionary.class]) {
