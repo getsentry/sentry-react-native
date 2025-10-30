@@ -34,6 +34,9 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
   private int lastWidth = -1;
   private int lastHeight = -1;
 
+  private @Nullable View currentView;
+  private @Nullable ViewTreeObserver.OnGlobalLayoutListener currentListener;
+
   public RNSentryReactFragmentLifecycleTracer(
       @NotNull BuildInfoProvider buildInfoProvider,
       @NotNull Runnable emitNewFrameEvent,
@@ -109,15 +112,37 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
     attachLayoutChangeListener(v);
   }
 
+  @Override
+  public void onFragmentViewDestroyed(@NonNull FragmentManager fm, @NonNull Fragment f) {
+    detachLayoutChangeListener();
+  }
+
   private void attachLayoutChangeListener(final View view) {
-    view.getViewTreeObserver()
-        .addOnGlobalLayoutListener(
-            new ViewTreeObserver.OnGlobalLayoutListener() {
-              @Override
-              public void onGlobalLayout() {
-                checkAndNotifyWindowSizeChange(view);
-              }
-            });
+    final ViewTreeObserver.OnGlobalLayoutListener listener =
+        new ViewTreeObserver.OnGlobalLayoutListener() {
+          @Override
+          public void onGlobalLayout() {
+            checkAndNotifyWindowSizeChange(view);
+          }
+        };
+
+    currentView = view;
+    currentListener = listener;
+
+    view.getViewTreeObserver().addOnGlobalLayoutListener(listener);
+  }
+
+  private void detachLayoutChangeListener() {
+    if (currentView != null && currentListener != null) {
+      try {
+        currentView.getViewTreeObserver().removeOnGlobalLayoutListener(currentListener);
+      } catch (Exception e) {
+        logger.log(SentryLevel.DEBUG, "Failed to remove layout change listener", e);
+      }
+    }
+
+    currentView = null;
+    currentListener = null;
   }
 
   private void checkAndNotifyWindowSizeChange(View view) {
