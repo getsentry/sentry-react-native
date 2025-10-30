@@ -147,10 +147,6 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
         return;
       }
 
-      if (!replayIntegration.isRecording()) {
-        return;
-      }
-
       replayIntegration.onWindowSizeChanged(width, height);
     } catch (Exception e) {
       logger.log(SentryLevel.DEBUG, "Failed to notify replay integration of size change", e);
