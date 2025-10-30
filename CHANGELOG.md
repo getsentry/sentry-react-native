@@ -29,6 +29,10 @@
     });
     ```
 
+### Fixes
+
+- Fixes orientation change misalignment for session replay on Android ([#5321](https://github.com/getsentry/sentry-react-native/pull/5321))
+
 ### Dependencies
 
 - Bump Bundler Plugins from v4.4.0 to v4.6.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283), [#5314](https://github.com/getsentry/sentry-react-native/pull/5314))
