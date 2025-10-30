@@ -85,6 +85,34 @@ class RNSentryReactFragmentLifecycleTracerTest {
         callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithGenericContext())
     }
 
+    @Test
+    fun tracerAttachesLayoutListener() {
+        val mockEventDispatcher = mock<EventDispatcher>()
+        val mockViewTreeObserver = mock<ViewTreeObserver>()
+        mockUIManager(mockEventDispatcher)
+
+        val mockView = mockScreenViewWithReactContext(mockViewTreeObserver)
+        callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockView)
+
+        verify(mockViewTreeObserver, times(1)).addOnGlobalLayoutListener(any())
+    }
+
+    @Test
+    fun tracerRemovesLayoutListenerWhenFragmentViewDestroyed() {
+        val mockEventDispatcher = mock<EventDispatcher>()
+        val mockViewTreeObserver = mock<ViewTreeObserver>()
+        mockUIManager(mockEventDispatcher)
+
+        val mockFragment = mock<ScreenStackFragment>()
+        val mockView = mockScreenViewWithReactContext(mockViewTreeObserver)
+
+        val tracer = createSutWith()
+        tracer.onFragmentViewCreated(mock(), mockFragment, mockView, null)
+        tracer.onFragmentViewDestroyed(mock(), mockFragment)
+
+        verify(mockViewTreeObserver, times(1)).removeOnGlobalLayoutListener(any())
+    }
+
     private fun callOnFragmentViewCreated(
         mockFragment: Fragment,
         mockView: View,
@@ -108,8 +136,7 @@ class RNSentryReactFragmentLifecycleTracerTest {
         )
     }
 
-    private fun mockScreenViewWithReactContext(): View {
-        val mockViewTreeObserver = mock<ViewTreeObserver>()
+    private fun mockScreenViewWithReactContext(mockViewTreeObserver: ViewTreeObserver = mock()): View {
         val screenMock: View =
             mock {
                 whenever(it.id).thenReturn(123)
@@ -125,8 +152,7 @@ class RNSentryReactFragmentLifecycleTracerTest {
         return mockView
     }
 
-    private fun mockScreenViewWithGenericContext(): View {
-        val mockViewTreeObserver = mock<ViewTreeObserver>()
+    private fun mockScreenViewWithGenericContext(mockViewTreeObserver: ViewTreeObserver = mock()): View {
         val screenMock: View =
             mock {
                 whenever(it.id).thenReturn(123)
@@ -142,8 +168,7 @@ class RNSentryReactFragmentLifecycleTracerTest {
         return mockView
     }
 
-    private fun mockScreenViewWithNoId(): View {
-        val mockViewTreeObserver = mock<ViewTreeObserver>()
+    private fun mockScreenViewWithNoId(mockViewTreeObserver: ViewTreeObserver = mock()): View {
         val screenMock: View =
             mock {
                 whenever(it.id).thenReturn(-1)
@@ -159,13 +184,11 @@ class RNSentryReactFragmentLifecycleTracerTest {
         return mockView
     }
 
-    private fun mockScreenViewWithoutChild(): View {
-        val mockViewTreeObserver = mock<ViewTreeObserver>()
-        return mock<ViewGroup> {
+    private fun mockScreenViewWithoutChild(mockViewTreeObserver: ViewTreeObserver = mock()): View =
+        mock<ViewGroup> {
             whenever(it.childCount).thenReturn(0)
             whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
         }
-    }
 
     private fun mockUIManager(mockEventDispatcher: EventDispatcher) {
         mockUIManager = mockStatic(UIManagerHelper::class.java)
