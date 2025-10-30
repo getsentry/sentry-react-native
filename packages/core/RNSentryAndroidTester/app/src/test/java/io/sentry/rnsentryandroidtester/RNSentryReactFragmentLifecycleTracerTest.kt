@@ -2,6 +2,7 @@ package io.sentry.rnsentryandroidtester
 
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
@@ -108,51 +109,63 @@ class RNSentryReactFragmentLifecycleTracerTest {
     }
 
     private fun mockScreenViewWithReactContext(): View {
+        val mockViewTreeObserver = mock<ViewTreeObserver>()
         val screenMock: View =
             mock {
                 whenever(it.id).thenReturn(123)
                 whenever(it.context).thenReturn(mock<ReactContext>())
+                whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
             }
         val mockView =
             mock<ViewGroup> {
                 whenever(it.childCount).thenReturn(1)
                 whenever(it.getChildAt(0)).thenReturn(screenMock)
+                whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
             }
         return mockView
     }
 
     private fun mockScreenViewWithGenericContext(): View {
+        val mockViewTreeObserver = mock<ViewTreeObserver>()
         val screenMock: View =
             mock {
                 whenever(it.id).thenReturn(123)
                 whenever(it.context).thenReturn(mock())
+                whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
             }
         val mockView =
             mock<ViewGroup> {
                 whenever(it.childCount).thenReturn(1)
                 whenever(it.getChildAt(0)).thenReturn(screenMock)
+                whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
             }
         return mockView
     }
 
     private fun mockScreenViewWithNoId(): View {
+        val mockViewTreeObserver = mock<ViewTreeObserver>()
         val screenMock: View =
             mock {
                 whenever(it.id).thenReturn(-1)
                 whenever(it.context).thenReturn(mock<ReactContext>())
+                whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
             }
         val mockView =
             mock<ViewGroup> {
                 whenever(it.childCount).thenReturn(1)
                 whenever(it.getChildAt(0)).thenReturn(screenMock)
+                whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
             }
         return mockView
     }
 
-    private fun mockScreenViewWithoutChild(): View =
-        mock<ViewGroup> {
+    private fun mockScreenViewWithoutChild(): View {
+        val mockViewTreeObserver = mock<ViewTreeObserver>()
+        return mock<ViewGroup> {
             whenever(it.childCount).thenReturn(0)
+            whenever(it.viewTreeObserver).thenReturn(mockViewTreeObserver)
         }
+    }
 
     private fun mockUIManager(mockEventDispatcher: EventDispatcher) {
         mockUIManager = mockStatic(UIManagerHelper::class.java)
