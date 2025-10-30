@@ -3,6 +3,7 @@ package io.sentry.react;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -13,9 +14,13 @@ import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.EventDispatcherListener;
 import io.sentry.ILogger;
+import io.sentry.Integration;
+import io.sentry.ScopesAdapter;
 import io.sentry.SentryLevel;
+import io.sentry.SentryOptions;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.internal.util.FirstDrawDoneListener;
+import io.sentry.android.replay.ReplayIntegration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +29,10 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
   private @NotNull final BuildInfoProvider buildInfoProvider;
   private @NotNull final Runnable emitNewFrameEvent;
   private @NotNull final ILogger logger;
+
+  private @Nullable ReplayIntegration replayIntegration;
+  private int lastWidth = -1;
+  private int lastHeight = -1;
 
   public RNSentryReactFragmentLifecycleTracer(
       @NotNull BuildInfoProvider buildInfoProvider,
@@ -95,6 +104,75 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
             }
           }
         });
+
+    // Add layout listener to detect configuration changes
+    attachLayoutChangeListener(v);
+  }
+
+  private void attachLayoutChangeListener(final View view) {
+    view.getViewTreeObserver()
+        .addOnGlobalLayoutListener(
+            new ViewTreeObserver.OnGlobalLayoutListener() {
+              @Override
+              public void onGlobalLayout() {
+                checkAndNotifyWindowSizeChange(view);
+              }
+            });
+  }
+
+  private void checkAndNotifyWindowSizeChange(View view) {
+    try {
+      android.util.DisplayMetrics metrics = view.getContext().getResources().getDisplayMetrics();
+      int currentWidth = metrics.widthPixels;
+      int currentHeight = metrics.heightPixels;
+
+      if (lastWidth != currentWidth || lastHeight != currentHeight) {
+        lastWidth = currentWidth;
+        lastHeight = currentHeight;
+
+        notifyReplayIntegrationOfSizeChange(currentWidth, currentHeight);
+      }
+    } catch (Exception e) {
+      logger.log(SentryLevel.DEBUG, "Failed to check window size", e);
+    }
+  }
+
+  private void notifyReplayIntegrationOfSizeChange(int width, int height) {
+    try {
+      if (replayIntegration == null) {
+        replayIntegration = getReplayIntegration();
+      }
+
+      if (replayIntegration == null) {
+        return;
+      }
+
+      if (!replayIntegration.isRecording()) {
+        return;
+      }
+
+      replayIntegration.onWindowSizeChanged(width, height);
+    } catch (Exception e) {
+      logger.log(SentryLevel.DEBUG, "Failed to notify replay integration of size change", e);
+    }
+  }
+
+  private @Nullable ReplayIntegration getReplayIntegration() {
+    try {
+      final SentryOptions options = ScopesAdapter.getInstance().getOptions();
+      if (options == null) {
+        return null;
+      }
+
+      for (Integration integration : options.getIntegrations()) {
+        if (integration instanceof ReplayIntegration) {
+          return (ReplayIntegration) integration;
+        }
+      }
+    } catch (Exception e) {
+      logger.log(SentryLevel.DEBUG, "Error getting replay integration", e);
+    }
+    return null;
   }
 
   private static @Nullable EventDispatcher getEventDispatcherForReactTag(
