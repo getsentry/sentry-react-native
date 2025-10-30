@@ -66,8 +66,7 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDefault
@@ -99,8 +98,7 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingEnabled

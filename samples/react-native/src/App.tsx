@@ -94,6 +94,7 @@ Sentry.init({
         maskAllVectors: true,
         maskAllText: true,
         enableViewRendererV2: true,
+        screenshotStrategy: 'canvas', // if you have strict PII requirements
       }),
       Sentry.appStartIntegration({
         standalone: false,
