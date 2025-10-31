@@ -20,6 +20,7 @@ if (!args['rn-version']) {
 debug.log('Patching Xcode project', args.project, 'for RN version', args['rn-version']);
 
 const newBundleScriptRNVersion = '0.69.0-rc.0';
+const quotesFixRNVersion = '0.81.1'; // Version where quotes break the script
 
 let bundleScript;
 let bundleScriptRegex;
@@ -38,11 +39,14 @@ export NODE_BINARY=node
   bundlePatchRegex = /sentry-cli\s+react-native[\s-]xcode/;
 } else if (semver.satisfies(args['rn-version'], `>= ${newBundleScriptRNVersion}`, { includePrerelease: true })) {
   debug.log('Applying new bundle script patch');
+  const useQuotes = semver.lt(args['rn-version'], quotesFixRNVersion);
+  const quoteChar = useQuotes ? '\\"' : '';
+
   bundleScript = `
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 
-/bin/sh -c "$WITH_ENVIRONMENT \\"/bin/sh ../node_modules/@sentry/react-native/scripts/sentry-xcode.sh $REACT_NATIVE_XCODE\\""
+/bin/sh -c "$WITH_ENVIRONMENT ${quoteChar}/bin/sh ../node_modules/@sentry/react-native/scripts/sentry-xcode.sh $REACT_NATIVE_XCODE${quoteChar}"
 `;
   bundleScriptRegex = /\/scripts\/react-native-xcode\.sh/i;
   bundlePatchRegex = /sentry-cli\s+react-native\s+xcode/i;
