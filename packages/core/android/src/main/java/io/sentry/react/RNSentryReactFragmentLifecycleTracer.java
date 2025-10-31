@@ -136,7 +136,10 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
   private void detachLayoutChangeListener() {
     if (currentView != null && currentListener != null) {
       try {
-        currentView.getViewTreeObserver().removeOnGlobalLayoutListener(currentListener);
+        ViewTreeObserver observer = currentView.getViewTreeObserver();
+        if (observer != null) {
+          observer.removeOnGlobalLayoutListener(currentListener);
+        }
       } catch (Exception e) {
         logger.log(SentryLevel.DEBUG, "Failed to remove layout change listener", e);
       }
@@ -171,7 +174,7 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
     if (replayIntegration == null) {
       return;
     }
-    
+
     try {
       replayIntegration.onWindowSizeChanged(width, height);
     } catch (Exception e) {
