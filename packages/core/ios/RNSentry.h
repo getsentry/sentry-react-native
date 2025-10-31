@@ -8,7 +8,6 @@
 #import <dlfcn.h>
 
 #import <Sentry/Sentry.h>
-#import <Sentry/SentryDebugImageProvider.h>
 
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 

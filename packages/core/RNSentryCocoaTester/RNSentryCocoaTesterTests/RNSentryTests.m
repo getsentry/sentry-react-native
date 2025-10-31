@@ -1,7 +1,6 @@
 #import "RNSentryTests.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
@@ -66,8 +65,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDefault
@@ -99,8 +97,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingEnabled
@@ -133,8 +130,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], false,
-        @"Did not disable native crash handling");
+    XCTAssertFalse(actualOptions.enableCrashHandler, @"Did not disable native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDisabled
@@ -348,7 +344,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    
+
     BOOL enableLogs = [[actualOptions valueForKey:@"enableLogs"] boolValue];
     XCTAssertFalse(enableLogs, @"enableLogs should be disabled");
 }
