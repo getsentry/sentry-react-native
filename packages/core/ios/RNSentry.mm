@@ -25,6 +25,7 @@
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
+#import <Sentry/SentryGeo.h>
 #import <Sentry/SentryOptions.h>
 #import <Sentry/SentryOptionsInternal.h>
 #import <Sentry/SentryScreenFrames.h>
@@ -720,6 +721,29 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
         id username = [userKeys valueForKey:@"username"];
         if ([username isKindOfClass:NSString.class]) {
             [userInstance setUsername:username];
+        }
+
+        id geo = [userKeys valueForKey:@"geo"];
+        if ([geo isKindOfClass:NSDictionary.class]) {
+            NSDictionary *geoDict = (NSDictionary *)geo;
+            SentryGeo *sentryGeo = [SentryGeo alloc];
+
+            id city = [geoDict valueForKey:@"city"];
+            if ([city isKindOfClass:NSString.class]) {
+                [sentryGeo setCity:city];
+            }
+
+            id countryCode = [geoDict valueForKey:@"country_code"];
+            if ([countryCode isKindOfClass:NSString.class]) {
+                [sentryGeo setCountryCode:countryCode];
+            }
+
+            id region = [geoDict valueForKey:@"region"];
+            if ([region isKindOfClass:NSString.class]) {
+                [sentryGeo setRegion:region];
+            }
+
+            [userInstance setGeo:sentryGeo];
         }
 
         if ([userDataKeys isKindOfClass:NSDictionary.class]) {

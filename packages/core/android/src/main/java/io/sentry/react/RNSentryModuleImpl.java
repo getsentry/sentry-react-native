@@ -63,6 +63,7 @@ import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
+import io.sentry.protocol.Geo;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
@@ -738,6 +739,23 @@ public class RNSentryModuleImpl {
 
               if (userKeys.hasKey("ip_address")) {
                 userInstance.setIpAddress(userKeys.getString("ip_address"));
+              }
+
+              if (userKeys.hasKey("geo")) {
+                ReadableMap geoMap = userKeys.getMap("geo");
+                if (geoMap != null) {
+                  Geo geoData = new Geo();
+                  if (geoMap.hasKey("city")) {
+                    geoData.setCity(geoMap.getString("city"));
+                  }
+                  if (geoMap.hasKey("country_code")) {
+                    geoData.setCountryCode(geoMap.getString("country_code"));
+                  }
+                  if (geoMap.hasKey("region")) {
+                    geoData.setRegion(geoMap.getString("region"));
+                  }
+                  userInstance.setGeo(geoData);
+                }
               }
             }
 

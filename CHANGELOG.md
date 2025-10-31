@@ -29,6 +29,10 @@
     });
     ```
 
+### Fix
+
+- Sync `user.geo` from `SetUser` to the native layer ([#5302](https://github.com/getsentry/sentry-react-native/pull/5302))
+
 ### Dependencies
 
 - Bump Bundler Plugins from v4.4.0 to v4.6.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283), [#5314](https://github.com/getsentry/sentry-react-native/pull/5314))
