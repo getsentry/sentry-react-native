@@ -618,6 +618,87 @@ describe('Tests Native Wrapper', () => {
         {},
       );
     });
+
+    test('serializes user with geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        email: 'test@example.com',
+        username: 'testuser',
+        geo: {
+          city: 'San Francisco',
+          country_code: 'US',
+          region: 'California',
+        },
+        customField: 'customValue',
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          email: 'test@example.com',
+          username: 'testuser',
+          geo: JSON.stringify({
+            city: 'San Francisco',
+            country_code: 'US',
+            region: 'California',
+          }),
+        },
+        {
+          customField: 'customValue',
+        },
+      );
+    });
+
+    test('serializes user with partial geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: {
+          city: 'New York',
+          country_code: 'US',
+        },
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          geo: JSON.stringify({
+            city: 'New York',
+            country_code: 'US',
+          }),
+        },
+        {},
+      );
+    });
+
+    test('serializes user with empty geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: {},
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          geo: '{}',
+        },
+        {},
+      );
+    });
+
+    test('serializes user with undefined geo', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: undefined,
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          geo: undefined,
+        },
+        {},
+      );
+    });
   });
 
   describe('_processLevel', () => {

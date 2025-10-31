@@ -37,6 +37,7 @@ import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
 import io.sentry.ScopesAdapter;
+import io.sentry.ScreenshotStrategyType;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
@@ -62,6 +63,7 @@ import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
+import io.sentry.protocol.Geo;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
@@ -415,10 +417,30 @@ public class RNSentryModuleImpl {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
     }
 
+    if (rnMobileReplayOptions.hasKey("screenshotStrategy")) {
+      final String screenshotStrategyString = rnMobileReplayOptions.getString("screenshotStrategy");
+      final ScreenshotStrategyType screenshotStrategy =
+          parseScreenshotStrategy(screenshotStrategyString);
+      androidReplayOptions.setScreenshotStrategy(screenshotStrategy);
+    }
+
     androidReplayOptions.setMaskViewContainerClass(RNSentryReplayMask.class.getName());
     androidReplayOptions.setUnmaskViewContainerClass(RNSentryReplayUnmask.class.getName());
 
     return androidReplayOptions;
+  }
+
+  private ScreenshotStrategyType parseScreenshotStrategy(@Nullable String strategyString) {
+    if (strategyString == null) {
+      return ScreenshotStrategyType.PIXEL_COPY;
+    }
+
+    switch (strategyString.toLowerCase(Locale.ROOT)) {
+      case "canvas":
+        return ScreenshotStrategyType.CANVAS;
+      default:
+        return ScreenshotStrategyType.PIXEL_COPY;
+    }
   }
 
   private SentryReplayQuality parseReplayQuality(@Nullable String qualityString) {
@@ -426,19 +448,15 @@ public class RNSentryModuleImpl {
       return SentryReplayQuality.MEDIUM;
     }
 
-    try {
-      switch (qualityString.toLowerCase(Locale.ROOT)) {
-        case "low":
-          return SentryReplayQuality.LOW;
-        case "medium":
-          return SentryReplayQuality.MEDIUM;
-        case "high":
-          return SentryReplayQuality.HIGH;
-        default:
-          return SentryReplayQuality.MEDIUM;
-      }
-    } catch (Exception e) {
-      return SentryReplayQuality.MEDIUM;
+    switch (qualityString.toLowerCase(Locale.ROOT)) {
+      case "low":
+        return SentryReplayQuality.LOW;
+      case "medium":
+        return SentryReplayQuality.MEDIUM;
+      case "high":
+        return SentryReplayQuality.HIGH;
+      default:
+        return SentryReplayQuality.MEDIUM;
     }
   }
 
@@ -721,6 +739,23 @@ public class RNSentryModuleImpl {
 
               if (userKeys.hasKey("ip_address")) {
                 userInstance.setIpAddress(userKeys.getString("ip_address"));
+              }
+
+              if (userKeys.hasKey("geo")) {
+                ReadableMap geoMap = userKeys.getMap("geo");
+                if (geoMap != null) {
+                  Geo geoData = new Geo();
+                  if (geoMap.hasKey("city")) {
+                    geoData.setCity(geoMap.getString("city"));
+                  }
+                  if (geoMap.hasKey("country_code")) {
+                    geoData.setCountryCode(geoMap.getString("country_code"));
+                  }
+                  if (geoMap.hasKey("region")) {
+                    geoData.setRegion(geoMap.getString("region"));
+                  }
+                  userInstance.setGeo(geoData);
+                }
               }
             }
 

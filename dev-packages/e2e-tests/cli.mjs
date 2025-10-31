@@ -63,7 +63,7 @@ const appSourceRepo = 'https://github.com/react-native-community/rn-diff-purge.g
 const appRepoDir = `${e2eDir}/react-native-versions/${RNVersion}`;
 const appName = 'RnDiffApp';
 const appDir = `${appRepoDir}/${appName}`;
-const testAppName = `${appName}.${platform == 'ios' ? 'app' : 'apk'}`;
+const testAppName = `${appName}.${platform === 'ios' ? 'app' : 'apk'}`;
 const testApp = `${e2eDir}/${testAppName}`;
 const appId = platform === 'ios' ? 'org.reactjs.native.example.RnDiffApp' : 'com.rndiffapp';
 const sentryAuthToken = env.SENTRY_AUTH_TOKEN;
@@ -84,7 +84,24 @@ function runCodegenIfNeeded(rnVersion, platform, appDir) {
     } catch (error) {
       console.error('Codegen failed:', error.message);
     }
+  } else {
+    console.log(`Skipping codegen for React Native ${rnVersion}`);
   }
+}
+
+function patchBoostIfNeeded(rnVersion, patchScriptsDir) {
+  const versionNumber = parseFloat(rnVersion.replace(/[^\d.]/g, ''));
+  const shouldPatchBoost = platform === 'ios' && versionNumber <= 0.80;
+
+  if (!shouldPatchBoost) {
+    console.log(`Skipping boost patch for React Native ${rnVersion}`);
+    return;
+  }
+  execSync(`${patchScriptsDir}/rn.patch.boost.js --podspec node_modules/react-native/third-party-podspecs/boost.podspec`, {
+    stdio: 'inherit',
+    cwd: appDir,
+    env: env,
+  });
 }
 
 // Build and publish the SDK - we only need to do this once in CI.
@@ -152,8 +169,11 @@ if (actions.includes('create')) {
     env: env,
   });
 
+  // Patch boost
+  patchBoostIfNeeded(RNVersion, patchScriptsDir);
+
   // Set up platform-specific app configuration
-  if (platform == 'ios') {
+  if (platform === 'ios') {
     execSync('ruby --version', { stdio: 'inherit', cwd: `${appDir}`, env: env });
 
     execSync(`${patchScriptsDir}/rn.patch.podfile.js --pod-file Podfile --engine ${RNEngine}`, {
@@ -174,7 +194,7 @@ if (actions.includes('create')) {
       `${patchScriptsDir}/rn.patch.xcode.js --project ios/${appName}.xcodeproj/project.pbxproj --rn-version ${RNVersion}`,
       { stdio: 'inherit', cwd: appDir, env: env },
     );
-  } else if (platform == 'android') {
+  } else if (platform === 'android') {
     execSync(
       `${patchScriptsDir}//rn.patch.gradle.properties.js --gradle-properties android/gradle.properties --engine ${RNEngine}`,
       { stdio: 'inherit', cwd: appDir, env: env },
@@ -200,7 +220,7 @@ if (actions.includes('build')) {
   console.log(`Building ${platform}: ${buildType}`);
   var appProduct;
 
-  if (platform == 'ios') {
+  if (platform === 'ios') {
     // Build iOS test app
     execSync(
       `set -o pipefail && xcodebuild \
@@ -216,7 +236,7 @@ if (actions.includes('build')) {
     );
 
     appProduct = `${appDir}/ios/DerivedData/Build/Products/${buildType}-iphonesimulator/${appName}.app`;
-  } else if (platform == 'android') {
+  } else if (platform === 'android') {
     runCodegenIfNeeded(RNVersion, platform, appDir);
 
     execSync(`./gradlew assemble${buildType} -PreactNativeArchitectures=x86 --no-daemon`, {
@@ -234,7 +254,7 @@ if (actions.includes('build')) {
 
 if (actions.includes('test')) {
   // Run e2e tests
-  if (platform == 'ios') {
+  if (platform === 'ios') {
     try {
       execSync('xcrun simctl list devices | grep -q "(Booted)"');
     } catch (error) {
@@ -242,7 +262,7 @@ if (actions.includes('test')) {
     }
 
     execFileSync('xcrun', ['simctl', 'install', 'booted', testApp]);
-  } else if (platform == 'android') {
+  } else if (platform === 'android') {
     try {
       execSync('adb devices | grep -q "emulator"');
     } catch (error) {

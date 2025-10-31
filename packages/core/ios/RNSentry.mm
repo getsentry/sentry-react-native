@@ -21,12 +21,11 @@
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBreadcrumb.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <Sentry/SentryDebugMeta.h>
-#import <Sentry/SentryDependencyContainer.h>
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
+#import <Sentry/SentryGeo.h>
 #import <Sentry/SentryOptions.h>
 #import <Sentry/SentryOptionsInternal.h>
 #import <Sentry/SentryScreenFrames.h>
@@ -266,9 +265,7 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
         BOOL enableNativeCrashHandling = [mutableOptions[@"enableNativeCrashHandling"] boolValue];
 
         if (!enableNativeCrashHandling) {
-            NSMutableArray *integrations = sentryOptions.integrations.mutableCopy;
-            [integrations removeObject:@"SentryCrashIntegration"];
-            sentryOptions.integrations = integrations;
+            sentryOptions.enableCrashHandler = NO;
         }
     }
 
@@ -725,9 +722,28 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
         if ([username isKindOfClass:NSString.class]) {
             [userInstance setUsername:username];
         }
-        id segment = [userKeys valueForKey:@"segment"];
-        if ([segment isKindOfClass:NSString.class]) {
-            [userInstance setSegment:segment];
+
+        id geo = [userKeys valueForKey:@"geo"];
+        if ([geo isKindOfClass:NSDictionary.class]) {
+            NSDictionary *geoDict = (NSDictionary *)geo;
+            SentryGeo *sentryGeo = [SentryGeo alloc];
+
+            id city = [geoDict valueForKey:@"city"];
+            if ([city isKindOfClass:NSString.class]) {
+                [sentryGeo setCity:city];
+            }
+
+            id countryCode = [geoDict valueForKey:@"country_code"];
+            if ([countryCode isKindOfClass:NSString.class]) {
+                [sentryGeo setCountryCode:countryCode];
+            }
+
+            id region = [geoDict valueForKey:@"region"];
+            if ([region isKindOfClass:NSString.class]) {
+                [sentryGeo setRegion:region];
+            }
+
+            [userInstance setGeo:sentryGeo];
         }
 
         if ([userDataKeys isKindOfClass:NSDictionary.class]) {

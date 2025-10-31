@@ -1,7 +1,6 @@
 #import "RNSentryTests.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
@@ -67,8 +66,7 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDefault
@@ -100,8 +98,7 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingEnabled
@@ -134,8 +131,7 @@ XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be
                                                                    error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], false,
-        @"Did not disable native crash handling");
+    XCTAssertFalse(actualOptions.enableCrashHandler, @"Did not disable native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDisabled
@@ -859,6 +855,92 @@ sucessfulSymbolicate(const void *, Dl_info *info)
         [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
     XCTAssertFalse(enableUnhandledCPPExceptions,
         @"enableSessionReplayInUnreliableEnvironment should be disabled");
+}
+
+- (void)testCreateUserWithGeoDataCreatesSentryGeoObject
+{
+    NSDictionary *userKeys = @{
+        @"id" : @"123",
+        @"email" : @"test@example.com",
+        @"username" : @"testuser",
+        @"geo" :
+            @ { @"city" : @"San Francisco", @"country_code" : @"US", @"region" : @"California" }
+    };
+
+    NSDictionary *userDataKeys = @{ @"customField" : @"customValue" };
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"123", @"User ID should match");
+    XCTAssertEqual(user.email, @"test@example.com", @"Email should match");
+    XCTAssertEqual(user.username, @"testuser", @"Username should match");
+
+    // Test that geo data is properly converted to SentryGeo object
+    XCTAssertNotNil(user.geo, @"Geo should not be nil");
+    XCTAssertTrue([user.geo isKindOfClass:[SentryGeo class]], @"Geo should be SentryGeo object");
+    XCTAssertEqual(user.geo.city, @"San Francisco", @"City should match");
+    XCTAssertEqual(user.geo.countryCode, @"US", @"Country code should match");
+    XCTAssertEqual(user.geo.region, @"California", @"Region should match");
+
+    // Test that custom data is preserved
+    XCTAssertNotNil(user.data, @"User data should not be nil");
+    XCTAssertEqual(user.data[@"customField"], @"customValue", @"Custom field should be preserved");
+}
+
+- (void)testCreateUserWithPartialGeoDataCreatesSentryGeoObject
+{
+    NSDictionary *userKeys =
+        @{ @"id" : @"456", @"geo" : @ { @"city" : @"New York", @"country_code" : @"US" } };
+
+    NSDictionary *userDataKeys = @{};
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"456", @"User ID should match");
+
+    // Test that partial geo data is properly converted to SentryGeo object
+    XCTAssertNotNil(user.geo, @"Geo should not be nil");
+    XCTAssertTrue([user.geo isKindOfClass:[SentryGeo class]], @"Geo should be SentryGeo object");
+    XCTAssertEqual(user.geo.city, @"New York", @"City should match");
+    XCTAssertEqual(user.geo.countryCode, @"US", @"Country code should match");
+    XCTAssertNil(user.geo.region, @"Region should be nil when not provided");
+}
+
+- (void)testCreateUserWithEmptyGeoDataCreatesSentryGeoObject
+{
+    NSDictionary *userKeys = @{ @"id" : @"789", @"geo" : @ {} };
+
+    NSDictionary *userDataKeys = @{};
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"789", @"User ID should match");
+
+    // Test that empty geo data is properly converted to SentryGeo object
+    XCTAssertNotNil(user.geo, @"Geo should not be nil");
+    XCTAssertTrue([user.geo isKindOfClass:[SentryGeo class]], @"Geo should be SentryGeo object");
+    XCTAssertNil(user.geo.city, @"City should be nil when not provided");
+    XCTAssertNil(user.geo.countryCode, @"Country code should be nil when not provided");
+    XCTAssertNil(user.geo.region, @"Region should be nil when not provided");
+}
+
+- (void)testCreateUserWithoutGeoDataDoesNotCreateGeoObject
+{
+    NSDictionary *userKeys = @{ @"id" : @"999", @"email" : @"test@example.com" };
+
+    NSDictionary *userDataKeys = @{};
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"999", @"User ID should match");
+    XCTAssertEqual(user.email, @"test@example.com", @"Email should match");
+
+    // Test that no geo object is created when geo data is not provided
+    XCTAssertNil(user.geo, @"Geo should be nil when not provided");
 }
 
 @end

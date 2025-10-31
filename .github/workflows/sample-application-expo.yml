@@ -49,7 +49,7 @@ jobs:
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -141,7 +141,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-sample-expo-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
           path: samples/expo/${{ matrix.platform }}/*.log

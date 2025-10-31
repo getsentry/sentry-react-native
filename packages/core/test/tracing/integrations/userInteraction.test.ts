@@ -7,7 +7,8 @@ import {
   startInactiveSpan,
   startSpanManual,
 } from '@sentry/core';
-import type { AppState, AppStateStatus } from 'react-native';
+import type { AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 import {
   startUserInteractionSpan,
   userInteractionIntegration,
@@ -26,23 +27,28 @@ type MockAppState = {
   listener: (newState: AppStateStatus) => void;
   removeSubscription: jest.Func;
 };
-const mockedAppState: AppState & MockAppState = {
-  removeSubscription: jest.fn(),
-  listener: jest.fn(),
-  isAvailable: true,
-  currentState: 'active',
-  addEventListener: (_, listener) => {
-    mockedAppState.listener = listener;
-    return {
-      remove: mockedAppState.removeSubscription,
-    };
-  },
-  setState: (state: AppStateStatus) => {
-    mockedAppState.currentState = state;
-    mockedAppState.listener(state);
-  },
-};
-jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
+jest.mock('react-native', () => {
+  const mockedAppState: AppState & MockAppState = {
+    removeSubscription: jest.fn(),
+    listener: jest.fn(),
+    isAvailable: true,
+    currentState: 'active',
+    addEventListener: jest.fn(),
+    setState: (state: AppStateStatus) => {
+      mockedAppState.currentState = state;
+      mockedAppState.listener(state);
+    },
+  };
+  return {
+    AppState: mockedAppState,
+    Platform: { OS: 'ios' },
+    NativeModules: {
+      RNSentry: {},
+    },
+  };
+});
+
+const mockedAppState = AppState as jest.Mocked<typeof AppState & MockAppState>;
 
 jest.mock('../../../src/js/wrapper', () => {
   return {
@@ -69,12 +75,10 @@ describe('User Interaction Tracing', () => {
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
     mockedAppState.currentState = 'active';
-    mockedAppState.addEventListener = (_, listener) => {
+    (mockedAppState.addEventListener as jest.Mock).mockImplementation((_, listener) => {
       mockedAppState.listener = listener;
-      return {
-        remove: mockedAppState.removeSubscription,
-      };
-    };
+      return { remove: mockedAppState.removeSubscription };
+    });
 
     mockedUserInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
     client = setupTestClient({
