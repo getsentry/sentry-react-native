@@ -1,6 +1,7 @@
 package io.sentry.react;
 
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -21,6 +22,7 @@ import io.sentry.SentryOptions;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.internal.util.FirstDrawDoneListener;
 import io.sentry.android.replay.ReplayIntegration;
+import java.lang.ref.WeakReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +32,9 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
   private @NotNull final Runnable emitNewFrameEvent;
   private @NotNull final ILogger logger;
 
-  private @Nullable ReplayIntegration replayIntegration;
+  @SuppressWarnings("PMD.AvoidUsingVolatile")
+  private @Nullable volatile ReplayIntegration replayIntegration;
+
   private int lastWidth = -1;
   private int lastHeight = -1;
 
@@ -119,11 +123,16 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
   }
 
   private void attachLayoutChangeListener(final View view) {
+    final WeakReference<View> weakView = new WeakReference<>(view);
+
     final ViewTreeObserver.OnGlobalLayoutListener listener =
         new ViewTreeObserver.OnGlobalLayoutListener() {
           @Override
           public void onGlobalLayout() {
-            checkAndNotifyWindowSizeChange(view);
+            final View v = weakView.get();
+            if (v != null) {
+              checkAndNotifyWindowSizeChange(v);
+            }
           }
         };
 
@@ -151,16 +160,17 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
 
   private void checkAndNotifyWindowSizeChange(View view) {
     try {
-      android.util.DisplayMetrics metrics = view.getContext().getResources().getDisplayMetrics();
+      DisplayMetrics metrics = view.getContext().getResources().getDisplayMetrics();
       int currentWidth = metrics.widthPixels;
       int currentHeight = metrics.heightPixels;
 
-      if (lastWidth != currentWidth || lastHeight != currentHeight) {
-        lastWidth = currentWidth;
-        lastHeight = currentHeight;
-
-        notifyReplayIntegrationOfSizeChange(currentWidth, currentHeight);
+      if (lastWidth == currentWidth && lastHeight == currentHeight) {
+        return;
       }
+      lastWidth = currentWidth;
+      lastHeight = currentHeight;
+
+      notifyReplayIntegrationOfSizeChange(currentWidth, currentHeight);
     } catch (Exception e) {
       logger.log(SentryLevel.DEBUG, "Failed to check window size", e);
     }
