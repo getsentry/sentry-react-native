@@ -108,7 +108,8 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
           }
         });
 
-    // Add layout listener to detect configuration changes
+    // Add layout listener to detect configuration changes after detaching any previous one
+    detachLayoutChangeListener();
     attachLayoutChangeListener(v);
   }
 
