@@ -126,6 +126,7 @@ jobs:
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+              ./gradlew generateCodegenArtifactsFromSchema
             fi
             ./gradlew assembleRelease
           else
@@ -300,7 +301,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.71.11', '0.81.0']
+        rn-version: ['0.81.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -310,15 +311,8 @@ jobs:
           - platform: ios
             rn-version: '0.81.0'
             runs-on: macos-14
-          - platform: ios
-            rn-version: '0.71.11'
-            runs-on: macos-14
           - platform: android
             runs-on: ubuntu-latest
-        exclude:
-          # exclude all rn versions lower than 0.80.0 for new architecture
-          - rn-version: '0.71.11'
-            rn-architecture: 'new'
 
     steps:
       - uses: actions/checkout@v5
