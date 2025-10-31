@@ -29,7 +29,7 @@
     });
     ```
 
-### Fix
+### Fixes
 
 - Sync `user.geo` from `SetUser` to the native layer ([#5302](https://github.com/getsentry/sentry-react-native/pull/5302))
 
