@@ -28,7 +28,6 @@
 #import <Sentry/SentryGeo.h>
 #import <Sentry/SentryOptions.h>
 #import <Sentry/SentryOptionsInternal.h>
-#import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryUser.h>
 
 // This guard prevents importing Hermes in JSC apps
@@ -56,6 +55,7 @@
 #import "RNSentryExperimentalOptions.h"
 #import "RNSentryVersion.h"
 #import "SentrySDKWrapper.h"
+#import "SentryScreenFramesWrapper.h"
 
 static bool hasFetchedAppStart;
 
@@ -582,21 +582,15 @@ RCT_EXPORT_METHOD(
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
-        SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
-
-        if (frames == nil) {
+        if (![SentryScreenFramesWrapper canTrackFrames]) {
             resolve(nil);
             return;
         }
 
-        NSNumber *total = [NSNumber numberWithLong:frames.total];
-        NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
-        NSNumber *slow = [NSNumber numberWithLong:frames.slow];
-
         resolve(@ {
-            @"totalFrames" : total,
-            @"frozenFrames" : frozen,
-            @"slowFrames" : slow,
+            @"totalFrames" : [SentryScreenFramesWrapper totalFrames],
+            @"frozenFrames" : [SentryScreenFramesWrapper frozenFrames],
+            @"slowFrames" : [SentryScreenFramesWrapper slowFrames],
         });
     } else {
         resolve(nil);
