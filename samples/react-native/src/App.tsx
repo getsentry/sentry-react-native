@@ -16,6 +16,7 @@ import * as ImagePicker from 'react-native-image-picker';
 
 import RunningIndicator from './components/RunningIndicator';
 import WebviewScreen from './Screens/WebviewScreen';
+import CrashScreen from './Screens/CrashScreen';
 import getErrorsTab from './tabs/ErrorsTab';
 import getPerformanceTab from './tabs/PerformanceTab';
 import getPlaygroundTab from './tabs/PlaygroundTab';
@@ -247,6 +248,11 @@ function RootNavigationContainer() {
         <StackNavigator.Screen
           name="Webview"
           component={WebviewScreen}
+          options={{ headerShown: true }}
+        />
+        <StackNavigator.Screen
+          name="CrashScreen"
+          component={CrashScreen}
           options={{ headerShown: true }}
         />
       </StackNavigator.Navigator>

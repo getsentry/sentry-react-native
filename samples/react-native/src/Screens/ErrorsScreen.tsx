@@ -189,6 +189,10 @@ const ErrorsScreen = (_props: Props) => {
                 });
               }}
             />
+            <Button
+              title='Javascript Error on load'
+              onPress={() => _props.navigation.navigate('CrashScreen')}
+            />
           </>
         )}
         <Spacer />
