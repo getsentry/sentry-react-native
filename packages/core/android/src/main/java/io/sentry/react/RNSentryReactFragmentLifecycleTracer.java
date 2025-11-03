@@ -15,10 +15,9 @@ import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.EventDispatcherListener;
 import io.sentry.ILogger;
-import io.sentry.Integration;
+import io.sentry.ReplayController;
 import io.sentry.ScopesAdapter;
 import io.sentry.SentryLevel;
-import io.sentry.SentryOptions;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.internal.util.FirstDrawDoneListener;
 import io.sentry.android.replay.ReplayIntegration;
@@ -194,15 +193,10 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
 
   private @Nullable ReplayIntegration getReplayIntegration() {
     try {
-      final SentryOptions options = ScopesAdapter.getInstance().getOptions();
-      if (options == null) {
-        return null;
-      }
+      final ReplayController replayController = ScopesAdapter.getInstance().getOptions().getReplayController();
 
-      for (Integration integration : options.getIntegrations()) {
-        if (integration instanceof ReplayIntegration) {
-          return (ReplayIntegration) integration;
-        }
+      if (replayController instanceof ReplayIntegration) {
+        return (ReplayIntegration) replayController;
       }
     } catch (Exception e) {
       logger.log(SentryLevel.DEBUG, "Error getting replay integration", e);
