@@ -14,7 +14,7 @@ jsEngine: graaljs
       platform: iOS
 
 - runFlow:
-    file: feedback/happyFlow-android.yml
+    file: feedback/happyFlow-ios.yml
     when:
       platform: Android
 
