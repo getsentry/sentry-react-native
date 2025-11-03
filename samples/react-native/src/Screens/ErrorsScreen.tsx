@@ -167,6 +167,10 @@ const ErrorsScreen = (_props: Props) => {
             Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
           }}
         />
+        <Button
+          title='Javascript Error on load'
+          onPress={() => _props.navigation.navigate('CrashScreen')}
+        />
         {Platform.OS === 'android' && (
           <>
             <Button
@@ -188,10 +192,6 @@ const ErrorsScreen = (_props: Props) => {
                   console.log('Got number: ' + n);
                 });
               }}
-            />
-            <Button
-              title='Javascript Error on load'
-              onPress={() => _props.navigation.navigate('CrashScreen')}
             />
           </>
         )}

@@ -9,8 +9,9 @@ const testObject = {
 
 function CrashScreen() {
   // This will crash on screen load
-  testObject.notAFunction();
+  testObject.notAFunction()
 
+  // The button never actually loads. Left here for testing purposes.
   return (
     <View>
       <Button
