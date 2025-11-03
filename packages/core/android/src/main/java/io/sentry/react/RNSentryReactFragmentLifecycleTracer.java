@@ -193,7 +193,8 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
 
   private @Nullable ReplayIntegration getReplayIntegration() {
     try {
-      final ReplayController replayController = ScopesAdapter.getInstance().getOptions().getReplayController();
+      final ReplayController replayController =
+          ScopesAdapter.getInstance().getOptions().getReplayController();
 
       if (replayController instanceof ReplayIntegration) {
         return (ReplayIntegration) replayController;
