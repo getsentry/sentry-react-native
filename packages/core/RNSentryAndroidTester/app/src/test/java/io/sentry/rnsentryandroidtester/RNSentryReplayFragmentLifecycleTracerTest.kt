@@ -9,7 +9,7 @@ import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.swmansion.rnscreens.ScreenStackFragment
 import io.sentry.ILogger
-import io.sentry.react.RNSentryReplayFragmentLifecycleTracer
+import io.sentry.react.replay.RNSentryReplayFragmentLifecycleTracer
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
