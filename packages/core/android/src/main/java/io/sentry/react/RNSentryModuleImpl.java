@@ -189,7 +189,7 @@ public class RNSentryModuleImpl {
         new RNSentryReplayFragmentLifecycleTracer(logger);
 
     final @Nullable Activity currentActivity = getCurrentActivity();
-    if (currentActivity == null || !(currentActivity instanceof FragmentActivity)) {
+    if (!(currentActivity instanceof FragmentActivity)) {
       return;
     }
 
