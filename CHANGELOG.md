@@ -31,6 +31,7 @@
 
 ### Fixes
 
+- Fixes orientation change misalignment for session replay on Android ([#5321](https://github.com/getsentry/sentry-react-native/pull/5321))
 - Sync `user.geo` from `SetUser` to the native layer ([#5302](https://github.com/getsentry/sentry-react-native/pull/5302))
 
 ### Dependencies
