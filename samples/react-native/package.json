@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "7.4.0",
+  "version": "7.5.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -31,7 +31,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@sentry/core": "10.22.0",
     "@sentry/react": "10.22.0",
-    "@sentry/react-native": "7.4.0",
+    "@sentry/react-native": "7.5.0",
     "@shopify/flash-list": "^2.0.2",
     "delay": "^6.0.0",
     "react": "19.1.0",
