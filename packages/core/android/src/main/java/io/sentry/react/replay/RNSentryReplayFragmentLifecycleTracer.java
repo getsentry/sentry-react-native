@@ -25,7 +25,7 @@ public class RNSentryReplayFragmentLifecycleTracer extends FragmentLifecycleCall
   private int lastWidth = -1;
   private int lastHeight = -1;
 
-  private @Nullable View currentView;
+  private @Nullable WeakReference<View> currentViewRef;
   private @Nullable ViewTreeObserver.OnGlobalLayoutListener currentListener;
 
   public RNSentryReplayFragmentLifecycleTracer(@NotNull ILogger logger) {
@@ -62,16 +62,17 @@ public class RNSentryReplayFragmentLifecycleTracer extends FragmentLifecycleCall
           }
         };
 
-    currentView = view;
+    currentViewRef = new WeakReference<>(view);
     currentListener = listener;
 
     view.getViewTreeObserver().addOnGlobalLayoutListener(listener);
   }
 
   private void detachLayoutChangeListener() {
-    if (currentView != null && currentListener != null) {
+    final View view = currentViewRef != null ? currentViewRef.get() : null;
+    if (view != null && currentListener != null) {
       try {
-        ViewTreeObserver observer = currentView.getViewTreeObserver();
+        ViewTreeObserver observer = view.getViewTreeObserver();
         if (observer != null) {
           observer.removeOnGlobalLayoutListener(currentListener);
         }
@@ -80,7 +81,7 @@ public class RNSentryReplayFragmentLifecycleTracer extends FragmentLifecycleCall
       }
     }
 
-    currentView = null;
+    currentViewRef = null;
     currentListener = null;
   }
 
