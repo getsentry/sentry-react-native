@@ -188,13 +188,16 @@ public class RNSentryModuleImpl {
     final RNSentryReplayFragmentLifecycleTracer fragmentLifecycleTracer =
         new RNSentryReplayFragmentLifecycleTracer(logger);
 
-    final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
-    if (fragmentActivity != null) {
-      final @Nullable FragmentManager supportFragmentManager =
-          fragmentActivity.getSupportFragmentManager();
-      if (supportFragmentManager != null) {
-        supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
-      }
+    final @Nullable Activity currentActivity = getCurrentActivity();
+    if (currentActivity == null || !(currentActivity instanceof FragmentActivity)) {
+      return;
+    }
+
+    final @NotNull FragmentActivity fragmentActivity = (FragmentActivity) currentActivity;
+    final @Nullable FragmentManager supportFragmentManager =
+        fragmentActivity.getSupportFragmentManager();
+    if (supportFragmentManager != null) {
+      supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
     }
   }
 
