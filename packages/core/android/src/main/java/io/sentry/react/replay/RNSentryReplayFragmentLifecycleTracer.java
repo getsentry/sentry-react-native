@@ -75,9 +75,7 @@ public class RNSentryReplayFragmentLifecycleTracer extends FragmentLifecycleCall
       try {
         ViewTreeObserver observer = currentView.getViewTreeObserver();
         if (observer != null) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            observer.removeOnGlobalLayoutListener(currentListener);
-          }
+          observer.removeOnGlobalLayoutListener(currentListener);
         }
       } catch (Exception e) {
         logger.log(SentryLevel.DEBUG, "Failed to remove layout change listener", e);
