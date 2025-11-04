@@ -20,8 +20,7 @@ import org.jetbrains.annotations.Nullable;
 public class RNSentryReplayFragmentLifecycleTracer extends FragmentLifecycleCallbacks {
   private @NotNull final ILogger logger;
 
-  @SuppressWarnings("PMD.AvoidUsingVolatile")
-  private @Nullable volatile ReplayIntegration replayIntegration;
+  private @Nullable ReplayIntegration replayIntegration;
 
   private int lastWidth = -1;
   private int lastHeight = -1;
