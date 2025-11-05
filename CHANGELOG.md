@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Pass enabled option to native ([#5334](https://github.com/getsentry/sentry-react-native/pull/5334))
+
 ## 7.5.0
 
 ### Features
