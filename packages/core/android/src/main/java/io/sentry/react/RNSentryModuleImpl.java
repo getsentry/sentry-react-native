@@ -69,6 +69,7 @@ import io.sentry.protocol.SentryId;
 import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
+import io.sentry.react.replay.RNSentryReplayFragmentLifecycleTracer;
 import io.sentry.react.replay.RNSentryReplayMask;
 import io.sentry.react.replay.RNSentryReplayUnmask;
 import io.sentry.util.DebugMetaPropertiesApplier;
@@ -180,6 +181,23 @@ public class RNSentryModuleImpl {
       if (supportFragmentManager != null) {
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
       }
+    }
+  }
+
+  private void initFragmentReplayTracking() {
+    final RNSentryReplayFragmentLifecycleTracer fragmentLifecycleTracer =
+        new RNSentryReplayFragmentLifecycleTracer(logger);
+
+    final @Nullable Activity currentActivity = getCurrentActivity();
+    if (!(currentActivity instanceof FragmentActivity)) {
+      return;
+    }
+
+    final @NotNull FragmentActivity fragmentActivity = (FragmentActivity) currentActivity;
+    final @Nullable FragmentManager supportFragmentManager =
+        fragmentActivity.getSupportFragmentManager();
+    if (supportFragmentManager != null) {
+      supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
     }
   }
 
@@ -309,6 +327,7 @@ public class RNSentryModuleImpl {
         loadClass.isClassAvailable("io.sentry.android.replay.ReplayIntegration", logger);
     if (isReplayEnabled(replayOptions) && isReplayAvailable) {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
+      initFragmentReplayTracking();
     }
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
