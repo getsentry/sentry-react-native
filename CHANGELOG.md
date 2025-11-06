@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Android SDK not being disabled when `options.enabled` is set to `false`  ([#5334](https://github.com/getsentry/sentry-react-native/pull/5334))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.22.0 to v10.23.0 ([#5335](https://github.com/getsentry/sentry-react-native/pull/5335))
