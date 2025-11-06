@@ -12,6 +12,18 @@
 
 - Pass enabled option to native ([#5334](https://github.com/getsentry/sentry-react-native/pull/5334))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.22.0 to v10.23.0 ([#5335](https://github.com/getsentry/sentry-react-native/pull/5335))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10230)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.22.0...10.23.0)
+- Bump CLI from v2.57.0 to v2.58.0 ([#5336](https://github.com/getsentry/sentry-react-native/pull/5336))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2580)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.57.0...2.58.0)
+- Bump Cocoa SDK from v8.57.1 to v8.57.2 ([#5337](https://github.com/getsentry/sentry-react-native/pull/5337))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8572)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.1...8.57.2)
+
 ## 7.5.0
 
 ### Features
