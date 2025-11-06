@@ -44,7 +44,7 @@ jobs:
         include:
           - platform: ios
             xcode-version: '16.2'
-            runs-on: macos-14
+            runs-on: macos-15
           - platform: macos
             runs-on: macos-15
           - platform: android
@@ -223,7 +223,7 @@ jobs:
       matrix:
         include:
           - platform: ios
-            runs-on: macos-14
+            runs-on: macos-15
             rn-architecture: 'new'
             ios-use-frameworks: 'no-frameworks'
             build-type: 'production'
