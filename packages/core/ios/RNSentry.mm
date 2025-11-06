@@ -25,8 +25,6 @@
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
-#import <Sentry/SentryOptions.h>
-#import <Sentry/SentryOptionsInternal.h>
 #import <Sentry/SentryUser.h>
 
 // This guard prevents importing Hermes in JSC apps
@@ -84,23 +82,63 @@ static bool hasFetchedAppStart;
     return self;
 }
 
+- (NSMutableDictionary *)prepareOptions:(NSDictionary *)options
+{
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event) {
+        // We don't want to send an event after startup that came from a Unhandled JS Exception of
+        // React Native because we sent it already before the app crashed.
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
+                != NSNotFound) {
+            return nil;
+        }
+
+        // Regex and Str are set when one of them has value so we only need to check one of them.
+        if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
+            for (SentryException *exception in event.exceptions) {
+                if ([self shouldIgnoreError:exception.value]) {
+                    return nil;
+                }
+            }
+            if ([self shouldIgnoreError:event.message.message]) {
+                return nil;
+            }
+        }
+
+        [self setEventOriginTag:event];
+        return event;
+    };
+
+    NSMutableDictionary *mutableOptions = [options mutableCopy];
+    [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
+
+    // remove performance traces sample rate and traces sampler since we don't want to synchronize
+    // these configurations to the Native SDKs. The user could tho initialize the SDK manually and
+    // set themselves.
+    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+    [mutableOptions removeObjectForKey:@"tracesSampler"];
+    [mutableOptions removeObjectForKey:@"enableTracing"];
+
+    [self trySetIgnoreErrors:mutableOptions];
+
+    return mutableOptions;
+}
+
 RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
+    NSMutableDictionary *mutableOptions = [self prepareOptions:options];
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryReplay updateOptions:mutableOptions];
+#endif
     NSError *error = nil;
-    SentryOptions *sentryOptions = [self createOptionsWithDictionary:options error:&error];
+    [SentrySDKWrapper setupWithDictionary:mutableOptions
+                                    error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
-
-    NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
-    [PrivateSentrySDKOnly setSdkName:NATIVE_SDK_NAME andVersionString:sdkVersion];
-    [PrivateSentrySDKOnly addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
-                                version:REACT_NATIVE_SDK_PACKAGE_VERSION];
-
-    [SentrySDKWrapper startWithOptions:sentryOptions];
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     BOOL appIsActive =
@@ -112,8 +150,8 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive
     // notification, send it.
     if (appIsActive && !sentHybridSdkDidBecomeActive
-        && (PrivateSentrySDKOnly.options.enableAutoSessionTracking
-            || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
+        && ([SentrySDKWrapper enableAutoSessionTracking] ||
+            [SentrySDKWrapper enableWatchdogTerminationTracking])) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"SentryHybridSdkDidBecomeActive"
                                                             object:nil];
 
@@ -127,7 +165,7 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     resolve(@YES);
 }
 
-- (void)trySetIgnoreErrors:(NSMutableDictionary *)options
+- (void)trySetIgnoreErrors:(NSDictionary *)options
 {
     NSArray *ignoreErrorsStr = nil;
     NSArray *ignoreErrorsRegex = nil;
@@ -191,136 +229,6 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     }
 
     return NO;
-}
-
-- (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
-                                                  error:(NSError *_Nonnull *_Nonnull)errorPointer
-{
-    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event) {
-        // We don't want to send an event after startup that came from a Unhandled JS Exception of
-        // React Native because we sent it already before the app crashed.
-        if (nil != event.exceptions.firstObject.type &&
-            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
-                != NSNotFound) {
-            return nil;
-        }
-
-        // Regex and Str are set when one of them has value so we only need to check one of them.
-        if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
-            for (SentryException *exception in event.exceptions) {
-                if ([self shouldIgnoreError:exception.value]) {
-                    return nil;
-                }
-            }
-            if ([self shouldIgnoreError:event.message.message]) {
-                return nil;
-            }
-        }
-
-        [self setEventOriginTag:event];
-        return event;
-    };
-
-    NSMutableDictionary *mutableOptions = [options mutableCopy];
-    [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
-
-    // remove performance traces sample rate and traces sampler since we don't want to synchronize
-    // these configurations to the Native SDKs. The user could tho initialize the SDK manually and
-    // set themselves.
-    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
-    [mutableOptions removeObjectForKey:@"tracesSampler"];
-    [mutableOptions removeObjectForKey:@"enableTracing"];
-
-#if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryReplay updateOptions:mutableOptions];
-#endif
-
-    SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
-                                                      didFailWithError:errorPointer];
-    if (*errorPointer != nil) {
-        return nil;
-    }
-
-    // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
-    NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
-    sentryOptions.beforeBreadcrumb
-        = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
-    {
-        NSString *url = breadcrumb.data[@"url"] ?: @"";
-
-        if ([@"http" isEqualToString:breadcrumb.type]
-            && ((dsn != nil && [url hasPrefix:dsn])
-                || (devServerUrl != nil && [url hasPrefix:devServerUrl]))) {
-            return nil;
-        }
-        return breadcrumb;
-    };
-
-    if ([mutableOptions valueForKey:@"enableNativeCrashHandling"] != nil) {
-        BOOL enableNativeCrashHandling = [mutableOptions[@"enableNativeCrashHandling"] boolValue];
-
-        if (!enableNativeCrashHandling) {
-            sentryOptions.enableCrashHandler = NO;
-        }
-    }
-
-    // Set spotlight option
-    if ([mutableOptions valueForKey:@"spotlight"] != nil) {
-        id spotlightValue = [mutableOptions valueForKey:@"spotlight"];
-        if ([spotlightValue isKindOfClass:[NSString class]]) {
-            NSLog(@"Using Spotlight on address: %@", spotlightValue);
-            sentryOptions.enableSpotlight = true;
-            sentryOptions.spotlightUrl = spotlightValue;
-        } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
-            sentryOptions.enableSpotlight = [spotlightValue boolValue];
-            id defaultSpotlightUrl = [mutableOptions valueForKey:@"defaultSidecarUrl"];
-            if (defaultSpotlightUrl != nil) {
-                sentryOptions.spotlightUrl = defaultSpotlightUrl;
-            }
-        }
-    }
-
-    if ([mutableOptions valueForKey:@"enableLogs"] != nil) {
-        id enableLogsValue = [mutableOptions valueForKey:@"enableLogs"];
-        if ([enableLogsValue isKindOfClass:[NSNumber class]]) {
-            [RNSentryExperimentalOptions setEnableLogs:[enableLogsValue boolValue]
-                                         sentryOptions:sentryOptions];
-        }
-    }
-    [self trySetIgnoreErrors:mutableOptions];
-
-    // Enable the App start and Frames tracking measurements
-    if ([mutableOptions valueForKey:@"enableAutoPerformanceTracing"] != nil) {
-        BOOL enableAutoPerformanceTracing =
-            [mutableOptions[@"enableAutoPerformanceTracing"] boolValue];
-        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = enableAutoPerformanceTracing;
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = enableAutoPerformanceTracing;
-#endif
-    }
-
-    // Failed requests can only be enabled in one SDK to avoid duplicates
-    sentryOptions.enableCaptureFailedRequests = NO;
-
-    NSDictionary *experiments = options[@"_experiments"];
-    if (experiments != nil && [experiments isKindOfClass:[NSDictionary class]]) {
-        BOOL enableUnhandledCPPExceptions =
-            [experiments[@"enableUnhandledCPPExceptionsV2"] boolValue];
-        [RNSentryExperimentalOptions setEnableUnhandledCPPExceptionsV2:enableUnhandledCPPExceptions
-                                                         sentryOptions:sentryOptions];
-    }
-
-    return sentryOptions;
-}
-
-- (NSString *_Nullable)getURLFromDSN:(NSString *)dsn
-{
-    NSURL *url = [NSURL URLWithString:dsn];
-    if (!url) {
-        return nil;
-    }
-    return [NSString stringWithFormat:@"%@://%@", url.scheme, url.host];
 }
 
 - (void)setEventOriginTag:(SentryEvent *)event
@@ -451,7 +359,7 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes : (RCTPromiseResolveBlock)resolve rej
             contexts[@"os"] = os;
         }
 
-        NSString *releaseName = SentrySDKInternal.options.releaseName;
+        NSString *releaseName = [SentrySDKWrapper releaseName];
         if (releaseName) {
             contexts[@"release"] = releaseName;
         }
@@ -483,7 +391,7 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes : (RCTPromiseResolveBlock)resolve rej
 RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve rejecter : (
     RCTPromiseRejectBlock)reject)
 {
-    if (PrivateSentrySDKOnly.options.debug) {
+    if ([SentrySDKWrapper debug]) {
         NSLog(@"Bridge call to: deviceContexts");
     }
     __block NSMutableDictionary<NSString *, id> *serializedScope;
@@ -498,7 +406,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve re
                                forKey:@"user"];
         }
 
-        if (PrivateSentrySDKOnly.options.debug) {
+        if ([SentrySDKWrapper debug]) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:serializedScope
                                                            options:0
                                                              error:nil];

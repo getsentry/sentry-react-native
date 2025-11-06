@@ -15,4 +15,18 @@
 
 + (void)startWithOptions:(SentryOptions *)options;
 
++ (SentryOptions *)createOptionsWithDictionary:(NSDictionary *)options
+                                         error:(NSError **)errorPointer;
+
++ (void)setupWithDictionary:(NSDictionary *)options
+                      error:(NSError **)errorPointer;
+
++ (BOOL)debug;
+
++ (NSString *)releaseName;
+
++ (BOOL)enableAutoSessionTracking;
+
++ (BOOL)enableWatchdogTerminationTracking;
+
 @end

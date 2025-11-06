@@ -1,4 +1,6 @@
 #import "RNSentryTests.h"
+#import "RNSentryReplay.h"
+#import "SentrySDKWrapper.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
 #import <UIKit/UIKit.h>
@@ -25,8 +27,10 @@
 , @"enableTracing" : @YES,
 }
 ;
-SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                               error:&error];
+mockedReactNativeDictionary = [rnSentry prepareOptions:mockedReactNativeDictionary];
+SentryOptions *actualOptions =
+    [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                            error:&error];
 
 XCTAssertNotNil(actualOptions, @"Did not create sentry options");
 XCTAssertNil(error, @"Should not pass no error");
@@ -39,14 +43,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCaptureFailedRequestsIsDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -55,14 +59,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingDefault
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
@@ -70,14 +74,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDefault
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertEqual(
@@ -86,15 +90,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableNativeCrashHandling" : @YES,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
@@ -102,15 +106,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableAutoPerformanceTracing" : @YES,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertEqual(
@@ -119,15 +123,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableNativeCrashHandling" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertFalse(actualOptions.enableCrashHandler, @"Did not disable native crash handling");
@@ -135,15 +139,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableAutoPerformanceTracing" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertEqual(actualOptions.enableAutoPerformanceTracing, false,
@@ -152,7 +156,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -160,8 +163,9 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"spotlight" : @YES,
         @"defaultSidecarUrl" : @"http://localhost:8969/teststream",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight, @"Did not enable spotlight");
@@ -170,7 +174,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightOne
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -178,8 +181,9 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"spotlight" : @1,
         @"defaultSidecarUrl" : @"http://localhost:8969/teststream",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight, @"Did not enable spotlight");
@@ -188,15 +192,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightUrl
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight" : @"http://localhost:8969/teststream",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight, @"Did not enable spotlight");
@@ -205,15 +209,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertFalse(actualOptions.enableSpotlight, @"Did not disable spotlight");
@@ -221,15 +225,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightZero
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight" : @0,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertFalse(actualOptions.enableSpotlight, @"Did not disable spotlight");
@@ -237,7 +241,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Enabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -246,8 +249,9 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
             @"enableUnhandledCPPExceptionsV2" : @YES,
         },
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -263,7 +267,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Disabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -272,8 +275,9 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
             @"enableUnhandledCPPExceptionsV2" : @NO,
         },
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -289,14 +293,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Default
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -313,15 +317,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableLogsEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableLogs" : @YES,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -332,15 +336,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableLogsDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableLogs" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -351,14 +355,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testPassesErrorOnWrongDsn
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"not_a_valid_dsn",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                                                error:&error];
 
     XCTAssertNil(actualOptions, @"Created invalid sentry options");
     XCTAssertNotNil(error, @"Did not created error on invalid dsn");
@@ -373,8 +377,9 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"devServerUrl" : @"http://localhost:8081"
     };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    mockedDictionary = [rnSentry prepareOptions:mockedDictionary];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : @"https://def.ingest.sentry.io/1234567" };
@@ -386,15 +391,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testBeforeBreadcrumbsCallbackFiltersOutDevServerRequestBreadcrumbs
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSString *mockDevServer = @"http://localhost:8081";
 
     NSDictionary *_Nonnull mockedDictionary =
         @{ @"dsn" : @"https://abc@def.ingest.sentry.io/1234567", @"devServerUrl" : mockDevServer };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : mockDevServer };
@@ -406,15 +410,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testBeforeBreadcrumbsCallbackDoesNotFiltersOutNonDevServerOrDsnRequestBreadcrumbs
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedDictionary = @{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"devServerUrl" : @"http://localhost:8081"
     };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : @"http://testurl.com/service" };
@@ -426,14 +429,13 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testBeforeBreadcrumbsCallbackKeepsBreadcrumbWhenDevServerUrlIsNotPassedAndDsnDoesNotMatch
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedDictionary = @{ // dsn is always validated in SentryOptions initialization
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567"
     };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : @"http://testurl.com/service" };
@@ -614,11 +616,13 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsRegex" : @[ @"IgnoreMe.*" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                                     error:&error];
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -633,11 +637,14 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsStr" : @[ @"DropThisError" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -652,11 +659,14 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsRegex" : @[ @"IgnoreMe.*" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -674,11 +684,14 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsStr" : @[ @"ExactError" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -693,13 +706,16 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsStr" : @[ @"ExactError" ],
         @"ignoreErrorsRegex" : @[ @"IgnoreMe.*" ],
 
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     // Test regex match
@@ -724,5 +740,9 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     SentryEvent *result3 = options.beforeSend(event3);
     XCTAssertNotNil(result3, @"Event with non-matching error should not be dropped");
 }
+
+
+
+
 
 @end
