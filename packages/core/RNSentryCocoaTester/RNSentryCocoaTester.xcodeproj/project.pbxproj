@@ -52,6 +52,7 @@
 		33F58ACF2977037D008F60EA /* RNSentryTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryTests.m; sourceTree = "<group>"; };
 		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
+		FADF868E2EBD053E00D6652D /* SentrySDKWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SentrySDKWrapper.h; path = ../ios/SentrySDKWrapper.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,6 +137,7 @@
 				3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */,
 				330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */,
 				33958C672BFCEF5A00AD1FB6 /* RNSentryOnDrawReporter.h */,
+				FADF868E2EBD053E00D6652D /* SentrySDKWrapper.h */,
 				33AFE0132B8F31AF00AAB120 /* RNSentryDependencyContainer.h */,
 				338739072A7D7D2800950DDD /* RNSentryReplay.h */,
 			);
@@ -236,9 +238,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
