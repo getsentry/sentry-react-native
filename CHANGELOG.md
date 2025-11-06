@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.22.0 to v10.23.0 ([#5335](https://github.com/getsentry/sentry-react-native/pull/5335))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10230)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.22.0...10.23.0)
+
 ## 7.5.0
 
 ### Features
