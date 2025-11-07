@@ -6,6 +6,7 @@ on:
       - main
       - v5
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,11 +26,16 @@ env:
 jobs:
   diff_check:
     uses: ./.github/workflows/skip-ci.yml
-
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
+    needs: [ready-to-merge-gate, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
@@ -215,7 +221,7 @@ jobs:
   test:
     name: Test ${{ matrix.platform }} ${{ matrix.build-type }} REV2
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check, build]
+    needs: [ready-to-merge-gate, diff_check, build]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.

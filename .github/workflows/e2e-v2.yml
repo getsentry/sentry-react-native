@@ -7,6 +7,7 @@ on:
       - v5
       - release/**
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,9 +25,15 @@ jobs:
   auth_token_check:
     uses: ./.github/workflows/skip-ci-noauth.yml
     secrets: inherit
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
   metrics:
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check, auth_token_check]
+    needs: [ready-to-merge-gate,diff_check, auth_token_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
@@ -158,7 +165,7 @@ jobs:
   react-native-build:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check, auth_token_check]
+    needs: [ready-to-merge-gate,diff_check, auth_token_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') }}
     env:
       RN_VERSION: ${{ matrix.rn-version }}
@@ -294,7 +301,7 @@ jobs:
     name:
       Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
       matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    needs: [react-native-build, diff_check]
+    needs: [ready-to-merge-gate, react-native-build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
 
     runs-on: ${{ matrix.runs-on }}
