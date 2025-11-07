@@ -244,8 +244,6 @@
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
-			outputPaths = (
-			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources.sh\"\n";
