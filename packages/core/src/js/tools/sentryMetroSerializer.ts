@@ -74,11 +74,19 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
     const { code: bundleCode, map: bundleMapString } = await extractSerializerResult(serializerResult);
 
     // Add debug id comment to the bundle
-    const debugId = determineDebugIdFromBundleSource(bundleCode);
+    let debugId = determineDebugIdFromBundleSource(bundleCode);
     if (!debugId) {
-      throw new Error(
-        'Debug ID was not found in the bundle. Call `options.sentryBundleCallback` if you are using a custom serializer.',
-      );
+      // For lazy-loaded chunks or bundles without the debug ID module,
+      // calculate the debug ID from the bundle content.
+      // This ensures Metro 0.83.2+ code-split bundles get debug IDs.
+      // That needs to be done because when Metro 0.83.2 stopped importing `BabelSourceMapSegment`
+      // from `@babel/generator` and defined it locally, it subtly changed the source map output format.
+      // https://github.com/facebook/metro/blob/main/packages/metro-source-map/src/source-map.js#L47
+      const hash = crypto.createHash('md5');
+      hash.update(bundleCode);
+      debugId = stringToUUID(hash.digest('hex'));
+      // eslint-disable-next-line no-console
+      console.log('info ' + `Bundle Debug ID (calculated): ${debugId}`);
     }
     // Only print debug id for command line builds => not hot reload from dev server
     // eslint-disable-next-line no-console
