@@ -7,6 +7,7 @@ import type {
   Transport,
   TransportMakeRequestResponse,
 } from '@sentry/core';
+import * as SentryCore from '@sentry/core';
 import {
   addAutoIpAddressToSession,
   addAutoIpAddressToUser,
@@ -852,7 +853,55 @@ describe('Tests ReactNativeClient', () => {
       );
     });
   });
+
+  describe('logger initialization', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.restoreAllMocks();
+    });
+
+    test('does not flush logs when enableLogs is false', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: false });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    test('does not flush logs when loggerOrigin is native', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, loggerOrigin: 'native' });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['all' as const],
+      ['js' as const],
+    ])('flushes logs when loggerOrigin is %s', loggerOrigin => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, loggerOrigin });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).toHaveBeenCalledTimes(1);
+      expect(flushLogsSpy).toHaveBeenLastCalledWith(client);
+    });
+  });
 });
+
 
 function mockedOptions(options: Partial<ReactNativeClientOptions>): ReactNativeClientOptions {
   return {

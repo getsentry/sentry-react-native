@@ -72,7 +72,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
       this.on('beforeSendSession', addAutoIpAddressToSession);
     }
 
-    if (options.enableLogs) {
+    if (options.enableLogs && options.loggerOrigin !== 'native') {
       this.on('flush', () => {
         _INTERNAL_flushLogsBuffer(this);
       });

@@ -85,7 +85,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   if (options.enableNative) {
     integrations.push(deviceContextIntegration());
     integrations.push(modulesLoaderIntegration());
-    if (options.enableLogs) {
+    if (options.enableLogs && options.loggerOrigin !== 'native') {
       integrations.push(logEnricherIntegration());
       integrations.push(consoleLoggingIntegration());
     }
