@@ -312,6 +312,44 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.ignoreErrorsStr).toBeUndefined();
       expect(initParameter.ignoreErrorsRegex).toBeUndefined();
     });
+
+    test('does not set enableLogs when option is undefined', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBeUndefined();
+    });
+
+    it.each([
+      ['without loggerOrigin', undefined, true],
+      ['with loggerOrigin set to Native', 'native' as const, true],
+      ['with loggerOrigin set to all', 'all' as const, true],
+      ['with loggerOrigin set to JS', 'js' as const, false],
+    ])('handles enableLogs %s', async (_description, loggerOrigin, expectedEnableLogs) => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableLogs: true,
+        ...(loggerOrigin !== undefined ? { loggerOrigin } : {}),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBe(expectedEnableLogs);
+      expect(initParameter.loggerOrigin).toBeUndefined();
+    });
   });
 
   describe('sendEnvelope', () => {

@@ -228,6 +228,10 @@ export const NATIVE: SentryNativeWrapper = {
       enableNative: true,
       autoInitializeNativeSdk: true,
       ...originalOptions,
+      // Keeps original behavior of enableLogs by not setting it when not defined.
+      ...(originalOptions.enableLogs !== undefined
+        ? { enableLogs: originalOptions.enableLogs && originalOptions.loggerOrigin !== 'js' }
+        : {}),
     };
 
     if (!options.enableNative) {
@@ -273,7 +277,7 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, ...filteredOptions } =
+    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, loggerOrigin, ...filteredOptions } =
       options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
