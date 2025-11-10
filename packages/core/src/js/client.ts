@@ -64,6 +64,13 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
     // We default this to true, as it is the safer scenario
     options.parentSpanIsAlwaysRootSpan =
       options.parentSpanIsAlwaysRootSpan === undefined ? true : options.parentSpanIsAlwaysRootSpan;
+
+    const originalEnableLogs = options.enableLogs;
+    if (options.enableLogs && options.loggerOrigin === 'native') {
+      debug.log('disabling Sentry logs on JavaScript due to rule set by loggerOrigin');
+      options.enableLogs = false;
+    }
+
     super(options);
 
     this._outcomesBuffer = [];
@@ -72,7 +79,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
       this.on('beforeSendSession', addAutoIpAddressToSession);
     }
 
-    if (options.enableLogs && options.loggerOrigin !== 'native') {
+    if (options.enableLogs) {
       this.on('flush', () => {
         _INTERNAL_flushLogsBuffer(this);
       });
@@ -87,6 +94,9 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
         }, DEFAULT_FLUSH_INTERVAL);
       });
     }
+
+    // Restore original settings for enabling Native options.
+    options.enableLogs = originalEnableLogs;
   }
 
   /**

@@ -884,10 +884,7 @@ describe('Tests ReactNativeClient', () => {
       expect(flushLogsSpy).not.toHaveBeenCalled();
     });
 
-    it.each([
-      ['all' as const],
-      ['js' as const],
-    ])('flushes logs when loggerOrigin is %s', loggerOrigin => {
+    it.each([['all' as const], ['js' as const]])('flushes logs when loggerOrigin is %s', loggerOrigin => {
       jest.useFakeTimers();
       const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
 
@@ -901,7 +898,6 @@ describe('Tests ReactNativeClient', () => {
     });
   });
 });
-
 
 function mockedOptions(options: Partial<ReactNativeClientOptions>): ReactNativeClientOptions {
   return {

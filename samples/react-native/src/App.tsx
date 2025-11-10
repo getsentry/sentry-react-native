@@ -67,6 +67,7 @@ Sentry.init({
   _experiments: {
     enableUnhandledCPPExceptionsV2: true,
   },
+  loggerOrigin: 'all',
   enableLogs: true,
   beforeSendLog: (log) => {
     return log;

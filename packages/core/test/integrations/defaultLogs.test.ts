@@ -50,7 +50,10 @@ describe('getDefaultIntegrations - logging integrations', () => {
 
   it('does not add logging integrations when loggerOrigin is native', () => {
     const names = getIntegrationNames(
-      createOptions({ enableLogs: true, loggerOrigin: 'native' as unknown as ReactNativeClientOptions['loggerOrigin'] }),
+      createOptions({
+        enableLogs: true,
+        loggerOrigin: 'native' as unknown as ReactNativeClientOptions['loggerOrigin'],
+      }),
     );
 
     expect(names).not.toContain(logEnricherIntegrationName);
@@ -73,4 +76,3 @@ describe('getDefaultIntegrations - logging integrations', () => {
     expect(names.includes(consoleLoggingIntegrationName)).toBe(shouldInclude);
   });
 });
-
