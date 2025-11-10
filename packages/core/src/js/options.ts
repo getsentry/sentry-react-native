@@ -318,14 +318,14 @@ export interface BaseReactNativeOptions {
   propagateTraceparent?: boolean;
 
   /**
-   * Controls the origin of the logger to be logged, it takes effect when `enableLogger` is set to true.
+   * Controls which log origin is captured when `enableLogs` is set to true.
    * 'all' will log all origins.
-   * 'JS' will log only enable Logger to capture JavaScript logs.
-   * 'Native' will log only Native Logs..
+   * 'js' will capture only JavaScript logs.
+   * 'native' will capture only native logs.
    *
    * @default 'all'
    */
-  loggerOrigin?: 'all' | 'js' | 'native';
+  logsOrigin?: 'all' | 'js' | 'native';
 }
 
 export type SentryReplayQuality = 'low' | 'medium' | 'high';

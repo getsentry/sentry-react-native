@@ -230,7 +230,7 @@ export const NATIVE: SentryNativeWrapper = {
       ...originalOptions,
       // Keeps original behavior of enableLogs by not setting it when not defined.
       ...(originalOptions.enableLogs !== undefined
-        ? { enableLogs: originalOptions.enableLogs && originalOptions.loggerOrigin !== 'js' }
+        ? { enableLogs: originalOptions.enableLogs && originalOptions.logsOrigin !== 'js' }
         : {}),
     };
 
@@ -283,7 +283,7 @@ export const NATIVE: SentryNativeWrapper = {
       beforeSendTransaction,
       integrations,
       ignoreErrors,
-      loggerOrigin,
+      logsOrigin,
       ...filteredOptions
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */

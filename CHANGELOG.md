@@ -8,6 +8,13 @@
 
 ## Unreleased
 
+### Features
+
+- added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
+  Now you can choose which logs will be captured: 'native' for only Logs that comes from the Native code, 'js' for logs that only comes from the JavaScript layer, or 'all' for both layers. This will only have any impact if `enableLogs` is set to `true`.
+  By default it is set to `all` so it behaves the same before this change.
+
+
 ### Fixes
 
 - Android SDK not being disabled when `options.enabled` is set to `false`  ([#5334](https://github.com/getsentry/sentry-react-native/pull/5334))
