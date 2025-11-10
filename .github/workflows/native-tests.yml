@@ -7,13 +7,22 @@ on:
       - v5
       - release/**
   pull_request:
-
+    types: [opened, synchronize, reopened, labeled]
+    
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
   diff_check:
+    needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
 
   test-ios:
