@@ -11,6 +11,7 @@
 ### Fixes
 
 - Android SDK not being disabled when `options.enabled` is set to `false`  ([#5334](https://github.com/getsentry/sentry-react-native/pull/5334))
+- Fixes how bundle IDs are getting defined for individual bundles ([#5342](https://github.com/getsentry/sentry-react-native/pull/5342))
 
 ### Dependencies
 
