@@ -20,8 +20,7 @@ typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
 @interface RNSentry : RCTEventEmitter <RCTBridgeModule>
 
-- (SentryOptions *_Nullable)createOptionsWithDictionary:(NSDictionary *_Nonnull)options
-                                                  error:(NSError *_Nullable *_Nonnull)errorPointer;
+- (NSMutableDictionary *)prepareOptions:(NSDictionary *)options;
 
 - (void)setEventOriginTag:(SentryEvent *)event;
 
