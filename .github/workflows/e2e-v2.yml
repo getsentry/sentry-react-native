@@ -7,6 +7,7 @@ on:
       - v5
       - release/**
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,17 +15,24 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.0.5'
+  MAESTRO_VERSION: '2.0.9'
   IOS_DEVICE: 'iPhone 16'
   IOS_VERSION: '18.1'
 
 jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
   diff_check:
+    needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
   auth_token_check:
     uses: ./.github/workflows/skip-ci-noauth.yml
     secrets: inherit
-
   metrics:
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, auth_token_check]
@@ -39,7 +47,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-13
+            runs-on: macos-14
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
@@ -53,27 +61,31 @@ jobs:
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
 
-      - run: sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@v5
         with:
           java-version: '17'
-          distribution: "adopt"
+          distribution: 'adopt'
+
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
+
       - name: Install Global Dependencies
         run: npm i -g react-native-cli @sentry/cli
+
       - name: Install Dependencies
         run: yarn install
+
       - name: Build SDK
         run: yarn build
 
@@ -87,6 +99,7 @@ jobs:
           # we removed the lock file of the app due to monorepo changes, we use the package.json instead
           # to avoid frequent rebuilds of the app
           key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('performance-tests/TestAppSentry/package.json') }}
+
       - name: Build app plain
         if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
         working-directory: ./performance-tests/TestAppPlain
@@ -114,6 +127,7 @@ jobs:
           MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
+
       - name: Build app with Sentry
         working-directory: ./performance-tests/TestAppSentry
         run: |
@@ -121,6 +135,7 @@ jobs:
           if [[ "${{ matrix.platform }}" == "android" ]]; then
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+              ./gradlew generateCodegenArtifactsFromSchema
             fi
             ./gradlew assembleRelease
           else
@@ -142,7 +157,7 @@ jobs:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
       - name: Collect apps metrics
-        uses: getsentry/action-app-sdk-overhead-metrics@c9eca50e02d180ee07a02952c062b2f3f545f735
+        uses: getsentry/action-app-sdk-overhead-metrics@5f2d99b8e5a7b833386524924d24320501099a44
         with:
           name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
           config: ./performance-tests/metrics-${{ matrix.platform }}.yml
@@ -164,7 +179,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.81.0']
+        rn-version: ['0.71.11', '0.81.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -176,7 +191,7 @@ jobs:
             xcode-version: '16.2'
             runs-on: macos-14
           - platform: ios
-            rn-version: '0.65.3'
+            rn-version: '0.71.11'
             xcode-version: '14.2'
             runs-on: macos-13
           - platform: android
@@ -185,14 +200,14 @@ jobs:
           # exclude JSC for new RN versions (keeping the matrix manageable)
           - rn-version: '0.81.0'
             engine: 'jsc'
-          # exclude all rn versions lower than 0.70.0 for new architecture
-          - rn-version: '0.65.3'
+          # exclude all rn versions lower than 0.80.0 for new architecture
+          - rn-version: '0.71.11'
             rn-architecture: 'new'
           # exlude old rn version for use frameworks builds (to minimalize the matrix)
-          - rn-version: '0.65.3'
+          - rn-version: '0.71.11'
             platform: 'ios'
             ios-use-frameworks: 'static'
-          - rn-version: '0.65.3'
+          - rn-version: '0.71.11'
             platform: 'ios'
             ios-use-frameworks: 'dynamic'
           # use frameworks is ios only feature
@@ -229,16 +244,16 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@v5
         with:
-          java-version: ${{ matrix.rn-version == '0.65.3' && '11' || '17' }}
+          java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
@@ -258,15 +273,6 @@ jobs:
       - name: Setup Plain RN ${{ matrix.rn-version }} App
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --create
 
-        # The old node has to be enabled after creating the test app
-        # to avoid issues with the old node version
-      - run: corepack disable
-      - uses: actions/setup-node@v5
-        if: ${{ matrix.rn-version == '0.65.3' }}
-        with:
-          package-manager-cache: false
-          node-version: 16
-
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
@@ -280,7 +286,7 @@ jobs:
 
       - name: Upload App
         if: matrix.build-type == 'production'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: dev-packages/e2e-tests/RnDiffApp.ap*
@@ -288,7 +294,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: dev-packages/e2e-tests/react-native-versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
@@ -304,30 +310,18 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.65.3', '0.81.0']
+        rn-version: ['0.81.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
-        ios-use-frameworks: ['no'] # test only no framworks
-        engine: ['hermes', 'jsc']
+        ios-use-frameworks: ['no'] # test only no frameworks
+        engine: ['hermes']
         include:
           - platform: ios
             rn-version: '0.81.0'
             runs-on: macos-14
-          - platform: ios
-            rn-version: '0.65.3'
-            runs-on: macos-14
           - platform: android
             runs-on: ubuntu-latest
-        exclude:
-          # exclude all rn versions lower than 0.70.0 for new architecture
-          - rn-version: '0.65.3'
-            rn-architecture: 'new'
-          # e2e test only the default combinations
-          - rn-version: '0.65.3'
-            engine: 'hermes'
-          - rn-version: '0.81.0'
-            engine: 'jsc'
 
     steps:
       - uses: actions/checkout@v5
@@ -350,14 +344,14 @@ jobs:
 
       - name: Download App Package
         if: matrix.build-type == 'production'
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: dev-packages/e2e-tests
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -389,7 +383,7 @@ jobs:
 
       - name: Run tests on Android
         if: ${{ matrix.platform == 'android' }}
-        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # pin@v2.34.0
+        uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b # pin@v2.35.0
         with:
           api-level: 30
           force-avd-creation: false
@@ -419,7 +413,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: ./dev-packages/e2e-tests/maestro-logs

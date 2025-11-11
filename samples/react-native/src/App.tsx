@@ -67,6 +67,7 @@ Sentry.init({
   _experiments: {
     enableUnhandledCPPExceptionsV2: true,
   },
+  logsOrigin: 'all',
   enableLogs: true,
   beforeSendLog: (log) => {
     return log;
@@ -94,6 +95,7 @@ Sentry.init({
         maskAllVectors: true,
         maskAllText: true,
         enableViewRendererV2: true,
+        screenshotStrategy: 'canvas', // if you have strict PII requirements
       }),
       Sentry.appStartIntegration({
         standalone: false,
@@ -161,7 +163,7 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
   ignoreErrors: ['should', /(.)*2(.)*/],
   replaysSessionQuality: 'medium', // default
-  spotlight: true,
+  spotlight: false,
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
   autoInitializeNativeSdk: true,

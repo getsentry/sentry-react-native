@@ -65,6 +65,49 @@ describe('Sentry Metro Serializer', () => {
       expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
     }
   });
+
+  test('calculates debug id from bundle code when debug id module is not found', async () => {
+    // Create a custom serializer that returns bundle code without the debug ID module
+    const customSerializer: MetroSerializer = async () => {
+      const bundleCodeWithoutDebugId = 'console.log("test bundle");';
+      return {
+        code: bundleCodeWithoutDebugId,
+        map: '{"version":3,"sources":[],"names":[],"mappings":""}',
+      };
+    };
+
+    const serializer = createSentryMetroSerializer(customSerializer);
+    const bundle = await serializer(...mockMinSerializerArgs());
+
+    if (typeof bundle === 'string') {
+      fail('Expected bundle to be an object with a "code" property');
+    }
+
+    // The debug ID should be calculated from the bundle code content
+    // and added as a comment in the bundle code
+    expect(bundle.code).toContain('//# debugId=');
+
+    // Extract the debug ID from the comment
+    const debugIdMatch = bundle.code.match(/\/\/# debugId=([0-9a-fA-F-]+)/);
+    expect(debugIdMatch).toBeTruthy();
+    const debugId = debugIdMatch?.[1];
+
+    // Verify it's a valid UUID format
+    expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+
+    // Verify the debug ID is also in the source map
+    const sourceMap = JSON.parse(bundle.map);
+    expect(sourceMap.debug_id).toBe(debugId);
+    expect(sourceMap.debugId).toBe(debugId);
+
+    // The calculated debug ID should be deterministic based on the bundle content
+    // Running the serializer again with the same content should produce the same debug ID
+    const bundle2 = await serializer(...mockMinSerializerArgs());
+    if (typeof bundle2 !== 'string') {
+      const debugIdMatch2 = bundle2.code.match(/\/\/# debugId=([0-9a-fA-F-]+)/);
+      expect(debugIdMatch2?.[1]).toBe(debugId);
+    }
+  });
 });
 
 function mockMinSerializerArgs(options?: {

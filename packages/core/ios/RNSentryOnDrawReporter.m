@@ -2,6 +2,7 @@
 #import "RNSentryEmitNewFrameEvent.h"
 #import "RNSentryFramesTrackerListener.h"
 #import "RNSentryTimeToDisplay.h"
+@import Sentry;
 
 #if SENTRY_HAS_UIKIT
 

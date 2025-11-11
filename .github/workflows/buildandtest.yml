@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -89,7 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -113,7 +113,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -124,24 +124,24 @@ jobs:
       - name: Build
         run: yarn build
       - name: Archive dist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: dist
           path: packages/core/dist
       - name: Archive ts3.8
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ts3.8
           path: packages/core/ts3.8
       - name: Archive Expo Plugin
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: expo-plugin
           path: packages/core/plugin/build
       - name: Pack
         run: yarn build:tarball
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ github.sha }}
           path: |
@@ -157,7 +157,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -166,12 +166,12 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: dist
           path: packages/core/dist
       - name: Download ts3.8
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ts3.8
           path: packages/core/ts3.8
@@ -188,7 +188,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -197,12 +197,12 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: dist
           path: packages/core/dist
       - name: Download Expo Plugin
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: expo-plugin
           path: packages/core/plugin/build
@@ -223,7 +223,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18

@@ -1,0 +1,12 @@
+source 'https://rubygems.org'
+
+gem 'fastlane', '2.228.0'
+
+# Ruby 3.4.0 has removed some libraries from the standard library.
+gem 'bigdecimal'
+gem 'logger'
+gem 'benchmark'
+gem 'mutex_m'
+gem "abbrev"
+gem "csv"
+gem "ostruct"

@@ -228,6 +228,10 @@ export const NATIVE: SentryNativeWrapper = {
       enableNative: true,
       autoInitializeNativeSdk: true,
       ...originalOptions,
+      // Keeps original behavior of enableLogs by not setting it when not defined.
+      ...(originalOptions.enableLogs !== undefined
+        ? { enableLogs: originalOptions.enableLogs && originalOptions.logsOrigin !== 'js' }
+        : {}),
     };
 
     if (!options.enableNative) {
@@ -273,8 +277,15 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
-    const { beforeSend, beforeBreadcrumb, beforeSendTransaction, integrations, ignoreErrors, ...filteredOptions } =
-      options;
+    const {
+      beforeSend,
+      beforeBreadcrumb,
+      beforeSendTransaction,
+      integrations,
+      ignoreErrors,
+      logsOrigin,
+      ...filteredOptions
+    } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
@@ -394,14 +405,13 @@ export const NATIVE: SentryNativeWrapper = {
     let userKeys = null;
     let userDataKeys = null;
     if (user) {
-      const { id, ip_address, email, username, segment, ...otherKeys } = user;
-      // TODO: Update native impl to use geo
-      const requiredUser: Omit<RequiredKeysUser, 'geo'> = {
+      const { id, ip_address, email, username, geo, ...otherKeys } = user;
+      const requiredUser: RequiredKeysUser = {
         id,
         ip_address,
         email,
         username,
-        segment,
+        geo,
       };
       userKeys = this._serializeObject(requiredUser);
       userDataKeys = this._serializeObject(otherKeys);

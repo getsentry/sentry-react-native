@@ -27,7 +27,7 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
       - run: npm i -g corepack
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -68,7 +68,7 @@ jobs:
           bundle exec fastlane ios upload_react_native_sample_to_testflight
 
       - name: Upload Xcode Archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: sentry-react-native-sample-xcode-archive-for-testflight
           path: samples/react-native/sentryreactnativesample.xcarchive
