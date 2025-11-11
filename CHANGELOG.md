@@ -10,10 +10,9 @@
 
 ### Features
 
-- added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
-  Now you can choose which logs will be captured: 'native' for only Logs that comes from the Native code, 'js' for logs that only comes from the JavaScript layer, or 'all' for both layers. This will only have any impact if `enableLogs` is set to `true`.
-  By default it is set to `all` so it behaves the same before this change.
-
+- Added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
+  - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
+  - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
 
 ### Fixes
 
