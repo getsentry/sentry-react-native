@@ -65,6 +65,8 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
     options.parentSpanIsAlwaysRootSpan =
       options.parentSpanIsAlwaysRootSpan === undefined ? true : options.parentSpanIsAlwaysRootSpan;
 
+    // enableLogs must be disabled before calling super() to avoid logs being captured.
+    // This makes a copy of the user defined value, so we can restore it later for the native usaege.
     const originalEnableLogs = options.enableLogs;
     if (options.enableLogs && options.logsOrigin === 'native') {
       debug.log('disabling Sentry logs on JavaScript due to rule set by logsOrigin');
