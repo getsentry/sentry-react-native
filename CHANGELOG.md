@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Features
+
+- Added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
+  - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
+  - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.57.2 to v9.0.0-alpha.0 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
@@ -15,6 +21,7 @@
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.2...9.0.0-alpha.0)
 
 ## 7.6.0
+
 
 ### Fixes
 
