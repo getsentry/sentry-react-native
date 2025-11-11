@@ -10,6 +10,89 @@
 
 ### Features
 
+- Added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
+  - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
+  - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.57.2 to v9.0.0-alpha.0 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#900-alpha0)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.2...9.0.0-alpha.0)
+
+## 7.6.0
+
+
+### Fixes
+
+- Android SDK not being disabled when `options.enabled` is set to `false`  ([#5334](https://github.com/getsentry/sentry-react-native/pull/5334))
+- Fixes how bundle IDs are getting defined for individual bundles ([#5342](https://github.com/getsentry/sentry-react-native/pull/5342))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.22.0 to v10.24.0 ([#5335](https://github.com/getsentry/sentry-react-native/pull/5335), [#5352](https://github.com/getsentry/sentry-react-native/pull/5352))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10240)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.22.0...10.24.0)
+- Bump CLI from v2.57.0 to v2.58.0 ([#5336](https://github.com/getsentry/sentry-react-native/pull/5336))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2580)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.57.0...2.58.0)
+- Bump Cocoa SDK from v8.57.1 to v8.57.2 ([#5337](https://github.com/getsentry/sentry-react-native/pull/5337))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8572)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.1...8.57.2)
+
+## 7.5.0
+
+### Features
+
+- Adds GraphQL integration ([#5299](https://github.com/getsentry/sentry-react-native/pull/5299))
+- Adds Supabase integration ([#5296](https://github.com/getsentry/sentry-react-native/pull/5296))
+- Add new _experimental_ Canvas Capture Strategy for Session Replay ([#5301](https://github.com/getsentry/sentry-react-native/pull/5301))
+  - A new screenshot capture strategy that uses Android's Canvas API for more accurate and reliable text and image masking
+  - Any `.drawText()` or `.drawBitmap()` calls are replaced by rectangles, ensuring no text or images are present in the resulting output
+  - Note: If this strategy is used, all text and images will be masked, regardless of any masking configuration
+  - To enable this feature, set the `screenshotStrategy` to `canvas`:
+    ```js
+    import * as Sentry from '@sentry/react-native';
+
+    Sentry.init({
+      integrations: [
+        Sentry.mobileReplayIntegration({
+          screenshotStrategy: 'canvas',
+        }),
+      ],
+    });
+    ```
+
+### Fixes
+
+- Fixes orientation change misalignment for session replay on Android ([#5321](https://github.com/getsentry/sentry-react-native/pull/5321))
+- Sync `user.geo` from `SetUser` to the native layer ([#5302](https://github.com/getsentry/sentry-react-native/pull/5302))
+
+### Dependencies
+
+- Bump Bundler Plugins from v4.4.0 to v4.6.0 ([#5283](https://github.com/getsentry/sentry-react-native/pull/5283), [#5314](https://github.com/getsentry/sentry-react-native/pull/5314))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#460)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.4.0...4.6.0)
+- Bump JavaScript SDK from v10.20.0 to v10.22.0 ([#5289](https://github.com/getsentry/sentry-react-native/pull/5289), [#5306](https://github.com/getsentry/sentry-react-native/pull/5306))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10220)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.20.0...10.22.0)
+- Bump CLI from v2.56.1 to v2.57.0 ([#5295](https://github.com/getsentry/sentry-react-native/pull/5295))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2570)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.56.1...2.57.0)
+- Bump Android SDK from v8.23.0 to v8.25.0 ([#5292](https://github.com/getsentry/sentry-react-native/pull/5292), [#5318](https://github.com/getsentry/sentry-react-native/pull/5318))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8250)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.23.0...8.25.0)
+- Bump Android SDK Stubs from v8.23.0 to v8.25.0 ([#5293](https://github.com/getsentry/sentry-react-native/pull/5293), [#5319](https://github.com/getsentry/sentry-react-native/pull/5319))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8250)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.23.0...8.25.0)
+- Bump Cocoa SDK from v8.57.0 to v8.57.1 ([#5320](https://github.com/getsentry/sentry-react-native/pull/5320))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8571)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.0...8.57.1)
+
+## 7.4.0
+
+### Features
+
 - Adds Console logs as Sentry Logs. ([#5261](https://github.com/getsentry/sentry-react-native/pull/5261))
 - Adds support for `propagateTraceparent` ([#5277](https://github.com/getsentry/sentry-react-native/pull/5227))
 
@@ -18,18 +101,23 @@
 - Fix compatibility with `react-native-legal` ([#5253](https://github.com/getsentry/sentry-react-native/pull/5253))
   - The licenses json file is correctly generated and placed into the `res/` folder now
 - Handle missing shouldAddToIgnoreList callback in Metro ([#5260](https://github.com/getsentry/sentry-react-native/pull/5260))
+- Overrides the default Cocoa SDK behavior that disables Session Replay on iOS 26.0 ([#5268](https://github.com/getsentry/sentry-react-native/pull/5268))
+  - If you are using Apple's Liquid Glass we recommend that you disable Session Replay on iOS to prevent potential PII leaks (see [sentry-cocoa 8.57.0 release note warning](https://github.com/getsentry/sentry-cocoa/releases/tag/8.57.0))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.18.0 to v10.19.0 ([#5254](https://github.com/getsentry/sentry-react-native/pull/5254))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10190)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.18.0...10.19.0)
+- Bump JavaScript SDK from v10.18.0 to v10.20.0 ([#5254](https://github.com/getsentry/sentry-react-native/pull/5254), [#5272](https://github.com/getsentry/sentry-react-native/pull/5272))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10200)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.18.0...10.20.0)
 - Bump CLI from v2.56.0 to v2.56.1 ([#5257](https://github.com/getsentry/sentry-react-native/pull/5257))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2561)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.56.0...2.56.1)
 - Bump Bundler Plugins from v4.3.0 to v4.4.0 ([#5256](https://github.com/getsentry/sentry-react-native/pull/5256))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#440)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.3.0...4.4.0)
+- Bump Cocoa SDK from v8.56.2 to v8.57.0 ([#5263](https://github.com/getsentry/sentry-react-native/pull/5263))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8570)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.56.2...8.57.0)
 
 ## 7.3.0
 

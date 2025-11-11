@@ -2,16 +2,6 @@
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryId.h"
 #import <Sentry/PrivateSentrySDKOnly.h>
-#import <Sentry/SentryAppStartMeasurement.h>
-#import <Sentry/SentryBreadcrumb.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
-#import <Sentry/SentryDebugMeta.h>
-#import <Sentry/SentryDependencyContainer.h>
-#import <Sentry/SentryEvent.h>
-#import <Sentry/SentryException.h>
-#import <Sentry/SentryFormatter.h>
-#import <Sentry/SentryOptions.h>
-#import <Sentry/SentryUser.h>
 @import Sentry;
 
 // This method was moved to a new category so we can use `@import Sentry` to use Sentry's Swift

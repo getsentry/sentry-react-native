@@ -312,6 +312,44 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.ignoreErrorsStr).toBeUndefined();
       expect(initParameter.ignoreErrorsRegex).toBeUndefined();
     });
+
+    test('does not set enableLogs when option is undefined', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBeUndefined();
+    });
+
+    it.each([
+      ['without logsOrigin', undefined, true],
+      ['with logsOrigin set to Native', 'native' as const, true],
+      ['with logsOrigin set to all', 'all' as const, true],
+      ['with logsOrigin set to JS', 'js' as const, false],
+    ])('handles enableLogs %s', async (_description, logsOrigin, expectedEnableLogs) => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableLogs: true,
+        ...(logsOrigin !== undefined ? { logsOrigin } : {}),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBe(expectedEnableLogs);
+      expect(initParameter.logsOrigin).toBeUndefined();
+    });
   });
 
   describe('sendEnvelope', () => {
@@ -614,6 +652,87 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setUser).toBeCalledWith(
         {
           id: 'Hello',
+        },
+        {},
+      );
+    });
+
+    test('serializes user with geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        email: 'test@example.com',
+        username: 'testuser',
+        geo: {
+          city: 'San Francisco',
+          country_code: 'US',
+          region: 'California',
+        },
+        customField: 'customValue',
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          email: 'test@example.com',
+          username: 'testuser',
+          geo: JSON.stringify({
+            city: 'San Francisco',
+            country_code: 'US',
+            region: 'California',
+          }),
+        },
+        {
+          customField: 'customValue',
+        },
+      );
+    });
+
+    test('serializes user with partial geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: {
+          city: 'New York',
+          country_code: 'US',
+        },
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          geo: JSON.stringify({
+            city: 'New York',
+            country_code: 'US',
+          }),
+        },
+        {},
+      );
+    });
+
+    test('serializes user with empty geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: {},
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          geo: '{}',
+        },
+        {},
+      );
+    });
+
+    test('serializes user with undefined geo', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: undefined,
+      });
+
+      expect(RNSentry.setUser).toBeCalledWith(
+        {
+          id: '123',
+          geo: undefined,
         },
         {},
       );

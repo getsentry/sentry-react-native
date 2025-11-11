@@ -52,15 +52,22 @@ export interface BaseReactNativeOptions {
   /** Enable NDK on Android
    *
    * @default true
+   * @platform android
    */
   enableNdk?: boolean;
 
   /** Enable scope sync from Java to NDK on Android
    * Only has an effect if `enableNdk` is `true`.
+   *
+   * @platform android
    */
   enableNdkScopeSync?: boolean;
 
-  /** When enabled, all the threads are automatically attached to all logged events on Android */
+  /**
+   * When enabled, all the threads are automatically attached to all logged events on Android
+   *
+   * @platform android
+   */
   attachThreads?: boolean;
 
   /**
@@ -89,6 +96,7 @@ export interface BaseReactNativeOptions {
    * Renamed from `enableOutOfMemoryTracking` in v5.
    *
    * @default true
+   * @platform ios
    */
   enableWatchdogTerminationTracking?: boolean;
 
@@ -123,6 +131,7 @@ export interface BaseReactNativeOptions {
    * iOS only
    *
    * @default true
+   * @platform ios
    */
   enableAppHangTracking?: boolean;
 
@@ -135,6 +144,7 @@ export interface BaseReactNativeOptions {
    * iOS only
    *
    * @default 2
+   * @platform ios
    */
   appHangTimeoutInterval?: number;
 
@@ -280,6 +290,7 @@ export interface BaseReactNativeOptions {
      * - Note: The mechanism of hooking into `__cxa_throw` could cause issues with symbolication on iOS due to caching of symbol references.
      *
      * @default false
+     * @platform ios
      */
     enableUnhandledCPPExceptionsV2?: boolean;
   };
@@ -305,6 +316,16 @@ export interface BaseReactNativeOptions {
    * @default false
    */
   propagateTraceparent?: boolean;
+
+  /**
+   * Controls which log origin is captured when `enableLogs` is set to true.
+   * 'all' will log all origins.
+   * 'js' will capture only JavaScript logs.
+   * 'native' will capture only native logs.
+   *
+   * @default 'all'
+   */
+  logsOrigin?: 'all' | 'js' | 'native';
 }
 
 export type SentryReplayQuality = 'low' | 'medium' | 'high';

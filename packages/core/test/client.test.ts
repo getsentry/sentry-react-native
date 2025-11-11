@@ -7,6 +7,7 @@ import type {
   Transport,
   TransportMakeRequestResponse,
 } from '@sentry/core';
+import * as SentryCore from '@sentry/core';
 import {
   addAutoIpAddressToSession,
   addAutoIpAddressToUser,
@@ -850,6 +851,50 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
         '123.45.67.89',
       );
+    });
+  });
+
+  describe('logger initialization', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.restoreAllMocks();
+    });
+
+    test('does not flush logs when enableLogs is false', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: false });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    test('does not flush logs when logsOrigin is native', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: 'native' });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([['all' as const], ['js' as const]])('flushes logs when logsOrigin is %s', logOrlogsOriginigin => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: logOrlogsOriginigin });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).toHaveBeenCalledTimes(1);
+      expect(flushLogsSpy).toHaveBeenLastCalledWith(client);
     });
   });
 });

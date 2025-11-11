@@ -8,6 +8,14 @@ import { enrichXhrBreadcrumbsForMobileReplay } from './xhrUtils';
 
 export const MOBILE_REPLAY_INTEGRATION_NAME = 'MobileReplay';
 
+/**
+ * Screenshot strategy type for Android Session Replay.
+ *
+ * - `'canvas'`: Canvas-based screenshot strategy. This strategy does **not** support any masking options, it always masks text and images. Use this if your application has strict PII requirements.
+ * - `'pixelCopy'`: Pixel copy screenshot strategy (default). Supports all masking options.
+ */
+export type ScreenshotStrategy = 'canvas' | 'pixelCopy';
+
 export interface MobileReplayOptions {
   /**
    * Mask all text in recordings
@@ -40,6 +48,7 @@ export interface MobileReplayOptions {
    * - Experiment: This is an experimental feature and is therefore disabled by default.
    *
    * @deprecated Use `enableViewRendererV2` instead.
+   * @platform ios
    */
   enableExperimentalViewRenderer?: boolean;
 
@@ -54,6 +63,7 @@ export interface MobileReplayOptions {
    *               Eventually, we will remove this feature flag and use the new view renderer by default.
    *
    * @default true
+   * @platform ios
    */
   enableViewRendererV2?: boolean;
 
@@ -67,8 +77,22 @@ export interface MobileReplayOptions {
    * - Experiment: This is an experimental feature and is therefore disabled by default.
    *
    * @default false
+   * @platform ios
    */
   enableFastViewRendering?: boolean;
+
+  /**
+   * Sets the screenshot strategy used by the Session Replay integration on Android.
+   *
+   * If your application has strict PII requirements we recommend using `'canvas'`.
+   * This strategy does **not** support any masking options, it always masks text and images.
+   *
+   * - Experiment: In case you are noticing issues with the canvas screenshot strategy, please report the issue on [GitHub](https://github.com/getsentry/sentry-java).
+   *
+   * @default 'pixelCopy'
+   * @platform android
+   */
+  screenshotStrategy?: ScreenshotStrategy;
 }
 
 const defaultOptions: Required<MobileReplayOptions> = {
@@ -78,6 +102,7 @@ const defaultOptions: Required<MobileReplayOptions> = {
   enableExperimentalViewRenderer: false,
   enableViewRendererV2: true,
   enableFastViewRendering: false,
+  screenshotStrategy: 'pixelCopy',
 };
 
 function mergeOptions(initOptions: Partial<MobileReplayOptions>): Required<MobileReplayOptions> {

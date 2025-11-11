@@ -1,7 +1,8 @@
 #import "RNSentryTests.h"
+#import "RNSentryReplay.h"
+#import "SentrySDKWrapper.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
@@ -26,8 +27,11 @@
 , @"enableTracing" : @YES,
 }
 ;
-SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                               error:&error];
+mockedReactNativeDictionary = [rnSentry prepareOptions:mockedReactNativeDictionary];
+SentryOptions *actualOptions =
+    [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                           isSessionReplayEnabled:NO
+                                            error:&error];
 
 XCTAssertNotNil(actualOptions, @"Did not create sentry options");
 XCTAssertNil(error, @"Should not pass no error");
@@ -40,14 +44,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCaptureFailedRequestsIsDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -56,30 +61,31 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingDefault
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDefault
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertEqual(
@@ -88,32 +94,33 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableNativeCrashHandling" : @YES,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertTrue(actualOptions.enableCrashHandler, @"Did not set native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableAutoPerformanceTracing" : @YES,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertEqual(
@@ -122,32 +129,33 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryNativeCrashHandlingDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableNativeCrashHandling" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], false,
-        @"Did not disable native crash handling");
+    XCTAssertFalse(actualOptions.enableCrashHandler, @"Did not disable native crash handling");
 }
 
 - (void)testCreateOptionsWithDictionaryAutoPerformanceTracingDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableAutoPerformanceTracing" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertEqual(actualOptions.enableAutoPerformanceTracing, false,
@@ -156,7 +164,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -164,8 +171,10 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"spotlight" : @YES,
         @"defaultSidecarUrl" : @"http://localhost:8969/teststream",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight, @"Did not enable spotlight");
@@ -174,7 +183,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightOne
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -182,8 +190,10 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"spotlight" : @1,
         @"defaultSidecarUrl" : @"http://localhost:8969/teststream",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight, @"Did not enable spotlight");
@@ -192,15 +202,16 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightUrl
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight" : @"http://localhost:8969/teststream",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertTrue(actualOptions.enableSpotlight, @"Did not enable spotlight");
@@ -209,15 +220,16 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertFalse(actualOptions.enableSpotlight, @"Did not disable spotlight");
@@ -225,15 +237,16 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionarySpotlightZero
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"spotlight" : @0,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertFalse(actualOptions.enableSpotlight, @"Did not disable spotlight");
@@ -241,7 +254,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Enabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -250,8 +262,10 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
             @"enableUnhandledCPPExceptionsV2" : @YES,
         },
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -267,7 +281,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Disabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
@@ -276,8 +289,10 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
             @"enableUnhandledCPPExceptionsV2" : @NO,
         },
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -293,14 +308,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Default
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -317,15 +333,16 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableLogsEnabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableLogs" : @YES,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -336,15 +353,16 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testCreateOptionsWithDictionaryEnableLogsDisabled
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
         @"enableLogs" : @NO,
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -355,14 +373,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testPassesErrorOnWrongDsn
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedReactNativeDictionary = @{
         @"dsn" : @"not_a_valid_dsn",
     };
-    SentryOptions *actualOptions = [rnSentry createOptionsWithDictionary:mockedReactNativeDictionary
-                                                                   error:&error];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
 
     XCTAssertNil(actualOptions, @"Created invalid sentry options");
     XCTAssertNotNil(error, @"Did not created error on invalid dsn");
@@ -377,8 +396,10 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"devServerUrl" : @"http://localhost:8081"
     };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    mockedDictionary = [rnSentry prepareOptions:mockedDictionary];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : @"https://def.ingest.sentry.io/1234567" };
@@ -390,15 +411,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testBeforeBreadcrumbsCallbackFiltersOutDevServerRequestBreadcrumbs
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSString *mockDevServer = @"http://localhost:8081";
 
     NSDictionary *_Nonnull mockedDictionary =
         @{ @"dsn" : @"https://abc@def.ingest.sentry.io/1234567", @"devServerUrl" : mockDevServer };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : mockDevServer };
@@ -410,15 +431,15 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testBeforeBreadcrumbsCallbackDoesNotFiltersOutNonDevServerOrDsnRequestBreadcrumbs
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedDictionary = @{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"devServerUrl" : @"http://localhost:8081"
     };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : @"http://testurl.com/service" };
@@ -430,14 +451,14 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
 - (void)testBeforeBreadcrumbsCallbackKeepsBreadcrumbWhenDevServerUrlIsNotPassedAndDsnDoesNotMatch
 {
-    RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
 
     NSDictionary *_Nonnull mockedDictionary = @{ // dsn is always validated in SentryOptions initialization
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567"
     };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedDictionary error:&error];
-
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedDictionary
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
     SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
     breadcrumb.type = @"http";
     breadcrumb.data = @{ @"url" : @"http://testurl.com/service" };
@@ -618,11 +639,14 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsRegex" : @[ @"IgnoreMe.*" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -637,11 +661,15 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsStr" : @[ @"DropThisError" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -656,11 +684,15 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsRegex" : @[ @"IgnoreMe.*" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -678,11 +710,15 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsStr" : @[ @"ExactError" ]
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
@@ -697,13 +733,17 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     RNSentry *rnSentry = [[RNSentry alloc] init];
     NSError *error = nil;
-    NSDictionary *mockedOptions = @{
+    NSMutableDictionary *mockedOptions = [@{
         @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
         @"ignoreErrorsStr" : @[ @"ExactError" ],
         @"ignoreErrorsRegex" : @[ @"IgnoreMe.*" ],
 
-    };
-    SentryOptions *options = [rnSentry createOptionsWithDictionary:mockedOptions error:&error];
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
+    XCTAssertNotNil(options);
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     // Test regex match
@@ -727,6 +767,224 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     event3.message = msg3;
     SentryEvent *result3 = options.beforeSend(event3);
     XCTAssertNotNil(result3, @"Event with non-matching error should not be dropped");
+}
+
+- (void)testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentDefault
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertFalse(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be disabled");
+}
+
+- (void)testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentWithErrorSampleRate
+{
+    NSError *error = nil;
+
+    NSMutableDictionary *_Nonnull mockedReactNativeDictionary = [@{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @1.0,
+        @"replaysSessionSampleRate" : @0
+    } mutableCopy];
+    BOOL enableReplay = [RNSentryReplay updateOptions:mockedReactNativeDictionary];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:enableReplay
+                                                error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertTrue(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be enabled");
+}
+
+- (void)
+    testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentWithSessionSampleRate
+{
+    NSError *error = nil;
+
+    NSMutableDictionary *_Nonnull mockedReactNativeDictionary = [@{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @0.0,
+        @"replaysSessionSampleRate" : @0.1
+    } mutableCopy];
+    BOOL enableReplay = [RNSentryReplay updateOptions:mockedReactNativeDictionary];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:enableReplay
+                                                error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertTrue(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be enabled");
+}
+
+- (void)
+    testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentWithSessionSampleRates
+{
+    NSError *error = nil;
+
+    NSMutableDictionary *_Nonnull mockedReactNativeDictionary = [@{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @1.0,
+        @"replaysSessionSampleRate" : @0.1
+    } mutableCopy];
+    BOOL enableReplay = [RNSentryReplay updateOptions:mockedReactNativeDictionary];
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:enableReplay
+                                                error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertTrue(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be enabled");
+}
+
+- (void)testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentDisabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"replaysOnErrorSampleRate" : @0,
+        @"replaysSessionSampleRate" : @0
+    };
+    SentryOptions *actualOptions =
+        [SentrySDKWrapper createOptionsWithDictionary:mockedReactNativeDictionary
+                               isSessionReplayEnabled:NO
+                                                error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+
+    id experimentalOptions = [actualOptions valueForKey:@"experimental"];
+    XCTAssertNotNil(experimentalOptions, @"Experimental options should not be nil");
+
+    BOOL enableUnhandledCPPExceptions =
+        [[experimentalOptions valueForKey:@"enableSessionReplayInUnreliableEnvironment"] boolValue];
+    XCTAssertFalse(enableUnhandledCPPExceptions,
+        @"enableSessionReplayInUnreliableEnvironment should be disabled");
+}
+
+- (void)testCreateUserWithGeoDataCreatesSentryGeoObject
+{
+    NSDictionary *userKeys = @{
+        @"id" : @"123",
+        @"email" : @"test@example.com",
+        @"username" : @"testuser",
+        @"geo" :
+            @ { @"city" : @"San Francisco", @"country_code" : @"US", @"region" : @"California" }
+    };
+
+    NSDictionary *userDataKeys = @{ @"customField" : @"customValue" };
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"123", @"User ID should match");
+    XCTAssertEqual(user.email, @"test@example.com", @"Email should match");
+    XCTAssertEqual(user.username, @"testuser", @"Username should match");
+
+    // Test that geo data is properly converted to SentryGeo object
+    XCTAssertNotNil(user.geo, @"Geo should not be nil");
+    XCTAssertTrue([user.geo isKindOfClass:[SentryGeo class]], @"Geo should be SentryGeo object");
+    XCTAssertEqual(user.geo.city, @"San Francisco", @"City should match");
+    XCTAssertEqual(user.geo.countryCode, @"US", @"Country code should match");
+    XCTAssertEqual(user.geo.region, @"California", @"Region should match");
+
+    // Test that custom data is preserved
+    XCTAssertNotNil(user.data, @"User data should not be nil");
+    XCTAssertEqual(user.data[@"customField"], @"customValue", @"Custom field should be preserved");
+}
+
+- (void)testCreateUserWithPartialGeoDataCreatesSentryGeoObject
+{
+    NSDictionary *userKeys =
+        @{ @"id" : @"456", @"geo" : @ { @"city" : @"New York", @"country_code" : @"US" } };
+
+    NSDictionary *userDataKeys = @{};
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"456", @"User ID should match");
+
+    // Test that partial geo data is properly converted to SentryGeo object
+    XCTAssertNotNil(user.geo, @"Geo should not be nil");
+    XCTAssertTrue([user.geo isKindOfClass:[SentryGeo class]], @"Geo should be SentryGeo object");
+    XCTAssertEqual(user.geo.city, @"New York", @"City should match");
+    XCTAssertEqual(user.geo.countryCode, @"US", @"Country code should match");
+    XCTAssertNil(user.geo.region, @"Region should be nil when not provided");
+}
+
+- (void)testCreateUserWithEmptyGeoDataCreatesSentryGeoObject
+{
+    NSDictionary *userKeys = @{ @"id" : @"789", @"geo" : @ {} };
+
+    NSDictionary *userDataKeys = @{};
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"789", @"User ID should match");
+
+    // Test that empty geo data is properly converted to SentryGeo object
+    XCTAssertNotNil(user.geo, @"Geo should not be nil");
+    XCTAssertTrue([user.geo isKindOfClass:[SentryGeo class]], @"Geo should be SentryGeo object");
+    XCTAssertNil(user.geo.city, @"City should be nil when not provided");
+    XCTAssertNil(user.geo.countryCode, @"Country code should be nil when not provided");
+    XCTAssertNil(user.geo.region, @"Region should be nil when not provided");
+}
+
+- (void)testCreateUserWithoutGeoDataDoesNotCreateGeoObject
+{
+    NSDictionary *userKeys = @{ @"id" : @"999", @"email" : @"test@example.com" };
+
+    NSDictionary *userDataKeys = @{};
+
+    SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
+
+    XCTAssertNotNil(user, @"User should not be nil");
+    XCTAssertEqual(user.userId, @"999", @"User ID should match");
+    XCTAssertEqual(user.email, @"test@example.com", @"Email should match");
+
+    // Test that no geo object is created when geo data is not provided
+    XCTAssertNil(user.geo, @"Geo should be nil when not provided");
 }
 
 @end
