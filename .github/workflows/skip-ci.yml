@@ -45,13 +45,13 @@ jobs:
         if: steps.check-pr.outputs.is-pr == 'true'
         id: check_diff
         run: |
-          skipList=(".github/CODEOWNERS" ".prettierignore")
+          skipList=(".github/CODEOWNERS" ".prettierignore" "*/.gitignore" ".github/ISSUE_TEMPLATE" ".github/workflows/update-deps.yml")
           # Ignores changelog.md, readme.md,...
           fileChangesArray=($(git diff --name-only "$BASE_REF...$HEAD_REF" | grep -v '\.md$' || true))
           printf '%s\n' "${fileChangesArray[@]}"
           for item in "${fileChangesArray[@]}"
           do
-            if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
+            if [[ ! " ${item} " =~ " ${skipList[@]} " ]]; then
               echo "found '${item}' that doesn't belong to the skip list."
               exit 0
             fi
