@@ -1005,6 +1005,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('ExpoContext');
   });
 
+  // TODO: No longer an experiment on major version.
   it('adds mobile replay integration when _experiments.replaysOnErrorSampleRate is set', () => {
     init({
       _experiments: {
@@ -1023,6 +1024,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('adds mobile replay integration when _experiments.replaysSessionSampleRate is set', () => {
     init({
       _experiments: {
@@ -1041,6 +1043,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add mobile replay integration when no replay sample rates are set', () => {
     init({
       _experiments: {},
@@ -1049,6 +1052,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add any replay integration when on web even with on experimental error sample rate', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1061,6 +1065,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add any replay integration when on web even with experimental session sample rate', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1101,6 +1106,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('ignores experimental replay options when ga options are set', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1121,6 +1127,7 @@ describe('Tests the SDK functionality', () => {
     );
   });
 
+  // TODO: No longer an experiment on major version.
   it('converts experimental replay options to standard web options when on web', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1139,6 +1146,7 @@ describe('Tests the SDK functionality', () => {
     );
   });
 
+  // TODO: No longer an experiment on major version.
   it('converts experimental replay options to standard web options when on mobile', () => {
     (notWeb as jest.Mock).mockImplementation(() => true);
     init({

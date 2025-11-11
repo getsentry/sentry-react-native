@@ -200,6 +200,7 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
+    // TODO: Replacy by Sentry.captureFeedback
     test('captureUserFeedback does not call transport when enabled false', () => {
       const mockTransport = createMockTransport();
       const client = createDisabledClientWith(mockTransport);
