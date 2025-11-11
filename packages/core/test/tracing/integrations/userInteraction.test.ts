@@ -151,7 +151,7 @@ describe('User Interaction Tracing', () => {
           status: 'cancelled',
         }),
       );
-      expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
+      expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
     });
 
     test('do not overwrite existing status of UI event transactions', () => {

@@ -261,11 +261,11 @@ describe('React Native Info', () => {
 });
 
 function expectMocksToBeCalledOnce() {
-  expect(mockedIsHermesEnabled).toBeCalledTimes(1);
-  expect(mockedIsTurboModuleEnabled).toBeCalledTimes(1);
-  expect(mockedIsFabricEnabled).toBeCalledTimes(1);
-  expect(mockedGetExpoGoVersion).toBeCalledTimes(1);
-  expect(mockedGetExpoSdkVersion).toBeCalledTimes(1);
+  expect(mockedIsHermesEnabled).toHaveBeenCalledTimes(1);
+  expect(mockedIsTurboModuleEnabled).toHaveBeenCalledTimes(1);
+  expect(mockedIsFabricEnabled).toHaveBeenCalledTimes(1);
+  expect(mockedGetExpoGoVersion).toHaveBeenCalledTimes(1);
+  expect(mockedGetExpoSdkVersion).toHaveBeenCalledTimes(1);
 }
 
 function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Event | null | PromiseLike<Event | null> {

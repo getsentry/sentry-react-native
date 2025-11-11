@@ -127,8 +127,8 @@ describe('NativeLinkedErrors', () => {
       },
     );
 
-    expect(NATIVE.fetchNativePackageName).toBeCalledTimes(1);
-    expect(NATIVE.fetchNativeStackFramesBy).not.toBeCalled();
+    expect(NATIVE.fetchNativePackageName).toHaveBeenCalledTimes(1);
+    expect(NATIVE.fetchNativeStackFramesBy).not.toHaveBeenCalled();
     expect(actualEvent).toEqual(
       expect.objectContaining(<Partial<Event>>{
         exception: {
@@ -266,9 +266,9 @@ describe('NativeLinkedErrors', () => {
       },
     );
 
-    expect(NATIVE.fetchNativePackageName).toBeCalledTimes(0); // not need for iOS
-    expect(NATIVE.fetchNativeStackFramesBy).toBeCalledTimes(1);
-    expect(NATIVE.fetchNativeStackFramesBy).toBeCalledWith([6446871344, 6442783348, 4350761216]);
+    expect(NATIVE.fetchNativePackageName).toHaveBeenCalledTimes(0); // not need for iOS
+    expect(NATIVE.fetchNativeStackFramesBy).toHaveBeenCalledTimes(1);
+    expect(NATIVE.fetchNativeStackFramesBy).toHaveBeenCalledWith([6446871344, 6442783348, 4350761216]);
     expect(actualEvent).toEqual(
       expect.objectContaining(<Partial<Event>>{
         debug_meta: {
