@@ -238,9 +238,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -436,7 +440,7 @@
 					"\"$(PODS_TARGET_SRCROOT)/include/\"",
 					"\"${PODS_ROOT}/Sentry/Sources/Sentry/include\"",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.RNSentryCocoaTesterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -503,7 +507,7 @@
 					"\"$(PODS_TARGET_SRCROOT)/include/\"",
 					"\"${PODS_ROOT}/Sentry/Sources/Sentry/include\"",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.sentry.RNSentryCocoaTesterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
