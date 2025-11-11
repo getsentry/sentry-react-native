@@ -3,7 +3,6 @@
 exports[`PlaygroundComponent matches the snapshot with no props 1`] = `
 <Modal
   animationType="slide"
-  hardwareAccelerated={false}
   onRequestClose={[Function]}
   presentationStyle="formSheet"
   visible={true}
@@ -772,7 +771,6 @@ exports[`PlaygroundComponent matches the snapshot with no props 1`] = `
 exports[`PlaygroundComponent matches the snapshot with project id and organization slug 1`] = `
 <Modal
   animationType="slide"
-  hardwareAccelerated={false}
   onRequestClose={[Function]}
   presentationStyle="formSheet"
   visible={true}

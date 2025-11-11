@@ -141,6 +141,22 @@ describe('ScopeSync', () => {
       expect(setUserScopeSpy).toHaveBeenCalledExactlyOnceWith({ id: '123' });
     });
 
+    it('setUser with geo data', () => {
+      expect(SentryCore.getIsolationScope().setUser).not.toBe(setUserScopeSpy);
+      const user = {
+        id: '123',
+        email: 'test@example.com',
+        geo: {
+          city: 'San Francisco',
+          country_code: 'US',
+          region: 'California',
+        },
+      };
+      SentryCore.setUser(user);
+      expect(NATIVE.setUser).toHaveBeenCalledExactlyOnceWith(user);
+      expect(setUserScopeSpy).toHaveBeenCalledExactlyOnceWith(user);
+    });
+
     it('setTag', () => {
       jest.spyOn(NATIVE, 'primitiveProcessor').mockImplementation((value: SentryCore.Primitive) => value as string);
       expect(SentryCore.getIsolationScope().setTag).not.toBe(setTagScopeSpy);

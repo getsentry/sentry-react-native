@@ -8,4 +8,7 @@ jobs:
   danger:
     runs-on: ubuntu-latest
     steps:
-      - uses: getsentry/github-workflows/danger@v3
+      - uses: getsentry/github-workflows/danger@17cc15eb58ea3687cd8f2714a4192dcee4aa09ef
+        with:
+          extra-dangerfile: scripts/check-replay-stubs.js
+          extra-install-packages: "curl unzip openjdk-17-jre-headless"
