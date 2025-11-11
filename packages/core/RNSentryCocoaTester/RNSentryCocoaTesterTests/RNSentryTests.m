@@ -366,7 +366,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-
     BOOL enableLogs = [[actualOptions valueForKey:@"enableLogs"] boolValue];
     XCTAssertFalse(enableLogs, @"enableLogs should be disabled");
 }
