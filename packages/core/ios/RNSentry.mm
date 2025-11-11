@@ -46,7 +46,7 @@
 #endif
 
 #if SENTRY_HAS_UIKIT
-#    import "RNSentryFramesTrackerListener.h"
+#    import "RNSentryEmitNewFrameEvent.h"
 #    import "RNSentryRNSScreen.h"
 #endif
 
