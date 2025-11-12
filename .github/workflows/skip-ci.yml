@@ -45,13 +45,21 @@ jobs:
         if: steps.check-pr.outputs.is-pr == 'true'
         id: check_diff
         run: |
-          skipList=(".github/CODEOWNERS" ".prettierignore")
+          skipList=(".github/CODEOWNERS" ".prettierignore" ".github/workflows/update-deps.yml" ".github/workflows/skip-ci.yml")
+          skipRegList=("(.*/)?\.gitignore" "\.github/ISSUE_TEMPLATE.*")
+
+          for s in "${skipRegList[@]}"; do
+            skipRegex+="$s|"
+          done
+          # Remove trailing |
+          skipRegex=${skipRegex%|}
+
           # Ignores changelog.md, readme.md,...
           fileChangesArray=($(git diff --name-only "$BASE_REF...$HEAD_REF" | grep -v '\.md$' || true))
           printf '%s\n' "${fileChangesArray[@]}"
           for item in "${fileChangesArray[@]}"
           do
-            if [[ ! " ${skipList[@]} " =~ " ${item} " ]]; then
+            if [[ ! " ${skipList[*]} " =~ " ${item} " ]] && [[ ! "${item}" =~ ^(${skipRegex})$ ]]; then
               echo "found '${item}' that doesn't belong to the skip list."
               exit 0
             fi
