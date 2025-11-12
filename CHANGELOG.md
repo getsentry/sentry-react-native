@@ -14,6 +14,12 @@
   - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
   - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
 
+### Dependencies
+
+- Bump CLI from v2.58.0 to v2.58.1 ([#5363](https://github.com/getsentry/sentry-react-native/pull/5363))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2581)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.0...2.58.1)
+
 ## 7.6.0
 
 
