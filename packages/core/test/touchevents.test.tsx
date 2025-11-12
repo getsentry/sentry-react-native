@@ -27,7 +27,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
 
     boundary.componentDidMount();
 
-    expect(addIntegration).toBeCalledWith(expect.objectContaining({ name: 'TouchEventBoundary' }));
+    expect(addIntegration).toHaveBeenCalledWith(expect.objectContaining({ name: 'TouchEventBoundary' }));
   });
 
   it('tree without displayName or label is not logged', () => {
@@ -60,7 +60,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
-    expect(addBreadcrumb).not.toBeCalled();
+    expect(addBreadcrumb).not.toHaveBeenCalled();
   });
 
   it('sentry-label is preferred over labelName and displayName', () => {
@@ -97,7 +97,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
-    expect(addBreadcrumb).toBeCalledWith({
+    expect(addBreadcrumb).toHaveBeenCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ name: 'View' }, { name: 'Connect(View)' }, { label: 'LABEL!' }],
@@ -156,7 +156,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
-    expect(addBreadcrumb).toBeCalledWith({
+    expect(addBreadcrumb).toHaveBeenCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ name: 'Styled(View)' }],
@@ -206,7 +206,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
-    expect(addBreadcrumb).toBeCalledWith({
+    expect(addBreadcrumb).toHaveBeenCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ label: 'Connect(View)' }, { name: 'Styled(View)' }],
@@ -263,7 +263,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
-    expect(addBreadcrumb).toBeCalledWith({
+    expect(addBreadcrumb).toHaveBeenCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [
@@ -300,7 +300,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
     // @ts-expect-error Calling private member
     boundary._onTouchStart(event);
 
-    expect(addBreadcrumb).toBeCalledWith({
+    expect(addBreadcrumb).toHaveBeenCalledWith({
       category: defaultProps.breadcrumbCategory,
       data: {
         path: [{ name: 'Text' }],
