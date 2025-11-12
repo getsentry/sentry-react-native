@@ -2,7 +2,7 @@ name: Danger
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+    types: [opened, synchronize, reopened, edited, ready_for_review, labeled, unlabeled]
 
 jobs:
   danger:
@@ -10,5 +10,5 @@ jobs:
     steps:
       - uses: getsentry/github-workflows/danger@17cc15eb58ea3687cd8f2714a4192dcee4aa09ef
         with:
-          extra-dangerfile: scripts/check-replay-stubs.js
+          extra-dangerfile: scripts/check-additional-danger.js
           extra-install-packages: "curl unzip openjdk-17-jre-headless"
