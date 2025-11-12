@@ -21,8 +21,8 @@ if (enableHermes === null) {
   throw new Error('Invalid engine');
 }
 
-// Optional iOS version argument, defaults to '15.0' due to Cocoa SDK V9 requirement
-const iosVersion = args['ios-version'] || '15.0';
+// Optional iOS version argument, defaults to '15.1' due to Cocoa SDK V9 and RN 0.81.0 requirement
+const iosVersion = args['ios-version'] || '15.1';
 
 debug.log('Patching Podfile', args['pod-file']);
 let content = fs.readFileSync(args['pod-file'], 'utf8');
