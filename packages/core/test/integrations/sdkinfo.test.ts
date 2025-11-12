@@ -39,7 +39,7 @@ describe('Sdk Info', () => {
 
     expect(processedEvent?.sdk?.packages).toEqual(expect.arrayContaining([mockCocoaPackage]));
     expect(processedEvent?.platform === 'javascript');
-    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
+    expect(mockedFetchNativeSdkInfo).toHaveBeenCalledTimes(1);
   });
 
   it('Adds native package and javascript platform to event on Android', async () => {
@@ -50,7 +50,7 @@ describe('Sdk Info', () => {
 
     expect(processedEvent?.sdk?.packages).toEqual(expect.not.arrayContaining([mockCocoaPackage]));
     expect(processedEvent?.platform === 'javascript');
-    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
+    expect(mockedFetchNativeSdkInfo).toHaveBeenCalledTimes(1);
   });
 
   it('Does not add any default non native packages', async () => {
@@ -60,7 +60,7 @@ describe('Sdk Info', () => {
 
     expect(processedEvent?.sdk?.packages).toEqual([]);
     expect(processedEvent?.platform === 'javascript');
-    expect(mockedFetchNativeSdkInfo).toBeCalledTimes(1);
+    expect(mockedFetchNativeSdkInfo).toHaveBeenCalledTimes(1);
   });
 
   it('Does not overwrite existing sdk name and version', async () => {

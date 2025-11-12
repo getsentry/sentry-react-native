@@ -6,14 +6,14 @@ describe('safe', () => {
       const mockFn = jest.fn();
       const actualSafeFunction = safeFactory(mockFn);
       actualSafeFunction('foo', 'bar');
-      expect(mockFn).toBeCalledTimes(1);
-      expect(mockFn).toBeCalledWith('foo', 'bar');
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('foo', 'bar');
     });
     test('calls given function amd return its result', () => {
       const mockFn = jest.fn(() => 'bar');
       const actualSafeFunction = safeFactory(mockFn);
       const actualResult = actualSafeFunction('foo');
-      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledTimes(1);
       expect(actualResult).toBe('bar');
     });
     test('passes undefined trough', () => {
@@ -30,7 +30,7 @@ describe('safe', () => {
       });
       const actualSafeFunction = safeFactory(<(foo: string) => string>mockFn);
       const actualResult = actualSafeFunction('foo');
-      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledTimes(1);
       expect(actualResult).toEqual('foo');
     });
   });
@@ -46,8 +46,8 @@ describe('safe', () => {
         transactionContext: { name: 'foo' },
         inheritOrSampleWith: expectedInheritOrSampleWith,
       });
-      expect(mockFn).toBeCalledTimes(1);
-      expect(mockFn).toBeCalledWith({
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith({
         name: 'foo',
         transactionContext: { name: 'foo' },
         inheritOrSampleWith: expectedInheritOrSampleWith,
@@ -63,7 +63,7 @@ describe('safe', () => {
           return fallbackSampleRate;
         },
       });
-      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledTimes(1);
       expect(actualResult).toBe(0.5);
     });
     test('passes undefined trough', () => {
@@ -82,7 +82,7 @@ describe('safe', () => {
           return fallbackSampleRate;
         },
       });
-      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledTimes(1);
       expect(actualResult).toEqual(0);
     });
   });

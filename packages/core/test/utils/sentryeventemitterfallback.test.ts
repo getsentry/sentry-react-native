@@ -210,7 +210,7 @@ describe('SentryEventEmitterFallback', () => {
       newFrameTimestampInSeconds: 67890,
       isFallback: undefined,
     });
-    expect(debug.log).not.toBeCalled();
+    expect(debug.log).not.toHaveBeenCalled();
   });
 
   it('should retry up to maxRetries and emit fallback if no response', async () => {
