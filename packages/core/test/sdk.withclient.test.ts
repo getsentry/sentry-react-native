@@ -21,7 +21,7 @@ describe('Tests the SDK functionality', () => {
     it('Calls flush on the client', async () => {
       const flushResult = await flush();
 
-      expect(client.flush).toBeCalled();
+      expect(client.flush).toHaveBeenCalled();
       expect(flushResult).toBe(true);
     });
 
@@ -30,9 +30,9 @@ describe('Tests the SDK functionality', () => {
 
       const flushResult = await flush();
 
-      expect(client.flush).toBeCalled();
+      expect(client.flush).toHaveBeenCalled();
       expect(flushResult).toBe(false);
-      expect(debug.error).toBeCalledWith('Failed to flush the event queue.');
+      expect(debug.error).toHaveBeenCalledWith('Failed to flush the event queue.');
     });
   });
 
@@ -40,15 +40,15 @@ describe('Tests the SDK functionality', () => {
     it('Returns Native crashedLastRun', async () => {
       NATIVE.crashedLastRun.mockClear().mockResolvedValue(true);
       expect(await crashedLastRun()).toBe(true);
-      expect(NATIVE.crashedLastRun).toBeCalled();
+      expect(NATIVE.crashedLastRun).toHaveBeenCalled();
 
       NATIVE.crashedLastRun.mockClear().mockResolvedValue(false);
       expect(await crashedLastRun()).toBe(false);
-      expect(NATIVE.crashedLastRun).toBeCalled();
+      expect(NATIVE.crashedLastRun).toHaveBeenCalled();
 
       NATIVE.crashedLastRun.mockClear().mockResolvedValue(null);
       expect(await crashedLastRun()).toBe(null);
-      expect(NATIVE.crashedLastRun).toBeCalled();
+      expect(NATIVE.crashedLastRun).toHaveBeenCalled();
     });
   });
 });

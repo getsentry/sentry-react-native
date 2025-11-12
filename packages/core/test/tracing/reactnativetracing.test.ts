@@ -61,7 +61,7 @@ describe('ReactNativeTracing', () => {
         integrations: [reactNativeTracingIntegration()],
       });
 
-      expect(instrumentOutgoingRequests).toBeCalledWith(
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: ['test1', 'test2'],
@@ -77,7 +77,7 @@ describe('ReactNativeTracing', () => {
         integrations: [reactNativeTracingIntegration()],
       });
 
-      expect(instrumentOutgoingRequests).toBeCalledWith(
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: [/.*/],
@@ -93,7 +93,7 @@ describe('ReactNativeTracing', () => {
         integrations: [reactNativeTracingIntegration()],
       });
 
-      expect(instrumentOutgoingRequests).toBeCalledWith(
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: undefined,

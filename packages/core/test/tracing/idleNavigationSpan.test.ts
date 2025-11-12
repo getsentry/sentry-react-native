@@ -65,7 +65,7 @@ describe('startIdleNavigationSpan', () => {
 
     expect(routeTransaction).toBeDefined();
     expect(spanToJSON(routeTransaction!).status).toBe('cancelled');
-    expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
+    expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
   });
 
   it('Does not crash when AppState is not available', async () => {

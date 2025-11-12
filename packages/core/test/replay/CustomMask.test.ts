@@ -74,8 +74,8 @@ describe('CustomMask', () => {
     expect(Mask).toBe(mockMaskComponent);
     expect(Unmask).toBe(mockUnmaskComponent);
 
-    expect(mockNativeComponentRegistryGet).toBeCalledTimes(2);
-    expect(mockNativeComponentRegistryGet).toBeCalledWith('RNSentryReplayMask', expect.any(Function));
-    expect(mockNativeComponentRegistryGet).toBeCalledWith('RNSentryReplayUnmask', expect.any(Function));
+    expect(mockNativeComponentRegistryGet).toHaveBeenCalledTimes(2);
+    expect(mockNativeComponentRegistryGet).toHaveBeenCalledWith('RNSentryReplayMask', expect.any(Function));
+    expect(mockNativeComponentRegistryGet).toHaveBeenCalledWith('RNSentryReplayUnmask', expect.any(Function));
   });
 });
