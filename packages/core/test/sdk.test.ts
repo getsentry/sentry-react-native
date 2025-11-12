@@ -211,7 +211,7 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({});
-        expect(NATIVE.isNativeAvailable).toBeCalled();
+        expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
         // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
@@ -220,7 +220,7 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and passed enableNative ignored when true', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: true });
-        expect(NATIVE.isNativeAvailable).toBeCalled();
+        expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
         // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
@@ -229,7 +229,7 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and isNativeAvailable not called when passed enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: false });
-        expect(NATIVE.isNativeAvailable).not.toBeCalled();
+        expect(NATIVE.isNativeAvailable).not.toHaveBeenCalled();
         // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
@@ -242,7 +242,7 @@ describe('Tests the SDK functionality', () => {
           transport: mockTransport,
         });
         expect(usedOptions()?.transport).toEqual(mockTransport);
-        expect(NATIVE.isNativeAvailable).toBeCalled();
+        expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
         // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
       });
@@ -272,14 +272,14 @@ describe('Tests the SDK functionality', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: false });
       expect(usedOptions()?.transport).toEqual(makeFetchTransport);
-      expect(NATIVE.isNativeAvailable).not.toBeCalled();
+      expect(NATIVE.isNativeAvailable).not.toHaveBeenCalled();
     });
 
     it('check both options and native availability', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: true });
       expect(usedOptions()?.transport).toEqual(makeNativeTransport);
-      expect(NATIVE.isNativeAvailable).toBeCalled();
+      expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
     });
   });
 
@@ -294,7 +294,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         (usedOptions()?.initialScope as (scope: Scope) => Scope)({} as any);
       }).not.toThrow();
-      expect(mockInitialScope).toBeCalledTimes(1);
+      expect(mockInitialScope).toHaveBeenCalledTimes(1);
     });
     test('beforeBreadcrumb callback is safe after init', () => {
       const mockBeforeBreadcrumb = jest.fn(() => {
@@ -306,7 +306,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         usedOptions()?.beforeBreadcrumb?.({} as any);
       }).not.toThrow();
-      expect(mockBeforeBreadcrumb).toBeCalledTimes(1);
+      expect(mockBeforeBreadcrumb).toHaveBeenCalledTimes(1);
     });
 
     test('integrations callback should not crash init', () => {
@@ -317,7 +317,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         init({ integrations: mockIntegrations });
       }).not.toThrow();
-      expect(mockIntegrations).toBeCalledTimes(1);
+      expect(mockIntegrations).toHaveBeenCalledTimes(1);
     });
 
     test('tracesSampler callback is safe after init', () => {
@@ -330,7 +330,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         usedOptions()?.tracesSampler?.({} as any);
       }).not.toThrow();
-      expect(mockTraceSampler).toBeCalledTimes(1);
+      expect(mockTraceSampler).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -560,7 +560,7 @@ describe('Tests the SDK functionality', () => {
       });
 
       expect(() => withScope(mockScopeCallback)).not.toThrow();
-      expect(mockScopeCallback).toBeCalledTimes(1);
+      expect(mockScopeCallback).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1005,6 +1005,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('ExpoContext');
   });
 
+  // TODO: No longer an experiment on major version.
   it('adds mobile replay integration when _experiments.replaysOnErrorSampleRate is set', () => {
     init({
       _experiments: {
@@ -1023,6 +1024,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('adds mobile replay integration when _experiments.replaysSessionSampleRate is set', () => {
     init({
       _experiments: {
@@ -1041,6 +1043,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add mobile replay integration when no replay sample rates are set', () => {
     init({
       _experiments: {},
@@ -1049,6 +1052,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add any replay integration when on web even with on experimental error sample rate', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1061,6 +1065,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add any replay integration when on web even with experimental session sample rate', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1101,6 +1106,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('ignores experimental replay options when ga options are set', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1121,6 +1127,7 @@ describe('Tests the SDK functionality', () => {
     );
   });
 
+  // TODO: No longer an experiment on major version.
   it('converts experimental replay options to standard web options when on web', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1139,6 +1146,7 @@ describe('Tests the SDK functionality', () => {
     );
   });
 
+  // TODO: No longer an experiment on major version.
   it('converts experimental replay options to standard web options when on mobile', () => {
     (notWeb as jest.Mock).mockImplementation(() => true);
     init({
