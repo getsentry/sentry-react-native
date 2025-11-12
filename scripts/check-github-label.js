@@ -1,4 +1,5 @@
 module.exports = async function ({ fail, warn, __, ___, danger }) {
+  console.log(JSON.stringify(danger.github.issue.labels, null, 2));
   const isReeadyForMerge = danger.github.issue.labels.some(label => label.name === 'ready-for-merge');
   if (!isReeadyForMerge) {
     // Ideally we could check for `isDraft` but this information is not easily available.
