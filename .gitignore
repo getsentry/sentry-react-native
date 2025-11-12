@@ -94,4 +94,6 @@ node_modules.bak
 
 # SwiftLint
 swiftlint/*
-#test change
+
+# Sample app
+samples/*/.env
