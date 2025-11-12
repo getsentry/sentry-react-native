@@ -315,9 +315,9 @@ describe('metroconfig', () => {
         platform: string | null,
       ) {
         if (oldMetro) {
-          expect(received).toBeCalledWith(contextMock, `real${moduleName}`, platform, moduleName);
+          expect(received).toHaveBeenCalledWith(contextMock, `real${moduleName}`, platform, moduleName);
         } else {
-          expect(received).toBeCalledWith(contextMock, moduleName, platform);
+          expect(received).toHaveBeenCalledWith(contextMock, moduleName, platform);
         }
       }
     });

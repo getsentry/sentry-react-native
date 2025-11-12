@@ -48,7 +48,7 @@ describe('BackgroundEventListener', () => {
     });
     stallTracking['_internalState']['backgroundEventListener']('active' as AppStateStatus);
 
-    expect(stallTracking['_internalState']['iteration']).not.toBeCalled();
+    expect(stallTracking['_internalState']['iteration']).not.toHaveBeenCalled();
   });
   it('Stall tracking should call _iteration when state is active and _timeout is defined', () => {
     const stallTracking = stallTrackingIntegration() as StallTrackingWithTestProperties;
@@ -60,6 +60,6 @@ describe('BackgroundEventListener', () => {
       doNotFake: ['performance'], // Keep real performance API
     });
     stallTracking['_internalState']['backgroundEventListener']('active' as AppStateStatus);
-    expect(stallTracking['_internalState']['iteration']).toBeCalled();
+    expect(stallTracking['_internalState']['iteration']).toHaveBeenCalled();
   });
 });

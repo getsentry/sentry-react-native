@@ -365,7 +365,7 @@ describe('profiling integration', () => {
     transaction.end();
     jest.runAllTimers();
 
-    expect(mockWrapper.NATIVE.startProfiling).toBeCalledWith(false);
+    expect(mockWrapper.NATIVE.startProfiling).toHaveBeenCalledWith(false);
   });
 });
 
