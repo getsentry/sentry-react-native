@@ -82,9 +82,7 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
       // That needs to be done because when Metro 0.83.2 stopped importing `BabelSourceMapSegment`
       // from `@babel/generator` and defined it locally, it subtly changed the source map output format.
       // https://github.com/facebook/metro/blob/main/packages/metro-source-map/src/source-map.js#L47
-      const hash = crypto.createHash('md5');
-      hash.update(bundleCode);
-      debugId = stringToUUID(hash.digest('hex'));
+      debugId = calculateDebugId(bundleCode);
       // eslint-disable-next-line no-console
       console.log('info ' + `Bundle Debug ID (calculated): ${debugId}`);
     }
@@ -125,7 +123,7 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
  */
 function createSentryBundleCallback(debugIdModule: Module<VirtualJSOutput> & { setSource: (code: string) => void }) {
   return (bundle: Bundle) => {
-    const debugId = calculateDebugId(bundle);
+    const debugId = calculateDebugId(bundle.pre, bundle.modules);
     debugIdModule.setSource(injectDebugId(debugIdModule.getSource().toString(), debugId));
     bundle.pre = injectDebugId(bundle.pre, debugId);
     return bundle;
@@ -153,16 +151,15 @@ function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSo
   return createVirtualJSModule(DEBUG_ID_MODULE_PATH, createDebugIdSnippet(debugId));
 }
 
-function calculateDebugId(bundle: Bundle): string {
+function calculateDebugId(bundleCode: string, modules?: Array<[id: number, code: string]>): string {
   const hash = crypto.createHash('md5');
-  hash.update(bundle.pre);
-  for (const [, code] of bundle.modules) {
-    hash.update(code);
+  hash.update(bundleCode);
+  if (modules) {
+    for (const [, code] of modules) {
+      hash.update(code);
+    }
   }
-  hash.update(bundle.post);
-
-  const debugId = stringToUUID(hash.digest('hex'));
-  return debugId;
+  return stringToUUID(hash.digest('hex'));
 }
 
 function injectDebugId(code: string, debugId: string): string {

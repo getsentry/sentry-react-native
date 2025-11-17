@@ -108,6 +108,130 @@ describe('Sentry Metro Serializer', () => {
       expect(debugIdMatch2?.[1]).toBe(debugId);
     }
   });
+
+  describe('calculateDebugId', () => {
+    // We need to access the private function for testing
+    const crypto = require('crypto');
+    const { stringToUUID } = require('../../src/js/tools/utils');
+
+    function calculateDebugId(bundleCode: string, modules?: Array<[id: number, code: string]>): string {
+      const hash = crypto.createHash('md5');
+      hash.update(bundleCode);
+      if (modules) {
+        for (const [, code] of modules) {
+          hash.update(code);
+        }
+      }
+      return stringToUUID(hash.digest('hex'));
+    }
+
+    test('generates a valid UUID v4 format', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId = calculateDebugId(bundleCode);
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+
+    test('generates deterministic debug ID for the same bundle code', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId1 = calculateDebugId(bundleCode);
+      const debugId2 = calculateDebugId(bundleCode);
+
+      expect(debugId1).toBe(debugId2);
+    });
+
+    test('generates different debug IDs for different bundle code', () => {
+      const bundleCode1 = 'console.log("test1");';
+      const bundleCode2 = 'console.log("test2");';
+      const debugId1 = calculateDebugId(bundleCode1);
+      const debugId2 = calculateDebugId(bundleCode2);
+
+      expect(debugId1).not.toBe(debugId2);
+    });
+
+    test('handles undefined modules parameter', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId = calculateDebugId(bundleCode, undefined);
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+
+    test('handles empty modules array', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId1 = calculateDebugId(bundleCode, []);
+      const debugId2 = calculateDebugId(bundleCode);
+
+      // Should generate the same debug ID as without modules
+      expect(debugId1).toBe(debugId2);
+    });
+
+    test('includes modules in debug ID calculation', () => {
+      const bundleCode = 'console.log("test");';
+      const modules: Array<[id: number, code: string]> = [
+        [1, 'function foo() { return "bar"; }'],
+        [2, 'function baz() { return "qux"; }'],
+      ];
+
+      const debugIdWithModules = calculateDebugId(bundleCode, modules);
+      const debugIdWithoutModules = calculateDebugId(bundleCode);
+
+      expect(debugIdWithModules).not.toBe(debugIdWithoutModules);
+    });
+
+    test('generates different debug IDs when modules differ', () => {
+      const bundleCode = 'console.log("test");';
+      const modules1: Array<[id: number, code: string]> = [[1, 'function foo() { return "bar"; }']];
+      const modules2: Array<[id: number, code: string]> = [[1, 'function foo() { return "baz"; }']];
+
+      const debugId1 = calculateDebugId(bundleCode, modules1);
+      const debugId2 = calculateDebugId(bundleCode, modules2);
+
+      expect(debugId1).not.toBe(debugId2);
+    });
+
+    test('generates same debug ID when modules have same content but different IDs', () => {
+      const bundleCode = 'console.log("test");';
+      const modules1: Array<[id: number, code: string]> = [[1, 'function foo() { return "bar"; }']];
+      const modules2: Array<[id: number, code: string]> = [[2, 'function foo() { return "bar"; }']];
+
+      const debugId1 = calculateDebugId(bundleCode, modules1);
+      const debugId2 = calculateDebugId(bundleCode, modules2);
+
+      // Module IDs are not used in the hash calculation, only the code
+      expect(debugId1).toBe(debugId2);
+    });
+
+    test('generates different debug IDs when module order differs', () => {
+      const bundleCode = 'console.log("test");';
+      const modules1: Array<[id: number, code: string]> = [
+        [1, 'function foo() { return "bar"; }'],
+        [2, 'function baz() { return "qux"; }'],
+      ];
+      const modules2: Array<[id: number, code: string]> = [
+        [2, 'function baz() { return "qux"; }'],
+        [1, 'function foo() { return "bar"; }'],
+      ];
+
+      const debugId1 = calculateDebugId(bundleCode, modules1);
+      const debugId2 = calculateDebugId(bundleCode, modules2);
+
+      // Order matters in hash calculation
+      expect(debugId1).not.toBe(debugId2);
+    });
+
+    test('handles empty bundle code', () => {
+      const debugId = calculateDebugId('');
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+
+    test('handles large bundle code', () => {
+      const largeBundleCode = 'console.log("test");'.repeat(10000);
+      const debugId = calculateDebugId(largeBundleCode);
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+  });
 });
 
 function mockMinSerializerArgs(options?: {
