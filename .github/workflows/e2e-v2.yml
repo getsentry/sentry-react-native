@@ -188,7 +188,7 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.81.0'
-            xcode-version: '16.2'
+            xcode-version: '16.4'
             runs-on: macos-14
           - platform: ios
             rn-version: '0.71.11'
