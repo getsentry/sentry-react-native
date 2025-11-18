@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - cocoa-v9
 
   pull_request:
     paths:

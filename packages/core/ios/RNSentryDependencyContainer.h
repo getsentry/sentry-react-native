@@ -1,6 +1,7 @@
 #import <Sentry/SentryDefines.h>
 
-#import "RNSentryFramesTrackerListener.h"
+#import "RNSentryEmitNewFrameEvent.h"
+@class RNSentryFramesTrackerListener;
 
 @interface RNSentryDependencyContainer : NSObject
 SENTRY_NO_INIT
