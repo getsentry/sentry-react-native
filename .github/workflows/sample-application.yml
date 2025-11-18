@@ -6,6 +6,7 @@ on:
       - main
       - v5
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.0.9'
+  MAESTRO_VERSION: '2.0.10'
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -23,7 +24,15 @@ env:
   ANDROID_API_LEVEL: '30'
 
 jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
   diff_check:
+    needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
 
   build:
@@ -303,7 +312,7 @@ jobs:
 
       - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
         if: ${{ matrix.platform == 'android' }}
-        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # pin@v2.34.0
+        uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b # pin@v2.35.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
           force-avd-creation: false

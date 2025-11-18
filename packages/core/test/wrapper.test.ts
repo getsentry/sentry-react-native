@@ -104,7 +104,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
     });
 
     test('warns if there is no dsn', async () => {
@@ -117,7 +117,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
       expect(debug.warn).toHaveBeenLastCalledWith(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
@@ -135,7 +135,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(false);
       expect(debug.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
@@ -151,7 +151,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSend');
@@ -169,7 +169,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeBreadcrumb');
@@ -187,7 +187,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSendTransaction');
@@ -205,7 +205,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('integrations');
@@ -225,12 +225,12 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(true);
 
       // Test that native bridge methods will go through
       callAllScopeMethods();
-      expect(RNSentry.addBreadcrumb).toBeCalledWith({
+      expect(RNSentry.addBreadcrumb).toHaveBeenCalledWith({
         message: 'test',
         data: {
           map: { a: 1 },
@@ -238,15 +238,15 @@ describe('Tests Native Wrapper', () => {
           unique: 123,
         },
       });
-      expect(RNSentry.clearBreadcrumbs).toBeCalled();
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.clearBreadcrumbs).toHaveBeenCalled();
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: 'setUser',
         },
         {},
       );
-      expect(RNSentry.setTag).toBeCalledWith('key', 'value');
-      expect(RNSentry.setContext).toBeCalledWith('key', {
+      expect(RNSentry.setTag).toHaveBeenCalledWith('key', 'value');
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', {
         value: 'value',
         data: {
           map: { a: 1 },
@@ -254,7 +254,7 @@ describe('Tests Native Wrapper', () => {
           unique: 123,
         },
       });
-      expect(RNSentry.setExtra).toBeCalledWith('key', 'value');
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', 'value');
     });
 
     test('enableNative: false takes precedence over autoInitializeNativeSdk: false', async () => {
@@ -269,17 +269,17 @@ describe('Tests Native Wrapper', () => {
         autoInitializeNativeSdk: false,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(false);
 
       // Test that native bridge methods will NOT go through
       callAllScopeMethods();
-      expect(RNSentry.addBreadcrumb).not.toBeCalled();
-      expect(RNSentry.clearBreadcrumbs).not.toBeCalled();
-      expect(RNSentry.setUser).not.toBeCalled();
-      expect(RNSentry.setTag).not.toBeCalled();
-      expect(RNSentry.setContext).not.toBeCalled();
-      expect(RNSentry.setExtra).not.toBeCalled();
+      expect(RNSentry.addBreadcrumb).not.toHaveBeenCalled();
+      expect(RNSentry.clearBreadcrumbs).not.toHaveBeenCalled();
+      expect(RNSentry.setUser).not.toHaveBeenCalled();
+      expect(RNSentry.setTag).not.toHaveBeenCalled();
+      expect(RNSentry.setContext).not.toHaveBeenCalled();
+      expect(RNSentry.setExtra).not.toHaveBeenCalled();
     });
 
     test('sets ignoreErrorsStr and ignoreErrorsRegex correctly when ignoreErrors contains strings and regex', async () => {
@@ -293,7 +293,7 @@ describe('Tests Native Wrapper', () => {
         defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
       expect(initParameter.ignoreErrorsStr).toEqual(['string1', 'string2']);
       expect(initParameter.ignoreErrorsRegex).toEqual([regex1.source, regex2.source]);
@@ -307,10 +307,48 @@ describe('Tests Native Wrapper', () => {
         defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
       });
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
       expect(initParameter.ignoreErrorsStr).toBeUndefined();
       expect(initParameter.ignoreErrorsRegex).toBeUndefined();
+    });
+
+    test('does not set enableLogs when option is undefined', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBeUndefined();
+    });
+
+    it.each([
+      ['without logsOrigin', undefined, true],
+      ['with logsOrigin set to Native', 'native' as const, true],
+      ['with logsOrigin set to all', 'all' as const, true],
+      ['with logsOrigin set to JS', 'js' as const, false],
+    ])('handles enableLogs %s', async (_description, logsOrigin, expectedEnableLogs) => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableLogs: true,
+        ...(logsOrigin !== undefined ? { logsOrigin } : {}),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBe(expectedEnableLogs);
+      expect(initParameter.logsOrigin).toBeUndefined();
     });
   });
 
@@ -331,7 +369,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -363,7 +401,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -390,7 +428,7 @@ describe('Tests Native Wrapper', () => {
         // @ts-expect-error it is an error but it does not know the type.
         expect(error.message).toMatch('Native is disabled');
       }
-      expect(RNSentry.captureEnvelope).not.toBeCalled();
+      expect(RNSentry.captureEnvelope).not.toHaveBeenCalled();
     });
     test('Encloses message to an object and not introduce empty breadcrumbs on Android', async () => {
       NATIVE.platform = 'android';
@@ -406,7 +444,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -445,7 +483,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -474,7 +512,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -513,7 +551,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -546,7 +584,7 @@ describe('Tests Native Wrapper', () => {
         },
       });
 
-      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).toHaveBeenCalled();
     });
     test('returns context object from native module on android', async () => {
       NATIVE.platform = 'android';
@@ -557,7 +595,7 @@ describe('Tests Native Wrapper', () => {
         },
       });
 
-      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).toHaveBeenCalled();
     });
   });
 
@@ -571,7 +609,7 @@ describe('Tests Native Wrapper', () => {
     test('calls the native crash', () => {
       NATIVE.nativeCrash();
 
-      expect(RNSentry.crash).toBeCalled();
+      expect(RNSentry.crash).toHaveBeenCalled();
     });
     test('does not call crash if enableNative is false', async () => {
       await NATIVE.initNativeSdk({
@@ -583,7 +621,7 @@ describe('Tests Native Wrapper', () => {
       });
       NATIVE.nativeCrash();
 
-      expect(RNSentry.crash).not.toBeCalled();
+      expect(RNSentry.crash).not.toHaveBeenCalled();
     });
   });
 
@@ -595,7 +633,7 @@ describe('Tests Native Wrapper', () => {
         unique: 123,
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           email: 'hello@sentry.io',
           id: '3.14159265359',
@@ -611,7 +649,7 @@ describe('Tests Native Wrapper', () => {
         id: 'Hello',
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: 'Hello',
         },
@@ -632,7 +670,7 @@ describe('Tests Native Wrapper', () => {
         customField: 'customValue',
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: '123',
           email: 'test@example.com',
@@ -658,7 +696,7 @@ describe('Tests Native Wrapper', () => {
         },
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: '123',
           geo: JSON.stringify({
@@ -676,7 +714,7 @@ describe('Tests Native Wrapper', () => {
         geo: {},
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: '123',
           geo: '{}',
@@ -691,7 +729,7 @@ describe('Tests Native Wrapper', () => {
         geo: undefined,
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: '123',
           geo: undefined,
@@ -719,7 +757,7 @@ describe('Tests Native Wrapper', () => {
     test('closeNativeSdk calls native bridge', async () => {
       await NATIVE.closeNativeSdk();
 
-      expect(RNSentry.closeNativeSdk).toBeCalled();
+      expect(RNSentry.closeNativeSdk).toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(false);
     });
   });

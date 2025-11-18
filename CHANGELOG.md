@@ -8,11 +8,43 @@
 
 ## Unreleased
 
+### Features
+
+- Added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
+  - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
+  - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
+
 ### Dependencies
 
-- Bump JavaScript SDK from v10.22.0 to v10.23.0 ([#5335](https://github.com/getsentry/sentry-react-native/pull/5335))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10230)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.22.0...10.23.0)
+- Bump JavaScript SDK from v10.24.0 to v10.25.0 ([#5362](https://github.com/getsentry/sentry-react-native/pull/5362))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10250)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.24.0...10.25.0)
+- Bump CLI from v2.58.0 to v2.58.2 ([#5363](https://github.com/getsentry/sentry-react-native/pull/5363), [#5371](https://github.com/getsentry/sentry-react-native/pull/5371))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2582)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.0...2.58.2)
+- Bump Android SDK from v8.25.0 to v8.26.0 ([#5364](https://github.com/getsentry/sentry-react-native/pull/5364))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/cursor/categorize-sentry-options-3f0a main/CHANGELOG.md#8260)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.25.0...8.26.0)
+- Bump Android SDK Stubs from v8.25.0 to v8.26.0 ([#5365](https://github.com/getsentry/sentry-react-native/pull/5365))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/cursor/categorize-sentry-options-3f0a main/CHANGELOG.md#8260)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.25.0...8.26.0)
+- Bump Cocoa SDK from v8.57.2 to v8.57.3 ([#5375](https://github.com/getsentry/sentry-react-native/pull/5375))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8573)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.2...8.57.3)
+
+## 7.6.0
+
+
+### Fixes
+
+- Android SDK not being disabled when `options.enabled` is set to `false`  ([#5334](https://github.com/getsentry/sentry-react-native/pull/5334))
+- Fixes how bundle IDs are getting defined for individual bundles ([#5342](https://github.com/getsentry/sentry-react-native/pull/5342))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.22.0 to v10.24.0 ([#5335](https://github.com/getsentry/sentry-react-native/pull/5335), [#5352](https://github.com/getsentry/sentry-react-native/pull/5352))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10240)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.22.0...10.24.0)
 - Bump CLI from v2.57.0 to v2.58.0 ([#5336](https://github.com/getsentry/sentry-react-native/pull/5336))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2580)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.57.0...2.58.0)

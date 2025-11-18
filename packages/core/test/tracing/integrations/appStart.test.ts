@@ -375,7 +375,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
       expect(actualEvent).toStrictEqual(undefined);
-      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+      expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
     });
 
     it('Does not add app start if native returns null', async () => {
@@ -383,7 +383,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
       expect(actualEvent).toStrictEqual(undefined);
-      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+      expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -775,7 +775,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
       expect(actualEvent).toStrictEqual(getMinimalTransactionEvent());
-      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+      expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
     });
 
     it('Does not add app start if native returns null', async () => {
@@ -783,7 +783,7 @@ describe('App Start Integration', () => {
 
       const actualEvent = await processEvent(getMinimalTransactionEvent());
       expect(actualEvent).toStrictEqual(getMinimalTransactionEvent());
-      expect(NATIVE.fetchNativeAppStart).toBeCalledTimes(1);
+      expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
     });
   });
 });
