@@ -68,6 +68,13 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
         // this object is not used by the instrumentation
       });
     },
+    emitNavigationWithUndefinedRoute: () => {
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
+      mockedNavigationContained.currentRoute = undefined as any;
+      mockedNavigationContained.listeners['state']({
+        // this object is not used by the instrumentation
+      });
+    },
   };
   sut.registerNavigationContainer(mockRef(mockedNavigationContained));
 

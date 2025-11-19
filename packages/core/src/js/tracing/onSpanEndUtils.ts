@@ -88,6 +88,77 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
 };
 
 /**
+ * Discards empty "Route Change" transactions that never received route information.
+ * This happens when navigation library emits a route change event but getCurrentRoute() returns undefined.
+ * Such transactions don't contain any useful information and should not be sent to Sentry.
+ *
+ * This function must be called with a reference tracker function that can check if the span
+ * was cleared from the integration's tracking (indicating it went through the state listener).
+ */
+export const ignoreEmptyRouteChangeTransactions = (
+  client: Client | undefined,
+  span: Span | undefined,
+  defaultNavigationSpanName: string,
+  isSpanStillTracked: () => boolean,
+): void => {
+  if (!client) {
+    debug.warn('Could not hook on spanEnd event because client is not defined.');
+    return;
+  }
+
+  if (!span) {
+    debug.warn('Could not hook on spanEnd event because span is not defined.');
+    return;
+  }
+
+  if (!isRootSpan(span) || !isSentrySpan(span)) {
+    debug.warn('Not sampling empty route change transactions only works for Sentry Transactions (Root Spans).');
+    return;
+  }
+
+  client.on('spanEnd', (endedSpan: Span) => {
+    if (endedSpan !== span) {
+      return;
+    }
+
+    const spanJSON = spanToJSON(span);
+
+    // Only check spans that still have the default navigation name
+    if (spanJSON.description !== defaultNavigationSpanName) {
+      return;
+    }
+
+    // If the span has route information, it went through the normal flow
+    if (spanJSON.data?.['route.name']) {
+      return;
+    }
+
+    // If the span was cleared from tracking, it means the state listener was called
+    // (even if for same-route navigation), so we should allow it through
+    if (!isSpanStillTracked()) {
+      return;
+    }
+
+    const children = getSpanDescendants(span);
+    const filtered = children.filter(
+      child =>
+        child.spanContext().spanId !== span.spanContext().spanId &&
+        spanToJSON(child).op !== 'ui.load.initial_display' &&
+        spanToJSON(child).op !== 'navigation.processing',
+    );
+
+    if (filtered.length <= 0) {
+      // No meaningful child spans and still has default name - this is an empty Route Change transaction
+      debug.log(`Discarding empty "${defaultNavigationSpanName}" transaction that never received route information.`);
+      span['_sampled'] = false;
+
+      // Record as dropped transaction for observability
+      client.recordDroppedEvent('sample_rate', 'transaction');
+    }
+  });
+};
+
+/**
  * Idle Transaction callback to only sample transactions with child spans.
  * To avoid side effects of other callbacks this should be hooked as the last callback.
  */

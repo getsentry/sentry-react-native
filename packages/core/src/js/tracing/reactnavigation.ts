@@ -17,7 +17,7 @@ import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import type { UnsafeAction } from '../vendor/react-navigation/types';
 import { NATIVE } from '../wrapper';
-import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { ignoreEmptyBackNavigation, ignoreEmptyRouteChangeTransactions } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
@@ -252,6 +252,14 @@ export const reactNavigationIntegration = ({
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
+    // Always discard transactions that never receive route information
+    const spanToCheck = latestNavigationSpan;
+    ignoreEmptyRouteChangeTransactions(
+      getClient(),
+      spanToCheck,
+      DEFAULT_NAVIGATION_SPAN_NAME,
+      () => latestNavigationSpan === spanToCheck,
+    );
 
     if (enableTimeToInitialDisplay && latestNavigationSpan) {
       NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId);
