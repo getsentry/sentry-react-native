@@ -16,7 +16,7 @@
 
 ### Fixes
 
-- Discard empty Route Change transactions [#5387](https://github.com/getsentry/sentry-react-native/issues/5387))
+- Discard empty Route Change transactions ([#5387](https://github.com/getsentry/sentry-react-native/issues/5387))
 
 ### Dependencies
 
