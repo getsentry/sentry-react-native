@@ -209,6 +209,9 @@ export const reactNavigationIntegration = ({
    * To be called on every React-Navigation action dispatch.
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
+   *
+   * @param unknownEvent - The event object that contains navigation action data
+   * @param isAppRestart - Whether this span is being started due to an app restart rather than a normal navigation action
    */
   const startIdleNavigationSpan = (unknownEvent?: unknown, isAppRestart = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
