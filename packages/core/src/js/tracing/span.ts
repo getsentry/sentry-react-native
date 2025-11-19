@@ -49,8 +49,8 @@ export const startIdleNavigationSpan = (
   {
     finalTimeout = defaultIdleOptions.finalTimeout,
     idleTimeout = defaultIdleOptions.idleTimeout,
-    isFromRunApplication = false,
-  }: Partial<typeof defaultIdleOptions> & { isFromRunApplication?: boolean } = {},
+    isAppRestart = false,
+  }: Partial<typeof defaultIdleOptions> & { isAppRestart?: boolean } = {},
 ): Span | undefined => {
   const client = getClient();
   if (!client) {
@@ -63,7 +63,7 @@ export const startIdleNavigationSpan = (
 
   // Don't cancel user interaction spans when starting from runApplication (app restart/reload).
   // This preserves the span context for error capture and replay recording.
-  if (isActiveSpanInteraction && isFromRunApplication) {
+  if (isActiveSpanInteraction && isAppRestart) {
     debug.log(
       `[startIdleNavigationSpan] Not canceling ${
         spanToJSON(activeSpan).op

@@ -211,7 +211,7 @@ describe('startIdleNavigationSpan', () => {
         {
           name: 'test',
         },
-        { isFromRunApplication: true },
+        { isAppRestart: true },
       );
 
       // User interaction span should NOT be cancelled/ended - preserving it for replay capture
