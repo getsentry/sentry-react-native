@@ -16,7 +16,7 @@
 
 ### Fixes
 
-- Preserves interaction span context during app restart to allow proper replay capture([#5386](https://github.com/getsentry/sentry-react-native/pull/5386))
+- Preserves interaction span context during app restart to allow proper replay capture ([#5386](https://github.com/getsentry/sentry-react-native/pull/5386))
 
 ### Dependencies
 
