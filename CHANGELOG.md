@@ -14,6 +14,10 @@
   - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
   - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
 
+### Fixes
+
+- Discard empty Route Change transactions [#5387](https://github.com/getsentry/sentry-react-native/issues/5387))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.24.0 to v10.25.0 ([#5362](https://github.com/getsentry/sentry-react-native/pull/5362))
