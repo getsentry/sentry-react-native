@@ -141,7 +141,7 @@ export const reactNavigationIntegration = ({
         // This ensures runApplication calls after the initial start are correctly traced.
         // This is used for example when Activity is (re)started on Android.
         debug.log('[ReactNavigationIntegration] Starting new idle navigation span based on runApplication call.');
-        startIdleNavigationSpan();
+        startIdleNavigationSpan(undefined, true);
       }
     });
 
@@ -210,7 +210,7 @@ export const reactNavigationIntegration = ({
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
    */
-  const startIdleNavigationSpan = (unknownEvent?: unknown): void => {
+  const startIdleNavigationSpan = (unknownEvent?: unknown, isFromRunApplication = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
     if (useDispatchedActionData && event?.data.noop) {
       debug.log(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
@@ -245,7 +245,7 @@ export const reactNavigationIntegration = ({
       tracing?.options.beforeStartSpan
         ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
         : getDefaultIdleNavigationSpanOptions(),
-      idleSpanOptions,
+      { ...idleSpanOptions, isFromRunApplication },
     );
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, navigationActionType);

@@ -49,7 +49,8 @@ export const startIdleNavigationSpan = (
   {
     finalTimeout = defaultIdleOptions.finalTimeout,
     idleTimeout = defaultIdleOptions.idleTimeout,
-  }: Partial<typeof defaultIdleOptions> = {},
+    isFromRunApplication = false,
+  }: Partial<typeof defaultIdleOptions> & { isFromRunApplication?: boolean } = {},
 ): Span | undefined => {
   const client = getClient();
   if (!client) {
@@ -58,15 +59,27 @@ export const startIdleNavigationSpan = (
   }
 
   const activeSpan = getActiveSpan();
-  clearActiveSpanFromScope(getCurrentScope());
-  if (activeSpan && isRootSpan(activeSpan) && isSentryInteractionSpan(activeSpan)) {
+  const isActiveSpanInteraction = activeSpan && isRootSpan(activeSpan) && isSentryInteractionSpan(activeSpan);
+
+  // Don't cancel user interaction spans when starting from runApplication (app restart/reload).
+  // This preserves the span context for error capture and replay recording.
+  if (isActiveSpanInteraction && isFromRunApplication) {
+    debug.log(
+      `[startIdleNavigationSpan] Not canceling ${
+        spanToJSON(activeSpan).op
+      } transaction because navigation is from app restart - preserving error context.`,
+    );
+  } else if (isActiveSpanInteraction) {
     debug.log(
       `[startIdleNavigationSpan] Canceling ${
         spanToJSON(activeSpan).op
       } transaction because of a new navigation root span.`,
     );
+    clearActiveSpanFromScope(getCurrentScope());
     activeSpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
     activeSpan.end();
+  } else {
+    clearActiveSpanFromScope(getCurrentScope());
   }
 
   const finalStartSpanOptions = {
