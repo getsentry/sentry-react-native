@@ -17,6 +17,7 @@
 ### Fixes
 
 - Preserves interaction span context during app restart to allow proper replay capture ([#5386](https://github.com/getsentry/sentry-react-native/pull/5386))
+- Discard empty Route Change transactions ([#5387](https://github.com/getsentry/sentry-react-native/issues/5387))
 
 ### Dependencies
 
