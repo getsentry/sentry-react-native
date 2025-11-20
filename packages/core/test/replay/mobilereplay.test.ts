@@ -26,7 +26,7 @@ describe('Mobile Replay Integration', () => {
 
   describe('beforeErrorSampling', () => {
     it('should capture replay when beforeErrorSampling returns true', async () => {
-      const beforeErrorSampling = jest.fn().mockReturnValue(true);
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(true);
       const integration = mobileReplayIntegration({ beforeErrorSampling });
 
       const event: Event = {
@@ -46,7 +46,7 @@ describe('Mobile Replay Integration', () => {
     });
 
     it('should not capture replay when beforeErrorSampling returns false', async () => {
-      const beforeErrorSampling = jest.fn().mockReturnValue(false);
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(false);
       const integration = mobileReplayIntegration({ beforeErrorSampling });
 
       const event: Event = {
@@ -66,7 +66,9 @@ describe('Mobile Replay Integration', () => {
     });
 
     it('should capture replay when beforeErrorSampling returns undefined', async () => {
-      const beforeErrorSampling = jest.fn().mockReturnValue(undefined);
+      const beforeErrorSampling = jest
+        .fn<(event: Event, hint: EventHint) => boolean>()
+        .mockReturnValue(undefined as unknown as boolean);
       const integration = mobileReplayIntegration({ beforeErrorSampling });
 
       const event: Event = {
@@ -104,7 +106,7 @@ describe('Mobile Replay Integration', () => {
     });
 
     it('should filter out specific error types using beforeErrorSampling', async () => {
-      const beforeErrorSampling = jest.fn((event: Event) => {
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>((event: Event) => {
         // Only capture replays for unhandled errors (not manually captured)
         const isHandled = event.exception?.values?.some(exception => exception.mechanism?.handled === true);
         return !isHandled;
@@ -158,7 +160,7 @@ describe('Mobile Replay Integration', () => {
     });
 
     it('should not call beforeErrorSampling for non-error events', async () => {
-      const beforeErrorSampling = jest.fn().mockReturnValue(false);
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(false);
       const integration = mobileReplayIntegration({ beforeErrorSampling });
 
       const event: Event = {
@@ -173,6 +175,52 @@ describe('Mobile Replay Integration', () => {
 
       expect(beforeErrorSampling).not.toHaveBeenCalled();
       expect(mockCaptureReplay).not.toHaveBeenCalled();
+    });
+
+    it('should handle exceptions thrown by beforeErrorSampling and proceed with capture', async () => {
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockImplementation(() => {
+        throw new Error('Callback error');
+      });
+      const integration = mobileReplayIntegration({ beforeErrorSampling });
+
+      const event: Event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      };
+      const hint: EventHint = {};
+
+      if (integration.processEvent) {
+        await integration.processEvent(event, hint);
+      }
+
+      expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
+      // Should proceed with replay capture despite callback error
+      expect(mockCaptureReplay).toHaveBeenCalled();
+    });
+
+    it('should not crash the event pipeline when beforeErrorSampling throws', async () => {
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockImplementation(() => {
+        throw new TypeError('Unexpected callback error');
+      });
+      const integration = mobileReplayIntegration({ beforeErrorSampling });
+
+      const event: Event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      };
+      const hint: EventHint = {};
+
+      // Should not throw
+      if (integration.processEvent) {
+        await expect(integration.processEvent(event, hint)).resolves.toBeDefined();
+      }
+
+      expect(beforeErrorSampling).toHaveBeenCalled();
+      expect(mockCaptureReplay).toHaveBeenCalled();
     });
   });
 

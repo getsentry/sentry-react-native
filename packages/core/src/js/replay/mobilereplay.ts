@@ -174,11 +174,21 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     }
 
     // Check if beforeErrorSampling callback filters out this error
-    if (initOptions.beforeErrorSampling && initOptions.beforeErrorSampling(event, hint) === false) {
-      debug.log(
-        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} skipped due to beforeErrorSampling for event ${event.event_id}.`,
-      );
-      return event;
+    if (initOptions.beforeErrorSampling) {
+      try {
+        if (initOptions.beforeErrorSampling(event, hint) === false) {
+          debug.log(
+            `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} skipped due to beforeErrorSampling for event ${event.event_id}.`,
+          );
+          return event;
+        }
+      } catch (error) {
+        debug.error(
+          `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} beforeErrorSampling callback threw an error, proceeding with replay capture`,
+          error,
+        );
+        // Continue with replay capture if callback throws
+      }
     }
 
     const replayId = await NATIVE.captureReplay(isHardCrash(event));
