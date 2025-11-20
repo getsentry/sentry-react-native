@@ -14,6 +14,10 @@
   - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
   - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
 
+### Fixes
+
+- Preserves interaction span context during app restart to allow proper replay capture ([#5386](https://github.com/getsentry/sentry-react-native/pull/5386))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.24.0 to v10.26.0 ([#5362](https://github.com/getsentry/sentry-react-native/pull/5362), [#5389](https://github.com/getsentry/sentry-react-native/pull/5389))
