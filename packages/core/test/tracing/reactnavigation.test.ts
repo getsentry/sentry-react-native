@@ -329,6 +329,62 @@ describe('ReactNavigationInstrumentation', () => {
     );
   });
 
+  test('empty Route Change transaction is not sent when route is undefined', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
+
+    mockNavigation.emitNavigationWithUndefinedRoute();
+    jest.runOnlyPendingTimers(); // Flush the empty route change transaction
+
+    await client.flush();
+
+    // Only the initial transaction should be sent
+    expect(client.eventQueue.length).toBe(1);
+    expect(client.event).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'Initial Screen',
+      }),
+    );
+  });
+
+  test('empty Route Change transaction is recorded as dropped', async () => {
+    const mockRecordDroppedEvent = jest.fn();
+    setupTestClient();
+    client.recordDroppedEvent = mockRecordDroppedEvent;
+    jest.runOnlyPendingTimers(); // Flush the init transaction
+
+    mockNavigation.emitNavigationWithUndefinedRoute();
+    jest.runOnlyPendingTimers(); // Flush the empty route change transaction
+
+    await client.flush();
+
+    // Should have recorded a dropped transaction
+    expect(mockRecordDroppedEvent).toHaveBeenCalledWith('sample_rate', 'transaction');
+  });
+
+  test('empty Route Change transaction is not sent after multiple undefined routes', async () => {
+    setupTestClient();
+    jest.runOnlyPendingTimers(); // Flush the init transaction
+
+    mockNavigation.emitNavigationWithUndefinedRoute();
+    jest.runOnlyPendingTimers(); // Flush the first empty route change transaction
+
+    mockNavigation.emitNavigationWithUndefinedRoute();
+    jest.runOnlyPendingTimers(); // Flush the second empty route change transaction
+
+    await client.flush();
+
+    // Only the initial transaction should be sent
+    expect(client.eventQueue.length).toBe(1);
+    expect(client.event).toEqual(
+      expect.objectContaining({
+        type: 'transaction',
+        transaction: 'Initial Screen',
+      }),
+    );
+  });
+
   describe('navigation container registration', () => {
     test('registers navigation container object ref', () => {
       const instrumentation = reactNavigationIntegration();

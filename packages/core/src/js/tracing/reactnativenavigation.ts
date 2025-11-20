@@ -9,7 +9,7 @@ import {
 } from '@sentry/core';
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import { isSentrySpan } from '../utils/span';
-import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { ignoreEmptyBackNavigation, ignoreEmptyRouteChangeTransactions } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
@@ -140,6 +140,14 @@ export const reactNativeNavigationIntegration = ({
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
+    // Always discard transactions that never receive route information
+    const spanToCheck = latestNavigationSpan;
+    ignoreEmptyRouteChangeTransactions(
+      getClient(),
+      spanToCheck,
+      DEFAULT_NAVIGATION_SPAN_NAME,
+      () => latestNavigationSpan === spanToCheck,
+    );
 
     stateChangeTimeout = setTimeout(discardLatestNavigationSpan.bind(this), routeChangeTimeoutMs);
   };
