@@ -16,13 +16,14 @@
 
 ### Fixes
 
+- Preserves interaction span context during app restart to allow proper replay capture ([#5386](https://github.com/getsentry/sentry-react-native/pull/5386))
 - Discard empty Route Change transactions ([#5387](https://github.com/getsentry/sentry-react-native/issues/5387))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.24.0 to v10.25.0 ([#5362](https://github.com/getsentry/sentry-react-native/pull/5362))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10250)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.24.0...10.25.0)
+- Bump JavaScript SDK from v10.24.0 to v10.26.0 ([#5362](https://github.com/getsentry/sentry-react-native/pull/5362), [#5389](https://github.com/getsentry/sentry-react-native/pull/5389))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10260)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.24.0...10.26.0)
 - Bump CLI from v2.58.0 to v2.58.2 ([#5363](https://github.com/getsentry/sentry-react-native/pull/5363), [#5371](https://github.com/getsentry/sentry-react-native/pull/5371))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2582)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.0...2.58.2)
