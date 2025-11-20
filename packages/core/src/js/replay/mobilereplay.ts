@@ -1,4 +1,4 @@
-import type { Client, DynamicSamplingContext, Event, Integration } from '@sentry/core';
+import type { Client, DynamicSamplingContext, Event, EventHint, Integration } from '@sentry/core';
 import { debug } from '@sentry/core';
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
@@ -93,9 +93,20 @@ export interface MobileReplayOptions {
    * @platform android
    */
   screenshotStrategy?: ScreenshotStrategy;
+
+  /**
+   * Callback to determine if a replay should be captured for a specific error.
+   * When this callback returns `false`, no replay will be captured for the error.
+   * This callback is only called when an error occurs and `replaysOnErrorSampleRate` is set.
+   *
+   * @param event The error event
+   * @param hint Additional event information
+   * @returns `false` to skip capturing a replay for this error, `true` or `undefined` to proceed with sampling
+   */
+  beforeErrorSampling?: (event: Event, hint: EventHint) => boolean;
 }
 
-const defaultOptions: Required<MobileReplayOptions> = {
+const defaultOptions: MobileReplayOptions = {
   maskAllText: true,
   maskAllImages: true,
   maskAllVectors: true,
@@ -105,7 +116,7 @@ const defaultOptions: Required<MobileReplayOptions> = {
   screenshotStrategy: 'pixelCopy',
 };
 
-function mergeOptions(initOptions: Partial<MobileReplayOptions>): Required<MobileReplayOptions> {
+function mergeOptions(initOptions: Partial<MobileReplayOptions>): MobileReplayOptions {
   const merged = {
     ...defaultOptions,
     ...initOptions,
@@ -119,7 +130,7 @@ function mergeOptions(initOptions: Partial<MobileReplayOptions>): Required<Mobil
 }
 
 type MobileReplayIntegration = Integration & {
-  options: Required<MobileReplayOptions>;
+  options: MobileReplayOptions;
   getReplayId: () => string | null;
 };
 
@@ -155,10 +166,18 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
   const options = mergeOptions(initOptions);
 
-  async function processEvent(event: Event): Promise<Event> {
+  async function processEvent(event: Event, hint: EventHint): Promise<Event> {
     const hasException = event.exception?.values && event.exception.values.length > 0;
     if (!hasException) {
       // Event is not an error, will not capture replay
+      return event;
+    }
+
+    // Check if beforeErrorSampling callback filters out this error
+    if (initOptions.beforeErrorSampling && initOptions.beforeErrorSampling(event, hint) === false) {
+      debug.log(
+        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} skipped due to beforeErrorSampling for event ${event.event_id}.`,
+      );
       return event;
     }
 
