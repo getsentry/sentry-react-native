@@ -44,8 +44,8 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            xcode-version: '16.2'
-            runs-on: macos-14
+            xcode-version: '16.4'
+            runs-on: macos-15
           - platform: android
             runs-on: ubuntu-latest
           - platform: web
