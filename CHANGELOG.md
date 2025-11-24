@@ -13,6 +13,7 @@
 - Added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
   - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
   - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
+- Add `beforeErrorSampling` callback to `mobileReplayIntegration` ([#5393](https://github.com/getsentry/sentry-react-native/pull/5393))
 
 ### Fixes
 
@@ -36,6 +37,9 @@
 - Bump Cocoa SDK from v8.57.2 to v8.57.3 ([#5375](https://github.com/getsentry/sentry-react-native/pull/5375))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8573)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.2...8.57.3)
+- Bump Bundler Plugins from v4.6.0 to v4.6.1 ([#5394](https://github.com/getsentry/sentry-react-native/pull/5394))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#461)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.6.0...4.6.1)
 
 ## 7.6.0
 
