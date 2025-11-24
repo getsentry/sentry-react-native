@@ -54,7 +54,7 @@ jobs:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Enable Corepack
         run: npm i -g corepack
