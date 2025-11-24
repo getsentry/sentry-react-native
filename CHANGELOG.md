@@ -37,6 +37,9 @@
 - Bump Cocoa SDK from v8.57.2 to v8.57.3 ([#5375](https://github.com/getsentry/sentry-react-native/pull/5375))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8573)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.2...8.57.3)
+- Bump Bundler Plugins from v4.6.0 to v4.6.1 ([#5394](https://github.com/getsentry/sentry-react-native/pull/5394))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#461)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.6.0...4.6.1)
 
 ## 7.6.0
 
