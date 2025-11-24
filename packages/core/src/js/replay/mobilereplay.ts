@@ -178,7 +178,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       try {
         if (initOptions.beforeErrorSampling(event, hint) === false) {
           debug.log(
-            `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} skipped due to beforeErrorSampling for event ${event.event_id}.`,
+            `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sent; beforeErrorSampling conditions not met for event ${event.event_id}.`,
           );
           return event;
         }
