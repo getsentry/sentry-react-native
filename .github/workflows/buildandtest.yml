@@ -22,7 +22,7 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g corepack
       - uses: actions/setup-node@v6
         with:
@@ -41,7 +41,7 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g corepack
       - uses: actions/setup-node@v6
         with:
@@ -87,7 +87,7 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g corepack
       - uses: actions/setup-node@v6
         with:
@@ -111,7 +111,7 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g corepack
       - uses: actions/setup-node@v6
         with:
@@ -155,7 +155,7 @@ jobs:
     env:
       YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g corepack
       - uses: actions/setup-node@v6
         with:
@@ -186,7 +186,7 @@ jobs:
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g corepack
       - uses: actions/setup-node@v6
         with:
@@ -221,7 +221,7 @@ jobs:
         platform: ['ios', 'android']
         dev: [true, false]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: npm i -g corepack
       - uses: actions/setup-node@v6
         with:
