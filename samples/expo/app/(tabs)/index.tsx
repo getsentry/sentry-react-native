@@ -41,6 +41,22 @@ export default function TabOneScreen() {
         </View>
         <View style={styles.buttonWrapper}>
           <Button
+            title="Metrics count: Increase"
+            onPress={() => {
+              Sentry.metrics.count('sentry_rn_test_metric', 1);
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Metrics count: Increase by 100"
+            onPress={() => {
+              Sentry.metrics.count('sentry_rn_test_metric', 100);
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
             title="Capture exception"
             onPress={() => {
               Sentry.captureException(new Error('Captured exception'));
@@ -202,7 +218,7 @@ export default function TabOneScreen() {
               Sentry.logger.warn('expo warn log');
               Sentry.logger.error('expo error log');
 
-              Sentry.logger.info('expo info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+              Sentry.logger.info('expo info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
             }}
           />
         </View>
