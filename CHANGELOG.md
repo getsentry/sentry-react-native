@@ -13,15 +13,22 @@
 - Added `logsOrigin` to Sentry Options ([#5354](https://github.com/getsentry/sentry-react-native/pull/5354))
   - You can now choose which logs are captured: 'native' for logs from native code only, 'js' for logs from the JavaScript layer only, or 'all' for both layers.
   - Takes effect only if `enableLogs` is `true` and defaults to 'all', preserving previous behavior.
+- Add `beforeErrorSampling` callback to `mobileReplayIntegration` ([#5393](https://github.com/getsentry/sentry-react-native/pull/5393))
+
+### Fixes
+
+- Preserves interaction span context during app restart to allow proper replay capture ([#5386](https://github.com/getsentry/sentry-react-native/pull/5386))
+- Discard empty Route Change transactions ([#5387](https://github.com/getsentry/sentry-react-native/issues/5387))
 
 ### Dependencies
 
-- Bump Cocoa SDK from v8.57.2 to v9.0.0-alpha.0 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#900-alpha0)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.2...9.0.0-alpha.0)
-- Bump JavaScript SDK from v10.24.0 to v10.25.0 ([#5362](https://github.com/getsentry/sentry-react-native/pull/5362))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10250)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.24.0...10.25.0)
+
+- Bump Cocoa SDK from v8.57.2 to v9.0.0-rc.0 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#900-rc0)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.2...9.0.0-rc.0)
+- Bump JavaScript SDK from v10.24.0 to v10.26.0 ([#5362](https://github.com/getsentry/sentry-react-native/pull/5362), [#5389](https://github.com/getsentry/sentry-react-native/pull/5389))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10260)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.24.0...10.26.0)
 - Bump CLI from v2.58.0 to v2.58.2 ([#5363](https://github.com/getsentry/sentry-react-native/pull/5363), [#5371](https://github.com/getsentry/sentry-react-native/pull/5371))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2582)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.0...2.58.2)

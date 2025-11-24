@@ -169,6 +169,58 @@ describe('startIdleNavigationSpan', () => {
       expect(newSpan).toBe(getActiveSpan());
       expect(spanToJSON(newSpan!).parent_span_id).toBeUndefined();
     });
+
+    it('Cancels user interaction span during normal navigation', () => {
+      const userInteractionSpan = startSpanManual(
+        {
+          name: 'ui.action.touch',
+          op: 'ui.action.touch',
+          attributes: {
+            'sentry.origin': 'auto.interaction',
+          },
+        },
+        (span: Span) => span,
+      );
+      setActiveSpanOnScope(getCurrentScope(), userInteractionSpan);
+
+      const navigationSpan = startIdleNavigationSpan({
+        name: 'test',
+      });
+
+      expect(spanToJSON(userInteractionSpan).timestamp).toBeDefined();
+      expect(spanToJSON(userInteractionSpan).status).toBe('cancelled');
+
+      expect(navigationSpan).toBe(getActiveSpan());
+    });
+
+    it('Does NOT cancel user interaction span when navigation starts from runApplication (app restart)', () => {
+      const userInteractionSpan = startSpanManual(
+        {
+          name: 'ui.action.touch',
+          op: 'ui.action.touch',
+          attributes: {
+            'sentry.origin': 'auto.interaction',
+          },
+        },
+        (span: Span) => span,
+      );
+      setActiveSpanOnScope(getCurrentScope(), userInteractionSpan);
+
+      // Start navigation span from runApplication (app restart/reload - e.g. after error)
+      const navigationSpan = startIdleNavigationSpan(
+        {
+          name: 'test',
+        },
+        { isAppRestart: true },
+      );
+
+      // User interaction span should NOT be cancelled/ended - preserving it for replay capture
+      expect(spanToJSON(userInteractionSpan).timestamp).toBeUndefined();
+      expect(spanToJSON(userInteractionSpan).status).not.toBe('cancelled');
+
+      expect(navigationSpan).toBeDefined();
+      expect(getActiveSpan()).toBe(navigationSpan);
+    });
   });
 });
 

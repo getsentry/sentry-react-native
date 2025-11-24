@@ -43,7 +43,28 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
   });
 };
 
-export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span | undefined): void => {
+/**
+ * Helper function to filter out auto-instrumentation child spans.
+ */
+function getMeaningfulChildSpans(span: Span): Span[] {
+  const children = getSpanDescendants(span);
+  return children.filter(
+    child =>
+      child.spanContext().spanId !== span.spanContext().spanId &&
+      spanToJSON(child).op !== 'ui.load.initial_display' &&
+      spanToJSON(child).op !== 'navigation.processing',
+  );
+}
+
+/**
+ * Generic helper to discard empty navigation spans based on a condition.
+ */
+function discardEmptyNavigationSpan(
+  client: Client | undefined,
+  span: Span | undefined,
+  shouldDiscardFn: (span: Span) => boolean,
+  onDiscardFn: (span: Span) => void,
+): void {
   if (!client) {
     debug.warn('Could not hook on spanEnd event because client is not defined.');
     return;
@@ -55,7 +76,7 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
   }
 
   if (!isRootSpan(span) || !isSentrySpan(span)) {
-    debug.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
+    debug.warn('Not sampling empty navigation spans only works for Sentry Transactions (Root Spans).');
     return;
   }
 
@@ -64,27 +85,66 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
       return;
     }
 
-    if (!spanToJSON(span).data?.['route.has_been_seen']) {
+    if (!shouldDiscardFn(span)) {
       return;
     }
 
-    const children = getSpanDescendants(span);
-    const filtered = children.filter(
-      child =>
-        child.spanContext().spanId !== span.spanContext().spanId &&
-        spanToJSON(child).op !== 'ui.load.initial_display' &&
-        spanToJSON(child).op !== 'navigation.processing',
-    );
-
-    if (filtered.length <= 0) {
-      // filter children must include at least one span not created by the navigation automatic instrumentation
-      debug.log(
-        'Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
-      );
-      // Route has been seen before and has no child spans.
+    const meaningfulChildren = getMeaningfulChildSpans(span);
+    if (meaningfulChildren.length <= 0) {
+      onDiscardFn(span);
       span['_sampled'] = false;
     }
   });
+}
+
+export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span | undefined): void => {
+  discardEmptyNavigationSpan(
+    client,
+    span,
+    // Only discard if route has been seen before
+    span => spanToJSON(span).data?.['route.has_been_seen'] === true,
+    // Log message when discarding
+    () => {
+      debug.log(
+        'Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
+      );
+    },
+  );
+};
+
+/**
+ * Discards empty "Route Change" transactions that never received route information.
+ * This happens when navigation library emits a route change event but getCurrentRoute() returns undefined.
+ * Such transactions don't contain any useful information and should not be sent to Sentry.
+ *
+ * This function must be called with a reference tracker function that can check if the span
+ * was cleared from the integration's tracking (indicating it went through the state listener).
+ */
+export const ignoreEmptyRouteChangeTransactions = (
+  client: Client | undefined,
+  span: Span | undefined,
+  defaultNavigationSpanName: string,
+  isSpanStillTracked: () => boolean,
+): void => {
+  discardEmptyNavigationSpan(
+    client,
+    span,
+    // Only discard if:
+    // 1. Still has default name
+    // 2. No route information was set
+    // 3. Still being tracked (state listener never called)
+    span => {
+      const spanJSON = spanToJSON(span);
+      return (
+        spanJSON.description === defaultNavigationSpanName && !spanJSON.data?.['route.name'] && isSpanStillTracked()
+      );
+    },
+    // Log and record dropped event
+    _span => {
+      debug.log(`Discarding empty "${defaultNavigationSpanName}" transaction that never received route information.`);
+      client?.recordDroppedEvent('sample_rate', 'transaction');
+    },
+  );
 };
 
 /**
