@@ -73,7 +73,6 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
       options.enableLogs = false;
     }
 
-
     super(options);
 
     this._outcomesBuffer = [];
