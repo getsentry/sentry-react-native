@@ -28,7 +28,7 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
-  dsn: 'https://c96d5b6136315b7a6cef6230a38b4842@o4509786567475200.ingest.de.sentry.io/4510182962298960',
+  dsn: SENTRY_INTERNAL_DSN,
   debug: true,
   environment: 'dev',
   enableLogs: true,
@@ -44,7 +44,7 @@ Sentry.init({
     console.log('Metric beforeSend:', metric.name, metric.value);
     return metric;
   },
-  enableMetrics: false,
+  enableMetrics: true,
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({ didCallNativeInit }) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);

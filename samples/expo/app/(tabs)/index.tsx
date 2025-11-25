@@ -41,22 +41,6 @@ export default function TabOneScreen() {
         </View>
         <View style={styles.buttonWrapper}>
           <Button
-            title="Metrics count: Increase"
-            onPress={() => {
-              Sentry.metrics.count('sentry_rn_test_metric', 1);
-            }}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="Metrics count: Increase by 100"
-            onPress={() => {
-              Sentry.metrics.count('sentry_rn_test_metric', 100);
-            }}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
             title="Capture exception"
             onPress={() => {
               Sentry.captureException(new Error('Captured exception'));
@@ -131,6 +115,30 @@ export default function TabOneScreen() {
             title="console.warn()"
             onPress={() => {
               console.warn('This is a warning.');
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Send count metric"
+            onPress={() => {
+              Sentry.metrics.count('count_metric', 1);
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Send distribution metric"
+            onPress={() => {
+              Sentry.metrics.count('distribution_metric', 100);
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Send count metric with attributes"
+            onPress={() => {
+              Sentry.metrics.count('count_metric', 1, { attributes: { from_test_app: true } });
             }}
           />
         </View>
