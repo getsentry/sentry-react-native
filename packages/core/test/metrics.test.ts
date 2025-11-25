@@ -1,6 +1,6 @@
 import { getClient, metrics, setCurrentClient } from '@sentry/core';
 import { ReactNativeClient } from '../src/js';
-import { getDefaultTestClientOptions, TestClient } from './mocks/client';
+import { getDefaultTestClientOptions } from './mocks/client';
 import { NATIVE } from './mockWrapper';
 
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
