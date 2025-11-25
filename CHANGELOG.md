@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Adds metrics ([#5402](https://github.com/getsentry/sentry-react-native/pull/5402))
+
 ### Fixes
 
 - Fix `Object.freeze` type pollution from `@sentry-internal/replay` ([#5408](https://github.com/getsentry/sentry-react-native/issues/5408))
