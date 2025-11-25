@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix `Object.freeze` type pollution from `@sentry-internal/replay` ([#5407](https://github.com/getsentry/sentry-react-native/issues/5407))
+
 ### Dependencies
 
 - Bump Android SDK from v8.27.0 to v8.27.1 ([#5404](https://github.com/getsentry/sentry-react-native/pull/5404))
