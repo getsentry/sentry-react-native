@@ -15,9 +15,10 @@ describe('Metrics', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    const client = getClient();
+    client?.close();
+    jest.clearAllTimers();
     jest.useRealTimers();
-    getClient()?.close();
   });
 
   describe('beforeSendMetric', () => {
