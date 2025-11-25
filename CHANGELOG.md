@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Fix `Object.freeze` type pollution from `@sentry-internal/replay` ([#5407](https://github.com/getsentry/sentry-react-native/issues/5407))
+- Fix `Object.freeze` type pollution from `@sentry-internal/replay` ([#5408](https://github.com/getsentry/sentry-react-native/issues/5408))
 
 ### Dependencies
 
