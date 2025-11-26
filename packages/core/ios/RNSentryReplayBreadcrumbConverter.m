@@ -156,7 +156,7 @@
         data[@"responseBodySize"] = breadcrumb.data[@"response_body_size"];
     }
 
-    return [SentrySessionReplayIntegration
+    return [SentrySessionReplayHybridSDK
         createNetworkBreadcrumbWithTimestamp:[NSDate
                                                  dateWithTimeIntervalSince1970:(startTimestamp
                                                                                        .doubleValue
