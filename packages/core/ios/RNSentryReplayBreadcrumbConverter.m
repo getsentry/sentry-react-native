@@ -11,7 +11,7 @@
 - (instancetype _Nonnull)init
 {
     if (self = [super init]) {
-        self->defaultConverter = [SentrySessionReplayIntegration createDefaultBreadcrumbConverter];
+        self->defaultConverter = [SentrySessionReplayHybridSDK createDefaultBreadcrumbConverter];
     }
     return self;
 }
@@ -36,7 +36,7 @@
     }
 
     if ([breadcrumb.category isEqualToString:@"navigation"]) {
-        return [SentrySessionReplayIntegration createBreadcrumbwithTimestamp:breadcrumb.timestamp
+        return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                                     category:breadcrumb.category
                                                                      message:nil
                                                                        level:breadcrumb.level
@@ -68,7 +68,7 @@
     NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
     NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
 
-    return [SentrySessionReplayIntegration createBreadcrumbwithTimestamp:breadcrumb.timestamp
+    return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                                 category:@"ui.tap"
                                                                  message:message
                                                                    level:breadcrumb.level
