@@ -28,7 +28,7 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
-  dsn: SENTRY_INTERNAL_DSN,
+  dsn: 'https://c96d5b6136315b7a6cef6230a38b4842@o4509786567475200.ingest.de.sentry.io/4510182962298960',
   debug: true,
   environment: 'dev',
   enableLogs: true,
