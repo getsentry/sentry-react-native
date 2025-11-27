@@ -171,6 +171,7 @@ Sentry.init({
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
   autoInitializeNativeSdk: true,
+  enableMetrics: true,
 });
 
 function BottomTabsNavigator() {
