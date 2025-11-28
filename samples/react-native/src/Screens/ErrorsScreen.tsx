@@ -115,6 +115,24 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
+          title="Send count metric"
+          onPress={() => {
+            Sentry.metrics.count('count_metric', 1);
+          }}
+        />
+        <Button
+          title="Send distribution metric"
+          onPress={() => {
+            Sentry.metrics.count('distribution_metric', 100);
+          }}
+        />
+        <Button
+          title="Send distribution metric"
+          onPress={() => {
+            Sentry.metrics.count('distribution_metric', 100);
+          }}
+        />
+        <Button
           title="Flush"
           onPress={async () => {
             await Sentry.flush();

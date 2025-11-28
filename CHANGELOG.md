@@ -8,6 +8,14 @@
 
 ## Unreleased
 
+### Features
+
+- Adds Metrics Beta ([#5402](https://github.com/getsentry/sentry-react-native/pull/5402))
+
+### Fixes
+
+- Fix `Object.freeze` type pollution from `@sentry-internal/replay` ([#5408](https://github.com/getsentry/sentry-react-native/issues/5408))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.57.3 to v9.0.0-rc.1 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
