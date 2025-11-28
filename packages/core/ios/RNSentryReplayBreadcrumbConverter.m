@@ -37,10 +37,10 @@
 
     if ([breadcrumb.category isEqualToString:@"navigation"]) {
         return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
-                                                                    category:breadcrumb.category
-                                                                     message:nil
-                                                                       level:breadcrumb.level
-                                                                        data:breadcrumb.data];
+                                                                  category:breadcrumb.category
+                                                                   message:nil
+                                                                     level:breadcrumb.level
+                                                                      data:breadcrumb.data];
     }
 
     if ([breadcrumb.category isEqualToString:@"xhr"]) {
@@ -69,10 +69,10 @@
     NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
 
     return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
-                                                                category:@"ui.tap"
-                                                                 message:message
-                                                                   level:breadcrumb.level
-                                                                    data:breadcrumb.data];
+                                                              category:@"ui.tap"
+                                                               message:message
+                                                                 level:breadcrumb.level
+                                                                  data:breadcrumb.data];
 }
 
 + (NSString *_Nullable)getTouchPathMessageFrom:(NSArray *_Nullable)path
