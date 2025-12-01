@@ -9783,7 +9783,7 @@ __metadata:
     "@sentry/core": 10.27.0
     "@sentry/react": 10.27.0
     "@sentry/types": 10.27.0
-    "@sentry/wizard": 6.7.0
+    "@sentry/wizard": 6.8.0
     "@testing-library/react-native": ^13.2.2
     "@types/jest": ^29.5.13
     "@types/node": ^20.9.3
@@ -9868,9 +9868,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/wizard@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@sentry/wizard@npm:6.7.0"
+"@sentry/wizard@npm:6.8.0":
+  version: 6.8.0
+  resolution: "@sentry/wizard@npm:6.8.0"
   dependencies:
     "@clack/prompts": 0.7.0
     "@sentry/node": ^7.119.2
@@ -9878,6 +9878,7 @@ __metadata:
     chalk: ^2.4.1
     glob: 9.3.5
     inquirer: ^6.2.0
+    js-yaml: ^4.1.1
     magicast: ^0.2.10
     opn: ^5.4.0
     read-env: ^1.3.0
@@ -9888,7 +9889,7 @@ __metadata:
     yargs: ^16.2.0
   bin:
     sentry-wizard: dist/bin.js
-  checksum: 47645dc20bb9037eac320ec93962d750e25e8dc62c63d7258bb00cac49b4239e48a5fb70994efdb4bb4d9cf0d23907c79156dd462645a43df1d116b2e6379165
+  checksum: 32aafa244fc0697cee30d06d31b26dec0fd28e93340318949769abd64b72a7dd1dd63a6f855285203a596c58135dea900908e364d5dc20c202ecb5e64c6de5e2
   languageName: node
   linkType: hard
 
@@ -20545,6 +20546,17 @@ __metadata:
   bin:
     js-yaml: bin/js-yaml.js
   checksum: bef146085f472d44dee30ec34e5cf36bf89164f5d585435a3d3da89e52622dff0b188a580e4ad091c3341889e14cb88cac6e4deb16dc5b1e9623bb0601fc255c
+  languageName: node
+  linkType: hard
+
+"js-yaml@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "js-yaml@npm:4.1.1"
+  dependencies:
+    argparse: ^2.0.1
+  bin:
+    js-yaml: bin/js-yaml.js
+  checksum: ea2339c6930fe048ec31b007b3c90be2714ab3e7defcc2c27ebf30c74fd940358f29070b4345af0019ef151875bf3bc3f8644bea1bab0372652b5044813ac02d
   languageName: node
   linkType: hard
 
