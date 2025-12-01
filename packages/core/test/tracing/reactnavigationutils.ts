@@ -103,4 +103,92 @@ export class MockNavigationContainer {
   getCurrentRoute(): NavigationRoute | undefined {
     return this.currentRoute;
   }
+  getState(): any {
+    return undefined;
+  }
+}
+
+export class MockNavigationContainerWithState extends MockNavigationContainer {
+  currentState: any = undefined;
+
+  getState(): any {
+    return this.currentState;
+  }
+}
+
+export function createMockNavigationWithNestedState(sut: ReturnType<typeof reactNavigationIntegration>) {
+  const mockedNavigationContainer = new MockNavigationContainerWithState();
+
+  const mockedNavigation = {
+    navigateToNestedScreen: () => {
+      // Simulate nested navigation: Home -> Settings -> Profile
+      mockedNavigationContainer.currentRoute = {
+        key: 'profile_screen',
+        name: 'Profile',
+      };
+      mockedNavigationContainer.currentState = {
+        index: 0,
+        routes: [
+          {
+            name: 'Home',
+            key: 'home',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'Settings',
+                  key: 'settings',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: 'Profile',
+                        key: 'profile_screen',
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+      mockedNavigationContainer.listeners['__unsafe_action__'](navigationAction);
+      mockedNavigationContainer.listeners['state']({});
+    },
+    navigateToTwoLevelNested: () => {
+      // Simulate two-level nested navigation: Tabs -> Settings
+      mockedNavigationContainer.currentRoute = {
+        key: 'settings_screen',
+        name: 'Settings',
+      };
+      mockedNavigationContainer.currentState = {
+        index: 0,
+        routes: [
+          {
+            name: 'Tabs',
+            key: 'tabs',
+            state: {
+              index: 1,
+              routes: [
+                {
+                  name: 'Home',
+                  key: 'home',
+                },
+                {
+                  name: 'Settings',
+                  key: 'settings_screen',
+                },
+              ],
+            },
+          },
+        ],
+      };
+      mockedNavigationContainer.listeners['__unsafe_action__'](navigationAction);
+      mockedNavigationContainer.listeners['state']({});
+    },
+  };
+
+  sut.registerNavigationContainer(mockRef(mockedNavigationContainer));
+  return mockedNavigation;
 }
