@@ -11,6 +11,7 @@
 ### Features
 
 - Adds Metrics Beta ([#5402](https://github.com/getsentry/sentry-react-native/pull/5402))
+- Improves Expo Router integration to optionally include full paths to components instead of just component names ([#5414](https://github.com/getsentry/sentry-react-native/pull/5414))
 
 ### Fixes
 
