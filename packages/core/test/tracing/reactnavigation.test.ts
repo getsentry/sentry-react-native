@@ -32,7 +32,7 @@ import { mockAppRegistryIntegration } from '../mocks/appRegistryIntegrationMock'
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
-import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+import { createMockNavigationAndAttachTo, createMockNavigationWithNestedState } from './reactnavigationutils';
 
 const dummyRoute = {
   name: 'Route',
@@ -789,6 +789,218 @@ describe('ReactNavigationInstrumentation', () => {
       jest.runOnlyPendingTimers();
 
       expect(mockSetCurrentRoute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useFullPathsForNavigationRoutes option', () => {
+    test('transaction uses full path when useFullPathsForNavigationRoutes is true', async () => {
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        useFullPathsForNavigationRoutes: true,
+      });
+
+      const mockNavigationWithNestedState = createMockNavigationWithNestedState(rNavigation);
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, reactNativeTracingIntegration()],
+        enableAppStartTracking: false,
+      });
+
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      // Navigate to a nested screen: Home -> Settings -> Profile
+      mockNavigationWithNestedState.navigateToNestedScreen();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const actualEvent = client.event;
+      expect(actualEvent).toEqual(
+        expect.objectContaining({
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: expect.objectContaining({
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Home/Settings/Profile',
+                [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'profile_screen',
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    test('transaction uses only route name when useFullPathsForNavigationRoutes is false', async () => {
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        useFullPathsForNavigationRoutes: false,
+      });
+
+      const mockNavigationWithNestedState = createMockNavigationWithNestedState(rNavigation);
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, reactNativeTracingIntegration()],
+        enableAppStartTracking: false,
+      });
+
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      jest.runOnlyPendingTimers();
+
+      mockNavigationWithNestedState.navigateToNestedScreen();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const actualEvent = client.event;
+      expect(actualEvent).toEqual(
+        expect.objectContaining({
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: expect.objectContaining({
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Profile',
+                [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'profile_screen',
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    test('transaction uses two-level path with nested tab navigator', async () => {
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        useFullPathsForNavigationRoutes: true,
+      });
+
+      const mockNavigationWithNestedState = createMockNavigationWithNestedState(rNavigation);
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, reactNativeTracingIntegration()],
+        enableAppStartTracking: false,
+      });
+
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      jest.runOnlyPendingTimers();
+
+      mockNavigationWithNestedState.navigateToTwoLevelNested();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const actualEvent = client.event;
+      expect(actualEvent).toEqual(
+        expect.objectContaining({
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: expect.objectContaining({
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Tabs/Settings',
+                [SEMANTIC_ATTRIBUTE_ROUTE_KEY]: 'settings_screen',
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    test('setCurrentRoute receives full path when useFullPathsForNavigationRoutes is true', async () => {
+      const mockSetCurrentRoute = jest.fn();
+      const rnTracingIntegration = reactNativeTracingIntegration();
+      rnTracingIntegration.setCurrentRoute = mockSetCurrentRoute;
+
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        useFullPathsForNavigationRoutes: true,
+      });
+
+      const mockNavigationWithNestedState = createMockNavigationWithNestedState(rNavigation);
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, rnTracingIntegration],
+        enableAppStartTracking: false,
+      });
+
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      jest.runOnlyPendingTimers();
+
+      mockSetCurrentRoute.mockClear();
+      mockNavigationWithNestedState.navigateToNestedScreen();
+      jest.runOnlyPendingTimers();
+
+      expect(mockSetCurrentRoute).toHaveBeenCalledWith('Home/Settings/Profile');
+    });
+
+    test('previous route uses full path when useFullPathsForNavigationRoutes is true', async () => {
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        useFullPathsForNavigationRoutes: true,
+      });
+
+      const mockNavigationWithNestedState = createMockNavigationWithNestedState(rNavigation);
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, reactNativeTracingIntegration()],
+        enableAppStartTracking: false,
+      });
+
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      // First navigation
+      mockNavigationWithNestedState.navigateToNestedScreen();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      // Second navigation
+      mockNavigationWithNestedState.navigateToTwoLevelNested();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const actualEvent = client.event;
+      expect(actualEvent).toEqual(
+        expect.objectContaining({
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: expect.objectContaining({
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'Tabs/Settings',
+                [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'Home/Settings/Profile', // Full path in previous route
+                [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY]: 'profile_screen',
+              }),
+            }),
+          }),
+        }),
+      );
     });
   });
 

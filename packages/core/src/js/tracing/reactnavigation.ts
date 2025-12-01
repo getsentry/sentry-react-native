@@ -97,6 +97,13 @@ interface ReactNavigationIntegrationOptions {
    * @default false
    */
   useDispatchedActionData: boolean;
+
+  /**
+   * Whether to use the full paths for navigation routes.
+   *
+   * @default false
+   */
+  useFullPathsForNavigationRoutes: boolean;
 }
 
 /**
@@ -113,6 +120,7 @@ export const reactNavigationIntegration = ({
   ignoreEmptyBackNavigationTransactions = true,
   enableTimeToInitialDisplayForPreloadedRoutes = false,
   useDispatchedActionData = false,
+  useFullPathsForNavigationRoutes = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -344,9 +352,11 @@ export const reactNavigationIntegration = ({
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
 
     // Get the full navigation path for nested navigators
-    const navigationState = navigationContainer.getState();
-    const fullRoutePath = getPathFromState(navigationState);
-    const routeName = fullRoutePath || route.name;
+    let routeName = route.name;
+    if (useFullPathsForNavigationRoutes) {
+      const navigationState = navigationContainer.getState();
+      routeName = getPathFromState(navigationState) || route.name;
+    }
 
     navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${routeName} mounted`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
@@ -386,7 +396,11 @@ export const reactNavigationIntegration = ({
     tracing?.setCurrentRoute(routeName);
 
     pushRecentRouteKey(route.key);
-    latestRoute = route;
+    if (useFullPathsForNavigationRoutes) {
+      latestRoute = { ...route, name: routeName };
+    } else {
+      latestRoute = route;
+    }
     // Clear the latest transaction as it has been handled.
     latestNavigationSpan = undefined;
   };
@@ -432,6 +446,7 @@ export const reactNavigationIntegration = ({
       ignoreEmptyBackNavigationTransactions,
       enableTimeToInitialDisplayForPreloadedRoutes,
       useDispatchedActionData,
+      useFullPathsForNavigationRoutes,
     },
   };
 };
