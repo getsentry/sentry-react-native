@@ -15,6 +15,12 @@ import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from
 const FETCH_FRAMES_TIMEOUT_MS = 2_000;
 
 /**
+ * Maximum time to keep frame data in memory before cleaning up.
+ * Prevents memory leaks for spans that never complete.
+ */
+const FRAME_DATA_CLEANUP_TIMEOUT_MS = 60_000;
+
+/**
  * Flags of active spans with manual initial display.
  */
 export const manualInitialDisplaySpans = new WeakMap<Span, true>();
@@ -27,8 +33,15 @@ const fullDisplayBeforeInitialDisplay = new WeakMap<Span, true>();
 interface FrameDataForSpan {
   startFrames: NativeFramesResponse | null;
   endFrames: NativeFramesResponse | null;
+  cleanupTimeout?: ReturnType<typeof setTimeout>;
 }
 
+/**
+ * Stores frame data for in-flight TTID/TTFD spans.
+ * Entries are automatically cleaned up when spans end (in captureEndFramesAndAttachToSpan finally block).
+ * As a safety mechanism, entries are also cleaned up after FRAME_DATA_CLEANUP_TIMEOUT_MS
+ * to prevent memory leaks for spans that never complete.
+ */
 const spanFrameDataMap = new Map<string, FrameDataForSpan>();
 
 export type TimeToDisplayProps = {
@@ -419,11 +432,22 @@ async function captureStartFramesForSpan(spanId: string): Promise<void> {
 
   try {
     const startFrames = await fetchNativeFramesWithTimeout();
+
+    // Set up automatic cleanup as a safety mechanism for spans that never complete
+    const cleanupTimeout = setTimeout(() => {
+      const entry = spanFrameDataMap.get(spanId);
+      if (entry) {
+        spanFrameDataMap.delete(spanId);
+        debug.log(`[TimeToDisplay] Cleaned up stale frame data for span ${spanId} after timeout.`);
+      }
+    }, FRAME_DATA_CLEANUP_TIMEOUT_MS);
+
     if (!spanFrameDataMap.has(spanId)) {
-      spanFrameDataMap.set(spanId, { startFrames: null, endFrames: null });
+      spanFrameDataMap.set(spanId, { startFrames: null, endFrames: null, cleanupTimeout });
     }
     const frameData = spanFrameDataMap.get(spanId)!;
     frameData.startFrames = startFrames;
+    frameData.cleanupTimeout = cleanupTimeout;
     debug.log(`[TimeToDisplay] Captured start frames for span ${spanId}.`, startFrames);
   } catch (error) {
     debug.log(`[TimeToDisplay] Failed to capture start frames for span ${spanId}.`, error);
@@ -456,6 +480,10 @@ async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
   } catch (error) {
     debug.log(`[TimeToDisplay] Failed to capture end frames for span ${spanId}.`, error);
   } finally {
+    // Clear the cleanup timeout since we're cleaning up now
+    if (frameData.cleanupTimeout) {
+      clearTimeout(frameData.cleanupTimeout);
+    }
     spanFrameDataMap.delete(spanId);
   }
 }
