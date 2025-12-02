@@ -445,7 +445,16 @@ async function captureStartFramesForSpan(spanId: string): Promise<void> {
     if (!spanFrameDataMap.has(spanId)) {
       spanFrameDataMap.set(spanId, { startFrames: null, endFrames: null, cleanupTimeout });
     }
-    const frameData = spanFrameDataMap.get(spanId)!;
+
+    // Re-check after async operations - entry might have been deleted by captureEndFramesAndAttachToSpan
+    const frameData = spanFrameDataMap.get(spanId);
+    if (!frameData) {
+      // Span already ended and cleaned up, cancel the cleanup timeout
+      clearTimeout(cleanupTimeout);
+      debug.log(`[TimeToDisplay] Span ${spanId} already ended, discarding start frames.`);
+      return;
+    }
+
     frameData.startFrames = startFrames;
     frameData.cleanupTimeout = cleanupTimeout;
     debug.log(`[TimeToDisplay] Captured start frames for span ${spanId}.`, startFrames);
