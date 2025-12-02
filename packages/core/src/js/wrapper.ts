@@ -281,6 +281,7 @@ export const NATIVE: SentryNativeWrapper = {
       beforeSend,
       beforeBreadcrumb,
       beforeSendTransaction,
+      beforeSendMetric,
       integrations,
       ignoreErrors,
       logsOrigin,

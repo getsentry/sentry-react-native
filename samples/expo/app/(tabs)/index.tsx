@@ -120,6 +120,30 @@ export default function TabOneScreen() {
         </View>
         <View style={styles.buttonWrapper}>
           <Button
+            title="Send count metric"
+            onPress={() => {
+              Sentry.metrics.count('count_metric', 1);
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Send distribution metric"
+            onPress={() => {
+              Sentry.metrics.count('distribution_metric', 100);
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Send count metric with attributes"
+            onPress={() => {
+              Sentry.metrics.count('count_metric', 1, { attributes: { from_test_app: true } });
+            }}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
             title="Flush"
             onPress={async () => {
               await Sentry.flush();
@@ -202,7 +226,7 @@ export default function TabOneScreen() {
               Sentry.logger.warn('expo warn log');
               Sentry.logger.error('expo error log');
 
-              Sentry.logger.info('expo info log with data', { database: 'admin', number: 123, obj: { password: 'admin'} });
+              Sentry.logger.info('expo info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
             }}
           />
         </View>

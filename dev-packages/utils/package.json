@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-samples-utils",
-  "version": "7.6.0",
+  "version": "7.7.0",
   "description": "Internal Samples Utils",
   "main": "index.js",
   "license": "MIT",
