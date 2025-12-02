@@ -100,6 +100,14 @@ export const nativeFramesIntegration = (): Integration => {
     );
   };
 
+  /**
+   * Fetches end frames for a span and attaches frame data as span attributes.
+   *
+   * Note: This makes one native bridge call per span end. While this creates O(n) calls
+   * for n spans, it's necessary for accuracy. Frame counts are cumulative and continuously
+   * incrementing, so each span needs the exact frame count at its end time. Caching would
+   * produce incorrect deltas. The native bridge calls are async and non-blocking.
+   */
   const fetchEndFramesForSpan = async (span: Span): Promise<void> => {
     const timestamp = timestampInSeconds();
     const spanId = span.spanContext().spanId;
@@ -139,6 +147,9 @@ export const nativeFramesIntegration = (): Integration => {
         return;
       }
 
+      // NOTE: For root spans, this is the second call to fetchNativeFrames() for the same span.
+      // The calls are very close together (microseconds apart), so inconsistency is minimal.
+      // Future optimization: reuse the first call's promise to avoid redundant native bridge call.
       const endFrames = await fetchNativeFrames();
 
       // Calculate deltas
