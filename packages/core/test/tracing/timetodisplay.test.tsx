@@ -17,7 +17,7 @@ import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/time
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME , SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
-import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay } from '../../src/js/tracing/timetodisplay';
+import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay, updateInitialDisplaySpan } from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
 
@@ -58,6 +58,8 @@ describe('TimeToDisplay', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Ensure mock properties are reset to default values for test isolation
+    mockWrapper.NATIVE.enableNative = true;
   });
 
   test('creates manual initial display', async () => {
@@ -413,6 +415,7 @@ describe('Frame Data', () => {
     setCurrentClient(client);
     client.init();
 
+    // Note: jest.clearAllMocks() in afterEach handles this, but we clear explicitly for clarity
     mockWrapper.NATIVE.fetchNativeFrames.mockClear();
   });
 
@@ -422,7 +425,7 @@ describe('Frame Data', () => {
     mockWrapper.NATIVE.enableNative = true;
   });
 
-  test('captures frame data for initial display span', async () => {
+  test('attaches frame data to initial display span', async () => {
     const startFrames = { totalFrames: 100, slowFrames: 2, frozenFrames: 1 };
     const endFrames = { totalFrames: 150, slowFrames: 5, frozenFrames: 2 };
 
@@ -430,19 +433,28 @@ describe('Frame Data', () => {
       .mockResolvedValueOnce(startFrames)
       .mockResolvedValueOnce(endFrames);
 
-    startSpanManual(
+    await startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
-      (activeSpan: Span | undefined) => {
-        startTimeToInitialDisplaySpan();
+      async (activeSpan: Span | undefined) => {
+        const ttidSpan = startTimeToInitialDisplaySpan();
         render(<TimeToInitialDisplay record={true} />);
-        mockRecordedTimeToDisplay({
-          ttid: {
-            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
-          },
-        });
+
+        // Flush the entire start frame capture promise chain
+        // Need multiple awaits because captureStartFramesForSpan -> fetchNativeFramesWithTimeout -> NATIVE.fetchNativeFrames
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // Simulate native onDraw callback that triggers span end with frame capture
+        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
+
+        // Allow end frame capture promise chain to complete
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
 
         activeSpan?.end();
       },
@@ -451,17 +463,20 @@ describe('Frame Data', () => {
     await jest.runOnlyPendingTimersAsync();
     await client.flush();
 
-    // Verify frame capture was initiated at span start
-    expect(mockWrapper.NATIVE.fetchNativeFrames).toHaveBeenCalled();
-    expect(mockWrapper.NATIVE.fetchNativeFrames).toHaveBeenCalledWith();
+    // Verify frame capture was called twice (start and end)
+    expect(mockWrapper.NATIVE.fetchNativeFrames).toHaveBeenCalledTimes(2);
 
     const ttidSpan = client.event!.spans!.find((span: SpanJSON) => span.op === 'ui.load.initial_display');
     expect(ttidSpan).toBeDefined();
 
-    // Note: Frame data attachment happens asynchronously in .then() callbacks.
-    // In production, frames are attached before span serialization.
-    // In tests, the async promise chain may not complete before assertions due to
-    // Jest's timer handling. The implementation is correct - this is a test limitation.
+    // Verify frame data is attached (delta: 150-100=50, 5-2=3, 2-1=1)
+    expect(ttidSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 50,
+        'frames.slow': 3,
+        'frames.frozen': 1,
+      }),
+    );
   });
 
   test('captures frame data for full display span', async () => {
@@ -509,8 +524,8 @@ describe('Frame Data', () => {
     expect(ttidSpan).toBeDefined();
     expect(ttfdSpan).toBeDefined();
 
-    // Note: Frame data attachment happens asynchronously in .then() callbacks.
-    // See note in "captures frame data for initial display span" test.
+    // Note: This test doesn't manually trigger span end like the previous test,
+    // so frame capture is initiated but not completed in the test flow.
   });
 
   test('does not attach frame data when frames are zero', async () => {

@@ -493,8 +493,23 @@ async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
  */
 function fetchNativeFramesWithTimeout(): Promise<NativeFramesResponse> {
   return new Promise<NativeFramesResponse>((resolve, reject) => {
+    let settled = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject('Fetching native frames took too long. Dropping frames.');
+      }
+    }, FETCH_FRAMES_TIMEOUT_MS);
+
     NATIVE.fetchNativeFrames()
       .then(value => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+
         if (!value) {
           reject('Native frames response is null.');
           return;
@@ -502,11 +517,12 @@ function fetchNativeFramesWithTimeout(): Promise<NativeFramesResponse> {
         resolve(value);
       })
       .then(undefined, (error: unknown) => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
         reject(error);
       });
-
-    setTimeout(() => {
-      reject('Fetching native frames took too long. Dropping frames.');
-    }, FETCH_FRAMES_TIMEOUT_MS);
   });
 }
