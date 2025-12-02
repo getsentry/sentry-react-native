@@ -61,7 +61,7 @@ jobs:
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
 
-      - run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
