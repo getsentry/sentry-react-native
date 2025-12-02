@@ -1,4 +1,5 @@
-import type { Span,StartSpanOptions  } from '@sentry/core';
+/* eslint-disable max-lines */
+import type { Span, StartSpanOptions } from '@sentry/core';
 import { debug, fill, getActiveSpan, getSpanDescendants, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import * as React from 'react';
 import { useState } from 'react';
@@ -264,7 +265,7 @@ export function updateInitialDisplaySpan(
 
     setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
   }).catch((error) => {
-    debug.log(`[TimeToDisplay] Failed to capture frame data for initial display span.`, error);
+    debug.log('[TimeToDisplay] Failed to capture frame data for initial display span.', error);
     span.end(frameTimestampSeconds);
     span.setStatus({ code: SPAN_STATUS_OK });
 
@@ -321,7 +322,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
 
     setSpanDurationAsMeasurement('time_to_full_display', span);
   }).catch((error) => {
-    debug.log(`[TimeToDisplay] Failed to capture frame data for full display span.`, error);
+    debug.log('[TimeToDisplay] Failed to capture frame data for full display span.', error);
     const endTimestamp = initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
 
     span.end(endTimestamp);
