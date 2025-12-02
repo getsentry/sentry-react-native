@@ -16,8 +16,8 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.0.10'
-  IOS_DEVICE: 'iPhone 16'
-  IOS_VERSION: '18.1'
+  IOS_DEVICE: 'iPhone SE (3rd generation)'
+  IOS_VERSION: '>=18.0'
 
 jobs:
   ready-to-merge-gate:
@@ -400,6 +400,10 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           script: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
+
+      - name: List available iOS simulators
+        if: ${{ matrix.platform == 'ios' }}
+        run: xcrun simctl list devices available
 
       - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
         if: ${{ matrix.platform == 'ios' }}

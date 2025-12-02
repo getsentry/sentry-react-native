@@ -8,7 +8,7 @@ on:
       - release/**
   pull_request:
     types: [opened, synchronize, reopened, labeled]
-    
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -54,7 +54,7 @@ jobs:
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
-          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 16'
+          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone SE (3rd generation)'
         run: |
           env NSUnbufferedIO=YES \
             xcodebuild -workspace *.xcworkspace \
