@@ -38,9 +38,11 @@ jsEngine: graaljs
       id: 'sentry-feedback-take-screenshot-button'
 - tapOn:
     id: 'sentry-feedback-take-screenshot-button'
-- scrollUntilVisible:
-    element:
+# Wait for floating screenshot button to appear
+- extendedWaitUntil:
+    visible:
       id: 'sentry-feedback-screenshot-button'
+    timeout: 10_000
 - tapOn:
     id: 'sentry-feedback-screenshot-button'
 
