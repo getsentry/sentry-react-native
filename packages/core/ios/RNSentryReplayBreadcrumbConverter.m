@@ -11,7 +11,7 @@
 - (instancetype _Nonnull)init
 {
     if (self = [super init]) {
-        self->defaultConverter = [SentrySessionReplayIntegration createDefaultBreadcrumbConverter];
+        self->defaultConverter = [SentrySessionReplayHybridSDK createDefaultBreadcrumbConverter];
     }
     return self;
 }
@@ -36,11 +36,11 @@
     }
 
     if ([breadcrumb.category isEqualToString:@"navigation"]) {
-        return [SentrySessionReplayIntegration createBreadcrumbwithTimestamp:breadcrumb.timestamp
-                                                                    category:breadcrumb.category
-                                                                     message:nil
-                                                                       level:breadcrumb.level
-                                                                        data:breadcrumb.data];
+        return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
+                                                                  category:breadcrumb.category
+                                                                   message:nil
+                                                                     level:breadcrumb.level
+                                                                      data:breadcrumb.data];
     }
 
     if ([breadcrumb.category isEqualToString:@"xhr"]) {
@@ -68,11 +68,11 @@
     NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
     NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
 
-    return [SentrySessionReplayIntegration createBreadcrumbwithTimestamp:breadcrumb.timestamp
-                                                                category:@"ui.tap"
-                                                                 message:message
-                                                                   level:breadcrumb.level
-                                                                    data:breadcrumb.data];
+    return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
+                                                              category:@"ui.tap"
+                                                               message:message
+                                                                 level:breadcrumb.level
+                                                                  data:breadcrumb.data];
 }
 
 + (NSString *_Nullable)getTouchPathMessageFrom:(NSArray *_Nullable)path
@@ -156,7 +156,7 @@
         data[@"responseBodySize"] = breadcrumb.data[@"response_body_size"];
     }
 
-    return [SentrySessionReplayIntegration
+    return [SentrySessionReplayHybridSDK
         createNetworkBreadcrumbWithTimestamp:[NSDate
                                                  dateWithTimeIntervalSince1970:(startTimestamp
                                                                                        .doubleValue
