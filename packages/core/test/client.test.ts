@@ -7,6 +7,7 @@ import type {
   Transport,
   TransportMakeRequestResponse,
 } from '@sentry/core';
+import * as SentryCore from '@sentry/core';
 import {
   addAutoIpAddressToSession,
   addAutoIpAddressToUser,
@@ -116,7 +117,7 @@ describe('Tests ReactNativeClient', () => {
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      await expect(RN.LogBox.ignoreLogs).not.toBeCalled();
+      await expect(RN.LogBox.ignoreLogs).not.toHaveBeenCalled();
     });
 
     test('invalid dsn is thrown', () => {
@@ -167,7 +168,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureMessage('This message will never be sent because the client is disabled.');
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     test('captureException does not call transport when enabled false', () => {
@@ -176,7 +177,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureException(new Error('This exception will never be sent because the client is disabled.'));
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     test('captureEvent does not call transport when enabled false', () => {
@@ -187,7 +188,7 @@ describe('Tests ReactNativeClient', () => {
         message: 'This event will never be sent because the client is disabled.',
       });
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     test('captureSession does not call transport when enabled false', () => {
@@ -196,16 +197,17 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureSession(getMockSession());
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
+    // TODO: Replacy by Sentry.captureFeedback
     test('captureUserFeedback does not call transport when enabled false', () => {
       const mockTransport = createMockTransport();
       const client = createDisabledClientWith(mockTransport);
 
       client.captureUserFeedback(getMockUserFeedback());
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     function createDisabledClientWith(transport: Transport) {
@@ -297,7 +299,7 @@ describe('Tests ReactNativeClient', () => {
       });
       client.nativeCrash();
 
-      expect(RN.NativeModules.RNSentry.crash).toBeCalled();
+      expect(RN.NativeModules.RNSentry.crash).toHaveBeenCalled();
     });
   });
 
@@ -451,7 +453,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureEvent({ message: 'test event' });
 
-      expect(mockedSend).toBeCalled();
+      expect(mockedSend).toHaveBeenCalled();
       const actualEvent: Event | undefined = <Event>(
         mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
       );
@@ -485,7 +487,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureEvent(circularEvent);
 
-      expect(mockedSend).toBeCalled();
+      expect(mockedSend).toHaveBeenCalled();
       const actualEvent: Event | undefined = <Event>(
         mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
       );
@@ -533,7 +535,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureMessage('message_test_value');
 
-      expect(mockTransportSend).toBeCalledTimes(1);
+      expect(mockTransportSend).toHaveBeenCalledTimes(1);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
         type: 'client_report',
       });
@@ -606,7 +608,7 @@ describe('Tests ReactNativeClient', () => {
       mockDroppedEvent(client);
       client.captureMessage('message_test_value_2');
 
-      expect(mockTransportSend).toBeCalledTimes(2);
+      expect(mockTransportSend).toHaveBeenCalledTimes(2);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems].length).toEqual(2);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
         type: 'client_report',
@@ -626,7 +628,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     function expectOnlyMessageEventInEnvelope(transportSend: jest.Mock) {
-      expect(transportSend).toBeCalledTimes(1);
+      expect(transportSend).toHaveBeenCalledTimes(1);
       expect(transportSend.mock.calls[0][firstArg][envelopeItems]).toHaveLength(1);
       expect(transportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader]).toEqual(
         expect.objectContaining({ type: 'event' }),
@@ -850,6 +852,50 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
         '123.45.67.89',
       );
+    });
+  });
+
+  describe('logger initialization', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.restoreAllMocks();
+    });
+
+    test('does not flush logs when enableLogs is false', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: false });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    test('does not flush logs when logsOrigin is native', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: 'native' });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([['all' as const], ['js' as const]])('flushes logs when logsOrigin is %s', logOrlogsOriginigin => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: logOrlogsOriginigin });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).toHaveBeenCalledTimes(1);
+      expect(flushLogsSpy).toHaveBeenLastCalledWith(client);
     });
   });
 });

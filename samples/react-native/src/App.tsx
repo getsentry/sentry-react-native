@@ -57,6 +57,10 @@ Sentry.init({
     logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },
+  beforeSendMetric(metric: Sentry.Metric) {
+    logWithoutTracing('Metric beforeSend:', metric.name, metric.value);
+    return metric;
+  },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({ didCallNativeInit }) => {
     logWithoutTracing(
@@ -67,6 +71,7 @@ Sentry.init({
   _experiments: {
     enableUnhandledCPPExceptionsV2: true,
   },
+  logsOrigin: 'all',
   enableLogs: true,
   beforeSendLog: (log) => {
     return log;
@@ -166,6 +171,7 @@ Sentry.init({
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
   autoInitializeNativeSdk: true,
+  enableMetrics: true,
 });
 
 function BottomTabsNavigator() {

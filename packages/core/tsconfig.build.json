@@ -7,7 +7,8 @@
     "./src/js/playground/*.tsx",
     "./src/js/**/*.web.ts",
     "./src/js/**/*.web.tsx",
-    "./typings/react-native.d.ts"
+    "./typings/react-native.d.ts",
+    "./typings/global.d.ts"
   ],
   "exclude": ["node_modules"],
   "compilerOptions": {

@@ -242,6 +242,9 @@ public class RNSentryModuleImpl {
     if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
       options.setDebug(true);
     }
+    if (rnOptions.hasKey("enabled")) {
+      options.setEnabled(rnOptions.getBoolean("enabled"));
+    }
     if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
       String dsn = rnOptions.getString("dsn");
       logger.log(SentryLevel.INFO, String.format("Starting with DSN: '%s'", dsn));

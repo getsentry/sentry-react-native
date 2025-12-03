@@ -40,6 +40,11 @@ Sentry.init({
     console.log('Transaction beforeSend:', event.event_id);
     return event;
   },
+  beforeSendMetric: (metric: Sentry.Metric) => {
+    console.log('Metric beforeSend:', metric.name, metric.value);
+    return metric;
+  },
+  enableMetrics: true,
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({ didCallNativeInit }) => {
     console.log('onReady called with didCallNativeInit:', didCallNativeInit);

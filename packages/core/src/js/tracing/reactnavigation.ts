@@ -17,7 +17,7 @@ import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import type { UnsafeAction } from '../vendor/react-navigation/types';
 import { NATIVE } from '../wrapper';
-import { ignoreEmptyBackNavigation } from './onSpanEndUtils';
+import { ignoreEmptyBackNavigation, ignoreEmptyRouteChangeTransactions } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
@@ -33,6 +33,30 @@ import { addTimeToInitialDisplayFallback } from './timeToDisplayFallback';
 export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
+
+/**
+ * Builds a full path from the navigation state by traversing nested navigators.
+ * For example, with nested navigators: "Home/Settings/Profile"
+ */
+function getPathFromState(state?: NavigationState): string | undefined {
+  if (!state) {
+    return undefined;
+  }
+
+  const routeNames: string[] = [];
+  let currentState: NavigationState | undefined = state;
+
+  while (currentState) {
+    const index: number = currentState.index ?? 0;
+    const route: NavigationRoute | undefined = currentState.routes[index];
+    if (route?.name) {
+      routeNames.push(route.name);
+    }
+    currentState = route?.state;
+  }
+
+  return routeNames.length > 0 ? routeNames.join('/') : undefined;
+}
 
 interface ReactNavigationIntegrationOptions {
   /**
@@ -73,6 +97,13 @@ interface ReactNavigationIntegrationOptions {
    * @default false
    */
   useDispatchedActionData: boolean;
+
+  /**
+   * Whether to use the full paths for navigation routes.
+   *
+   * @default false
+   */
+  useFullPathsForNavigationRoutes: boolean;
 }
 
 /**
@@ -89,6 +120,7 @@ export const reactNavigationIntegration = ({
   ignoreEmptyBackNavigationTransactions = true,
   enableTimeToInitialDisplayForPreloadedRoutes = false,
   useDispatchedActionData = false,
+  useFullPathsForNavigationRoutes = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -141,7 +173,7 @@ export const reactNavigationIntegration = ({
         // This ensures runApplication calls after the initial start are correctly traced.
         // This is used for example when Activity is (re)started on Android.
         debug.log('[ReactNavigationIntegration] Starting new idle navigation span based on runApplication call.');
-        startIdleNavigationSpan();
+        startIdleNavigationSpan(undefined, true);
       }
     });
 
@@ -209,8 +241,11 @@ export const reactNavigationIntegration = ({
    * To be called on every React-Navigation action dispatch.
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
+   *
+   * @param unknownEvent - The event object that contains navigation action data
+   * @param isAppRestart - Whether this span is being started due to an app restart rather than a normal navigation action
    */
-  const startIdleNavigationSpan = (unknownEvent?: unknown): void => {
+  const startIdleNavigationSpan = (unknownEvent?: unknown, isAppRestart = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
     if (useDispatchedActionData && event?.data.noop) {
       debug.log(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
@@ -245,13 +280,21 @@ export const reactNavigationIntegration = ({
       tracing?.options.beforeStartSpan
         ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
         : getDefaultIdleNavigationSpanOptions(),
-      idleSpanOptions,
+      { ...idleSpanOptions, isAppRestart },
     );
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, navigationActionType);
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
+    // Always discard transactions that never receive route information
+    const spanToCheck = latestNavigationSpan;
+    ignoreEmptyRouteChangeTransactions(
+      getClient(),
+      spanToCheck,
+      DEFAULT_NAVIGATION_SPAN_NAME,
+      () => latestNavigationSpan === spanToCheck,
+    );
 
     if (enableTimeToInitialDisplay && latestNavigationSpan) {
       NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId);
@@ -308,16 +351,23 @@ export const reactNavigationIntegration = ({
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
 
-    navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${route.name} mounted`);
+    // Get the full navigation path for nested navigators
+    let routeName = route.name;
+    if (useFullPathsForNavigationRoutes) {
+      const navigationState = navigationContainer.getState();
+      routeName = getPathFromState(navigationState) || route.name;
+    }
+
+    navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${routeName} mounted`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
     navigationProcessingSpan?.end(stateChangedTimestamp);
     navigationProcessingSpan = undefined;
 
     if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
-      latestNavigationSpan.updateName(route.name);
+      latestNavigationSpan.updateName(routeName);
     }
     latestNavigationSpan.setAttributes({
-      'route.name': route.name,
+      'route.name': routeName,
       'route.key': route.key,
       // TODO: filter PII params instead of dropping them all
       // 'route.params': {},
@@ -336,17 +386,21 @@ export const reactNavigationIntegration = ({
     addBreadcrumb({
       category: 'navigation',
       type: 'navigation',
-      message: `Navigation to ${route.name}`,
+      message: `Navigation to ${routeName}`,
       data: {
         from: previousRoute?.name,
-        to: route.name,
+        to: routeName,
       },
     });
 
-    tracing?.setCurrentRoute(route.name);
+    tracing?.setCurrentRoute(routeName);
 
     pushRecentRouteKey(route.key);
-    latestRoute = route;
+    if (useFullPathsForNavigationRoutes) {
+      latestRoute = { ...route, name: routeName };
+    } else {
+      latestRoute = route;
+    }
     // Clear the latest transaction as it has been handled.
     latestNavigationSpan = undefined;
   };
@@ -392,6 +446,7 @@ export const reactNavigationIntegration = ({
       ignoreEmptyBackNavigationTransactions,
       enableTimeToInitialDisplayForPreloadedRoutes,
       useDispatchedActionData,
+      useFullPathsForNavigationRoutes,
     },
   };
 };
@@ -401,11 +456,18 @@ export interface NavigationRoute {
   key: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: Record<string, any>;
+  state?: NavigationState;
+}
+
+interface NavigationState {
+  index?: number;
+  routes: NavigationRoute[];
 }
 
 interface NavigationContainer {
   addListener: (type: string, listener: (event?: unknown) => void) => void;
   getCurrentRoute: () => NavigationRoute;
+  getState: () => NavigationState | undefined;
 }
 
 /**

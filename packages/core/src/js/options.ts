@@ -316,6 +316,16 @@ export interface BaseReactNativeOptions {
    * @default false
    */
   propagateTraceparent?: boolean;
+
+  /**
+   * Controls which log origin is captured when `enableLogs` is set to true.
+   * 'all' will log all origins.
+   * 'js' will capture only JavaScript logs.
+   * 'native' will capture only native logs.
+   *
+   * @default 'all'
+   */
+  logsOrigin?: 'all' | 'js' | 'native';
 }
 
 export type SentryReplayQuality = 'low' | 'medium' | 'high';
