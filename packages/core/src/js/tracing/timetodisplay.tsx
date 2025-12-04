@@ -331,7 +331,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
 
     span.end(endTimestamp);
     span.setStatus({ code: SPAN_STATUS_OK });
-    debug.log(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span updated with end timestamp and frame data.`);
+    debug.log(`[TimeToDisplay] span ${spanJSON.description} (${spanJSON.span_id}) updated with end timestamp and frame data.`);
 
     setSpanDurationAsMeasurement('time_to_full_display', span);
   }).catch((error) => {
