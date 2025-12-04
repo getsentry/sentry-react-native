@@ -31,7 +31,6 @@ const symbolsPatchRegex = /sentry-cli\s+(upload-dsym|debug-files upload)/;
 if (semver.satisfies(args['rn-version'], `< ${newBundleScriptRNVersion}`, { includePrerelease: true })) {
   debug.log('Applying old bundle script patch');
   bundleScript = `
-set -e
 export NODE_BINARY=node
 ../node_modules/@sentry/react-native/scripts/sentry-xcode.sh ../node_modules/react-native/scripts/react-native-xcode.sh
 `;
@@ -40,7 +39,6 @@ export NODE_BINARY=node
 } else if (semver.satisfies(args['rn-version'], `>= ${newBundleScriptRNVersion}`, { includePrerelease: true })) {
   debug.log('Applying new bundle script patch');
   bundleScript = `
-set -e
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 
