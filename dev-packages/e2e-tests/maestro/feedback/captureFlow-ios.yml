@@ -38,6 +38,9 @@ jsEngine: graaljs
       id: 'sentry-feedback-take-screenshot-button'
 - tapOn:
     id: 'sentry-feedback-take-screenshot-button'
+- scrollUntilVisible:
+    element:
+      id: 'sentry-feedback-screenshot-button'
 - tapOn:
     id: 'sentry-feedback-screenshot-button'
 
