@@ -1,10 +1,24 @@
-import type { Span,StartSpanOptions  } from '@sentry/core';
+/* eslint-disable max-lines */
+import type { Span, StartSpanOptions } from '@sentry/core';
 import { debug, fill, getActiveSpan, getSpanDescendants, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import * as React from 'react';
 import { useState } from 'react';
+import type { NativeFramesResponse } from '../NativeRNSentry';
+import { NATIVE } from '../wrapper';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter } from './timetodisplaynative';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
+
+/**
+ * Timeout for fetching native frames
+ */
+const FETCH_FRAMES_TIMEOUT_MS = 2_000;
+
+/**
+ * Maximum time to keep frame data in memory before cleaning up.
+ * Prevents memory leaks for spans that never complete.
+ */
+const FRAME_DATA_CLEANUP_TIMEOUT_MS = 60_000;
 
 /**
  * Flags of active spans with manual initial display.
@@ -15,6 +29,20 @@ export const manualInitialDisplaySpans = new WeakMap<Span, true>();
  * Flag full display called before initial display for an active span.
  */
 const fullDisplayBeforeInitialDisplay = new WeakMap<Span, true>();
+
+interface FrameDataForSpan {
+  startFrames: NativeFramesResponse | null;
+  endFrames: NativeFramesResponse | null;
+  cleanupTimeout?: ReturnType<typeof setTimeout>;
+}
+
+/**
+ * Stores frame data for in-flight TTID/TTFD spans.
+ * Entries are automatically cleaned up when spans end (in captureEndFramesAndAttachToSpan finally block).
+ * As a safety mechanism, entries are also cleaned up after FRAME_DATA_CLEANUP_TIMEOUT_MS
+ * to prevent memory leaks for spans that never complete.
+ */
+const spanFrameDataMap = new Map<string, FrameDataForSpan>();
 
 export type TimeToDisplayProps = {
   children?: React.ReactNode;
@@ -105,6 +133,10 @@ export function startTimeToInitialDisplaySpan(
     return undefined;
   }
 
+  captureStartFramesForSpan(initialDisplaySpan.spanContext().spanId).catch((error) => {
+    debug.log(`[TimeToDisplay] Failed to capture start frames for initial display span (${initialDisplaySpan.spanContext().spanId}).`, error);
+  });
+
   if (options?.isAutoInstrumented) {
     initialDisplaySpan.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY);
   } else {
@@ -161,13 +193,26 @@ export function startTimeToFullDisplaySpan(
     return undefined;
   }
 
+  captureStartFramesForSpan(fullDisplaySpan.spanContext().spanId).catch((error) => {
+    debug.log(`[TimeToDisplay] Failed to capture start frames for full display span (${fullDisplaySpan.spanContext().spanId}).`, error);
+  });
+
   const timeout = setTimeout(() => {
     if (spanToJSON(fullDisplaySpan).timestamp) {
       return;
     }
     fullDisplaySpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
-    fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
-    setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
+
+    captureEndFramesAndAttachToSpan(fullDisplaySpan).then(() => {
+      debug.log(`[TimeToDisplay] span ${fullDisplaySpan.spanContext().spanId} updated with frame data.`);
+      fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
+      setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
+    }).catch(() => {
+      debug.warn(`[TimeToDisplay] Failed to capture end frames for full display span (${fullDisplaySpan.spanContext().spanId}).`);
+      fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
+      setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
+    });
+
     debug.warn('[TimeToDisplay] Full display span deadline_exceeded.');
   }, options.timeoutMs);
 
@@ -220,17 +265,31 @@ export function updateInitialDisplaySpan(
     return;
   }
 
-  span.end(frameTimestampSeconds);
-  span.setStatus({ code: SPAN_STATUS_OK });
-  debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp.`);
+  captureEndFramesAndAttachToSpan(span).then(() => {
+    span.end(frameTimestampSeconds);
+    span.setStatus({ code: SPAN_STATUS_OK });
+    debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp and frame data.`);
 
-  if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
-    fullDisplayBeforeInitialDisplay.delete(activeSpan);
-    debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
-    updateFullDisplaySpan(frameTimestampSeconds, span);
-  }
+    if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
+      fullDisplayBeforeInitialDisplay.delete(activeSpan);
+      debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
+      updateFullDisplaySpan(frameTimestampSeconds, span);
+    }
 
-  setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
+    setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
+  }).catch((error) => {
+    debug.log('[TimeToDisplay] Failed to capture frame data for initial display span.', error);
+    span.end(frameTimestampSeconds);
+    span.setStatus({ code: SPAN_STATUS_OK });
+
+    if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
+      fullDisplayBeforeInitialDisplay.delete(activeSpan);
+      debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
+      updateFullDisplaySpan(frameTimestampSeconds, span);
+    }
+
+    setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
+  });
 }
 
 function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
@@ -263,17 +322,26 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  if (initialDisplayEndTimestamp > frameTimestampSeconds) {
-    debug.warn('[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.');
-    span.end(initialDisplayEndTimestamp);
-  } else {
-    span.end(frameTimestampSeconds);
-  }
+  captureEndFramesAndAttachToSpan(span).then(() => {
+    const endTimestamp = initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
 
-  span.setStatus({ code: SPAN_STATUS_OK });
-  debug.log(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span updated with end timestamp.`);
+    if (initialDisplayEndTimestamp > frameTimestampSeconds) {
+      debug.warn('[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.');
+    }
 
-  setSpanDurationAsMeasurement('time_to_full_display', span);
+    span.end(endTimestamp);
+    span.setStatus({ code: SPAN_STATUS_OK });
+    debug.log(`[TimeToDisplay] span ${spanJSON.description} (${spanJSON.span_id}) updated with end timestamp and frame data.`);
+
+    setSpanDurationAsMeasurement('time_to_full_display', span);
+  }).catch((error) => {
+    debug.log('[TimeToDisplay] Failed to capture frame data for full display span.', error);
+    const endTimestamp = initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
+
+    span.end(endTimestamp);
+    span.setStatus({ code: SPAN_STATUS_OK });
+    setSpanDurationAsMeasurement('time_to_full_display', span);
+  });
 }
 
 /**
@@ -326,4 +394,144 @@ function createTimeToDisplay({
 
   TimeToDisplayWrapper.displayName = 'TimeToDisplayWrapper';
   return TimeToDisplayWrapper;
+}
+
+/**
+ * Attaches frame data to a span's data object.
+ */
+function attachFrameDataToSpan(span: Span, startFrames: NativeFramesResponse, endFrames: NativeFramesResponse): void {
+  const totalFrames = endFrames.totalFrames - startFrames.totalFrames;
+  const slowFrames = endFrames.slowFrames - startFrames.slowFrames;
+  const frozenFrames = endFrames.frozenFrames - startFrames.frozenFrames;
+
+  if (totalFrames <= 0 && slowFrames <= 0 && frozenFrames <= 0) {
+    debug.warn(`[TimeToDisplay] Detected zero slow or frozen frames. Not adding measurements to span (${span.spanContext().spanId}).`);
+    return;
+  }
+  span.setAttribute('frames.total', totalFrames);
+  span.setAttribute('frames.slow', slowFrames);
+  span.setAttribute('frames.frozen', frozenFrames);
+
+  debug.log('[TimeToDisplay] Attached frame data to span.', {
+    spanId: span.spanContext().spanId,
+    frameData: {
+      total: totalFrames,
+      slow: slowFrames,
+      frozen: frozenFrames,
+    },
+  });
+}
+
+/**
+ * Captures start frames for a time-to-display span
+ */
+async function captureStartFramesForSpan(spanId: string): Promise<void> {
+  if (!NATIVE.enableNative) {
+    return;
+  }
+
+  try {
+    const startFrames = await fetchNativeFramesWithTimeout();
+
+    // Set up automatic cleanup as a safety mechanism for spans that never complete
+    const cleanupTimeout = setTimeout(() => {
+      const entry = spanFrameDataMap.get(spanId);
+      if (entry) {
+        spanFrameDataMap.delete(spanId);
+        debug.log(`[TimeToDisplay] Cleaned up stale frame data for span ${spanId} after timeout.`);
+      }
+    }, FRAME_DATA_CLEANUP_TIMEOUT_MS);
+
+    if (!spanFrameDataMap.has(spanId)) {
+      spanFrameDataMap.set(spanId, { startFrames: null, endFrames: null, cleanupTimeout });
+    }
+
+    // Re-check after async operations - entry might have been deleted by captureEndFramesAndAttachToSpan
+    const frameData = spanFrameDataMap.get(spanId);
+    if (!frameData) {
+      // Span already ended and cleaned up, cancel the cleanup timeout
+      clearTimeout(cleanupTimeout);
+      debug.log(`[TimeToDisplay] Span ${spanId} already ended, discarding start frames.`);
+      return;
+    }
+
+    frameData.startFrames = startFrames;
+    frameData.cleanupTimeout = cleanupTimeout;
+    debug.log(`[TimeToDisplay] Captured start frames for span ${spanId}.`, startFrames);
+  } catch (error) {
+    debug.log(`[TimeToDisplay] Failed to capture start frames for span ${spanId}.`, error);
+  }
+}
+
+/**
+ * Captures end frames and attaches frame data to span
+ */
+async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
+  if (!NATIVE.enableNative) {
+    return;
+  }
+
+  const spanId = span.spanContext().spanId;
+  const frameData = spanFrameDataMap.get(spanId);
+
+  if (!frameData?.startFrames) {
+    debug.log(`[TimeToDisplay] No start frames found for span ${spanId}, skipping frame data collection.`);
+    return;
+  }
+
+  try {
+    const endFrames = await fetchNativeFramesWithTimeout();
+    frameData.endFrames = endFrames;
+
+    attachFrameDataToSpan(span, frameData.startFrames, endFrames);
+
+    debug.log(`[TimeToDisplay] Captured and attached end frames for span ${spanId}.`, endFrames);
+  } catch (error) {
+    debug.log(`[TimeToDisplay] Failed to capture end frames for span ${spanId}.`, error);
+  } finally {
+    // Clear the cleanup timeout since we're cleaning up now
+    if (frameData.cleanupTimeout) {
+      clearTimeout(frameData.cleanupTimeout);
+    }
+    spanFrameDataMap.delete(spanId);
+  }
+}
+
+/**
+ * Fetches native frames with a timeout
+ */
+function fetchNativeFramesWithTimeout(): Promise<NativeFramesResponse> {
+  return new Promise<NativeFramesResponse>((resolve, reject) => {
+    let settled = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject('Fetching native frames took too long. Dropping frames.');
+      }
+    }, FETCH_FRAMES_TIMEOUT_MS);
+
+    NATIVE.fetchNativeFrames()
+      .then(value => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+
+        if (!value) {
+          reject('Native frames response is null.');
+          return;
+        }
+        resolve(value);
+      })
+      .then(undefined, (error: unknown) => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+        reject(error);
+      });
+  });
 }
