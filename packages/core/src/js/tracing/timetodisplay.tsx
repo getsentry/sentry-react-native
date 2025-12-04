@@ -204,7 +204,7 @@ export function startTimeToFullDisplaySpan(
     fullDisplaySpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
 
     captureEndFramesAndAttachToSpan(fullDisplaySpan).then(() => {
-      debug.log(`[TimeToDisplay] ${fullDisplaySpan.spanContext().spanId} span updated with frame data.`);
+      debug.log(`[TimeToDisplay] span ${fullDisplaySpan.spanContext().spanId} updated with frame data.`);
       fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
       setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
     }).catch(() => {
