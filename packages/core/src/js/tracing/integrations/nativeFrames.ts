@@ -54,7 +54,8 @@ export const createNativeFramesIntegrations = (enable: boolean | undefined): Int
 };
 
 /**
- * Instrumentation to add native slow/frozen frames measurements onto transactions.
+ * Instrumentation to add native slow/frozen frames measurements onto transactions
+ * and frame data (frames.total, frames.slow, frames.frozen) onto all spans.
  */
 export const nativeFramesIntegration = (): Integration => {
   /** The native frames at the finish time of the most recent span. */
@@ -81,13 +82,11 @@ export const nativeFramesIntegration = (): Integration => {
     client.on('spanEnd', fetchEndFramesForSpan);
   };
 
-  const fetchStartFramesForSpan = (rootSpan: Span): void => {
-    if (!isRootSpan(rootSpan)) {
-      return;
-    }
+  const fetchStartFramesForSpan = (span: Span): void => {
+    const spanId = span.spanContext().spanId;
+    const spanType = isRootSpan(span) ? 'root' : 'child';
+    debug.log(`[${INTEGRATION_NAME}] Fetching frames for ${spanType} span start (${spanId}).`);
 
-    const spanId = rootSpan.spanContext().spanId;
-    debug.log(`[${INTEGRATION_NAME}] Fetching frames for root span start (${spanId}).`);
     _spanToNativeFramesAtStartMap.set(
       spanId,
       new Promise<NativeFramesResponse | null>(resolve => {
@@ -101,17 +100,26 @@ export const nativeFramesIntegration = (): Integration => {
     );
   };
 
-  const fetchEndFramesForSpan = (span: Span): void => {
+  /**
+   * Fetches end frames for a span and attaches frame data as span attributes.
+   *
+   * Note: This makes one native bridge call per span end. While this creates O(n) calls
+   * for n spans, it's necessary for accuracy. Frame counts are cumulative and continuously
+   * incrementing, so each span needs the exact frame count at its end time. Caching would
+   * produce incorrect deltas. The native bridge calls are async and non-blocking.
+   */
+  const fetchEndFramesForSpan = async (span: Span): Promise<void> => {
     const timestamp = timestampInSeconds();
     const spanId = span.spanContext().spanId;
+    const hasStartFrames = _spanToNativeFramesAtStartMap.has(spanId);
+
+    if (!hasStartFrames) {
+      // We don't have start frames, won't be able to calculate the difference.
+      return;
+    }
 
     if (isRootSpan(span)) {
-      const hasStartFrames = _spanToNativeFramesAtStartMap.has(spanId);
-      if (!hasStartFrames) {
-        // We don't have start frames, won't be able to calculate the difference.
-        return;
-      }
-
+      // Root spans: Store end frames for transaction measurements (backward compatibility)
       debug.log(`[${INTEGRATION_NAME}] Fetch frames for root span end (${spanId}).`);
       _spanToNativeFramesAtEndMap.set(
         spanId,
@@ -129,17 +137,45 @@ export const nativeFramesIntegration = (): Integration => {
             });
         }),
       );
-      return undefined;
-    } else {
-      debug.log(`[${INTEGRATION_NAME}] Fetch frames for child span end (${spanId}).`);
-      fetchNativeFrames()
-        .then(frames => {
-          _lastChildSpanEndFrames = {
-            timestamp,
-            nativeFrames: frames,
-          };
-        })
-        .catch(error => debug.log(`[${INTEGRATION_NAME}] Error while fetching native frames.`, error));
+    }
+
+    // All spans (root and child): Attach frame data as span attributes
+    try {
+      const startFrames = await _spanToNativeFramesAtStartMap.get(spanId);
+      if (!startFrames) {
+        debug.log(`[${INTEGRATION_NAME}] No start frames found for span ${spanId}, skipping frame data.`);
+        return;
+      }
+
+      // NOTE: For root spans, this is the second call to fetchNativeFrames() for the same span.
+      // The calls are very close together (microseconds apart), so inconsistency is minimal.
+      // Future optimization: reuse the first call's promise to avoid redundant native bridge call.
+      const endFrames = await fetchNativeFrames();
+
+      // Calculate deltas
+      const totalFrames = endFrames.totalFrames - startFrames.totalFrames;
+      const slowFrames = endFrames.slowFrames - startFrames.slowFrames;
+      const frozenFrames = endFrames.frozenFrames - startFrames.frozenFrames;
+
+      // Only attach if we have meaningful data
+      if (totalFrames > 0 || slowFrames > 0 || frozenFrames > 0) {
+        span.setAttribute('frames.total', totalFrames);
+        span.setAttribute('frames.slow', slowFrames);
+        span.setAttribute('frames.frozen', frozenFrames);
+        debug.log(
+          `[${INTEGRATION_NAME}] Attached frame data to span ${spanId}: total=${totalFrames}, slow=${slowFrames}, frozen=${frozenFrames}`,
+        );
+      }
+
+      // Update last child span end frames for root span fallback logic
+      if (!isRootSpan(span)) {
+        _lastChildSpanEndFrames = {
+          timestamp,
+          nativeFrames: endFrames,
+        };
+      }
+    } catch (error) {
+      debug.log(`[${INTEGRATION_NAME}] Error while capturing end frames for span ${spanId}.`, error);
     }
   };
 
@@ -233,8 +269,23 @@ export const nativeFramesIntegration = (): Integration => {
 
 function fetchNativeFrames(): Promise<NativeFramesResponse> {
   return new Promise<NativeFramesResponse>((resolve, reject) => {
+    let settled = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject('Fetching native frames took too long. Dropping frames.');
+      }
+    }, FETCH_FRAMES_TIMEOUT_MS);
+
     NATIVE.fetchNativeFrames()
       .then(value => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+
         if (!value) {
           reject('Native frames response is null.');
           return;
@@ -242,12 +293,13 @@ function fetchNativeFrames(): Promise<NativeFramesResponse> {
         resolve(value);
       })
       .then(undefined, error => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
         reject(error);
       });
-
-    setTimeout(() => {
-      reject('Fetching native frames took too long. Dropping frames.');
-    }, FETCH_FRAMES_TIMEOUT_MS);
   });
 }
 
