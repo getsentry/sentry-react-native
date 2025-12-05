@@ -182,16 +182,18 @@ export const NATIVE: SentryNativeWrapper = {
     for (const rawItem of envelopeItems) {
       const [itemHeader, itemPayload] = this._processItem(rawItem);
 
-      let bytesContentType: string =
-        typeof itemHeader.content_type === 'string' ? itemHeader.content_type : 'application/octet-stream';
+      let bytesContentType: string;
       let bytesPayload: number[] | Uint8Array | undefined;
 
       if (typeof itemPayload === 'string') {
         bytesContentType = 'text/plain';
         bytesPayload = encodeUTF8(itemPayload);
       } else if (itemPayload instanceof Uint8Array) {
+        bytesContentType =
+          typeof itemHeader.content_type === 'string' ? itemHeader.content_type : 'application/octet-stream';
         bytesPayload = itemPayload;
       } else {
+        bytesContentType = typeof itemHeader.content_type === 'string' ? itemHeader.content_type : 'application/json';
         bytesPayload = encodeUTF8(JSON.stringify(itemPayload));
         if (!hardCrashed) {
           hardCrashed = isHardCrash(itemPayload);
