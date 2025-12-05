@@ -17,7 +17,7 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.0.10'
   IOS_DEVICE: 'iPhone 16'
-  IOS_VERSION: '18.1'
+  IOS_VERSION: '>=18.0'
 
 jobs:
   ready-to-merge-gate:
@@ -47,7 +47,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-14
+            runs-on: macos-15
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
@@ -61,7 +61,7 @@ jobs:
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
 
-      - run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
@@ -188,8 +188,8 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.81.0'
-            xcode-version: '16.2'
-            runs-on: macos-14
+            xcode-version: '16.4'
+            runs-on: macos-15
           - platform: ios
             rn-version: '0.71.11'
             xcode-version: '14.2'
@@ -319,7 +319,7 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.81.0'
-            runs-on: macos-14
+            runs-on: macos-15
           - platform: android
             runs-on: ubuntu-latest
 
@@ -400,6 +400,10 @@ jobs:
             -camera-front none
             -timezone US/Pacific
           script: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
+
+      - name: List available iOS simulators
+        if: ${{ matrix.platform == 'ios' }}
+        run: xcrun simctl list devices available
 
       - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
         if: ${{ matrix.platform == 'ios' }}
