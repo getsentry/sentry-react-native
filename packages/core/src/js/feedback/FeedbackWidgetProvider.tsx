@@ -1,6 +1,6 @@
 import { debug } from '@sentry/core';
 import * as React from 'react';
-import { type NativeEventSubscription, type NativeScrollEvent,type NativeSyntheticEvent, Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
+import { Animated, Appearance, Dimensions, Easing, Modal, type NativeEventSubscription, type NativeScrollEvent,type NativeSyntheticEvent, PanResponder, Platform, ScrollView, View } from 'react-native';
 import { notWeb } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackWidget } from './FeedbackWidget';
