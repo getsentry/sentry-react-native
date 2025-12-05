@@ -42,7 +42,7 @@ export NODE_BINARY=node
 WITH_ENVIRONMENT="../node_modules/react-native/scripts/xcode/with-environment.sh"
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 
-/bin/sh -c "$WITH_ENVIRONMENT \\"/bin/sh ../node_modules/@sentry/react-native/scripts/sentry-xcode.sh $REACT_NATIVE_XCODE\\""
+/bin/sh -c "$WITH_ENVIRONMENT ../node_modules/@sentry/react-native/scripts/sentry-xcode.sh $REACT_NATIVE_XCODE"
 `;
   bundleScriptRegex = /\/scripts\/react-native-xcode\.sh/i;
   bundlePatchRegex = /sentry-cli\s+react-native\s+xcode/i;
