@@ -1,5 +1,4 @@
 import type {
-  EnvelopeItem,
   Event,
   EventEnvelope,
   EventItem,
