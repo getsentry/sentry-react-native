@@ -1,4 +1,4 @@
-import { type DeviceContext, type Event, type Integration, type OsContext, debug } from '@sentry/core';
+import { debug, type DeviceContext, type Event, type Integration, type OsContext } from '@sentry/core';
 import type { ReactNativeClient } from '../client';
 import { isExpo, isExpoGo } from '../utils/environment';
 import { getExpoDevice, getExpoUpdates } from '../utils/expomodules';
