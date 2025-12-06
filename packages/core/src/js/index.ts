@@ -13,6 +13,7 @@ export type {
   UserFeedback,
   ErrorEvent,
   TransactionEvent,
+  Metric,
 } from '@sentry/core';
 
 export {
@@ -46,7 +47,6 @@ export {
   setCurrentClient,
   addEventProcessor,
   lastEventId,
-  metrics,
 } from '@sentry/core';
 
 export {
@@ -63,6 +63,7 @@ export {
   consoleLoggingIntegration,
   featureFlagsIntegration,
   type FeatureFlagsIntegration,
+  metrics,
 } from '@sentry/browser';
 
 export * from './integrations/exports';

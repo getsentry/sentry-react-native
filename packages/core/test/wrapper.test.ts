@@ -1,4 +1,13 @@
-import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/core';
+import type {
+  Event,
+  EventEnvelope,
+  EventItem,
+  LogEnvelope,
+  LogSeverityLevel,
+  MetricEnvelope,
+  MetricType,
+  SeverityLevel,
+} from '@sentry/core';
 import { createEnvelope, debug } from '@sentry/core';
 import * as RN from 'react-native';
 import type { Spec } from '../src/js/NativeRNSentry';
@@ -391,7 +400,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":87}\n' +
+              '{"type":"event","content_type":"application/json","length":87}\n' +
               '{"event_id":"event0","message":"test","sdk":{"name":"test-sdk-name","version":"2.1.3"}}\n',
           ),
         ),
@@ -423,7 +432,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":93}\n' +
+              '{"type":"event","content_type":"application/json","length":93}\n' +
               '{"event_id":"event0","sdk":{"name":"test-sdk-name","version":"2.1.3"},"instance":{"value":0}}\n',
           ),
         ),
@@ -466,7 +475,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":50}\n' +
+              '{"type":"event","content_type":"application/json","length":50}\n' +
               '{"event_id":"event0","message":{"message":"test"}}\n',
           ),
         ),
@@ -505,7 +514,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":124}\n' +
+              '{"type":"event","content_type":"application/json","length":124}\n' +
               '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":true,"type":""}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
@@ -534,7 +543,7 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":58}\n' +
+              '{"type":"event","content_type":"application/json","length":58}\n' +
               '{"event_id":"event0","breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
@@ -573,11 +582,118 @@ describe('Tests Native Wrapper', () => {
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
-              '{"type":"event","content_type":"application/vnd.sentry.items.log+json","length":132}\n' +
+              '{"type":"event","content_type":"application/json","length":132}\n' +
               '{"event_id":"event0","exception":{"values":[{"mechanism":{"handled":false,"type":"onerror"}}]},"breadcrumbs":[{"message":"crumb!"}]}\n',
           ),
         ),
         { hardCrashed: true },
+      );
+    });
+
+    test('preserves content_type for logs (application/vnd.sentry.items.log+json)', async () => {
+      const logPayload = {
+        timestamp: 1234567890,
+        level: 'info' as LogSeverityLevel,
+        body: 'test log message',
+        logger: 'test-logger',
+      };
+
+      const env = createEnvelope<LogEnvelope>({ event_id: 'log0', sent_at: '123' }, [
+        [
+          {
+            type: 'log',
+            content_type: 'application/vnd.sentry.items.log+json',
+            item_count: 1,
+          },
+          { items: [logPayload] },
+        ],
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      const expectedPayload = JSON.stringify({ items: [logPayload] });
+      const expectedLength = utf8ToBytes(expectedPayload).length;
+
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"log0","sent_at":"123"}\n' +
+              `{"type":"log","content_type":"application/vnd.sentry.items.log+json","item_count":1,"length":${expectedLength}}\n` +
+              `${expectedPayload}\n`,
+          ),
+        ),
+        { hardCrashed: false },
+      );
+    });
+
+    test('preserves content_type for metrics (application/vnd.sentry.items.trace-metric+json)', async () => {
+      const metricsPayload = {
+        timestamp: 1234567890,
+        trace_id: 'trace_id',
+        name: 'metric.name',
+        type: 'counter' as MetricType,
+        value: 42,
+        measurements: {
+          'metric.name': { value: 42 },
+        },
+      };
+
+      const env = createEnvelope<MetricEnvelope>({ event_id: 'metric0', sent_at: '123' }, [
+        [
+          {
+            type: 'trace_metric',
+            content_type: 'application/vnd.sentry.items.trace-metric+json',
+            item_count: 1,
+          },
+          { items: [metricsPayload] },
+        ],
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      const expectedPayload = JSON.stringify({ items: [metricsPayload] });
+      const expectedLength = utf8ToBytes(expectedPayload).length;
+
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"metric0","sent_at":"123"}\n' +
+              `{"type":"trace_metric","content_type":"application/vnd.sentry.items.trace-metric+json","item_count":1,"length":${expectedLength}}\n` +
+              `${expectedPayload}\n`,
+          ),
+        ),
+        { hardCrashed: false },
+      );
+    });
+
+    test('preserves custom content_type when provided', async () => {
+      const payload = {
+        event_id: 'event0',
+        message: 'test',
+      };
+      const env = createEnvelope({ event_id: 'foo1', sent_at: '123' }, [
+        [
+          {
+            type: 'event',
+            content_type: 'application/custom-type',
+          },
+          payload,
+        ],
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      const expectedPayload = JSON.stringify(payload);
+      const expectedLength = utf8ToBytes(expectedPayload).length;
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"foo1","sent_at":"123"}\n' +
+              `{"type":"event","content_type":"application/custom-type","length":${expectedLength}}\n` +
+              `${expectedPayload}\n`,
+          ),
+        ),
+        { hardCrashed: false },
       );
     });
   });

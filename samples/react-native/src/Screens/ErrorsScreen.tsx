@@ -127,9 +127,9 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
-          title="Send distribution metric"
+          title="Send count metric with attributes"
           onPress={() => {
-            Sentry.metrics.count('distribution_metric', 100);
+            Sentry.metrics.count('count_metric', 100, { attributes: { from_test_app: true } });
           }}
         />
         <Button
