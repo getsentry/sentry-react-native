@@ -218,6 +218,11 @@ jobs:
           # exclude new rn architecture and dynamic frameworks
           - rn-architecture: 'new'
             ios-use-frameworks: 'dynamic'
+          # exclude RN 0.82.1 with dynamic frameworks due to React Native circular dependency bug
+          # https://github.com/facebook/react-native/issues/54267
+          - rn-version: '0.82.1'
+            platform: 'ios'
+            ios-use-frameworks: 'dynamic'
 
     steps:
       - uses: actions/checkout@v6
