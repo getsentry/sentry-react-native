@@ -34,6 +34,30 @@ export const INTEGRATION_NAME = 'ReactNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
 
+/**
+ * Builds a full path from the navigation state by traversing nested navigators.
+ * For example, with nested navigators: "Home/Settings/Profile"
+ */
+function getPathFromState(state?: NavigationState): string | undefined {
+  if (!state) {
+    return undefined;
+  }
+
+  const routeNames: string[] = [];
+  let currentState: NavigationState | undefined = state;
+
+  while (currentState) {
+    const index: number = currentState.index ?? 0;
+    const route: NavigationRoute | undefined = currentState.routes[index];
+    if (route?.name) {
+      routeNames.push(route.name);
+    }
+    currentState = route?.state;
+  }
+
+  return routeNames.length > 0 ? routeNames.join('/') : undefined;
+}
+
 interface ReactNavigationIntegrationOptions {
   /**
    * How long the instrumentation will wait for the route to mount after a change has been initiated,
@@ -73,6 +97,13 @@ interface ReactNavigationIntegrationOptions {
    * @default false
    */
   useDispatchedActionData: boolean;
+
+  /**
+   * Whether to use the full paths for navigation routes.
+   *
+   * @default false
+   */
+  useFullPathsForNavigationRoutes: boolean;
 }
 
 /**
@@ -89,6 +120,7 @@ export const reactNavigationIntegration = ({
   ignoreEmptyBackNavigationTransactions = true,
   enableTimeToInitialDisplayForPreloadedRoutes = false,
   useDispatchedActionData = false,
+  useFullPathsForNavigationRoutes = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -319,16 +351,23 @@ export const reactNavigationIntegration = ({
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
 
-    navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${route.name} mounted`);
+    // Get the full navigation path for nested navigators
+    let routeName = route.name;
+    if (useFullPathsForNavigationRoutes) {
+      const navigationState = navigationContainer.getState();
+      routeName = getPathFromState(navigationState) || route.name;
+    }
+
+    navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${routeName} mounted`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
     navigationProcessingSpan?.end(stateChangedTimestamp);
     navigationProcessingSpan = undefined;
 
     if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
-      latestNavigationSpan.updateName(route.name);
+      latestNavigationSpan.updateName(routeName);
     }
     latestNavigationSpan.setAttributes({
-      'route.name': route.name,
+      'route.name': routeName,
       'route.key': route.key,
       // TODO: filter PII params instead of dropping them all
       // 'route.params': {},
@@ -347,17 +386,21 @@ export const reactNavigationIntegration = ({
     addBreadcrumb({
       category: 'navigation',
       type: 'navigation',
-      message: `Navigation to ${route.name}`,
+      message: `Navigation to ${routeName}`,
       data: {
         from: previousRoute?.name,
-        to: route.name,
+        to: routeName,
       },
     });
 
-    tracing?.setCurrentRoute(route.name);
+    tracing?.setCurrentRoute(routeName);
 
     pushRecentRouteKey(route.key);
-    latestRoute = route;
+    if (useFullPathsForNavigationRoutes) {
+      latestRoute = { ...route, name: routeName };
+    } else {
+      latestRoute = route;
+    }
     // Clear the latest transaction as it has been handled.
     latestNavigationSpan = undefined;
   };
@@ -403,6 +446,7 @@ export const reactNavigationIntegration = ({
       ignoreEmptyBackNavigationTransactions,
       enableTimeToInitialDisplayForPreloadedRoutes,
       useDispatchedActionData,
+      useFullPathsForNavigationRoutes,
     },
   };
 };
@@ -412,11 +456,18 @@ export interface NavigationRoute {
   key: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: Record<string, any>;
+  state?: NavigationState;
+}
+
+interface NavigationState {
+  index?: number;
+  routes: NavigationRoute[];
 }
 
 interface NavigationContainer {
   addListener: (type: string, listener: (event?: unknown) => void) => void;
   getCurrentRoute: () => NavigationRoute;
+  getState: () => NavigationState | undefined;
 }
 
 /**

@@ -7,7 +7,7 @@ on:
       - release/**
   pull_request:
     types: [opened, synchronize, reopened, labeled]
-    
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -26,7 +26,7 @@ jobs:
 
   test-ios:
     name: ios
-    runs-on: macos-14
+    runs-on: macos-15
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
