@@ -156,6 +156,13 @@ if (actions.includes('create')) {
     env: Object.assign(env, { YARN_ENABLE_IMMUTABLE_INSTALLS: false }),
   });
 
+  // Patch react-native-launch-arguments for Gradle 9+ compatibility
+  execSync(`${patchScriptsDir}/rn.patch.launch-arguments.js --app-dir .`, {
+    stdio: 'inherit',
+    cwd: appDir,
+    env: env,
+  });
+
   // Patch the app
   execSync(`patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ${patchScriptsDir}/rn.patch`, {
     stdio: 'inherit',
