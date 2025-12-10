@@ -166,6 +166,25 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
   const options = mergeOptions(initOptions);
 
+  // Cache the replay ID in JavaScript to avoid excessive bridge calls
+  // This will be updated when we know the replay ID changes (e.g., after captureReplay)
+  let cachedReplayId: string | null = null;
+
+  function updateCachedReplayId(replayId: string | null): void {
+    cachedReplayId = replayId;
+  }
+
+  function getCachedReplayId(): string | null {
+    if (cachedReplayId !== null) {
+      return cachedReplayId;
+    }
+    const nativeReplayId = NATIVE.getCurrentReplayId();
+    if (nativeReplayId) {
+      cachedReplayId = nativeReplayId;
+    }
+    return nativeReplayId;
+  }
+
   async function processEvent(event: Event, hint: EventHint): Promise<Event> {
     const hasException = event.exception?.values && event.exception.values.length > 0;
     if (!hasException) {
@@ -192,19 +211,23 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     }
 
     const replayId = await NATIVE.captureReplay(isHardCrash(event));
-    if (!replayId) {
+    if (replayId) {
+      updateCachedReplayId(replayId);
+      debug.log(
+        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Captured recording replay ${replayId} for event ${event.event_id}.`,
+      );
+    } else {
+      // Check if there's an ongoing recording and update cache if found
       const recordingReplayId = NATIVE.getCurrentReplayId();
       if (recordingReplayId) {
+        updateCachedReplayId(recordingReplayId);
         debug.log(
           `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
         );
       } else {
+        updateCachedReplayId(null);
         debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
       }
-    } else {
-      debug.log(
-        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Captured recording replay ${replayId} for event ${event.event_id}.`,
-      );
     }
 
     return event;
@@ -215,13 +238,16 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       return;
     }
 
+    // Initialize the cached replay ID on setup
+    cachedReplayId = NATIVE.getCurrentReplayId();
+
     client.on('createDsc', (dsc: DynamicSamplingContext) => {
       if (dsc.replay_id) {
         return;
       }
 
-      // TODO: For better performance, we should emit replayId changes on native, and hold the replayId value in JS
-      const currentReplayId = NATIVE.getCurrentReplayId();
+      // Use cached replay ID to avoid bridge calls
+      const currentReplayId = getCachedReplayId();
       if (currentReplayId) {
         dsc.replay_id = currentReplayId;
       }
@@ -231,7 +257,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   }
 
   function getReplayId(): string | null {
-    return NATIVE.getCurrentReplayId();
+    return getCachedReplayId();
   }
 
   // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
