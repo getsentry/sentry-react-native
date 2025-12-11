@@ -188,7 +188,7 @@ jobs:
         include:
           - platform: ios
             xcode-version: '16.4'
-            runs-on: macos-latest
+            runs-on: macos-15
           - platform: android
             runs-on: ubuntu-latest
         exclude:
