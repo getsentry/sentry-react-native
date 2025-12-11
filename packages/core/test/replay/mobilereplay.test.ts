@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import type { Event, EventHint } from '@sentry/core';
+import type { Client, DynamicSamplingContext, Event, EventHint } from '@sentry/core';
 import { mobileReplayIntegration } from '../../src/js/replay/mobilereplay';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
@@ -277,6 +277,209 @@ describe('Mobile Replay Integration', () => {
 
       expect(integration.name).toBe('MobileReplay');
       expect(integration.processEvent).toBeUndefined();
+    });
+  });
+
+  describe('replay ID caching', () => {
+    let mockClient: jest.Mocked<Client>;
+    let mockOn: jest.Mock;
+
+    beforeEach(() => {
+      mockOn = jest.fn();
+      mockClient = {
+        on: mockOn,
+      } as unknown as jest.Mocked<Client>;
+      // Reset mocks for each test
+      jest.clearAllMocks();
+    });
+
+    it('should initialize cache with native replay ID on setup', () => {
+      const initialReplayId = 'initial-replay-id';
+      mockGetCurrentReplayId.mockReturnValue(initialReplayId);
+
+      const integration = mobileReplayIntegration();
+      if (integration.setup) {
+        integration.setup(mockClient);
+      }
+
+      expect(mockGetCurrentReplayId).toHaveBeenCalledTimes(1);
+      expect(mockOn).toHaveBeenCalledWith('createDsc', expect.any(Function));
+    });
+
+    it('should use cached replay ID in createDsc handler to avoid bridge calls', () => {
+      const cachedReplayId = 'cached-replay-id';
+      mockGetCurrentReplayId.mockReturnValue(cachedReplayId);
+
+      const integration = mobileReplayIntegration();
+      if (integration.setup) {
+        integration.setup(mockClient);
+      }
+
+      // Extract the createDsc handler BEFORE clearing mocks
+      const createDscCall = mockOn.mock.calls.find(call => call[0] === 'createDsc');
+      expect(createDscCall).toBeDefined();
+      const createDscHandler = createDscCall![1] as (dsc: DynamicSamplingContext) => void;
+
+      // Clear the mock to track subsequent calls
+      jest.clearAllMocks();
+
+      // Call the handler multiple times
+      const dsc1: Partial<DynamicSamplingContext> = {};
+      const dsc2: Partial<DynamicSamplingContext> = {};
+      const dsc3: Partial<DynamicSamplingContext> = {};
+
+      createDscHandler(dsc1 as DynamicSamplingContext);
+      createDscHandler(dsc2 as DynamicSamplingContext);
+      createDscHandler(dsc3 as DynamicSamplingContext);
+
+      // Should not call native bridge after initial setup
+      expect(mockGetCurrentReplayId).not.toHaveBeenCalled();
+      expect(dsc1.replay_id).toBe(cachedReplayId);
+      expect(dsc2.replay_id).toBe(cachedReplayId);
+      expect(dsc3.replay_id).toBe(cachedReplayId);
+    });
+
+    it('should not override existing replay_id in createDsc handler', () => {
+      const cachedReplayId = 'cached-replay-id';
+      mockGetCurrentReplayId.mockReturnValue(cachedReplayId);
+
+      const integration = mobileReplayIntegration();
+      if (integration.setup) {
+        integration.setup(mockClient);
+      }
+
+      const createDscCall = mockOn.mock.calls.find(call => call[0] === 'createDsc');
+      const createDscHandler = createDscCall![1] as (dsc: DynamicSamplingContext) => void;
+
+      const dsc: Partial<DynamicSamplingContext> = {
+        replay_id: 'existing-replay-id',
+      };
+
+      createDscHandler(dsc as DynamicSamplingContext);
+
+      expect(dsc.replay_id).toBe('existing-replay-id');
+    });
+
+    it('should update cache when captureReplay returns a new replay ID', async () => {
+      const initialReplayId = 'initial-replay-id';
+      const newReplayId = 'new-replay-id';
+      mockGetCurrentReplayId.mockReturnValue(initialReplayId);
+      mockCaptureReplay.mockResolvedValue(newReplayId);
+
+      const integration = mobileReplayIntegration();
+      if (integration.setup) {
+        integration.setup(mockClient);
+      }
+
+      const event: Event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      };
+      const hint: EventHint = {};
+
+      if (integration.processEvent) {
+        await integration.processEvent(event, hint);
+      }
+
+      // Verify cache was updated by checking getReplayId
+      expect(integration.getReplayId()).toBe(newReplayId);
+
+      // Extract the createDsc handler BEFORE clearing mocks
+      const createDscCall = mockOn.mock.calls.find(call => call[0] === 'createDsc');
+      expect(createDscCall).toBeDefined();
+      const createDscHandler = createDscCall![1] as (dsc: DynamicSamplingContext) => void;
+
+      // Clear the mock to track subsequent calls
+      jest.clearAllMocks();
+
+      const dsc: Partial<DynamicSamplingContext> = {};
+      createDscHandler(dsc as DynamicSamplingContext);
+
+      expect(dsc.replay_id).toBe(newReplayId);
+      expect(mockGetCurrentReplayId).not.toHaveBeenCalled();
+    });
+
+    it('should update cache when ongoing recording is detected', async () => {
+      const initialReplayId = 'initial-replay-id';
+      const ongoingReplayId = 'ongoing-replay-id';
+      mockGetCurrentReplayId.mockReturnValue(initialReplayId);
+      mockCaptureReplay.mockResolvedValue(null);
+      // After captureReplay returns null, getCurrentReplayId should return ongoing recording
+      mockGetCurrentReplayId.mockReturnValueOnce(initialReplayId).mockReturnValue(ongoingReplayId);
+
+      const integration = mobileReplayIntegration();
+      if (integration.setup) {
+        integration.setup(mockClient);
+      }
+
+      const event: Event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      };
+      const hint: EventHint = {};
+
+      if (integration.processEvent) {
+        await integration.processEvent(event, hint);
+      }
+
+      // Verify cache was updated with ongoing recording ID
+      expect(integration.getReplayId()).toBe(ongoingReplayId);
+    });
+
+    it('should clear cache when no recording is in progress', async () => {
+      const initialReplayId = 'initial-replay-id';
+      mockGetCurrentReplayId.mockReturnValue(initialReplayId);
+      mockCaptureReplay.mockResolvedValue(null);
+      // After captureReplay returns null, getCurrentReplayId should return null (no recording)
+      mockGetCurrentReplayId.mockReturnValueOnce(initialReplayId).mockReturnValue(null);
+
+      const integration = mobileReplayIntegration();
+      if (integration.setup) {
+        integration.setup(mockClient);
+      }
+
+      const event: Event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      };
+      const hint: EventHint = {};
+
+      if (integration.processEvent) {
+        await integration.processEvent(event, hint);
+      }
+
+      // Verify cache was cleared
+      expect(integration.getReplayId()).toBeNull();
+    });
+
+    it('should use cached value in getReplayId to avoid bridge calls', () => {
+      const cachedReplayId = 'cached-replay-id';
+      mockGetCurrentReplayId.mockReturnValue(cachedReplayId);
+
+      const integration = mobileReplayIntegration();
+      if (integration.setup) {
+        integration.setup(mockClient);
+      }
+
+      // Clear the mock to track subsequent calls
+      jest.clearAllMocks();
+
+      // Call getReplayId multiple times
+      const id1 = integration.getReplayId();
+      const id2 = integration.getReplayId();
+      const id3 = integration.getReplayId();
+
+      // Should not call native bridge after initial setup
+      expect(mockGetCurrentReplayId).not.toHaveBeenCalled();
+      expect(id1).toBe(cachedReplayId);
+      expect(id2).toBe(cachedReplayId);
+      expect(id3).toBe(cachedReplayId);
     });
   });
 });

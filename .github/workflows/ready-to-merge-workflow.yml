@@ -19,9 +19,11 @@ jobs:
       - name: Check for exact 'ready-to-merge' label
         if: ${{ inputs.is-pr }}
         id: check-label
+        env:
+          LABELS: ${{ inputs.labels }}
         run: |
           # Use jq to check for exact label match (avoids substring matching issues with contains())
-          if echo '${{ inputs.labels }}' | jq -e '.[] | select(.name == "ready-to-merge")' > /dev/null; then
+          if echo "$LABELS" | jq -e '.[] | select(.name == "ready-to-merge")' > /dev/null; then
             echo "label_found=true" >> $GITHUB_OUTPUT
           else
             echo "label_found=false" >> $GITHUB_OUTPUT
