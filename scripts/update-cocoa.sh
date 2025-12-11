@@ -3,7 +3,7 @@ set -euo pipefail
 
 file="$(dirname "$0")/../packages/core/RNSentry.podspec"
 content=$(cat $file)
-regex="('Sentry/HybridSDK', *)'([0-9\.]+)'"
+regex="('Sentry', *)'([0-9\.]+)'"
 if ! [[ $content =~ $regex ]]; then
     echo "Failed to find the plugin version in $file"
     exit 1
