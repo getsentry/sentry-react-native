@@ -183,7 +183,7 @@ if (actions.includes('create')) {
   if (platform === 'ios') {
     execSync('ruby --version', { stdio: 'inherit', cwd: `${appDir}`, env: env });
 
-    execSync(`${patchScriptsDir}/rn.patch.podfile.js --pod-file Podfile --engine ${RNEngine}`, {
+    execSync(`${patchScriptsDir}/rn.patch.podfile.js --pod-file Podfile --engine ${RNEngine} --rn-version ${RNVersion}`, {
       stdio: 'inherit',
       cwd: `${appDir}/ios`,
       env: env,
