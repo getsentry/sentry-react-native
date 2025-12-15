@@ -43,7 +43,8 @@ XCTAssertNotNil(
 XCTAssertEqual(
     actualOptions.tracesSampleRate, nil, @"Traces sample rate should not be passed to native");
 XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be passed to native");
-XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be passed to native");
+// Note: enableTracing property is deprecated in Sentry Cocoa SDK v7
+// Tracing is disabled by setting tracesSampleRate and tracesSampler to nil
 }
 
 - (void)testCaptureFailedRequestsIsDisabled
@@ -1021,7 +1022,8 @@ XCTAssertNotNil(
 XCTAssertEqual(
     actualOptions.tracesSampleRate, nil, @"Traces sample rate should not be passed to native");
 XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be passed to native");
-XCTAssertEqual(actualOptions.enableTracing, false, @"EnableTracing should not be passed to native");
+// Note: enableTracing property is deprecated in Sentry Cocoa SDK v7
+// Tracing is disabled by setting tracesSampleRate and tracesSampler to nil
 }
 
 - (void)testStartCaptureFailedRequestsIsDisabled
