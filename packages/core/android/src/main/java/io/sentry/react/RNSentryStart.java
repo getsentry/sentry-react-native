@@ -20,7 +20,6 @@ import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.protocol.SdkVersion;
-import io.sentry.protocol.SentryPackage;
 import io.sentry.react.replay.RNSentryReplayMask;
 import io.sentry.react.replay.RNSentryReplayUnmask;
 import java.net.URI;
