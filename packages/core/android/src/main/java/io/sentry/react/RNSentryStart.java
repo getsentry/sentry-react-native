@@ -232,7 +232,8 @@ final class RNSentryStart {
     options.setBeforeSend(
         (event, hint) -> {
           setEventOriginTag(event);
-          addPackages(event, options.getSdkVersion());
+          // Note: In Sentry Android SDK v7, native SDK packages/integrations are already
+          // included in the SDK version set during initialization, so no need to copy them here.
           if (userBeforeSend != null) {
             return userBeforeSend.execute(event, hint);
           }
@@ -323,13 +324,6 @@ final class RNSentryStart {
   private static void setEventEnvironmentTag(SentryEvent event, String environment) {
     event.setTag("event.origin", "android");
     event.setTag("event.environment", environment);
-  }
-
-  private static void addPackages(SentryEvent event, SdkVersion sdk) {
-    // In Sentry Android SDK v7, SdkVersion doesn't expose getPackages() or getIntegrations()
-    // The native SDK packages and integrations are already included in the SDK version
-    // set during initialization, so we don't need to copy them here.
-    // This method is kept for potential future use or if the API changes.
   }
 
   private static @Nullable String getURLFromDSN(@Nullable String dsn) {
