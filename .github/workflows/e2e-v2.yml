@@ -88,7 +88,7 @@ jobs:
       - name: Build SDK
         run: yarn build
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
@@ -285,7 +285,7 @@ jobs:
 
       - name: Upload App
         if: matrix.build-type == 'production'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: dev-packages/e2e-tests/RnDiffApp.ap*
@@ -293,7 +293,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
           path: dev-packages/e2e-tests/react-native-versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
@@ -343,7 +343,7 @@ jobs:
 
       - name: Download App Package
         if: matrix.build-type == 'production'
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: dev-packages/e2e-tests
@@ -416,7 +416,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: ./dev-packages/e2e-tests/maestro-logs
