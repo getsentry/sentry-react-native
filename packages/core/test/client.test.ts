@@ -1,11 +1,21 @@
-import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
-jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
-
 import { defaultStackParser } from '@sentry/browser';
-import type { Envelope, Event, Outcome, Transport, TransportMakeRequestResponse } from '@sentry/core';
-import { rejectedSyncPromise, SentryError } from '@sentry/core';
+import type {
+  Envelope,
+  Event,
+  Outcome,
+  SessionAggregates,
+  Transport,
+  TransportMakeRequestResponse,
+} from '@sentry/core';
+import * as SentryCore from '@sentry/core';
+import {
+  addAutoIpAddressToSession,
+  addAutoIpAddressToUser,
+  makeSession,
+  rejectedSyncPromise,
+  SentryError,
+} from '@sentry/core';
 import * as RN from 'react-native';
-
 import { ReactNativeClient } from '../src/js/client';
 import type { ReactNativeClientOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
@@ -22,6 +32,9 @@ import {
   getMockUserFeedback,
   getSyncPromiseRejectOnFirstCall,
 } from './testutils';
+import * as mockedtimetodisplaynative from './tracing/mockedtimetodisplaynative';
+
+jest.mock('../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
 interface MockedReactNative {
   NativeModules: {
@@ -104,7 +117,7 @@ describe('Tests ReactNativeClient', () => {
       });
 
       await expect(client.eventFromMessage('test')).resolves.toBeDefined();
-      await expect(RN.LogBox.ignoreLogs).not.toBeCalled();
+      await expect(RN.LogBox.ignoreLogs).not.toHaveBeenCalled();
     });
 
     test('invalid dsn is thrown', () => {
@@ -155,7 +168,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureMessage('This message will never be sent because the client is disabled.');
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     test('captureException does not call transport when enabled false', () => {
@@ -164,7 +177,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureException(new Error('This exception will never be sent because the client is disabled.'));
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     test('captureEvent does not call transport when enabled false', () => {
@@ -175,7 +188,7 @@ describe('Tests ReactNativeClient', () => {
         message: 'This event will never be sent because the client is disabled.',
       });
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     test('captureSession does not call transport when enabled false', () => {
@@ -184,16 +197,17 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureSession(getMockSession());
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
+    // TODO: Replacy by Sentry.captureFeedback
     test('captureUserFeedback does not call transport when enabled false', () => {
       const mockTransport = createMockTransport();
       const client = createDisabledClientWith(mockTransport);
 
       client.captureUserFeedback(getMockUserFeedback());
 
-      expect(mockTransport.send).not.toBeCalled();
+      expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
     function createDisabledClientWith(transport: Transport) {
@@ -285,7 +299,7 @@ describe('Tests ReactNativeClient', () => {
       });
       client.nativeCrash();
 
-      expect(RN.NativeModules.RNSentry.crash).toBeCalled();
+      expect(RN.NativeModules.RNSentry.crash).toHaveBeenCalled();
     });
   });
 
@@ -439,7 +453,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureEvent({ message: 'test event' });
 
-      expect(mockedSend).toBeCalled();
+      expect(mockedSend).toHaveBeenCalled();
       const actualEvent: Event | undefined = <Event>(
         mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
       );
@@ -473,7 +487,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureEvent(circularEvent);
 
-      expect(mockedSend).toBeCalled();
+      expect(mockedSend).toHaveBeenCalled();
       const actualEvent: Event | undefined = <Event>(
         mockedSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload]
       );
@@ -521,7 +535,7 @@ describe('Tests ReactNativeClient', () => {
 
       client.captureMessage('message_test_value');
 
-      expect(mockTransportSend).toBeCalledTimes(1);
+      expect(mockTransportSend).toHaveBeenCalledTimes(1);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
         type: 'client_report',
       });
@@ -594,7 +608,7 @@ describe('Tests ReactNativeClient', () => {
       mockDroppedEvent(client);
       client.captureMessage('message_test_value_2');
 
-      expect(mockTransportSend).toBeCalledTimes(2);
+      expect(mockTransportSend).toHaveBeenCalledTimes(2);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems].length).toEqual(2);
       expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][1][envelopeItemHeader]).toEqual({
         type: 'client_report',
@@ -614,7 +628,7 @@ describe('Tests ReactNativeClient', () => {
     });
 
     function expectOnlyMessageEventInEnvelope(transportSend: jest.Mock) {
-      expect(transportSend).toBeCalledTimes(1);
+      expect(transportSend).toHaveBeenCalledTimes(1);
       expect(transportSend.mock.calls[0][firstArg][envelopeItems]).toHaveLength(1);
       expect(transportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemHeader]).toEqual(
         expect.objectContaining({ type: 'event' }),
@@ -624,6 +638,265 @@ describe('Tests ReactNativeClient', () => {
     function mockDroppedEvent(client: ReactNativeClient) {
       client.recordDroppedEvent('before_send', 'error');
     }
+  });
+
+  describe('ipAddress', () => {
+    let mockTransportSend: jest.Mock;
+    let client: ReactNativeClient;
+
+    beforeEach(() => {
+      mockTransportSend = jest.fn(() => Promise.resolve());
+      client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: true,
+      });
+    });
+
+    test('preserves ip_address null', () => {
+      client.captureEvent({
+        user: {
+          ip_address: null,
+        },
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: null }),
+      );
+    });
+
+    test('preserves ip_address value if set', () => {
+      client.captureEvent({
+        user: {
+          ip_address: '203.45.167.89',
+        },
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: '203.45.167.89' }),
+      );
+    });
+
+    test("doesn't change infer_ip if the ip_address is set to undefined", () => {
+      client.captureEvent({
+        user: {
+          ip_address: undefined,
+        },
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toEqual(
+        expect.objectContaining({ ip_address: undefined }),
+      );
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'auto',
+          },
+        }),
+      );
+    });
+
+    test("doesn't change infer_ip if the user is not set", () => {
+      client.captureEvent({
+        user: {},
+      });
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toBeEmptyObject();
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'auto',
+          },
+        }),
+      );
+    });
+
+    test("doesn't change infer_ip if the event is empty", () => {
+      client.captureEvent({});
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user).toBeUndefined();
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'auto',
+          },
+        }),
+      );
+    });
+
+    test('does not add ip_address {{auto}} to undefined user if sendDefaultPii is false', () => {
+      const { client, onSpy } = createClientWithSpy({
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: false,
+      });
+
+      client.captureEvent({});
+
+      expect(onSpy).not.toHaveBeenCalledWith('postprocessEvent', addAutoIpAddressToUser);
+      expect(
+        mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].user?.ip_address,
+      ).toBeUndefined();
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].sdk).toEqual(
+        expect.objectContaining({
+          settings: {
+            infer_ip: 'never',
+          },
+        }),
+      );
+    });
+
+    test('does not add ip_address {{auto}} to session if sendDefaultPii is false', () => {
+      const { client, onSpy } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: false,
+      });
+
+      const session = makeSession();
+      session.ipAddress = undefined;
+      client.captureSession(session);
+
+      expect(onSpy).not.toHaveBeenCalledWith('beforeSendSession', addAutoIpAddressToSession);
+      expect(
+        mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address,
+      ).toBeUndefined();
+    });
+
+    test('does not add ip_address {{auto}} to session aggregate if sendDefaultPii is false', () => {
+      const { client, onSpy } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: false,
+      });
+
+      const session: SessionAggregates = {
+        aggregates: [],
+      };
+      client.sendSession(session);
+
+      expect(onSpy).not.toHaveBeenCalledWith('beforeSendSession', addAutoIpAddressToSession);
+      expect(
+        mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address,
+      ).toBeUndefined();
+    });
+
+    test('does not overwrite session aggregate ip_address if already set', () => {
+      const { client } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: true,
+      });
+
+      const session: SessionAggregates = {
+        aggregates: [],
+        attrs: {
+          ip_address: '123.45.67.89',
+        },
+      };
+      client.sendSession(session);
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
+        '123.45.67.89',
+      );
+    });
+
+    test('does add ip_address {{auto}} to session if sendDefaultPii is true', () => {
+      const { client } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: true,
+      });
+
+      const session = makeSession();
+      session.ipAddress = undefined;
+      client.captureSession(session);
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
+        '{{auto}}',
+      );
+    });
+
+    test('does not overwrite session  ip_address if already set', () => {
+      const { client } = createClientWithSpy({
+        release: 'test', // required for sessions to be sent
+        transport: () => ({
+          send: mockTransportSend,
+          flush: jest.fn(),
+        }),
+        sendDefaultPii: true,
+      });
+
+      const session = makeSession();
+      session.ipAddress = '123.45.67.89';
+      client.captureSession(session);
+
+      expect(mockTransportSend.mock.calls[0][firstArg][envelopeItems][0][envelopeItemPayload].attrs.ip_address).toBe(
+        '123.45.67.89',
+      );
+    });
+  });
+
+  describe('logger initialization', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.restoreAllMocks();
+    });
+
+    test('does not flush logs when enableLogs is false', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: false });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    test('does not flush logs when logsOrigin is native', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: 'native' });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([['all' as const], ['js' as const]])('flushes logs when logsOrigin is %s', logOrlogsOriginigin => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: logOrlogsOriginigin });
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).toHaveBeenCalledTimes(1);
+      expect(flushLogsSpy).toHaveBeenLastCalledWith(client);
+    });
   });
 });
 
@@ -636,5 +909,25 @@ function mockedOptions(options: Partial<ReactNativeClientOptions>): ReactNativeC
       flush: jest.fn(),
     }),
     ...options,
+  };
+}
+
+function createClientWithSpy(options: Partial<ReactNativeClientOptions>) {
+  const onSpy = jest.fn();
+  class SpyClient extends ReactNativeClient {
+    public on(hook: string, callback: unknown): () => void {
+      onSpy(hook, callback);
+      // @ts-expect-error - the public interface doesn't allow string and unknown
+      return super.on(hook, callback);
+    }
+  }
+
+  return {
+    client: new SpyClient({
+      ...DEFAULT_OPTIONS,
+      dsn: EXAMPLE_DSN,
+      ...options,
+    }),
+    onSpy,
   };
 }

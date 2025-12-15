@@ -27,6 +27,9 @@ jsEngine: graaljs
 - tapOn: "What's the bug? What did you expect?"
 - inputText: 'This is a test feedback message from CI e2e tests'
 
+# Hide keyboard by tapping on a non-tappable element
+- tapOn: 'Email'
+
 # Submit feedback
 - scrollUntilVisible:
     element:

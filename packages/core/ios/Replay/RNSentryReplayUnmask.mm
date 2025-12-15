@@ -23,8 +23,7 @@ RCT_EXPORT_MODULE(RNSentryReplayUnmask)
 @end
 
 #    ifdef RCT_NEW_ARCH_ENABLED
-@interface
-RNSentryReplayUnmask () <RCTRNSentryReplayUnmaskViewProtocol>
+@interface RNSentryReplayUnmask () <RCTRNSentryReplayUnmaskViewProtocol>
 @end
 #    endif
 

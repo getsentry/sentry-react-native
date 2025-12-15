@@ -1,7 +1,6 @@
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
-import { initAndBind, logger } from '@sentry/core';
+import { debug, initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-
 import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import type { ReactNativeClientOptions } from '../src/js/options';
 import { init, withScope } from '../src/js/sdk';
@@ -13,7 +12,7 @@ import { RN_GLOBAL_OBJ } from '../src/js/utils/worldwide';
 import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
 
-jest.spyOn(logger, 'error');
+jest.spyOn(debug, 'error');
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
 jest.mock('../src/js/utils/environment');
 jest.mock('@sentry/core', () => ({
@@ -196,6 +195,45 @@ describe('Tests the SDK functionality', () => {
       });
     });
 
+    describe('release', () => {
+      afterEach(() => {
+        (notWeb as jest.Mock).mockReset();
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = undefined;
+      });
+
+      it('uses release from global for web', () => {
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = {
+          name: 'test',
+          version: '1.0.0',
+        };
+        (notWeb as jest.Mock).mockImplementation(() => false);
+        init({});
+        expect(usedOptions()?.release).toEqual('test@1.0.0');
+      });
+
+      it('uses release from options for web', () => {
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = {
+          name: 'test',
+          version: '1.0.0',
+        };
+        (notWeb as jest.Mock).mockImplementation(() => false);
+        init({
+          release: 'custom@2.0.0',
+        });
+        expect(usedOptions()?.release).toEqual('custom@2.0.0');
+      });
+
+      it('uses undefined for others', () => {
+        RN_GLOBAL_OBJ.SENTRY_RELEASE = {
+          name: 'test',
+          version: '1.0.0',
+        };
+        (notWeb as jest.Mock).mockImplementation(() => true);
+        init({});
+        expect(usedOptions()?.release).toBeUndefined();
+      });
+    });
+
     describe('transport options buffer size', () => {
       it('uses default transport options buffer size', () => {
         init({
@@ -228,7 +266,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({});
-        expect(NATIVE.isNativeAvailable).toBeCalled();
+        expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -236,7 +275,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and passed enableNative ignored when true', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: true });
-        expect(NATIVE.isNativeAvailable).toBeCalled();
+        expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -244,7 +284,8 @@ describe('Tests the SDK functionality', () => {
       it('fetchTransport set and isNativeAvailable not called when passed enableNative set to false', () => {
         (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
         init({ enableNative: false });
-        expect(NATIVE.isNativeAvailable).not.toBeCalled();
+        expect(NATIVE.isNativeAvailable).not.toHaveBeenCalled();
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
         expect(usedOptions()?.transport).toEqual(makeFetchTransport);
       });
@@ -256,7 +297,8 @@ describe('Tests the SDK functionality', () => {
           transport: mockTransport,
         });
         expect(usedOptions()?.transport).toEqual(mockTransport);
-        expect(NATIVE.isNativeAvailable).toBeCalled();
+        expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
+        // @ts-expect-error enableNative not publicly available here.
         expect(usedOptions()?.enableNative).toEqual(false);
       });
     });
@@ -285,14 +327,14 @@ describe('Tests the SDK functionality', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: false });
       expect(usedOptions()?.transport).toEqual(makeFetchTransport);
-      expect(NATIVE.isNativeAvailable).not.toBeCalled();
+      expect(NATIVE.isNativeAvailable).not.toHaveBeenCalled();
     });
 
     it('check both options and native availability', () => {
       (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => true);
       init({ enableNative: true });
       expect(usedOptions()?.transport).toEqual(makeNativeTransport);
-      expect(NATIVE.isNativeAvailable).toBeCalled();
+      expect(NATIVE.isNativeAvailable).toHaveBeenCalled();
     });
   });
 
@@ -307,7 +349,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         (usedOptions()?.initialScope as (scope: Scope) => Scope)({} as any);
       }).not.toThrow();
-      expect(mockInitialScope).toBeCalledTimes(1);
+      expect(mockInitialScope).toHaveBeenCalledTimes(1);
     });
     test('beforeBreadcrumb callback is safe after init', () => {
       const mockBeforeBreadcrumb = jest.fn(() => {
@@ -319,7 +361,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         usedOptions()?.beforeBreadcrumb?.({} as any);
       }).not.toThrow();
-      expect(mockBeforeBreadcrumb).toBeCalledTimes(1);
+      expect(mockBeforeBreadcrumb).toHaveBeenCalledTimes(1);
     });
 
     test('integrations callback should not crash init', () => {
@@ -330,7 +372,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         init({ integrations: mockIntegrations });
       }).not.toThrow();
-      expect(mockIntegrations).toBeCalledTimes(1);
+      expect(mockIntegrations).toHaveBeenCalledTimes(1);
     });
 
     test('tracesSampler callback is safe after init', () => {
@@ -343,7 +385,7 @@ describe('Tests the SDK functionality', () => {
       expect(() => {
         usedOptions()?.tracesSampler?.({} as any);
       }).not.toThrow();
-      expect(mockTraceSampler).toBeCalledTimes(1);
+      expect(mockTraceSampler).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -573,7 +615,7 @@ describe('Tests the SDK functionality', () => {
       });
 
       expect(() => withScope(mockScopeCallback)).not.toThrow();
-      expect(mockScopeCallback).toBeCalledTimes(1);
+      expect(mockScopeCallback).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -672,6 +714,36 @@ describe('Tests the SDK functionality', () => {
       expectIntegration('HermesProfiling');
     });
 
+    it('adds browserSessionIntegration on web when enableAutoSessionTracking is set true', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({ enableAutoSessionTracking: true });
+
+      expectIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on web when enableAutoSessionTracking is set false', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({ enableAutoSessionTracking: false });
+
+      expectNotIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on web when enableAutoSessionTracking is not set', () => {
+      (NATIVE.isNativeAvailable as jest.Mock).mockImplementation(() => false);
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      init({});
+
+      expectNotIntegration('BrowserSession');
+    });
+
+    it('no browserSessionIntegration on mobile', () => {
+      init({ enableAutoSessionTracking: true });
+
+      expectNotIntegration('BrowserSession');
+    });
+
     it('no spotlight integration by default', () => {
       init({});
 
@@ -701,6 +773,15 @@ describe('Tests the SDK functionality', () => {
       expectNotIntegration('AppStart');
     });
 
+    it('when tracing enabled app start without native (on web, Expo Go) integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableNative: false,
+      });
+
+      expectNotIntegration('AppStart');
+    });
+
     it('no native frames integration by default', () => {
       init({});
 
@@ -719,6 +800,15 @@ describe('Tests the SDK functionality', () => {
       init({
         tracesSampleRate: 0.5,
         enableNativeFramesTracking: false,
+      });
+
+      expectNotIntegration('NativeFrames');
+    });
+
+    it('when tracing enabled (on web, Expo Go) native frames integration is not added', () => {
+      init({
+        tracesSampleRate: 0.5,
+        enableNative: false,
       });
 
       expectNotIntegration('NativeFrames');
@@ -970,6 +1060,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('ExpoContext');
   });
 
+  // TODO: No longer an experiment on major version.
   it('adds mobile replay integration when _experiments.replaysOnErrorSampleRate is set', () => {
     init({
       _experiments: {
@@ -988,6 +1079,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('adds mobile replay integration when _experiments.replaysSessionSampleRate is set', () => {
     init({
       _experiments: {
@@ -1006,6 +1098,7 @@ describe('Tests the SDK functionality', () => {
     expectIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add mobile replay integration when no replay sample rates are set', () => {
     init({
       _experiments: {},
@@ -1014,6 +1107,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add any replay integration when on web even with on experimental error sample rate', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1026,6 +1120,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('does not add any replay integration when on web even with experimental session sample rate', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1066,6 +1161,7 @@ describe('Tests the SDK functionality', () => {
     expectNotIntegration('MobileReplay');
   });
 
+  // TODO: No longer an experiment on major version.
   it('ignores experimental replay options when ga options are set', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1086,6 +1182,7 @@ describe('Tests the SDK functionality', () => {
     );
   });
 
+  // TODO: No longer an experiment on major version.
   it('converts experimental replay options to standard web options when on web', () => {
     (notWeb as jest.Mock).mockImplementation(() => false);
     init({
@@ -1104,6 +1201,7 @@ describe('Tests the SDK functionality', () => {
     );
   });
 
+  // TODO: No longer an experiment on major version.
   it('converts experimental replay options to standard web options when on mobile', () => {
     (notWeb as jest.Mock).mockImplementation(() => true);
     init({
@@ -1118,6 +1216,28 @@ describe('Tests the SDK functionality', () => {
       expect.objectContaining({
         replaysOnErrorSampleRate: 0.5,
         replaysSessionSampleRate: 0.1,
+      }),
+    );
+  });
+
+  it('propagateTraceparent is false by default', () => {
+    init({});
+
+    const actualOptions = usedOptions();
+    expect(actualOptions).toEqual(
+      expect.objectContaining({
+        propagateTraceparent: false,
+      }),
+    );
+  });
+
+  it('propagateTraceparent is getting passed to the client', () => {
+    init({ propagateTraceparent: true });
+
+    const actualOptions = usedOptions();
+    expect(actualOptions).toEqual(
+      expect.objectContaining({
+        propagateTraceparent: true,
       }),
     );
   });

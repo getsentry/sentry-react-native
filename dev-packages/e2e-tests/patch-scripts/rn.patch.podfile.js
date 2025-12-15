@@ -4,8 +4,8 @@ const fs = require('fs');
 const { argv } = require('process');
 
 const parseArgs = require('minimist');
-const { logger } = require('@sentry/core');
-logger.enable();
+const { debug } = require('@sentry/core');
+debug.enable();
 
 const args = parseArgs(argv.slice(2));
 if (!args['pod-file']) {
@@ -21,22 +21,52 @@ if (enableHermes === null) {
   throw new Error('Invalid engine');
 }
 
-logger.info('Patching Podfile', args['pod-file']);
-const content = fs.readFileSync(args['pod-file'], 'utf8');
+// Optional iOS version argument, defaults to '15.1' due to Cocoa SDK V9 and RN 0.81.0 requirement
+const iosVersion = args['ios-version'] || '15.1';
+
+debug.log('Patching Podfile', args['pod-file']);
+let content = fs.readFileSync(args['pod-file'], 'utf8');
 
 const isHermesEnabled = content.includes(':hermes_enabled => true,');
 const shouldPatch = enableHermes !== isHermesEnabled;
 if (shouldPatch) {
-  const patched = content.replace(
+  content = content.replace(
     /:hermes_enabled.*/,
     enableHermes ? ':hermes_enabled => true,' : ':hermes_enabled => false,',
   );
   if (enableHermes) {
-    logger.info('Patching Podfile for Hermes');
+    debug.log('Patching Podfile for Hermes');
   } else {
-    logger.info('Patching Podfile for JSC');
+    debug.log('Patching Podfile for JSC');
   }
-  fs.writeFileSync(args['pod-file'], patched);
+}
+
+// Patch iOS version
+const platformPattern = /platform :ios, (min_ios_version_supported|['"][0-9.]+['"])/;
+const currentMatch = content.match(platformPattern);
+
+if (currentMatch) {
+  const currentValue = currentMatch[1];
+  const shouldPatchVersion = currentValue === 'min_ios_version_supported' ||
+                             currentValue !== `'${iosVersion}'`;
+
+  if (shouldPatchVersion) {
+    content = content.replace(
+      platformPattern,
+      `platform :ios, '${iosVersion}'`
+    );
+    debug.log(`Patching iOS version to ${iosVersion} (was: ${currentValue})`);
+  } else {
+    debug.log(`iOS version already set to ${iosVersion}`);
+  }
 } else {
-  logger.info('Podfile is already patched!');
+  debug.log('Warning: Could not find platform :ios line to patch');
+}
+
+// Write the file if any changes were made
+if (shouldPatch || currentMatch) {
+  fs.writeFileSync(args['pod-file'], content);
+  debug.log('Podfile patched successfully!');
+} else {
+  debug.log('Podfile is already patched!');
 }

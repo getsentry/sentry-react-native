@@ -7,10 +7,12 @@ require Pod::Executable.execute_command('node', ['-p',
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+
   pre_install do |installer|
     installer.pod_targets.each do |pod|
       # RNScreens and RNReanimated don't work when dynamically linked
@@ -22,6 +24,7 @@ if linkage != nil
       end
     end
   end
+
 end
 
 target 'sentryreactnativesample' do
@@ -43,6 +46,14 @@ target 'sentryreactnativesample' do
   end
 
   post_install do |installer|
+    # Fix for Coroutine.h being not found: https://github.com/wix/react-native-navigation/issues/7928#issuecomment-2447543509
+    # Remove it once the proper fix is done by react-native-navigation
+    system("chmod -R u+w Pods/RCT-Folly")
+    Dir.glob("Pods/RCT-Folly/folly/Portability.h").each do |file|
+      text = File.read(file)
+      new_contents = text.gsub('#define FOLLY_HAS_COROUTINES 1', '#define FOLLY_HAS_COROUTINES 0')
+      File.open(file, "w") { |file| file.puts new_contents }
+    end
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,

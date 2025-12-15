@@ -1,10 +1,11 @@
-jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
 import type { Breadcrumb } from '@sentry/core';
 import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
-
 import { enableSyncToNative } from '../src/js/scopeSync';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
+
+jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
+
 import { NATIVE } from './mockWrapper';
 
 jest.mock('../src/js/wrapper');
@@ -29,7 +30,7 @@ describe('ScopeSync', () => {
 
         scope.addBreadcrumb({ message: 'test' });
 
-        expect(NATIVE.addBreadcrumb).toBeCalledTimes(1);
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledTimes(1);
       });
 
       it('adds default level if no level specified', () => {
@@ -60,7 +61,7 @@ describe('ScopeSync', () => {
           message: 'test',
         };
         scope.addBreadcrumb(breadcrumb);
-        expect(NATIVE.addBreadcrumb).toBeCalledWith(
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledWith(
           expect.objectContaining({
             timestamp: expect.any(Number),
           }),
@@ -72,7 +73,7 @@ describe('ScopeSync', () => {
           data: undefined,
         };
         scope.addBreadcrumb(breadcrumb);
-        expect(NATIVE.addBreadcrumb).toBeCalledWith(
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledWith(
           expect.objectContaining({
             data: undefined,
           }),
@@ -86,7 +87,7 @@ describe('ScopeSync', () => {
           },
         };
         scope.addBreadcrumb(breadcrumb);
-        expect(NATIVE.addBreadcrumb).toBeCalledWith(
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledWith(
           expect.objectContaining({
             data: { foo: '[NaN]' },
           }),
@@ -98,7 +99,7 @@ describe('ScopeSync', () => {
           data: 'foo' as unknown as object,
         };
         scope.addBreadcrumb(breadcrumb);
-        expect(NATIVE.addBreadcrumb).toBeCalledWith(
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledWith(
           expect.objectContaining({
             data: { value: 'foo' },
           }),
@@ -134,14 +135,30 @@ describe('ScopeSync', () => {
 
     it('setUser', () => {
       expect(SentryCore.getIsolationScope().setUser).not.toBe(setUserScopeSpy);
-
       const user = { id: '123' };
       SentryCore.setUser(user);
       expect(NATIVE.setUser).toHaveBeenCalledExactlyOnceWith({ id: '123' });
       expect(setUserScopeSpy).toHaveBeenCalledExactlyOnceWith({ id: '123' });
     });
 
+    it('setUser with geo data', () => {
+      expect(SentryCore.getIsolationScope().setUser).not.toBe(setUserScopeSpy);
+      const user = {
+        id: '123',
+        email: 'test@example.com',
+        geo: {
+          city: 'San Francisco',
+          country_code: 'US',
+          region: 'California',
+        },
+      };
+      SentryCore.setUser(user);
+      expect(NATIVE.setUser).toHaveBeenCalledExactlyOnceWith(user);
+      expect(setUserScopeSpy).toHaveBeenCalledExactlyOnceWith(user);
+    });
+
     it('setTag', () => {
+      jest.spyOn(NATIVE, 'primitiveProcessor').mockImplementation((value: SentryCore.Primitive) => value as string);
       expect(SentryCore.getIsolationScope().setTag).not.toBe(setTagScopeSpy);
 
       SentryCore.setTag('key', 'value');
@@ -150,10 +167,11 @@ describe('ScopeSync', () => {
     });
 
     it('setTags', () => {
+      jest.spyOn(NATIVE, 'primitiveProcessor').mockImplementation((value: SentryCore.Primitive) => value as string);
       expect(SentryCore.getIsolationScope().setTags).not.toBe(setTagsScopeSpy);
 
       SentryCore.setTags({ key: 'value', second: 'bar' });
-      expect(NATIVE.setTag).toBeCalledTimes(2);
+      expect(NATIVE.setTag).toHaveBeenCalledTimes(2);
       expect(NATIVE.setTag).toHaveBeenCalledWith('key', 'value');
       expect(NATIVE.setTag).toHaveBeenCalledWith('second', 'bar');
       expect(setTagsScopeSpy).toHaveBeenCalledExactlyOnceWith({ key: 'value', second: 'bar' });
@@ -171,7 +189,7 @@ describe('ScopeSync', () => {
       expect(SentryCore.getIsolationScope().setExtras).not.toBe(setExtrasScopeSpy);
 
       SentryCore.setExtras({ key: 'value', second: 'bar' });
-      expect(NATIVE.setExtra).toBeCalledTimes(2);
+      expect(NATIVE.setExtra).toHaveBeenCalledTimes(2);
       expect(NATIVE.setExtra).toHaveBeenCalledWith('key', 'value');
       expect(NATIVE.setExtra).toHaveBeenCalledWith('second', 'bar');
       expect(setExtrasScopeSpy).toHaveBeenCalledExactlyOnceWith({ key: 'value', second: 'bar' });

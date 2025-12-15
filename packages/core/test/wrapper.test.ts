@@ -1,7 +1,15 @@
-import type { Event, EventEnvelope, EventItem, SeverityLevel } from '@sentry/core';
-import { createEnvelope, logger } from '@sentry/core';
+import type {
+  Event,
+  EventEnvelope,
+  EventItem,
+  LogEnvelope,
+  LogSeverityLevel,
+  MetricEnvelope,
+  MetricType,
+  SeverityLevel,
+} from '@sentry/core';
+import { createEnvelope, debug } from '@sentry/core';
 import * as RN from 'react-native';
-
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
 import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';
@@ -105,11 +113,11 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
     });
 
     test('warns if there is no dsn', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         enableNative: true,
@@ -118,14 +126,14 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
-      expect(logger.warn).toHaveBeenLastCalledWith(
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
+      expect(debug.warn).toHaveBeenLastCalledWith(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
       );
     });
 
     test('does not call native module with enableNative: false', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         dsn: 'test',
@@ -136,9 +144,9 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(false);
-      expect(logger.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
+      expect(debug.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
     test('filter beforeSend when initializing Native SDK', async () => {
@@ -152,7 +160,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSend');
@@ -170,7 +178,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeBreadcrumb');
@@ -188,10 +196,28 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSendTransaction');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeSendMetric when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSendMetric: jest.fn(),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSendMetric');
       expect(NATIVE.enableNative).toBe(true);
     });
 
@@ -206,7 +232,7 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).toBeCalled();
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('integrations');
@@ -215,7 +241,7 @@ describe('Tests Native Wrapper', () => {
 
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
       NATIVE.enableNative = false;
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         dsn: 'test',
@@ -226,12 +252,12 @@ describe('Tests Native Wrapper', () => {
         mobileReplayOptions: undefined,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(true);
 
       // Test that native bridge methods will go through
       callAllScopeMethods();
-      expect(RNSentry.addBreadcrumb).toBeCalledWith({
+      expect(RNSentry.addBreadcrumb).toHaveBeenCalledWith({
         message: 'test',
         data: {
           map: { a: 1 },
@@ -239,15 +265,15 @@ describe('Tests Native Wrapper', () => {
           unique: 123,
         },
       });
-      expect(RNSentry.clearBreadcrumbs).toBeCalled();
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.clearBreadcrumbs).toHaveBeenCalled();
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: 'setUser',
         },
         {},
       );
-      expect(RNSentry.setTag).toBeCalledWith('key', 'value');
-      expect(RNSentry.setContext).toBeCalledWith('key', {
+      expect(RNSentry.setTag).toHaveBeenCalledWith('key', 'value');
+      expect(RNSentry.setContext).toHaveBeenCalledWith('key', {
         value: 'value',
         data: {
           map: { a: 1 },
@@ -255,11 +281,11 @@ describe('Tests Native Wrapper', () => {
           unique: 123,
         },
       });
-      expect(RNSentry.setExtra).toBeCalledWith('key', 'value');
+      expect(RNSentry.setExtra).toHaveBeenCalledWith('key', 'value');
     });
 
     test('enableNative: false takes precedence over autoInitializeNativeSdk: false', async () => {
-      logger.warn = jest.fn();
+      debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
         devServerUrl: undefined,
@@ -270,17 +296,86 @@ describe('Tests Native Wrapper', () => {
         autoInitializeNativeSdk: false,
       });
 
-      expect(RNSentry.initNativeSdk).not.toBeCalled();
+      expect(RNSentry.initNativeSdk).not.toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(false);
 
       // Test that native bridge methods will NOT go through
       callAllScopeMethods();
-      expect(RNSentry.addBreadcrumb).not.toBeCalled();
-      expect(RNSentry.clearBreadcrumbs).not.toBeCalled();
-      expect(RNSentry.setUser).not.toBeCalled();
-      expect(RNSentry.setTag).not.toBeCalled();
-      expect(RNSentry.setContext).not.toBeCalled();
-      expect(RNSentry.setExtra).not.toBeCalled();
+      expect(RNSentry.addBreadcrumb).not.toHaveBeenCalled();
+      expect(RNSentry.clearBreadcrumbs).not.toHaveBeenCalled();
+      expect(RNSentry.setUser).not.toHaveBeenCalled();
+      expect(RNSentry.setTag).not.toHaveBeenCalled();
+      expect(RNSentry.setContext).not.toHaveBeenCalled();
+      expect(RNSentry.setExtra).not.toHaveBeenCalled();
+    });
+
+    test('sets ignoreErrorsStr and ignoreErrorsRegex correctly when ignoreErrors contains strings and regex', async () => {
+      const regex1 = /foo/;
+      const regex2 = new RegExp('bar');
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        ignoreErrors: ['string1', regex1, 'string2', regex2],
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.ignoreErrorsStr).toEqual(['string1', 'string2']);
+      expect(initParameter.ignoreErrorsRegex).toEqual([regex1.source, regex2.source]);
+    });
+
+    test('does not set ignoreErrorsStr or ignoreErrorsRegex if ignoreErrors is not provided', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.ignoreErrorsStr).toBeUndefined();
+      expect(initParameter.ignoreErrorsRegex).toBeUndefined();
+    });
+
+    test('does not set enableLogs when option is undefined', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBeUndefined();
+    });
+
+    it.each([
+      ['without logsOrigin', undefined, true],
+      ['with logsOrigin set to Native', 'native' as const, true],
+      ['with logsOrigin set to all', 'all' as const, true],
+      ['with logsOrigin set to JS', 'js' as const, false],
+    ])('handles enableLogs %s', async (_description, logsOrigin, expectedEnableLogs) => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableLogs: true,
+        ...(logsOrigin !== undefined ? { logsOrigin } : {}),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.enableLogs).toBe(expectedEnableLogs);
+      expect(initParameter.logsOrigin).toBeUndefined();
     });
   });
 
@@ -301,7 +396,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -333,7 +428,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -360,7 +455,7 @@ describe('Tests Native Wrapper', () => {
         // @ts-expect-error it is an error but it does not know the type.
         expect(error.message).toMatch('Native is disabled');
       }
-      expect(RNSentry.captureEnvelope).not.toBeCalled();
+      expect(RNSentry.captureEnvelope).not.toHaveBeenCalled();
     });
     test('Encloses message to an object and not introduce empty breadcrumbs on Android', async () => {
       NATIVE.platform = 'android';
@@ -376,7 +471,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -415,7 +510,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -444,7 +539,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -483,7 +578,7 @@ describe('Tests Native Wrapper', () => {
 
       await NATIVE.sendEnvelope(env);
 
-      expect(RNSentry.captureEnvelope).toBeCalledWith(
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
         base64StringFromByteArray(
           utf8ToBytes(
             '{"event_id":"event0","sent_at":"123"}\n' +
@@ -492,6 +587,113 @@ describe('Tests Native Wrapper', () => {
           ),
         ),
         { hardCrashed: true },
+      );
+    });
+
+    test('preserves content_type for logs (application/vnd.sentry.items.log+json)', async () => {
+      const logPayload = {
+        timestamp: 1234567890,
+        level: 'info' as LogSeverityLevel,
+        body: 'test log message',
+        logger: 'test-logger',
+      };
+
+      const env = createEnvelope<LogEnvelope>({ event_id: 'log0', sent_at: '123' }, [
+        [
+          {
+            type: 'log',
+            content_type: 'application/vnd.sentry.items.log+json',
+            item_count: 1,
+          },
+          { items: [logPayload] },
+        ],
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      const expectedPayload = JSON.stringify({ items: [logPayload] });
+      const expectedLength = utf8ToBytes(expectedPayload).length;
+
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"log0","sent_at":"123"}\n' +
+              `{"type":"log","content_type":"application/vnd.sentry.items.log+json","item_count":1,"length":${expectedLength}}\n` +
+              `${expectedPayload}\n`,
+          ),
+        ),
+        { hardCrashed: false },
+      );
+    });
+
+    test('preserves content_type for metrics (application/vnd.sentry.items.trace-metric+json)', async () => {
+      const metricsPayload = {
+        timestamp: 1234567890,
+        trace_id: 'trace_id',
+        name: 'metric.name',
+        type: 'counter' as MetricType,
+        value: 42,
+        measurements: {
+          'metric.name': { value: 42 },
+        },
+      };
+
+      const env = createEnvelope<MetricEnvelope>({ event_id: 'metric0', sent_at: '123' }, [
+        [
+          {
+            type: 'trace_metric',
+            content_type: 'application/vnd.sentry.items.trace-metric+json',
+            item_count: 1,
+          },
+          { items: [metricsPayload] },
+        ],
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      const expectedPayload = JSON.stringify({ items: [metricsPayload] });
+      const expectedLength = utf8ToBytes(expectedPayload).length;
+
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"metric0","sent_at":"123"}\n' +
+              `{"type":"trace_metric","content_type":"application/vnd.sentry.items.trace-metric+json","item_count":1,"length":${expectedLength}}\n` +
+              `${expectedPayload}\n`,
+          ),
+        ),
+        { hardCrashed: false },
+      );
+    });
+
+    test('preserves custom content_type when provided', async () => {
+      const payload = {
+        event_id: 'event0',
+        message: 'test',
+      };
+      const env = createEnvelope({ event_id: 'foo1', sent_at: '123' }, [
+        [
+          {
+            type: 'event',
+            content_type: 'application/custom-type',
+          },
+          payload,
+        ],
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      const expectedPayload = JSON.stringify(payload);
+      const expectedLength = utf8ToBytes(expectedPayload).length;
+      expect(RNSentry.captureEnvelope).toHaveBeenCalledWith(
+        base64StringFromByteArray(
+          utf8ToBytes(
+            '{"event_id":"foo1","sent_at":"123"}\n' +
+              `{"type":"event","content_type":"application/custom-type","length":${expectedLength}}\n` +
+              `${expectedPayload}\n`,
+          ),
+        ),
+        { hardCrashed: false },
       );
     });
   });
@@ -516,7 +718,7 @@ describe('Tests Native Wrapper', () => {
         },
       });
 
-      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).toHaveBeenCalled();
     });
     test('returns context object from native module on android', async () => {
       NATIVE.platform = 'android';
@@ -527,7 +729,7 @@ describe('Tests Native Wrapper', () => {
         },
       });
 
-      expect(RNSentry.fetchNativeDeviceContexts).toBeCalled();
+      expect(RNSentry.fetchNativeDeviceContexts).toHaveBeenCalled();
     });
   });
 
@@ -541,7 +743,7 @@ describe('Tests Native Wrapper', () => {
     test('calls the native crash', () => {
       NATIVE.nativeCrash();
 
-      expect(RNSentry.crash).toBeCalled();
+      expect(RNSentry.crash).toHaveBeenCalled();
     });
     test('does not call crash if enableNative is false', async () => {
       await NATIVE.initNativeSdk({
@@ -553,7 +755,7 @@ describe('Tests Native Wrapper', () => {
       });
       NATIVE.nativeCrash();
 
-      expect(RNSentry.crash).not.toBeCalled();
+      expect(RNSentry.crash).not.toHaveBeenCalled();
     });
   });
 
@@ -565,7 +767,7 @@ describe('Tests Native Wrapper', () => {
         unique: 123,
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           email: 'hello@sentry.io',
           id: '3.14159265359',
@@ -581,9 +783,90 @@ describe('Tests Native Wrapper', () => {
         id: 'Hello',
       });
 
-      expect(RNSentry.setUser).toBeCalledWith(
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: 'Hello',
+        },
+        {},
+      );
+    });
+
+    test('serializes user with geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        email: 'test@example.com',
+        username: 'testuser',
+        geo: {
+          city: 'San Francisco',
+          country_code: 'US',
+          region: 'California',
+        },
+        customField: 'customValue',
+      });
+
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
+        {
+          id: '123',
+          email: 'test@example.com',
+          username: 'testuser',
+          geo: JSON.stringify({
+            city: 'San Francisco',
+            country_code: 'US',
+            region: 'California',
+          }),
+        },
+        {
+          customField: 'customValue',
+        },
+      );
+    });
+
+    test('serializes user with partial geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: {
+          city: 'New York',
+          country_code: 'US',
+        },
+      });
+
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
+        {
+          id: '123',
+          geo: JSON.stringify({
+            city: 'New York',
+            country_code: 'US',
+          }),
+        },
+        {},
+      );
+    });
+
+    test('serializes user with empty geo data', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: {},
+      });
+
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
+        {
+          id: '123',
+          geo: '{}',
+        },
+        {},
+      );
+    });
+
+    test('serializes user with undefined geo', async () => {
+      NATIVE.setUser({
+        id: '123',
+        geo: undefined,
+      });
+
+      expect(RNSentry.setUser).toHaveBeenCalledWith(
+        {
+          id: '123',
+          geo: undefined,
         },
         {},
       );
@@ -608,7 +891,7 @@ describe('Tests Native Wrapper', () => {
     test('closeNativeSdk calls native bridge', async () => {
       await NATIVE.closeNativeSdk();
 
-      expect(RNSentry.closeNativeSdk).toBeCalled();
+      expect(RNSentry.closeNativeSdk).toHaveBeenCalled();
       expect(NATIVE.enableNative).toBe(false);
     });
   });
@@ -806,6 +1089,103 @@ describe('Tests Native Wrapper', () => {
 
       const result = await NATIVE.crashedLastRun();
       expect(result).toBeNull();
+    });
+  });
+
+  describe('primitiveProcessor and _setPrimitiveProcessor', () => {
+    describe('primitiveProcessor', () => {
+      it('default primitiveProcessor returns value as string', () => {
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+        expect(NATIVE.primitiveProcessor(123)).toBe(123);
+        expect(NATIVE.primitiveProcessor(true)).toBe(true);
+        expect(NATIVE.primitiveProcessor(null)).toBe(null);
+        expect(NATIVE.primitiveProcessor(undefined)).toBe(undefined);
+      });
+
+      it('handles all primitive types correctly', () => {
+        const testCases = [
+          { input: 'string', expected: 'string' },
+          { input: 42, expected: 42 },
+          { input: true, expected: true },
+          { input: false, expected: false },
+          { input: null, expected: null },
+          { input: undefined, expected: undefined },
+          { input: BigInt(123), expected: BigInt(123) },
+        ];
+
+        testCases.forEach(({ input, expected }) => {
+          expect(NATIVE.primitiveProcessor(input)).toBe(expected);
+        });
+      });
+    });
+
+    describe('_setPrimitiveProcessor', () => {
+      it('sets primitiveProcessor to the provided function', () => {
+        const mockProcessor = jest.fn(value => `processed_${value}`);
+
+        NATIVE._setPrimitiveProcessor(mockProcessor);
+
+        expect(NATIVE.primitiveProcessor).toBe(mockProcessor);
+      });
+
+      it('allows custom processing of primitive values', () => {
+        const customProcessor = (value: any) => {
+          if (typeof value === 'boolean') {
+            return value ? 'YES' : 'NO';
+          }
+          if (value === null) {
+            return 'NULL';
+          }
+          return String(value);
+        };
+
+        NATIVE._setPrimitiveProcessor(customProcessor);
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('YES');
+        expect(NATIVE.primitiveProcessor(false)).toBe('NO');
+        expect(NATIVE.primitiveProcessor(null)).toBe('NULL');
+        expect(NATIVE.primitiveProcessor(42)).toBe('42');
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+      });
+
+      it('can be chained with PrimitiveToString for consistent formatting', () => {
+        const { PrimitiveToString } = require('../src/js/utils/primitiveConverter');
+
+        NATIVE._setPrimitiveProcessor(PrimitiveToString);
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('True');
+        expect(NATIVE.primitiveProcessor(false)).toBe('False');
+        expect(NATIVE.primitiveProcessor(null)).toBe('');
+        expect(NATIVE.primitiveProcessor(42)).toBe('42');
+        expect(NATIVE.primitiveProcessor('test')).toBe('test');
+        expect(NATIVE.primitiveProcessor(undefined)).toBeUndefined();
+      });
+
+      it('can be reset to default behavior', () => {
+        const customProcessor = jest.fn();
+        NATIVE._setPrimitiveProcessor(customProcessor);
+        expect(NATIVE.primitiveProcessor).toBe(customProcessor);
+
+        const defaultProcessor = (value: any) => value;
+        NATIVE._setPrimitiveProcessor(defaultProcessor);
+        expect(NATIVE.primitiveProcessor).toBe(defaultProcessor);
+      });
+
+      it('works with primitiveTagIntegration', () => {
+        const { primitiveTagIntegration } = require('../src/js/integrations/primitiveTagIntegration');
+
+        const client = {
+          on: jest.fn(),
+        };
+
+        const integration = primitiveTagIntegration();
+        integration.setup(client);
+        integration.afterAllSetup();
+
+        expect(NATIVE.primitiveProcessor(true)).toBe('True');
+        expect(NATIVE.primitiveProcessor(false)).toBe('False');
+        expect(NATIVE.primitiveProcessor(null)).toBe('');
+      });
     });
   });
 });

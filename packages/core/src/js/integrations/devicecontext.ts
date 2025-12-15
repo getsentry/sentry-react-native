@@ -1,8 +1,7 @@
 /* eslint-disable complexity */
 import type { Client, Event, EventHint, Integration } from '@sentry/core';
-import { logger, severityLevelFromString } from '@sentry/core';
+import { debug, severityLevelFromString } from '@sentry/core';
 import { AppState } from 'react-native';
-
 import { breadcrumbFromObject } from '../breadcrumb';
 import type { NativeDeviceContextsResponse } from '../NativeRNSentry';
 import { NATIVE } from '../wrapper';
@@ -25,7 +24,7 @@ async function processEvent(event: Event, _hint: EventHint, client: Client): Pro
   try {
     native = await NATIVE.fetchNativeDeviceContexts();
   } catch (e) {
-    logger.log(`Failed to get device context from native: ${e}`);
+    debug.log(`Failed to get device context from native: ${e}`);
   }
 
   if (!native) {

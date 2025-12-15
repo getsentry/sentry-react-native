@@ -54,6 +54,10 @@ Sentry.init({
     logWithoutTracing('Transaction beforeSend:', event.event_id);
     return event;
   },
+  beforeSendMetric(metric: Sentry.Metric) {
+    logWithoutTracing('Metric beforeSend:', metric.name, metric.value);
+    return metric;
+  },
   // This will be called with a boolean `didCallNativeInit` when the native SDK has been contacted.
   onReady: ({ didCallNativeInit }) => {
     logWithoutTracing(
@@ -93,8 +97,6 @@ Sentry.init({
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.
   sessionTrackingIntervalMillis: 30000,
-  // This will capture ALL TRACES and likely use up all your quota
-  enableTracing: true,
   tracesSampleRate: 1.0,
   tracePropagationTargets: ['localhost', /^\//, /^https:\/\//, /^http:\/\//],
   attachStacktrace: true,

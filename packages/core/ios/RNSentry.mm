@@ -20,12 +20,14 @@
 #import "RNSentryId.h"
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
-#import <Sentry/SentryBinaryImageCache.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
-#import <Sentry/SentryDependencyContainer.h>
+#import <Sentry/SentryBreadcrumb.h>
+#import <Sentry/SentryDebugMeta.h>
+#import <Sentry/SentryEvent.h>
+#import <Sentry/SentryException.h>
 #import <Sentry/SentryFormatter.h>
-#import <Sentry/SentryOptions+HybridSDKs.h>
+#import <Sentry/SentryGeo.h>
 #import <Sentry/SentryScreenFrames.h>
+#import <Sentry/SentryUser.h>
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
@@ -49,23 +51,18 @@
 #    import "RNSentryRNSScreen.h"
 #endif
 
+#import "RNSentryExperimentalOptions.h"
 #import "RNSentryStart.h"
 #import "RNSentryVersion.h"
-
-@interface
-SentrySDK (RNSentry)
-
-+ (void)captureEnvelope:(SentryEnvelope *)envelope;
-
-+ (void)storeEnvelope:(SentryEnvelope *)envelope;
-
-@end
+#import "SentrySDKWrapper.h"
 
 static bool hasFetchedAppStart;
 
 @implementation RNSentry {
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
+    NSArray<NSString *> *_ignoreErrorPatternsStr;
+    NSArray<NSRegularExpression *> *_ignoreErrorPatternsRegex;
 }
 
 - (dispatch_queue_t)methodQueue
@@ -86,25 +83,167 @@ static bool hasFetchedAppStart;
     return self;
 }
 
-RCT_EXPORT_MODULE()
-
-RCT_EXPORT_METHOD(initNativeSdk
-                  : (NSDictionary *_Nonnull)options resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+- (NSMutableDictionary *)prepareOptions:(NSDictionary *)options
 {
+    SentryBeforeSendEventCallback beforeSend = ^SentryEvent *(SentryEvent *event) {
+        // We don't want to send an event after startup that came from a Unhandled JS Exception of
+        // React Native because we sent it already before the app crashed.
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location
+                != NSNotFound) {
+            return nil;
+        }
+
+        // Regex and Str are set when one of them has value so we only need to check one of them.
+        if (self->_ignoreErrorPatternsStr || self->_ignoreErrorPatternsRegex) {
+            for (SentryException *exception in event.exceptions) {
+                if ([self shouldIgnoreError:exception.value]) {
+                    return nil;
+                }
+            }
+            if ([self shouldIgnoreError:event.message.message]) {
+                return nil;
+            }
+        }
+
+        [self setEventOriginTag:event];
+        return event;
+    };
+
+    NSMutableDictionary *mutableOptions = [options mutableCopy];
+    [mutableOptions setValue:beforeSend forKey:@"beforeSend"];
+
+    // remove performance traces sample rate and traces sampler since we don't want to synchronize
+    // these configurations to the Native SDKs. The user could tho initialize the SDK manually and
+    // set themselves.
+    [mutableOptions removeObjectForKey:@"tracesSampleRate"];
+    [mutableOptions removeObjectForKey:@"tracesSampler"];
+    [mutableOptions removeObjectForKey:@"enableTracing"];
+
+    [self trySetIgnoreErrors:mutableOptions];
+
+    return mutableOptions;
+}
+
+RCT_EXPORT_MODULE()
+RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+    NSMutableDictionary *mutableOptions = [self prepareOptions:options];
     NSError *error = nil;
-    [RNSentryStart startWithOptions:options error:&error];
+    [RNSentryStart startWithOptions:mutableOptions error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+
+    // RNSentryStart.startWithOptions already handles:
+    // - Session tracking notification (SentryHybridSdkDidBecomeActive)
+    // - Replay postInit
+    // - SDK initialization
     resolve(@YES);
 }
 
-RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+- (void)trySetIgnoreErrors:(NSDictionary *)options
+{
+    NSArray *ignoreErrorsStr = nil;
+    NSArray *ignoreErrorsRegex = nil;
+
+    id strArr = [options objectForKey:@"ignoreErrorsStr"];
+    id regexArr = [options objectForKey:@"ignoreErrorsRegex"];
+    if ([strArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsStr = (NSArray *)strArr;
+    }
+    if ([regexArr isKindOfClass:[NSArray class]]) {
+        ignoreErrorsRegex = (NSArray *)regexArr;
+    }
+
+    NSMutableArray<NSString *> *strs = [NSMutableArray array];
+    NSMutableArray<NSRegularExpression *> *regexes = [NSMutableArray array];
+
+    if (ignoreErrorsStr != nil) {
+        for (id str in ignoreErrorsStr) {
+            if ([str isKindOfClass:[NSString class]]) {
+                [strs addObject:str];
+            }
+        }
+    }
+
+    if (ignoreErrorsRegex != nil) {
+        for (id pattern in ignoreErrorsRegex) {
+            if ([pattern isKindOfClass:[NSString class]]) {
+                NSError *error = nil;
+                NSRegularExpression *regex =
+                    [NSRegularExpression regularExpressionWithPattern:pattern
+                                                              options:0
+                                                                error:&error];
+                if (regex && error == nil) {
+                    [regexes addObject:regex];
+                }
+            }
+        }
+    }
+
+    _ignoreErrorPatternsStr = [strs count] > 0 ? [strs copy] : nil;
+    _ignoreErrorPatternsRegex = [regexes count] > 0 ? [regexes copy] : nil;
+}
+
+- (BOOL)shouldIgnoreError:(NSString *)message
+{
+    if ((!_ignoreErrorPatternsStr && !_ignoreErrorPatternsRegex) || !message) {
+        return NO;
+    }
+
+    for (NSString *str in _ignoreErrorPatternsStr) {
+        if ([message containsString:str]) {
+            return YES;
+        }
+    }
+
+    for (NSRegularExpression *regex in _ignoreErrorPatternsRegex) {
+        NSRange range = NSMakeRange(0, message.length);
+        if ([regex firstMatchInString:message options:0 range:range]) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
+- (void)setEventOriginTag:(SentryEvent *)event
+{
+    if (event.sdk != nil) {
+        NSString *sdkName = event.sdk[@"name"];
+
+        // If the event is from react native, it gets set
+        // there and we do not handle it here.
+        if ([sdkName isEqual:NATIVE_SDK_NAME]) {
+            [self setEventEnvironmentTag:event origin:@"ios" environment:@"native"];
+        }
+    }
+}
+
+- (void)setEventEnvironmentTag:(SentryEvent *)event
+                        origin:(NSString *)origin
+                   environment:(NSString *)environment
+{
+    NSMutableDictionary *newTags = [NSMutableDictionary new];
+
+    if (nil != event.tags && [event.tags count] > 0) {
+        [newTags addEntriesFromDictionary:event.tags];
+    }
+    if (nil != origin) {
+        [newTags setValue:origin forKey:@"event.origin"];
+    }
+    if (nil != environment) {
+        [newTags setValue:environment forKey:@"event.environment"];
+    }
+
+    event.tags = newTags;
+}
+
+RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
     if ([[NSThread currentThread] isMainThread]) {
@@ -146,9 +285,8 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking
     return @[ RNSentryNewFrameEvent ];
 }
 
-RCT_EXPORT_METHOD(fetchNativeSdkInfo
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeSdkInfo : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     resolve(@ {
         @"name" : PrivateSentrySDKOnly.getSdkName,
@@ -156,9 +294,8 @@ RCT_EXPORT_METHOD(fetchNativeSdkInfo
     });
 }
 
-RCT_EXPORT_METHOD(fetchModules
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchModules : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSString *filePath = [[NSBundle mainBundle] pathForResource:@"modules" ofType:@"json"];
     NSString *modulesString = [NSString stringWithContentsOfFile:filePath
@@ -173,98 +310,73 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
     return packageName;
 }
 
-- (NSDictionary *)fetchNativeStackFramesBy:(NSArray<NSNumber *> *)instructionsAddr
-                               symbolicate:(SymbolicateCallbackType)symbolicate
-{
-    BOOL shouldSymbolicateLocally = [SentrySDK.options debug];
-    NSString *appPackageName = [[NSBundle mainBundle] executablePath];
-
-    NSMutableSet<NSString *> *_Nonnull imagesAddrToRetrieveDebugMetaImages =
-        [[NSMutableSet alloc] init];
-    NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedFrames =
-        [[NSMutableArray alloc] init];
-
-    for (NSNumber *addr in instructionsAddr) {
-        SentryBinaryImageInfo *_Nullable image = [[[SentryDependencyContainer sharedInstance]
-            binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
-        if (image != nil) {
-            NSString *imageAddr = sentry_formatHexAddressUInt64([image address]);
-            [imagesAddrToRetrieveDebugMetaImages addObject:imageAddr];
-
-            NSDictionary<NSString *, id> *_Nonnull nativeFrame = @{
-                @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
-                @"package" : [image name],
-                @"image_addr" : imageAddr,
-                @"in_app" : [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
-            };
-
-            if (shouldSymbolicateLocally) {
-                Dl_info symbolsBuffer;
-                bool symbols_succeed = false;
-                symbols_succeed
-                    = symbolicate((void *)[addr unsignedLongLongValue], &symbolsBuffer) != 0;
-                if (symbols_succeed) {
-                    NSMutableDictionary<NSString *, id> *_Nonnull symbolicated
-                        = nativeFrame.mutableCopy;
-                    symbolicated[@"symbol_addr"]
-                        = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
-                    symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname
-                                                                   encoding:NSUTF8StringEncoding];
-
-                    nativeFrame = symbolicated;
-                }
-            }
-
-            [serializedFrames addObject:nativeFrame];
-        } else {
-            [serializedFrames addObject:@{
-                @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
-            }];
-        }
-    }
-
-    if (shouldSymbolicateLocally) {
-        return @{
-            @"frames" : serializedFrames,
-        };
-    } else {
-        NSMutableArray<NSDictionary<NSString *, id> *> *_Nonnull serializedDebugMetaImages =
-            [[NSMutableArray alloc] init];
-
-        NSArray<SentryDebugMeta *> *debugMetaImages =
-            [[[SentryDependencyContainer sharedInstance] debugImageProvider]
-                getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
-
-        for (SentryDebugMeta *debugImage in debugMetaImages) {
-            [serializedDebugMetaImages addObject:[debugImage serialize]];
-        }
-
-        return @{
-            @"frames" : serializedFrames,
-            @"debugMetaImages" : serializedDebugMetaImages,
-        };
-    }
-}
-
-RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, fetchNativeStackFramesBy
-                                    : (NSArray *)instructionsAddr)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(
+    NSDictionary *, fetchNativeStackFramesBy : (NSArray *)instructionsAddr)
 {
     return [self fetchNativeStackFramesBy:instructionsAddr symbolicate:dladdr];
 }
 
-RCT_EXPORT_METHOD(fetchNativeDeviceContexts
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(fetchNativeLogAttributes : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
 {
-    if (PrivateSentrySDKOnly.options.debug) {
+    __block NSMutableDictionary<NSString *, id> *result = [NSMutableDictionary new];
+
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+        // Serialize to get contexts dictionary
+        NSDictionary *serializedScope = [scope serialize];
+        NSDictionary *allContexts = serializedScope[@"context"]; // It's singular here, annoyingly
+
+        NSMutableDictionary *contexts = [NSMutableDictionary new];
+
+        NSDictionary *device = allContexts[@"device"];
+        if ([device isKindOfClass:[NSDictionary class]]) {
+            contexts[@"device"] = device;
+        }
+
+        NSDictionary *os = allContexts[@"os"];
+        if ([os isKindOfClass:[NSDictionary class]]) {
+            contexts[@"os"] = os;
+        }
+
+        NSString *releaseName = [SentrySDKWrapper releaseName];
+        if (releaseName) {
+            contexts[@"release"] = releaseName;
+        }
+        // Merge extra context
+        NSDictionary *extraContext = [PrivateSentrySDKOnly getExtraContext];
+
+        if (extraContext) {
+            NSDictionary *extraDevice = extraContext[@"device"];
+            if ([extraDevice isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedDevice =
+                    [contexts[@"device"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedDevice addEntriesFromDictionary:extraDevice];
+                contexts[@"device"] = mergedDevice;
+            }
+
+            NSDictionary *extraOS = extraContext[@"os"];
+            if ([extraOS isKindOfClass:[NSDictionary class]]) {
+                NSMutableDictionary *mergedOS =
+                    [contexts[@"os"] mutableCopy] ?: [NSMutableDictionary new];
+                [mergedOS addEntriesFromDictionary:extraOS];
+                contexts[@"os"] = mergedOS;
+            }
+        }
+        result[@"contexts"] = contexts;
+    }];
+    resolve(result);
+}
+
+RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
+{
+    if ([SentrySDKWrapper debug]) {
         NSLog(@"Bridge call to: deviceContexts");
     }
     __block NSMutableDictionary<NSString *, id> *serializedScope;
     // Temp work around until sorted out this API in sentry-cocoa.
     // TODO: If the callback isnt' executed the promise wouldn't be resolved.
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         serializedScope = [[scope serialize] mutableCopy];
 
         NSDictionary<NSString *, id> *user = [serializedScope valueForKey:@"user"];
@@ -273,7 +385,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts
                                forKey:@"user"];
         }
 
-        if (PrivateSentrySDKOnly.options.debug) {
+        if ([SentrySDKWrapper debug]) {
             NSData *data = [NSJSONSerialization dataWithJSONObject:serializedScope
                                                            options:0
                                                              error:nil];
@@ -316,9 +428,8 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts
     resolve(serializedScope);
 }
 
-RCT_EXPORT_METHOD(fetchNativeAppStart
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeAppStart : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
     NSDictionary<NSString *, id> *measurements =
@@ -343,9 +454,8 @@ RCT_EXPORT_METHOD(fetchNativeAppStart
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchNativeFrames
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeFrames : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
@@ -374,9 +484,8 @@ RCT_EXPORT_METHOD(fetchNativeFrames
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchNativeRelease
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchNativeRelease : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
     resolve(@ {
@@ -386,11 +495,8 @@ RCT_EXPORT_METHOD(fetchNativeRelease
     });
 }
 
-RCT_EXPORT_METHOD(captureEnvelope
-                  : (NSString *_Nonnull)rawBytes options
-                  : (NSDictionary *_Nonnull)options resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(captureEnvelope : (NSString *_Nonnull)rawBytes options : (NSDictionary *_Nonnull)
+        options resolve : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSData *data = [[NSData alloc] initWithBase64EncodedString:rawBytes options:0];
 
@@ -413,9 +519,8 @@ RCT_EXPORT_METHOD(captureEnvelope
     resolve(@YES);
 }
 
-RCT_EXPORT_METHOD(captureScreenshot
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    captureScreenshot : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSArray<NSData *> *rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
@@ -447,9 +552,8 @@ RCT_EXPORT_METHOD(captureScreenshot
 #endif
 }
 
-RCT_EXPORT_METHOD(fetchViewHierarchy
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    fetchViewHierarchy : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSData *rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
@@ -468,7 +572,7 @@ RCT_EXPORT_METHOD(fetchViewHierarchy
 
 RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictionary *)userDataKeys)
 {
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         [scope setUser:[RNSentry userFrom:userKeys otherUserKeys:userDataKeys]];
     }];
 }
@@ -496,9 +600,28 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
         if ([username isKindOfClass:NSString.class]) {
             [userInstance setUsername:username];
         }
-        id segment = [userKeys valueForKey:@"segment"];
-        if ([segment isKindOfClass:NSString.class]) {
-            [userInstance setSegment:segment];
+
+        id geo = [userKeys valueForKey:@"geo"];
+        if ([geo isKindOfClass:NSDictionary.class]) {
+            NSDictionary *geoDict = (NSDictionary *)geo;
+            SentryGeo *sentryGeo = [SentryGeo alloc];
+
+            id city = [geoDict valueForKey:@"city"];
+            if ([city isKindOfClass:NSString.class]) {
+                [sentryGeo setCity:city];
+            }
+
+            id countryCode = [geoDict valueForKey:@"country_code"];
+            if ([countryCode isKindOfClass:NSString.class]) {
+                [sentryGeo setCountryCode:countryCode];
+            }
+
+            id region = [geoDict valueForKey:@"region"];
+            if ([region isKindOfClass:NSString.class]) {
+                [sentryGeo setRegion:region];
+            }
+
+            [userInstance setGeo:sentryGeo];
         }
 
         if ([userDataKeys isKindOfClass:NSDictionary.class]) {
@@ -517,7 +640,7 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
 
 RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 {
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         [scope addBreadcrumb:[RNSentryBreadcrumb from:breadcrumb]];
     }];
 
@@ -531,12 +654,12 @@ RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 
 RCT_EXPORT_METHOD(clearBreadcrumbs)
 {
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) { [scope clearBreadcrumbs]; }];
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) { [scope clearBreadcrumbs]; }];
 }
 
 RCT_EXPORT_METHOD(setExtra : (NSString *)key extra : (NSString *)extra)
 {
-    [SentrySDK
+    [SentrySDKWrapper
         configureScope:^(SentryScope *_Nonnull scope) { [scope setExtraValue:extra forKey:key]; }];
 }
 
@@ -546,7 +669,7 @@ RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context
         return;
     }
 
-    [SentrySDK configureScope:^(SentryScope *_Nonnull scope) {
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         if (context == nil) {
             [scope removeContextForKey:key];
         } else {
@@ -557,17 +680,16 @@ RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context
 
 RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 {
-    [SentrySDK
+    [SentrySDKWrapper
         configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
 }
 
-RCT_EXPORT_METHOD(crash) { [SentrySDK crash]; }
+RCT_EXPORT_METHOD(crash) { [SentrySDKWrapper crash]; }
 
-RCT_EXPORT_METHOD(closeNativeSdk
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    closeNativeSdk : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
-    [SentrySDK close];
+    [SentrySDKWrapper close];
     resolve(@YES);
 }
 
@@ -584,10 +706,8 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
-RCT_EXPORT_METHOD(captureReplay
-                  : (BOOL)isHardCrash resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     [PrivateSentrySDKOnly captureReplay];
@@ -597,10 +717,8 @@ RCT_EXPORT_METHOD(captureReplay
 #endif
 }
 
-RCT_EXPORT_METHOD(getDataFromUri
-                  : (NSString *_Nonnull)uri resolve
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getDataFromUri : (NSString *_Nonnull)uri resolve : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSURL *fileURL = [NSURL URLWithString:uri];
@@ -643,7 +761,15 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
 {
 #if SENTRY_PROFILING_ENABLED
     try {
+#    ifdef NEW_HERMES_RUNTIME
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
+        if (hermesAPI) {
+            hermesAPI->enableSamplingProfiler();
+        }
+#    else
         facebook::hermes::HermesRuntime::enableSamplingProfiler();
+#    endif
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0 && platformProfilers) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [RNSentryId newId];
@@ -703,10 +829,19 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         nativeProfileTraceId = nil;
         nativeProfileStartTime = 0;
 
-        facebook::hermes::HermesRuntime::disableSamplingProfiler();
         std::stringstream ss;
+#    ifdef NEW_HERMES_RUNTIME
+        auto *hermesAPI = facebook::jsi::castInterface<facebook::hermes::IHermesRootAPI>(
+            facebook::hermes::makeHermesRootAPI());
+        if (hermesAPI) {
+            hermesAPI->disableSamplingProfiler();
+            hermesAPI->dumpSampledTraceToStream(ss);
+        }
+#    else
+        facebook::hermes::HermesRuntime::disableSamplingProfiler();
         // Before RN 0.69 Hermes used llvh::raw_ostream (profiling is supported for 0.69 and newer)
         facebook::hermes::HermesRuntime::dumpSampledTraceToStream(ss);
+#    endif
 
         std::string s = ss.str();
         NSString *data = [NSString stringWithCString:s.c_str()
@@ -766,11 +901,10 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 #endif
 }
 
-RCT_EXPORT_METHOD(crashedLastRun
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(
+    crashedLastRun : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
-    resolve(@([SentrySDK crashedLastRun]));
+    resolve(@([SentrySDKWrapper crashedLastRun]));
 }
 
 // Thanks to this guard, we won't compile this code when we build for the old architecture.
@@ -782,17 +916,14 @@ RCT_EXPORT_METHOD(crashedLastRun
 }
 #endif
 
-RCT_EXPORT_METHOD(getNewScreenTimeToDisplay
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getNewScreenTimeToDisplay : (RCTPromiseResolveBlock)resolve rejecter : (
+    RCTPromiseRejectBlock)reject)
 {
     [_timeToDisplay getTimeToDisplay:resolve];
 }
 
-RCT_EXPORT_METHOD(popTimeToDisplayFor
-                  : (NSString *)key resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(popTimeToDisplayFor : (NSString *)key resolver : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     resolve([RNSentryTimeToDisplay popTimeToDisplayFor:key]);
 }
@@ -803,10 +934,8 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)sp
     return @YES; // The return ensures that the method is synchronous
 }
 
-RCT_EXPORT_METHOD(encodeToBase64
-                  : (NSArray *)array resolver
-                  : (RCTPromiseResolveBlock)resolve rejecter
-                  : (RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(encodeToBase64 : (NSArray *)array resolver : (
+    RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSUInteger count = array.count;
     uint8_t *bytes = (uint8_t *)malloc(count);

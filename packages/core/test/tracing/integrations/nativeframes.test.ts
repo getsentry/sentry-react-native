@@ -1,6 +1,5 @@
 import type { Event, Measurements } from '@sentry/core';
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpan } from '@sentry/core';
-
 import { nativeFramesIntegration } from '../../../src/js';
 import { NATIVE } from '../../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
@@ -17,7 +16,10 @@ jest.mock('../../../src/js/wrapper', () => {
   };
 });
 
-jest.useFakeTimers({ advanceTimers: true });
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'], // Keep real performance API
+});
 
 const mockDate = new Date(2024, 7, 14); // Set your desired mock date here
 const originalDateNow = Date.now; // Store the original Date.now function
@@ -270,5 +272,114 @@ describe('NativeFramesInstrumentation', () => {
         }),
       }),
     ]);
+  });
+
+  it('attaches frame data to child spans', async () => {
+    const rootStartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
+    const childStartFrames = { totalFrames: 110, slowFrames: 11, frozenFrames: 6 };
+    const childEndFrames = { totalFrames: 160, slowFrames: 16, frozenFrames: 8 };
+    const rootEndFrames = { totalFrames: 200, slowFrames: 20, frozenFrames: 10 };
+
+    mockFunction(NATIVE.fetchNativeFrames)
+      .mockResolvedValueOnce(rootStartFrames)
+      .mockResolvedValueOnce(childStartFrames)
+      .mockResolvedValueOnce(childEndFrames)
+      .mockResolvedValueOnce(rootEndFrames);
+
+    await startSpan({ name: 'test' }, async () => {
+      startSpan({ name: 'child-span' }, () => {});
+      await Promise.resolve(); // Flush frame captures
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await client.flush();
+
+    expect(client.event).toBeDefined();
+    const childSpan = client.event!.spans!.find(s => s.description === 'child-span');
+    expect(childSpan).toBeDefined();
+    expect(childSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 50,
+        'frames.slow': 5,
+        'frames.frozen': 2,
+      }),
+    );
+  });
+
+  it('does not attach frame data to child spans when deltas are zero', async () => {
+    const frames = {
+      totalFrames: 100,
+      slowFrames: 10,
+      frozenFrames: 5,
+    };
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(frames); // Same frames = delta of 0
+
+    await startSpan({ name: 'test' }, async () => {
+      startSpan({ name: 'child-span' }, () => {});
+      await Promise.resolve(); // Flush frame captures
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await client.flush();
+
+    expect(client.event).toBeDefined();
+    const childSpan = client.event!.spans!.find(s => s.description === 'child-span');
+    expect(childSpan).toBeDefined();
+    expect(childSpan!.data).not.toHaveProperty('frames.total');
+    expect(childSpan!.data).not.toHaveProperty('frames.slow');
+    expect(childSpan!.data).not.toHaveProperty('frames.frozen');
+  });
+
+  it('attaches frame data to multiple child spans', async () => {
+    const rootStartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
+    const child1StartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
+    const child2StartFrames = { totalFrames: 120, slowFrames: 12, frozenFrames: 6 };
+    const child1EndFrames = { totalFrames: 120, slowFrames: 12, frozenFrames: 6 };
+    const child2EndFrames = { totalFrames: 150, slowFrames: 15, frozenFrames: 8 };
+    const rootEndFrames = { totalFrames: 200, slowFrames: 20, frozenFrames: 10 };
+
+    mockFunction(NATIVE.fetchNativeFrames)
+      .mockResolvedValueOnce(rootStartFrames)
+      .mockResolvedValueOnce(child1StartFrames)
+      .mockResolvedValueOnce(child2StartFrames)
+      .mockResolvedValueOnce(child1EndFrames)
+      .mockResolvedValueOnce(child2EndFrames)
+      .mockResolvedValueOnce(rootEndFrames);
+
+    await startSpan({ name: 'test' }, async () => {
+      startSpan({ name: 'child-span-1' }, () => {});
+      startSpan({ name: 'child-span-2' }, () => {});
+
+      await Promise.resolve(); // Flush all frame captures
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await client.flush();
+
+    expect(client.event).toBeDefined();
+
+    const childSpan1 = client.event!.spans!.find(s => s.description === 'child-span-1');
+    expect(childSpan1).toBeDefined();
+    expect(childSpan1!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 20,
+        'frames.slow': 2,
+        'frames.frozen': 1,
+      }),
+    );
+
+    const childSpan2 = client.event!.spans!.find(s => s.description === 'child-span-2');
+    expect(childSpan2).toBeDefined();
+    expect(childSpan2!.data).toEqual(
+      expect.objectContaining({
+        'frames.total': 30,
+        'frames.slow': 3,
+        'frames.frozen': 2,
+      }),
+    );
   });
 });
