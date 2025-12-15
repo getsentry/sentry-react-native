@@ -1,12 +1,11 @@
 import { logger } from '@sentry/core';
 import * as fs from 'fs';
-import type { MetroConfig, Module } from 'metro';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as countLines from 'metro/src/lib/countLines';
+import type { MetroConfig, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 import * as path from 'path';
-
 import type { MetroCustomSerializer, VirtualJSOutput } from './utils';
 import { createSet } from './utils';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import countLines from './vendor/metro/countLines';
 
 const DEFAULT_OPTIONS_FILE_NAME = 'sentry.options.json';
 
@@ -43,7 +42,12 @@ export function withSentryOptionsFromFile(config: MetroConfig, optionsFile: stri
     return config;
   }
 
-  const sentryOptionsSerializer: MetroCustomSerializer = (entryPoint, preModules, graph, options) => {
+  const sentryOptionsSerializer: MetroCustomSerializer = (
+    entryPoint: string,
+    preModules: readonly Module[],
+    graph: ReadOnlyGraph,
+    options: SerializerOptions,
+  ) => {
     const sentryOptionsModule = createSentryOptionsModule(optionsPath);
     if (sentryOptionsModule) {
       (preModules as Module[]).push(sentryOptionsModule);

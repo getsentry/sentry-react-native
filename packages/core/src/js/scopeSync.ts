@@ -1,5 +1,5 @@
 import type { Breadcrumb, Scope } from '@sentry/core';
-
+import { logger } from '@sentry/react';
 import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { fillTyped } from './utils/fill';
 import { convertToNormalizedObject } from './utils/normalize';
@@ -26,14 +26,14 @@ export function enableSyncToNative(scope: Scope): void {
   });
 
   fillTyped(scope, 'setTag', original => (key, value): Scope => {
-    NATIVE.setTag(key, value as string);
+    NATIVE.setTag(key, NATIVE.primitiveProcessor(value));
     return original.call(scope, key, value);
   });
 
   fillTyped(scope, 'setTags', original => (tags): Scope => {
     // As native only has setTag, we just loop through each tag key.
     Object.keys(tags).forEach(key => {
-      NATIVE.setTag(key, tags[key] as string);
+      NATIVE.setTag(key, NATIVE.primitiveProcessor(tags[key]));
     });
     return original.call(scope, tags);
   });
@@ -60,7 +60,11 @@ export function enableSyncToNative(scope: Scope): void {
     original.call(scope, mergedBreadcrumb, maxBreadcrumbs);
 
     const finalBreadcrumb = scope.getLastBreadcrumb();
-    NATIVE.addBreadcrumb(finalBreadcrumb);
+    if (finalBreadcrumb) {
+      NATIVE.addBreadcrumb(finalBreadcrumb);
+    } else {
+      logger.warn('[ScopeSync] Last created breadcrumb is undefined. Skipping sync to native.');
+    }
 
     return scope;
   });

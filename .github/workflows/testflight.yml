@@ -18,8 +18,8 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v4
-      - run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      - uses: actions/checkout@v6
+      - run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
       - uses: ruby/setup-ruby@v1
         with:
           working-directory: samples/react-native
@@ -27,8 +27,9 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -67,7 +68,7 @@ jobs:
           bundle exec fastlane ios upload_react_native_sample_to_testflight
 
       - name: Upload Xcode Archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sentry-react-native-sample-xcode-archive-for-testflight
           path: samples/react-native/sentryreactnativesample.xcarchive

@@ -1,7 +1,6 @@
 import { logger } from '@sentry/core';
 import * as fs from 'fs';
 import type { Graph, Module, SerializerOptions } from 'metro';
-
 import { withSentryOptionsFromFile } from '../../src/js/tools/sentryOptionsSerializer';
 import { createSet } from '../../src/js/tools/utils';
 

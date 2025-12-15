@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { Button, View, StyleSheet, Text, ScrollView } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import * as Sentry from '@sentry/react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import * as Sentry from '@sentry/react-native';
 
 interface Props {
-  navigation: StackNavigationProp<any, 'HeavyNatigavionScreen'>;
+  navigation: StackNavigationProp<any, 'HeavyNavigationScreen'>;
   route?: {
     params?: {
       manualTrack: boolean;

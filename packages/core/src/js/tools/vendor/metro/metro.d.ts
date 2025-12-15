@@ -24,7 +24,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-declare module 'metro/src/DeltaBundler/Serializers/baseJSBundle' {
+// All exports were moved from src to private in Metro 0.83.0.
+// https://github.com/facebook/metro/commit/ae6f42372ed361611b5672705f22081c2022cf28
+
+declare module 'metro/private/DeltaBundler/Serializers/baseJSBundle' {
   // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/DeltaBundler/Serializers/baseJSBundle.js#L25
   const baseJSBundle: (
     entryPoint: string,
@@ -39,7 +42,7 @@ declare module 'metro/src/DeltaBundler/Serializers/baseJSBundle' {
   export = baseJSBundle;
 }
 
-declare module 'metro/src/lib/bundleToString' {
+declare module 'metro/private/lib/bundleToString' {
   // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/lib/bundleToString.js#L22
   const baseJSBundle: (bundle: { modules: [number, string][]; post: string; pre: string }) => {
     code: string;
@@ -49,13 +52,13 @@ declare module 'metro/src/lib/bundleToString' {
   export = baseJSBundle;
 }
 
-declare module 'metro/src/lib/countLines' {
+declare module 'metro/private/lib/countLines' {
   // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/lib/countLines.js#L16
   const countLines: (code: string) => number;
   export = countLines;
 }
 
-declare module 'metro/src/DeltaBundler/Serializers/sourceMapString' {
+declare module 'metro/private/DeltaBundler/Serializers/sourceMapString' {
   import type { MixedOutput, Module } from 'metro';
 
   // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/DeltaBundler/Serializers/sourceMapString.js#L19

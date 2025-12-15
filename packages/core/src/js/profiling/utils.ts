@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import type { Envelope, Event, ThreadCpuProfile } from '@sentry/core';
-import { forEachEnvelopeItem, logger } from '@sentry/core';
-
+import { debug, forEachEnvelopeItem } from '@sentry/core';
 import { getDefaultEnvironment } from '../utils/environment';
 import { getDebugMetadata } from './debugid';
 import type {
@@ -22,7 +21,7 @@ export function isValidProfile(profile: ThreadCpuProfile): profile is RawThreadC
       // Log a warning if the profile has less than 2 samples so users can know why
       // they are not seeing any profiling data and we cant avoid the back and forth
       // of asking them to provide us with a dump of the profile data.
-      logger.log('[Profiling] Discarding profile because it contains less than 2 samples');
+      debug.log('[Profiling] Discarding profile because it contains less than 2 samples');
     }
     return false;
   }
@@ -75,14 +74,14 @@ export function enrichCombinedProfileWithEventContext(
     return null;
   }
 
-  const trace_id = (event.contexts && event.contexts.trace && event.contexts.trace.trace_id) || '';
+  const trace_id = event.contexts?.trace?.trace_id || '';
 
   // Log a warning if the profile has an invalid traceId (should be uuidv4).
   // All profiles and transactions are rejected if this is the case and we want to
   // warn users that this is happening if they enable debug flag
-  if (trace_id && trace_id.length !== 32) {
+  if (trace_id?.length !== 32) {
     if (__DEV__) {
-      logger.log(`[Profiling] Invalid traceId: ${trace_id} on profiled event`);
+      debug.log(`[Profiling] Invalid traceId: ${trace_id} on profiled event`);
     }
   }
 
@@ -97,25 +96,25 @@ export function enrichCombinedProfileWithEventContext(
     release: event.release || '',
     environment: event.environment || getDefaultEnvironment(),
     os: {
-      name: (event.contexts && event.contexts.os && event.contexts.os.name) || '',
-      version: (event.contexts && event.contexts.os && event.contexts.os.version) || '',
-      build_number: (event.contexts && event.contexts.os && event.contexts.os.build) || '',
+      name: event.contexts?.os?.name || '',
+      version: event.contexts?.os?.version || '',
+      build_number: event.contexts?.os?.build || '',
     },
     device: {
-      locale: (event.contexts && event.contexts.device && (event.contexts.device.locale as string)) || '',
-      model: (event.contexts && event.contexts.device && event.contexts.device.model) || '',
-      manufacturer: (event.contexts && event.contexts.device && event.contexts.device.manufacturer) || '',
-      architecture: (event.contexts && event.contexts.device && event.contexts.device.arch) || '',
-      is_emulator: (event.contexts && event.contexts.device && event.contexts.device.simulator) || false,
+      locale: (event.contexts?.device && (event.contexts.device.locale as string)) || '',
+      model: event.contexts?.device?.model || '',
+      manufacturer: event.contexts?.device?.manufacturer || '',
+      architecture: event.contexts?.device?.arch || '',
+      is_emulator: event.contexts?.device?.simulator || false,
     },
     transaction: {
       name: event.transaction || '',
       id: event.event_id || '',
       trace_id,
-      active_thread_id: (profile.transaction && profile.transaction.active_thread_id) || '',
+      active_thread_id: profile.transaction?.active_thread_id || '',
     },
     debug_meta: {
-      images: [...getDebugMetadata(), ...((profile.debug_meta && profile.debug_meta.images) || [])],
+      images: [...getDebugMetadata(), ...(profile.debug_meta?.images || [])],
     },
   };
 }
@@ -136,19 +135,15 @@ export function enrichAndroidProfileWithEventContext(
     build_id: profile.build_id || '',
 
     device_cpu_frequencies: [],
-    device_is_emulator: (event.contexts && event.contexts.device && event.contexts.device.simulator) || false,
-    device_locale: (event.contexts && event.contexts.device && (event.contexts.device.locale as string)) || '',
-    device_manufacturer: (event.contexts && event.contexts.device && event.contexts.device.manufacturer) || '',
-    device_model: (event.contexts && event.contexts.device && event.contexts.device.model) || '',
-    device_os_name: (event.contexts && event.contexts.os && event.contexts.os.name) || '',
-    device_os_version: (event.contexts && event.contexts.os && event.contexts.os.version) || '',
+    device_is_emulator: event.contexts?.device?.simulator || false,
+    device_locale: (event.contexts?.device && (event.contexts.device.locale as string)) || '',
+    device_manufacturer: event.contexts?.device?.manufacturer || '',
+    device_model: event.contexts?.device?.model || '',
+    device_os_name: event.contexts?.os?.name || '',
+    device_os_version: event.contexts?.os?.version || '',
 
     device_physical_memory_bytes:
-      (event.contexts &&
-        event.contexts.device &&
-        event.contexts.device.memory_size &&
-        Number(event.contexts.device.memory_size).toString(10)) ||
-      '',
+      (event.contexts?.device?.memory_size && Number(event.contexts.device.memory_size).toString(10)) || '',
 
     environment: event.environment || getDefaultEnvironment(),
 
@@ -161,7 +156,7 @@ export function enrichAndroidProfileWithEventContext(
 
     transaction_id: event.event_id || '',
     transaction_name: event.transaction || '',
-    trace_id: (event.contexts && event.contexts.trace && event.contexts.trace.trace_id) || '',
+    trace_id: event.contexts?.trace?.trace_id || '',
 
     version_name: event.release || '',
     version_code: event.dist || '',

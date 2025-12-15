@@ -216,7 +216,6 @@ final class RNSentryStart {
     // Tracing is only enabled in JS to avoid duplicate navigation spans
     options.setTracesSampleRate(null);
     options.setTracesSampler(null);
-    options.setEnableTracing(false);
 
     // React native internally throws a JavascriptException.
     // we want to ignore it on the native side to avoid sending it twice.
@@ -328,26 +327,10 @@ final class RNSentryStart {
   }
 
   private static void addPackages(SentryEvent event, SdkVersion sdk) {
-    SdkVersion eventSdk = event.getSdk();
-    if (eventSdk != null
-        && "sentry.javascript.react-native".equals(eventSdk.getName())
-        && sdk != null) {
-      List<SentryPackage> sentryPackages = sdk.getPackages();
-      if (sentryPackages != null) {
-        for (SentryPackage sentryPackage : sentryPackages) {
-          eventSdk.addPackage(sentryPackage.getName(), sentryPackage.getVersion());
-        }
-      }
-
-      List<String> integrations = sdk.getIntegrations();
-      if (integrations != null) {
-        for (String integration : integrations) {
-          eventSdk.addIntegration(integration);
-        }
-      }
-
-      event.setSdk(eventSdk);
-    }
+    // In Sentry Android SDK v7, SdkVersion doesn't expose getPackages() or getIntegrations()
+    // The native SDK packages and integrations are already included in the SDK version
+    // set during initialization, so we don't need to copy them here.
+    // This method is kept for potential future use or if the API changes.
   }
 
   private static @Nullable String getURLFromDSN(@Nullable String dsn) {

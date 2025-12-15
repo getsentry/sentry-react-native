@@ -7,8 +7,8 @@ import {
   startInactiveSpan,
   startSpanManual,
 } from '@sentry/core';
-import type { AppState, AppStateStatus } from 'react-native';
-
+import type { AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 import {
   startUserInteractionSpan,
   userInteractionIntegration,
@@ -27,23 +27,28 @@ type MockAppState = {
   listener: (newState: AppStateStatus) => void;
   removeSubscription: jest.Func;
 };
-const mockedAppState: AppState & MockAppState = {
-  removeSubscription: jest.fn(),
-  listener: jest.fn(),
-  isAvailable: true,
-  currentState: 'active',
-  addEventListener: (_, listener) => {
-    mockedAppState.listener = listener;
-    return {
-      remove: mockedAppState.removeSubscription,
-    };
-  },
-  setState: (state: AppStateStatus) => {
-    mockedAppState.currentState = state;
-    mockedAppState.listener(state);
-  },
-};
-jest.mock('react-native/Libraries/AppState/AppState', () => mockedAppState);
+jest.mock('react-native', () => {
+  const mockedAppState: AppState & MockAppState = {
+    removeSubscription: jest.fn(),
+    listener: jest.fn(),
+    isAvailable: true,
+    currentState: 'active',
+    addEventListener: jest.fn(),
+    setState: (state: AppStateStatus) => {
+      mockedAppState.currentState = state;
+      mockedAppState.listener(state);
+    },
+  };
+  return {
+    AppState: mockedAppState,
+    Platform: { OS: 'ios' },
+    NativeModules: {
+      RNSentry: {},
+    },
+  };
+});
+
+const mockedAppState = AppState as jest.Mocked<typeof AppState & MockAppState>;
 
 jest.mock('../../../src/js/wrapper', () => {
   return {
@@ -63,15 +68,17 @@ describe('User Interaction Tracing', () => {
   let mockedUserInteractionId: { elementId: string | undefined; op: string };
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    jest.useFakeTimers({
+      advanceTimers: true,
+      doNotFake: ['performance'], // Keep real performance API
+    });
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
-    mockedAppState.addEventListener = (_, listener) => {
+    mockedAppState.currentState = 'active';
+    (mockedAppState.addEventListener as jest.Mock).mockImplementation((_, listener) => {
       mockedAppState.listener = listener;
-      return {
-        remove: mockedAppState.removeSubscription,
-      };
-    };
+      return { remove: mockedAppState.removeSubscription };
+    });
 
     mockedUserInteractionId = { elementId: 'mockedElementId', op: 'mocked.op' };
     client = setupTestClient({
@@ -144,7 +151,7 @@ describe('User Interaction Tracing', () => {
           status: 'cancelled',
         }),
       );
-      expect(mockedAppState.removeSubscription).toBeCalledTimes(1);
+      expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
     });
 
     test('do not overwrite existing status of UI event transactions', () => {
@@ -209,7 +216,7 @@ describe('User Interaction Tracing', () => {
           op: 'different.op',
         }),
       );
-      expect(firstTransactionEvent!.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction!).start_timestamp!);
+      expect(firstTransactionEvent.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction).start_timestamp);
     });
 
     test('different UI event and same element finish first transaction with last span', () => {
@@ -249,21 +256,26 @@ describe('User Interaction Tracing', () => {
 
       const firstTransactionContext = spanToJSON(firstTransaction!);
       const secondTransactionContext = spanToJSON(secondTransaction!);
-      expect(firstTransactionContext!.timestamp).toEqual(expect.any(Number));
-      expect(secondTransactionContext!.timestamp).toEqual(expect.any(Number));
-      expect(firstTransactionContext!.span_id).not.toEqual(secondTransactionContext!.span_id);
+      expect(firstTransactionContext.timestamp).toEqual(expect.any(Number));
+      expect(secondTransactionContext.timestamp).toEqual(expect.any(Number));
+      expect(firstTransactionContext.span_id).not.toEqual(secondTransactionContext.span_id);
     });
 
     test('do not start UI event transaction if active transaction on scope', () => {
-      const activeTransaction = startSpanManual(
-        { name: 'activeTransactionOnScope', scope: getCurrentScope() },
-        (span: Span) => span,
-      );
-      expect(activeTransaction).toBeDefined();
-      expect(activeTransaction).toBe(getActiveSpan());
+      const placeholderCallback: (span: Span, finish: () => void) => void = (span, finish) => {
+        // @ts-expect-error no direct access to _name
+        expect(span._name).toBe('activeTransactionOnScope');
 
-      startUserInteractionSpan(mockedUserInteractionId);
-      expect(activeTransaction).toBe(getActiveSpan());
+        expect(span).toBe(getActiveSpan());
+
+        startUserInteractionSpan(mockedUserInteractionId);
+
+        expect(span).toBe(getActiveSpan());
+
+        finish();
+      };
+
+      startSpanManual({ name: 'activeTransactionOnScope', scope: getCurrentScope() }, placeholderCallback);
     });
 
     test('UI event transaction is canceled when routing transaction starts', () => {
@@ -289,7 +301,19 @@ describe('User Interaction Tracing', () => {
           timestamp: expect.any(Number),
         }),
       );
-      expect(interactionTransactionContext!.timestamp).toBeLessThanOrEqual(routingTransactionContext!.start_timestamp!);
+      expect(interactionTransactionContext.timestamp).toBeLessThanOrEqual(routingTransactionContext.start_timestamp);
+    });
+
+    test('does not start UI span when app is in background', () => {
+      mockedAppState.currentState = 'background';
+
+      startUserInteractionSpan(mockedUserInteractionId);
+
+      // No active span should be created
+      expect(getActiveSpan()).toBeUndefined();
+
+      // No events should be queued
+      expect(client.eventQueue).toHaveLength(0);
     });
   });
 });

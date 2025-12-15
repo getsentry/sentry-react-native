@@ -1,7 +1,6 @@
 import type { getDefaultConfig } from 'expo/metro-config';
 import type { MetroConfig } from 'metro';
 import * as process from 'process';
-
 import {
   getSentryExpoConfig,
   withSentryBabelTransformer,
@@ -160,7 +159,7 @@ describe('metroconfig', () => {
     describe.each([
       ['new Metro', false, '0.70.0'],
       ['old Metro', true, '0.67.0'],
-    ])(`on %s`, (description, oldMetro, metroVersion) => {
+    ])('on %s', (description, oldMetro, metroVersion) => {
       beforeEach(() => {
         jest.resetModules();
         // Mock metro/package.json
@@ -316,9 +315,9 @@ describe('metroconfig', () => {
         platform: string | null,
       ) {
         if (oldMetro) {
-          expect(received).toBeCalledWith(contextMock, `real${moduleName}`, platform, moduleName);
+          expect(received).toHaveBeenCalledWith(contextMock, `real${moduleName}`, platform, moduleName);
         } else {
-          expect(received).toBeCalledWith(contextMock, moduleName, platform);
+          expect(received).toHaveBeenCalledWith(contextMock, moduleName, platform);
         }
       }
     });

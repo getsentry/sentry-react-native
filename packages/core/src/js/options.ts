@@ -1,14 +1,16 @@
 import type { makeFetchTransport } from '@sentry/browser';
 import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
-import type { Profiler } from '@sentry/react';
+import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
 import { Platform } from 'react-native';
-
 import type { TouchEventBoundaryProps } from './touchevents';
-import { getExpoConstants } from './utils/expomodules';
+import { isExpoGo } from './utils/environment';
 
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
 type BrowserTransportOptions = Parameters<typeof makeFetchTransport>[0];
+
+type BrowserExperiments = NonNullable<BrowserOptions['_experiments']>;
+type SharedExperimentsSubset = BrowserExperiments;
 
 export interface BaseReactNativeOptions {
   /**
@@ -50,15 +52,22 @@ export interface BaseReactNativeOptions {
   /** Enable NDK on Android
    *
    * @default true
+   * @platform android
    */
   enableNdk?: boolean;
 
   /** Enable scope sync from Java to NDK on Android
    * Only has an effect if `enableNdk` is `true`.
+   *
+   * @platform android
    */
   enableNdkScopeSync?: boolean;
 
-  /** When enabled, all the threads are automatically attached to all logged events on Android */
+  /**
+   * When enabled, all the threads are automatically attached to all logged events on Android
+   *
+   * @platform android
+   */
   attachThreads?: boolean;
 
   /**
@@ -87,6 +96,7 @@ export interface BaseReactNativeOptions {
    * Renamed from `enableOutOfMemoryTracking` in v5.
    *
    * @default true
+   * @platform ios
    */
   enableWatchdogTerminationTracking?: boolean;
 
@@ -121,6 +131,7 @@ export interface BaseReactNativeOptions {
    * iOS only
    *
    * @default true
+   * @platform ios
    */
   enableAppHangTracking?: boolean;
 
@@ -133,6 +144,7 @@ export interface BaseReactNativeOptions {
    * iOS only
    *
    * @default 2
+   * @platform ios
    */
   appHangTimeoutInterval?: number;
 
@@ -235,9 +247,25 @@ export interface BaseReactNativeOptions {
   replaysOnErrorSampleRate?: number;
 
   /**
+   * Controls how many milliseconds to wait before shutting down. The default is 2 seconds. Setting this too low can cause
+   * problems for sending events from command line applications. Setting it too
+   * high can cause the application to block for users with network connectivity
+   * problems.
+   */
+  shutdownTimeout?: number;
+
+  /**
+   * Defines the quality of the session replay. The higher the quality, the more accurate the replay
+   * will be, but also more data to transfer and more CPU load.
+   *
+   * @default 'medium'
+   */
+  replaysSessionQuality?: SentryReplayQuality;
+
+  /**
    * Options which are in beta, or otherwise not guaranteed to be stable.
    */
-  _experiments?: {
+  _experiments?: SharedExperimentsSubset & {
     [key: string]: unknown;
 
     /**
@@ -253,6 +281,18 @@ export interface BaseReactNativeOptions {
      * This will be removed in the next major version.
      */
     replaysOnErrorSampleRate?: number;
+
+    /**
+     * Experiment: A more reliable way to report unhandled C++ exceptions in iOS.
+     *
+     * This approach hooks into all instances of the `__cxa_throw` function, which provides a more comprehensive and consistent exception handling across an app’s runtime, regardless of the number of C++ modules or how they’re linked. It helps in obtaining accurate stack traces.
+     *
+     * - Note: The mechanism of hooking into `__cxa_throw` could cause issues with symbolication on iOS due to caching of symbol references.
+     *
+     * @default false
+     * @platform ios
+     */
+    enableUnhandledCPPExceptionsV2?: boolean;
   };
 
   /**
@@ -262,7 +302,33 @@ export interface BaseReactNativeOptions {
    * @deprecated This option will be removed in the next major version. Use `beforeSend` instead.
    */
   useThreadsForMessageStack?: boolean;
+
+  /**
+   * If set to `true`, the SDK propagates the W3C `traceparent` header to any outgoing requests,
+   * in addition to the `sentry-trace` and `baggage` headers. Use the {@link CoreOptions.tracePropagationTargets}
+   * option to control to which outgoing requests the header will be attached.
+   *
+   * **Important:** If you set this option to `true`, make sure that you configured your servers'
+   * CORS settings to allow the `traceparent` header. Otherwise, requests might get blocked.
+   *
+   * @see https://www.w3.org/TR/trace-context/
+   *
+   * @default false
+   */
+  propagateTraceparent?: boolean;
+
+  /**
+   * Controls which log origin is captured when `enableLogs` is set to true.
+   * 'all' will log all origins.
+   * 'js' will capture only JavaScript logs.
+   * 'native' will capture only native logs.
+   *
+   * @default 'all'
+   */
+  logsOrigin?: 'all' | 'js' | 'native';
 }
+
+export type SentryReplayQuality = 'low' | 'medium' | 'high';
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
   /**
@@ -286,7 +352,7 @@ export interface ReactNativeClientOptions
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */
-  profilerProps?: ProfilerProps;
+  profilerProps?: Omit<ProfilerProps, 'updateProps' | 'children' | 'name'>;
 
   /** Props for the root touch event boundary */
   touchEventBoundaryProps?: TouchEventBoundaryProps;
@@ -308,8 +374,7 @@ export function shouldEnableNativeNagger(userOptions: unknown): boolean {
     return false;
   }
 
-  const expoConstants = getExpoConstants();
-  if (expoConstants && expoConstants.appOwnership === 'expo') {
+  if (isExpoGo()) {
     // If the app is running in Expo Go, we don't want to nag
     return false;
   }

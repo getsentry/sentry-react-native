@@ -6,6 +6,7 @@ on:
       - main
       - v5
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,7 +17,15 @@ env:
   RN_SENTRY_POD_NAME: RNSentry
 
 jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
   diff_check:
+    needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
 
   build:
@@ -35,6 +44,7 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
+            xcode-version: '16.4'
             runs-on: macos-15
           - platform: android
             runs-on: ubuntu-latest
@@ -44,12 +54,13 @@ jobs:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
@@ -62,13 +73,16 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
         uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
+
+      - run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/Contents/Developer
+        if: ${{ matrix.platform == 'ios' }}
 
       - name: Setup Global Xcode Tools
         if: ${{ matrix.platform == 'ios' }}
@@ -136,7 +150,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-sample-expo-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
           path: samples/expo/${{ matrix.platform }}/*.log

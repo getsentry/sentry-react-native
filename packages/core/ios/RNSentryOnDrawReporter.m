@@ -1,9 +1,8 @@
 #import "RNSentryOnDrawReporter.h"
 #import "RNSentryTimeToDisplay.h"
+@import Sentry;
 
 #if SENTRY_HAS_UIKIT
-
-#    import <Sentry/SentryDependencyContainer.h>
 
 @implementation RNSentryOnDrawReporter
 

@@ -1,25 +1,26 @@
 import React, { useEffect } from 'react';
 import {
-  StatusBar,
-  ScrollView,
-  Text,
-  Button as NativeButton,
-  View,
   ButtonProps,
-  StyleSheet,
+  Button as NativeButton,
   NativeModules,
   Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
+import { StackNavigationProp } from '@react-navigation/stack';
+import { FallbackRender } from '@sentry/react';
 import * as Sentry from '@sentry/react-native';
 
-import { setScopeProperties } from '../setScopeProperties';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { UserFeedbackModal } from '../components/UserFeedbackModal';
-import { FallbackRender } from '@sentry/react';
-import NativeSampleModule from '../../tm/NativeSampleModule';
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
+import NativeSampleModule from '../../tm/NativeSampleModule';
+import { UserFeedbackModal } from '../components/UserFeedbackModal';
+import { setScopeProperties } from '../setScopeProperties';
 import { TimeToFullDisplay } from '../utils';
+import type { Event as SentryEvent } from '@sentry/core';
 
 const { AssetsModule, CppModule, CrashModule } = NativeModules;
 
@@ -31,7 +32,8 @@ const ErrorsScreen = (_props: Props) => {
   // Show bad code inside error boundary to trigger it.
   const [showBadCode, setShowBadCode] = React.useState(false);
   const [isFeedbackVisible, setFeedbackVisible] = React.useState(false);
-  const [isFeedbackButtonVisible, setFeedbackButtonVisible] = React.useState(false);
+  const [isFeedbackButtonVisible, setFeedbackButtonVisible] =
+    React.useState(false);
 
   const errorBoundaryFallback: FallbackRender = ({ eventId }) => (
     <Text>Error boundary caught with event id: {eventId}</Text>
@@ -74,8 +76,11 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Capture exception with breadcrumb"
           onPress={() => {
-            Sentry.captureException(new Error('Captured exception with breadcrumb'),
-              context => context.addBreadcrumb({ message: 'error with breadcrumb' }));
+            Sentry.captureException(
+              new Error('Captured exception with breadcrumb'),
+              context =>
+                context.addBreadcrumb({ message: 'error with breadcrumb' }),
+            );
           }}
         />
         <Button
@@ -107,6 +112,24 @@ const ErrorsScreen = (_props: Props) => {
           title="Set Scope Properties"
           onPress={() => {
             setScopeProperties();
+          }}
+        />
+        <Button
+          title="Send count metric"
+          onPress={() => {
+            Sentry.metrics.count('count_metric', 1);
+          }}
+        />
+        <Button
+          title="Send distribution metric"
+          onPress={() => {
+            Sentry.metrics.count('distribution_metric', 100);
+          }}
+        />
+        <Button
+          title="Send count metric with attributes"
+          onPress={() => {
+            Sentry.metrics.count('count_metric', 100, { attributes: { from_test_app: true } });
           }}
         />
         <Button
@@ -150,6 +173,18 @@ const ErrorsScreen = (_props: Props) => {
             }
           }}
         />
+        <Button
+          title="Log console"
+          onPress={() => {
+            Sentry.logger.info('info log');
+            Sentry.logger.trace('trace log');
+            Sentry.logger.debug('debug log');
+            Sentry.logger.warn('warn log');
+            Sentry.logger.error('error log');
+
+            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
+          }}
+        />
         {Platform.OS === 'android' && (
           <>
             <Button
@@ -167,7 +202,9 @@ const ErrorsScreen = (_props: Props) => {
             <Button
               title="JVM Crash or Number"
               onPress={() => {
-                CrashModule.crashOrNumber();
+                CrashModule.crashOrNumber().then((n: number) => {
+                  console.log('Got number: ' + n);
+                });
               }}
             />
           </>
@@ -214,6 +251,48 @@ const ErrorsScreen = (_props: Props) => {
             }
           }}
         />
+        <Button
+          title="Set different types of tags globally"
+          onPress={async () => {
+            Sentry.setTags({
+              number: 123,
+              boolean: true,
+              null: null,
+              undefined: undefined,
+              symbol: Symbol('symbol'),
+              string: 'string',
+              bigint: BigInt(123),
+            });
+            Sentry.captureMessage('Message with different types of tags globally');
+            Sentry.setTags({
+              number: undefined,
+              boolean: undefined,
+              null: undefined,
+              symbol: undefined,
+              string: undefined,
+              bigint: undefined,
+            });
+          }}
+        />
+        <Button
+          title="Set different types of tags in scope"
+          onPress={async () => {
+            const evt: SentryEvent = {
+              message: 'Message with different types of tags isolated',
+              tags: {
+                number: 123,
+                boolean: true,
+                null: null,
+                undefined: undefined,
+                symbol: Symbol('symbol'),
+                string: 'abc',
+                bigint: BigInt(123),
+              },
+            };
+            Sentry.captureEvent(evt);
+          }}
+        />
+
         <Button
           title="Feedback form"
           onPress={() => {

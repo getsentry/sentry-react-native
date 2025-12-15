@@ -1,6 +1,5 @@
 import type { BaseTransportOptions, Client, ClientOptions, Envelope, Integration } from '@sentry/core';
-import { logger, serializeEnvelope } from '@sentry/core';
-
+import { debug, serializeEnvelope } from '@sentry/core';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 
@@ -22,7 +21,7 @@ type SpotlightReactNativeIntegrationOptions = {
 export function spotlightIntegration({
   sidecarUrl = getDefaultSidecarUrl(),
 }: SpotlightReactNativeIntegrationOptions = {}): Integration {
-  logger.info('[Spotlight] Using Sidecar URL', sidecarUrl);
+  debug.log('[Spotlight] Using Sidecar URL', sidecarUrl);
 
   return {
     name: 'Spotlight',
@@ -57,7 +56,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
 
     const xhr = createStealthXhr();
     if (!xhr) {
-      logger.error('[Spotlight] Sentry SDK can not create XHR object');
+      debug.error('[Spotlight] Sentry SDK can not create XHR object');
       return;
     }
 
@@ -71,7 +70,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
           // The request has been completed successfully
         } else {
           // Handle the error
-          logger.error(
+          debug.error(
             "[Spotlight] Sentry SDK can't connect to Spotlight is it running? See https://spotlightjs.com to download it.",
             new Error(xhr.statusText),
           );
@@ -83,17 +82,23 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
   });
 }
 
+const DEFAULT_SIDECAR_URL = 'http://localhost:8969/stream';
+
 /**
  * Gets the default Spotlight sidecar URL.
  */
 export function getDefaultSidecarUrl(): string {
   try {
-    const { url } = ReactNativeLibraries.Devtools?.getDevServer();
+    const { url } = ReactNativeLibraries.Devtools?.getDevServer() ?? {};
+    if (!url) {
+      return DEFAULT_SIDECAR_URL;
+    }
+
     return `http://${getHostnameFromString(url)}:8969/stream`;
   } catch (_oO) {
     // We can't load devserver URL
   }
-  return 'http://localhost:8969/stream';
+  return DEFAULT_SIDECAR_URL;
 }
 
 /**
@@ -103,7 +108,7 @@ function getHostnameFromString(urlString: string): string | null {
   const regex = /^(?:\w+:)?\/\/([^/:]+)(:\d+)?(.*)$/;
   const matches = urlString.match(regex);
 
-  if (matches && matches[1]) {
+  if (matches?.[1]) {
     return matches[1];
   } else {
     // Invalid URL format
