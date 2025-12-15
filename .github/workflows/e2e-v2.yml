@@ -89,7 +89,7 @@ jobs:
       - name: Build SDK
         run: yarn build
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: app-plain-cache
         with:
           path: ${{ matrix.appPlain }}
