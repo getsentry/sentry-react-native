@@ -15,6 +15,7 @@
 - Report slow and frozen frames as TTID/TTFD span data ([#5419](https://github.com/getsentry/sentry-react-native/pull/5419))
 - Report slow and frozen frames on spans created through the API ([#5420](https://github.com/getsentry/sentry-react-native/issues/5420))
 - Improve performance by adding caching to `getReplayId` ([#5449](https://github.com/getsentry/sentry-react-native/pull/5449))
+- Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
 
 ### Fixes
 
@@ -1168,7 +1169,6 @@ We apologize for any inconvenience caused!
 
 ### Features
 
-- Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
 - User Feedback Widget Beta ([#4435](https://github.com/getsentry/sentry-react-native/pull/4435))
 
   To collect user feedback from inside your application call `Sentry.showFeedbackWidget()`.
