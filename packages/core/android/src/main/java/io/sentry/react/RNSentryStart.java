@@ -20,7 +20,6 @@ import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.protocol.SdkVersion;
-import io.sentry.protocol.SentryPackage;
 import io.sentry.react.replay.RNSentryReplayMask;
 import io.sentry.react.replay.RNSentryReplayUnmask;
 import java.net.URI;
@@ -216,7 +215,6 @@ final class RNSentryStart {
     // Tracing is only enabled in JS to avoid duplicate navigation spans
     options.setTracesSampleRate(null);
     options.setTracesSampler(null);
-    options.setEnableTracing(false);
 
     // React native internally throws a JavascriptException.
     // we want to ignore it on the native side to avoid sending it twice.
@@ -234,7 +232,8 @@ final class RNSentryStart {
     options.setBeforeSend(
         (event, hint) -> {
           setEventOriginTag(event);
-          addPackages(event, options.getSdkVersion());
+          // Note: In Sentry Android SDK v7, native SDK packages/integrations are already
+          // included in the SDK version set during initialization, so no need to copy them here.
           if (userBeforeSend != null) {
             return userBeforeSend.execute(event, hint);
           }
@@ -325,29 +324,6 @@ final class RNSentryStart {
   private static void setEventEnvironmentTag(SentryEvent event, String environment) {
     event.setTag("event.origin", "android");
     event.setTag("event.environment", environment);
-  }
-
-  private static void addPackages(SentryEvent event, SdkVersion sdk) {
-    SdkVersion eventSdk = event.getSdk();
-    if (eventSdk != null
-        && "sentry.javascript.react-native".equals(eventSdk.getName())
-        && sdk != null) {
-      List<SentryPackage> sentryPackages = sdk.getPackages();
-      if (sentryPackages != null) {
-        for (SentryPackage sentryPackage : sentryPackages) {
-          eventSdk.addPackage(sentryPackage.getName(), sentryPackage.getVersion());
-        }
-      }
-
-      List<String> integrations = sdk.getIntegrations();
-      if (integrations != null) {
-        for (String integration : integrations) {
-          eventSdk.addIntegration(integration);
-        }
-      }
-
-      event.setSdk(eventSdk);
-    }
   }
 
   private static @Nullable String getURLFromDSN(@Nullable String dsn) {

@@ -1,14 +1,20 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import * as React from 'react';
-import { type NativeEventSubscription, type NativeScrollEvent,type NativeSyntheticEvent, Animated, Appearance, Dimensions, Easing, Modal, PanResponder, Platform, ScrollView, View } from 'react-native';
-
+import { Animated, Appearance, Dimensions, Easing, Modal, type NativeEventSubscription, type NativeScrollEvent,type NativeSyntheticEvent, PanResponder, Platform, ScrollView, View } from 'react-native';
 import { notWeb } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackWidget } from './FeedbackWidget';
 import { modalSheetContainer,modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
 import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
-import { BACKGROUND_ANIMATION_DURATION,FeedbackButtonManager, FeedbackWidgetManager, PULL_DOWN_CLOSE_THRESHOLD, ScreenshotButtonManager, SLIDE_ANIMATION_DURATION } from './FeedbackWidgetManager';
+import {
+  BACKGROUND_ANIMATION_DURATION,
+  FeedbackButtonManager,
+  FeedbackWidgetManager,
+  PULL_DOWN_CLOSE_THRESHOLD,
+  ScreenshotButtonManager,
+  SLIDE_ANIMATION_DURATION,
+} from './FeedbackWidgetManager';
 import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotButtonOptions } from './integration';
 import { ScreenshotButton } from './ScreenshotButton';
 import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';
@@ -44,7 +50,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
     isScrollAtTop: true,
   };
 
-  private _themeListener: NativeEventSubscription;
+  private _themeListener: NativeEventSubscription | undefined;
 
   private _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: (_, gestureState) => {
@@ -120,9 +126,9 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
           duration: SLIDE_ANIMATION_DURATION,
           useNativeDriver: true,
           easing: Easing.in(Easing.quad),
-        })
+        }),
       ]).start(() => {
-        logger.info('FeedbackWidgetProvider componentDidUpdate');
+        debug.log('FeedbackWidgetProvider componentDidUpdate');
       });
     } else if (prevState.isVisible && !this.state.isVisible) {
       this.state.backgroundOpacity.setValue(0);
@@ -134,7 +140,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
    */
   public render(): React.ReactNode {
     if (!isModalSupported()) {
-      logger.error('FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.');
+      debug.error('FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.');
       return <>{this.props.children}</>;
     }
 
@@ -154,25 +160,36 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
         {this.props.children}
         {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()} />}
         {isScreenshotButtonVisible && <ScreenshotButton {...getScreenshotButtonOptions()} />}
-        {isVisible &&
+        {isVisible && (
           <Animated.View style={[modalWrapper, { backgroundColor }]}>
-            <Modal visible={isVisible} transparent animationType="none" onRequestClose={this._handleClose} testID="feedback-form-modal">
+            <Modal
+              visible={isVisible}
+              transparent
+              animationType="none"
+              onRequestClose={this._handleClose}
+              testID="feedback-form-modal"
+            >
               <View style={topSpacer} />
               <Animated.View
                 style={[modalSheetContainer(theme), { transform: [{ translateY: this.state.panY }] }]}
-                {...this._panResponder.panHandlers}>
+                {...this._panResponder.panHandlers}
+              >
                 <ScrollView
                   bounces={false}
                   keyboardShouldPersistTaps="handled"
                   automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
-                  onScroll={this._handleScroll}>
-                  <FeedbackWidget {...getFeedbackOptions()}
+                  onScroll={this._handleScroll}
+                >
+                  <FeedbackWidget
+                    {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
-                    onFormSubmitted={this._handleClose} />
+                    onFormSubmitted={this._handleClose}
+                  />
                 </ScrollView>
               </Animated.View>
             </Modal>
-          </Animated.View>}
+          </Animated.View>
+        )}
       </>
     );
   }
@@ -198,7 +215,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
           duration: BACKGROUND_ANIMATION_DURATION,
           useNativeDriver: useNativeDriverForColorAnimations,
           easing: Easing.out(Easing.quad),
-        })
+        }),
       ]).start(() => {
         // Change of the state unmount the component
         // which would cancel the animation

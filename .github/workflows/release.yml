@@ -19,18 +19,19 @@ jobs:
     steps:
       - name: Get auth token
         id: token
-        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
           app-id: ${{ vars.SENTRY_RELEASE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.SENTRY_RELEASE_BOT_PRIVATE_KEY }}
       - name: Check out current commit (${{ github.sha }})
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ steps.token.outputs.token }}
           fetch-depth: 0
       - run: npm i -g corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
+          package-manager-cache: false
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock

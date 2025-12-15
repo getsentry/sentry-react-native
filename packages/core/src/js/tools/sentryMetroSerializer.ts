@@ -1,25 +1,28 @@
 import * as crypto from 'crypto';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as countLines from 'metro/src/lib/countLines';
-
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
-import { createDebugIdSnippet, createSet, determineDebugIdFromBundleSource, stringToUUID } from './utils';
+import {
+  createDebugIdSnippet,
+  createVirtualJSModule,
+  determineDebugIdFromBundleSource,
+  prependModule,
+  stringToUUID,
+} from './utils';
 import { createDefaultMetroSerializer } from './vendor/metro/utils';
 
 type SourceMap = Record<string, unknown>;
 
 const DEBUG_ID_PLACE_HOLDER = '__debug_id_place_holder__';
 const DEBUG_ID_MODULE_PATH = '__debugid__';
-const PRELUDE_MODULE_PATH = '__prelude__';
+
 const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
 
 /**
  * Adds Sentry Debug ID polyfill module to the bundle.
  */
-export function unstable_beforeAssetSerializationPlugin({
+export function unstableBeforeAssetSerializationDebugIdPlugin({
   premodules,
   debugId,
 }: {
@@ -39,7 +42,7 @@ export function unstable_beforeAssetSerializationPlugin({
   }
 
   const debugIdModule = createDebugIdModule(debugId);
-  return [...addDebugIdModule(premodules, debugIdModule)];
+  return prependModule(premodules, debugIdModule);
 }
 
 // TODO: deprecate this and afterwards rename to createSentryDebugIdSerializer
@@ -65,18 +68,24 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
 
     const debugIdModule = createDebugIdModule(DEBUG_ID_PLACE_HOLDER);
     options.sentryBundleCallback = createSentryBundleCallback(debugIdModule);
-    const modifiedPreModules = addDebugIdModule(preModules, debugIdModule);
+    const modifiedPreModules = prependModule(preModules, debugIdModule);
 
     // Run wrapped serializer
     const serializerResult = serializer(entryPoint, modifiedPreModules, graph, options);
     const { code: bundleCode, map: bundleMapString } = await extractSerializerResult(serializerResult);
 
     // Add debug id comment to the bundle
-    const debugId = determineDebugIdFromBundleSource(bundleCode);
+    let debugId = determineDebugIdFromBundleSource(bundleCode);
     if (!debugId) {
-      throw new Error(
-        'Debug ID was not found in the bundle. Call `options.sentryBundleCallback` if you are using a custom serializer.',
-      );
+      // For lazy-loaded chunks or bundles without the debug ID module,
+      // calculate the debug ID from the bundle content.
+      // This ensures Metro 0.83.2+ code-split bundles get debug IDs.
+      // That needs to be done because when Metro 0.83.2 stopped importing `BabelSourceMapSegment`
+      // from `@babel/generator` and defined it locally, it subtly changed the source map output format.
+      // https://github.com/facebook/metro/blob/main/packages/metro-source-map/src/source-map.js#L47
+      debugId = calculateDebugId(bundleCode);
+      // eslint-disable-next-line no-console
+      console.log('info ' + `Bundle Debug ID (calculated): ${debugId}`);
     }
     // Only print debug id for command line builds => not hot reload from dev server
     // eslint-disable-next-line no-console
@@ -115,30 +124,11 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
  */
 function createSentryBundleCallback(debugIdModule: Module<VirtualJSOutput> & { setSource: (code: string) => void }) {
   return (bundle: Bundle) => {
-    const debugId = calculateDebugId(bundle);
+    const debugId = calculateDebugId(bundle.pre, bundle.modules);
     debugIdModule.setSource(injectDebugId(debugIdModule.getSource().toString(), debugId));
     bundle.pre = injectDebugId(bundle.pre, debugId);
     return bundle;
   };
-}
-
-function addDebugIdModule(
-  preModules: readonly Module<MixedOutput>[],
-  debugIdModule: Module<VirtualJSOutput>,
-): readonly Module<MixedOutput>[] {
-  const modifiedPreModules = [...preModules];
-  if (
-    modifiedPreModules.length > 0 &&
-    modifiedPreModules[0] !== undefined &&
-    modifiedPreModules[0].path === PRELUDE_MODULE_PATH
-  ) {
-    // prelude module must be first as it measures the bundle startup time
-    modifiedPreModules.unshift(preModules[0] as Module<VirtualJSOutput>);
-    modifiedPreModules[1] = debugIdModule;
-  } else {
-    modifiedPreModules.unshift(debugIdModule);
-  }
-  return modifiedPreModules;
 }
 
 async function extractSerializerResult(serializerResult: MetroSerializerOutput): Promise<SerializedBundle> {
@@ -159,39 +149,18 @@ async function extractSerializerResult(serializerResult: MetroSerializerOutput):
 }
 
 function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSource: (code: string) => void } {
-  let debugIdCode = createDebugIdSnippet(debugId);
-
-  return {
-    setSource: (code: string) => {
-      debugIdCode = code;
-    },
-    dependencies: new Map(),
-    getSource: () => Buffer.from(debugIdCode),
-    inverseDependencies: createSet(),
-    path: DEBUG_ID_MODULE_PATH,
-    output: [
-      {
-        type: 'js/script/virtual',
-        data: {
-          code: debugIdCode,
-          lineCount: countLines(debugIdCode),
-          map: [],
-        },
-      },
-    ],
-  };
+  return createVirtualJSModule(DEBUG_ID_MODULE_PATH, createDebugIdSnippet(debugId));
 }
 
-function calculateDebugId(bundle: Bundle): string {
+function calculateDebugId(bundleCode: string, modules?: Array<[id: number, code: string]>): string {
   const hash = crypto.createHash('md5');
-  hash.update(bundle.pre);
-  for (const [, code] of bundle.modules) {
-    hash.update(code);
+  hash.update(bundleCode);
+  if (modules) {
+    for (const [, code] of modules) {
+      hash.update(code);
+    }
   }
-  hash.update(bundle.post);
-
-  const debugId = stringToUUID(hash.digest('hex'));
-  return debugId;
+  return stringToUUID(hash.digest('hex'));
 }
 
 function injectDebugId(code: string, debugId: string): string {

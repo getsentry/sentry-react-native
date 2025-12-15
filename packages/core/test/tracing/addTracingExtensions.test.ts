@@ -1,7 +1,7 @@
+import type { Span } from '@sentry/core';
 import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
-
 import { reactNativeTracingIntegration } from '../../src/js';
-import { type TestClient, setupTestClient } from '../mocks/client';
+import { setupTestClient, type TestClient } from '../mocks/client';
 
 describe('Tracing extensions', () => {
   let client: TestClient;
@@ -15,7 +15,7 @@ describe('Tracing extensions', () => {
   test('transaction has default op', async () => {
     const transaction = startSpanManual({ name: 'parent' }, span => span);
 
-    expect(spanToJSON(transaction!)).toEqual(
+    expect(spanToJSON(transaction)).toEqual(
       expect.objectContaining({
         op: 'default',
       }),
@@ -25,7 +25,7 @@ describe('Tracing extensions', () => {
   test('transaction does not overwrite custom op', async () => {
     const transaction = startSpanManual({ name: 'parent', op: 'custom' }, span => span);
 
-    expect(spanToJSON(transaction!)).toEqual(
+    expect(spanToJSON(transaction)).toEqual(
       expect.objectContaining({
         op: 'custom',
       }),
@@ -36,7 +36,7 @@ describe('Tracing extensions', () => {
     startSpanManual({ name: 'parent', scope: getCurrentScope() }, () => {});
     const span = startSpanManual({ name: 'child', scope: getCurrentScope() }, span => span);
 
-    expect(spanToJSON(span!)).toEqual(
+    expect(spanToJSON(span)).toEqual(
       expect.objectContaining({
         op: 'default',
       }),
@@ -47,7 +47,7 @@ describe('Tracing extensions', () => {
     startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, () => {});
     const span = startSpanManual({ name: 'child', op: 'custom', scope: getCurrentScope() }, span => span);
 
-    expect(spanToJSON(span!)).toEqual(
+    expect(spanToJSON(span)).toEqual(
       expect.objectContaining({
         op: 'custom',
       }),
@@ -55,24 +55,27 @@ describe('Tracing extensions', () => {
   });
 
   test('transaction start span passes correct values to the child', async () => {
-    const transaction = startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, span => span);
-    const span = startSpanManual({ name: 'child', scope: getCurrentScope() }, span => span);
-    span!.end();
-    transaction!.end();
+    let childSpan: Span = undefined;
+    const transaction = startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, _span => {
+      childSpan = startSpanManual({ name: 'child', scope: getCurrentScope() }, __span => __span);
+      return _span;
+    });
+    childSpan.end();
+    transaction.end();
 
     await client.flush();
     expect(client.event).toEqual(
       expect.objectContaining({
         contexts: expect.objectContaining({
           trace: expect.objectContaining({
-            trace_id: transaction!.spanContext().traceId,
+            trace_id: transaction.spanContext().traceId,
           }),
         }),
       }),
     );
-    expect(spanToJSON(span!)).toEqual(
+    expect(spanToJSON(childSpan)).toEqual(
       expect.objectContaining({
-        parent_span_id: transaction!.spanContext().spanId,
+        parent_span_id: spanToJSON(transaction).span_id,
       }),
     );
   });

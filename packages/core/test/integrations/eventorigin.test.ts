@@ -1,5 +1,4 @@
 import type { Client } from '@sentry/core';
-
 import { eventOriginIntegration } from '../../src/js/integrations/eventorigin';
 
 describe('Event Origin', () => {

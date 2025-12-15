@@ -1,5 +1,4 @@
-import { type Integration, getClient } from '@sentry/core';
-
+import { getClient, type Integration } from '@sentry/core';
 import type { FeedbackWidgetTheme } from './FeedbackWidget.theme';
 import type { FeedbackButtonProps, FeedbackWidgetProps, ScreenshotButtonProps } from './FeedbackWidget.types';
 
@@ -15,7 +14,7 @@ type FeedbackIntegration = Integration & {
 };
 
 export const feedbackIntegration = (
-  initOptions: FeedbackWidgetProps & {
+  initOptions: Partial<FeedbackWidgetProps> & {
     buttonOptions?: FeedbackButtonProps;
     screenshotButtonOptions?: ScreenshotButtonProps;
     colorScheme?: 'system' | 'light' | 'dark';
@@ -43,7 +42,7 @@ export const feedbackIntegration = (
   };
 };
 
-const _getClientIntegration = (): FeedbackIntegration => {
+const _getClientIntegration = (): FeedbackIntegration | undefined => {
   return getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(MOBILE_FEEDBACK_INTEGRATION_NAME);
 };
 
@@ -76,7 +75,7 @@ export const getScreenshotButtonOptions = (): Partial<ScreenshotButtonProps> => 
 
 export const getColorScheme = (): 'system' | 'light' | 'dark' => {
   const integration = _getClientIntegration();
-  if (!integration) {
+  if (!integration?.colorScheme) {
     return 'system';
   }
 

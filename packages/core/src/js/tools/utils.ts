@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import type { MetroConfig, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import type CountingSet from 'metro/src/lib/CountingSet';
+import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
+import type CountingSet from 'metro/src/lib/CountingSet'; // types are in src but exports are in private
+import countLines from './vendor/metro/countLines';
 
 export type MetroCustomSerializer = Required<Required<MetroConfig>['serializer']>['customSerializer'] | undefined;
 
@@ -86,17 +86,125 @@ export function determineDebugIdFromBundleSource(code: string): string | undefin
  * https://github.com/facebook/metro/blob/fc29a1177f883144674cf85a813b58567f69d545/packages/metro/src/lib/CountingSet.js
  */
 function resolveSetCreator(): () => CountingSet<string> {
+  const CountingSetFromPrivate = safeRequireCountingSetFromPrivate();
+  if (CountingSetFromPrivate) {
+    return () => new CountingSetFromPrivate.default();
+  }
+
+  const CountingSetFromSrc = safeRequireCountingSetFromSrc();
+  if (CountingSetFromSrc) {
+    return () => new CountingSetFromSrc.default();
+  }
+
+  return () => new Set() as unknown as CountingSet<string>;
+}
+
+/**
+ * CountingSet was added in Metro 0.72.0 before that NodeJS Set was used.
+ *
+ * https://github.com/facebook/metro/blob/fc29a1177f883144674cf85a813b58567f69d545/packages/metro/src/lib/CountingSet.js
+ */
+function safeRequireCountingSetFromSrc(): { default: new <T>() => CountingSet<T> } | undefined {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
-    const { default: MetroSet } = require('metro/src/lib/CountingSet');
-    return () => new MetroSet();
+    return require('metro/src/lib/CountingSet');
   } catch (e) {
-    if (e instanceof Error && 'code' in e && e.code === 'MODULE_NOT_FOUND') {
-      return () => new Set() as unknown as CountingSet<string>;
-    } else {
-      throw e;
-    }
+    return undefined;
+  }
+}
+
+/**
+ * CountingSet was moved to private in Metro 0.83.0. (all src exports were moved to private)
+ *
+ * https://github.com/facebook/metro/commit/ae6f42372ed361611b5672705f22081c2022cf28
+ */
+function safeRequireCountingSetFromPrivate(): { default: new <T>() => CountingSet<T> } | undefined {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+    return require('metro/private/lib/CountingSet');
+  } catch (e) {
+    return undefined;
   }
 }
 
 export const createSet = resolveSetCreator();
+
+const PRELUDE_MODULE_PATH = '__prelude__';
+
+/**
+ * Prepends the module after default required prelude modules.
+ */
+export function prependModule(
+  modules: readonly Module<MixedOutput>[],
+  module: Module<VirtualJSOutput>,
+): Module<MixedOutput>[] {
+  const modifiedPreModules = [...modules];
+  if (
+    modifiedPreModules.length > 0 &&
+    modifiedPreModules[0] !== undefined &&
+    modifiedPreModules[0].path === PRELUDE_MODULE_PATH
+  ) {
+    // prelude module must be first as it measures the bundle startup time
+    modifiedPreModules.unshift(modules[0] as Module<VirtualJSOutput>);
+    modifiedPreModules[1] = module;
+  } else {
+    modifiedPreModules.unshift(module);
+  }
+  return modifiedPreModules;
+}
+
+/**
+ * Creates a virtual JS module with the given path and code.
+ */
+export function createVirtualJSModule(
+  modulePath: string,
+  moduleCode: string,
+): Module<VirtualJSOutput> & { setSource: (code: string) => void } {
+  let sourceCode = moduleCode;
+
+  return {
+    setSource: (code: string) => {
+      sourceCode = code;
+    },
+    dependencies: new Map(),
+    getSource: () => Buffer.from(sourceCode),
+    inverseDependencies: createSet(),
+    path: modulePath,
+    output: [
+      {
+        type: 'js/script/virtual',
+        data: {
+          code: sourceCode,
+          lineCount: countLines(sourceCode),
+          map: [],
+        },
+      },
+    ],
+  };
+}
+
+/**
+ * Tries to load Expo config using `@expo/config` package.
+ */
+export function getExpoConfig(projectRoot: string): Partial<{
+  name: string;
+  version: string;
+}> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+    const expoConfig = require('@expo/config') as {
+      getConfig?: (projectRoot: string) => { exp: Record<string, unknown> };
+    };
+    if (expoConfig.getConfig) {
+      const { exp } = expoConfig.getConfig(projectRoot);
+      return {
+        name: typeof exp.name === 'string' && exp.name ? exp.name : undefined,
+        version: typeof exp.version === 'string' && exp.version ? exp.version : undefined,
+      };
+    }
+  } catch {
+    // @expo/config not available, do nothing
+  }
+
+  return {};
+}

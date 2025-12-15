@@ -1,4 +1,4 @@
-import type { ExpoConstants, ExpoDevice, ExpoUpdates } from './expoglobalobject';
+import type { ExpoConstants, ExpoDevice, ExpoGo, ExpoUpdates } from './expoglobalobject';
 import { RN_GLOBAL_OBJ } from './worldwide';
 
 /**
@@ -20,4 +20,11 @@ export function getExpoDevice(): ExpoDevice | undefined {
  */
 export function getExpoUpdates(): ExpoUpdates | undefined {
   return RN_GLOBAL_OBJ.expo?.modules?.ExpoUpdates ?? undefined;
+}
+
+/**
+ * Returns the Expo Go module if present
+ */
+export function getExpoGo(): ExpoGo | undefined {
+  return RN_GLOBAL_OBJ.expo?.modules?.ExpoGo ?? undefined;
 }

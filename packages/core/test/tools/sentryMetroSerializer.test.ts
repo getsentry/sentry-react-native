@@ -1,11 +1,12 @@
 import * as fs from 'fs';
 import type { MixedOutput, Module } from 'metro';
-import CountingSet from 'metro/src/lib/CountingSet';
-import * as countLines from 'metro/src/lib/countLines';
+// eslint-disable-next-line import/no-unresolved
+import CountingSet from 'metro/private/lib/CountingSet';
+// eslint-disable-next-line import/no-unresolved
+import * as countLines from 'metro/private/lib/countLines';
 import { minify } from 'uglify-js';
-
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
-import { type MetroSerializer, type VirtualJSOutput, createDebugIdSnippet } from '../../src/js/tools/utils';
+import { createDebugIdSnippet, type MetroSerializer, type VirtualJSOutput } from '../../src/js/tools/utils';
 
 describe('Sentry Metro Serializer', () => {
   test('debug id minified code snippet is the same as in the original implementation', () => {
@@ -49,10 +50,215 @@ describe('Sentry Metro Serializer', () => {
     expect(bundle.code).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture`, 'utf8'));
     expect(bundle.map).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture.map`, 'utf8'));
   });
+
+  test('works when shouldAddToIgnoreList is undefined', async () => {
+    const serializer = createSentryMetroSerializer();
+    const args = mockMinSerializerArgs({ shouldAddToIgnoreList: undefined });
+
+    const bundle = await serializer(...args);
+
+    expect(bundle).toBeDefined();
+    if (typeof bundle !== 'string') {
+      expect(bundle.code).toBeDefined();
+      expect(bundle.map).toBeDefined();
+      const debugId = determineDebugIdFromBundleSource(bundle.code);
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    }
+  });
+
+  test('calculates debug id from bundle code when debug id module is not found', async () => {
+    // Create a custom serializer that returns bundle code without the debug ID module
+    const customSerializer: MetroSerializer = async () => {
+      const bundleCodeWithoutDebugId = 'console.log("test bundle");';
+      return {
+        code: bundleCodeWithoutDebugId,
+        map: '{"version":3,"sources":[],"names":[],"mappings":""}',
+      };
+    };
+
+    const serializer = createSentryMetroSerializer(customSerializer);
+    const bundle = await serializer(...mockMinSerializerArgs());
+
+    if (typeof bundle === 'string') {
+      fail('Expected bundle to be an object with a "code" property');
+    }
+
+    // The debug ID should be calculated from the bundle code content
+    // and added as a comment in the bundle code
+    expect(bundle.code).toContain('//# debugId=');
+
+    // Extract the debug ID from the comment
+    const debugIdMatch = bundle.code.match(/\/\/# debugId=([0-9a-fA-F-]+)/);
+    expect(debugIdMatch).toBeTruthy();
+    const debugId = debugIdMatch?.[1];
+
+    // Verify it's a valid UUID format
+    expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+
+    // Verify the debug ID is also in the source map
+    const sourceMap = JSON.parse(bundle.map);
+    expect(sourceMap.debug_id).toBe(debugId);
+    expect(sourceMap.debugId).toBe(debugId);
+
+    // The calculated debug ID should be deterministic based on the bundle content
+    // Running the serializer again with the same content should produce the same debug ID
+    const bundle2 = await serializer(...mockMinSerializerArgs());
+    if (typeof bundle2 !== 'string') {
+      const debugIdMatch2 = bundle2.code.match(/\/\/# debugId=([0-9a-fA-F-]+)/);
+      expect(debugIdMatch2?.[1]).toBe(debugId);
+    }
+  });
+
+  describe('calculateDebugId', () => {
+    // We need to access the private function for testing
+    const crypto = require('crypto');
+    const { stringToUUID } = require('../../src/js/tools/utils');
+
+    function calculateDebugId(bundleCode: string, modules?: Array<[id: number, code: string]>): string {
+      const hash = crypto.createHash('md5');
+      hash.update(bundleCode);
+      if (modules) {
+        for (const [, code] of modules) {
+          hash.update(code);
+        }
+      }
+      return stringToUUID(hash.digest('hex'));
+    }
+
+    test('generates a valid UUID v4 format', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId = calculateDebugId(bundleCode);
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+
+    test('generates deterministic debug ID for the same bundle code', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId1 = calculateDebugId(bundleCode);
+      const debugId2 = calculateDebugId(bundleCode);
+
+      expect(debugId1).toBe(debugId2);
+    });
+
+    test('generates different debug IDs for different bundle code', () => {
+      const bundleCode1 = 'console.log("test1");';
+      const bundleCode2 = 'console.log("test2");';
+      const debugId1 = calculateDebugId(bundleCode1);
+      const debugId2 = calculateDebugId(bundleCode2);
+
+      expect(debugId1).not.toBe(debugId2);
+    });
+
+    test('handles undefined modules parameter', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId = calculateDebugId(bundleCode, undefined);
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+
+    test('handles empty modules array', () => {
+      const bundleCode = 'console.log("test");';
+      const debugId1 = calculateDebugId(bundleCode, []);
+      const debugId2 = calculateDebugId(bundleCode);
+
+      // Should generate the same debug ID as without modules
+      expect(debugId1).toBe(debugId2);
+    });
+
+    test('includes modules in debug ID calculation', () => {
+      const bundleCode = 'console.log("test");';
+      const modules: Array<[id: number, code: string]> = [
+        [1, 'function foo() { return "bar"; }'],
+        [2, 'function baz() { return "qux"; }'],
+      ];
+
+      const debugIdWithModules = calculateDebugId(bundleCode, modules);
+      const debugIdWithoutModules = calculateDebugId(bundleCode);
+
+      expect(debugIdWithModules).not.toBe(debugIdWithoutModules);
+    });
+
+    test('generates different debug IDs when modules differ', () => {
+      const bundleCode = 'console.log("test");';
+      const modules1: Array<[id: number, code: string]> = [[1, 'function foo() { return "bar"; }']];
+      const modules2: Array<[id: number, code: string]> = [[1, 'function foo() { return "baz"; }']];
+
+      const debugId1 = calculateDebugId(bundleCode, modules1);
+      const debugId2 = calculateDebugId(bundleCode, modules2);
+
+      expect(debugId1).not.toBe(debugId2);
+    });
+
+    test('generates same debug ID when modules have same content but different IDs', () => {
+      const bundleCode = 'console.log("test");';
+      const modules1: Array<[id: number, code: string]> = [[1, 'function foo() { return "bar"; }']];
+      const modules2: Array<[id: number, code: string]> = [[2, 'function foo() { return "bar"; }']];
+
+      const debugId1 = calculateDebugId(bundleCode, modules1);
+      const debugId2 = calculateDebugId(bundleCode, modules2);
+
+      // Module IDs are not used in the hash calculation, only the code
+      expect(debugId1).toBe(debugId2);
+    });
+
+    test('generates different debug IDs when module order differs', () => {
+      const bundleCode = 'console.log("test");';
+      const modules1: Array<[id: number, code: string]> = [
+        [1, 'function foo() { return "bar"; }'],
+        [2, 'function baz() { return "qux"; }'],
+      ];
+      const modules2: Array<[id: number, code: string]> = [
+        [2, 'function baz() { return "qux"; }'],
+        [1, 'function foo() { return "bar"; }'],
+      ];
+
+      const debugId1 = calculateDebugId(bundleCode, modules1);
+      const debugId2 = calculateDebugId(bundleCode, modules2);
+
+      // Order matters in hash calculation
+      expect(debugId1).not.toBe(debugId2);
+    });
+
+    test('handles empty bundle code', () => {
+      const debugId = calculateDebugId('');
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+
+    test('handles large bundle code', () => {
+      const largeBundleCode = 'console.log("test");'.repeat(10000);
+      const debugId = calculateDebugId(largeBundleCode);
+
+      expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+    });
+  });
 });
 
-function mockMinSerializerArgs(): Parameters<MetroSerializer> {
+function mockMinSerializerArgs(options?: {
+  shouldAddToIgnoreList?: ((module: Module<MixedOutput>) => boolean) | undefined;
+}): Parameters<MetroSerializer> {
   let modulesCounter = 0;
+
+  const baseOptions: Record<string, any> = {
+    asyncRequireModulePath: 'asyncRequire',
+    createModuleId: (_filePath: string): number => modulesCounter++,
+    dev: false,
+    getRunModuleStatement: (_moduleId: string | number): string => '',
+    includeAsyncPaths: false,
+    modulesOnly: false,
+    processModuleFilter: (_module: Module<MixedOutput>) => true,
+    projectRoot: '/project/root',
+    runBeforeMainModule: [],
+    runModule: false,
+    serverRoot: '/server/root',
+  };
+
+  if (options && 'shouldAddToIgnoreList' in options) {
+    baseOptions.shouldAddToIgnoreList = options.shouldAddToIgnoreList;
+  } else {
+    baseOptions.shouldAddToIgnoreList = (_module: Module<MixedOutput>) => false;
+  }
+
   return [
     'index.js',
     [],
@@ -67,20 +273,7 @@ function mockMinSerializerArgs(): Parameters<MetroSerializer> {
         unstable_transformProfile: 'hermes-stable',
       },
     },
-    {
-      asyncRequireModulePath: 'asyncRequire',
-      createModuleId: (_filePath: string): number => modulesCounter++,
-      dev: false,
-      getRunModuleStatement: (_moduleId: string | number): string => '',
-      includeAsyncPaths: false,
-      modulesOnly: false,
-      processModuleFilter: (_module: Module<MixedOutput>) => true,
-      projectRoot: '/project/root',
-      runBeforeMainModule: [],
-      runModule: false,
-      serverRoot: '/server/root',
-      shouldAddToIgnoreList: (_module: Module<MixedOutput>) => false,
-    },
+    baseOptions as any,
   ];
 }
 

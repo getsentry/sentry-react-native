@@ -1,8 +1,7 @@
 import type { Client, Span } from '@sentry/core';
-import { getSpanDescendants, logger, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
+import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
-
 import { isRootSpan, isSentrySpan } from '../utils/span';
 
 /**
@@ -19,7 +18,7 @@ export function onThisSpanEnd(client: Client, span: Span, callback: (span: Span)
 
 export const adjustTransactionDuration = (client: Client, span: Span, maxDurationMs: number): void => {
   if (!isRootSpan(span)) {
-    logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
+    debug.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
     return;
   }
 
@@ -44,19 +43,40 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
   });
 };
 
-export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span): void => {
+/**
+ * Helper function to filter out auto-instrumentation child spans.
+ */
+function getMeaningfulChildSpans(span: Span): Span[] {
+  const children = getSpanDescendants(span);
+  return children.filter(
+    child =>
+      child.spanContext().spanId !== span.spanContext().spanId &&
+      spanToJSON(child).op !== 'ui.load.initial_display' &&
+      spanToJSON(child).op !== 'navigation.processing',
+  );
+}
+
+/**
+ * Generic helper to discard empty navigation spans based on a condition.
+ */
+function discardEmptyNavigationSpan(
+  client: Client | undefined,
+  span: Span | undefined,
+  shouldDiscardFn: (span: Span) => boolean,
+  onDiscardFn: (span: Span) => void,
+): void {
   if (!client) {
-    logger.warn('Could not hook on spanEnd event because client is not defined.');
+    debug.warn('Could not hook on spanEnd event because client is not defined.');
     return;
   }
 
   if (!span) {
-    logger.warn('Could not hook on spanEnd event because span is not defined.');
+    debug.warn('Could not hook on spanEnd event because span is not defined.');
     return;
   }
 
   if (!isRootSpan(span) || !isSentrySpan(span)) {
-    logger.warn('Not sampling empty back spans only works for Sentry Transactions (Root Spans).');
+    debug.warn('Not sampling empty navigation spans only works for Sentry Transactions (Root Spans).');
     return;
   }
 
@@ -65,27 +85,66 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
       return;
     }
 
-    if (!spanToJSON(span).data?.['route.has_been_seen']) {
+    if (!shouldDiscardFn(span)) {
       return;
     }
 
-    const children = getSpanDescendants(span);
-    const filtered = children.filter(
-      child =>
-        child.spanContext().spanId !== span.spanContext().spanId &&
-        spanToJSON(child).op !== 'ui.load.initial_display' &&
-        spanToJSON(child).op !== 'navigation.processing',
-    );
-
-    if (filtered.length <= 0) {
-      // filter children must include at least one span not created by the navigation automatic instrumentation
-      logger.log(
-        'Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
-      );
-      // Route has been seen before and has no child spans.
+    const meaningfulChildren = getMeaningfulChildSpans(span);
+    if (meaningfulChildren.length <= 0) {
+      onDiscardFn(span);
       span['_sampled'] = false;
     }
   });
+}
+
+export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span | undefined): void => {
+  discardEmptyNavigationSpan(
+    client,
+    span,
+    // Only discard if route has been seen before
+    span => spanToJSON(span).data?.['route.has_been_seen'] === true,
+    // Log message when discarding
+    () => {
+      debug.log(
+        'Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
+      );
+    },
+  );
+};
+
+/**
+ * Discards empty "Route Change" transactions that never received route information.
+ * This happens when navigation library emits a route change event but getCurrentRoute() returns undefined.
+ * Such transactions don't contain any useful information and should not be sent to Sentry.
+ *
+ * This function must be called with a reference tracker function that can check if the span
+ * was cleared from the integration's tracking (indicating it went through the state listener).
+ */
+export const ignoreEmptyRouteChangeTransactions = (
+  client: Client | undefined,
+  span: Span | undefined,
+  defaultNavigationSpanName: string,
+  isSpanStillTracked: () => boolean,
+): void => {
+  discardEmptyNavigationSpan(
+    client,
+    span,
+    // Only discard if:
+    // 1. Still has default name
+    // 2. No route information was set
+    // 3. Still being tracked (state listener never called)
+    span => {
+      const spanJSON = spanToJSON(span);
+      return (
+        spanJSON.description === defaultNavigationSpanName && !spanJSON.data?.['route.name'] && isSpanStillTracked()
+      );
+    },
+    // Log and record dropped event
+    _span => {
+      debug.log(`Discarding empty "${defaultNavigationSpanName}" transaction that never received route information.`);
+      client?.recordDroppedEvent('sample_rate', 'transaction');
+    },
+  );
 };
 
 /**
@@ -94,7 +153,7 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
  */
 export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
   if (!isRootSpan(span) || !isSentrySpan(span)) {
-    logger.warn('Not sampling childless spans only works for Sentry Transactions (Root Spans).');
+    debug.warn('Not sampling childless spans only works for Sentry Transactions (Root Spans).');
     return;
   }
 
@@ -107,7 +166,7 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 
     if (children.length <= 1) {
       // Span always has at lest one child, itself
-      logger.log(`Not sampling as ${spanToJSON(span).op} transaction has no child spans.`);
+      debug.log(`Not sampling as ${spanToJSON(span).op} transaction has no child spans.`);
       span['_sampled'] = false;
     }
   });
@@ -119,7 +178,7 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 export const cancelInBackground = (client: Client, span: Span): void => {
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
-      logger.debug(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
+      debug.log(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
       span.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
       span.end();
     }
@@ -128,8 +187,8 @@ export const cancelInBackground = (client: Client, span: Span): void => {
   subscription &&
     client.on('spanEnd', (endedSpan: Span) => {
       if (endedSpan === span) {
-        logger.debug(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
-        subscription && subscription.remove && subscription.remove();
+        debug.log(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
+        subscription?.remove?.();
       }
     });
 };

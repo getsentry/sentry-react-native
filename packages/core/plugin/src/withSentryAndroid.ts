@@ -2,7 +2,6 @@ import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { withAppBuildGradle, withDangerousMod, withMainApplication } from 'expo/config-plugins';
 import * as path from 'path';
-
 import { warnOnce } from './logger';
 import { writeSentryPropertiesTo } from './utils';
 
@@ -23,9 +22,9 @@ export const withSentryAndroid: ConfigPlugin<{ sentryProperties: string; useNati
 
   return withDangerousMod(mainApplicationCfg, [
     'android',
-    config => {
-      writeSentryPropertiesTo(path.resolve(config.modRequest.projectRoot, 'android'), sentryProperties);
-      return config;
+    dangerousMod => {
+      writeSentryPropertiesTo(path.resolve(dangerousMod.modRequest.projectRoot, 'android'), sentryProperties);
+      return dangerousMod;
     },
   ]);
 };
@@ -60,7 +59,7 @@ export function modifyAppBuildGradle(buildGradle: string): string {
 
 export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
   return withMainApplication(config, config => {
-    if (!config.modResults || !config.modResults.path) {
+    if (!config.modResults?.path) {
       warnOnce("Can't add 'RNSentrySDK.init' to Android MainApplication, because the file was not found.");
       return config;
     }
@@ -77,7 +76,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
-        `$1\n$2RNSentrySDK.init(this);\n$2`,
+        '$1\n$2RNSentrySDK.init(this);\n$2',
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
@@ -85,7 +84,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
         // Insert import statement after package declaration
         config.modResults.contents = config.modResults.contents.replace(
           /(package .*;\n\n?)/,
-          `$1import io.sentry.react.RNSentrySDK;\n`,
+          '$1import io.sentry.react.RNSentrySDK;\n',
         );
       }
     } else if (config.modResults.language === 'kt') {
@@ -93,7 +92,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
-        `$1\n$2RNSentrySDK.init(this)\n$2`,
+        '$1\n$2RNSentrySDK.init(this)\n$2',
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
@@ -101,7 +100,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
         // Insert import statement after package declaration
         config.modResults.contents = config.modResults.contents.replace(
           /(package .*\n\n?)/,
-          `$1import io.sentry.react.RNSentrySDK\n`,
+          '$1import io.sentry.react.RNSentrySDK\n',
         );
       }
     } else {

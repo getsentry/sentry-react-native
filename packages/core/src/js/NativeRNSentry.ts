@@ -1,7 +1,6 @@
 import type { Package } from '@sentry/core';
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
-
 import type { UnsafeObject } from './utils/rnlibrariesinterface';
 
 // There has to be only one interface and it has to be named `Spec`
@@ -25,6 +24,7 @@ export interface Spec extends TurboModule {
   fetchNativeRelease(): Promise<NativeReleaseResponse>;
   fetchNativeSdkInfo(): Promise<Package | null>;
   fetchNativeDeviceContexts(): Promise<NativeDeviceContextsResponse | null>;
+  fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
@@ -135,7 +135,6 @@ export type NativeDeviceContextsResponse = {
     email?: string;
     username?: string;
     ipAddress?: string;
-    segment?: string;
     data?: Record<string, unknown>;
   };
   dist?: string;

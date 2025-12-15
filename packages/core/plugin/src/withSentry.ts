@@ -1,6 +1,5 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { createRunOncePlugin } from 'expo/config-plugins';
-
 import { bold, warnOnce } from './logger';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './version';
 import { withSentryAndroid } from './withSentryAndroid';
@@ -20,7 +19,7 @@ interface PluginProps {
 const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   const sentryProperties = getSentryProperties(props);
 
-  if (props && props.authToken) {
+  if (props?.authToken) {
     // If not removed, the plugin config with the authToken will be written to the application package
     delete props.authToken;
   }
@@ -52,8 +51,9 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
 
 const missingProjectMessage = '# no project found, falling back to SENTRY_PROJECT environment variable';
 const missingOrgMessage = '# no org found, falling back to SENTRY_ORG environment variable';
-const existingAuthTokenMessage = `# DO NOT COMMIT the auth token, use SENTRY_AUTH_TOKEN instead, see https://docs.sentry.io/platforms/react-native/manual-setup/`;
-const missingAuthTokenMessage = `# Using SENTRY_AUTH_TOKEN environment variable`;
+const existingAuthTokenMessage =
+  '# DO NOT COMMIT the auth token, use SENTRY_AUTH_TOKEN instead, see https://docs.sentry.io/platforms/react-native/manual-setup/';
+const missingAuthTokenMessage = '# Using SENTRY_AUTH_TOKEN environment variable';
 
 export function getSentryProperties(props: PluginProps | void): string | null {
   const { organization, project, authToken, url = 'https://sentry.io/' } = props ?? {};

@@ -1,5 +1,4 @@
 import type { ExpoConfig } from '@expo/config-types';
-
 import { warnOnce } from '../../plugin/src/logger';
 import { modifyAppDelegate } from '../../plugin/src/withSentryIOS';
 
@@ -104,7 +103,7 @@ describe('modifyAppDelegate', () => {
     const result = await modifyAppDelegate(config);
 
     expect(warnOnce).toHaveBeenCalledWith(
-      `Can't add 'RNSentrySDK.start()' to the iOS AppDelegate, because the file was not found.`,
+      "Can't add 'RNSentrySDK.start()' to the iOS AppDelegate, because the file was not found.",
     );
     expect(result).toBe(config); // No modification
   });
@@ -114,7 +113,7 @@ describe('modifyAppDelegate', () => {
 
     const result = await modifyAppDelegate(config);
 
-    expect(warnOnce).toHaveBeenCalledWith(`Your 'AppDelegate.swift' already contains 'RNSentrySDK.start()'.`);
+    expect(warnOnce).toHaveBeenCalledWith("Your 'AppDelegate.swift' already contains 'RNSentrySDK.start()'.");
     expect(result).toBe(config); // No modification
   });
 
@@ -125,7 +124,7 @@ describe('modifyAppDelegate', () => {
 
     const result = await modifyAppDelegate(config);
 
-    expect(warnOnce).toHaveBeenCalledWith(`Your 'AppDelegate.mm' already contains '[RNSentrySDK start]'.`);
+    expect(warnOnce).toHaveBeenCalledWith("Your 'AppDelegate.mm' already contains '[RNSentrySDK start]'.");
     expect(result).toBe(config); // No modification
   });
 
@@ -167,7 +166,7 @@ describe('modifyAppDelegate', () => {
     const result = (await modifyAppDelegate(config)) as MockedExpoConfig;
 
     expect(warnOnce).toHaveBeenCalledWith(
-      `Unsupported language 'cpp' detected in 'AppDelegate.cpp', the native code won't be updated.`,
+      "Unsupported language 'cpp' detected in 'AppDelegate.cpp', the native code won't be updated.",
     );
     expect(result).toBe(config); // No modification
   });

@@ -2,7 +2,6 @@ import { getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert, Text } from 'react-native';
-
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
 import { resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager, showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';
@@ -84,10 +83,9 @@ describe('ScreenshotButton', () => {
       enableTakeScreenshot: true,
     });
     getClient()?.addIntegration(integration);
-
     showFeedbackButton();
 
-    fireEvent.press(getByText('Report a Bug'));
+    await waitFor(() => fireEvent.press(getByText('Report a Bug')));
 
     const takeScreenshotButton = getByText('Take a screenshot');
     expect(takeScreenshotButton).toBeTruthy();
@@ -108,8 +106,10 @@ describe('ScreenshotButton', () => {
 
     showFeedbackButton();
 
-    fireEvent.press(getByText('Report a Bug'));
-    fireEvent.press(getByText('Take a screenshot'));
+    await waitFor(() => {
+      fireEvent.press(getByText('Report a Bug'));
+      fireEvent.press(getByText('Take a screenshot'));
+    });
 
     const captureButton = getByText('Take Screenshot');
     expect(captureButton).toBeTruthy();
@@ -132,9 +132,11 @@ describe('ScreenshotButton', () => {
 
     showFeedbackButton();
 
-    fireEvent.press(getByText('Report a Bug'));
-    fireEvent.press(getByText('Take a screenshot'));
-    fireEvent.press(getByText('Take Screenshot'));
+    await waitFor(() => {
+      fireEvent.press(getByText('Report a Bug'));
+      fireEvent.press(getByText('Take a screenshot'));
+      fireEvent.press(getByText('Take Screenshot'));
+    });
 
     await waitFor(() => {
       expect(mockCaptureScreenshot).toHaveBeenCalled();
@@ -162,9 +164,11 @@ describe('ScreenshotButton', () => {
 
     showFeedbackButton();
 
-    fireEvent.press(getByText('Report a Bug'));
-    fireEvent.press(getByText('Take a screenshot'));
-    fireEvent.press(getByText('Take Screenshot'));
+    await waitFor(() => {
+      fireEvent.press(getByText('Report a Bug'));
+      fireEvent.press(getByText('Take a screenshot'));
+      fireEvent.press(getByText('Take Screenshot'));
+    });
 
     await waitFor(() => {
       expect(mockCaptureScreenshot).toHaveBeenCalled();
@@ -206,9 +210,11 @@ describe('ScreenshotButton', () => {
 
     showFeedbackButton();
 
-    fireEvent.press(getByText('Report a Bug'));
-    fireEvent.press(getByText('Take a screenshot'));
-    fireEvent.press(getByText('Take Screenshot'));
+    await waitFor(() => {
+      fireEvent.press(getByText('Report a Bug'));
+      fireEvent.press(getByText('Take a screenshot'));
+      fireEvent.press(getByText('Take Screenshot'));
+    });
 
     await waitFor(() => {
       expect(mockCaptureScreenshot).toHaveBeenCalled();

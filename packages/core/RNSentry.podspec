@@ -6,15 +6,24 @@ rn_package = parse_rn_package_json()
 rn_version = get_rn_version(rn_package)
 is_hermes_default = is_hermes_default(rn_version)
 is_profiling_supported = is_profiling_supported(rn_version)
+is_new_hermes_runtime = is_new_hermes_runtime(rn_version)
 
-folly_flags = ' -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
-folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
+# Use different Folly configuration for RN 0.80.0+
+if should_use_folly_flags(rn_version)
+  # For older RN versions, keep the original Folly configuration
+  folly_flags = ' -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
+  folly_compiler_flags = folly_flags + ' ' + '-Wno-comma -Wno-shorten-64-to-32'
+else
+  # For RN 0.80+, don't use the incompatible Folly flags
+  folly_compiler_flags = ''
+end
 
 is_new_arch_enabled = ENV["RCT_NEW_ARCH_ENABLED"] == "1"
 is_using_hermes = (ENV['USE_HERMES'] == nil && is_hermes_default) || ENV['USE_HERMES'] == '1'
 new_arch_enabled_flag = (is_new_arch_enabled ? folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED" : "")
 sentry_profiling_supported_flag = (is_profiling_supported ? " -DSENTRY_PROFILING_SUPPORTED=1" : "")
-other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_supported_flag
+new_hermes_runtime_flag = (is_new_hermes_runtime ? " -DNEW_HERMES_RUNTIME" : "")
+other_cflags = "$(inherited)" + new_arch_enabled_flag + sentry_profiling_supported_flag + new_hermes_runtime_flag
 
 Pod::Spec.new do |s|
   s.name           = 'RNSentry'
@@ -25,7 +34,7 @@ Pod::Spec.new do |s|
   s.homepage       = "https://github.com/getsentry/sentry-react-native"
   s.source         = { :git => 'https://github.com/getsentry/sentry-react-native.git', :tag => "#{s.version}"}
 
-  s.ios.deployment_target = "11.0"
+  s.ios.deployment_target = "12.0"
   s.osx.deployment_target = "10.13"
   s.tvos.deployment_target = "11.0"
   s.visionos.deployment_target = "1.0" if s.respond_to?(:visionos)
@@ -33,11 +42,11 @@ Pod::Spec.new do |s|
   s.preserve_paths = '*.js'
 
   s.source_files = 'ios/**/*.{h,m,mm}'
-  s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h'
+  s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
   s.compiler_flags = other_cflags
 
-  s.dependency 'Sentry/HybridSDK', '8.52.1'
+  s.dependency 'Sentry/HybridSDK', '8.57.3'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)

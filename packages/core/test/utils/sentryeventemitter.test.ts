@@ -16,7 +16,7 @@ describe('Sentry Event Emitter', () => {
     const sut = createSentryEventEmitter(undefined, mockedCreateNativeEventEmitter);
 
     expect(sut).toBeDefined();
-    expect(mockedCreateNativeEventEmitter).not.toBeCalled();
+    expect(mockedCreateNativeEventEmitter).not.toHaveBeenCalled();
   });
 
   test('should add listener to the native event emitter when initialized', () => {
@@ -24,8 +24,8 @@ describe('Sentry Event Emitter', () => {
 
     sut.initAsync('rn_sentry_new_frame');
 
-    expect(mockedCreateNativeEventEmitter).toBeCalledTimes(1);
-    expect(mockedAddListener).toBeCalledWith('rn_sentry_new_frame', expect.any(Function));
+    expect(mockedCreateNativeEventEmitter).toHaveBeenCalledTimes(1);
+    expect(mockedAddListener).toHaveBeenCalledWith('rn_sentry_new_frame', expect.any(Function));
   });
 
   test('should not add listener to the native event emitter when initialized if already initialized', () => {
@@ -34,8 +34,8 @@ describe('Sentry Event Emitter', () => {
     sut.initAsync('rn_sentry_new_frame');
     sut.initAsync('rn_sentry_new_frame');
 
-    expect(mockedCreateNativeEventEmitter).toBeCalledTimes(1);
-    expect(mockedAddListener).toBeCalledTimes(1);
+    expect(mockedCreateNativeEventEmitter).toHaveBeenCalledTimes(1);
+    expect(mockedAddListener).toHaveBeenCalledTimes(1);
   });
 
   test('should remove all native listeners when closed', () => {
@@ -45,7 +45,7 @@ describe('Sentry Event Emitter', () => {
     sut.initAsync('test_event' as NewFrameEventName);
     sut.closeAllAsync();
 
-    expect(mockedRemoveListener).toBeCalledTimes(2);
+    expect(mockedRemoveListener).toHaveBeenCalledTimes(2);
   });
 
   test('should call added listeners when native event is emitted', () => {
@@ -58,7 +58,7 @@ describe('Sentry Event Emitter', () => {
     const nativeListener = mockedAddListener.mock.calls[0][1];
     nativeListener({ type: 'rn_sentry_new_frame' });
 
-    expect(listener).toBeCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 
   test('should not call removed listeners when native event is emitted', () => {
@@ -72,7 +72,7 @@ describe('Sentry Event Emitter', () => {
     const nativeListener = mockedAddListener.mock.calls[0][1];
     nativeListener({ type: 'rn_sentry_new_frame' });
 
-    expect(listener).not.toBeCalled();
+    expect(listener).not.toHaveBeenCalled();
   });
 
   test('should call once listeners only once when native event is emitted', () => {
@@ -86,6 +86,6 @@ describe('Sentry Event Emitter', () => {
     nativeListener({ type: 'rn_sentry_new_frame' });
     nativeListener({ type: 'rn_sentry_new_frame' });
 
-    expect(listener).toBeCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });

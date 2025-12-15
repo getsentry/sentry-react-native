@@ -1,5 +1,4 @@
 import type { ExpoConfig } from '@expo/config-types';
-
 import { warnOnce } from '../../plugin/src/logger';
 import { modifyMainApplication } from '../../plugin/src/withSentryAndroid';
 
@@ -134,7 +133,7 @@ describe('modifyMainApplication', () => {
     const result = await modifyMainApplication(config);
 
     expect(warnOnce).toHaveBeenCalledWith(
-      `Can't add 'RNSentrySDK.init' to Android MainApplication, because the file was not found.`,
+      "Can't add 'RNSentrySDK.init' to Android MainApplication, because the file was not found.",
     );
     expect(result).toBe(config); // No modification
   });
@@ -145,7 +144,7 @@ describe('modifyMainApplication', () => {
     const result = await modifyMainApplication(config);
 
     expect(warnOnce).toHaveBeenCalledWith(
-      `Your 'MainApplication.java' already contains 'RNSentrySDK.init', the native code won't be updated.`,
+      "Your 'MainApplication.java' already contains 'RNSentrySDK.init', the native code won't be updated.",
     );
     expect(result).toBe(config); // No modification
   });

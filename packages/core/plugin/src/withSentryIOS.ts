@@ -3,7 +3,6 @@ import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
 import { withAppDelegate, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import * as path from 'path';
-
 import { warnOnce } from './logger';
 import { writeSentryPropertiesTo } from './utils';
 
@@ -89,7 +88,7 @@ export function addSentryWithBundledScriptsToBundleShellScript(script: string): 
 
 export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
   return withAppDelegate(config, async config => {
-    if (!config.modResults || !config.modResults.path) {
+    if (!config.modResults?.path) {
       warnOnce("Can't add 'RNSentrySDK.start()' to the iOS AppDelegate, because the file was not found.");
       return config;
     }
@@ -105,13 +104,13 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(func application\([^)]*\) -> Bool \{)\s*\n(\s*)/s,
-        `$1\n$2RNSentrySDK.start()\n$2`,
+        '$1\n$2RNSentrySDK.start()\n$2',
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert 'RNSentrySDK.start()' in '${fileName}'.`);
       } else if (!config.modResults.contents.includes('import RNSentry')) {
         // Insert import statement after UIKit import
-        config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, `$1import RNSentry\n`);
+        config.modResults.contents = config.modResults.contents.replace(/(import UIKit\n)/, '$1import RNSentry\n');
       }
     } else if (['objcpp', 'objc'].includes(config.modResults.language)) {
       if (config.modResults.contents.includes('[RNSentrySDK start]')) {
@@ -122,7 +121,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
       const originalContents = config.modResults.contents;
       config.modResults.contents = config.modResults.contents.replace(
         /(- \(BOOL\)application:[\s\S]*?didFinishLaunchingWithOptions:[\s\S]*?\{\n)(\s*)/s,
-        `$1$2[RNSentrySDK start];\n$2`,
+        '$1$2[RNSentrySDK start];\n$2',
       );
       if (config.modResults.contents === originalContents) {
         warnOnce(`Failed to insert '[RNSentrySDK start]' in '${fileName}.`);
@@ -130,7 +129,7 @@ export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
         // Add import after AppDelegate.h
         config.modResults.contents = config.modResults.contents.replace(
           /(#import "AppDelegate.h"\n)/,
-          `$1#import <RNSentry/RNSentry.h>\n`,
+          '$1#import <RNSentry/RNSentry.h>\n',
         );
       }
     } else {

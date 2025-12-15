@@ -4,7 +4,6 @@ jest.mock('../../src/js/tracing/utils', () => ({
 }));
 
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpanManual } from '@sentry/core';
-
 import { reactNativeTracingIntegration, reactNavigationIntegration } from '../../src/js';
 import { stallTrackingIntegration } from '../../src/js/tracing/integrations/stalltracking';
 import { isNearToNow } from '../../src/js/tracing/utils';
@@ -13,7 +12,10 @@ import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { expectStallMeasurements } from './integrations/stallTracking/stalltrackingutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
 
-jest.useFakeTimers({ advanceTimers: 1 });
+jest.useFakeTimers({
+  advanceTimers: true,
+  doNotFake: ['performance'], // Keep real performance API
+});
 
 describe('StallTracking with ReactNavigation', () => {
   let client: TestClient;

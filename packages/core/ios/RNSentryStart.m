@@ -4,7 +4,7 @@
 
 #import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/Sentry.h>
-#import <Sentry/SentryOptions+HybridSDKs.h>
+@import Sentry;
 
 @implementation RNSentryStart
 
@@ -43,7 +43,7 @@
     [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
-    SentryOptions *sentryOptions = [[SentryOptions alloc] initWithDict:mutableOptions
+    SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
                                                       didFailWithError:errorPointer];
     if (*errorPointer != nil) {
         return nil;
@@ -111,7 +111,8 @@
     // Tracing is only enabled in JS to avoid duplicate navigation spans
     options.tracesSampleRate = nil;
     options.tracesSampler = nil;
-    options.enableTracing = NO;
+    // Note: enableTracing property is deprecated in Sentry Cocoa SDK v7
+    // Tracing is disabled by setting tracesSampleRate and tracesSampler to nil
 }
 
 /**
@@ -121,8 +122,7 @@
 + (void)updateWithReactFinals:(SentryOptions *)options
 {
     SentryBeforeSendEventCallback userBeforeSend = options.beforeSend;
-    options.beforeSend = ^SentryEvent *(SentryEvent *event)
-    {
+    options.beforeSend = ^SentryEvent *(SentryEvent *event) {
         // Unhandled JS Exception are processed by the SDK on JS layer
         // To avoid duplicates we drop them in the native SDKs
         if (nil != event.exceptions.firstObject.type &&

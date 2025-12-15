@@ -13,6 +13,11 @@ jest.mock('../../src/js/wrapper', () => {
   };
 });
 
+import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
+import { isWeb } from '../../src/js/utils/environment';
+import type { TestClient } from '../mocks/client';
+import { setupTestClient } from '../mocks/client';
+
 jest.mock('../../src/js/tracing/utils', () => {
   const originalUtils = jest.requireActual('../../src/js/tracing/utils');
 
@@ -32,10 +37,6 @@ jest.mock('@sentry/core', () => {
 });
 
 jest.mock('../../src/js/utils/environment');
-import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
-import { isWeb } from '../../src/js/utils/environment';
-import type { TestClient } from '../mocks/client';
-import { setupTestClient } from '../mocks/client';
 
 describe('ReactNativeTracing', () => {
   let client: TestClient;
@@ -60,7 +61,7 @@ describe('ReactNativeTracing', () => {
         integrations: [reactNativeTracingIntegration()],
       });
 
-      expect(instrumentOutgoingRequests).toBeCalledWith(
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: ['test1', 'test2'],
@@ -76,7 +77,7 @@ describe('ReactNativeTracing', () => {
         integrations: [reactNativeTracingIntegration()],
       });
 
-      expect(instrumentOutgoingRequests).toBeCalledWith(
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: [/.*/],
@@ -92,7 +93,7 @@ describe('ReactNativeTracing', () => {
         integrations: [reactNativeTracingIntegration()],
       });
 
-      expect(instrumentOutgoingRequests).toBeCalledWith(
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: undefined,
