@@ -16,7 +16,7 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.0.10'
-  IOS_DEVICE: 'iPhone 16'
+  IOS_DEVICE: 'iPhone 17'
   IOS_VERSION: '>=18.0'
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-15
+            runs-on: macos-26
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
@@ -61,7 +61,7 @@ jobs:
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
 
-      - run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_26.1.1.app/Contents/Developer
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
@@ -186,9 +186,16 @@ jobs:
         ios-use-frameworks: ['no', 'static', 'dynamic']
         engine: ['hermes', 'jsc']
         include:
+          # Use Xcode 16 for older RN versions
           - platform: ios
+            rn-version: '0.71.19'
             xcode-version: '16.4'
             runs-on: macos-15
+          # Use Xcode 26 for newer RN versions (0.83.0)
+          - platform: ios
+            rn-version: '0.83.0'
+            xcode-version: '26.1.1'
+            runs-on: macos-26
           - platform: android
             runs-on: ubuntu-latest
         exclude:
@@ -270,16 +277,13 @@ jobs:
       - name: Install JS Dependencies
         run: yarn install
 
-      - name: Setup Plain RN ${{ matrix.rn-version }} App
-        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --create
-
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' }}
         with:
-          working-directory: dev-packages/e2e-tests/react-native-versions/${{ matrix.rn-version }}/RnDiffApp
-          ruby-version: '3.3.0' # based on what is used in the sample
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-          cache-version: 1 # cache the installed gems
+          ruby-version: '3.3.0'
+
+      - name: Setup Plain RN ${{ matrix.rn-version }} App
+        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --create
 
       - name: Build Plain RN ${{ matrix.rn-version }} App
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --build
@@ -319,7 +323,7 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.83.0'
-            runs-on: macos-15
+            runs-on: macos-26
           - platform: android
             runs-on: ubuntu-latest
 
