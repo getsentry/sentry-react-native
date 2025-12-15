@@ -111,7 +111,8 @@
     // Tracing is only enabled in JS to avoid duplicate navigation spans
     options.tracesSampleRate = nil;
     options.tracesSampler = nil;
-    options.enableTracing = NO;
+    // Note: enableTracing property is deprecated in Sentry Cocoa SDK v7
+    // Tracing is disabled by setting tracesSampleRate and tracesSampler to nil
 }
 
 /**
