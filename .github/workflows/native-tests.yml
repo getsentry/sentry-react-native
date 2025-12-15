@@ -27,7 +27,7 @@ jobs:
 
   test-ios:
     name: ios
-    runs-on: macos-15
+    runs-on: macos-26
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
