@@ -12,13 +12,13 @@ describe('Capture Errors Screen Transaction', () => {
   let sentryServer = createSentryServer();
 
   const getErrorsEnvelope = () =>
-    sentryServer.getEnvelope(containingTransactionWithName('Errors'));
+    sentryServer.getEnvelope(containingTransactionWithName('ErrorsScreen'));
 
   beforeAll(async () => {
     await sentryServer.start();
 
     const waitForErrorsTx = sentryServer.waitForEnvelope(
-      containingTransactionWithName('Errors'), // The last created and sent transaction
+      containingTransactionWithName('ErrorsScreen'), // The last created and sent transaction
     );
 
     await maestro('tests/captureErrorScreenTransaction/captureErrorsScreenTransaction.test.yml');

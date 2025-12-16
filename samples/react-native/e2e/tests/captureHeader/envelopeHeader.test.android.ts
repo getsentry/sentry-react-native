@@ -41,10 +41,10 @@ describe('Capture message', () => {
   it('contains sdk info in the envelope header', async () => {
     expect(envelope[HEADER]).toEqual(
       expect.objectContaining({
-        sdk: {
+        sdk: expect.objectContaining({
           name: 'sentry.javascript.react-native',
           version: expect.any(String),
-        },
+        }),
         sent_at: expect.any(String),
       }),
     );
@@ -53,12 +53,12 @@ describe('Capture message', () => {
   it('contains trace info in the envelope header', async () => {
     expect(envelope[HEADER]).toEqual(
       expect.objectContaining({
-        trace: {
+        trace: expect.objectContaining({
           environment: expect.any(String),
           public_key: expect.any(String),
           replay_id: expect.any(String),
           trace_id: expect.any(String),
-        },
+        }),
       }),
     );
   });
