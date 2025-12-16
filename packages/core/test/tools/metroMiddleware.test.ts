@@ -78,7 +78,7 @@ describe('metroMiddleware', () => {
       } as any;
       testedMiddleware(sentryRequest, response, next);
       expect(defaultMiddleware).not.toHaveBeenCalled();
-      expect(spiedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response);
+      expect(spiedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response, next);
     });
 
     it('should call default middleware for non-sentry requests', () => {
