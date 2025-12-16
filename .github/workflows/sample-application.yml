@@ -285,6 +285,9 @@ jobs:
       - name: Install JS Dependencies
         run: yarn install
 
+      - uses: ./.github/actions/disk-cleanup
+        if: ${{ matrix.platform == 'android' }}
+
       - name: Setup KVM
         if: ${{ matrix.platform == 'android' }}
         shell: bash
@@ -319,6 +322,7 @@ jobs:
           disable-spellchecker: true
           target: 'aosp_atd'
           channel: canary # Necessary for ATDs
+          disk-size: 4096M
           emulator-options: >
             -no-window
             -no-snapshot-save
