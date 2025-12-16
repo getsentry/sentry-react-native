@@ -22,9 +22,9 @@
 
 ### Dependencies
 
-- Bump Android SDK from v8.27.0 to v8.28.0 ([#5404](https://github.com/getsentry/sentry-react-native/pull/5404), [#5438](https://github.com/getsentry/sentry-react-native/pull/5438))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8280)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.27.0...8.28.0)
+- Bump Android SDK from v8.27.0 to v8.29.0 ([#5404](https://github.com/getsentry/sentry-react-native/pull/5404), [#5438](https://github.com/getsentry/sentry-react-native/pull/5438), [#5476](https://github.com/getsentry/sentry-react-native/pull/5476))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8290)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.27.0...8.29.0)
 - Bump Android SDK Stubs from v8.27.0 to v8.29.0 ([#5405](https://github.com/getsentry/sentry-react-native/pull/5405), [#5439](https://github.com/getsentry/sentry-react-native/pull/5439), [#5475](https://github.com/getsentry/sentry-react-native/pull/5475))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8290)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.27.0...8.29.0)
