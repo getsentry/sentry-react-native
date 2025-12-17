@@ -8,5 +8,10 @@ appId: io.sentry.reactnative.sample
       isE2ETest: true
 
 # The app should launch on the ErrorsScreen (first tab)
-# Just wait for it to be ready
+# Wait for the screen to be ready and for the app start transaction to complete
 - assertVisible: "Capture message"
+
+# Perform a scroll to ensure some interaction happens, then wait
+# This gives the transaction time to finish (idleTimeoutMs: 5000)
+- scroll
+- scroll
