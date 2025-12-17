@@ -6,4 +6,8 @@ appId: io.sentry.reactnative.sample
     arguments:
       isE2ETest: true
 
+# App launches on ErrorsTab (first tab), but button might be off-screen
+- scrollUntilVisible:
+    element: "Capture message"
+    timeout: 5000
 - tapOn: "Capture message"
