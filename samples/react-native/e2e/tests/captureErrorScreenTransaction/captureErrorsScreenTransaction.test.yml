@@ -7,7 +7,6 @@ appId: io.sentry.reactnative.sample
     arguments:
       isE2ETest: true
 
-# For unknown reasons tapOn: "Performance" does not work on iOS
-- tapOn:
-    id: "performance-tab-icon"
-- tapOn: "Auto Tracing Example"
+# The app should launch on the ErrorsScreen (first tab)
+# Just wait for it to be ready
+- assertVisible: "Capture message"

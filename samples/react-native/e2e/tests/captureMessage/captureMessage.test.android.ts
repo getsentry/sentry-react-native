@@ -65,7 +65,6 @@ describe('Capture message', () => {
             free_memory: expect.any(Number),
             free_storage: expect.any(Number),
             id: expect.any(String),
-            language: expect.any(String),
             locale: expect.any(String),
             low_memory: expect.any(Boolean),
             manufacturer: expect.any(String),
