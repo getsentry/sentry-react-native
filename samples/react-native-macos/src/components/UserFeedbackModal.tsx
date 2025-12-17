@@ -36,14 +36,14 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
                 'Message that needs user feedback',
               );
 
-              const userFeedback: UserFeedback = {
-                event_id: sentryId,
+              const userFeedback: SendFeedbackParams = {
+                associatedEventId: sentryId,
                 name: 'John Doe',
                 email: 'john@doe.com',
-                comments,
+                message: comments,
               };
 
-              Sentry.captureUserFeedback(userFeedback);
+              Sentry.captureFeedback(userFeedback);
               clearComments();
             }}
           />
