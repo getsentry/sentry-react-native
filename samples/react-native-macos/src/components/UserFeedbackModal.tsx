@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text, TextInput, Image, Button } from 'react-native';
 import * as Sentry from '@sentry/react-native';
-import { SendFeedbackParams, UserFeedback } from '@sentry/react-native';
+import { SendFeedbackParams } from '@sentry/react-native';
 
 export const DEFAULT_COMMENTS = "It's broken again! Please fix it.";
 
