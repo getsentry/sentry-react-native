@@ -27,7 +27,7 @@ jobs:
 
   test-ios:
     name: ios
-    runs-on: macos-26
+    runs-on: macos-15
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -54,7 +54,7 @@ jobs:
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
-          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 17'
+          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 16'
         run: |
           env NSUnbufferedIO=YES \
             xcodebuild -workspace *.xcworkspace \
