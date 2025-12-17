@@ -8,6 +8,9 @@
 
 ## Unreleased
 
+### Fixes
+- Fix for missing `replay_id` from metrics ([#5483](https://github.com/getsentry/sentry-react-native/pull/5483))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.30.0 to v10.31.0 ([#5480](https://github.com/getsentry/sentry-react-native/pull/5480))
