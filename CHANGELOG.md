@@ -8,9 +8,20 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump Cocoa SDK from v8.57.3 to v9.1.0 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#910)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.3...9.1.0)
+- Bump JavaScript SDK from v10.30.0 to v10.31.0 ([#5480](https://github.com/getsentry/sentry-react-native/pull/5480))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10310)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.30.0...10.31.0)
+
+## 7.8.0
+
 ### Features
 
-- Adds Metrics Beta for iOS ([#5402](https://github.com/getsentry/sentry-react-native/pull/5402))
+- Adds Metrics Beta ([#5402](https://github.com/getsentry/sentry-react-native/pull/5402))
 - Improves Expo Router integration to optionally include full paths to components instead of just component names ([#5414](https://github.com/getsentry/sentry-react-native/pull/5414))
 - Report slow and frozen frames as TTID/TTFD span data ([#5419](https://github.com/getsentry/sentry-react-native/pull/5419))
 - Report slow and frozen frames on spans created through the API ([#5420](https://github.com/getsentry/sentry-react-native/issues/5420))
@@ -22,18 +33,18 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v8.57.3 to v9.0.0 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#900)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.3...9.0.0)
-- Bump Android SDK from v8.27.0 to v8.28.0 ([#5404](https://github.com/getsentry/sentry-react-native/pull/5404), [#5438](https://github.com/getsentry/sentry-react-native/pull/5438))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8280)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.27.0...8.28.0)
-- Bump Android SDK Stubs from v8.27.0 to v8.28.0 ([#5405](https://github.com/getsentry/sentry-react-native/pull/5405), [#5439](https://github.com/getsentry/sentry-react-native/pull/5439))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8280)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.27.0...8.28.0)
-- Bump JavaScript SDK from v10.26.0 to v10.29.0 ([#5406](https://github.com/getsentry/sentry-react-native/pull/5406), [#5429](https://github.com/getsentry/sentry-react-native/pull/5429), [#5442](https://github.com/getsentry/sentry-react-native/pull/5442))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10290)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.26.0...10.29.0)
+- Bump Android SDK from v8.27.0 to v8.29.0 ([#5404](https://github.com/getsentry/sentry-react-native/pull/5404), [#5438](https://github.com/getsentry/sentry-react-native/pull/5438), [#5476](https://github.com/getsentry/sentry-react-native/pull/5476))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8290)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.27.0...8.29.0)
+- Bump Android SDK Stubs from v8.27.0 to v8.29.0 ([#5405](https://github.com/getsentry/sentry-react-native/pull/5405), [#5439](https://github.com/getsentry/sentry-react-native/pull/5439), [#5475](https://github.com/getsentry/sentry-react-native/pull/5475))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8290)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.27.0...8.29.0)
+- Bump JavaScript SDK from v10.26.0 to v10.30.0 ([#5406](https://github.com/getsentry/sentry-react-native/pull/5406), [#5429](https://github.com/getsentry/sentry-react-native/pull/5429), [#5442](https://github.com/getsentry/sentry-react-native/pull/5442), [#5454](https://github.com/getsentry/sentry-react-native/pull/5454))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10300)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.26.0...10.30.0)
+- Bump CLI from v2.58.2 to v2.58.4 ([#5453](https://github.com/getsentry/sentry-react-native/pull/5453), [#5462](https://github.com/getsentry/sentry-react-native/pull/5462))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2584)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.2...2.58.4)
 
 ## 7.7.0
 
