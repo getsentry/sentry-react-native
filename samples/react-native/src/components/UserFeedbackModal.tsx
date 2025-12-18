@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text, TextInput, Image, Button } from 'react-native';
 import * as Sentry from '@sentry/react-native';
-import { SendFeedbackParams, UserFeedback } from '@sentry/react-native';
+import { SendFeedbackParams } from '@sentry/react-native';
 
 export const DEFAULT_COMMENTS = "It's broken again! Please fix it.";
 
@@ -36,14 +36,14 @@ export function UserFeedbackModal(props: { onDismiss: () => void }) {
                 'Message that needs user feedback',
               );
 
-              const userFeedback: UserFeedback = {
-                event_id: sentryId,
+              const userFeedback: SendFeedbackParams = {
+                associatedEventId: sentryId,
                 name: 'John Doe',
                 email: 'john@doe.com',
-                comments,
+                message: comments,
               };
 
-              Sentry.captureUserFeedback(userFeedback);
+              Sentry.captureFeedback(userFeedback);
               clearComments();
             }}
           />

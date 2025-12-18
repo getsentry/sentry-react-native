@@ -78,7 +78,7 @@ describe('metroMiddleware', () => {
       } as any;
       testedMiddleware(sentryRequest, response, next);
       expect(defaultMiddleware).not.toHaveBeenCalled();
-      expect(spiedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response);
+      expect(spiedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response, next);
     });
 
     it('should call default middleware for non-sentry requests', () => {
@@ -97,6 +97,7 @@ describe('metroMiddleware', () => {
   describe('stackFramesContextMiddleware', () => {
     let request: any;
     let response: any;
+    const next = jest.fn();
 
     let testData: string = '';
 
@@ -124,13 +125,13 @@ describe('metroMiddleware', () => {
     });
 
     it('should set request encoding to utf8', async () => {
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(request.setEncoding).toHaveBeenCalledWith('utf8');
     });
 
     it('should return 400 for missing request body', async () => {
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(response.statusCode).toBe(400);
       expect(response.end).toHaveBeenCalledWith('Invalid request body. Expected a JSON object.');
@@ -138,14 +139,14 @@ describe('metroMiddleware', () => {
 
     it('should return 400 for invalid request body', async () => {
       testData = 'invalid';
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(response.statusCode).toBe(400);
     });
 
     it('should return 400 when stack is not an array', async () => {
       testData = '{"stack": "not an array"}';
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(response.statusCode).toBe(400);
       expect(response.end).toHaveBeenCalledWith('Invalid stack frames. Expected an array.');
@@ -153,14 +154,14 @@ describe('metroMiddleware', () => {
 
     it('should set content type to application/json for valid response', async () => {
       testData = '{"stack":[]}';
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(response.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
     });
 
     it('should return 200 for valid empty stack', async () => {
       testData = '{"stack":[]}';
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(response.statusCode).toBe(200);
     });
@@ -181,7 +182,7 @@ describe('metroMiddleware', () => {
 
       mockReadFileOnce(readFileSpy, 'test.js', 'line1\nline2\nline3\nline4\nline5');
 
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.end.mock.calls[0][0])).toEqual({
@@ -213,7 +214,7 @@ describe('metroMiddleware', () => {
         ],
       } satisfies { stack: StackFrame[] });
 
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(readFileSpy).not.toHaveBeenCalled();
       expect(response.statusCode).toBe(200);
@@ -243,7 +244,7 @@ describe('metroMiddleware', () => {
         ],
       } satisfies { stack: StackFrame[] });
 
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(readFileSpy).not.toHaveBeenCalled();
       expect(response.statusCode).toBe(200);
@@ -295,7 +296,7 @@ describe('metroMiddleware', () => {
         ],
       } satisfies { stack: StackFrame[] });
 
-      await stackFramesContextMiddleware(request, response);
+      await stackFramesContextMiddleware(request, response, next);
 
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.end.mock.calls[0][0])).toEqual({
