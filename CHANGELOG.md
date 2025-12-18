@@ -9,6 +9,7 @@
 ## Unreleased
 
 ### Fixes
+
 - Fix for missing `replay_id` from metrics ([#5483](https://github.com/getsentry/sentry-react-native/pull/5483))
 
 ### Dependencies
