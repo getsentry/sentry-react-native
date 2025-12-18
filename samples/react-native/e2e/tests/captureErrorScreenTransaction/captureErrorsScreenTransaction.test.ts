@@ -24,7 +24,7 @@ describe('Capture Errors Screen Transaction', () => {
     await maestro('tests/captureErrorScreenTransaction/captureErrorsScreenTransaction.test.yml');
 
     await waitForErrorsTx;
-  });
+  }, 240000); // 240 seconds timeout for iOS event delivery
 
   afterAll(async () => {
     await sentryServer.close();

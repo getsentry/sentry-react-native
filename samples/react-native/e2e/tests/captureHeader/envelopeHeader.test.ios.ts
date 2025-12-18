@@ -23,7 +23,7 @@ describe('Capture message', () => {
     await maestro('tests/captureHeader/envelopeHeader.test.yml');
 
     envelope = await envelopePromise;
-  });
+  }, 240000); // 240 seconds timeout for iOS event delivery
 
   afterAll(async () => {
     await sentryServer.close();

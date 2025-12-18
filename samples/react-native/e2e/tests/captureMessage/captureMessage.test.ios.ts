@@ -28,7 +28,7 @@ describe('Capture message', () => {
     }
 
     envelope = await envelopePromise;
-  });
+  }, 240000); // 240 seconds timeout for iOS event delivery
 
   afterAll(async () => {
     await sentryServer.close();

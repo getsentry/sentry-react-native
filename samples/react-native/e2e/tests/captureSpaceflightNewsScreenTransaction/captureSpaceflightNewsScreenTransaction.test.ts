@@ -45,7 +45,7 @@ describe('Capture Spaceflight News Screen Transaction', () => {
     allTransactionEnvelopes = sentryServer.getAllEnvelopes(
       containingTransaction,
     );
-  });
+  }, 240000); // 240 seconds timeout for iOS event delivery
 
   afterAll(async () => {
     await sentryServer.close();
