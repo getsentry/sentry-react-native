@@ -79,7 +79,9 @@ export default function TabOneScreen() {
             title="Native Crash"
             onPress={() => {
               if (isRunningInExpoGo()) {
-                console.warn('Not supported in Expo Go. Build the application to test this feature.');
+                console.warn(
+                  'Not supported in Expo Go. Build the application to test this feature.',
+                );
                 return;
               }
               Sentry.nativeCrash();
@@ -138,7 +140,9 @@ export default function TabOneScreen() {
           <Button
             title="Send count metric with attributes"
             onPress={() => {
-              Sentry.metrics.count('count_metric', 1, { attributes: { from_test_app: true } });
+              Sentry.metrics.count('count_metric', 1, {
+                attributes: { from_test_app: true },
+              });
             }}
           />
         </View>
@@ -184,7 +188,9 @@ export default function TabOneScreen() {
                 string: 'string',
                 bigint: BigInt(123),
               });
-              Sentry.captureMessage('Message with different types of tags globally');
+              Sentry.captureMessage(
+                'Message with different types of tags globally',
+              );
               Sentry.setTags({
                 number: undefined,
                 boolean: undefined,
@@ -226,7 +232,11 @@ export default function TabOneScreen() {
               Sentry.logger.warn('expo warn log');
               Sentry.logger.error('expo error log');
 
-              Sentry.logger.info('expo info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
+              Sentry.logger.info('expo info log with data', {
+                database: 'admin',
+                number: 123,
+                obj: { password: 'admin' },
+              });
             }}
           />
         </View>

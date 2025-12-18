@@ -1,5 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
 import { isRunningInExpoGo } from 'expo';
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
@@ -124,7 +128,9 @@ function RootLayout() {
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
-    if (error) {throw error;}
+    if (error) {
+      throw error;
+    }
   }, [error]);
 
   useEffect(() => {
