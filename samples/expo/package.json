@@ -10,6 +10,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "ts:check": "tsc",
+    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix && prettier --write \"**/*.{js,jsx,ts,tsx,json}\"",
     "export": "expo export --source-maps --clear --platform all",
     "export:web": "expo export --source-maps --clear --platform web",
     "prebuild": "expo prebuild --clean --no-install",
@@ -43,8 +45,14 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
+    "@react-native/eslint-config": "0.79.1",
     "@sentry/babel-plugin-component-annotate": "4.6.1",
     "@types/node": "20.10.4",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "^7.1.2",
+    "prettier": "2.8.8",
     "sentry-react-native-samples-utils": "workspace:^"
   },
   "overrides": {

@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react-native';
-import { SeverityLevel } from '@sentry/core';
+import { SeverityLevel } from '@sentry/react-native';
 
 export const setScopeProperties = () => {
   const dateString = new Date().toString();
