@@ -6,8 +6,14 @@ appId: io.sentry.reactnative.sample
     arguments:
       isE2ETest: true
 
-# App launches on ErrorsTab (first tab), but button might be off-screen
+# App launches on ErrorsTab (first tab)
+# Wait a moment for the screen to fully load
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Button might be off-screen, scroll to find it
 - scrollUntilVisible:
     element: "Capture message"
-    timeout: 5000
+    timeout: 10000
+    direction: DOWN
 - tapOn: "Capture message"

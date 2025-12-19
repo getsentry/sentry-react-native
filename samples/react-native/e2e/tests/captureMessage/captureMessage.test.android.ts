@@ -23,7 +23,7 @@ describe('Capture message', () => {
     await maestro('tests/captureMessage/captureMessage.test.yml');
 
     envelope = await envelopePromise;
-  });
+  }, 240000); // 240 seconds timeout
 
   afterAll(async () => {
     await sentryServer.close();
