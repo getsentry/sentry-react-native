@@ -40,7 +40,16 @@
     NSMutableDictionary *mutableOptions = [options mutableCopy];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryReplay updateOptions:mutableOptions];
+    // Log replay configuration for debugging
+    NSLog(@"[RNSentry] Replay config before updateOptions - replaysOnErrorSampleRate: %@, replaysSessionSampleRate: %@",
+          mutableOptions[@"replaysOnErrorSampleRate"],
+          mutableOptions[@"replaysSessionSampleRate"]);
+
+    BOOL replayEnabled = [RNSentryReplay updateOptions:mutableOptions];
+
+    NSLog(@"[RNSentry] Replay enabled: %d, sessionReplay config: %@",
+          replayEnabled,
+          mutableOptions[@"sessionReplay"]);
 #endif
 
     SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions

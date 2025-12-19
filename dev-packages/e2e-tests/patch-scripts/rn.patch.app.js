@@ -23,11 +23,17 @@ import * as Sentry from '@sentry/react-native';
 import { EndToEndTestsScreen } from 'sentry-react-native-e2e-tests';
 import { LaunchArguments } from "react-native-launch-arguments";
 
+const launchArgs = LaunchArguments.value();
+const replaysOnErrorSampleRate = launchArgs.replaysOnErrorSampleRate !== undefined
+  ? launchArgs.replaysOnErrorSampleRate
+  : undefined;
+
 Sentry.init({
   release: '${SENTRY_RELEASE}',
   dist: '${SENTRY_DIST}',
   dsn: 'https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561',
-  replaysOnErrorSampleRate: LaunchArguments.value().replaysOnErrorSampleRate,
+  replaysOnErrorSampleRate: replaysOnErrorSampleRate,
+  replaysSessionSampleRate: launchArgs.replaysSessionSampleRate,
   integrations: [
     Sentry.mobileReplayIntegration(),
     Sentry.feedbackIntegration({
@@ -35,6 +41,9 @@ Sentry.init({
     }),
   ],
 });
+
+console.log('[E2E] LaunchArguments:', launchArgs);
+console.log('[E2E] Replay error sample rate:', replaysOnErrorSampleRate);
 `;
 const e2eComponentPatch = '<EndToEndTestsScreen />';
 const lastImportRex = /^([^]*)(import\s+[^;]*?;$)/m;
