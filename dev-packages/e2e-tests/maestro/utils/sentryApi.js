@@ -63,7 +63,11 @@ switch (fetch) {
   }
   case 'replay': {
     const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
-    const replayId = event._dsc.replay_id.replace(/\-/g, '');
+    const replayIdRaw = event._dsc?.replay_id;
+    if (!replayIdRaw) {
+      throw new Error(`Event ${eventId} does not have a replay_id in DSC. Replay might not be supported on this configuration.`);
+    }
+    const replayId = replayIdRaw.replace(/\-/g, '');
     const replay = json(fetchFromSentry(`${baseUrl}/replays/${replayId}/`));
     const segment = fetchFromSentry(`${baseUrl}/replays/${replayId}/videos/0/`);
 
