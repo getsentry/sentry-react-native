@@ -1,4 +1,4 @@
-import type { Client, DynamicSamplingContext, Event, EventHint, Integration } from '@sentry/core';
+import type { Client, DynamicSamplingContext, Event, EventHint, Integration, Metric } from '@sentry/core';
 import { debug } from '@sentry/core';
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
@@ -250,6 +250,15 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       const currentReplayId = getCachedReplayId();
       if (currentReplayId) {
         dsc.replay_id = currentReplayId;
+      }
+    });
+
+    client.on('processMetric', (metric: Metric) => {
+      // Add replay_id to metric attributes to link metrics to replays
+      const currentReplayId = getCachedReplayId();
+      if (currentReplayId) {
+        metric.attributes = metric.attributes || {};
+        metric.attributes.replay_id = currentReplayId;
       }
     });
 
