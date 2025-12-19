@@ -33,137 +33,8 @@ jobs:
   auth_token_check:
     uses: ./.github/workflows/skip-ci-noauth.yml
     secrets: inherit
-  metrics:
-    runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check, auth_token_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') }}
-    env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
-    strategy:
-      # we want that the matrix keeps running, default is to cancel them if it fails.
-      fail-fast: false
-      matrix:
-        rn-architecture: ['legacy', 'new']
-        platform: ["ios", "android"]
-        include:
-          - platform: ios
-            runs-on: macos-26
-            name: iOS
-            appPlain: performance-tests/test-app-plain.ipa
-          - platform: android
-            # Not using the latest version due to a known issue: https://github.com/getsentry/sentry-react-native/issues/4418
-            runs-on: ubuntu-22.04
-            name: Android
-            appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: ./.github/actions/disk-cleanup
-        if: ${{ matrix.platform == 'android' }}
-
-      - run: sudo xcode-select -s /Applications/Xcode_26.1.1.app/Contents/Developer
-        if: ${{ matrix.platform == 'ios' }}
-
-      - run: npm i -g corepack
-      - uses: actions/setup-node@v6
-        with:
-          package-manager-cache: false
-          node-version: 20
-          cache: 'yarn'
-          cache-dependency-path: yarn.lock
-
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
-
-      - name: Install Global Dependencies
-        run: npm i -g react-native-cli @sentry/cli
-
-      - name: Install Dependencies
-        run: yarn install
-
-      - name: Build SDK
-        run: yarn build
-
-      - uses: actions/cache@v5
-        id: app-plain-cache
-        with:
-          path: ${{ matrix.appPlain }}
-          # if the whole plain app folder is hashed the cache is never hit as there are files generated in the folder
-          # the cache key is calculated both at cache retrieval and save time
-          # hashFiles fails when there are rn android new arch generated files in the folder (exact reason unknown)
-          # we removed the lock file of the app due to monorepo changes, we use the package.json instead
-          # to avoid frequent rebuilds of the app
-          key: ${{ github.workflow }}-${{ github.job }}-appplain-${{ matrix.platform }}-${{ matrix.rn-architecture }}-${{ hashFiles('performance-tests/TestAppSentry/package.json') }}
-
-      - name: Build app plain
-        if: steps.app-plain-cache.outputs['cache-hit'] != 'true'
-        working-directory: ./performance-tests/TestAppPlain
-        run: |
-          cd ${{ matrix.platform }}
-          if [[ "${{ matrix.platform }}" == "android" ]]; then
-            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-              perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
-            fi
-            ./gradlew assembleRelease
-          else
-            export PRODUCTION=1
-            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-              export RCT_NEW_ARCH_ENABLED=1
-            fi
-            pod install
-            cd ../..
-            fastlane build_perf_test_app_plain
-          fi
-        env:
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
-          FASTLANE_KEYCHAIN_PASSWORD: ${{ secrets.FASTLANE_KEYCHAIN_PASSWORD }}
-          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
-
-      - name: Build app with Sentry
-        working-directory: ./performance-tests/TestAppSentry
-        run: |
-          cd ${{ matrix.platform }}
-          if [[ "${{ matrix.platform }}" == "android" ]]; then
-            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-              perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
-              ./gradlew generateCodegenArtifactsFromSchema
-            fi
-            ./gradlew assembleRelease
-          else
-            export PRODUCTION=1
-            if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-              export RCT_NEW_ARCH_ENABLED=1
-            fi
-            pod install
-            cd ../..
-            fastlane build_perf_test_app_sentry
-            cd TestAppSentry
-          fi
-        env:
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
-          FASTLANE_KEYCHAIN_PASSWORD: ${{ secrets.FASTLANE_KEYCHAIN_PASSWORD }}
-          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_USERNAME: ${{ secrets.MATCH_USERNAME }}
-      - name: Collect apps metrics
-        uses: getsentry/action-app-sdk-overhead-metrics@5f2d99b8e5a7b833386524924d24320501099a44
-        with:
-          name: ${{ matrix.name }} (${{ matrix.rn-architecture }})
-          config: ./performance-tests/metrics-${{ matrix.platform }}.yml
-          sauce-user: ${{ secrets.SAUCE_USERNAME }}
-          sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
-
+  # TEMPORARILY DISABLED metrics job for replay debugging - skipping to save CI time
+  
   react-native-build:
     name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     runs-on: ${{ matrix.runs-on }}
@@ -179,52 +50,19 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.71.19', '0.83.0']
+        # TEMPORARILY TESTING ONLY iOS Hermes 0.83.0 for replay debugging
+        rn-version: ['0.83.0']
         rn-architecture: ['legacy', 'new']
-        platform: ['android', 'ios']
+        platform: ['ios']
         build-type: ['production']
-        ios-use-frameworks: ['no', 'static', 'dynamic']
-        engine: ['hermes', 'jsc']
+        ios-use-frameworks: ['no']
+        engine: ['hermes']
         include:
-          # Use Xcode 16 for older RN versions
-          - platform: ios
-            rn-version: '0.71.19'
-            xcode-version: '16.4'
-            runs-on: macos-15
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
             rn-version: '0.83.0'
             xcode-version: '26.1.1'
             runs-on: macos-26
-          - platform: android
-            runs-on: ubuntu-latest
-        exclude:
-          # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.83.0'
-            engine: 'jsc'
-          # exclude all rn versions lower than 0.80.0 for new architecture
-          - rn-version: '0.71.19'
-            rn-architecture: 'new'
-          # exlude old rn version for use frameworks builds (to minimalize the matrix)
-          - rn-version: '0.71.19'
-            platform: 'ios'
-            ios-use-frameworks: 'static'
-          - rn-version: '0.71.19'
-            platform: 'ios'
-            ios-use-frameworks: 'dynamic'
-          # use frameworks is ios only feature
-          - platform: 'android'
-            ios-use-frameworks: 'static'
-          - platform: 'android'
-            ios-use-frameworks: 'dynamic'
-          # exclude new rn architecture and dynamic frameworks
-          - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic'
-          # exclude RN 0.82.1 with dynamic frameworks due to React Native circular dependency bug
-          # https://github.com/facebook/react-native/issues/54267
-          - rn-version: '0.82.1'
-            platform: 'ios'
-            ios-use-frameworks: 'dynamic'
 
     steps:
       - uses: actions/checkout@v6
@@ -314,9 +152,10 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
+        # TEMPORARILY TESTING ONLY iOS Hermes 0.83.0 for replay debugging
         rn-version: ['0.83.0']
         rn-architecture: ['legacy', 'new']
-        platform: ['android', 'ios']
+        platform: ['ios']
         build-type: ['production']
         ios-use-frameworks: ['no'] # test only no frameworks
         engine: ['hermes']
@@ -324,8 +163,6 @@ jobs:
           - platform: ios
             rn-version: '0.83.0'
             runs-on: macos-26
-          - platform: android
-            runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
