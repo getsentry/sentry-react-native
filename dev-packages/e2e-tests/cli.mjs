@@ -296,12 +296,14 @@ if (actions.includes('test')) {
       );
     } finally {
       // Always redact sensitive data, even if the test fails
+      // Use LC_ALL=C to handle any byte sequence, and only process text files
       const redactScript = `
         if [[ "$(uname)" == "Darwin" ]]; then
-          find ./maestro-logs -type f -exec sed -i '' "s/${sentryAuthToken}/[REDACTED]/g" {} +
+          export LC_ALL=C
+          find ./maestro-logs -type f \\( -name "*.log" -o -name "*.txt" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \\) -exec sed -i '' "s/${sentryAuthToken}/[REDACTED]/g" {} + 2>/dev/null || true
           echo 'Redacted sensitive data from logs on MacOS'
         else
-          find ./maestro-logs -type f -exec sed -i "s/${sentryAuthToken}/[REDACTED]/g" {} +
+          find ./maestro-logs -type f \\( -name "*.log" -o -name "*.txt" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" \\) -exec sed -i "s/${sentryAuthToken}/[REDACTED]/g" {} + 2>/dev/null || true
           echo 'Redacted sensitive data from logs on Ubuntu'
         fi
       `;
