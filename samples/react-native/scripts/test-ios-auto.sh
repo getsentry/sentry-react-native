@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -x # exit on error, print commands
+set -e # exit on error
 
 # Get current directory
 thisFileDirPath=$(dirname "$0")
@@ -23,4 +23,4 @@ else
 fi
 
 # Run the tests
-npx jest --config e2e/jest.config.ios.js
+npx jest --config e2e/jest.config.ios.auto.js

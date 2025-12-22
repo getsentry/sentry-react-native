@@ -3,28 +3,28 @@ import { EventItem } from '@sentry/core';
 import {
   createSentryServer,
   containingTransactionWithName,
-} from './utils/mockedSentryServer';
+} from '../../utils/mockedSentryServer';
 
-import { getItemOfTypeFrom } from './utils/event';
-import { maestro } from './utils/maestro';
+import { getItemOfTypeFrom } from '../../utils/event';
+import { maestro } from '../../utils/maestro';
 
 describe('Capture Errors Screen Transaction', () => {
   let sentryServer = createSentryServer();
 
   const getErrorsEnvelope = () =>
-    sentryServer.getEnvelope(containingTransactionWithName('Errors'));
+    sentryServer.getEnvelope(containingTransactionWithName('ErrorsScreen'));
 
   beforeAll(async () => {
     await sentryServer.start();
 
     const waitForErrorsTx = sentryServer.waitForEnvelope(
-      containingTransactionWithName('Errors'), // The last created and sent transaction
+      containingTransactionWithName('ErrorsScreen'), // The last created and sent transaction
     );
 
-    await maestro('captureErrorsScreenTransaction.test.yml');
+    await maestro('tests/captureErrorScreenTransaction/captureErrorsScreenTransaction.test.yml');
 
     await waitForErrorsTx;
-  });
+  }, 240000); // 240 seconds timeout for iOS event delivery
 
   afterAll(async () => {
     await sentryServer.close();
