@@ -5,10 +5,11 @@ import {
   containingTransactionWithName,
   takeSecond,
   containingTransaction,
-} from './utils/mockedSentryServer';
+} from '../../utils/mockedSentryServer';
 
-import { getItemOfTypeFrom } from './utils/event';
-import { maestro } from './utils/maestro';
+import { getItemOfTypeFrom } from '../../utils/event';
+import { maestro } from '../../utils/maestro';
+import { isAutoInitTest } from '../../utils/environment';
 
 describe('Capture Spaceflight News Screen Transaction', () => {
   let sentryServer = createSentryServer();
@@ -32,7 +33,11 @@ describe('Capture Spaceflight News Screen Transaction', () => {
       takeSecond(containingNewsScreen),
     );
 
-    await maestro('captureSpaceflightNewsScreenTransaction.test.yml');
+    if (isAutoInitTest()) {
+      await maestro('tests/captureSpaceflightNewsScreenTransaction/captureSpaceflightNewsScreenTransaction.test.ios.auto.yml');
+    } else {
+      await maestro('tests/captureSpaceflightNewsScreenTransaction/captureSpaceflightNewsScreenTransaction.test.yml');
+    }
 
     await waitForSpaceflightNewsTx;
 
@@ -40,7 +45,7 @@ describe('Capture Spaceflight News Screen Transaction', () => {
     allTransactionEnvelopes = sentryServer.getAllEnvelopes(
       containingTransaction,
     );
-  });
+  }, 240000); // 240 seconds timeout for iOS event delivery
 
   afterAll(async () => {
     await sentryServer.close();
@@ -115,8 +120,6 @@ describe('Capture Spaceflight News Screen Transaction', () => {
 
     const item = getFirstNewsEventItem();
     const spans = item?.[1].spans;
-
-    console.log(spans);
 
     const httpSpans = spans?.filter(
       span => span.data?.['sentry.op'] === 'http.client',

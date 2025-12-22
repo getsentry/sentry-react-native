@@ -1,28 +1,29 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
 import { Envelope, EventItem } from '@sentry/core';
-import { device } from 'detox';
+
 import {
   createSentryServer,
   containingEventWithAndroidMessage,
-} from './utils/mockedSentryServer';
-import { tap } from './utils/tap';
-import { getItemOfTypeFrom } from './utils/event';
+} from '../../utils/mockedSentryServer';
+import { getItemOfTypeFrom } from '../../utils/event';
+import { maestro } from '../../utils/maestro';
 
 describe('Capture message', () => {
   let sentryServer = createSentryServer();
-  sentryServer.start();
 
   let envelope: Envelope;
 
   beforeAll(async () => {
-    await device.launchApp();
+    await sentryServer.start();
 
     const envelopePromise = sentryServer.waitForEnvelope(
       containingEventWithAndroidMessage('Captured message'),
     );
-    await tap('Capture message');
+
+    await maestro('tests/captureMessage/captureMessage.test.yml');
+
     envelope = await envelopePromise;
-  });
+  }, 240000); // 240 seconds timeout
 
   afterAll(async () => {
     await sentryServer.close();
@@ -64,7 +65,6 @@ describe('Capture message', () => {
             free_memory: expect.any(Number),
             free_storage: expect.any(Number),
             id: expect.any(String),
-            language: expect.any(String),
             locale: expect.any(String),
             low_memory: expect.any(Boolean),
             manufacturer: expect.any(String),

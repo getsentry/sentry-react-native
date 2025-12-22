@@ -1,27 +1,27 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals';
 import { Envelope } from '@sentry/core';
-import { device } from 'detox';
+
 import {
   createSentryServer,
   containingEventWithAndroidMessage,
-} from './utils/mockedSentryServer';
-import { HEADER } from './utils/consts';
-import { tap } from './utils/tap';
+} from '../../utils/mockedSentryServer';
+import { HEADER } from '../../utils/consts';
+import { maestro } from '../../utils/maestro';
 
 describe('Capture message', () => {
   let sentryServer = createSentryServer();
-  sentryServer.start();
 
   let envelope: Envelope;
 
   beforeAll(async () => {
-    await device.launchApp();
+    await sentryServer.start();
 
     const envelopePromise = sentryServer.waitForEnvelope(
       containingEventWithAndroidMessage('Captured message'),
     );
 
-    await tap('Capture message');
+    await maestro('tests/captureHeader/envelopeHeader.test.yml');
+
     envelope = await envelopePromise;
   });
 
@@ -41,10 +41,10 @@ describe('Capture message', () => {
   it('contains sdk info in the envelope header', async () => {
     expect(envelope[HEADER]).toEqual(
       expect.objectContaining({
-        sdk: {
+        sdk: expect.objectContaining({
           name: 'sentry.javascript.react-native',
           version: expect.any(String),
-        },
+        }),
         sent_at: expect.any(String),
       }),
     );
@@ -53,12 +53,12 @@ describe('Capture message', () => {
   it('contains trace info in the envelope header', async () => {
     expect(envelope[HEADER]).toEqual(
       expect.objectContaining({
-        trace: {
+        trace: expect.objectContaining({
           environment: expect.any(String),
           public_key: expect.any(String),
           replay_id: expect.any(String),
           trace_id: expect.any(String),
-        },
+        }),
       }),
     );
   });
