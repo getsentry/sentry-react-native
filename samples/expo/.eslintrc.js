@@ -11,6 +11,9 @@ module.exports = {
         'no-shadow': 'off',
         'no-undef': 'off',
         quotes: [2, 'single', { avoidEscape: true }],
+        // Disable deprecated rules removed in @typescript-eslint v8
+        '@typescript-eslint/func-call-spacing': 'off',
+        '@typescript-eslint/ban-types': 'off',
       },
     },
   ],
