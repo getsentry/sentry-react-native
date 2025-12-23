@@ -24,6 +24,8 @@ module.exports = {
         // Disable deprecated rules removed in @typescript-eslint v8
         '@typescript-eslint/func-call-spacing': 'off',
         '@typescript-eslint/ban-types': 'off',
+        // Disable import/no-unresolved for workspace packages that may not be built yet
+        'import/no-unresolved': ['error', { ignore: ['^@sentry/'] }],
       },
     },
   ],
