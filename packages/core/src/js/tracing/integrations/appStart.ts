@@ -320,21 +320,26 @@ export const appStartIntegration = ({
       return;
     }
 
-    if (!firstStartedActiveRootSpanId) {
-      debug.warn('[AppStart] No first started active root span id recorded. Can not attach app start.');
-      return;
-    }
-
     if (!event.contexts?.trace) {
       debug.warn('[AppStart] Transaction event is missing trace context. Can not attach app start.');
       return;
     }
 
-    if (firstStartedActiveRootSpanId !== event.contexts.trace.span_id) {
-      debug.warn(
-        '[AppStart] First started active root span id does not match the transaction event span id. Can not attached app start.',
-      );
-      return;
+    // When standalone is true, we create our own transaction and don't need to verify
+    // it matches the first navigation transaction. When standalone is false, we need to
+    // ensure we're attaching app start to the first transaction (not a later one).
+    if (!standalone) {
+      if (!firstStartedActiveRootSpanId) {
+        debug.warn('[AppStart] No first started active root span id recorded. Can not attach app start.');
+        return;
+      }
+
+      if (firstStartedActiveRootSpanId !== event.contexts.trace.span_id) {
+        debug.warn(
+          '[AppStart] First started active root span id does not match the transaction event span id. Can not attached app start.',
+        );
+        return;
+      }
     }
 
     const appStart = await NATIVE.fetchNativeAppStart();
