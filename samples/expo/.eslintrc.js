@@ -3,14 +3,6 @@ module.exports = {
   extends: ['expo', '@react-native'],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
-  settings: {
-    'import/resolver': {
-      typescript: {
-        project: ['./tsconfig.json', '../../packages/core/tsconfig.json'],
-        noWarnOnMultipleProjects: true,
-      },
-    },
-  },
   overrides: [
     {
       files: ['*.ts', '*.tsx'],
