@@ -1,6 +1,7 @@
 import type { InternalGlobal } from '@sentry/core';
 import { GLOBAL_OBJ } from '@sentry/core';
 import type { ErrorUtils } from 'react-native/types';
+import type { ReactNativeOptions } from '../options';
 import type { ExpoGlobalObject } from './expoglobalobject';
 
 export interface HermesPromiseRejectionTrackingOptions {
@@ -34,6 +35,7 @@ export interface ReactNativeInternalGlobal extends InternalGlobal {
   nativePerformanceNow?: () => number;
   TextEncoder?: TextEncoder;
   alert?: (message: string) => void;
+  __SENTRY_OPTIONS__?: ReactNativeOptions;
   SENTRY_RELEASE?: {
     /** Used by Sentry Webpack Plugin, not used by RN, only to silence TS */
     id?: string;

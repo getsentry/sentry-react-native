@@ -1,0 +1,5 @@
+{
+  "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+  "enableTracing": true,
+  "tracesSampleRate": 1.0
+}

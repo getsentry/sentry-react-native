@@ -1,23 +1,15 @@
 type TestGlobal = typeof globalThis & {
-  E2E_TEST_PLATFORM: 'android' | 'ios';
+  E2E_TEST_INIT_TYPE: 'auto' | 'manual';
 };
 
 function getTestGlobal(): TestGlobal {
   return globalThis as TestGlobal;
 }
 
-export function setAndroid(): void {
-  getTestGlobal().E2E_TEST_PLATFORM = 'android';
+export function setAutoInitTest(): void {
+  getTestGlobal().E2E_TEST_INIT_TYPE = 'auto';
 }
 
-export function setIOS(): void {
-  getTestGlobal().E2E_TEST_PLATFORM = 'ios';
-}
-
-export function isAndroid(): boolean {
-  return getTestGlobal().E2E_TEST_PLATFORM === 'android';
-}
-
-export function isIOS(): boolean {
-  return getTestGlobal().E2E_TEST_PLATFORM === 'ios';
+export function isAutoInitTest(): boolean {
+  return getTestGlobal().E2E_TEST_INIT_TYPE === 'auto';
 }
