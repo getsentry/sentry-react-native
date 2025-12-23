@@ -6,6 +6,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   setCurrentClient,
+  startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
 import {
@@ -384,6 +385,69 @@ describe('App Start Integration', () => {
       const actualEvent = await captureStandAloneAppStart();
       expect(actualEvent).toStrictEqual(undefined);
       expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('Attaches app start to standalone transaction even when navigation transaction starts first', async () => {
+      // This test simulates the Android scenario where React Navigation auto-instrumentation
+      // starts a navigation transaction before the standalone app start transaction is created.
+      // The fix ensures that when standalone: true, the span ID check is skipped so app start
+      // can be attached to the standalone transaction even if a navigation transaction started first.
+      getCurrentScope().clear();
+      getIsolationScope().clear();
+      getGlobalScope().clear();
+
+      mockAppStart({ cold: true });
+
+      const integration = appStartIntegration({
+        standalone: true,
+      });
+      const client = new TestClient({
+        ...getDefaultTestClientOptions(),
+        enableAppStartTracking: true,
+        tracesSampleRate: 1.0,
+      });
+      setCurrentClient(client);
+      integration.setup(client);
+
+      // Simulate a navigation transaction starting first (like React Navigation auto-instrumentation)
+      // This will set firstStartedActiveRootSpanId to the navigation span's ID
+      const navigationSpan = startInactiveSpan({
+        name: 'calendar/home',
+        op: 'navigation',
+        forceTransaction: true,
+      });
+      const navigationSpanId = navigationSpan?.spanContext().spanId;
+      if (navigationSpan) {
+        navigationSpan.end();
+      }
+
+      // Now capture standalone app start - it should still work even though navigation span started first
+      // The standalone transaction will have a different span ID, but the fix skips the check
+      await integration.captureStandaloneAppStart();
+
+      const actualEvent = client.event as TransactionEvent | undefined;
+      expect(actualEvent).toBeDefined();
+      expect(actualEvent?.spans).toBeDefined();
+      expect(actualEvent?.spans?.length).toBeGreaterThan(0);
+
+      // Verify that app start was attached successfully
+      const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+      expect(appStartSpan).toBeDefined();
+      expect(appStartSpan).toEqual(
+        expect.objectContaining<Partial<SpanJSON>>({
+          description: 'Cold Start',
+          op: APP_START_COLD_OP,
+        }),
+      );
+
+      // Verify the standalone transaction has a different span ID than the navigation transaction
+      // This confirms that the span ID check was skipped (otherwise app start wouldn't be attached)
+      expect(actualEvent?.contexts?.trace?.span_id).toBeDefined();
+      if (navigationSpanId) {
+        expect(actualEvent?.contexts?.trace?.span_id).not.toBe(navigationSpanId);
+      }
+
+      expect(actualEvent?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeDefined();
     });
   });
 
