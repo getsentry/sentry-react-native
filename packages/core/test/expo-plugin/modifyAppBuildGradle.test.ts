@@ -1,7 +1,7 @@
-import { warnOnce } from '../../plugin/src/utils';
+import { warnOnce } from '../../plugin/src/logger';
 import { modifyAppBuildGradle } from '../../plugin/src/withSentryAndroid';
 
-jest.mock('../../plugin/src/utils');
+jest.mock('../../plugin/src/logger');
 
 const buildGradleWithSentry = `
 apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
