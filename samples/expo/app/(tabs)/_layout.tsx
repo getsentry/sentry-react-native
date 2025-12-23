@@ -12,11 +12,39 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
+  // eslint-disable-next-line react-native/no-inline-styles
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+}
+
+function CodeIcon({ color }: { color: string }) {
+  return <TabBarIcon name="code" color={color} />;
+}
+
+function InfoButton({ colorScheme }: { colorScheme: 'light' | 'dark' | null }) {
+  return (
+    <Link href="/modal" asChild>
+      <Pressable>
+        {({ pressed }) => (
+          <FontAwesome
+            name="info-circle"
+            size={25}
+            color={Colors[colorScheme ?? 'light'].text}
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+          />
+        )}
+      </Pressable>
+    </Link>
+  );
 }
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+
+  const renderInfoButton = React.useCallback(
+    () => <InfoButton colorScheme={colorScheme} />,
+    [colorScheme],
+  );
 
   return (
     <Tabs
@@ -30,28 +58,15 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          tabBarIcon: CodeIcon,
+          headerRight: renderInfoButton,
         }}
       />
       <Tabs.Screen
         name="two"
         options={{
           title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: CodeIcon,
         }}
       />
     </Tabs>
