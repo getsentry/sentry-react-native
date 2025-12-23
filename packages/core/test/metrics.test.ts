@@ -1,5 +1,6 @@
 import { getClient, metrics, setCurrentClient } from '@sentry/core';
 import { ReactNativeClient } from '../src/js';
+import { mobileReplayIntegration } from '../src/js/replay/mobilereplay';
 import { getDefaultTestClientOptions } from './mocks/client';
 import { NATIVE } from './mockWrapper';
 
@@ -175,6 +176,62 @@ describe('Metrics', () => {
       expect(beforeSendMetric).toHaveBeenCalled();
       const sentMetric = beforeSendMetric.mock.calls[0]?.[0];
       expect(sentMetric).toBeDefined();
+    });
+
+    it('metrics include replay_id when mobile replay integration is active', async () => {
+      const mockReplayId = 'test-replay-id-123';
+      (NATIVE.getCurrentReplayId as jest.Mock).mockReturnValue(mockReplayId);
+
+      const beforeSendMetric = jest.fn(metric => metric);
+
+      const client = new ReactNativeClient({
+        ...getDefaultTestClientOptions({
+          dsn: EXAMPLE_DSN,
+          enableMetrics: true,
+          beforeSendMetric,
+          integrations: [mobileReplayIntegration()],
+          replaysSessionSampleRate: 1.0,
+        }),
+      });
+
+      setCurrentClient(client);
+      client.init();
+
+      // Send a metric
+      metrics.count('test_metric', 1);
+
+      jest.advanceTimersByTime(10000);
+      expect(beforeSendMetric).toHaveBeenCalled();
+      const sentMetric = beforeSendMetric.mock.calls[0]?.[0];
+      expect(sentMetric).toBeDefined();
+      expect(sentMetric.attributes).toBeDefined();
+      expect(sentMetric.attributes?.replay_id).toBe(mockReplayId);
+    });
+
+    it('metrics do not include replay_id when replay integration is not active', async () => {
+      (NATIVE.getCurrentReplayId as jest.Mock).mockReturnValue(null);
+
+      const beforeSendMetric = jest.fn(metric => metric);
+
+      const client = new ReactNativeClient({
+        ...getDefaultTestClientOptions({
+          dsn: EXAMPLE_DSN,
+          enableMetrics: true,
+          beforeSendMetric,
+        }),
+      });
+
+      setCurrentClient(client);
+      client.init();
+
+      // Send a metric
+      metrics.count('test_metric', 1);
+
+      jest.advanceTimersByTime(10000);
+      expect(beforeSendMetric).toHaveBeenCalled();
+      const sentMetric = beforeSendMetric.mock.calls[0]?.[0];
+      expect(sentMetric).toBeDefined();
+      expect(sentMetric.attributes?.replay_id).toBeUndefined();
     });
   });
 });

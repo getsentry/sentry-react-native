@@ -14,6 +14,7 @@ const readFileAsync = promisify(readFile);
 export const stackFramesContextMiddleware: Middleware = async (
   request: IncomingMessage,
   response: ServerResponse,
+  _next: () => void,
 ): Promise<void> => {
   debug.log('[@sentry/react-native/metro] Received request for stack frames context.');
   request.setEncoding('utf8');
@@ -89,11 +90,15 @@ const SENTRY_CONTEXT_REQUEST_PATH = `${SENTRY_MIDDLEWARE_PATH}/context`;
  * Creates a middleware that adds source context to the Sentry formatted stack frames.
  */
 export const createSentryMetroMiddleware = (middleware: Middleware): Middleware => {
-  return (request: IncomingMessage, response: ServerResponse, next: unknown) => {
+  return (request: IncomingMessage, response: ServerResponse, next: () => void) => {
     if (request.url?.startsWith(SENTRY_CONTEXT_REQUEST_PATH)) {
-      return stackFramesContextMiddleware(request, response);
+      return stackFramesContextMiddleware(request, response, next);
     }
-    return middleware(request, response, next);
+    return (middleware as (req: IncomingMessage, res: ServerResponse, next: () => void) => void)(
+      request,
+      response,
+      next,
+    );
   };
 };
 

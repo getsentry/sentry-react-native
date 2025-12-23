@@ -101,9 +101,10 @@ function walkErrorTree(
   } else if (isInstanceOf(linkedError, Error)) {
     exception = exceptionFromError(parser, error[key]);
   } else if (isPlainObject(linkedError)) {
+    const plainError = linkedError as Record<string, unknown>;
     exception = {
-      type: typeof linkedError.name === 'string' ? linkedError.name : undefined,
-      value: typeof linkedError.message === 'string' ? linkedError.message : undefined,
+      type: typeof plainError.name === 'string' ? plainError.name : undefined,
+      value: typeof plainError.message === 'string' ? plainError.message : undefined,
     };
   } else {
     return {
