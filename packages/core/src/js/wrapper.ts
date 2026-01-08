@@ -57,6 +57,7 @@ export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
   ignoreErrorsRegex?: string[] | undefined;
 } & {
   mobileReplayOptions: MobileReplayOptions | undefined;
+  androidProfilingOptions?: import('./options').AndroidProfilingOptions | undefined;
 };
 
 interface SentryNativeWrapper {
