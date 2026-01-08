@@ -11,12 +11,13 @@
 ### Fixes
 
 - Fix for missing `replay_id` from metrics ([#5483](https://github.com/getsentry/sentry-react-native/pull/5483))
+- Skip span ID check when standalone mode is enabled ([#5493](https://github.com/getsentry/sentry-react-native/pull/5493))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.30.0 to v10.32.0 ([#5480](https://github.com/getsentry/sentry-react-native/pull/5480), [#5487](https://github.com/getsentry/sentry-react-native/pull/5487))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10320)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.30.0...10.32.0)
+- Bump JavaScript SDK from v10.30.0 to v10.32.1 ([#5480](https://github.com/getsentry/sentry-react-native/pull/5480), [#5487](https://github.com/getsentry/sentry-react-native/pull/5487), [#5496](https://github.com/getsentry/sentry-react-native/pull/5496))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10321)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.30.0...10.32.1)
 
 ## 7.8.0
 
