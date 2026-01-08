@@ -1,5 +1,5 @@
-#import "RNSentry.h"
 #import "RNSentry+formatters.h"
+#import "RNSentry.h"
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryId.h"
 #import <Sentry/PrivateSentrySDKOnly.h>

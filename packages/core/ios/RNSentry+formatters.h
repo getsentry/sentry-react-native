@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 
-// This file is a copy from https://github.com/getsentry/sentry-cocoa/blob/6c20265de0903b835a299e2e9da0f7af50af09f5/Sources/Sentry/include/HybridPublic/SentryFormatter.h
+// This file is a copy from
+// https://github.com/getsentry/sentry-cocoa/blob/6c20265de0903b835a299e2e9da0f7af50af09f5/Sources/Sentry/include/HybridPublic/SentryFormatter.h
 
 // 2 for the 0x prefix, plus 16 for the hex value, plus 1 for the null terminator
 #define SENTRY_HEX_ADDRESS_LENGTH 19
