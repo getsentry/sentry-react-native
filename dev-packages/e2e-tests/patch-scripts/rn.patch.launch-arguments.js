@@ -56,16 +56,33 @@ debug.log('Patching react-native-launch-arguments podspec', podspecPath);
 
 if (fs.existsSync(podspecPath)) {
   const podspec = fs.readFileSync(podspecPath, 'utf8');
+  debug.log('Found podspec, checking for React dependency...');
+
   const isPatched = podspec.includes("s.dependency 'React-Core'") || podspec.includes('s.dependency "React-Core"');
-  if (!isPatched) {
-    const patched = podspec
-      .replace(/s\.dependency\s+['"]React['"]/g, "s.dependency 'React-Core'")
-      .replace(/s\.dependency\s+['"]React\/Core['"]/g, "s.dependency 'React-Core'");
+  const hasReactDep = /s\.dependency\s+['"]React['"]/.test(podspec);
+  const hasReactCoreDep = /s\.dependency\s+['"]React\/Core['"]/.test(podspec);
+
+  debug.log(`Podspec status: isPatched=${isPatched}, hasReactDep=${hasReactDep}, hasReactCoreDep=${hasReactCoreDep}`);
+
+  if (!isPatched && (hasReactDep || hasReactCoreDep)) {
+    let patched = podspec;
+
+    if (hasReactDep) {
+      debug.log("Replacing s.dependency 'React' with s.dependency 'React-Core'");
+      patched = patched.replace(/s\.dependency\s+['"]React['"]/g, "s.dependency 'React-Core'");
+    }
+
+    if (hasReactCoreDep) {
+      debug.log("Replacing s.dependency 'React/Core' with s.dependency 'React-Core'");
+      patched = patched.replace(/s\.dependency\s+['"]React\/Core['"]/g, "s.dependency 'React-Core'");
+    }
 
     fs.writeFileSync(podspecPath, patched);
     debug.log('Patched react-native-launch-arguments podspec successfully!');
-  } else {
+  } else if (isPatched) {
     debug.log('react-native-launch-arguments podspec is already patched!');
+  } else {
+    debug.log('Podspec does not contain React dependency - may use install_modules_dependencies');
   }
 } else {
   debug.log('podspec not found, skipping iOS patch');

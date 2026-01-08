@@ -189,6 +189,14 @@ if (actions.includes('create')) {
       env: env,
     });
 
+    // Clean Pods to ensure CocoaPods reads the patched podspec
+    if (fs.existsSync(`${appDir}/ios/Pods`)) {
+      fs.rmSync(`${appDir}/ios/Pods`, { recursive: true });
+    }
+    if (fs.existsSync(`${appDir}/ios/Podfile.lock`)) {
+      fs.rmSync(`${appDir}/ios/Podfile.lock`);
+    }
+
     if (fs.existsSync(`${appDir}/Gemfile`)) {
       execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });
       execSync('bundle exec pod install --repo-update', { stdio: 'inherit', cwd: `${appDir}/ios`, env: env });
