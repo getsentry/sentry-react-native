@@ -25,22 +25,49 @@ debug.log('Patching react-native-launch-arguments build.gradle', buildGradlePath
 
 if (!fs.existsSync(buildGradlePath)) {
   debug.log('build.gradle not found, skipping patch');
-  return;
+} else {
+  const buildGradle = fs.readFileSync(buildGradlePath, 'utf8');
+
+  // Replace destinationDir with destinationDirectory.get() for Gradle 9+ compatibility
+  const isPatched = buildGradle.includes('destinationDirectory.get()');
+  if (!isPatched) {
+    const patched = buildGradle.replace(
+      /\.destinationDir\b/g,
+      '.destinationDirectory.get()'
+    );
+
+    fs.writeFileSync(buildGradlePath, patched);
+    debug.log('Patched react-native-launch-arguments build.gradle successfully!');
+  } else {
+    debug.log('react-native-launch-arguments build.gradle is already patched!');
+  }
 }
 
-const buildGradle = fs.readFileSync(buildGradlePath, 'utf8');
+// Patch iOS podspec for React Native 0.71+ compatibility
+// Replace 'React' with 'React-Core' to fix RCTRegisterModule undefined symbol error in RN 0.84+ with dynamic frameworks
+const podspecPath = path.join(
+  args['app-dir'],
+  'node_modules',
+  'react-native-launch-arguments',
+  'react-native-launch-arguments.podspec'
+);
 
-// Replace destinationDir with destinationDirectory.get() for Gradle 9+ compatibility
-const isPatched = buildGradle.includes('destinationDirectory.get()');
-if (!isPatched) {
-  const patched = buildGradle.replace(
-    /\.destinationDir\b/g,
-    '.destinationDirectory.get()'
-  );
+debug.log('Patching react-native-launch-arguments podspec', podspecPath);
 
-  fs.writeFileSync(buildGradlePath, patched);
-  debug.log('Patched react-native-launch-arguments build.gradle successfully!');
+if (fs.existsSync(podspecPath)) {
+  const podspec = fs.readFileSync(podspecPath, 'utf8');
+  const isPatched = podspec.includes("s.dependency 'React-Core'") || podspec.includes('s.dependency "React-Core"');
+  if (!isPatched) {
+    const patched = podspec
+      .replace(/s\.dependency\s+['"]React['"]/g, "s.dependency 'React-Core'")
+      .replace(/s\.dependency\s+['"]React\/Core['"]/g, "s.dependency 'React-Core'");
+
+    fs.writeFileSync(podspecPath, patched);
+    debug.log('Patched react-native-launch-arguments podspec successfully!');
+  } else {
+    debug.log('react-native-launch-arguments podspec is already patched!');
+  }
 } else {
-  debug.log('react-native-launch-arguments build.gradle is already patched!');
+  debug.log('podspec not found, skipping iOS patch');
 }
 
