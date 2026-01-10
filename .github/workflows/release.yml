@@ -11,6 +11,7 @@ on:
       merge_target:
         description: Target branch to merge into
         required: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -20,22 +21,32 @@ jobs:
     runs-on: ubuntu-latest
     name: Release a new version
     steps:
-    - name: Get auth token
-      id: token
-      uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v2
-      with:
-        app-id: ${{ vars.SENTRY_RELEASE_BOT_CLIENT_ID }}
-        private-key: ${{ secrets.SENTRY_RELEASE_BOT_PRIVATE_KEY }}
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v2
-      with:
-        token: ${{ steps.token.outputs.token }}
-        fetch-depth: 0
-    - name: Prepare release
-      uses: getsentry/craft@39ee616a6a58dc64797feecb145d66770492b66c # v2
-      env:
-        GITHUB_TOKEN: ${{ steps.token.outputs.token }}
-      with:
-        version: ${{ inputs.version }}
-        force: ${{ inputs.force }}
-        merge_target: ${{ inputs.merge_target }}
-        path: yarn.lock
+      - name: Get auth token
+        id: token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ vars.SENTRY_RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.SENTRY_RELEASE_BOT_PRIVATE_KEY }}
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          token: ${{ steps.token.outputs.token }}
+          fetch-depth: 0
+
+      - run: npm i -g corepack
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          package-manager-cache: false
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Prepare release
+        uses: getsentry/craft@39ee616a6a58dc64797feecb145d66770492b66c # v2
+        env:
+          GITHUB_TOKEN: ${{ steps.token.outputs.token }}
+        with:
+          version: ${{ inputs.version }}
+          force: ${{ inputs.force }}
+          merge_target: ${{ inputs.merge_target }}
