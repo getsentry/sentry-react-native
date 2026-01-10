@@ -56,7 +56,7 @@ jobs:
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
 
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
@@ -65,7 +65,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -227,7 +227,7 @@ jobs:
             ios-use-frameworks: 'dynamic'
 
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
 
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
@@ -251,7 +251,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -328,7 +328,7 @@ jobs:
             runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -355,7 +355,7 @@ jobs:
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
         with:
           package-manager-cache: false
           node-version: 20
