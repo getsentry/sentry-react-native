@@ -18,7 +18,7 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v2
       - run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
       - uses: ruby/setup-ruby@v1
         with:
