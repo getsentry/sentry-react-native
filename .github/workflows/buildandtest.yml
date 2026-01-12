@@ -22,9 +22,9 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -41,9 +41,9 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -87,9 +87,9 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -111,9 +111,9 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -155,9 +155,9 @@ jobs:
     env:
       YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -186,9 +186,9 @@ jobs:
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -221,9 +221,9 @@ jobs:
         platform: ['ios', 'android']
         dev: [true, false]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6 # v6 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           package-manager-cache: false
           node-version: 18
