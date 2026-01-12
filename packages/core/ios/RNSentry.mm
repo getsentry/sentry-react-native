@@ -24,7 +24,6 @@
 #import <Sentry/SentryDebugMeta.h>
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
-#import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryGeo.h>
 #import <Sentry/SentryUser.h>
 
