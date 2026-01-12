@@ -2,9 +2,10 @@
 
 #if SENTRY_HAS_UIKIT
 
-#    import "RNSentryFramesTrackerListener.h"
 #    import <React/RCTViewManager.h>
 #    import <UIKit/UIKit.h>
+
+@protocol RNSentryFramesTrackerListenerProtocol;
 
 @interface RNSentryOnDrawReporter : RCTViewManager
 
