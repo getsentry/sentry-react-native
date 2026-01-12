@@ -47,12 +47,6 @@ Sentry.init({
   dsn: 'https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561',
   replaysOnErrorSampleRate: replaysOnErrorSampleRate,
   replaysSessionSampleRate: replaysSessionSampleRate,
-  integrations: [
-    Sentry.mobileReplayIntegration(),
-    Sentry.feedbackIntegration({
-      enableTakeScreenshot: true,
-    }),
-  ],
 });
 `;
 const e2eComponentPatch = '<EndToEndTestsScreen />';
