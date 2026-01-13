@@ -36,6 +36,7 @@ import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
+import io.sentry.ProfileLifecycle;
 import io.sentry.ScopesAdapter;
 import io.sentry.ScreenshotStrategyType;
 import io.sentry.Sentry;
@@ -483,8 +484,7 @@ public class RNSentryModuleImpl {
     }
   }
 
-  private void configureAndroidProfiling(
-      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions) {
+  private void configureAndroidProfiling(@NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions) {
     if (!rnOptions.hasKey("_experiments")) {
       return;
     }
@@ -516,24 +516,21 @@ public class RNSentryModuleImpl {
     if (androidProfilingOptions.hasKey("lifecycle")) {
       final String lifecycle = androidProfilingOptions.getString("lifecycle");
       if ("manual".equalsIgnoreCase(lifecycle)) {
-        options.setProfilingLifecycle(
-            io.sentry.android.core.SentryAndroidOptions.ProfilingLifecycle.MANUAL);
-        logger.log(SentryLevel.INFO, "Android UI Profiling lifecycle set to: MANUAL");
+        options.setProfileLifecycle(ProfileLifecycle.MANUAL);
+        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to MANUAL");
       } else if ("trace".equalsIgnoreCase(lifecycle)) {
-        options.setProfilingLifecycle(
-            io.sentry.android.core.SentryAndroidOptions.ProfilingLifecycle.TRACE);
-        logger.log(SentryLevel.INFO, "Android UI Profiling lifecycle set to: TRACE");
+        options.setProfileLifecycle(ProfileLifecycle.TRACE);
+        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to TRACE");
       }
     }
 
     // Set start on app start
     if (androidProfilingOptions.hasKey("startOnAppStart")) {
       final boolean startOnAppStart = androidProfilingOptions.getBoolean("startOnAppStart");
-      options.setStartProfilingOnAppStart(startOnAppStart);
+      options.setStartProfilerOnAppStart(startOnAppStart);
       logger.log(
           SentryLevel.INFO,
-          String.format(
-              "Android UI Profiling startOnAppStart set to: %b", startOnAppStart));
+          String.format("Android UI Profiling startOnAppStart set to %b", startOnAppStart));
     }
   }
 
