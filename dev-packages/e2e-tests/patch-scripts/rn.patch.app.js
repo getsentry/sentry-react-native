@@ -23,30 +23,19 @@ import * as Sentry from '@sentry/react-native';
 import { EndToEndTestsScreen } from 'sentry-react-native-e2e-tests';
 import { LaunchArguments } from "react-native-launch-arguments";
 
-const launchArgs = LaunchArguments.value();
-
-// Parse launch arguments, handling both number and string types
-const parseRate = (value) => {
-  if (value === undefined || value === null || value === 'undefined') {
-    return undefined;
-  }
-  const parsed = typeof value === 'number' ? value : parseFloat(value);
-  return isNaN(parsed) ? undefined : parsed;
-};
-
-const replaysOnErrorSampleRate = parseRate(launchArgs.replaysOnErrorSampleRate);
-const replaysSessionSampleRate = parseRate(launchArgs.replaysSessionSampleRate);
-
-console.log('[E2E] LaunchArguments raw:', JSON.stringify(launchArgs));
-console.log('[E2E] Parsed replaysOnErrorSampleRate:', replaysOnErrorSampleRate, typeof replaysOnErrorSampleRate);
-console.log('[E2E] Parsed replaysSessionSampleRate:', replaysSessionSampleRate, typeof replaysSessionSampleRate);
-
 Sentry.init({
   release: '${SENTRY_RELEASE}',
   dist: '${SENTRY_DIST}',
   dsn: 'https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561',
-  replaysOnErrorSampleRate: replaysOnErrorSampleRate,
-  replaysSessionSampleRate: replaysSessionSampleRate,
+  _experiments: {
+    replaysOnErrorSampleRate: LaunchArguments.value().replaysOnErrorSampleRate,
+  },
+  integrations: [
+    Sentry.mobileReplayIntegration(),
+    Sentry.feedbackIntegration({
+      enableTakeScreenshot: true,
+    }),
+  ],
 });
 `;
 const e2eComponentPatch = '<EndToEndTestsScreen />';
