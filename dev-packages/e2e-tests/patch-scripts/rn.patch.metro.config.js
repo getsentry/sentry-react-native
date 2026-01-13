@@ -20,7 +20,7 @@ const importSerializer = "const { withSentryConfig } = require('@sentry/react-na
 
 let config = fs.readFileSync(configFilePath, 'utf8').split('\n');
 
-const sentryOptions = '{ annotateReactComponents: true }';
+const sentryOptions = '{ annotateReactComponents: true, optionsFile: false }';
 
 const isPatched = config.includes(importSerializer);
 if (!isPatched) {
