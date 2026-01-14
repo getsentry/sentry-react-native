@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Fix duplicate error reporting on iOS with New Architecture ([#5532](https://github.com/getsentry/sentry-react-native/pull/5532))
 - Fix for missing `replay_id` from metrics ([#5483](https://github.com/getsentry/sentry-react-native/pull/5483))
 - Skip span ID check when standalone mode is enabled ([#5493](https://github.com/getsentry/sentry-react-native/pull/5493))
 
