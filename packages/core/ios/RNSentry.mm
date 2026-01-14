@@ -101,7 +101,8 @@ static bool hasFetchedAppStart;
         // which is React Native's mechanism for reporting JS errors to the native layer.
         for (SentryException *exception in event.exceptions) {
             if (nil != exception.value &&
-                [exception.value rangeOfString:@"ExceptionsManager.reportException"].location != NSNotFound) {
+                [exception.value rangeOfString:@"ExceptionsManager.reportException"].location
+                    != NSNotFound) {
                 return nil;
             }
         }
