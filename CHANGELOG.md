@@ -10,14 +10,28 @@
 
 ### Fixes
 
+- Fix duplicate error reporting on iOS with New Architecture ([#5532](https://github.com/getsentry/sentry-react-native/pull/5532))
 - Fix for missing `replay_id` from metrics ([#5483](https://github.com/getsentry/sentry-react-native/pull/5483))
 - Skip span ID check when standalone mode is enabled ([#5493](https://github.com/getsentry/sentry-react-native/pull/5493))
+- Fix traces not always being attached to replays with errors ([#5538](https://github.com/getsentry/sentry-react-native/pull/5538))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.30.0 to v10.32.1 ([#5480](https://github.com/getsentry/sentry-react-native/pull/5480), [#5487](https://github.com/getsentry/sentry-react-native/pull/5487), [#5496](https://github.com/getsentry/sentry-react-native/pull/5496))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10321)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.30.0...10.32.1)
+- Bump Cocoa SDK from v8.57.3 to v8.58.0 ([#5524](https://github.com/getsentry/sentry-react-native/pull/5524))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#8580)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.57.3...8.58.0)
+- Bump JavaScript SDK from v10.30.0 to v10.34.0 ([#5480](https://github.com/getsentry/sentry-react-native/pull/5480), [#5487](https://github.com/getsentry/sentry-react-native/pull/5487), [#5496](https://github.com/getsentry/sentry-react-native/pull/5496), [#5522](https://github.com/getsentry/sentry-react-native/pull/5522), [#5535](https://github.com/getsentry/sentry-react-native/pull/5535))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10340)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.30.0...10.34.0)
+- Bump Bundler Plugins from v4.6.1 to v4.6.2 ([#5536](https://github.com/getsentry/sentry-react-native/pull/5536))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#462)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.6.1...4.6.2)
+- Bump Android SDK from v8.29.0 to v8.30.0 ([#5539](https://github.com/getsentry/sentry-react-native/pull/5539))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8300)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.29.0...8.30.0)
+- Bump Android SDK Stubs from v8.29.0 to v8.30.0 ([#5540](https://github.com/getsentry/sentry-react-native/pull/5540))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8300)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.29.0...8.30.0)
 
 ## 7.8.0
 
