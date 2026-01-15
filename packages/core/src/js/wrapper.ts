@@ -287,9 +287,19 @@ export const NATIVE: SentryNativeWrapper = {
       integrations,
       ignoreErrors,
       logsOrigin,
+      androidProfilingOptions,
       ...filteredOptions
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
+
+    // Move androidProfilingOptions into _experiments
+    if (androidProfilingOptions) {
+      filteredOptions._experiments = {
+        ...filteredOptions._experiments,
+        androidProfilingOptions,
+      };
+    }
+
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
     this.nativeIsReady = nativeIsReady;
