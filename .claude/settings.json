@@ -82,6 +82,7 @@
       "Bash(carthage version:*)",
       "Bash(./gradlew --version:*)",
       "Bash(./gradlew tasks:*)",
+      "Bash(./gradlew assembleRelease)",
       "Bash(gradle --version:*)",
       "Bash(java -version:*)",
       "Bash(javac -version:*)",
