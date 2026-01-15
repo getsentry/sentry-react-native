@@ -12,6 +12,7 @@
 
 - Fix for missing `replay_id` from metrics ([#5483](https://github.com/getsentry/sentry-react-native/pull/5483))
 - Skip span ID check when standalone mode is enabled ([#5493](https://github.com/getsentry/sentry-react-native/pull/5493))
+- Fix traces not always being attached to replays with errors ([#5537](https://github.com/getsentry/sentry-react-native/pull/5537))
 
 ### Dependencies
 
