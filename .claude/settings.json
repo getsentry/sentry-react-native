@@ -43,6 +43,7 @@
       "Bash(npm --version:*)",
       "Bash(node --version:*)",
       "Bash(npx --version:*)",
+      "Bash(npx expo prebuild)",
       "Bash(react-native --version:*)",
       "Bash(metro --version:*)",
       "Bash(jest --version:*)",
