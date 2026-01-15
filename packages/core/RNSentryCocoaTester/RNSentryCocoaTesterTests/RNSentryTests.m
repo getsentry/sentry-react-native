@@ -776,6 +776,80 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     XCTAssertNotNil(result3, @"Event with non-matching error should not be dropped");
 }
 
+- (void)testBeforeSendFiltersOutUnhandledJSException
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+    NSMutableDictionary *mockedOptions = [@{
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
+    XCTAssertNotNil(options);
+    XCTAssertNil(error);
+
+    SentryEvent *event = [[SentryEvent alloc] init];
+    SentryException *exception = [SentryException alloc];
+    exception.type = @"Unhandled JS Exception";
+    exception.value = @"Error: Test error";
+    event.exceptions = @[ exception ];
+    SentryEvent *result = options.beforeSend(event);
+    XCTAssertNil(result, @"Event with Unhandled JS Exception should be dropped");
+}
+
+- (void)testBeforeSendFiltersOutJSErrorCppException
+{
+    RNSentry *rnSentry = [[RNSentry alloc] init];
+    NSError *error = nil;
+    NSMutableDictionary *mockedOptions = [@{
+        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567",
+    } mutableCopy];
+    mockedOptions = [rnSentry prepareOptions:mockedOptions];
+    SentryOptions *options = [SentrySDKWrapper createOptionsWithDictionary:mockedOptions
+                                                    isSessionReplayEnabled:NO
+                                                                     error:&error];
+    XCTAssertNotNil(options);
+    XCTAssertNil(error);
+
+    // Test C++ exception with ExceptionsManager.reportException in value (actual format from New
+    // Architecture) The exception type is "C++ Exception" and the value contains the mangled name
+    // and error message
+    SentryEvent *event1 = [[SentryEvent alloc] init];
+    SentryException *exception1 = [SentryException alloc];
+    exception1.type = @"C++ Exception";
+    exception1.value = @"N8facebook3jsi7JSErrorE: ExceptionsManager.reportException raised an "
+                       @"exception: Unhandled JS Exception: Error: Test error";
+    event1.exceptions = @[ exception1 ];
+    SentryEvent *result1 = options.beforeSend(event1);
+    XCTAssertNil(
+        result1, @"Event with ExceptionsManager.reportException in value should be dropped");
+
+    // Test exception value containing ExceptionsManager.reportException (alternative format)
+    SentryEvent *event2 = [[SentryEvent alloc] init];
+    SentryException *exception2 = [SentryException alloc];
+    exception2.type = @"SomeOtherException";
+    exception2.value = @"ExceptionsManager.reportException raised an exception: Unhandled JS "
+                       @"Exception: Error: Test";
+    event2.exceptions = @[ exception2 ];
+    SentryEvent *result2 = options.beforeSend(event2);
+    XCTAssertNil(
+        result2, @"Event with ExceptionsManager.reportException in value should be dropped");
+
+    // Test that legitimate C++ exceptions without ExceptionsManager.reportException are not
+    // filtered
+    SentryEvent *event3 = [[SentryEvent alloc] init];
+    SentryException *exception3 = [SentryException alloc];
+    exception3.type = @"C++ Exception";
+    exception3.value = @"std::runtime_error: Some other C++ error occurred";
+    event3.exceptions = @[ exception3 ];
+    SentryEvent *result3 = options.beforeSend(event3);
+    XCTAssertNotNil(result3,
+        @"Legitimate C++ exception without ExceptionsManager.reportException should not be "
+        @"dropped");
+}
+
 - (void)testCreateOptionsWithDictionaryEnableSessionReplayInUnreliableEnvironmentDefault
 {
     NSError *error = nil;
