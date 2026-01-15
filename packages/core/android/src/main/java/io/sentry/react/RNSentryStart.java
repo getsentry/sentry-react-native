@@ -7,6 +7,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.JavascriptException;
 import io.sentry.ILogger;
 import io.sentry.Integration;
+import io.sentry.ProfileLifecycle;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
@@ -162,6 +163,9 @@ final class RNSentryStart {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
     }
 
+    // Configure Android UI Profiling
+    configureAndroidProfiling(options, rnOptions);
+
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     String dsn = getURLFromDSN(rnOptions.getString("dsn"));
     String devServerUrl = rnOptions.getString("devServerUrl");
@@ -190,6 +194,57 @@ final class RNSentryStart {
     }
     logger.log(
         SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
+  }
+
+  private void configureAndroidProfiling(
+      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions) {
+    if (!rnOptions.hasKey("_experiments")) {
+      return;
+    }
+
+    @Nullable final ReadableMap experiments = rnOptions.getMap("_experiments");
+    if (experiments == null || !experiments.hasKey("androidProfilingOptions")) {
+      return;
+    }
+
+    @Nullable
+    final ReadableMap androidProfilingOptions = experiments.getMap("androidProfilingOptions");
+    if (androidProfilingOptions == null) {
+      return;
+    }
+
+    // Set profile session sample rate
+    if (androidProfilingOptions.hasKey("profileSessionSampleRate")) {
+      final double profileSessionSampleRate =
+          androidProfilingOptions.getDouble("profileSessionSampleRate");
+      options.setProfileSessionSampleRate(profileSessionSampleRate);
+      logger.log(
+          SentryLevel.INFO,
+          String.format(
+              "Android UI Profiling profileSessionSampleRate set to: %.2f",
+              profileSessionSampleRate));
+    }
+
+    // Set profiling lifecycle mode
+    if (androidProfilingOptions.hasKey("lifecycle")) {
+      final String lifecycle = androidProfilingOptions.getString("lifecycle");
+      if ("manual".equalsIgnoreCase(lifecycle)) {
+        options.setProfileLifecycle(ProfileLifecycle.MANUAL);
+        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to MANUAL");
+      } else if ("trace".equalsIgnoreCase(lifecycle)) {
+        options.setProfileLifecycle(ProfileLifecycle.TRACE);
+        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to TRACE");
+      }
+    }
+
+    // Set start on app start
+    if (androidProfilingOptions.hasKey("startOnAppStart")) {
+      final boolean startOnAppStart = androidProfilingOptions.getBoolean("startOnAppStart");
+      options.setStartProfilerOnAppStart(startOnAppStart);
+      logger.log(
+          SentryLevel.INFO,
+          String.format("Android UI Profiling startOnAppStart set to %b", startOnAppStart));
+    }
   }
 
   /**
