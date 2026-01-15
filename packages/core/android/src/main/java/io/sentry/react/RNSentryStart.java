@@ -164,7 +164,7 @@ final class RNSentryStart {
     }
 
     // Configure Android UI Profiling
-    configureAndroidProfiling(options, rnOptions);
+    configureAndroidProfiling(options, rnOptions, logger);
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     String dsn = getURLFromDSN(rnOptions.getString("dsn"));
@@ -196,8 +196,10 @@ final class RNSentryStart {
         SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
   }
 
-  private void configureAndroidProfiling(
-      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions) {
+  private static void configureAndroidProfiling(
+      @NotNull SentryAndroidOptions options,
+      @NotNull ReadableMap rnOptions,
+      @NotNull ILogger logger) {
     if (!rnOptions.hasKey("_experiments")) {
       return;
     }
