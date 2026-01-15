@@ -277,7 +277,6 @@ describe('Mobile Replay Integration', () => {
         expect(processedEvent.contexts?.replay?.replay_id).toBe(replayId);
       }
     });
-
   });
 
   describe('platform checks', () => {
