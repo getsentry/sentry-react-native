@@ -216,6 +216,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       debug.log(
         `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Captured recording replay ${replayId} for event ${event.event_id}.`,
       );
+      // Add replay_id to error event contexts to link replays to events/traces
+      event.contexts = event.contexts || {};
+      event.contexts.replay = {
+        ...event.contexts.replay,
+        replay_id: replayId,
+      };
     } else {
       // Check if there's an ongoing recording and update cache if found
       const recordingReplayId = NATIVE.getCurrentReplayId();
@@ -224,6 +230,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
         debug.log(
           `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
         );
+        // Add replay_id to error event contexts to link replays to events/traces
+        event.contexts = event.contexts || {};
+        event.contexts.replay = {
+          ...event.contexts.replay,
+          replay_id: recordingReplayId,
+        };
       } else {
         updateCachedReplayId(null);
         debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
