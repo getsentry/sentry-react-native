@@ -36,6 +36,7 @@ import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.Integration;
+import io.sentry.ProfileLifecycle;
 import io.sentry.ScopesAdapter;
 import io.sentry.ScreenshotStrategyType;
 import io.sentry.Sentry;
@@ -324,7 +325,8 @@ public class RNSentryModuleImpl {
 
     SentryReplayOptions replayOptions = getReplayOptions(rnOptions);
     options.setSessionReplay(replayOptions);
-    // Check if the replay integration is available on the classpath. It's already kept from R8
+    // Check if the replay integration is available on the classpath. It's already
+    // kept from R8
     // shrinking by sentry-android-core
     final boolean isReplayAvailable =
         loadClass.isClassAvailable("io.sentry.android.replay.ReplayIntegration", logger);
@@ -332,6 +334,9 @@ public class RNSentryModuleImpl {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
       initFragmentReplayTracking();
     }
+
+    // Configure Android UI Profiling
+    configureAndroidProfiling(options, rnOptions);
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     String dsn = getURLFromDSN(rnOptions.getString("dsn"));
@@ -482,17 +487,70 @@ public class RNSentryModuleImpl {
     }
   }
 
+  private void configureAndroidProfiling(
+      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions) {
+    if (!rnOptions.hasKey("_experiments")) {
+      return;
+    }
+
+    @Nullable final ReadableMap experiments = rnOptions.getMap("_experiments");
+    if (experiments == null || !experiments.hasKey("androidProfilingOptions")) {
+      return;
+    }
+
+    @Nullable
+    final ReadableMap androidProfilingOptions = experiments.getMap("androidProfilingOptions");
+    if (androidProfilingOptions == null) {
+      return;
+    }
+
+    // Set profile session sample rate
+    if (androidProfilingOptions.hasKey("profileSessionSampleRate")) {
+      final double profileSessionSampleRate =
+          androidProfilingOptions.getDouble("profileSessionSampleRate");
+      options.setProfileSessionSampleRate(profileSessionSampleRate);
+      logger.log(
+          SentryLevel.INFO,
+          String.format(
+              "Android UI Profiling profileSessionSampleRate set to: %.2f",
+              profileSessionSampleRate));
+    }
+
+    // Set profiling lifecycle mode
+    if (androidProfilingOptions.hasKey("lifecycle")) {
+      final String lifecycle = androidProfilingOptions.getString("lifecycle");
+      if ("manual".equalsIgnoreCase(lifecycle)) {
+        options.setProfileLifecycle(ProfileLifecycle.MANUAL);
+        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to MANUAL");
+      } else if ("trace".equalsIgnoreCase(lifecycle)) {
+        options.setProfileLifecycle(ProfileLifecycle.TRACE);
+        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to TRACE");
+      }
+    }
+
+    // Set start on app start
+    if (androidProfilingOptions.hasKey("startOnAppStart")) {
+      final boolean startOnAppStart = androidProfilingOptions.getBoolean("startOnAppStart");
+      options.setStartProfilerOnAppStart(startOnAppStart);
+      logger.log(
+          SentryLevel.INFO,
+          String.format("Android UI Profiling startOnAppStart set to %b", startOnAppStart));
+    }
+  }
+
   public void crash() {
     throw new RuntimeException("TEST - Sentry Client Crash (only works in release mode)");
   }
 
   public void addListener(String eventType) {
-    // Is must be defined otherwise the generated interface from TS won't be fulfilled
+    // Is must be defined otherwise the generated interface from TS won't be
+    // fulfilled
     logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
   }
 
   public void removeListeners(double id) {
-    // Is must be defined otherwise the generated interface from TS won't be fulfilled
+    // Is must be defined otherwise the generated interface from TS won't be
+    // fulfilled
     logger.log(
         SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
   }
@@ -557,7 +615,8 @@ public class RNSentryModuleImpl {
     // When activity is destroyed but the application process is kept alive
     // the next activity creation is considered warm start.
     // The app start metrics will be updated by the the Android SDK.
-    // To let the RN JS layer know these are new start data we compare the start timestamps.
+    // To let the RN JS layer know these are new start data we compare the start
+    // timestamps.
     lastStartTimestampMs = currentStartTimestampMs;
 
     // Clears start metrics, making them ready for recording warm app start
@@ -1292,7 +1351,8 @@ public class RNSentryModuleImpl {
       }
     }
     if (strErrors != null) {
-      // Use the same behaviour of JavaScript instead of Android when dealing with strings.
+      // Use the same behaviour of JavaScript instead of Android when dealing with
+      // strings.
       for (int i = 0; i < strErrors.size(); i++) {
         String pattern = ".*" + Pattern.quote(strErrors.getString(i)) + ".*";
         list.add(pattern);

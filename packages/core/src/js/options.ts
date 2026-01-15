@@ -285,7 +285,7 @@ export interface BaseReactNativeOptions {
     /**
      * Experiment: A more reliable way to report unhandled C++ exceptions in iOS.
      *
-     * This approach hooks into all instances of the `__cxa_throw` function, which provides a more comprehensive and consistent exception handling across an app’s runtime, regardless of the number of C++ modules or how they’re linked. It helps in obtaining accurate stack traces.
+     * This approach hooks into all instances of the `__cxa_throw` function, which provides a more comprehensive and consistent exception handling across an app's runtime, regardless of the number of C++ modules or how they're linked. It helps in obtaining accurate stack traces.
      *
      * - Note: The mechanism of hooking into `__cxa_throw` could cause issues with symbolication on iOS due to caching of symbol references.
      *
@@ -293,6 +293,17 @@ export interface BaseReactNativeOptions {
      * @platform ios
      */
     enableUnhandledCPPExceptionsV2?: boolean;
+
+    /**
+     * Configuration options for Android UI profiling.
+     * UI profiling supports two modes: `manual` and `trace`.
+     * - In `trace` mode, the profiler runs based on active sampled spans.
+     * - In `manual` mode, profiling is controlled via start/stop API calls.
+     *
+     * @experimental
+     * @platform android
+     */
+    androidProfilingOptions?: AndroidProfilingOptions;
   };
 
   /**
@@ -329,6 +340,48 @@ export interface BaseReactNativeOptions {
 }
 
 export type SentryReplayQuality = 'low' | 'medium' | 'high';
+
+/**
+ * Android UI profiling lifecycle modes.
+ * - `trace`: Profiler runs based on active sampled spans
+ * - `manual`: Profiler is controlled manually via start/stop API calls
+ */
+export type AndroidProfilingLifecycle = 'trace' | 'manual';
+
+/**
+ * Configuration options for Android UI profiling.
+ *
+ * @experimental
+ * @platform android
+ */
+export interface AndroidProfilingOptions {
+  /**
+   * Sample rate for profiling sessions.
+   * This is evaluated once per session and determines if profiling should be enabled for that session.
+   * 1.0 will enable profiling for all sessions, 0.0 will disable profiling.
+   *
+   * @default undefined (profiling disabled)
+   */
+  profileSessionSampleRate?: number;
+
+  /**
+   * Profiling lifecycle mode.
+   * - `trace`: Profiler runs while there is at least one active sampled span
+   * - `manual`: Profiler is controlled manually via Sentry.profiler.startProfiler/stopProfiler
+   *
+   * @default 'trace'
+   */
+  lifecycle?: AndroidProfilingLifecycle;
+
+  /**
+   * Enable profiling on app start.
+   * - In `trace` mode: The app start profile stops automatically when the app start root span finishes
+   * - In `manual` mode: The app start profile must be stopped through Sentry.profiler.stopProfiler()
+   *
+   * @default false
+   */
+  startOnAppStart?: boolean;
+}
 
 export interface ReactNativeTransportOptions extends BrowserTransportOptions {
   /**
