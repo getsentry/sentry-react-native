@@ -45,7 +45,7 @@ jobs:
         if: steps.check-pr.outputs.is-pr == 'true'
         id: check_diff
         run: |
-          skipList=(".github/CODEOWNERS" ".prettierignore" ".github/workflows/update-deps.yml" ".github/workflows/skip-ci.yml")
+          skipList=(".github/CODEOWNERS" ".prettierignore" ".github/workflows/update-deps.yml" ".github/workflows/skip-ci.yml" ".claude/settings.json")
           skipRegList=("(.*/)?\.gitignore" "\.github/ISSUE_TEMPLATE.*")
 
           for s in "${skipRegList[@]}"; do

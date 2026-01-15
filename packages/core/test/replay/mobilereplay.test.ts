@@ -258,6 +258,25 @@ describe('Mobile Replay Integration', () => {
 
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
+
+    it('should add replay context to error events when replay is captured', async () => {
+      const integration = mobileReplayIntegration();
+      const replayId = 'test-replay-id';
+      mockCaptureReplay.mockResolvedValue(replayId);
+
+      const event: Event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      };
+      const hint: EventHint = {};
+
+      if (integration.processEvent) {
+        const processedEvent = await integration.processEvent(event, hint);
+        expect(processedEvent.contexts?.replay?.replay_id).toBe(replayId);
+      }
+    });
   });
 
   describe('platform checks', () => {
