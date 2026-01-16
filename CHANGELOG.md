@@ -12,6 +12,20 @@
 
 - Experimental support of UI profiling on Android ([#5518](https://github.com/getsentry/sentry-react-native/pull/5518))
 - Expose iOS options to ignore views from subtree traversal ([#5545](https://github.com/getsentry/sentry-react-native/pull/5545))
+  - Use `includedViewClasses` to only traverse specific view classes, or `excludedViewClasses` to skip problematic view classes during session replay and screenshot capture
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    replaysSessionSampleRate: 1.0,
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        includedViewClasses: ['UILabel', 'UIView', 'MyCustomView'],
+        excludedViewClasses: ['WKWebView', 'UIWebView'],
+      }),
+    ],
+  });
+  ```
 
 ### Fixes
 
