@@ -192,12 +192,14 @@ public class RNSentryModuleImpl {
   }
 
   public void addListener(String eventType) {
-    // Is must be defined otherwise the generated interface from TS won't be fulfilled
+    // Is must be defined otherwise the generated interface from TS won't be
+    // fulfilled
     logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
   }
 
   public void removeListeners(double id) {
-    // Is must be defined otherwise the generated interface from TS won't be fulfilled
+    // Is must be defined otherwise the generated interface from TS won't be
+    // fulfilled
     logger.log(
         SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
   }
@@ -262,7 +264,8 @@ public class RNSentryModuleImpl {
     // When activity is destroyed but the application process is kept alive
     // the next activity creation is considered warm start.
     // The app start metrics will be updated by the the Android SDK.
-    // To let the RN JS layer know these are new start data we compare the start timestamps.
+    // To let the RN JS layer know these are new start data we compare the start
+    // timestamps.
     lastStartTimestampMs = currentStartTimestampMs;
 
     // Clears start metrics, making them ready for recording warm app start
@@ -952,7 +955,8 @@ public class RNSentryModuleImpl {
       }
     }
     if (strErrors != null) {
-      // Use the same behaviour of JavaScript instead of Android when dealing with strings.
+      // Use the same behaviour of JavaScript instead of Android when dealing with
+      // strings.
       for (int i = 0; i < strErrors.size(); i++) {
         String pattern = ".*" + Pattern.quote(strErrors.getString(i)) + ".*";
         list.add(pattern);
