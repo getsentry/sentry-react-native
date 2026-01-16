@@ -334,9 +334,9 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let includedViewClasses = actualOptions.sessionReplay.includedViewClasses
         XCTAssertEqual(includedViewClasses.count, 3)
-        assertContainsClass(classArray: includedViewClasses, stringClass: "UILabel")
-        assertContainsClass(classArray: includedViewClasses, stringClass: "UIView")
-        assertContainsClass(classArray: includedViewClasses, stringClass: "UITextView")
+        XCTAssertTrue(includedViewClasses.contains("UILabel"))
+        XCTAssertTrue(includedViewClasses.contains("UIView"))
+        XCTAssertTrue(includedViewClasses.contains("UITextView"))
     }
 
     func testExcludedViewClasses() {
@@ -352,9 +352,9 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let excludedViewClasses = actualOptions.sessionReplay.excludedViewClasses
         XCTAssertEqual(excludedViewClasses.count, 3)
-        assertContainsClass(classArray: excludedViewClasses, stringClass: "UICollectionView")
-        assertContainsClass(classArray: excludedViewClasses, stringClass: "UITableView")
-        assertContainsClass(classArray: excludedViewClasses, stringClass: "UIScrollView")
+        XCTAssertTrue(excludedViewClasses.contains("UICollectionView"))
+        XCTAssertTrue(excludedViewClasses.contains("UITableView"))
+        XCTAssertTrue(excludedViewClasses.contains("UIScrollView"))
     }
 
     func testIncludedAndExcludedViewClasses() {
@@ -373,11 +373,11 @@ final class RNSentryReplayOptions: XCTestCase {
 
         let includedViewClasses = actualOptions.sessionReplay.includedViewClasses
         XCTAssertEqual(includedViewClasses.count, 2)
-        assertContainsClass(classArray: includedViewClasses, stringClass: "UILabel")
-        assertContainsClass(classArray: includedViewClasses, stringClass: "UIView")
+        XCTAssertTrue(includedViewClasses.contains("UILabel"))
+        XCTAssertTrue(includedViewClasses.contains("UIView"))
 
         let excludedViewClasses = actualOptions.sessionReplay.excludedViewClasses
         XCTAssertEqual(excludedViewClasses.count, 1)
-        assertContainsClass(classArray: excludedViewClasses, stringClass: "UICollectionView")
+        XCTAssertTrue(excludedViewClasses.contains("UICollectionView"))
     }
 }
