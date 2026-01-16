@@ -30,7 +30,7 @@ jobs:
 
       - name: Checkout PR Base Branch
         if: steps.check-pr.outputs.is-pr == 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
           fetch-depth: 0
           ref: ${{ github.base_ref }}
@@ -45,7 +45,7 @@ jobs:
         if: steps.check-pr.outputs.is-pr == 'true'
         id: check_diff
         run: |
-          skipList=(".github/CODEOWNERS" ".prettierignore" ".github/workflows/update-deps.yml" ".github/workflows/skip-ci.yml")
+          skipList=(".github/CODEOWNERS" ".prettierignore" ".github/workflows/update-deps.yml" ".github/workflows/skip-ci.yml" ".claude/settings.json")
           skipRegList=("(.*/)?\.gitignore" "\.github/ISSUE_TEMPLATE.*")
 
           for s in "${skipRegList[@]}"; do
