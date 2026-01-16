@@ -11,6 +11,7 @@
 ### Features
 
 - Experimental support of UI profiling on Android ([#5518](https://github.com/getsentry/sentry-react-native/pull/5518))
+- Expose iOS options to ignore views from subtree traversal ([#5545](https://github.com/getsentry/sentry-react-native/pull/5545))
 
 ### Fixes
 
