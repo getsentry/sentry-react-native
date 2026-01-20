@@ -97,3 +97,6 @@ swiftlint/*
 
 # Sample app
 samples/*/.env
+
+# Local Claude Code settings that should not be committed
+.claude/settings.local.json
