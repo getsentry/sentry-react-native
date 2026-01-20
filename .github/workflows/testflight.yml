@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - antonis/tesflight-sample-xcode-version
 
   pull_request:
     paths:
