@@ -68,7 +68,7 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/babel-plugin-component-annotate": "4.6.2",
+    "@sentry/babel-plugin-component-annotate": "4.7.0",
     "@sentry/browser": "10.34.0",
     "@sentry/cli": "2.58.4",
     "@sentry/core": "10.34.0",
