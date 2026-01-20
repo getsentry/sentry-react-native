@@ -6,6 +6,17 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Bundler Plugins from v4.6.2 to v4.7.0 ([#5554](https://github.com/getsentry/sentry-react-native/pull/5554))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#470)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.6.2...4.7.0)
+- Bump JavaScript SDK from v10.34.0 to v10.35.0 ([#5555](https://github.com/getsentry/sentry-react-native/pull/5555))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10350)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.34.0...10.35.0)
+
 ## 7.9.0
 
 ### Features
