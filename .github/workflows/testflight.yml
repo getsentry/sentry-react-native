@@ -19,7 +19,7 @@ jobs:
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-      - run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+      - run: sudo xcode-select -s /Applications/Xcode_26.1.1.app/Contents/Developer
       - uses: ruby/setup-ruby@v1
         with:
           working-directory: samples/react-native
