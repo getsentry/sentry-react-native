@@ -38,10 +38,6 @@
   });
   ```
 
-### Features
-
-- Experimental support of UI profiling on Android ([#5518](https://github.com/getsentry/sentry-react-native/pull/5518))
-
 ### Fixes
 
 - Fix duplicate error reporting on iOS with New Architecture ([#5532](https://github.com/getsentry/sentry-react-native/pull/5532))
