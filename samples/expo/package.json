@@ -22,7 +22,7 @@
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
-    "@sentry/core": "10.34.0",
+    "@sentry/core": "10.35.0",
     "@sentry/react-native": "7.9.0",
     "@types/react": "~19.0.10",
     "expo": "^53.0.0",
@@ -47,7 +47,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@react-native/eslint-config": "0.79.1",
-    "@sentry/babel-plugin-component-annotate": "4.6.2",
+    "@sentry/babel-plugin-component-annotate": "4.7.0",
     "@types/node": "20.10.4",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
