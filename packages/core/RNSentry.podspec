@@ -46,6 +46,10 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
+  s.pod_target_xcconfig = {
+    'DEFINES_MODULE' => 'YES'
+  }
+
   s.dependency 'Sentry/HybridSDK', '8.58.0'
 
   if defined? install_modules_dependencies
