@@ -73,10 +73,10 @@ class AppDelegate: RCTAppDelegate {
 }`;
 
 const swiftExpected = `import React
+import RNSentry
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import UIKit
-import RNSentry
 
 @main
 class AppDelegate: RCTAppDelegate {
