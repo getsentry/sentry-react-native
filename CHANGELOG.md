@@ -8,6 +8,25 @@
 
 ## Unreleased
 
+### Features
+
+- Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
+  - Adds `useNativeInit` option to automatically initialize Sentry natively before JavaScript loads, enabling capture of app start errors
+  ```json
+  {
+    "expo": {
+      "plugins": [
+        [
+          "@sentry/react-native/expo",
+          {
+            "useNativeInit": true
+          }
+        ]
+      ]
+    }
+  }
+  ```
+
 ### Dependencies
 
 - Bump Bundler Plugins from v4.6.2 to v4.7.0 ([#5554](https://github.com/getsentry/sentry-react-native/pull/5554))
@@ -72,7 +91,6 @@
 - Report slow and frozen frames as TTID/TTFD span data ([#5419](https://github.com/getsentry/sentry-react-native/pull/5419))
 - Report slow and frozen frames on spans created through the API ([#5420](https://github.com/getsentry/sentry-react-native/issues/5420))
 - Improve performance by adding caching to `getReplayId` ([#5449](https://github.com/getsentry/sentry-react-native/pull/5449))
-- Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
 
 ### Fixes
 
