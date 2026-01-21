@@ -1,4 +1,5 @@
 #import "RNSentryStart.h"
+#import "RNSentryExperimentalOptions.h"
 #import "RNSentryReplay.h"
 #import "RNSentryVersion.h"
 
@@ -40,7 +41,9 @@
     NSMutableDictionary *mutableOptions = [options mutableCopy];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryReplay updateOptions:mutableOptions];
+    BOOL isSessionReplayEnabled = [RNSentryReplay updateOptions:mutableOptions];
+#else
+    BOOL isSessionReplayEnabled = NO;
 #endif
 
     SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
@@ -94,6 +97,11 @@
                 sentryOptions.spotlightUrl = defaultSpotlightUrl;
             }
         }
+    }
+
+    if (isSessionReplayEnabled) {
+        [RNSentryExperimentalOptions setEnableSessionReplayInUnreliableEnvironment:YES
+                                                                     sentryOptions:sentryOptions];
     }
 
     return sentryOptions;
