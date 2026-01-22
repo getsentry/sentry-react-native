@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fixes Android incompatibility with Firebase dependencies ([#5563](https://github.com/getsentry/sentry-react-native/pull/5563))
+
 ### Dependencies
 
 - Bump Bundler Plugins from v4.6.2 to v4.7.0 ([#5554](https://github.com/getsentry/sentry-react-native/pull/5554))
