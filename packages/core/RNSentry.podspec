@@ -46,11 +46,6 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
-  s.pod_target_xcconfig = {
-    'DEFINES_MODULE' => 'YES',
-    'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES' => 'YES'
-  }
-
   s.dependency 'Sentry/HybridSDK', '8.58.0'
 
   if defined? install_modules_dependencies
@@ -61,10 +56,10 @@ Pod::Spec.new do |s|
 
     if is_new_arch_enabled then
       # New Architecture on React Native 0.70 and older
-      s.pod_target_xcconfig.merge!({
+      s.pod_target_xcconfig = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
-      })
+      }
 
       s.dependency "React-RCTFabric" # Required for Fabric Components (like RCTViewComponentView)
       s.dependency "React-Codegen"
