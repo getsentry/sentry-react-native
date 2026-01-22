@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-sample",
-  "version": "7.9.0",
+  "version": "7.10.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -44,9 +44,9 @@
     "@react-navigation/native-stack": "^7.3.24",
     "@react-navigation/stack": "^7.4.5",
     "@reduxjs/toolkit": "^2.8.2",
-    "@sentry/core": "10.35.0",
-    "@sentry/react": "10.35.0",
-    "@sentry/react-native": "7.9.0",
+    "@sentry/core": "10.36.0",
+    "@sentry/react": "10.36.0",
+    "@sentry/react-native": "7.10.0",
     "@shopify/flash-list": "^2.0.2",
     "delay": "^6.0.0",
     "react": "19.1.0",
