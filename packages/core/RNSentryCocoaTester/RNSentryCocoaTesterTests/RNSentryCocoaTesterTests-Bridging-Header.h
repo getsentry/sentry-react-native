@@ -3,8 +3,6 @@
 //
 
 #import <React/RCTViewManager.h>
-#import <Sentry/Sentry.h>
-#import <Sentry/SentryFramesTracker.h>
 
 #import "../RNSentrySDK+Test.h"
 #import "RNSentryBreadcrumb.h"

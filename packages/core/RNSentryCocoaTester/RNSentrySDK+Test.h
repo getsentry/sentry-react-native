@@ -1,5 +1,5 @@
 #import "RNSentrySDK.h"
-#import <Sentry/Sentry.h>
+@import Sentry;
 
 @interface RNSentrySDK (Test)
 

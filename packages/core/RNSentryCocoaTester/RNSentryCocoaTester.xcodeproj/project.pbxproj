@@ -18,11 +18,10 @@
 		33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */; };
 		33F58AD02977037D008F60EA /* RNSentryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.m */; };
 		AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */; };
-		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
+		F304B2ABFA7AFC3049894608 /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 885D60EDDE2ECBA9C0C8872E /* libPods-RNSentryCocoaTesterTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
 		330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryBreadcrumb.h; path = ../ios/RNSentryBreadcrumb.h; sourceTree = "<group>"; };
 		332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryReplayOptionsTests.swift; sourceTree = "<group>"; };
 		332D33482CDBDC7300547D76 /* RNSentry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentry.h; path = ../ios/RNSentry.h; sourceTree = SOURCE_ROOT; };
@@ -50,8 +49,9 @@
 		33DEDFEE2D8DD431006066E4 /* RNSentryTimeToDisplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryTimeToDisplay.h; path = ../ios/RNSentryTimeToDisplay.h; sourceTree = SOURCE_ROOT; };
 		33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryTimeToDisplayTests.swift; sourceTree = "<group>"; };
 		33F58ACF2977037D008F60EA /* RNSentryTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryTests.m; sourceTree = "<group>"; };
-		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
+		39780EA5D882CE022D174439 /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
+		885D60EDDE2ECBA9C0C8872E /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5755FFFC7183FC74239B03D /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
 		FADF868E2EBD053E00D6652D /* SentrySDKWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SentrySDKWrapper.h; path = ../ios/SentrySDKWrapper.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -60,7 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */,
+				F304B2ABFA7AFC3049894608 /* libPods-RNSentryCocoaTesterTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,8 +70,8 @@
 		00D0AE33FB669AAC85D66F8D /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */,
-				1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */,
+				A5755FFFC7183FC74239B03D /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */,
+				39780EA5D882CE022D174439 /* Pods-RNSentryCocoaTesterTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -83,7 +83,7 @@
 				3360899029524164007C7730 /* RNSentryCocoaTesterTests */,
 				3360897329524163007C7730 /* Products */,
 				00D0AE33FB669AAC85D66F8D /* Pods */,
-				E9CBAA4D06145A9DB2C82C1B /* Frameworks */,
+				794EA74D166D24ABBA44CE7C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -144,10 +144,10 @@
 			name = RNSentry;
 			sourceTree = "<group>";
 		};
-		E9CBAA4D06145A9DB2C82C1B /* Frameworks */ = {
+		794EA74D166D24ABBA44CE7C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */,
+				885D60EDDE2ECBA9C0C8872E /* libPods-RNSentryCocoaTesterTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -159,10 +159,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 336089A429524164007C7730 /* Build configuration list for PBXNativeTarget "RNSentryCocoaTesterTests" */;
 			buildPhases = (
-				30F19D4E16BEEFEC68733838 /* [CP] Check Pods Manifest.lock */,
+				3128BE3033C88F3A27128B91 /* [CP] Check Pods Manifest.lock */,
 				3360898929524164007C7730 /* Sources */,
 				BB7D14838753E6599863899B /* Frameworks */,
-				CC7959F3721CB3AD7CB6A047 /* [CP] Copy Pods Resources */,
+				FFB5973945E4DC791D471682 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -208,7 +208,7 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		30F19D4E16BEEFEC68733838 /* [CP] Check Pods Manifest.lock */ = {
+		3128BE3033C88F3A27128B91 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -230,7 +230,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		CC7959F3721CB3AD7CB6A047 /* [CP] Copy Pods Resources */ = {
+		FFB5973945E4DC791D471682 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -387,7 +387,7 @@
 		};
 		336089A529524164007C7730 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */;
+			baseConfigurationReference = A5755FFFC7183FC74239B03D /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -454,7 +454,7 @@
 		};
 		336089A629524164007C7730 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */;
+			baseConfigurationReference = 39780EA5D882CE022D174439 /* Pods-RNSentryCocoaTesterTests.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;

@@ -10,7 +10,7 @@
 #import <Sentry/Sentry.h>
 
 // This import exposes public RNSentrySDK start
-#import <RNSentry/RNSentrySDK.h>
+#import "RNSentrySDK.h"
 
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 

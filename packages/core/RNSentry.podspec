@@ -61,10 +61,10 @@ Pod::Spec.new do |s|
 
     if is_new_arch_enabled then
       # New Architecture on React Native 0.70 and older
-      s.pod_target_xcconfig = {
+      s.pod_target_xcconfig.merge!({
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
-      }
+      })
 
       s.dependency "React-RCTFabric" # Required for Fabric Components (like RCTViewComponentView)
       s.dependency "React-Codegen"
