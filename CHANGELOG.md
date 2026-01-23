@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add experimental `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5568](https://github.com/getsentry/sentry-react-native/pull/5568))
+- Add experimental `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5569](https://github.com/getsentry/sentry-react-native/pull/5569))
   ```tsx
   <Button
     sentry-label="checkout"
