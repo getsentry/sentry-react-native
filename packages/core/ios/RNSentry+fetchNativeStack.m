@@ -1,3 +1,4 @@
+#import "RNSentry+formatters.h"
 #import "RNSentry.h"
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryId.h"

@@ -35,8 +35,8 @@
                                          error:(NSError *__autoreleasing *)errorPointer
 {
     NSString *dsn = [self getURLFromDSN:[options valueForKey:@"dsn"]];
-    SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:options
-                                                      didFailWithError:errorPointer];
+    SentryOptions *sentryOptions = [PrivateSentrySDKOnly optionsWithDictionary:options
+                                                              didFailWithError:errorPointer];
     if (*errorPointer != nil) {
         return nil;
     }
