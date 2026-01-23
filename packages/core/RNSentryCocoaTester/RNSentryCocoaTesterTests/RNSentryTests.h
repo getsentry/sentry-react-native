@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <RNSentry/RNSentry.h>
+#import <RNSentry/RNSentryReplay.h>
 
 @class SentryOptions;
 @class SentryUser;
