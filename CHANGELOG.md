@@ -6,6 +6,22 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5568](https://github.com/getsentry/sentry-react-native/pull/5568))
+  ```tsx
+  <Button
+    sentry-label="checkout"
+    sentry-span-attributes={{
+      'user.type': 'premium',
+      'cart.value': 150
+    }}
+    onPress={handleCheckout}
+  />
+  ```
+
 ## 7.10.0
 
 ### Fixes

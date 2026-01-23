@@ -1,4 +1,4 @@
-import type { SeverityLevel } from '@sentry/core';
+import type { SeverityLevel, SpanAttributeValue } from '@sentry/core';
 import { addBreadcrumb, debug, dropUndefinedKeys, getClient, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import * as React from 'react';
 import type { GestureResponderEvent } from 'react-native';
@@ -39,6 +39,11 @@ export type TouchEventBoundaryProps = {
    * Label Name used to identify the touched element.
    */
   labelName?: string;
+  /**
+   * Custom attributes to add to user interaction spans.
+   * Accepts an object with string keys and values that are strings, numbers, booleans, or arrays.
+   */
+  spanAttributes?: Record<string, SpanAttributeValue>;
 };
 
 const touchEventStyles = StyleSheet.create({
@@ -52,6 +57,7 @@ const DEFAULT_BREADCRUMB_TYPE = 'user';
 const DEFAULT_MAX_COMPONENT_TREE_SIZE = 20;
 
 const SENTRY_LABEL_PROP_KEY = 'sentry-label';
+const SENTRY_SPAN_ATTRIBUTES_PROP_KEY = 'sentry-span-attributes';
 const SENTRY_COMPONENT_PROP_KEY = 'data-sentry-component';
 const SENTRY_ELEMENT_PROP_KEY = 'data-sentry-element';
 const SENTRY_FILE_PROP_KEY = 'data-sentry-source-file';
@@ -204,6 +210,28 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     });
     if (span) {
       span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_INTERACTION);
+
+      // Apply custom attributes from sentry-span-attributes prop
+      // Traverse the component tree to find custom attributes
+      let instForAttributes: ElementInstance | undefined = e._targetInst;
+      let customAttributes: Record<string, SpanAttributeValue> | undefined;
+
+      while (instForAttributes) {
+        if (instForAttributes.elementType?.displayName === TouchEventBoundary.displayName) {
+          break;
+        }
+
+        customAttributes = getSpanAttributes(instForAttributes);
+        if (customAttributes && Object.keys(customAttributes).length > 0) {
+          break;
+        }
+
+        instForAttributes = instForAttributes.return;
+      }
+
+      if (customAttributes && Object.keys(customAttributes).length > 0) {
+        span.setAttributes(customAttributes);
+      }
     }
   }
 
@@ -289,6 +317,26 @@ function getLabelValue(props: Record<string, unknown>, labelKey: string | undefi
     : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
       ? props[labelKey] as string
       : undefined;
+}
+
+function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAttributeValue> | undefined {
+  if (!currentInst.memoizedProps) {
+    return undefined;
+  }
+
+  const props = currentInst.memoizedProps;
+  const attributes = props[SENTRY_SPAN_ATTRIBUTES_PROP_KEY];
+
+  // Validate that it's an object (not null, not array)
+  if (
+    typeof attributes === 'object' &&
+    attributes !== null &&
+    !Array.isArray(attributes)
+  ) {
+    return attributes as Record<string, SpanAttributeValue>;
+  }
+
+  return undefined;
 }
 
 /**
