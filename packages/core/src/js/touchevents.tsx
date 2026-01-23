@@ -42,6 +42,8 @@ export type TouchEventBoundaryProps = {
   /**
    * Custom attributes to add to user interaction spans.
    * Accepts an object with string keys and values that are strings, numbers, booleans, or arrays.
+   *
+   * @experimental This API is experimental and may change in future releases.
    */
   spanAttributes?: Record<string, SpanAttributeValue>;
 };
