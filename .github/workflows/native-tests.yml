@@ -54,7 +54,7 @@ jobs:
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
-          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 16'
+          DESTINATION: 'platform=iOS Simulator,name=iPhone 16'
         run: |
           env NSUnbufferedIO=YES \
             xcodebuild -workspace *.xcworkspace \
