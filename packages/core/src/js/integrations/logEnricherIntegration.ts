@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import type { Integration, Log } from '@sentry/core';
-import { debug } from '@sentry/core';
+import { debug, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
 import type { ReactNativeClient } from '../client';
 import { NATIVE } from '../wrapper';
 
@@ -33,7 +33,7 @@ let NativeCache: Record<string, unknown> | undefined = undefined;
  *
  * @param logAttributes - The log attributes object to modify.
  * @param key - The attribute key to set.
- * @param value - The value to set (only sets if truthy and key not present).
+ * @param value - The value to set (only sets if not null/undefined and key not present).
  * @param setEvenIfPresent - Whether to set the attribute if it is present. Defaults to true.
  */
 function setLogAttribute(
@@ -42,7 +42,7 @@ function setLogAttribute(
   value: unknown,
   setEvenIfPresent = true,
 ): void {
-  if (value && (!logAttributes[key] || setEvenIfPresent)) {
+  if (value != null && (!logAttributes[key] || setEvenIfPresent)) {
     logAttributes[key] = value;
   }
 }
@@ -79,6 +79,13 @@ function processLog(log: Log, client: ReactNativeClient): void {
   // Save log.attributes to a new variable
   const logAttributes = log.attributes ?? {};
 
+  // Apply scope attributes from all active scopes (global, isolation, and current)
+  // These are applied first so they can be overridden by more specific attributes
+  const scopeAttributes = collectScopeAttributes();
+  Object.keys(scopeAttributes).forEach((key: string) => {
+    setLogAttribute(logAttributes, key, scopeAttributes[key], false);
+  });
+
   // Use setLogAttribute with the variable instead of direct assignment
   setLogAttribute(logAttributes, 'device.brand', NativeCache.brand);
   setLogAttribute(logAttributes, 'device.model', NativeCache.model);
@@ -92,4 +99,45 @@ function processLog(log: Log, client: ReactNativeClient): void {
 
   // Set log.attributes to the variable
   log.attributes = logAttributes;
+}
+
+/**
+ * Extracts primitive attributes from a scope and merges them into the target object.
+ * Only string, number, and boolean attribute values are included.
+ *
+ * @param scope - The scope to extract attributes from
+ * @param target - The target object to merge attributes into
+ */
+function extractScopeAttributes(
+  scope: ReturnType<typeof getCurrentScope>,
+  target: Record<string, string | number | boolean>,
+): void {
+  if (scope && typeof scope.getScopeData === 'function') {
+    const scopeData = scope.getScopeData();
+    const scopeAttrs = scopeData.attributes || {};
+    Object.keys(scopeAttrs).forEach((key: string) => {
+      const value = scopeAttrs[key];
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        target[key] = value;
+      }
+    });
+  }
+}
+
+/**
+ * Collects attributes from all active scopes (global, isolation, and current).
+ * Only string, number, and boolean attribute values are supported.
+ * Attributes are merged in order of precedence: global < isolation < current.
+ *
+ * @returns A merged object containing all scope attributes.
+ */
+function collectScopeAttributes(): Record<string, string | number | boolean> {
+  const attributes: Record<string, string | number | boolean> = {};
+
+  // Collect attributes from all scopes in order of precedence
+  extractScopeAttributes(getGlobalScope(), attributes);
+  extractScopeAttributes(getIsolationScope(), attributes);
+  extractScopeAttributes(getCurrentScope(), attributes);
+
+  return attributes;
 }
