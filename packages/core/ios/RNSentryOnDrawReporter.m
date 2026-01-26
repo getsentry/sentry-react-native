@@ -1,4 +1,6 @@
 #import "RNSentryOnDrawReporter.h"
+#import "RNSentryEmitNewFrameEvent.h"
+#import "RNSentryFramesTrackerListener.h"
 #import "RNSentryTimeToDisplay.h"
 @import Sentry;
 
