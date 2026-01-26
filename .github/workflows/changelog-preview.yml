@@ -10,8 +10,9 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  statuses: write
 
 jobs:
   changelog-preview:
-    uses: getsentry/craft/.github/workflows/changelog-preview.yml@c6e2f04939b6ee67030588afbb5af76b127d8203 # V2
+    uses: getsentry/craft/.github/workflows/changelog-preview.yml@fd370d4d54bec9ff07f909d88a3c4aec6f0ba22b # V2
     secrets: inherit
