@@ -8,6 +8,75 @@
 
 ## Unreleased
 
+### Features
+
+- Capture App Start errors and crashes by initializing Sentry from `sentry.options.json` ([#4472](https://github.com/getsentry/sentry-react-native/pull/4472))
+
+  Create `sentry.options.json` in the React Native project root and set options the same as you currently have in `Sentry.init` in JS.
+
+  ```json
+  {
+      "dsn": "https://key@example.io/value",
+  }
+  ```
+
+  Initialize Sentry on the native layers by newly provided native methods.
+
+  ```kotlin
+  import io.sentry.react.RNSentrySDK
+
+  class MainApplication : Application(), ReactApplication {
+      override fun onCreate() {
+          super.onCreate()
+          RNSentrySDK.init(this)
+      }
+  }
+  ```
+
+  ```obj-c
+  #import <RNSentry/RNSentry.h>
+
+  @implementation AppDelegate
+  - (BOOL)application:(UIApplication *)application
+      didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+  {
+      [RNSentrySDK start];
+      return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  }
+  @end
+  ```
+
+- Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
+  - Adds `useNativeInit` option to automatically initialize Sentry natively before JavaScript loads, enabling capture of app start errors
+  ```json
+  {
+    "expo": {
+      "plugins": [
+        [
+          "@sentry/react-native/expo",
+          {
+            "useNativeInit": true
+          }
+        ]
+      ]
+    }
+  }
+  ```
+
+### Changes
+
+- Load `optionsFile` into the JS bundle during Metro bundle process ([#4476](https://github.com/getsentry/sentry-react-native/pull/4476))
+- Add experimental version of `startWithConfigureOptions` for Apple platforms ([#4444](https://github.com/getsentry/sentry-react-native/pull/4444))
+- Add experimental version of `init` with optional `OptionsConfiguration<SentryAndroidOptions>` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+- Add initialization using `sentry.options.json` for Apple platforms ([#4447](https://github.com/getsentry/sentry-react-native/pull/4447))
+- Add initialization using `sentry.options.json` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+- Merge options from file with `Sentry.init` options in JS ([#4510](https://github.com/getsentry/sentry-react-native/pull/4510))
+
+### Internal
+
+- Extract iOS native initialization to standalone structures ([#4442](https://github.com/getsentry/sentry-react-native/pull/4442))
+- Extract Android native initialization to standalone structures ([#4445](https://github.com/getsentry/sentry-react-native/pull/4445))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v8.58.0 to v9.1.0 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
