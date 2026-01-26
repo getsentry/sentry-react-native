@@ -3,43 +3,50 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version to release
-        required: true
+        description: Version to release (or "auto")
+        required: false
       force:
-        description: Force a release even when there are release-blockers (optional)
+        description: Force a release even when there are release-blockers
         required: false
       merge_target:
-        description: Target branch to merge into. Uses the default branch as a fallback (optional)
+        description: Target branch to merge into
         required: false
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
-  job_release:
+  release:
     runs-on: ubuntu-latest
-    name: "Release a new version"
+    name: Release a new version
     steps:
       - name: Get auth token
         id: token
-        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
         with:
           app-id: ${{ vars.SENTRY_RELEASE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.SENTRY_RELEASE_BOT_PRIVATE_KEY }}
-      - name: Check out current commit (${{ github.sha }})
-        uses: actions/checkout@v6
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           token: ${{ steps.token.outputs.token }}
           fetch-depth: 0
+
       - run: npm i -g corepack
-      - uses: actions/setup-node@v6
+
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 20
-          cache: 'yarn'
+          cache: yarn
           cache-dependency-path: yarn.lock
+
       - name: Prepare release
-        uses: getsentry/action-prepare-release@v1
+        uses: getsentry/craft@fd370d4d54bec9ff07f909d88a3c4aec6f0ba22b # v2
         env:
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         with:
-          version: ${{ github.event.inputs.version }}
-          force: ${{ github.event.inputs.force }}
-          merge_target: ${{ github.event.inputs.merge_target }}
+          version: ${{ inputs.version }}
+          force: ${{ inputs.force }}
+          merge_target: ${{ inputs.merge_target }}

@@ -82,6 +82,34 @@ export interface MobileReplayOptions {
   enableFastViewRendering?: boolean;
 
   /**
+   * Array of view class names to include in subtree traversal during session replay and screenshot capture on iOS.
+   *
+   * Only views that are instances of these classes (or subclasses) will be traversed.
+   * This helps prevent crashes when traversing problematic view hierarchies by allowing you to explicitly include only safe view classes.
+   *
+   * If both `includedViewClasses` and `excludedViewClasses` are set, `excludedViewClasses` takes precedence:
+   * views matching excluded classes won't be traversed even if they match an included class.
+   *
+   * @default undefined
+   * @platform ios
+   */
+  includedViewClasses?: string[];
+
+  /**
+   * Array of view class names to exclude from subtree traversal during session replay and screenshot capture on iOS.
+   *
+   * Views of these classes (or subclasses) will be skipped entirely, including all their children.
+   * This helps prevent crashes when traversing problematic view hierarchies by allowing you to explicitly exclude problematic view classes.
+   *
+   * If both `includedViewClasses` and `excludedViewClasses` are set, `excludedViewClasses` takes precedence:
+   * views matching excluded classes won't be traversed even if they match an included class.
+   *
+   * @default undefined
+   * @platform ios
+   */
+  excludedViewClasses?: string[];
+
+  /**
    * Sets the screenshot strategy used by the Session Replay integration on Android.
    *
    * If your application has strict PII requirements we recommend using `'canvas'`.
@@ -216,6 +244,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       debug.log(
         `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Captured recording replay ${replayId} for event ${event.event_id}.`,
       );
+      // Add replay_id to error event contexts to link replays to events/traces
+      event.contexts = event.contexts || {};
+      event.contexts.replay = {
+        ...event.contexts.replay,
+        replay_id: replayId,
+      };
     } else {
       // Check if there's an ongoing recording and update cache if found
       const recordingReplayId = NATIVE.getCurrentReplayId();
@@ -224,6 +258,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
         debug.log(
           `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
         );
+        // Add replay_id to error event contexts to link replays to events/traces
+        event.contexts = event.contexts || {};
+        event.contexts.replay = {
+          ...event.contexts.replay,
+          replay_id: recordingReplayId,
+        };
       } else {
         updateCachedReplayId(null);
         debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);

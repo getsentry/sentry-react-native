@@ -15,7 +15,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.0.10'
+  MAESTRO_VERSION: '2.1.0'
   IOS_DEVICE: 'iPhone 17'
   IOS_VERSION: '>=18.0'
 
@@ -55,13 +55,13 @@ jobs:
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -221,7 +221,7 @@ jobs:
             ios-use-frameworks: 'dynamic'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
@@ -242,7 +242,7 @@ jobs:
           echo "SENTRY_DIST=$SENTRY_DIST"
 
       - run: npm i -g corepack
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -319,7 +319,7 @@ jobs:
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -346,7 +346,7 @@ jobs:
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 20
