@@ -58,8 +58,17 @@ jobs:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
         run: |
-          # Find first available iPhone simulator
-          DEVICE_ID=$(xcrun simctl list devices available iPhone -j | jq -r '.devices | to_entries[].value[] | select(.isAvailable == true) | .udid' | head -1)
+          # Find first available iPhone simulator from latest iOS runtime
+          DEVICE_ID=$(xcrun simctl list devices available iPhone -j | jq -r '
+            .devices |
+            to_entries |
+            map(select(.key | startswith("com.apple.CoreSimulator.SimRuntime.iOS-"))) |
+            sort_by(.key) |
+            reverse |
+            .[0].value[] |
+            select(.isAvailable == true) |
+            .udid
+          ' | head -1)
           if [ -z "$DEVICE_ID" ]; then
             echo "No iPhone simulators available"
             exit 1
