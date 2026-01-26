@@ -49,17 +49,27 @@ jobs:
         working-directory: packages/core/RNSentryCocoaTester
         run: pod install
 
+      - name: List Available Simulators
+        run: xcrun simctl list devices available iPhone
+
       - name: Run iOS Tests
         working-directory: packages/core/RNSentryCocoaTester
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
-          DESTINATION: 'platform=iOS Simulator,name=iPhone 16'
         run: |
+          # Find first available iPhone simulator
+          DEVICE_ID=$(xcrun simctl list devices available iPhone -j | jq -r '.devices | to_entries[].value[] | select(.isAvailable == true) | .udid' | head -1)
+          if [ -z "$DEVICE_ID" ]; then
+            echo "No iPhone simulators available"
+            exit 1
+          fi
+          echo "Using simulator: $DEVICE_ID"
+
           env NSUnbufferedIO=YES \
             xcodebuild -workspace *.xcworkspace \
             -scheme $SCHEME -configuration $CONFIGURATION \
-            -destination "$DESTINATION" \
+            -destination "id=$DEVICE_ID" \
             -quiet \
             test
 
