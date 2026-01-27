@@ -694,11 +694,16 @@ public class RNSentryModuleImpl {
     try {
       InternalSentrySdk.captureEnvelope(
           bytes, !options.hasKey("hardCrashed") || !options.getBoolean("hardCrashed"));
+
+      // TODO(alwx): Capture transport response from sentry-android when available
+      WritableMap response = new WritableNativeMap();
+      promise.resolve(response);
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
-      logger.log(SentryLevel.ERROR, "Error while capturing envelope");
-      promise.resolve(false);
+      logger.log(SentryLevel.ERROR, "Error while capturing envelope", e);
+      WritableMap errorResponse = new WritableNativeMap();
+      errorResponse.putString("message", "Error while capturing envelope: " + e.getMessage());
+      promise.resolve(errorResponse);
     }
-    promise.resolve(true);
   }
 
   public void captureScreenshot(Promise promise) {
