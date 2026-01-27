@@ -165,10 +165,6 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     );
   }
 
-  // Originally was going to clean the names of any HOCs as well but decided that it might hinder debugging effectively. Will leave here in case
-  // private readonly _cleanName = (name: string): string =>
-  //   name.replace(/.*\(/g, "").replace(/\)/g, "");
-
   /**
    * Traverses through the component tree when a touch happens and logs it.
    * @param e

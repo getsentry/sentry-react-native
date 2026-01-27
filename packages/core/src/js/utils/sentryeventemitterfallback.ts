@@ -3,7 +3,7 @@ import { NATIVE } from '../wrapper';
 import type { NewFrameEvent, SentryEventEmitter } from './sentryeventemitter';
 import { createSentryEventEmitter, NewFrameEventName } from './sentryeventemitter';
 
-export const FALLBACK_TIMEOUT_MS = 10_000;
+const FALLBACK_TIMEOUT_MS = 10_000;
 
 export type FallBackNewFrameEvent = { newFrameTimestampInSeconds: number; isFallback?: boolean };
 export interface SentryEventEmitterFallback {

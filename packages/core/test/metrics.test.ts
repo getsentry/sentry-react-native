@@ -1,12 +1,11 @@
 import { getClient, metrics, setCurrentClient } from '@sentry/core';
 import { ReactNativeClient } from '../src/js';
 import { mobileReplayIntegration } from '../src/js/replay/mobilereplay';
+import { MOCK_DSN } from './mockDsn';
 import { getDefaultTestClientOptions } from './mocks/client';
 import { NATIVE } from './mockWrapper';
 
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
-
-const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
 
 describe('Metrics', () => {
   beforeEach(() => {
@@ -28,7 +27,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: true,
           beforeSendMetric,
         }),
@@ -49,7 +48,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: false,
           beforeSendMetric,
         }),
@@ -70,7 +69,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           beforeSendMetric,
         }),
       });
@@ -93,7 +92,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: true,
           beforeSendMetric,
         }),
@@ -117,7 +116,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: true,
           beforeSendMetric,
         }),
@@ -140,7 +139,7 @@ describe('Metrics', () => {
     it('metrics.count works when enableMetrics is true', () => {
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: true,
         }),
       });
@@ -158,7 +157,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: true,
           beforeSendMetric,
         }),
@@ -186,7 +185,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: true,
           beforeSendMetric,
           integrations: [mobileReplayIntegration()],
@@ -215,7 +214,7 @@ describe('Metrics', () => {
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableMetrics: true,
           beforeSendMetric,
         }),

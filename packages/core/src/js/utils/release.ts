@@ -4,7 +4,7 @@ import { RN_GLOBAL_OBJ } from './worldwide';
 /**
  *
  */
-export function createReleaseFromGlobalReleaseConstants(): string | undefined {
+function createReleaseFromGlobalReleaseConstants(): string | undefined {
   const globalRelease = RN_GLOBAL_OBJ.SENTRY_RELEASE;
   if (!globalRelease) {
     return undefined;

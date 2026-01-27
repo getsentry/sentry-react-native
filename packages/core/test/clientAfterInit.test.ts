@@ -1,5 +1,6 @@
 import { ReactNativeClient } from '../src/js';
 import type { ReactNativeClientOptions } from '../src/js/options';
+import { MOCK_DSN } from './mockDsn';
 import { NATIVE } from './mockWrapper';
 
 jest.useFakeTimers({ advanceTimers: true });
@@ -58,10 +59,8 @@ function setupReactNativeClient(options: Partial<ReactNativeClientOptions> = {})
   });
 }
 
-const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
-
 const DEFAULT_OPTIONS: ReactNativeClientOptions = {
-  dsn: EXAMPLE_DSN,
+  dsn: MOCK_DSN,
   enableNative: true,
   enableNativeCrashHandling: true,
   enableNativeNagger: true,

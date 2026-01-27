@@ -21,6 +21,7 @@ import type { ReactNativeClientOptions } from '../src/js/options';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
+import { MOCK_DSN } from './mockDsn';
 import {
   createMockTransport,
   envelopeHeader,
@@ -89,8 +90,6 @@ jest.mock(
   }),
 );
 
-const EXAMPLE_DSN = 'https://6890c2f6677340daa4804f8194804ea2@o19635.ingest.sentry.io/148053';
-
 const DEFAULT_OPTIONS: ReactNativeClientOptions = {
   enableNative: true,
   enableNativeCrashHandling: true,
@@ -112,7 +111,7 @@ describe('Tests ReactNativeClient', () => {
     test('client initializes', async () => {
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => new NativeTransport(),
       });
 
@@ -153,7 +152,7 @@ describe('Tests ReactNativeClient', () => {
       });
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: myCustomTransportFn,
       });
       expect(client.getTransport()?.flush).toBe(myFlush);
@@ -200,7 +199,7 @@ describe('Tests ReactNativeClient', () => {
       expect(mockTransport.send).not.toHaveBeenCalled();
     });
 
-    // TODO: Replacy by Sentry.captureFeedback
+    // TODO: Replace by Sentry.captureFeedback
     test('captureUserFeedback does not call transport when enabled false', () => {
       const mockTransport = createMockTransport();
       const client = createDisabledClientWith(mockTransport);
@@ -213,7 +212,7 @@ describe('Tests ReactNativeClient', () => {
     function createDisabledClientWith(transport: Transport) {
       return new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         enabled: false,
         transport: () => transport,
       });
@@ -224,7 +223,7 @@ describe('Tests ReactNativeClient', () => {
     test('calls onReady callback with true if Native SDK is initialized', done => {
       new ReactNativeClient(
         mockedOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableNative: true,
           onReady: ({ didCallNativeInit }) => {
             expect(didCallNativeInit).toBe(true);
@@ -239,7 +238,7 @@ describe('Tests ReactNativeClient', () => {
     test('catches errors from onReady callback', () => {
       new ReactNativeClient(
         mockedOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableNative: true,
           onReady: () => {
             throw new Error('This error should be caught by the SDK');
@@ -252,7 +251,7 @@ describe('Tests ReactNativeClient', () => {
     test('calls onReady callback with false if Native SDK was not initialized', done => {
       new ReactNativeClient(
         mockedOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableNative: false,
           onReady: ({ didCallNativeInit }) => {
             expect(didCallNativeInit).toBe(false);
@@ -273,7 +272,7 @@ describe('Tests ReactNativeClient', () => {
 
       new ReactNativeClient(
         mockedOptions({
-          dsn: EXAMPLE_DSN,
+          dsn: MOCK_DSN,
           enableNative: true,
           onReady: ({ didCallNativeInit }) => {
             expect(didCallNativeInit).toBe(false);
@@ -293,7 +292,7 @@ describe('Tests ReactNativeClient', () => {
 
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         enableNative: true,
         transport: () => new NativeTransport(),
       });
@@ -308,7 +307,7 @@ describe('Tests ReactNativeClient', () => {
       const mockTransportSend: jest.Mock = jest.fn(() => Promise.resolve());
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -355,7 +354,7 @@ describe('Tests ReactNativeClient', () => {
         ...DEFAULT_OPTIONS,
         attachStacktrace: true,
         stackParser: defaultStackParser,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -374,7 +373,7 @@ describe('Tests ReactNativeClient', () => {
     it('default is true', () => {
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
       });
       expect(client.getOptions().parentSpanIsAlwaysRootSpan).toBe(true);
     });
@@ -382,7 +381,7 @@ describe('Tests ReactNativeClient', () => {
     it('can be set to false', () => {
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         parentSpanIsAlwaysRootSpan: false,
       });
       expect(client.getOptions().parentSpanIsAlwaysRootSpan).toBe(false);
@@ -397,7 +396,7 @@ describe('Tests ReactNativeClient', () => {
       mockTransportSend = jest.fn(() => Promise.resolve());
       client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -447,7 +446,7 @@ describe('Tests ReactNativeClient', () => {
       });
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: mockedTransport,
       });
 
@@ -475,7 +474,7 @@ describe('Tests ReactNativeClient', () => {
       });
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: mockedTransport,
       });
       const circularEvent = {
@@ -504,7 +503,7 @@ describe('Tests ReactNativeClient', () => {
       const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -523,7 +522,7 @@ describe('Tests ReactNativeClient', () => {
       const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -557,7 +556,7 @@ describe('Tests ReactNativeClient', () => {
       const mockTransportSend = jest.fn<PromiseLike<TransportMakeRequestResponse>, [Envelope]>().mockResolvedValue({});
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -574,7 +573,7 @@ describe('Tests ReactNativeClient', () => {
       const mockTransportSend = jest.fn((_envelope: Envelope) => rejectedSyncPromise(new SentryError('Test')));
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -595,7 +594,7 @@ describe('Tests ReactNativeClient', () => {
       const mockTransportSend = getSyncPromiseRejectOnFirstCall<[Envelope]>(new SentryError('Test'));
       const client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -648,7 +647,7 @@ describe('Tests ReactNativeClient', () => {
       mockTransportSend = jest.fn(() => Promise.resolve());
       client = new ReactNativeClient({
         ...DEFAULT_OPTIONS,
-        dsn: EXAMPLE_DSN,
+        dsn: MOCK_DSN,
         transport: () => ({
           send: mockTransportSend,
           flush: jest.fn(),
@@ -925,7 +924,7 @@ function createClientWithSpy(options: Partial<ReactNativeClientOptions>) {
   return {
     client: new SpyClient({
       ...DEFAULT_OPTIONS,
-      dsn: EXAMPLE_DSN,
+      dsn: MOCK_DSN,
       ...options,
     }),
     onSpy,
