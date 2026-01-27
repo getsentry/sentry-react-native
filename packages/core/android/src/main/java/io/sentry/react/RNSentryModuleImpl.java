@@ -117,7 +117,8 @@ public class RNSentryModuleImpl {
   private FrameMetricsAggregator frameMetricsAggregator = null;
   private boolean androidXAvailable;
 
-  @VisibleForTesting static long lastStartTimestampMs = -1;
+  @VisibleForTesting
+  static long lastStartTimestampMs = -1;
 
   // 700ms to constitute frozen frames.
   private static final int FROZEN_FRAME_THRESHOLD = 700;
@@ -127,7 +128,8 @@ public class RNSentryModuleImpl {
   private static final int SCREENSHOT_TIMEOUT_SECONDS = 2;
 
   /**
-   * Profiling traces rate. 101 hz means 101 traces in 1 second. Defaults to 101 to avoid possible
+   * Profiling traces rate. 101 hz means 101 traces in 1 second. Defaults to 101
+   * to avoid possible
    * lockstep sampling. More on
    * https://stackoverflow.com/questions/45470758/what-is-lockstep-sampling
    */
@@ -172,13 +174,12 @@ public class RNSentryModuleImpl {
   }
 
   private void initFragmentInitialFrameTracking() {
-    final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer =
-        new RNSentryReactFragmentLifecycleTracer(buildInfo, emitNewFrameEvent, logger);
+    final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer = new RNSentryReactFragmentLifecycleTracer(
+        buildInfo, emitNewFrameEvent, logger);
 
     final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
     if (fragmentActivity != null) {
-      final @Nullable FragmentManager supportFragmentManager =
-          fragmentActivity.getSupportFragmentManager();
+      final @Nullable FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
       if (supportFragmentManager != null) {
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
       }
@@ -186,8 +187,8 @@ public class RNSentryModuleImpl {
   }
 
   private void initFragmentReplayTracking() {
-    final RNSentryReplayFragmentLifecycleTracer fragmentLifecycleTracer =
-        new RNSentryReplayFragmentLifecycleTracer(logger);
+    final RNSentryReplayFragmentLifecycleTracer fragmentLifecycleTracer = new RNSentryReplayFragmentLifecycleTracer(
+        logger);
 
     final @Nullable Activity currentActivity = getCurrentActivity();
     if (!(currentActivity instanceof FragmentActivity)) {
@@ -195,8 +196,7 @@ public class RNSentryModuleImpl {
     }
 
     final @NotNull FragmentActivity fragmentActivity = (FragmentActivity) currentActivity;
-    final @Nullable FragmentManager supportFragmentManager =
-        fragmentActivity.getSupportFragmentManager();
+    final @Nullable FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
     if (supportFragmentManager != null) {
       supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
     }
@@ -226,7 +226,8 @@ public class RNSentryModuleImpl {
 
   protected void getSentryAndroidOptions(
       @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions, ILogger logger) {
-    @Nullable SdkVersion sdkVersion = options.getSdkVersion();
+    @Nullable
+    SdkVersion sdkVersion = options.getSdkVersion();
     if (sdkVersion == null) {
       sdkVersion = new SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
     } else {
@@ -328,8 +329,7 @@ public class RNSentryModuleImpl {
     // Check if the replay integration is available on the classpath. It's already
     // kept from R8
     // shrinking by sentry-android-core
-    final boolean isReplayAvailable =
-        loadClass.isClassAvailable("io.sentry.android.replay.ReplayIntegration", logger);
+    final boolean isReplayAvailable = loadClass.isClassAvailable("io.sentry.android.replay.ReplayIntegration", logger);
     if (isReplayEnabled(replayOptions) && isReplayAvailable) {
       options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
       initFragmentReplayTracking();
@@ -394,13 +394,11 @@ public class RNSentryModuleImpl {
   }
 
   private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
-    final SdkVersion replaySdkVersion =
-        new SdkVersion(
-            RNSentryVersion.REACT_NATIVE_SDK_NAME,
-            RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
+    final SdkVersion replaySdkVersion = new SdkVersion(
+        RNSentryVersion.REACT_NATIVE_SDK_NAME,
+        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
     @NotNull
-    final SentryReplayOptions androidReplayOptions =
-        new SentryReplayOptions(false, replaySdkVersion);
+    final SentryReplayOptions androidReplayOptions = new SentryReplayOptions(false, replaySdkVersion);
 
     if (!(rnOptions.hasKey("replaysSessionSampleRate")
         || rnOptions.hasKey("replaysOnErrorSampleRate"))) {
@@ -425,7 +423,8 @@ public class RNSentryModuleImpl {
     if (!rnOptions.hasKey("mobileReplayOptions")) {
       return androidReplayOptions;
     }
-    @Nullable final ReadableMap rnMobileReplayOptions = rnOptions.getMap("mobileReplayOptions");
+    @Nullable
+    final ReadableMap rnMobileReplayOptions = rnOptions.getMap("mobileReplayOptions");
     if (rnMobileReplayOptions == null) {
       return androidReplayOptions;
     }
@@ -437,17 +436,15 @@ public class RNSentryModuleImpl {
         !rnMobileReplayOptions.hasKey("maskAllImages")
             || rnMobileReplayOptions.getBoolean("maskAllImages"));
 
-    final boolean redactVectors =
-        !rnMobileReplayOptions.hasKey("maskAllVectors")
-            || rnMobileReplayOptions.getBoolean("maskAllVectors");
+    final boolean redactVectors = !rnMobileReplayOptions.hasKey("maskAllVectors")
+        || rnMobileReplayOptions.getBoolean("maskAllVectors");
     if (redactVectors) {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
     }
 
     if (rnMobileReplayOptions.hasKey("screenshotStrategy")) {
       final String screenshotStrategyString = rnMobileReplayOptions.getString("screenshotStrategy");
-      final ScreenshotStrategyType screenshotStrategy =
-          parseScreenshotStrategy(screenshotStrategyString);
+      final ScreenshotStrategyType screenshotStrategy = parseScreenshotStrategy(screenshotStrategyString);
       androidReplayOptions.setScreenshotStrategy(screenshotStrategy);
     }
 
@@ -493,7 +490,8 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    @Nullable final ReadableMap experiments = rnOptions.getMap("_experiments");
+    @Nullable
+    final ReadableMap experiments = rnOptions.getMap("_experiments");
     if (experiments == null || !experiments.hasKey("androidProfilingOptions")) {
       return;
     }
@@ -506,8 +504,7 @@ public class RNSentryModuleImpl {
 
     // Set profile session sample rate
     if (androidProfilingOptions.hasKey("profileSessionSampleRate")) {
-      final double profileSessionSampleRate =
-          androidProfilingOptions.getDouble("profileSessionSampleRate");
+      final double profileSessionSampleRate = androidProfilingOptions.getDouble("profileSessionSampleRate");
       options.setProfileSessionSampleRate(profileSessionSampleRate);
       logger.log(
           SentryLevel.INFO,
@@ -596,12 +593,10 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    WritableMap mutableMeasurement =
-        (WritableMap) RNSentryMapConverter.convertToWritable(metricsDataBag);
+    WritableMap mutableMeasurement = (WritableMap) RNSentryMapConverter.convertToWritable(metricsDataBag);
 
     long currentStartTimestampMs = metrics.getAppStartTimeSpan().getStartTimestampMs();
-    boolean hasFetched =
-        lastStartTimestampMs > 0 && lastStartTimestampMs == currentStartTimestampMs;
+    boolean hasFetched = lastStartTimestampMs > 0 && lastStartTimestampMs == currentStartTimestampMs;
     mutableMeasurement.putBoolean("has_fetched", hasFetched);
 
     if (lastStartTimestampMs < 0) {
@@ -734,12 +729,11 @@ public class RNSentryModuleImpl {
 
   private static byte[] takeScreenshotOnUiThread(Activity activity) {
     CountDownLatch doneSignal = new CountDownLatch(1);
-    final byte[][] bytesWrapper = {{}}; // wrapper to be able to set the value in the runnable
-    final Runnable runTakeScreenshot =
-        () -> {
-          bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
-          doneSignal.countDown();
-        };
+    final byte[][] bytesWrapper = { {} }; // wrapper to be able to set the value in the runnable
+    final Runnable runTakeScreenshot = () -> {
+      bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
+      doneSignal.countDown();
+    };
 
     if (UiThreadUtil.isOnUiThread()) {
       runTakeScreenshot.run();
@@ -759,8 +753,7 @@ public class RNSentryModuleImpl {
 
   public void fetchViewHierarchy(Promise promise) {
     final @Nullable Activity activity = getCurrentActivity();
-    final @Nullable ViewHierarchy viewHierarchy =
-        ViewHierarchyEventProcessor.snapshotViewHierarchy(activity, logger);
+    final @Nullable ViewHierarchy viewHierarchy = ViewHierarchyEventProcessor.snapshotViewHierarchy(activity, logger);
     if (viewHierarchy == null) {
       logger.log(SentryLevel.ERROR, "Could not get ViewHierarchy.");
       promise.resolve(null);
@@ -768,8 +761,7 @@ public class RNSentryModuleImpl {
     }
 
     ISerializer serializer = ScopesAdapter.getInstance().getOptions().getSerializer();
-    final @Nullable byte[] bytes =
-        JsonSerializationUtils.bytesFrom(serializer, logger, viewHierarchy);
+    final @Nullable byte[] bytes = JsonSerializationUtils.bytesFrom(serializer, logger, viewHierarchy);
     if (bytes == null) {
       logger.log(SentryLevel.ERROR, "Could not serialize ViewHierarchy.");
       promise.resolve(null);
@@ -936,19 +928,36 @@ public class RNSentryModuleImpl {
   public void setAttribute(String key, String value) {
     Sentry.configureScope(
         scope -> {
-          scope.setAttribute(key, value);
+          // Android SDK doesn't have setAttribute yet, store in "attributes" context
+          // TODO(alwx): remove once setAttribute is implemented
+          final Map<String, Object> existingAttributes = new HashMap<>();
+          final Object existing = scope.getContexts().get("attributes");
+          if (existing instanceof Map) {
+            existingAttributes.putAll((Map<String, Object>) existing);
+          }
+          existingAttributes.put(key, value);
+          scope.setContexts("attributes", existingAttributes);
         });
   }
 
   public void setAttributes(ReadableMap attributes) {
     Sentry.configureScope(
         scope -> {
+          // Android SDK doesn't have setAttribute yet, store in "attributes" context
+          // TODO(alwx): remove once setAttribute is implemented
+          final Map<String, Object> existingAttributes = new HashMap<>();
+          final Object existing = scope.getContexts().get("attributes");
+          if (existing instanceof Map) {
+            existingAttributes.putAll((Map<String, Object>) existing);
+          }
+
           final ReadableMapKeySetIterator iterator = attributes.keySetIterator();
           while (iterator.hasNextKey()) {
             final String key = iterator.nextKey();
             final String value = attributes.getString(key);
-            scope.setAttribute(key, value);
+            existingAttributes.put(key, value);
           }
+          scope.setContexts("attributes", existingAttributes);
         });
   }
 
@@ -998,8 +1007,7 @@ public class RNSentryModuleImpl {
 
   private String getProfilingTracesDirPath() {
     if (cacheDirPath == null) {
-      cacheDirPath =
-          new File(getReactApplicationContext().getCacheDir(), "sentry/react").getAbsolutePath();
+      cacheDirPath = new File(getReactApplicationContext().getCacheDir(), "sentry/react").getAbsolutePath();
     }
     File profilingTraceDir = new File(cacheDirPath, "profiling_trace");
     profilingTraceDir.mkdirs();
@@ -1012,13 +1020,12 @@ public class RNSentryModuleImpl {
     }
     final String tracesFilesDirPath = getProfilingTracesDirPath();
 
-    androidProfiler =
-        new AndroidProfiler(
-            tracesFilesDirPath,
-            (int) SECONDS.toMicros(1) / profilingTracesHz,
-            new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
-            executorService,
-            logger);
+    androidProfiler = new AndroidProfiler(
+        tracesFilesDirPath,
+        (int) SECONDS.toMicros(1) / profilingTracesHz,
+        new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
+        executorService,
+        logger);
   }
 
   public WritableMap startProfiling(boolean platformProfilers) {
@@ -1052,9 +1059,8 @@ public class RNSentryModuleImpl {
       }
       HermesSamplingProfiler.disable();
 
-      output =
-          File.createTempFile(
-              "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
+      output = File.createTempFile(
+          "sampling-profiler-trace", ".cpuprofile", reactApplicationContext.getCacheDir());
       if (isDebug) {
         logger.log(SentryLevel.INFO, "Profile saved to: " + output.getAbsolutePath());
       }
@@ -1064,10 +1070,8 @@ public class RNSentryModuleImpl {
 
       if (end != null) {
         WritableMap androidProfile = new WritableNativeMap();
-        byte[] androidProfileBytes =
-            FileUtils.readBytesFromFile(end.traceFile.getPath(), maxTraceFileSize);
-        String base64AndroidProfile =
-            Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
+        byte[] androidProfileBytes = FileUtils.readBytesFromFile(end.traceFile.getPath(), maxTraceFileSize);
+        String base64AndroidProfile = Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
 
         androidProfile.putString("sampled_profile", base64AndroidProfile);
         androidProfile.putInt("android_api_level", buildInfo.getSdkInfoVersion());
@@ -1096,8 +1100,8 @@ public class RNSentryModuleImpl {
       return proguardUuid;
     }
     isProguardDebugMetaLoaded = true;
-    final @Nullable List<Properties> debugMetaList =
-        new AssetsDebugMetaLoader(this.getReactApplicationContext(), logger).loadDebugMeta();
+    final @Nullable List<Properties> debugMetaList = new AssetsDebugMetaLoader(this.getReactApplicationContext(),
+        logger).loadDebugMeta();
     if (debugMetaList == null) {
       return null;
     }
@@ -1115,7 +1119,7 @@ public class RNSentryModuleImpl {
   }
 
   private String readStringFromFile(File path) throws IOException {
-    try (BufferedReader br = new BufferedReader(new FileReader(path)); ) {
+    try (BufferedReader br = new BufferedReader(new FileReader(path));) {
 
       final StringBuilder text = new StringBuilder();
       String line;
@@ -1165,8 +1169,8 @@ public class RNSentryModuleImpl {
       }
     }
 
-    final @NotNull Map<String, Object> serialized =
-        InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
+    final @NotNull Map<String, Object> serialized = InternalSentrySdk.serializeScope(context,
+        (SentryAndroidOptions) options, currentScope);
     final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
     promise.resolve(deviceContext);
   }
@@ -1182,9 +1186,8 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    Object contextsObj =
-        InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope)
-            .get("contexts");
+    Object contextsObj = InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope)
+        .get("contexts");
 
     if (!(contextsObj instanceof Map)) {
       promise.resolve(null);
@@ -1213,8 +1216,7 @@ public class RNSentryModuleImpl {
   }
 
   public void fetchNativeSdkInfo(Promise promise) {
-    final @Nullable SdkVersion sdkVersion =
-        ScopesAdapter.getInstance().getOptions().getSdkVersion();
+    final @Nullable SdkVersion sdkVersion = ScopesAdapter.getInstance().getOptions().getSdkVersion();
     if (sdkVersion == null) {
       promise.resolve(null);
     } else {
@@ -1232,8 +1234,7 @@ public class RNSentryModuleImpl {
   public void getDataFromUri(String uri, Promise promise) {
     try {
       Uri contentUri = Uri.parse(uri);
-      try (InputStream is =
-          getReactApplicationContext().getContentResolver().openInputStream(contentUri)) {
+      try (InputStream is = getReactApplicationContext().getContentResolver().openInputStream(contentUri)) {
         if (is == null) {
           String msg = "File not found for uri: " + uri;
           logger.log(SentryLevel.ERROR, msg);
