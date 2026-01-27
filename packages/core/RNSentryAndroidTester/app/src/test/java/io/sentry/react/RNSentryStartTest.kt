@@ -249,15 +249,15 @@ class RNSentryStartTest {
         val integrations = options.getIntegrations()
         assertFalse(
             "UncaughtExceptionHandlerIntegration should be removed",
-            integrations.any { it is io.sentry.UncaughtExceptionHandlerIntegration }
+            integrations.any { it is io.sentry.UncaughtExceptionHandlerIntegration },
         )
         assertFalse(
             "AnrIntegration should be removed",
-            integrations.any { it is io.sentry.android.core.AnrIntegration }
+            integrations.any { it is io.sentry.android.core.AnrIntegration },
         )
         assertFalse(
             "NdkIntegration should be removed",
-            integrations.any { it is io.sentry.android.core.NdkIntegration }
+            integrations.any { it is io.sentry.android.core.NdkIntegration },
         )
     }
 
