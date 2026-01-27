@@ -723,6 +723,20 @@ RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
         configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
 }
 
+RCT_EXPORT_METHOD(setAttribute : (NSString *)key value : (NSString *)value)
+{
+    [SentrySDKWrapper
+        configureScope:^(SentryScope *_Nonnull scope) { [scope setAttribute:value forKey:key]; }];
+}
+
+RCT_EXPORT_METHOD(setAttributes : (NSDictionary *)attributes)
+{
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+        [attributes enumerateKeysAndObjectsUsingBlock:^(
+            NSString *key, NSString *value, BOOL *stop) { [scope setAttribute:value forKey:key]; }];
+    }];
+}
+
 RCT_EXPORT_METHOD(crash) { [SentrySDKWrapper crash]; }
 
 RCT_EXPORT_METHOD(

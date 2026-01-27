@@ -933,6 +933,25 @@ public class RNSentryModuleImpl {
         });
   }
 
+  public void setAttribute(String key, String value) {
+    Sentry.configureScope(
+        scope -> {
+          scope.setAttribute(key, value);
+        });
+  }
+
+  public void setAttributes(ReadableMap attributes) {
+    Sentry.configureScope(
+        scope -> {
+          final ReadableMapKeySetIterator iterator = attributes.keySetIterator();
+          while (iterator.hasNextKey()) {
+            final String key = iterator.nextKey();
+            final String value = attributes.getString(key);
+            scope.setAttribute(key, value);
+          }
+        });
+  }
+
   public void closeNativeSdk(Promise promise) {
     Sentry.close();
 
