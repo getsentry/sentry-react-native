@@ -1,0 +1,24 @@
+name: Test Workflow run
+
+on:
+  push:
+    branches:
+      - itay/test
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  test:
+    name: Test - ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        runs-on:
+          - ["ghcr.io/cirruslabs/macos-runner:tahoe", "runner_group_id:12"]
+          - ["ghcr.io/cirruslabs/macos-runner:tahoe", "runner_group_id:10"]
+    steps:
+      - run: echo "Hello, world!"
