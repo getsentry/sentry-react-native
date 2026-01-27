@@ -113,14 +113,12 @@ function extractScopeAttributes(
   target: Record<string, string | number | boolean>,
 ): void {
   if (scope && typeof scope.getScopeData === 'function') {
-    const scopeData = scope.getScopeData();
-    const scopeAttrs = scopeData.attributes || {};
-    Object.keys(scopeAttrs).forEach((key: string) => {
-      const value = scopeAttrs[key];
+    const scopeAttrs = scope?.getScopeData?.().attributes || {};
+    for (const [key, value] of Object.entries(scopeAttrs)) {
       if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
         target[key] = value;
       }
-    });
+    }
   }
 }
 
