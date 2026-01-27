@@ -56,6 +56,12 @@ class MainApplication :
     private fun shouldCrashOnStart(): Boolean {
         // Check if crash flag file exists (for E2E testing)
         val crashFile = getFileStreamPath(".sentry_crash_on_start")
-        return crashFile.exists()
+        if (crashFile.exists()) {
+            // Delete the flag immediately so we only crash once
+            // This allows the next launch to succeed and send the crash report
+            crashFile.delete()
+            return true
+        }
+        return false
     }
 }

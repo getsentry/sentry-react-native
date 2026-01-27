@@ -18,29 +18,13 @@ appId: io.sentry.reactnative.sample
 - tapOn: "Enable Crash on Start"
 - stopApp
 
-# Second launch: App will crash on start due to flag file
+# Second launch: App crashes on start
+# The crash flag auto-deletes when read, so app only crashes once
 - launchApp:
     clearState: false
     stopApp: false
 
-# Third launch: Crash event is sent before crashing again
+# Third launch: App starts normally and sends the crash event
 - launchApp:
     clearState: false
     stopApp: false
-
-# Fourth launch: Disable the crash flag so app can run normally
-- launchApp:
-    clearState: false
-    stopApp: false
-
-# Wait for app to stabilize
-- waitForAnimationToEnd:
-    timeout: 2000
-
-# Scroll down to find the "Disable Crash on Start" button
-- scrollUntilVisible:
-    element: "Disable Crash on Start"
-    timeout: 10000
-    direction: DOWN
-
-- tapOn: "Disable Crash on Start"
