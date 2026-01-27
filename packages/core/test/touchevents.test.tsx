@@ -4,6 +4,7 @@
 import type { SeverityLevel } from '@sentry/core';
 import * as core from '@sentry/core';
 import { TouchEventBoundary } from '../src/js/touchevents';
+import * as userInteractionModule from '../src/js/tracing/integrations/userInteraction';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 
 describe('TouchEventBoundary._onTouchStart', () => {
@@ -308,6 +309,245 @@ describe('TouchEventBoundary._onTouchStart', () => {
       level: 'info' as SeverityLevel,
       message: 'Touch event within element: Text',
       type: defaultProps.breadcrumbType,
+    });
+  });
+
+  describe('sentry-span-attributes', () => {
+    it('sets custom attributes from prop on user interaction span', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const mockSpan = {
+        setAttribute: jest.fn(),
+        setAttributes: jest.fn(),
+      };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {
+            'sentry-label': 'checkout',
+            'sentry-span-attributes': {
+              'user.subscription': 'premium',
+              'cart.items': '3',
+              'feature.enabled': true,
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(mockSpan.setAttributes).toHaveBeenCalledWith({
+        'user.subscription': 'premium',
+        'cart.items': '3',
+        'feature.enabled': true,
+      });
+    });
+
+    it('handles multiple attribute types (string, number, boolean)', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const mockSpan = {
+        setAttribute: jest.fn(),
+        setAttributes: jest.fn(),
+      };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {
+            'sentry-label': 'test',
+            'sentry-span-attributes': {
+              'string.value': 'test',
+              'number.value': 42,
+              'boolean.value': false,
+              'array.value': ['a', 'b', 'c'],
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(mockSpan.setAttributes).toHaveBeenCalledWith({
+        'string.value': 'test',
+        'number.value': 42,
+        'boolean.value': false,
+        'array.value': ['a', 'b', 'c'],
+      });
+    });
+
+    it('handles invalid span attributes gracefully (null)', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const mockSpan = {
+        setAttribute: jest.fn(),
+        setAttributes: jest.fn(),
+      };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {
+            'sentry-label': 'test',
+            'sentry-span-attributes': null,
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(mockSpan.setAttributes).not.toHaveBeenCalled();
+    });
+
+    it('handles invalid span attributes gracefully (array)', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const mockSpan = {
+        setAttribute: jest.fn(),
+        setAttributes: jest.fn(),
+      };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {
+            'sentry-label': 'test',
+            'sentry-span-attributes': ['invalid', 'array'],
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(mockSpan.setAttributes).not.toHaveBeenCalled();
+    });
+
+    it('handles empty object gracefully', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const mockSpan = {
+        setAttribute: jest.fn(),
+        setAttributes: jest.fn(),
+      };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {
+            'sentry-label': 'test',
+            'sentry-span-attributes': {},
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(mockSpan.setAttributes).not.toHaveBeenCalled();
+    });
+
+    it('works with sentry-label', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const mockSpan = {
+        setAttribute: jest.fn(),
+        setAttributes: jest.fn(),
+      };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {
+            'sentry-label': 'checkout-button',
+            'sentry-span-attributes': {
+              'custom.key': 'value',
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(userInteractionModule.startUserInteractionSpan).toHaveBeenCalledWith({
+        elementId: 'checkout-button',
+        op: 'ui.action.touch',
+      });
+      expect(mockSpan.setAttributes).toHaveBeenCalledWith({
+        'custom.key': 'value',
+      });
+    });
+
+    it('finds attributes in component tree', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const mockSpan = {
+        setAttribute: jest.fn(),
+        setAttributes: jest.fn(),
+      };
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(mockSpan as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Text' },
+          return: {
+            elementType: { displayName: 'Button' },
+            memoizedProps: {
+              'sentry-label': 'parent-button',
+              'sentry-span-attributes': {
+                'found.in': 'parent',
+              },
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(mockSpan.setAttributes).toHaveBeenCalledWith({
+        'found.in': 'parent',
+      });
+    });
+
+    it('does not call setAttributes when no span is created', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      jest.spyOn(userInteractionModule, 'startUserInteractionSpan').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {
+            'sentry-label': 'test',
+            'sentry-span-attributes': {
+              'custom.key': 'value',
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      expect(() => boundary._onTouchStart(event)).not.toThrow();
     });
   });
 });

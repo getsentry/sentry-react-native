@@ -60,12 +60,19 @@ describe('Capture Spaceflight News Screen Transaction', () => {
     expect(first![1].timestamp!).toBeLessThan(second![1].timestamp!);
   });
 
-  it('all transaction envelopes have time to display measurements', async () => {
-    allTransactionEnvelopes.forEach(envelope => {
-      expectToContainTimeToDisplayMeasurements(
-        getItemOfTypeFrom<EventItem>(envelope, 'transaction'),
-      );
-    });
+  it('all navigation transaction envelopes have time to display measurements', async () => {
+    allTransactionEnvelopes
+      .filter(envelope => {
+        const item = getItemOfTypeFrom<EventItem>(envelope, 'transaction');
+        // Only check navigation transactions, not user interaction transactions
+        // User interaction transactions (ui.action.touch) don't have time-to-display measurements
+        return item?.[1]?.contexts?.trace?.op !== 'ui.action.touch';
+      })
+      .forEach(envelope => {
+        expectToContainTimeToDisplayMeasurements(
+          getItemOfTypeFrom<EventItem>(envelope, 'transaction'),
+        );
+      });
   });
 
   function expectToContainTimeToDisplayMeasurements(
