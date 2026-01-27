@@ -557,7 +557,7 @@ RCT_EXPORT_METHOD(captureEnvelope : (NSString *_Nonnull)rawBytes options : (NSDi
 #endif
 
     // TODO(alwx): Capture transport response from sentry-cocoa when available
-    resolve(@{});
+    resolve(@ {});
 }
 
 RCT_EXPORT_METHOD(
