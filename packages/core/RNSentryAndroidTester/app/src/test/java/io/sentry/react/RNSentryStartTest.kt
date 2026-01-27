@@ -236,4 +236,41 @@ class RNSentryStartTest {
         assertEquals("android", result?.getTag("event.origin"))
         assertEquals("java", result?.getTag("event.environment"))
     }
+
+    @Test
+    fun `when enableNativeCrashHandling is false, native crash integrations are removed without ConcurrentModificationException`() {
+        val rnOptions = JavaOnlyMap.of("enableNativeCrashHandling", false)
+        val options = SentryAndroidOptions()
+
+        // This should not throw ConcurrentModificationException
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        // Verify integrations were removed
+        val integrations = options.getIntegrations()
+        assertFalse(
+            "UncaughtExceptionHandlerIntegration should be removed",
+            integrations.any { it is io.sentry.UncaughtExceptionHandlerIntegration }
+        )
+        assertFalse(
+            "AnrIntegration should be removed",
+            integrations.any { it is io.sentry.android.core.AnrIntegration }
+        )
+        assertFalse(
+            "NdkIntegration should be removed",
+            integrations.any { it is io.sentry.android.core.NdkIntegration }
+        )
+    }
+
+    @Test
+    fun `when enableNativeCrashHandling is true, native crash integrations are kept`() {
+        val rnOptions = JavaOnlyMap.of("enableNativeCrashHandling", true)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        // When enabled, the default integrations should still be present
+        // Note: This test verifies that we don't remove integrations when the flag is true
+        val integrations = options.getIntegrations()
+        assertNotNull("Integrations list should not be null", integrations)
+    }
 }

@@ -6,7 +6,6 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.JavascriptException;
 import io.sentry.ILogger;
-import io.sentry.Integration;
 import io.sentry.ProfileLifecycle;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
@@ -25,7 +24,6 @@ import io.sentry.react.replay.RNSentryReplayMask;
 import io.sentry.react.replay.RNSentryReplayUnmask;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -183,14 +181,13 @@ final class RNSentryStart {
 
     if (rnOptions.hasKey("enableNativeCrashHandling")
         && !rnOptions.getBoolean("enableNativeCrashHandling")) {
-      final List<Integration> integrations = options.getIntegrations();
-      for (final Integration integration : integrations) {
-        if (integration instanceof UncaughtExceptionHandlerIntegration
-            || integration instanceof AnrIntegration
-            || integration instanceof NdkIntegration) {
-          integrations.remove(integration);
-        }
-      }
+      options
+          .getIntegrations()
+          .removeIf(
+              integration ->
+                  integration instanceof UncaughtExceptionHandlerIntegration
+                      || integration instanceof AnrIntegration
+                      || integration instanceof NdkIntegration);
     }
     logger.log(
         SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
