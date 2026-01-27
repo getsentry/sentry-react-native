@@ -725,16 +725,18 @@ RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 
 RCT_EXPORT_METHOD(setAttribute : (NSString *)key value : (NSString *)value)
 {
-    [SentrySDKWrapper
-        configureScope:^(SentryScope *_Nonnull scope) { [scope setAttribute:value forKey:key]; }];
+    // TODO(alwx): This is not implemented in sentry-cocoa yet
+    /*[SentrySDKWrapper
+        configureScope:^(SentryScope *_Nonnull scope) { [scope setAttribute:value forKey:key]; }];*/
 }
 
 RCT_EXPORT_METHOD(setAttributes : (NSDictionary *)attributes)
 {
-    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+    // TODO(alwx): This is not implemented in sentry-cocoa yet
+    /*[SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         [attributes enumerateKeysAndObjectsUsingBlock:^(
             NSString *key, NSString *value, BOOL *stop) { [scope setAttribute:value forKey:key]; }];
-    }];
+    }];*/
 }
 
 RCT_EXPORT_METHOD(crash) { [SentrySDKWrapper crash]; }
