@@ -73,6 +73,7 @@ if [ -f "$SENTRY_COLLECT_MODULES" ]; then
   /bin/sh "$SENTRY_COLLECT_MODULES"
 fi
 
+# sentry.options.json Block
 SENTRY_OPTIONS_FILE_ERROR_MESSAGE_POSTFIX="Skipping options file copy. To disable this behavior, set SENTRY_COPY_OPTIONS_FILE=false in your environment variables."
 SENTRY_OPTIONS_FILE_NAME="sentry.options.json"
 SENTRY_OPTIONS_FILE_DESTINATION_PATH="$CONFIGURATION_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/$SENTRY_OPTIONS_FILE_NAME"
