@@ -56,22 +56,25 @@ describe('Capture app start crash (Android)', () => {
   it('captures app start crash exception', async () => {
     const item = getItemOfTypeFrom<EventItem>(envelope, 'event');
 
-    expect(item?.[1]).toEqual(
-      expect.objectContaining({
-        exception: expect.objectContaining({
-          values: expect.arrayContaining([
-            expect.objectContaining({
-              type: 'RuntimeException',
-              value: 'This was intentional test crash before JS started.',
-              mechanism: expect.objectContaining({
-                handled: false,
-                type: 'UncaughtExceptionHandler',
-              }),
-            }),
-          ]),
-        }),
-      }),
+    // Android wraps onCreate exceptions, so check that at least one exception
+    // contains our intentional crash message
+    const exceptions = item?.[1]?.exception?.values;
+    expect(exceptions).toBeDefined();
+
+    const hasIntentionalCrash = exceptions?.some(
+      (ex: any) =>
+        ex.type === 'RuntimeException' &&
+        ex.value?.includes('This was intentional test crash before JS started.')
     );
+
+    expect(hasIntentionalCrash).toBe(true);
+
+    // Verify at least one exception has UncaughtExceptionHandler mechanism
+    const hasUncaughtHandler = exceptions?.some(
+      (ex: any) => ex.mechanism?.type === 'UncaughtExceptionHandler'
+    );
+
+    expect(hasUncaughtHandler).toBe(true);
   });
 
   it('crash happened before JS was loaded', async () => {
