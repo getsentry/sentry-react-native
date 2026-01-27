@@ -5,7 +5,6 @@
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
-#import <Sentry/SentryDebugImageProvider+HybridSDKs.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
@@ -1119,8 +1118,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertEqual(actualOptions.enableCrashHandler, YES, @"Did not set native crash handling");
 }
 
 - (void)testStartCreateOptionsWithDictionaryAutoPerformanceTracingDefault
@@ -1150,8 +1148,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], true,
-        @"Did not set native crash handling");
+    XCTAssertEqual(actualOptions.enableCrashHandler, YES, @"Did not set native crash handling");
 }
 
 - (void)testStartCreateOptionsWithDictionaryAutoPerformanceTracingEnabled
@@ -1182,8 +1179,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
-    XCTAssertEqual([actualOptions.integrations containsObject:@"SentryCrashIntegration"], false,
-        @"Did not disable native crash handling");
+    XCTAssertEqual(actualOptions.enableCrashHandler, NO, @"Did not disable native crash handling");
 }
 
 - (void)testStartCreateOptionsWithDictionaryAutoPerformanceTracingDisabled
