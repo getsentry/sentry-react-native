@@ -2,6 +2,8 @@
 
 #if SENTRY_HAS_UIKIT
 
+@import Sentry;
+
 @implementation RNSentryFramesTrackerListener
 
 - (instancetype)initWithSentryFramesTracker:(SentryFramesTracker *)framesTracker

@@ -1,8 +1,9 @@
-#import "RNSentryFramesTrackerListenerTests.h"
 #import "RNSentryDependencyContainer.h"
+#import "RNSentryFramesTrackerListener.h"
 #import <OCMock/OCMock.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
+@import Sentry;
 
 @interface RNSentryFramesTrackerListenerTests : XCTestCase
 
