@@ -24,6 +24,12 @@
   </Pressable>
   ```
 
+### Dependencies
+
+- Bump Bundler Plugins from v4.7.0 to v4.8.0 ([#5581](https://github.com/getsentry/sentry-react-native/pull/5581))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#480)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.7.0...4.8.0)
+
 ## 7.10.0
 
 ### Fixes
