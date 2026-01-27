@@ -1,0 +1,28 @@
+appId: io.sentry.reactnative.sample
+---
+# First launch: Enable crash flag and exit gracefully
+- launchApp:
+    clearState: true
+    stopApp: true
+
+- tapOn: "Errors"
+- tapOn: "Enable Crash on Start"
+- stopApp
+
+# Second launch: App will crash on start due to flag file
+- launchApp:
+    clearState: false
+    stopApp: false
+
+# Third launch: Crash event is sent before crashing again
+- launchApp:
+    clearState: false
+    stopApp: false
+
+# Fourth launch: Disable the crash flag so app can run normally
+- launchApp:
+    clearState: false
+    stopApp: false
+
+- tapOn: "Errors"
+- tapOn: "Disable Crash on Start"
