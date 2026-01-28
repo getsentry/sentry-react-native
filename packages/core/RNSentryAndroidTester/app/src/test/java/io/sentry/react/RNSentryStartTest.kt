@@ -59,6 +59,15 @@ class RNSentryStartTest {
     }
 
     @Test
+    fun `when the spotlight option is enabled without defaultSidecarUrl, the spotlight is enabled and does not crash`() {
+        val options = JavaOnlyMap.of("spotlight", true)
+        val actualOptions = SentryAndroidOptions()
+        RNSentryStart.getSentryAndroidOptions(actualOptions, options, logger)
+        assert(actualOptions.isEnableSpotlight)
+        assertNull(actualOptions.spotlightConnectionUrl)
+    }
+
+    @Test
     fun `when the spotlight option is disabled, the spotlight SentryAndroidOption is set to false`() {
         val options = JavaOnlyMap.of("spotlight", false)
         val actualOptions = SentryAndroidOptions()
