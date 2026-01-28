@@ -60,7 +60,7 @@ jobs:
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
 
-      - run: npm i -g corepack
+      - run: npm i -g corepack --force
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -241,7 +241,7 @@ jobs:
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
 
-      - run: npm i -g corepack
+      - run: npm i -g corepack --force
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -345,7 +345,7 @@ jobs:
           path: dev-packages/e2e-tests
 
       - name: Enable Corepack
-        run: npm i -g corepack
+        run: npm i -g corepack --force
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
