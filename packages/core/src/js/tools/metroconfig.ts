@@ -10,7 +10,9 @@ import {
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
 import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
+import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
+import type { MetroCustomSerializer } from './utils';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 export * from './sentryMetroSerializer';
@@ -38,6 +40,14 @@ export interface SentryMetroConfigOptions {
    * @default true
    */
   enableSourceContextInDevelopment?: boolean;
+  /**
+   * Load Sentry Options from a file. If `true` it will use the default path.
+   * If `false` it will not load any options from a file. Only options provided in the code will be used.
+   * If `string` it will use the provided path.
+   *
+   * @default '{projectRoot}/sentry.options.json'
+   */
+  optionsFile?: string | boolean;
 }
 
 export interface SentryExpoConfigOptions {
@@ -66,6 +76,7 @@ export function withSentryConfig(
     annotateReactComponents = false,
     includeWebReplay = true,
     enableSourceContextInDevelopment = true,
+    optionsFile = true,
   }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
@@ -82,6 +93,9 @@ export function withSentryConfig(
   }
   if (enableSourceContextInDevelopment) {
     newConfig = withSentryMiddleware(newConfig);
+  }
+  if (optionsFile) {
+    newConfig = withSentryOptionsFromFile(newConfig, optionsFile);
   }
 
   return newConfig;
@@ -117,6 +131,10 @@ export function getSentryExpoConfig(
 
   if (options.enableSourceContextInDevelopment ?? true) {
     newConfig = withSentryMiddleware(newConfig);
+  }
+
+  if (options.optionsFile ?? true) {
+    newConfig = withSentryOptionsFromFile(newConfig, options.optionsFile ?? true);
   }
 
   return newConfig;
@@ -179,8 +197,6 @@ export function withSentryBabelTransformer(
     },
   };
 }
-
-type MetroCustomSerializer = Required<Required<MetroConfig>['serializer']>['customSerializer'] | undefined;
 
 function withSentryDebugId(config: MetroConfig): MetroConfig {
   const customSerializer = createSentryMetroSerializer(

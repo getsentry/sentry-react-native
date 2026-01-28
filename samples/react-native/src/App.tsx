@@ -19,7 +19,7 @@ import WebviewScreen from './Screens/WebviewScreen';
 import getErrorsTab from './tabs/ErrorsTab';
 import getPerformanceTab from './tabs/PerformanceTab';
 import getPlaygroundTab from './tabs/PlaygroundTab';
-import { getDsn, logWithoutTracing } from './utils';
+import { logWithoutTracing, shouldUseAutoStart } from './utils';
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -45,10 +45,6 @@ const StackNavigator: TypedNavigator<any, any> = isMobileOs
 const BottomTabNavigator = createBottomTabNavigator();
 
 Sentry.init({
-  // Replace the example DSN below with your own DSN:
-  dsn: getDsn(),
-  debug: true,
-  environment: 'dev',
   beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
@@ -170,7 +166,7 @@ Sentry.init({
   spotlight: false,
   // This should be disabled when manually initializing the native SDK
   // Note that options from JS are not passed to the native SDKs when initialized manually
-  autoInitializeNativeSdk: true,
+  autoInitializeNativeSdk: shouldUseAutoStart(),
   enableMetrics: true,
 });
 

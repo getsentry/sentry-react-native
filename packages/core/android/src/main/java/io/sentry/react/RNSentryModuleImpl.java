@@ -23,41 +23,27 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
-import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
-import com.facebook.react.common.JavascriptException;
 import io.sentry.Breadcrumb;
 import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
-import io.sentry.Integration;
-import io.sentry.ProfileLifecycle;
 import io.sentry.ScopesAdapter;
-import io.sentry.ScreenshotStrategyType;
 import io.sentry.Sentry;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
-import io.sentry.SentryEvent;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
-import io.sentry.SentryReplayOptions;
-import io.sentry.SentryReplayOptions.SentryReplayQuality;
-import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
-import io.sentry.android.core.AnrIntegration;
-import io.sentry.android.core.BuildConfig;
 import io.sentry.android.core.BuildInfoProvider;
-import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.InternalSentrySdk;
-import io.sentry.android.core.NdkIntegration;
-import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
@@ -67,12 +53,8 @@ import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.Geo;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
-import io.sentry.protocol.SentryPackage;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
-import io.sentry.react.replay.RNSentryReplayFragmentLifecycleTracer;
-import io.sentry.react.replay.RNSentryReplayMask;
-import io.sentry.react.replay.RNSentryReplayUnmask;
 import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.FileUtils;
 import io.sentry.util.JsonSerializationUtils;
@@ -93,10 +75,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -185,30 +165,13 @@ public class RNSentryModuleImpl {
     }
   }
 
-  private void initFragmentReplayTracking() {
-    final RNSentryReplayFragmentLifecycleTracer fragmentLifecycleTracer =
-        new RNSentryReplayFragmentLifecycleTracer(logger);
-
-    final @Nullable Activity currentActivity = getCurrentActivity();
-    if (!(currentActivity instanceof FragmentActivity)) {
-      return;
-    }
-
-    final @NotNull FragmentActivity fragmentActivity = (FragmentActivity) currentActivity;
-    final @Nullable FragmentManager supportFragmentManager =
-        fragmentActivity.getSupportFragmentManager();
-    if (supportFragmentManager != null) {
-      supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
-    }
-  }
-
   public void initNativeReactNavigationNewFrameTracking(Promise promise) {
     this.initFragmentInitialFrameTracking();
   }
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
-    SentryAndroid.init(
-        getApplicationContext(), options -> getSentryAndroidOptions(options, rnOptions, logger));
+    RNSentryStart.startWithOptions(
+        getApplicationContext(), rnOptions, getCurrentActivity(), logger);
 
     promise.resolve(true);
   }
@@ -222,320 +185,6 @@ public class RNSentryModuleImpl {
       return this.getReactApplicationContext();
     }
     return context;
-  }
-
-  protected void getSentryAndroidOptions(
-      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions, ILogger logger) {
-    @Nullable SdkVersion sdkVersion = options.getSdkVersion();
-    if (sdkVersion == null) {
-      sdkVersion = new SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, BuildConfig.VERSION_NAME);
-    } else {
-      sdkVersion.setName(RNSentryVersion.ANDROID_SDK_NAME);
-    }
-    sdkVersion.addPackage(
-        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME,
-        RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
-
-    options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
-    options.setNativeSdkName(RNSentryVersion.NATIVE_SDK_NAME);
-    options.setSdkVersion(sdkVersion);
-
-    if (rnOptions.hasKey("debug") && rnOptions.getBoolean("debug")) {
-      options.setDebug(true);
-    }
-    if (rnOptions.hasKey("enabled")) {
-      options.setEnabled(rnOptions.getBoolean("enabled"));
-    }
-    if (rnOptions.hasKey("dsn") && rnOptions.getString("dsn") != null) {
-      String dsn = rnOptions.getString("dsn");
-      logger.log(SentryLevel.INFO, String.format("Starting with DSN: '%s'", dsn));
-      options.setDsn(dsn);
-    } else {
-      // SentryAndroid needs an empty string fallback for the dsn.
-      options.setDsn("");
-    }
-    if (rnOptions.hasKey("sampleRate")) {
-      options.setSampleRate(rnOptions.getDouble("sampleRate"));
-    }
-    if (rnOptions.hasKey("sendClientReports")) {
-      options.setSendClientReports(rnOptions.getBoolean("sendClientReports"));
-    }
-    if (rnOptions.hasKey("maxBreadcrumbs")) {
-      options.setMaxBreadcrumbs(rnOptions.getInt("maxBreadcrumbs"));
-    }
-    if (rnOptions.hasKey("maxCacheItems")) {
-      options.setMaxCacheItems(rnOptions.getInt("maxCacheItems"));
-    }
-    if (rnOptions.hasKey("environment") && rnOptions.getString("environment") != null) {
-      options.setEnvironment(rnOptions.getString("environment"));
-    }
-    if (rnOptions.hasKey("release") && rnOptions.getString("release") != null) {
-      options.setRelease(rnOptions.getString("release"));
-    }
-    if (rnOptions.hasKey("dist") && rnOptions.getString("dist") != null) {
-      options.setDist(rnOptions.getString("dist"));
-    }
-    if (rnOptions.hasKey("enableAutoSessionTracking")) {
-      options.setEnableAutoSessionTracking(rnOptions.getBoolean("enableAutoSessionTracking"));
-    }
-    if (rnOptions.hasKey("sessionTrackingIntervalMillis")) {
-      options.setSessionTrackingIntervalMillis(rnOptions.getInt("sessionTrackingIntervalMillis"));
-    }
-    if (rnOptions.hasKey("shutdownTimeout")) {
-      options.setShutdownTimeoutMillis(rnOptions.getInt("shutdownTimeout"));
-    }
-    if (rnOptions.hasKey("enableNdkScopeSync")) {
-      options.setEnableScopeSync(rnOptions.getBoolean("enableNdkScopeSync"));
-    }
-    if (rnOptions.hasKey("attachStacktrace")) {
-      options.setAttachStacktrace(rnOptions.getBoolean("attachStacktrace"));
-    }
-    if (rnOptions.hasKey("attachThreads")) {
-      // JS use top level stacktrace and android attaches Threads which hides them so
-      // by default we hide.
-      options.setAttachThreads(rnOptions.getBoolean("attachThreads"));
-    }
-    if (rnOptions.hasKey("attachScreenshot")) {
-      options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
-    }
-    if (rnOptions.hasKey("attachViewHierarchy")) {
-      options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
-    }
-    if (rnOptions.hasKey("sendDefaultPii")) {
-      options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
-    }
-    if (rnOptions.hasKey("maxQueueSize")) {
-      options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
-    }
-    if (rnOptions.hasKey("enableNdk")) {
-      options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
-    }
-    if (rnOptions.hasKey("enableLogs")) {
-      options.getLogs().setEnabled(rnOptions.getBoolean("enableLogs"));
-    }
-    if (rnOptions.hasKey("spotlight")) {
-      if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
-        options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));
-        options.setSpotlightConnectionUrl(rnOptions.getString("defaultSidecarUrl"));
-      } else if (rnOptions.getType("spotlight") == ReadableType.String) {
-        options.setEnableSpotlight(true);
-        options.setSpotlightConnectionUrl(rnOptions.getString("spotlight"));
-      }
-    }
-
-    SentryReplayOptions replayOptions = getReplayOptions(rnOptions);
-    options.setSessionReplay(replayOptions);
-    // Check if the replay integration is available on the classpath. It's already
-    // kept from R8
-    // shrinking by sentry-android-core
-    final boolean isReplayAvailable =
-        loadClass.isClassAvailable("io.sentry.android.replay.ReplayIntegration", logger);
-    if (isReplayEnabled(replayOptions) && isReplayAvailable) {
-      options.getReplayController().setBreadcrumbConverter(new RNSentryReplayBreadcrumbConverter());
-      initFragmentReplayTracking();
-    }
-
-    // Configure Android UI Profiling
-    configureAndroidProfiling(options, rnOptions);
-
-    // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    String dsn = getURLFromDSN(rnOptions.getString("dsn"));
-    String devServerUrl = rnOptions.getString("devServerUrl");
-    options.setBeforeBreadcrumb(
-        (breadcrumb, hint) -> {
-          Object urlObject = breadcrumb.getData("url");
-          String url = urlObject instanceof String ? (String) urlObject : "";
-          if ("http".equals(breadcrumb.getType())
-              && ((dsn != null && url.startsWith(dsn))
-                  || (devServerUrl != null && url.startsWith(devServerUrl)))) {
-            return null;
-          }
-          return breadcrumb;
-        });
-
-    // React native internally throws a JavascriptException.
-    // we want to ignore it on the native side to avoid sending it twice.
-    options.addIgnoredExceptionForType(JavascriptException.class);
-
-    trySetIgnoreErrors(options, rnOptions);
-
-    options.setBeforeSend(
-        (event, hint) -> {
-          setEventOriginTag(event);
-          addPackages(event, options.getSdkVersion());
-
-          return event;
-        });
-
-    if (rnOptions.hasKey("enableNativeCrashHandling")
-        && !rnOptions.getBoolean("enableNativeCrashHandling")) {
-      final List<Integration> integrations = options.getIntegrations();
-      for (final Integration integration : integrations) {
-        if (integration instanceof UncaughtExceptionHandlerIntegration
-            || integration instanceof AnrIntegration
-            || integration instanceof NdkIntegration) {
-          integrations.remove(integration);
-        }
-      }
-    }
-    logger.log(
-        SentryLevel.INFO, String.format("Native Integrations '%s'", options.getIntegrations()));
-
-    final CurrentActivityHolder currentActivityHolder = CurrentActivityHolder.getInstance();
-    final Activity currentActivity = getCurrentActivity();
-    if (currentActivity != null) {
-      currentActivityHolder.setActivity(currentActivity);
-    }
-  }
-
-  private boolean isReplayEnabled(SentryReplayOptions replayOptions) {
-    return replayOptions.getSessionSampleRate() != null
-        || replayOptions.getOnErrorSampleRate() != null;
-  }
-
-  private SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
-    final SdkVersion replaySdkVersion =
-        new SdkVersion(
-            RNSentryVersion.REACT_NATIVE_SDK_NAME,
-            RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
-    @NotNull
-    final SentryReplayOptions androidReplayOptions =
-        new SentryReplayOptions(false, replaySdkVersion);
-
-    if (!(rnOptions.hasKey("replaysSessionSampleRate")
-        || rnOptions.hasKey("replaysOnErrorSampleRate"))) {
-      return androidReplayOptions;
-    }
-
-    androidReplayOptions.setSessionSampleRate(
-        rnOptions.hasKey("replaysSessionSampleRate")
-            ? rnOptions.getDouble("replaysSessionSampleRate")
-            : null);
-    androidReplayOptions.setOnErrorSampleRate(
-        rnOptions.hasKey("replaysOnErrorSampleRate")
-            ? rnOptions.getDouble("replaysOnErrorSampleRate")
-            : null);
-
-    if (rnOptions.hasKey("replaysSessionQuality")) {
-      final String qualityString = rnOptions.getString("replaysSessionQuality");
-      final SentryReplayQuality quality = parseReplayQuality(qualityString);
-      androidReplayOptions.setQuality(quality);
-    }
-
-    if (!rnOptions.hasKey("mobileReplayOptions")) {
-      return androidReplayOptions;
-    }
-    @Nullable final ReadableMap rnMobileReplayOptions = rnOptions.getMap("mobileReplayOptions");
-    if (rnMobileReplayOptions == null) {
-      return androidReplayOptions;
-    }
-
-    androidReplayOptions.setMaskAllText(
-        !rnMobileReplayOptions.hasKey("maskAllText")
-            || rnMobileReplayOptions.getBoolean("maskAllText"));
-    androidReplayOptions.setMaskAllImages(
-        !rnMobileReplayOptions.hasKey("maskAllImages")
-            || rnMobileReplayOptions.getBoolean("maskAllImages"));
-
-    final boolean redactVectors =
-        !rnMobileReplayOptions.hasKey("maskAllVectors")
-            || rnMobileReplayOptions.getBoolean("maskAllVectors");
-    if (redactVectors) {
-      androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
-    }
-
-    if (rnMobileReplayOptions.hasKey("screenshotStrategy")) {
-      final String screenshotStrategyString = rnMobileReplayOptions.getString("screenshotStrategy");
-      final ScreenshotStrategyType screenshotStrategy =
-          parseScreenshotStrategy(screenshotStrategyString);
-      androidReplayOptions.setScreenshotStrategy(screenshotStrategy);
-    }
-
-    androidReplayOptions.setMaskViewContainerClass(RNSentryReplayMask.class.getName());
-    androidReplayOptions.setUnmaskViewContainerClass(RNSentryReplayUnmask.class.getName());
-
-    return androidReplayOptions;
-  }
-
-  private ScreenshotStrategyType parseScreenshotStrategy(@Nullable String strategyString) {
-    if (strategyString == null) {
-      return ScreenshotStrategyType.PIXEL_COPY;
-    }
-
-    switch (strategyString.toLowerCase(Locale.ROOT)) {
-      case "canvas":
-        return ScreenshotStrategyType.CANVAS;
-      default:
-        return ScreenshotStrategyType.PIXEL_COPY;
-    }
-  }
-
-  private SentryReplayQuality parseReplayQuality(@Nullable String qualityString) {
-    if (qualityString == null) {
-      return SentryReplayQuality.MEDIUM;
-    }
-
-    switch (qualityString.toLowerCase(Locale.ROOT)) {
-      case "low":
-        return SentryReplayQuality.LOW;
-      case "medium":
-        return SentryReplayQuality.MEDIUM;
-      case "high":
-        return SentryReplayQuality.HIGH;
-      default:
-        return SentryReplayQuality.MEDIUM;
-    }
-  }
-
-  private void configureAndroidProfiling(
-      @NotNull SentryAndroidOptions options, @NotNull ReadableMap rnOptions) {
-    if (!rnOptions.hasKey("_experiments")) {
-      return;
-    }
-
-    @Nullable final ReadableMap experiments = rnOptions.getMap("_experiments");
-    if (experiments == null || !experiments.hasKey("androidProfilingOptions")) {
-      return;
-    }
-
-    @Nullable
-    final ReadableMap androidProfilingOptions = experiments.getMap("androidProfilingOptions");
-    if (androidProfilingOptions == null) {
-      return;
-    }
-
-    // Set profile session sample rate
-    if (androidProfilingOptions.hasKey("profileSessionSampleRate")) {
-      final double profileSessionSampleRate =
-          androidProfilingOptions.getDouble("profileSessionSampleRate");
-      options.setProfileSessionSampleRate(profileSessionSampleRate);
-      logger.log(
-          SentryLevel.INFO,
-          String.format(
-              "Android UI Profiling profileSessionSampleRate set to: %.2f",
-              profileSessionSampleRate));
-    }
-
-    // Set profiling lifecycle mode
-    if (androidProfilingOptions.hasKey("lifecycle")) {
-      final String lifecycle = androidProfilingOptions.getString("lifecycle");
-      if ("manual".equalsIgnoreCase(lifecycle)) {
-        options.setProfileLifecycle(ProfileLifecycle.MANUAL);
-        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to MANUAL");
-      } else if ("trace".equalsIgnoreCase(lifecycle)) {
-        options.setProfileLifecycle(ProfileLifecycle.TRACE);
-        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to TRACE");
-      }
-    }
-
-    // Set start on app start
-    if (androidProfilingOptions.hasKey("startOnAppStart")) {
-      final boolean startOnAppStart = androidProfilingOptions.getBoolean("startOnAppStart");
-      options.setStartProfilerOnAppStart(startOnAppStart);
-      logger.log(
-          SentryLevel.INFO,
-          String.format("Android UI Profiling startOnAppStart set to %b", startOnAppStart));
-    }
   }
 
   public void crash() {
@@ -1254,51 +903,6 @@ public class RNSentryModuleImpl {
 
   public void crashedLastRun(Promise promise) {
     promise.resolve(Sentry.isCrashedLastRun());
-  }
-
-  private void setEventOriginTag(SentryEvent event) {
-    // We hardcode native-java as only java events are processed by the Android SDK.
-    SdkVersion sdk = event.getSdk();
-    if (sdk != null) {
-      switch (sdk.getName()) {
-        case RNSentryVersion.NATIVE_SDK_NAME:
-          setEventEnvironmentTag(event, "native");
-          break;
-        case RNSentryVersion.ANDROID_SDK_NAME:
-          setEventEnvironmentTag(event, "java");
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
-  private void setEventEnvironmentTag(SentryEvent event, String environment) {
-    event.setTag("event.origin", "android");
-    event.setTag("event.environment", environment);
-  }
-
-  private void addPackages(SentryEvent event, SdkVersion sdk) {
-    SdkVersion eventSdk = event.getSdk();
-    if (eventSdk != null
-        && "sentry.javascript.react-native".equals(eventSdk.getName())
-        && sdk != null) {
-      Set<SentryPackage> sentryPackages = sdk.getPackageSet();
-      if (sentryPackages != null) {
-        for (SentryPackage sentryPackage : sentryPackages) {
-          eventSdk.addPackage(sentryPackage.getName(), sentryPackage.getVersion());
-        }
-      }
-
-      Set<String> integrations = sdk.getIntegrationSet();
-      if (integrations != null) {
-        for (String integration : integrations) {
-          eventSdk.addIntegration(integration);
-        }
-      }
-
-      event.setSdk(eventSdk);
-    }
   }
 
   private boolean checkAndroidXAvailability() {

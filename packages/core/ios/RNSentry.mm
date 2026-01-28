@@ -51,6 +51,7 @@
 #endif
 
 #import "RNSentryExperimentalOptions.h"
+#import "RNSentryStart.h"
 #import "RNSentryVersion.h"
 #import "SentrySDKWrapper.h"
 #import "SentryScreenFramesWrapper.h"
@@ -58,7 +59,6 @@
 static bool hasFetchedAppStart;
 
 @implementation RNSentry {
-    bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
     NSArray<NSString *> *_ignoreErrorPatternsStr;
@@ -143,43 +143,17 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSMutableDictionary *mutableOptions = [self prepareOptions:options];
-#if SENTRY_TARGET_REPLAY_SUPPORTED
-    BOOL isSessionReplayEnabled = [RNSentryReplay updateOptions:mutableOptions];
-#else
-    // Defaulting to false for unsupported targets
-    BOOL isSessionReplayEnabled = NO;
-#endif
     NSError *error = nil;
-    [SentrySDKWrapper setupWithDictionary:mutableOptions
-                   isSessionReplayEnabled:isSessionReplayEnabled
-                                    error:&error];
+    [RNSentryStart startWithOptions:mutableOptions error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
 
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    BOOL appIsActive =
-        [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
-#else
-    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
-#endif
-
-    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive
-    // notification, send it.
-    if (appIsActive && !sentHybridSdkDidBecomeActive
-        && ([SentrySDKWrapper enableAutoSessionTracking] ||
-            [SentrySDKWrapper enableWatchdogTerminationTracking])) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"SentryHybridSdkDidBecomeActive"
-                                                            object:nil];
-
-        sentHybridSdkDidBecomeActive = true;
-    }
-
-#if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryReplay postInit];
-#endif
-
+    // RNSentryStart.startWithOptions already handles:
+    // - Session tracking notification (SentryHybridSdkDidBecomeActive)
+    // - Replay postInit
+    // - SDK initialization
     resolve(@YES);
 }
 

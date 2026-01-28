@@ -14,6 +14,9 @@
 #endif
 
 #import "SentryNativeInitializer.h"
+#import <RNSentry/RNSentry.h>
+#import <Sentry/PrivateSentrySDKOnly.h>
+#import <Sentry/Sentry.h>
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate> {
 }
@@ -24,6 +27,16 @@
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    if ([self shouldStartSentry]) {
+        [RNSentrySDK start];
+    }
+
+    if ([self shouldCrashOnStart]) {
+        @throw [NSException exceptionWithName:@"CrashOnStart"
+                                       reason:@"This was intentional test crash before JS started."
+                                     userInfo:nil];
+    }
+
     // When the native init is enabled the `autoInitializeNativeSdk`
     // in JS has to be set to `false`
     // [SentryNativeInitializer initializeSentry];
@@ -69,6 +82,18 @@
 #endif
 
     return [super getTurboModule:name jsInvoker:jsInvoker];
+}
+
+- (BOOL)shouldStartSentry
+{
+    NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
+    return ![arguments containsObject:@"sentryDisableNativeStart"];
+}
+
+- (BOOL)shouldCrashOnStart
+{
+    NSArray<NSString *> *arguments = [[NSProcessInfo processInfo] arguments];
+    return [arguments containsObject:@"sentryCrashOnStart"];
 }
 
 @end

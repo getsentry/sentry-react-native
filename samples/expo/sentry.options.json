@@ -1,0 +1,18 @@
+{
+  "dsn": "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561",
+  "debug": true,
+  "environment": "dev",
+  "enableUserInteractionTracing": true,
+  "enableAutoSessionTracking": true,
+  "sessionTrackingIntervalMillis": 30000,
+  "enableTracing": true,
+  "tracesSampleRate": 1.0,
+  "attachStacktrace": true,
+  "attachScreenshot": true,
+  "attachViewHierarchy": true,
+  "enableCaptureFailedRequests": true,
+  "profilesSampleRate": 1.0,
+  "replaysSessionSampleRate": 1.0,
+  "replaysOnErrorSampleRate": 1.0,
+  "spotlight": true
+}
