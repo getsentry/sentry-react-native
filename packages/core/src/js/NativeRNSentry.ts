@@ -15,7 +15,7 @@ export interface Spec extends TurboModule {
     options: {
       hardCrashed: boolean;
     },
-  ): Promise<boolean>;
+  ): Promise<{ status?: string; message?: string }>;
   captureScreenshot(): Promise<NativeScreenshot[] | undefined | null>;
   clearBreadcrumbs(): void;
   crash(): void;

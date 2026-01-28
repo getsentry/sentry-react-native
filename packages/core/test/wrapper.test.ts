@@ -696,6 +696,61 @@ describe('Tests Native Wrapper', () => {
         { hardCrashed: false },
       );
     });
+
+    test('handles HTTP 413 response from native', async () => {
+      const errorSpy = jest.spyOn(debug, 'error');
+
+      // Mock native module to return HTTP 413
+      (RNSentry.captureEnvelope as jest.Mock).mockResolvedValueOnce({
+        status: '413',
+        message: 'Payload Too Large',
+      });
+
+      const event = {
+        event_id: 'event0',
+        message: 'test',
+      };
+
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('HTTP 413 - Envelope exceeds size limit'));
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Consider reducing the size of breadcrumbs'));
+
+      errorSpy.mockRestore();
+      // Reset mock to default behavior
+      (RNSentry.captureEnvelope as jest.Mock).mockResolvedValue({});
+    });
+
+    test('handles other HTTP error responses from native', async () => {
+      const errorSpy = jest.spyOn(debug, 'error');
+
+      // Mock native module to return HTTP 400
+      (RNSentry.captureEnvelope as jest.Mock).mockResolvedValueOnce({
+        status: '400',
+        message: 'Bad Request',
+      });
+
+      const event = {
+        event_id: 'event0',
+        message: 'test',
+      };
+
+      const env = createEnvelope<EventEnvelope>({ event_id: event.event_id, sent_at: '123' }, [
+        [{ type: 'event' }, event] as EventItem,
+      ]);
+
+      await NATIVE.sendEnvelope(env);
+
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('HTTP 400 - Bad Request'));
+
+      errorSpy.mockRestore();
+      // Reset mock to default behavior
+      (RNSentry.captureEnvelope as jest.Mock).mockResolvedValue({});
+    });
   });
 
   describe('fetchRelease', () => {

@@ -218,7 +218,26 @@ export const NATIVE: SentryNativeWrapper = {
       envelopeBytes = newBytes;
     }
 
-    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { hardCrashed });
+    const response = await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { hardCrashed });
+
+    if (response?.status) {
+      const statusCode = parseInt(response.status, 10);
+
+      // Handle HTTP 413 - Content Too Large
+      if (statusCode === 413) {
+        debug.error(
+          'Failed to send event to Sentry: HTTP 413 - Envelope exceeds size limit.\n' +
+            'The event was rejected because the envelope size exceeds the maximum allowed size.\n' +
+            'Consider reducing the size of breadcrumbs, context data, or attachments.',
+        );
+      }
+      // Log other error status codes
+      else if (statusCode >= 400) {
+        debug.error(
+          `Failed to send event to Sentry: HTTP ${statusCode}${response.message ? ` - ${response.message}` : ''}`,
+        );
+      }
+    }
   },
 
   /**
