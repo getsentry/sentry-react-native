@@ -68,6 +68,10 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
       - uses: actions/setup-java@v5
         with:
           java-version: '17'
@@ -249,6 +253,10 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
       - uses: actions/setup-java@v5
         with:
           java-version: '17'
@@ -352,6 +360,10 @@ jobs:
           node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - uses: actions/setup-java@v5
         with:
