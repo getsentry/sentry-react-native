@@ -2,11 +2,34 @@
 
 <!-- prettier-ignore-start -->
 > [!IMPORTANT]
-> If you are upgrading to the `7.x` versions of the Sentry React Native SDK from `6.x` or below,
+> If you are upgrading to the `8.x` versions of the Sentry React Native SDK from `7.x` or below,
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
 ## Unreleased
+
+### Upgrading from 7.x to 8.0
+
+Version 8 of the Sentry React Native SDK updates the underlying native SDKs (Cocoa v9, CLI v3, Android Gradle Plugin v6) which introduce breaking changes in minimum version requirements and build tooling.
+
+See our [migration docs](https://docs.sentry.io/platforms/react-native/migration/v7-to-v8/) for more information.
+
+### Breaking Changes
+
+#### Minimum Version Requirements
+
+- **iOS/macOS/tvOS**: ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
+  - iOS **15.0+** (previously 11.0+)
+  - macOS **10.14+** (previously 10.13+)
+  - tvOS **15.0+** (previously 11.0+)
+
+- **Android**: ([#5578](https://github.com/getsentry/sentry-react-native/pull/5578))
+  - Sentry Android Gradle Plugin **6.0.0** (previously 5.x)
+  - Android Gradle Plugin **7.4.0+** (previously 7.3.0+)
+  - Kotlin **1.8+**
+
+- **Sentry Self-Hosted**: ([#5523](https://github.com/getsentry/sentry-react-native/pull/5523))
+  - Sentry CLI v3 requires self-hosted **25.11.1+** (previously 25.2.0)
 
 ### Features
 
