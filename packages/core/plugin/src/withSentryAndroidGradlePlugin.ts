@@ -1,6 +1,6 @@
 import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
 import type { ExpoConfig } from '@expo/config-types';
-import { warnOnce } from './utils';
+import { warnOnce } from './logger';
 
 export interface SentryAndroidGradlePluginOptions {
   enableAndroidGradlePlugin?: boolean;
