@@ -343,9 +343,16 @@ jobs:
         with:
           version: ${{env.MAESTRO_VERSION}}
 
-      - name: Install iDB Companion
+      - name: Install iDB Companion (override outdated version from Maestro action)
         if: ${{ matrix.platform == 'ios' }}
-        run: brew tap facebook/fb && brew install facebook/fb/idb-companion
+        run: |
+          # Remove the outdated idb_companion installed by Maestro action
+          rm -rf $HOME/actions-runner/_work/_tool/idb-companion || true
+          # Install latest idb_companion from Homebrew
+          brew tap facebook/fb && brew install facebook/fb/idb-companion
+          # Verify installation
+          which idb_companion
+          idb_companion --version
 
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
@@ -439,8 +446,13 @@ jobs:
           echo "=== Xcode version ==="
           xcodebuild -version
           echo ""
-          echo "=== idb_companion version ==="
-          idb_companion --version || echo "idb_companion not found"
+          echo "=== idb_companion location and version ==="
+          which idb_companion || echo "idb_companion not in PATH"
+          idb_companion --version || echo "idb_companion version check failed"
+          echo ""
+          echo "=== Check for conflicting idb installations ==="
+          find /Users/admin -name "idb_companion" -o -name "idb-companion" 2>/dev/null | head -10 || true
+          ls -la /opt/homebrew/bin/idb* 2>/dev/null || true
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
