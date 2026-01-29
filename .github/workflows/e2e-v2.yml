@@ -345,7 +345,7 @@ jobs:
         with:
           version: ${{env.MAESTRO_VERSION}}
 
-      - name: Install iDB Companion (override outdated version from Maestro action)
+      - name: Install iDB Companion
         if: ${{ matrix.platform == 'ios' }}
         run: brew tap facebook/fb && brew install facebook/fb/idb-companion
 
@@ -431,17 +431,7 @@ jobs:
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
-        env:
-          # Run tests sequentially to avoid race conditions on Cirrus Labs
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
-
-      - name: Collect iOS crash reports
-        if: ${{ always() && matrix.platform == 'ios' }}
-        run: |
-          mkdir -p ./dev-packages/e2e-tests/crash-reports
-          cp -r ~/Library/Logs/DiagnosticReports/* ./dev-packages/e2e-tests/crash-reports/ 2>/dev/null || echo "No crash reports found"
-          ls -la ./dev-packages/e2e-tests/crash-reports/ || true
 
       - name: Upload logs
         if: ${{ always() }}
@@ -450,4 +440,3 @@ jobs:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |
             ./dev-packages/e2e-tests/maestro-logs
-            ./dev-packages/e2e-tests/crash-reports
