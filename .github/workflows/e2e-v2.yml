@@ -16,7 +16,7 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.1.0'
-  IOS_DEVICE: 'iPhone 16 Pro'
+  IOS_DEVICE: 'iPhone 17'
   IOS_VERSION: '>=18.0'
 
 jobs:
@@ -347,14 +347,7 @@ jobs:
 
       - name: Install iDB Companion (override outdated version from Maestro action)
         if: ${{ matrix.platform == 'ios' }}
-        run: |
-          # Remove the outdated idb_companion installed by Maestro action
-          rm -rf $HOME/actions-runner/_work/_tool/idb-companion || true
-          # Install latest idb_companion from Homebrew
-          brew tap facebook/fb && brew install facebook/fb/idb-companion
-          # Verify installation
-          which idb_companion
-          idb_companion --version
+        run: brew tap facebook/fb && brew install facebook/fb/idb-companion
 
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
@@ -436,49 +429,12 @@ jobs:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
 
-      - name: Debug - Check simulator and app
-        if: ${{ matrix.platform == 'ios' }}
-        run: |
-          echo "=== Booted simulators ==="
-          xcrun simctl list devices | grep -i booted || echo "No booted simulators"
-          echo ""
-          echo "=== App file info ==="
-          ls -la dev-packages/e2e-tests/RnDiffApp.app || echo "App not found"
-          echo ""
-          echo "=== Xcode version ==="
-          xcodebuild -version
-          echo ""
-          echo "=== idb_companion location and version ==="
-          which idb_companion || echo "idb_companion not in PATH"
-          idb_companion --version || echo "idb_companion version check failed"
-          echo ""
-          echo "=== Check for conflicting idb installations ==="
-          find /Users/admin -name "idb_companion" -o -name "idb-companion" 2>/dev/null | head -10 || true
-          ls -la /opt/homebrew/bin/idb* 2>/dev/null || true
-
-      - name: Test app launch manually
-        if: ${{ matrix.platform == 'ios' }}
-        run: |
-          echo "=== Installing app ==="
-          xcrun simctl install booted dev-packages/e2e-tests/RnDiffApp.app
-          echo "=== Launching app ==="
-          xcrun simctl launch booted org.reactjs.native.example.RnDiffApp
-          echo "=== Waiting for app to start ==="
-          sleep 10
-          echo "=== Checking if app is running ==="
-          xcrun simctl listapps booted | grep -A5 "RnDiffApp" || true
-          echo "=== Terminating app ==="
-          xcrun simctl terminate booted org.reactjs.native.example.RnDiffApp || true
-
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         env:
           # Run tests sequentially to avoid race conditions on Cirrus Labs
           MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
-        run: |
-          # Give simulator extra time to stabilize
-          sleep 5
-          ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
+        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Collect iOS crash reports
         if: ${{ always() && matrix.platform == 'ios' }}
