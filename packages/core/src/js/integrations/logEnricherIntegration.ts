@@ -114,11 +114,12 @@ function extractScopeAttributes(
 ): void {
   if (scope && typeof scope.getScopeData === 'function') {
     const scopeAttrs = scope?.getScopeData?.().attributes || {};
-    for (const [key, value] of Object.entries(scopeAttrs)) {
+    Object.keys(scopeAttrs).forEach(key => {
+      const value = scopeAttrs[key];
       if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
         target[key] = value;
       }
-    }
+    });
   }
 }
 
