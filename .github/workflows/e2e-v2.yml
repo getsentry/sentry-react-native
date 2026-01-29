@@ -429,7 +429,7 @@ jobs:
         run: xcrun simctl list devices available
 
       - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ matrix.platform == 'ios' }}xr
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
@@ -454,9 +454,29 @@ jobs:
           find /Users/admin -name "idb_companion" -o -name "idb-companion" 2>/dev/null | head -10 || true
           ls -la /opt/homebrew/bin/idb* 2>/dev/null || true
 
+      - name: Test app launch manually
+        if: ${{ matrix.platform == 'ios' }}
+        run: |
+          echo "=== Installing app ==="
+          xcrun simctl install booted dev-packages/e2e-tests/RnDiffApp.app
+          echo "=== Launching app ==="
+          xcrun simctl launch booted org.reactjs.native.example.RnDiffApp
+          echo "=== Waiting for app to start ==="
+          sleep 10
+          echo "=== Checking if app is running ==="
+          xcrun simctl listapps booted | grep -A5 "RnDiffApp" || true
+          echo "=== Terminating app ==="
+          xcrun simctl terminate booted org.reactjs.native.example.RnDiffApp || true
+
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
-        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
+        env:
+          # Run tests sequentially to avoid race conditions on Cirrus Labs
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
+        run: |
+          # Give simulator extra time to stabilize
+          sleep 5
+          ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Collect iOS crash reports
         if: ${{ always() && matrix.platform == 'ios' }}
