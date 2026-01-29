@@ -42,6 +42,8 @@ jobs:
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
+      # Limit parallel jobs to avoid hitting Sauce Labs concurrency limits (max 3 sessions)
+      max-parallel: 2
       matrix:
         rn-architecture: ['legacy', 'new']
         platform: ["ios", "android"]
