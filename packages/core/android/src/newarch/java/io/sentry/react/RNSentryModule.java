@@ -113,6 +113,16 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void setAttribute(String key, String value) {
+    this.impl.setAttribute(key, value);
+  }
+
+  @Override
+  public void setAttributes(ReadableMap attributes) {
+    this.impl.setAttributes(attributes);
+  }
+
+  @Override
   public void closeNativeSdk(Promise promise) {
     this.impl.closeNativeSdk(promise);
   }

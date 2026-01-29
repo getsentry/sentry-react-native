@@ -44,6 +44,18 @@ export const setScopeProperties = () => {
     undefinedTest: undefined,
   });
 
+  // Set scope attributes that will be automatically applied to logs
+  Sentry.getGlobalScope().setAttributes({
+    is_admin: true,
+    auth_provider: 'google',
+  });
+
+  // Set scope attributes on the current scope
+  Sentry.getCurrentScope().setAttributes({
+    session_type: 'test',
+    request_count: 42,
+  });
+
   Sentry.addBreadcrumb({
     level: 'info' as SeverityLevel,
     message: `TEST-BREADCRUMB-INFO: ${dateString}`,

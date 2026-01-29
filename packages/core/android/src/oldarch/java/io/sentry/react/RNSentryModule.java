@@ -113,6 +113,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void setAttribute(String key, String value) {
+    this.impl.setAttribute(key, value);
+  }
+
+  @ReactMethod
+  public void setAttributes(ReadableMap attributes) {
+    this.impl.setAttributes(attributes);
+  }
+
+  @ReactMethod
   public void closeNativeSdk(Promise promise) {
     this.impl.closeNativeSdk(promise);
   }
@@ -130,6 +140,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void fetchNativeDeviceContexts(Promise promise) {
     this.impl.fetchNativeDeviceContexts(promise);
+  }
+
+  @ReactMethod
+  public void fetchNativeLogAttributes(Promise promise) {
+    this.impl.fetchNativeLogAttributes(promise);
   }
 
   @ReactMethod

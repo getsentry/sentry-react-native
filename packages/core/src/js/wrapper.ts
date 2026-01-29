@@ -100,6 +100,8 @@ interface SentryNativeWrapper {
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
   setTag(key: string, value?: string): void;
+  setAttribute(key: string, value: string | number | boolean): void;
+  setAttributes(attributes: Record<string, string | number | boolean>): void;
 
   nativeCrash(): void;
 
@@ -549,6 +551,43 @@ export const NATIVE: SentryNativeWrapper = {
     } else {
       RNSentry.setContext(key, { error: '**non-serializable**' });
     }
+  },
+
+  /**
+   * Sets an attribute on the native scope.
+   * @param key string
+   * @param value primitive value (string, number, or boolean)
+   */
+  setAttribute(key: string, value: string | number | boolean): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const stringifiedValue = this.primitiveProcessor(value);
+    RNSentry.setAttribute(key, stringifiedValue);
+  },
+
+  /**
+   * Sets multiple attributes on the native scope.
+   * @param attributes key-value map of attributes (only string, number, and boolean values)
+   */
+  setAttributes(attributes: Record<string, string | number | boolean>): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const serializedAttributes: Record<string, string> = {};
+    Object.keys(attributes).forEach(key => {
+      serializedAttributes[key] = this.primitiveProcessor(attributes[key]);
+    });
+
+    RNSentry.setAttributes(serializedAttributes);
   },
 
   /**

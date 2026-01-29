@@ -1,5 +1,5 @@
 import type { Client, Log } from '@sentry/core';
-import { debug } from '@sentry/core';
+import { debug, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
 import { logEnricherIntegration } from '../../src/js/integrations/logEnricherIntegration';
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
 import { NATIVE } from '../../src/js/wrapper';
@@ -11,6 +11,9 @@ jest.mock('@sentry/core', () => ({
   debug: {
     log: jest.fn(),
   },
+  getCurrentScope: jest.fn(),
+  getGlobalScope: jest.fn(),
+  getIsolationScope: jest.fn(),
 }));
 
 const mockLogger = debug as jest.Mocked<typeof debug>;
@@ -49,6 +52,13 @@ describe('LogEnricher Integration', () => {
     } as unknown as jest.Mocked<Client>;
 
     (NATIVE as jest.Mocked<typeof NATIVE>).fetchNativeLogAttributes = mockFetchNativeLogAttributes;
+
+    // Mock scope methods
+    (getCurrentScope as jest.Mock).mockReturnValue({
+      getScopeData: jest.fn().mockReturnValue({ attributes: {} }),
+    });
+    (getGlobalScope as jest.Mock).mockReturnValue({ getScopeData: jest.fn().mockReturnValue({ attributes: {} }) });
+    (getIsolationScope as jest.Mock).mockReturnValue({ getScopeData: jest.fn().mockReturnValue({ attributes: {} }) });
   });
 
   afterEach(() => {
@@ -514,6 +524,231 @@ describe('LogEnricher Integration', () => {
         'sentry.release': '1.0.0',
       });
       expect(mockGetIntegrationByName).toHaveBeenCalledWith('MobileReplay');
+    });
+  });
+
+  describe('scope attributes', () => {
+    let logHandler: (log: Log) => void;
+    let mockLog: Log;
+
+    beforeEach(async () => {
+      const integration = logEnricherIntegration();
+
+      const mockNativeResponse: NativeDeviceContextsResponse = {
+        contexts: {
+          device: {
+            brand: 'Apple',
+            model: 'iPhone 14',
+          } as Record<string, unknown>,
+        },
+      };
+
+      mockFetchNativeLogAttributes.mockResolvedValue(mockNativeResponse);
+
+      integration.setup(mockClient);
+
+      triggerAfterInit();
+
+      await jest.runAllTimersAsync();
+
+      const beforeCaptureLogCall = mockOn.mock.calls.find(call => call[0] === 'beforeCaptureLog');
+      expect(beforeCaptureLogCall).toBeDefined();
+      logHandler = beforeCaptureLogCall[1];
+
+      mockLog = {
+        message: 'Test log message',
+        level: 'info',
+        attributes: {},
+      };
+    });
+
+    it('should apply attributes from global scope to logs', () => {
+      (getGlobalScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            is_admin: true,
+            auth_provider: 'google',
+          },
+        }),
+      });
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toMatchObject({
+        is_admin: true,
+        auth_provider: 'google',
+      });
+    });
+
+    it('should apply attributes from isolation scope to logs', () => {
+      (getIsolationScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            session_id: 'abc123',
+            user_tier: 'premium',
+          },
+        }),
+      });
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toMatchObject({
+        session_id: 'abc123',
+        user_tier: 'premium',
+      });
+    });
+
+    it('should apply attributes from current scope to logs', () => {
+      (getCurrentScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            step: 'authentication',
+            attempt: 1,
+          },
+        }),
+      });
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toMatchObject({
+        step: 'authentication',
+        attempt: 1,
+      });
+    });
+
+    it('should merge attributes from all scopes with correct precedence', () => {
+      (getGlobalScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            is_admin: true,
+            environment: 'production',
+          },
+        }),
+      });
+
+      (getIsolationScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            environment: 'staging',
+            session_id: 'xyz789',
+          },
+        }),
+      });
+
+      (getCurrentScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            environment: 'development',
+            step: 'login',
+          },
+        }),
+      });
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toMatchObject({
+        is_admin: true,
+        environment: 'development', // Current scope wins
+        session_id: 'xyz789',
+        step: 'login',
+      });
+    });
+
+    it('should only include string, number, and boolean attribute values', () => {
+      (getCurrentScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            stringAttr: 'value',
+            numberAttr: 42,
+            boolAttr: false,
+            objectAttr: { nested: 'object' }, // Should be filtered out
+            arrayAttr: [1, 2, 3], // Should be filtered out
+            nullAttr: null, // Should be filtered out
+            undefinedAttr: undefined, // Should be filtered out
+          },
+        }),
+      });
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toMatchObject({
+        stringAttr: 'value',
+        numberAttr: 42,
+        boolAttr: false,
+      });
+      expect(mockLog.attributes).not.toHaveProperty('objectAttr');
+      expect(mockLog.attributes).not.toHaveProperty('arrayAttr');
+      expect(mockLog.attributes).not.toHaveProperty('nullAttr');
+      expect(mockLog.attributes).not.toHaveProperty('undefinedAttr');
+    });
+
+    it('should not override existing log attributes with scope attributes', () => {
+      (getCurrentScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            step: 'authentication',
+            user_id: 'scope-user',
+          },
+        }),
+      });
+
+      mockLog.attributes = {
+        user_id: 'log-user', // This should not be overridden
+        custom: 'value',
+      };
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toMatchObject({
+        user_id: 'log-user', // Original value preserved
+        custom: 'value',
+        step: 'authentication',
+      });
+    });
+
+    it('should handle scopes without getScopeData method', () => {
+      (getCurrentScope as jest.Mock).mockReturnValue({});
+      (getGlobalScope as jest.Mock).mockReturnValue({});
+      (getIsolationScope as jest.Mock).mockReturnValue({});
+
+      logHandler(mockLog);
+
+      // Should not throw and should still add device attributes
+      expect(mockLog.attributes).toMatchObject({
+        'device.brand': 'Apple',
+        'device.model': 'iPhone 14',
+      });
+    });
+
+    it('should handle null or undefined scopes', () => {
+      (getCurrentScope as jest.Mock).mockReturnValue(null);
+      (getGlobalScope as jest.Mock).mockReturnValue(undefined);
+      (getIsolationScope as jest.Mock).mockReturnValue(null);
+
+      logHandler(mockLog);
+
+      // Should not throw and should still add device attributes
+      expect(mockLog.attributes).toMatchObject({
+        'device.brand': 'Apple',
+        'device.model': 'iPhone 14',
+      });
+    });
+
+    it('should apply scope attributes before device attributes so they can be overridden', () => {
+      (getCurrentScope as jest.Mock).mockReturnValue({
+        getScopeData: jest.fn().mockReturnValue({
+          attributes: {
+            'device.brand': 'CustomBrand', // Should be overridden by native
+          },
+        }),
+      });
+
+      logHandler(mockLog);
+
+      expect(mockLog.attributes).toMatchObject({
+        'device.brand': 'Apple', // Native value should override
+        'device.model': 'iPhone 14',
+      });
     });
   });
 });

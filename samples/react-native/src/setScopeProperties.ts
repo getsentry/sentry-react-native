@@ -44,6 +44,16 @@ export const setScopeProperties = () => {
     undefinedTest: undefined,
   });
 
+  Sentry.getGlobalScope().setAttributes({
+    is_admin: true,
+    auth_provider: 'auth',
+  });
+
+  Sentry.getCurrentScope().setAttributes({
+    session_type: 'test',
+    request_count: 1,
+  });
+
   Sentry.addBreadcrumb({
     level: 'info' as SeverityLevel,
     message: `TEST-BREADCRUMB-INFO: ${dateString}`,

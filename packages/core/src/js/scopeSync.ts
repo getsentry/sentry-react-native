@@ -79,4 +79,28 @@ export function enableSyncToNative(scope: Scope): void {
     NATIVE.setContext(key, context);
     return original.call(scope, key, context);
   });
+
+  fillTyped(scope, 'setAttribute', original => (key: string, value: unknown): Scope => {
+    // Only sync primitive types
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      NATIVE.setAttribute(key, value);
+    }
+    return original.call(scope, key, value);
+  });
+
+  fillTyped(scope, 'setAttributes', original => (attributes: Record<string, unknown>): Scope => {
+    // Filter to only primitive types
+    const primitiveAttrs: Record<string, string | number | boolean> = {};
+    Object.keys(attributes).forEach(key => {
+      const value = attributes[key];
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        primitiveAttrs[key] = value;
+      }
+    });
+
+    if (Object.keys(primitiveAttrs).length > 0) {
+      NATIVE.setAttributes(primitiveAttrs);
+    }
+    return original.call(scope, attributes);
+  });
 }
