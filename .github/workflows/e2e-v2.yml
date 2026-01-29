@@ -49,7 +49,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.0.1", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
@@ -204,7 +204,7 @@ jobs:
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
             rn-version: '0.83.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.0.1", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
         exclude:
@@ -365,8 +365,14 @@ jobs:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: dev-packages/e2e-tests
 
-      - name: Enable Corepack
+      - name: Enable Corepack (iOS GH Runners)
+        if: ${{ matrix.platform == 'ios' }}
+        run: npm i -g corepack
+
+      - name: Enable Corepack (Android Cirrus Labs runners)
+        if: ${{ matrix.platform == 'android' }}
         run: corepack enable
+
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -433,6 +439,9 @@ jobs:
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
+        env:
+          # Increase timeout for Maestro iOS driver startup (default is 60s, some CI runners need more time)
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs
