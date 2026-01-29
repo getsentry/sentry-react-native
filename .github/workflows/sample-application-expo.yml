@@ -114,6 +114,9 @@ jobs:
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
         working-directory: samples/expo/android
+        env:
+          # Increase memory for Expo SDK 54 lint tasks
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
