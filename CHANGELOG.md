@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add support for applying scope attributes to logs ([#5579](https://github.com/getsentry/sentry-react-native/pull/5579))
+- Add support for applying scope attributes to JS logs ([#5579](https://github.com/getsentry/sentry-react-native/pull/5579))
 - Add experimental `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5569](https://github.com/getsentry/sentry-react-native/pull/5569))
   ```tsx
   <Pressable
