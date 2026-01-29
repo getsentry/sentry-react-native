@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-### Unreleased
+## 8.0.0-alpha.0
 
 ### Upgrading from 7.x to 8.0
 
@@ -108,11 +108,6 @@ See our [migration docs](https://docs.sentry.io/platforms/react-native/migration
 - Bump CLI from v2.58.4 to v3.1.0 ([#5523](https://github.com/getsentry/sentry-react-native/pull/5523), [#5471](https://github.com/getsentry/sentry-react-native/pull/5471), [#5514](https://github.com/getsentry/sentry-react-native/pull/5514), [#5502](https://github.com/getsentry/sentry-react-native/pull/5502))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#310)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.4...3.1.0)
-
-## 8.0.0-alpha.0
-
-- chore: Move from using Hybrid SDK subspec to regular Sentry podspec by @itaybre in [#5451](https://github.com/getsentry/sentry-react-native/pull/5451)
-- chore(deps): update Cocoa SDK to v9 by @antonis in [#5356](https://github.com/getsentry/sentry-react-native/pull/5356)
 
 ## 7.11.0
 
