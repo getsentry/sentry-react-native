@@ -10,9 +10,6 @@
 
 ### Features
 
-- Add handling for HTTP 413 (Content Too Large) responses from Relay ([#5566](https://github.com/getsentry/sentry-react-native/issues/5566))
-  - SDK now logs actionable error messages when envelopes are rejected due to size limits
-  - Prepared infrastructure to capture HTTP status codes from native transport layer for future enhancements
 - Add experimental `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5569](https://github.com/getsentry/sentry-react-native/pull/5569))
   ```tsx
   <Pressable
