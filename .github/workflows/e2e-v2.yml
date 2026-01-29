@@ -427,13 +427,37 @@ jobs:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
 
+      - name: Debug - Check simulator and app
+        if: ${{ matrix.platform == 'ios' }}
+        run: |
+          echo "=== Booted simulators ==="
+          xcrun simctl list devices | grep -i booted || echo "No booted simulators"
+          echo ""
+          echo "=== App file info ==="
+          ls -la dev-packages/e2e-tests/RnDiffApp.app || echo "App not found"
+          echo ""
+          echo "=== Xcode version ==="
+          xcodebuild -version
+          echo ""
+          echo "=== idb_companion version ==="
+          idb_companion --version || echo "idb_companion not found"
+
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
+
+      - name: Collect iOS crash reports
+        if: ${{ always() && matrix.platform == 'ios' }}
+        run: |
+          mkdir -p ./dev-packages/e2e-tests/crash-reports
+          cp -r ~/Library/Logs/DiagnosticReports/* ./dev-packages/e2e-tests/crash-reports/ 2>/dev/null || echo "No crash reports found"
+          ls -la ./dev-packages/e2e-tests/crash-reports/ || true
 
       - name: Upload logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
-          path: ./dev-packages/e2e-tests/maestro-logs
+          path: |
+            ./dev-packages/e2e-tests/maestro-logs
+            ./dev-packages/e2e-tests/crash-reports
