@@ -6,6 +6,32 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add experimental `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5569](https://github.com/getsentry/sentry-react-native/pull/5569))
+  ```tsx
+  <Pressable
+    sentry-label="checkout"
+    sentry-span-attributes={{
+      'user.type': 'premium',
+      'cart.value': 150
+    }}
+    onPress={handleCheckout}>
+    <Text>Checkout</Text>
+  </Pressable>
+  ```
+
+### Dependencies
+
+- Bump Bundler Plugins from v4.7.0 to v4.8.0 ([#5581](https://github.com/getsentry/sentry-react-native/pull/5581))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#480)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.7.0...4.8.0)
+- Bump JavaScript SDK from v10.36.0 to v10.37.0 ([#5589](https://github.com/getsentry/sentry-react-native/pull/5589))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10370)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.36.0...10.37.0)
+
 ## 7.10.0
 
 ### Fixes
