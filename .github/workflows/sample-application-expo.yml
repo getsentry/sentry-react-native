@@ -106,6 +106,8 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
           echo "ENABLE_PROD=$ENABLE_PROD"
+          # Monorepo fix: Point Sentry SDK to correct React Native version (0.81 vs 0.80)
+          export REACT_NATIVE_NODE_MODULES_DIR="$(cd ../node_modules/react-native && pwd)"
           PRODUCTION=$ENABLE_PROD pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
