@@ -331,7 +331,9 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.83.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.0.1", "runner_group_id:12"]
+            # there is an issue with running certain maestro tests on Cirrus Labs runners,
+            # that's why those run on GH runners now
+            runs-on:  macos-26
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
 
