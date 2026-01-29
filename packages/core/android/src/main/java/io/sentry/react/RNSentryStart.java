@@ -167,8 +167,9 @@ final class RNSentryStart {
     configureAndroidProfiling(options, rnOptions, logger);
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
-    String dsn = getURLFromDSN(rnOptions.getString("dsn"));
-    String devServerUrl = rnOptions.getString("devServerUrl");
+    String dsn = rnOptions.hasKey("dsn") ? getURLFromDSN(rnOptions.getString("dsn")) : null;
+    String devServerUrl =
+        rnOptions.hasKey("devServerUrl") ? rnOptions.getString("devServerUrl") : null;
     options.setBeforeBreadcrumb(
         (breadcrumb, hint) -> {
           Object urlObject = breadcrumb.getData("url");
