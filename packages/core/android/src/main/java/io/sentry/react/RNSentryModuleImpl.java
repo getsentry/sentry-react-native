@@ -582,6 +582,26 @@ public class RNSentryModuleImpl {
         });
   }
 
+  public void setAttribute(String key, String value) {
+    // TODO(alwx): This is not implemented in sentry-android yet
+    /*
+     * Sentry.configureScope(
+     * scope -> {
+     * scope.setAttribute(key, value);
+     * });
+     */
+  }
+
+  public void setAttributes(ReadableMap attributes) {
+    // TODO(alwx): This is not implemented in sentry-android yet
+    /*
+     * Sentry.configureScope(
+     * scope -> {
+     * scope.setAttributes(attributes);
+     * });
+     */
+  }
+
   public void closeNativeSdk(Promise promise) {
     Sentry.close();
 

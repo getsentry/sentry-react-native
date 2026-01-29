@@ -41,6 +41,8 @@ const NATIVE: MockInterface<NativeType> = {
   setExtra: jest.fn(),
   setUser: jest.fn(),
   setTag: jest.fn(),
+  setAttribute: jest.fn(),
+  setAttributes: jest.fn(),
 
   nativeCrash: jest.fn(),
 
@@ -92,6 +94,7 @@ NATIVE.crashedLastRun.mockResolvedValue(false);
 NATIVE.popTimeToDisplayFor.mockResolvedValue(null);
 NATIVE.getNewScreenTimeToDisplay.mockResolvedValue(null);
 NATIVE.primitiveProcessor.mockReturnValue('');
+NATIVE.fetchNativeLogAttributes = jest.fn().mockResolvedValue({});
 export const getRNSentryModule = jest.fn();
 
 export { NATIVE };
