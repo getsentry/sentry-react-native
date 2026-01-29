@@ -22,7 +22,7 @@ import { setScopeProperties } from '../setScopeProperties';
 import { TimeToFullDisplay } from '../utils';
 import type { Event as SentryEvent } from '@sentry/core';
 
-const { AssetsModule, CppModule, CrashModule } = NativeModules;
+const { AssetsModule, CppModule, CrashModule, TestControlModule } = NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -205,6 +205,30 @@ const ErrorsScreen = (_props: Props) => {
                 CrashModule.crashOrNumber().then((n: number) => {
                   console.log('Got number: ' + n);
                 });
+              }}
+            />
+            <Button
+              title="Enable Crash on Start"
+              onPress={() => {
+                TestControlModule?.enableCrashOnStart()
+                  .then(() => {
+                    console.log('Crash on start enabled. Restart app to crash.');
+                  })
+                  .catch((e: Error) => {
+                    console.error('Failed to enable crash on start:', e);
+                  });
+              }}
+            />
+            <Button
+              title="Disable Crash on Start"
+              onPress={() => {
+                TestControlModule?.disableCrashOnStart()
+                  .then(() => {
+                    console.log('Crash on start disabled.');
+                  })
+                  .catch((e: Error) => {
+                    console.error('Failed to disable crash on start:', e);
+                  });
               }}
             />
           </>
