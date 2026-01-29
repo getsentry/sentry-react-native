@@ -47,7 +47,7 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.0.1", "runner_group_id:12"]
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
@@ -202,7 +202,7 @@ jobs:
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
             rn-version: '0.83.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.0.1", "runner_group_id:12"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
         exclude:
@@ -331,7 +331,7 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.83.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.0.1", "runner_group_id:12"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
 
