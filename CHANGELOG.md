@@ -6,10 +6,11 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 7.11.0
 
 ### Features
 
+- Add support for applying scope attributes to JS logs ([#5579](https://github.com/getsentry/sentry-react-native/pull/5579))
 - Add experimental `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5569](https://github.com/getsentry/sentry-react-native/pull/5569))
   ```tsx
   <Pressable
