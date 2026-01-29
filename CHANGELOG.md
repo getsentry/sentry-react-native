@@ -19,9 +19,9 @@ See our [migration docs](https://docs.sentry.io/platforms/react-native/migration
 #### Minimum Version Requirements
 
 - **iOS/macOS/tvOS**: ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
-  - iOS **15.1+** (previously 13.0+)
-  - macOS **12.0+** (previously 10.13+)
-  - tvOS **15.0+** (previously 13.0+)
+  - iOS **15.0+** (previously 11.0+)
+  - macOS **10.14+** (previously 10.13+)
+  - tvOS **15.0+** (previously 11.0+)
 
 - **Android**: ([#5578](https://github.com/getsentry/sentry-react-native/pull/5578))
   - Sentry Android Gradle Plugin **6.0.0** (previously 5.x)
