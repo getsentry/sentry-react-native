@@ -106,6 +106,13 @@ export default function NewsScreen() {
     }
     return (
       <Pressable
+        sentry-label="load-more-articles"
+        sentry-span-attributes={{
+          'articles.loaded': articles.length,
+          'pagination.page': page,
+          'pagination.next_page': page + 1,
+          'auto_load.count': autoLoadCount,
+        }}
         style={({ pressed }) => [
           styles.loadMoreButton,
           pressed && styles.loadMoreButtonPressed,

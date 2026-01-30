@@ -8,9 +8,80 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.37.0 to v10.38.0 ([#5596](https://github.com/getsentry/sentry-react-native/pull/5596))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10380)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.37.0...10.38.0)
+
+## 7.11.0
+
+### Features
+
+- Add support for applying scope attributes to JS logs ([#5579](https://github.com/getsentry/sentry-react-native/pull/5579))
+- Add experimental `sentry-span-attributes` prop to attach custom attributes to user interaction spans ([#5569](https://github.com/getsentry/sentry-react-native/pull/5569))
+  ```tsx
+  <Pressable
+    sentry-label="checkout"
+    sentry-span-attributes={{
+      'user.type': 'premium',
+      'cart.value': 150
+    }}
+    onPress={handleCheckout}>
+    <Text>Checkout</Text>
+  </Pressable>
+  ```
+
+### Dependencies
+
+- Bump Bundler Plugins from v4.7.0 to v4.8.0 ([#5581](https://github.com/getsentry/sentry-react-native/pull/5581))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#480)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.7.0...4.8.0)
+- Bump JavaScript SDK from v10.36.0 to v10.37.0 ([#5589](https://github.com/getsentry/sentry-react-native/pull/5589))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10370)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.36.0...10.37.0)
+
+## 7.10.0
+
+### Fixes
+
+- Fixes Android incompatibility with Firebase dependencies ([#5563](https://github.com/getsentry/sentry-react-native/pull/5563))
+
+### Dependencies
+
+- Bump Bundler Plugins from v4.6.2 to v4.7.0 ([#5554](https://github.com/getsentry/sentry-react-native/pull/5554))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#470)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.6.2...4.7.0)
+- Bump Android SDK from v8.30.0 to v8.31.0 ([#5563](https://github.com/getsentry/sentry-react-native/pull/5563))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8310)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.30.0...8.31.0)
+- Bump Android SDK Stubs from v8.30.0 to v8.31.0 ([#5562](https://github.com/getsentry/sentry-react-native/pull/5562))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8310)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.30.0...8.31.0)
+- Bump JavaScript SDK from v10.34.0 to v10.36.0 ([#5555](https://github.com/getsentry/sentry-react-native/pull/5555), [#5564](https://github.com/getsentry/sentry-react-native/pull/5564))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10360)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.34.0...10.36.0)
+
+## 7.9.0
+
 ### Features
 
 - Experimental support of UI profiling on Android ([#5518](https://github.com/getsentry/sentry-react-native/pull/5518))
+- Expose iOS options to ignore views from subtree traversal ([#5545](https://github.com/getsentry/sentry-react-native/pull/5545))
+  - Use `includedViewClasses` to only traverse specific view classes, or `excludedViewClasses` to skip problematic view classes during session replay and screenshot capture
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    replaysSessionSampleRate: 1.0,
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        includedViewClasses: ['UILabel', 'UIView', 'MyCustomView'],
+        excludedViewClasses: ['WKWebView', 'UIWebView'],
+      }),
+    ],
+  });
+  ```
 
 ### Fixes
 

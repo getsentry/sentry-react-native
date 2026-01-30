@@ -31,11 +31,11 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -49,17 +49,36 @@ jobs:
         working-directory: packages/core/RNSentryCocoaTester
         run: pod install
 
+      - name: List Available Simulators
+        run: xcrun simctl list devices available iPhone
+
       - name: Run iOS Tests
         working-directory: packages/core/RNSentryCocoaTester
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
-          DESTINATION: 'platform=iOS Simulator,OS=latest,name=iPhone 16'
         run: |
+          # Find first available iPhone simulator from latest iOS runtime
+          DEVICE_ID=$(xcrun simctl list devices available iPhone -j | jq -r '
+            .devices |
+            to_entries |
+            map(select(.key | startswith("com.apple.CoreSimulator.SimRuntime.iOS-"))) |
+            sort_by(.key) |
+            reverse |
+            .[0].value[] |
+            select(.isAvailable == true) |
+            .udid
+          ' | head -1)
+          if [ -z "$DEVICE_ID" ]; then
+            echo "No iPhone simulators available"
+            exit 1
+          fi
+          echo "Using simulator: $DEVICE_ID"
+
           env NSUnbufferedIO=YES \
             xcodebuild -workspace *.xcworkspace \
             -scheme $SCHEME -configuration $CONFIGURATION \
-            -destination "$DESTINATION" \
+            -destination "id=$DEVICE_ID" \
             -quiet \
             test
 
@@ -69,7 +88,7 @@ jobs:
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: ./.github/actions/disk-cleanup
 
