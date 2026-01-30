@@ -17,7 +17,7 @@
     {
       "label": "Claude",
       "type": "shell",
-      "command": "bash -ic claude",
+      "command": "CLAUDE_PATH=$(grep '^CLAUDE_PATH=' .env | cut -d '=' -f2 | tr -d '\"') && $CLAUDE_PATH",
       "icon": {
         "color": "terminal.ansiRed",
         "id": "robot"
@@ -30,7 +30,8 @@
       "group": {
         "kind": "none",
         "isDefault": true
-      }
+      },
+      "problemMatcher": []
     }
   ]
 }
