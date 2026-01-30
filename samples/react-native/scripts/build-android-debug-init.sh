@@ -15,6 +15,9 @@ if [ -z "${SENTRY_DISABLE_NATIVE_START}" ]; then
   exit 1
 fi
 
+# Export so Gradle daemon can access it
+export SENTRY_DISABLE_NATIVE_START
+
 # Map SENTRY_DISABLE_NATIVE_START to build mode
 if [ "${SENTRY_DISABLE_NATIVE_START}" = "true" ]; then
   BUILD_MODE="auto"
