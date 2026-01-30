@@ -63,7 +63,11 @@ switch (fetch) {
   }
   case 'replay': {
     const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
-    const replayId = event._dsc.replay_id.replace(/\-/g, '');
+    // Try to get replay_id from contexts first (where SDK puts it), fallback to _dsc
+    const replayId = (event.contexts?.replay?.replay_id || event._dsc?.replay_id)?.replace(/\-/g, '');
+    if (!replayId) {
+      throw new Error(`No replay_id found in event ${eventId}. Checked contexts.replay.replay_id and _dsc.replay_id`);
+    }
     const replay = json(fetchFromSentry(`${baseUrl}/replays/${replayId}/`));
     const segment = fetchFromSentry(`${baseUrl}/replays/${replayId}/videos/0/`);
 
