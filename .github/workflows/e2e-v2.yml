@@ -122,6 +122,7 @@ jobs:
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               export RCT_NEW_ARCH_ENABLED=1
             fi
+            bundle install
             bundle exec pod install
             cd ../..
             bundle install
