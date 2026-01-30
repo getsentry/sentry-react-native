@@ -13,6 +13,24 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "Claude",
+      "type": "shell",
+      "command": "bash -ic claude",
+      "icon": {
+        "color": "terminal.ansiRed",
+        "id": "robot"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "group": {
+        "kind": "none",
+        "isDefault": true
+      }
     }
   ]
 }
