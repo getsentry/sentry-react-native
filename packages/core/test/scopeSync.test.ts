@@ -116,6 +116,8 @@ describe('ScopeSync', () => {
     let setExtrasScopeSpy: jest.SpyInstance;
     let addBreadcrumbScopeSpy: jest.SpyInstance;
     let setContextScopeSpy: jest.SpyInstance;
+    let setAttributeScopeSpy: jest.SpyInstance;
+    let setAttributesScopeSpy: jest.SpyInstance;
 
     beforeAll(() => {
       const testScope = SentryCore.getIsolationScope();
@@ -126,6 +128,8 @@ describe('ScopeSync', () => {
       setExtrasScopeSpy = jest.spyOn(testScope, 'setExtras');
       addBreadcrumbScopeSpy = jest.spyOn(testScope, 'addBreadcrumb');
       setContextScopeSpy = jest.spyOn(testScope, 'setContext');
+      setAttributeScopeSpy = jest.spyOn(testScope, 'setAttribute');
+      setAttributesScopeSpy = jest.spyOn(testScope, 'setAttributes');
     });
 
     beforeEach(() => {
@@ -213,6 +217,71 @@ describe('ScopeSync', () => {
       SentryCore.setContext('key', { key: 'value' });
       expect(NATIVE.setContext).toHaveBeenCalledExactlyOnceWith('key', { key: 'value' });
       expect(setContextScopeSpy).toHaveBeenCalledExactlyOnceWith('key', { key: 'value' });
+    });
+
+    it('setAttribute', () => {
+      expect(SentryCore.getIsolationScope().setAttribute).not.toBe(setAttributeScopeSpy);
+
+      SentryCore.getIsolationScope().setAttribute('session_id', 'abc123');
+      expect(NATIVE.setAttribute).toHaveBeenCalledExactlyOnceWith('session_id', 'abc123');
+      expect(setAttributeScopeSpy).toHaveBeenCalledExactlyOnceWith('session_id', 'abc123');
+    });
+
+    it('setAttribute with number', () => {
+      SentryCore.getIsolationScope().setAttribute('request_count', 42);
+      expect(NATIVE.setAttribute).toHaveBeenCalledExactlyOnceWith('request_count', 42);
+    });
+
+    it('setAttribute with boolean', () => {
+      SentryCore.getIsolationScope().setAttribute('is_admin', true);
+      expect(NATIVE.setAttribute).toHaveBeenCalledExactlyOnceWith('is_admin', true);
+    });
+
+    it('setAttribute with non-primitive does not sync to native', () => {
+      SentryCore.getIsolationScope().setAttribute('complex', { nested: 'object' });
+      expect(NATIVE.setAttribute).not.toHaveBeenCalled();
+    });
+
+    it('setAttributes', () => {
+      expect(SentryCore.getIsolationScope().setAttributes).not.toBe(setAttributesScopeSpy);
+
+      SentryCore.getIsolationScope().setAttributes({
+        session_type: 'test',
+        request_count: 42,
+        is_admin: true,
+      });
+      expect(NATIVE.setAttributes).toHaveBeenCalledExactlyOnceWith({
+        session_type: 'test',
+        request_count: 42,
+        is_admin: true,
+      });
+      expect(setAttributesScopeSpy).toHaveBeenCalledExactlyOnceWith({
+        session_type: 'test',
+        request_count: 42,
+        is_admin: true,
+      });
+    });
+
+    it('setAttributes filters non-primitive values', () => {
+      SentryCore.getIsolationScope().setAttributes({
+        session_type: 'test',
+        request_count: 42,
+        complex: { nested: 'object' },
+        is_admin: true,
+      });
+      expect(NATIVE.setAttributes).toHaveBeenCalledExactlyOnceWith({
+        session_type: 'test',
+        request_count: 42,
+        is_admin: true,
+      });
+    });
+
+    it('setAttributes does not sync to native if all values are non-primitive', () => {
+      SentryCore.getIsolationScope().setAttributes({
+        complex1: { nested: 'object' },
+        complex2: ['array'],
+      });
+      expect(NATIVE.setAttributes).not.toHaveBeenCalled();
     });
   });
 });

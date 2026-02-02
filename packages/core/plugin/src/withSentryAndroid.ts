@@ -1,18 +1,26 @@
+import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
-import { withAppBuildGradle, withDangerousMod } from 'expo/config-plugins';
+import { withAppBuildGradle, withDangerousMod, withMainApplication } from 'expo/config-plugins';
 import * as path from 'path';
-import { warnOnce, writeSentryPropertiesTo } from './utils';
+import { warnOnce } from './logger';
+import { writeSentryPropertiesTo } from './utils';
 
-export const withSentryAndroid: ConfigPlugin<string> = (config, sentryProperties: string) => {
-  const cfg = withAppBuildGradle(config, appBuildGradle => {
-    if (appBuildGradle.modResults.language === 'groovy') {
-      appBuildGradle.modResults.contents = modifyAppBuildGradle(appBuildGradle.modResults.contents);
+export const withSentryAndroid: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
+  config,
+  { sentryProperties, useNativeInit = false },
+) => {
+  const appBuildGradleCfg = withAppBuildGradle(config, config => {
+    if (config.modResults.language === 'groovy') {
+      config.modResults.contents = modifyAppBuildGradle(config.modResults.contents);
     } else {
       throw new Error('Cannot configure Sentry in the app gradle because the build.gradle is not groovy');
     }
-    return appBuildGradle;
+    return config;
   });
-  return withDangerousMod(cfg, [
+
+  const mainApplicationCfg = useNativeInit ? modifyMainApplication(appBuildGradleCfg) : appBuildGradleCfg;
+
+  return withDangerousMod(mainApplicationCfg, [
     'android',
     dangerousMod => {
       writeSentryPropertiesTo(path.resolve(dangerousMod.modRequest.projectRoot, 'android'), sentryProperties);
@@ -47,4 +55,60 @@ export function modifyAppBuildGradle(buildGradle: string): string {
   const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle")`;
 
   return buildGradle.replace(pattern, match => `${applyFrom}\n\n${match}`);
+}
+
+export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
+  return withMainApplication(config, config => {
+    if (!config.modResults?.path) {
+      warnOnce("Can't add 'RNSentrySDK.init' to Android MainApplication, because the file was not found.");
+      return config;
+    }
+
+    const fileName = path.basename(config.modResults.path);
+
+    if (config.modResults.contents.includes('RNSentrySDK.init')) {
+      warnOnce(`Your '${fileName}' already contains 'RNSentrySDK.init', the native code won't be updated.`);
+      return config;
+    }
+
+    if (config.modResults.language === 'java') {
+      // Add RNSentrySDK.init
+      const originalContents = config.modResults.contents;
+      config.modResults.contents = config.modResults.contents.replace(
+        /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
+        '$1\n$2RNSentrySDK.init(this);\n$2',
+      );
+      if (config.modResults.contents === originalContents) {
+        warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
+      } else if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK;')) {
+        // Insert import statement after package declaration
+        config.modResults.contents = config.modResults.contents.replace(
+          /(package .*;\n\n?)/,
+          '$1import io.sentry.react.RNSentrySDK;\n',
+        );
+      }
+    } else if (config.modResults.language === 'kt') {
+      // Add RNSentrySDK.init
+      const originalContents = config.modResults.contents;
+      config.modResults.contents = config.modResults.contents.replace(
+        /(super\.onCreate\(\)[;\n]*)([ \t]*)/,
+        '$1\n$2RNSentrySDK.init(this)\n$2',
+      );
+      if (config.modResults.contents === originalContents) {
+        warnOnce(`Failed to insert 'RNSentrySDK.init' in '${fileName}'.`);
+      } else if (!config.modResults.contents.includes('import io.sentry.react.RNSentrySDK')) {
+        // Insert import statement after package declaration
+        config.modResults.contents = config.modResults.contents.replace(
+          /(package .*\n\n?)/,
+          '$1import io.sentry.react.RNSentrySDK\n',
+        );
+      }
+    } else {
+      warnOnce(
+        `Unsupported language '${config.modResults.language}' detected in '${fileName}', the native code won't be updated.`,
+      );
+    }
+
+    return config;
+  });
 }

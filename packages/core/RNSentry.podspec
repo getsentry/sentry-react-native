@@ -42,11 +42,15 @@ Pod::Spec.new do |s|
   s.preserve_paths = '*.js'
 
   s.source_files = 'ios/**/*.{h,m,mm}'
-  s.public_header_files = 'ios/RNSentry.h'
+  s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
   s.compiler_flags = other_cflags
 
-  s.dependency 'Sentry', '9.2.0'
+  s.pod_target_xcconfig = {
+    'DEFINES_MODULE' => 'YES'
+  }
+
+  s.dependency 'Sentry', '9.3.0'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
@@ -56,10 +60,10 @@ Pod::Spec.new do |s|
 
     if is_new_arch_enabled then
       # New Architecture on React Native 0.70 and older
-      s.pod_target_xcconfig = {
+      s.pod_target_xcconfig.merge!({
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
-      }
+      })
 
       s.dependency "React-RCTFabric" # Required for Fabric Components (like RCTViewComponentView)
       s.dependency "React-Codegen"
