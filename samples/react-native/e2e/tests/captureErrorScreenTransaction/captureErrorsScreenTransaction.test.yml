@@ -1,0 +1,17 @@
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    # We expect cold start
+    clearState: true
+    stopApp: true
+    arguments:
+      isE2ETest: true
+
+# The app should launch on the ErrorsScreen (first tab)
+# Wait for the screen to be ready and for the app start transaction to complete
+- assertVisible: "Capture message"
+
+# Perform a scroll to ensure some interaction happens, then wait
+# This gives the transaction time to finish (idleTimeoutMs: 5000)
+- scroll
+- scroll

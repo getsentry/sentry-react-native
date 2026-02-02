@@ -22,7 +22,7 @@ import type {
   NativeStackFrames,
   Spec,
 } from './NativeRNSentry';
-import type { ReactNativeClientOptions } from './options';
+import type { AndroidProfilingOptions, ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { MobileReplayOptions } from './replay/mobilereplay';
@@ -57,6 +57,7 @@ export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
   ignoreErrorsRegex?: string[] | undefined;
 } & {
   mobileReplayOptions: MobileReplayOptions | undefined;
+  androidProfilingOptions?: AndroidProfilingOptions | undefined;
 };
 
 interface SentryNativeWrapper {
@@ -99,6 +100,8 @@ interface SentryNativeWrapper {
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
   setTag(key: string, value?: string): void;
+  setAttribute(key: string, value: string | number | boolean): void;
+  setAttributes(attributes: Record<string, string | number | boolean>): void;
 
   nativeCrash(): void;
 
@@ -286,9 +289,19 @@ export const NATIVE: SentryNativeWrapper = {
       integrations,
       ignoreErrors,
       logsOrigin,
+      androidProfilingOptions,
       ...filteredOptions
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
+
+    // Move androidProfilingOptions into _experiments
+    if (androidProfilingOptions) {
+      filteredOptions._experiments = {
+        ...filteredOptions._experiments,
+        androidProfilingOptions,
+      };
+    }
+
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
     this.nativeIsReady = nativeIsReady;
@@ -538,6 +551,43 @@ export const NATIVE: SentryNativeWrapper = {
     } else {
       RNSentry.setContext(key, { error: '**non-serializable**' });
     }
+  },
+
+  /**
+   * Sets an attribute on the native scope.
+   * @param key string
+   * @param value primitive value (string, number, or boolean)
+   */
+  setAttribute(key: string, value: string | number | boolean): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const stringifiedValue = this.primitiveProcessor(value);
+    RNSentry.setAttribute(key, stringifiedValue);
+  },
+
+  /**
+   * Sets multiple attributes on the native scope.
+   * @param attributes key-value map of attributes (only string, number, and boolean values)
+   */
+  setAttributes(attributes: Record<string, string | number | boolean>): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    const serializedAttributes: Record<string, string> = {};
+    Object.keys(attributes).forEach(key => {
+      serializedAttributes[key] = this.primitiveProcessor(attributes[key]);
+    });
+
+    RNSentry.setAttributes(serializedAttributes);
   },
 
   /**

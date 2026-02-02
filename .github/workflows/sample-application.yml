@@ -68,11 +68,11 @@ jobs:
           - ios-use-frameworks: 'dynamic-frameworks'
             platform: 'macos'
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -82,7 +82,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         with:
-          working-directory: ${{ matrix.platform == 'ios' && env.REACT_NATIVE_SAMPLE_PATH || ' samples/react-native-macos' }}
+          working-directory: ${{ matrix.platform == 'ios' && env.REACT_NATIVE_SAMPLE_PATH || 'samples/react-native-macos' }}
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
@@ -112,62 +112,39 @@ jobs:
         if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         working-directory: samples
         run: |
-          [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native/ios
-          [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos/macos
+          [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native
+          [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos
 
-          [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
-          [[ "${{ matrix.rn-architecture }}" == "new" ]] && ENABLE_NEW_ARCH=1 || ENABLE_NEW_ARCH=0
+          [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
+          [[ "${{ matrix.rn-architecture }}" == "new" ]] && export ENABLE_NEW_ARCH=1 || export ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
-          echo "ENABLE_PROD=$ENABLE_PROD"
-          echo "ENABLE_NEW_ARCH=$ENABLE_NEW_ARCH"
-          PRODUCTION=$ENABLE_PROD RCT_NEW_ARCH_ENABLED=$ENABLE_NEW_ARCH bundle exec pod install
-          cat Podfile.lock | grep $RN_SENTRY_POD_NAME
+
+          ./scripts/pod-install.sh
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
-          if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
-            perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
-            echo 'New Architecture enabled'
-          elif [[ ${{ matrix.rn-architecture }} == 'legacy' ]]; then
-              perl -i -pe's/newArchEnabled=true/newArchEnabled=false/g' gradle.properties
-              echo 'Legacy Architecture enabled'
-          else
-              echo 'No changes for architecture: ${{ matrix.rn-architecture }}'
-          fi
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          [[ "${{ matrix.build-type }}" == "production" ]] && TEST_TYPE='release' || TEST_TYPE='debug'
-          echo "Building $TEST_TYPE"
+          export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
-          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
+          ./scripts/set-dsn-aos.mjs
+          ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
-          echo "Building $CONFIG"
-          mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
-          set -o pipefail && xcodebuild \
-            -workspace sentryreactnativesample.xcworkspace \
-            -configuration "$CONFIG" \
-            -scheme sentryreactnativesample \
-            -sdk 'iphonesimulator' \
-            -destination 'generic/platform=iOS Simulator' \
-            ONLY_ACTIVE_ARCH=yes \
-            -derivedDataPath "$derivedData" \
-            build \
-            | tee xcodebuild.log \
-            | xcbeautify --quieter --is-ci --disable-colored-output
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
+
+          ./scripts/set-dsn-ios.mjs
+          ./scripts/build-ios.sh
 
       - name: Build macOS App
         if: ${{ matrix.platform == 'macos' }}
         working-directory: samples/react-native-macos/macos
         run: |
-          [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
           derivedData="$(cd "DerivedData" ; pwd -P)"
@@ -184,8 +161,8 @@ jobs:
 
       - name: Archive iOS App
         if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
-          cd ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/DerivedData/Build/Products/Release-iphonesimulator
           zip -r \
             ${{ github.workspace }}/${{ env.IOS_APP_ARCHIVE_PATH }} \
             sentryreactnativesample.app
@@ -193,10 +170,10 @@ jobs:
       - name: Archive Android App
         if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
         run: |
-          mv ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/app/build/outputs/apk/release/app-release.apk app.apk
           zip -j \
             ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
-            app.apk
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk \
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app-androidTest.apk
 
       - name: Upload iOS APP
         if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
@@ -243,7 +220,7 @@ jobs:
             build-type: 'production'
 
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -272,11 +249,13 @@ jobs:
       - name: Unzip Android APK
         if: ${{ matrix.platform == 'android' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
+        run: |
+          unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
+          rm app-androidTest.apk
 
       - name: Enable Corepack
         run: npm i -g corepack
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 18
