@@ -50,7 +50,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  s.dependency 'Sentry/HybridSDK', '9.2.0'
+  s.dependency 'Sentry/HybridSDK', '9.3.0'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
