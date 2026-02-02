@@ -46,8 +46,8 @@
     BOOL isSessionReplayEnabled = NO;
 #endif
 
-    SentryOptions *sentryOptions = [SentryOptionsInternal initWithDict:mutableOptions
-                                                      didFailWithError:errorPointer];
+    SentryOptions *sentryOptions = [PrivateSentrySDKOnly optionsWithDictionary:mutableOptions
+                                                              didFailWithError:errorPointer];
     if (*errorPointer != nil) {
         return nil;
     }

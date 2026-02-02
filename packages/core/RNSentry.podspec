@@ -47,10 +47,11 @@ Pod::Spec.new do |s|
   s.compiler_flags = other_cflags
 
   s.pod_target_xcconfig = {
-    'DEFINES_MODULE' => 'YES'
+    'DEFINES_MODULE' => 'YES',
+    'HEADER_SEARCH_PATHS' => '$(inherited) "${PODS_ROOT}/Sentry/Sources/Sentry" "${PODS_ROOT}/Sentry/Sources/Sentry/include"'
   }
 
-  s.dependency 'Sentry/HybridSDK', '9.3.0'
+  s.dependency 'Sentry', '9.3.0'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
