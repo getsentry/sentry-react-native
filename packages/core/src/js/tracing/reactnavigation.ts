@@ -267,15 +267,17 @@ export const reactNavigationIntegration = ({
     // Handle PRELOAD actions separately if prefetch tracking is enabled
     if (enablePrefetchTracking && navigationActionType === 'PRELOAD') {
       const preloadData = event?.data.action;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const targetRoute = (preloadData as any)?.payload?.name || 'Unknown Route';
+      const payload = preloadData?.payload;
+      const targetRoute =
+        payload && typeof payload === 'object' && 'name' in payload && typeof payload.name === 'string'
+          ? payload.name
+          : 'Unknown Route';
 
       debug.log(`${INTEGRATION_NAME} Starting prefetch span for route: ${targetRoute}`);
 
       const prefetchSpan = startInactiveSpan({
         op: 'navigation.prefetch',
         name: `Prefetch ${targetRoute}`,
-        origin: SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
         attributes: {
           'route.name': targetRoute,
         },

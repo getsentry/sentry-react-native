@@ -91,9 +91,10 @@ export {
   getDefaultIdleNavigationSpanOptions,
   createTimeToFullDisplay,
   createTimeToInitialDisplay,
+  wrapExpoRouter,
 } from './tracing';
 
-export type { TimeToDisplayProps } from './tracing';
+export type { TimeToDisplayProps, ExpoRouter } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
 
