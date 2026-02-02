@@ -9,6 +9,9 @@ export type { ReactNativeTracingIntegration } from './reactnativetracing';
 export { reactNavigationIntegration } from './reactnavigation';
 export { reactNativeNavigationIntegration } from './reactnativenavigation';
 
+export { wrapPrefetch } from './expoPrefetch';
+export type { ExpoRouter } from './expoPrefetch';
+
 export { startIdleNavigationSpan, startIdleSpan, getDefaultIdleNavigationSpanOptions } from './span';
 
 export type { ReactNavigationCurrentRoute, ReactNavigationRoute } from './types';
