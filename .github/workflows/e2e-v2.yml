@@ -16,8 +16,8 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.1.0'
-  IOS_DEVICE: 'iPhone 17'
-  IOS_VERSION: '>=18.0'
+  IOS_DEVICE: 'iPhone 16'
+  IOS_VERSION: '18.6'
 
 jobs:
   ready-to-merge-gate:
