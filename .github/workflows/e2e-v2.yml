@@ -42,17 +42,18 @@ jobs:
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
+      # Limit parallel jobs to avoid hitting Sauce Labs concurrency limits (max 3 sessions)
+      max-parallel: 2
       matrix:
         rn-architecture: ['legacy', 'new']
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: macos-26
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
-            # Not using the latest version due to a known issue: https://github.com/getsentry/sentry-react-native/issues/4418
-            runs-on: ubuntu-22.04
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
@@ -61,16 +62,17 @@ jobs:
       - uses: ./.github/actions/disk-cleanup
         if: ${{ matrix.platform == 'android' }}
 
-      - run: sudo xcode-select -s /Applications/Xcode_26.1.1.app/Contents/Developer
-        if: ${{ matrix.platform == 'ios' }}
-
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - uses: actions/setup-java@v5
         with:
@@ -79,6 +81,11 @@ jobs:
 
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
+
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.platform == 'ios' }}
+        with:
+          ruby-version: '3.3.0'
 
       - name: Install Global Dependencies
         run: npm i -g react-native-cli @sentry/cli
@@ -115,9 +122,11 @@ jobs:
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               export RCT_NEW_ARCH_ENABLED=1
             fi
-            pod install
+            bundle install
+            bundle exec pod install
             cd ../..
-            fastlane build_perf_test_app_plain
+            bundle install
+            bundle exec fastlane build_perf_test_app_plain
           fi
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -143,9 +152,11 @@ jobs:
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               export RCT_NEW_ARCH_ENABLED=1
             fi
-            pod install
+            bundle install
+            bundle exec pod install
             cd ../..
-            fastlane build_perf_test_app_sentry
+            bundle install
+            bundle exec fastlane build_perf_test_app_sentry
             cd TestAppSentry
           fi
         env:
@@ -189,15 +200,13 @@ jobs:
           # Use Xcode 16 for older RN versions
           - platform: ios
             rn-version: '0.71.19'
-            xcode-version: '16.4'
-            runs-on: macos-15
+            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
             rn-version: '0.83.0'
-            xcode-version: '26.1.1'
-            runs-on: macos-26
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
           - platform: android
-            runs-on: ubuntu-latest
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
           - rn-version: '0.83.0'
@@ -247,16 +256,17 @@ jobs:
           echo "SENTRY_RELEASE=$SENTRY_RELEASE"
           echo "SENTRY_DIST=$SENTRY_DIST"
 
-      - run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/Contents/Developer
-        if: ${{ matrix.platform == 'ios' }}
-
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - uses: actions/setup-java@v5
         with:
@@ -323,9 +333,9 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.83.0'
-            runs-on: macos-26
+            runs-on:  macos-26
           - platform: android
-            runs-on: ubuntu-latest
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -354,13 +364,18 @@ jobs:
           path: dev-packages/e2e-tests
 
       - name: Enable Corepack
-        run: npm i -g corepack
+        run: corepack enable
+
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
           node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - uses: actions/setup-java@v5
         with:
@@ -417,6 +432,9 @@ jobs:
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
+        env:
+          # Increase timeout for Maestro iOS driver startup (default is 60s, some CI runners need more time)
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs
@@ -424,4 +442,5 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
-          path: ./dev-packages/e2e-tests/maestro-logs
+          path: |
+            ./dev-packages/e2e-tests/maestro-logs
