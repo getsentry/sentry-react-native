@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add performance tracking for Expo Router route prefetching ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Add performance tracking for Expo Router route prefetching ([#5606](https://github.com/getsentry/sentry-react-native/pull/5606))
   - New `wrapExpoRouter` utility to instrument manual `prefetch()` calls with performance spans
   - New `enablePrefetchTracking` option for `reactNavigationIntegration` to automatically track PRELOAD actions
   ```tsx
