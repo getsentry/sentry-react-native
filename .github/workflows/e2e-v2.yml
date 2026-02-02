@@ -16,8 +16,8 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.1.0'
-  IOS_DEVICE: 'iPhone 16'
-  IOS_VERSION: '18.6'
+  IOS_DEVICE: 'iPhone 17'
+  IOS_VERSION: '>=18.0'
 
 jobs:
   ready-to-merge-gate:
@@ -333,7 +333,7 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.83.0'
-            runs-on:  ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
+            runs-on:  macos-26
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
 

@@ -298,10 +298,10 @@ if (actions.includes('test')) {
       // Always redact sensitive data, even if the test fails
       const redactScript = `
         if [[ "$(uname)" == "Darwin" ]]; then
-          find ./maestro-logs -type f -exec sh -c 'file -b --mime-encoding "{}" | grep -q text && sed -i "" "s/${sentryAuthToken}/[REDACTED]/g" "{}" || echo "Skipping binary file: {}"' \\;
+          find ./maestro-logs -type f -exec sed -i '' "s/${sentryAuthToken}/[REDACTED]/g" {} +
           echo 'Redacted sensitive data from logs on MacOS'
         else
-          find ./maestro-logs -type f -exec sh -c 'file -b --mime-encoding "{}" | grep -q text && sed -i "s/${sentryAuthToken}/[REDACTED]/g" "{}" || echo "Skipping binary file: {}"' \\;
+          find ./maestro-logs -type f -exec sed -i "s/${sentryAuthToken}/[REDACTED]/g" {} +
           echo 'Redacted sensitive data from logs on Ubuntu'
         fi
       `;
