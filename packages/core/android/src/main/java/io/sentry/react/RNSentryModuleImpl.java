@@ -511,8 +511,7 @@ public class RNSentryModuleImpl {
       logger.log(
           SentryLevel.INFO,
           String.format(
-              "UI Profiling profileSessionSampleRate set to: %.2f",
-              profileSessionSampleRate));
+              "UI Profiling profileSessionSampleRate set to: %.2f", profileSessionSampleRate));
     }
 
     // Set profiling lifecycle mode
@@ -532,8 +531,7 @@ public class RNSentryModuleImpl {
       final boolean startOnAppStart = profilingOptions.getBoolean("startOnAppStart");
       options.setStartProfilerOnAppStart(startOnAppStart);
       logger.log(
-          SentryLevel.INFO,
-          String.format("Profiling startOnAppStart set to %b", startOnAppStart));
+          SentryLevel.INFO, String.format("Profiling startOnAppStart set to %b", startOnAppStart));
     }
   }
 
