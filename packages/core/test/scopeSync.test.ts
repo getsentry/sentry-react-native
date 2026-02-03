@@ -116,8 +116,11 @@ describe('ScopeSync', () => {
     let setExtrasScopeSpy: jest.SpyInstance;
     let addBreadcrumbScopeSpy: jest.SpyInstance;
     let setContextScopeSpy: jest.SpyInstance;
+    /*
+      TODO: Uncomment once Native setattribute is implemented.
     let setAttributeScopeSpy: jest.SpyInstance;
     let setAttributesScopeSpy: jest.SpyInstance;
+    */
 
     beforeAll(() => {
       const testScope = SentryCore.getIsolationScope();
