@@ -50,7 +50,6 @@ describe('wrapExpoRouter', () => {
     expect(mockStartInactiveSpan).toHaveBeenCalledWith({
       op: 'navigation.prefetch',
       name: 'Prefetch /details/123',
-      origin: 'auto.navigation.react_navigation',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
         'route.href': '/details/123',
@@ -74,7 +73,6 @@ describe('wrapExpoRouter', () => {
     expect(mockStartInactiveSpan).toHaveBeenCalledWith({
       op: 'navigation.prefetch',
       name: 'Prefetch /profile',
-      origin: 'auto.navigation.react_navigation',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
         'route.href': JSON.stringify(href),
@@ -98,7 +96,6 @@ describe('wrapExpoRouter', () => {
     expect(mockStartInactiveSpan).toHaveBeenCalledWith({
       op: 'navigation.prefetch',
       name: 'Prefetch unknown',
-      origin: 'auto.navigation.react_navigation',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
         'route.href': JSON.stringify(href),
