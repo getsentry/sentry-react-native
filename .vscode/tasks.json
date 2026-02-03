@@ -13,6 +13,25 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "Claude",
+      "type": "shell",
+      "command": "CLAUDE_PATH=$(grep '^CLAUDE_PATH=' .env | cut -d '=' -f2 | tr -d '\"') && $CLAUDE_PATH",
+      "icon": {
+        "color": "terminal.ansiRed",
+        "id": "robot"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "group": {
+        "kind": "none",
+        "isDefault": true
+      },
+      "problemMatcher": []
     }
   ]
 }
