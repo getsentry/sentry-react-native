@@ -10,6 +10,18 @@
 
 ### Features
 
+- Extends the experimental support of UI profiling to iOS ([#5611](https://github.com/getsentry/sentry-react-native/pull/5611))
+  ```js
+  Sentry.init({
+    _experiments: {
+      profilingOptions: {
+        profileSessionSampleRate: 1.0,
+        lifecycle: 'trace', // or 'manual'
+        startOnAppStart: true,
+      },
+    },
+  });
+  ```
 - Add performance tracking for Expo Router route prefetching ([#5606](https://github.com/getsentry/sentry-react-native/pull/5606))
   - New `wrapExpoRouter` utility to instrument manual `prefetch()` calls with performance spans
   - New `enablePrefetchTracking` option for `reactNavigationIntegration` to automatically track PRELOAD actions
