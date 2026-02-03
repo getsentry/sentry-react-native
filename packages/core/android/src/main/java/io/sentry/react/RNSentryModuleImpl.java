@@ -498,8 +498,7 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    @Nullable
-    final ReadableMap profilingOptions = experiments.getMap("profilingOptions");
+    @Nullable final ReadableMap profilingOptions = experiments.getMap("profilingOptions");
     if (profilingOptions == null) {
       return;
     }
@@ -507,7 +506,7 @@ public class RNSentryModuleImpl {
     // Set profile session sample rate
     if (profilingOptions.hasKey("profileSessionSampleRate")) {
       final double profileSessionSampleRate =
-              profilingOptions.getDouble("profileSessionSampleRate");
+          profilingOptions.getDouble("profileSessionSampleRate");
       options.setProfileSessionSampleRate(profileSessionSampleRate);
       logger.log(
           SentryLevel.INFO,

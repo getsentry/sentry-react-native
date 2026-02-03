@@ -109,8 +109,7 @@
 
         // Configure iOS UI Profiling
         NSDictionary *profilingOptions = experiments[@"profilingOptions"];
-        if (profilingOptions != nil &&
-            [profilingOptions isKindOfClass:[NSDictionary class]]) {
+        if (profilingOptions != nil && [profilingOptions isKindOfClass:[NSDictionary class]]) {
             [RNSentryExperimentalOptions configureProfilingWithOptions:profilingOptions
                                                          sentryOptions:sentryOptions];
         }
