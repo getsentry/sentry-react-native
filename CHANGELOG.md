@@ -8,6 +8,29 @@
 
 ## Unreleased
 
+### Features
+
+- Add performance tracking for Expo Router route prefetching ([#5606](https://github.com/getsentry/sentry-react-native/pull/5606))
+  - New `wrapExpoRouter` utility to instrument manual `prefetch()` calls with performance spans
+  - New `enablePrefetchTracking` option for `reactNavigationIntegration` to automatically track PRELOAD actions
+  ```tsx
+  // Option 1: Wrap the router for manual prefetch tracking
+  import { wrapExpoRouter } from '@sentry/react-native';
+  import { useRouter } from 'expo-router';
+
+  const router = wrapExpoRouter(useRouter());
+  router.prefetch('/details'); // Creates a span measuring prefetch performance
+
+  // Option 2: Enable automatic prefetch tracking in the integration
+  Sentry.init({
+    integrations: [
+      Sentry.reactNavigationIntegration({
+        enablePrefetchTracking: true,
+      }),
+    ],
+  });
+  ```
+
 ### Dependencies
 
 - Bump Cocoa SDK from v9.1.0 to v9.3.0 ([#5515](https://github.com/getsentry/sentry-react-native/pull/5515))

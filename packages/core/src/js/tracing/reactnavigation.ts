@@ -104,6 +104,15 @@ interface ReactNavigationIntegrationOptions {
    * @default false
    */
   useFullPathsForNavigationRoutes: boolean;
+
+  /**
+   * Track performance of route prefetching operations.
+   * Creates separate spans for PRELOAD actions to measure prefetch performance.
+   * This is useful for Expo Router apps that use the prefetch functionality.
+   *
+   * @default false
+   */
+  enablePrefetchTracking: boolean;
 }
 
 /**
@@ -121,6 +130,7 @@ export const reactNavigationIntegration = ({
   enableTimeToInitialDisplayForPreloadedRoutes = false,
   useDispatchedActionData = false,
   useFullPathsForNavigationRoutes = false,
+  enablePrefetchTracking = false,
 }: Partial<ReactNavigationIntegrationOptions> = {}): Integration & {
   /**
    * Pass the ref to the navigation container to register it to the instrumentation
@@ -253,12 +263,48 @@ export const reactNavigationIntegration = ({
     }
 
     const navigationActionType = useDispatchedActionData ? event?.data.action.type : undefined;
+
+    // Handle PRELOAD actions separately if prefetch tracking is enabled
+    if (enablePrefetchTracking && navigationActionType === 'PRELOAD') {
+      const preloadData = event?.data.action;
+      const payload = preloadData?.payload;
+      const targetRoute =
+        payload && typeof payload === 'object' && 'name' in payload && typeof payload.name === 'string'
+          ? payload.name
+          : 'Unknown Route';
+
+      debug.log(`${INTEGRATION_NAME} Starting prefetch span for route: ${targetRoute}`);
+
+      const prefetchSpan = startInactiveSpan({
+        op: 'navigation.prefetch',
+        name: `Prefetch ${targetRoute}`,
+        attributes: {
+          'route.name': targetRoute,
+        },
+      });
+
+      // Store prefetch span to end it when state changes or timeout
+      navigationProcessingSpan = prefetchSpan;
+
+      // Set timeout to ensure we don't leave hanging spans
+      stateChangeTimeout = setTimeout(() => {
+        if (navigationProcessingSpan === prefetchSpan) {
+          debug.log(`${INTEGRATION_NAME} Prefetch span timed out for route: ${targetRoute}`);
+          prefetchSpan?.setStatus({ code: SPAN_STATUS_OK });
+          prefetchSpan?.end();
+          navigationProcessingSpan = undefined;
+        }
+      }, routeChangeTimeoutMs);
+
+      return;
+    }
+
     if (
       useDispatchedActionData &&
       navigationActionType &&
       [
         // Process common actions
-        'PRELOAD',
+        'PRELOAD', // Still filter PRELOAD when enablePrefetchTracking is false
         'SET_PARAMS',
         // Drawer actions
         'OPEN_DRAWER',
@@ -447,6 +493,7 @@ export const reactNavigationIntegration = ({
       enableTimeToInitialDisplayForPreloadedRoutes,
       useDispatchedActionData,
       useFullPathsForNavigationRoutes,
+      enablePrefetchTracking,
     },
   };
 };

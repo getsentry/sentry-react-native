@@ -2,6 +2,7 @@ import { Button, ScrollView, StyleSheet } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { reloadAppAsync, isRunningInExpoGo } from 'expo';
 import * as DevClient from 'expo-dev-client';
+import { useRouter } from 'expo-router';
 
 import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
@@ -12,6 +13,10 @@ import { isWeb } from '../../utils/isWeb';
 
 export default function TabOneScreen() {
   const { currentlyRunning } = useUpdates();
+  const rawRouter = useRouter();
+  // Wrap the router to monitor prefetch performance
+  const router = Sentry.wrapExpoRouter(rawRouter);
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -29,6 +34,15 @@ export default function TabOneScreen() {
               DevClient.openMenu();
             }}
             disabled={isWeb()}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Prefetch Modal (Performance Tracked)"
+            onPress={() => {
+              // This prefetch call is automatically tracked by Sentry
+              router.prefetch('/modal');
+            }}
           />
         </View>
         <View style={styles.buttonWrapper}>
