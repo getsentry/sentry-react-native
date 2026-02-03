@@ -61,7 +61,7 @@ jobs:
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 20
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -106,12 +106,17 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
           echo "ENABLE_PROD=$ENABLE_PROD"
+          # Monorepo fix: Point Sentry SDK to correct React Native version (0.81 vs 0.80)
+          export REACT_NATIVE_NODE_MODULES_DIR="$(cd ../node_modules/react-native && pwd)"
           PRODUCTION=$ENABLE_PROD pod install
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
       - name: Build Android App
         if: ${{ matrix.platform == 'android' }}
         working-directory: samples/expo/android
+        env:
+          # Increase memory for Expo SDK 54 lint tasks
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
