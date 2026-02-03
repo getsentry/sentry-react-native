@@ -37,6 +37,14 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)setEnableSessionReplayInUnreliableEnvironment:(BOOL)enabled
                                         sentryOptions:(SentryOptions *)sentryOptions;
 
+/**
+ * Configures iOS UI profiling options on SentryOptions
+ * @param profilingOptions Dictionary containing profiling configuration
+ * @param sentryOptions The SentryOptions instance to configure
+ */
++ (void)configureProfilingWithOptions:(NSDictionary *)profilingOptions
+                        sentryOptions:(SentryOptions *)sentryOptions;
+
 @end
 
 NS_ASSUME_NONNULL_END

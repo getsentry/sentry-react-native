@@ -295,15 +295,15 @@ export interface BaseReactNativeOptions {
     enableUnhandledCPPExceptionsV2?: boolean;
 
     /**
-     * Configuration options for Android UI profiling.
-     * UI profiling supports two modes: `manual` and `trace`.
+     * Configuration options for UI profiling.
+     * It supports two modes: `manual` and `trace`.
      * - In `trace` mode, the profiler runs based on active sampled spans.
      * - In `manual` mode, profiling is controlled via start/stop API calls.
      *
      * @experimental
      * @platform android
      */
-    androidProfilingOptions?: AndroidProfilingOptions;
+    profilingOptions?: ProfilingOptions;
   };
 
   /**
@@ -342,19 +342,18 @@ export interface BaseReactNativeOptions {
 export type SentryReplayQuality = 'low' | 'medium' | 'high';
 
 /**
- * Android UI profiling lifecycle modes.
+ * UI profiling lifecycle modes.
  * - `trace`: Profiler runs based on active sampled spans
  * - `manual`: Profiler is controlled manually via start/stop API calls
  */
-export type AndroidProfilingLifecycle = 'trace' | 'manual';
+export type ProfilingLifecycle = 'trace' | 'manual';
 
 /**
- * Configuration options for Android UI profiling.
+ * Configuration options for UI profiling.
  *
  * @experimental
- * @platform android
  */
-export interface AndroidProfilingOptions {
+export interface ProfilingOptions {
   /**
    * Sample rate for profiling sessions.
    * This is evaluated once per session and determines if profiling should be enabled for that session.
@@ -369,9 +368,9 @@ export interface AndroidProfilingOptions {
    * - `trace`: Profiler runs while there is at least one active sampled span
    * - `manual`: Profiler is controlled manually via Sentry.profiler.startProfiler/stopProfiler
    *
-   * @default 'trace'
+   * @default 'manual'
    */
-  lifecycle?: AndroidProfilingLifecycle;
+  lifecycle?: ProfilingLifecycle;
 
   /**
    * Enable profiling on app start.

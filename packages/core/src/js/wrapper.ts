@@ -22,7 +22,7 @@ import type {
   NativeStackFrames,
   Spec,
 } from './NativeRNSentry';
-import type { AndroidProfilingOptions, ReactNativeClientOptions } from './options';
+import type { ProfilingOptions, ReactNativeClientOptions } from './options';
 import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { MobileReplayOptions } from './replay/mobilereplay';
@@ -57,7 +57,7 @@ export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
   ignoreErrorsRegex?: string[] | undefined;
 } & {
   mobileReplayOptions: MobileReplayOptions | undefined;
-  androidProfilingOptions?: AndroidProfilingOptions | undefined;
+  profilingOptions?: ProfilingOptions | undefined;
 };
 
 interface SentryNativeWrapper {
@@ -289,16 +289,16 @@ export const NATIVE: SentryNativeWrapper = {
       integrations,
       ignoreErrors,
       logsOrigin,
-      androidProfilingOptions,
+      profilingOptions,
       ...filteredOptions
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
 
-    // Move androidProfilingOptions into _experiments
-    if (androidProfilingOptions) {
+    // Move profilingOptions into _experiments
+    if (profilingOptions) {
       filteredOptions._experiments = {
         ...filteredOptions._experiments,
-        androidProfilingOptions,
+        profilingOptions,
       };
     }
 

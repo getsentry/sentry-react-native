@@ -54,14 +54,14 @@ jest.mock('react-native', () => {
 
 const RNSentry = require('react-native').NativeModules.RNSentry as Spec;
 
-describe('Android UI Profiling Options', () => {
+describe('UI Profiling Options', () => {
   beforeEach(() => {
     NATIVE.platform = 'android';
     NATIVE.enableNative = true;
     jest.clearAllMocks();
   });
 
-  it('passes androidProfilingOptions to native SDK', async () => {
+  it('passes profilingOptions to native SDK', async () => {
     await NATIVE.initNativeSdk({
       dsn: 'https://example@sentry.io/123',
       enableNative: true,
@@ -69,7 +69,7 @@ describe('Android UI Profiling Options', () => {
       devServerUrl: undefined,
       defaultSidecarUrl: undefined,
       mobileReplayOptions: undefined,
-      androidProfilingOptions: {
+      profilingOptions: {
         profileSessionSampleRate: 0.5,
         lifecycle: 'trace',
         startOnAppStart: true,
@@ -79,7 +79,7 @@ describe('Android UI Profiling Options', () => {
     expect(RNSentry.initNativeSdk).toHaveBeenCalledWith(
       expect.objectContaining({
         _experiments: expect.objectContaining({
-          androidProfilingOptions: {
+          profilingOptions: {
             profileSessionSampleRate: 0.5,
             lifecycle: 'trace',
             startOnAppStart: true,
@@ -89,7 +89,7 @@ describe('Android UI Profiling Options', () => {
     );
   });
 
-  it('passes androidProfilingOptions with manual lifecycle', async () => {
+  it('passes profilingOptions with manual lifecycle', async () => {
     await NATIVE.initNativeSdk({
       dsn: 'https://example@sentry.io/123',
       enableNative: true,
@@ -97,7 +97,7 @@ describe('Android UI Profiling Options', () => {
       devServerUrl: undefined,
       defaultSidecarUrl: undefined,
       mobileReplayOptions: undefined,
-      androidProfilingOptions: {
+      profilingOptions: {
         profileSessionSampleRate: 1.0,
         lifecycle: 'manual',
         startOnAppStart: false,
@@ -107,7 +107,7 @@ describe('Android UI Profiling Options', () => {
     expect(RNSentry.initNativeSdk).toHaveBeenCalledWith(
       expect.objectContaining({
         _experiments: expect.objectContaining({
-          androidProfilingOptions: {
+          profilingOptions: {
             profileSessionSampleRate: 1.0,
             lifecycle: 'manual',
             startOnAppStart: false,
@@ -117,7 +117,7 @@ describe('Android UI Profiling Options', () => {
     );
   });
 
-  it('does not pass androidProfilingOptions when undefined', async () => {
+  it('does not pass profilingOptions when undefined', async () => {
     await NATIVE.initNativeSdk({
       dsn: 'https://example@sentry.io/123',
       enableNative: true,
@@ -125,14 +125,14 @@ describe('Android UI Profiling Options', () => {
       devServerUrl: undefined,
       defaultSidecarUrl: undefined,
       mobileReplayOptions: undefined,
-      androidProfilingOptions: undefined,
+      profilingOptions: undefined,
     });
 
     const callArgs = (RNSentry.initNativeSdk as jest.Mock).mock.calls[0][0];
-    expect(callArgs._experiments?.androidProfilingOptions).toBeUndefined();
+    expect(callArgs._experiments?.profilingOptions).toBeUndefined();
   });
 
-  it('handles partial androidProfilingOptions', async () => {
+  it('handles partial profilingOptions', async () => {
     await NATIVE.initNativeSdk({
       dsn: 'https://example@sentry.io/123',
       enableNative: true,
@@ -140,7 +140,7 @@ describe('Android UI Profiling Options', () => {
       devServerUrl: undefined,
       defaultSidecarUrl: undefined,
       mobileReplayOptions: undefined,
-      androidProfilingOptions: {
+      profilingOptions: {
         profileSessionSampleRate: 0.3,
         // lifecycle and startOnAppStart not provided
       },
@@ -149,7 +149,7 @@ describe('Android UI Profiling Options', () => {
     expect(RNSentry.initNativeSdk).toHaveBeenCalledWith(
       expect.objectContaining({
         _experiments: expect.objectContaining({
-          androidProfilingOptions: {
+          profilingOptions: {
             profileSessionSampleRate: 0.3,
           },
         }),
