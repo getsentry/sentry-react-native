@@ -10,3 +10,5 @@ export const SPAN_ORIGIN_AUTO_NAVIGATION_CUSTOM = 'auto.navigation.custom';
 
 export const SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY = 'auto.ui.time_to_display';
 export const SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY = 'manual.ui.time_to_display';
+
+export const SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH = 'auto.expo_router.prefetch';

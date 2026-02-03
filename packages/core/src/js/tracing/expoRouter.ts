@@ -1,4 +1,5 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
+import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from './origin';
 
 /**
  * Type definition for Expo Router's router object
@@ -47,6 +48,7 @@ export function wrapExpoRouter<T extends ExpoRouter>(router: T): T {
       op: 'navigation.prefetch',
       name: `Prefetch ${routeName}`,
       attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
         'route.href': typeof href === 'string' ? href : JSON.stringify(href),
         'route.name': routeName,
       },

@@ -1,5 +1,6 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK } from '@sentry/core';
 import { type ExpoRouter, wrapExpoRouter } from '../../src/js/tracing';
+import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from '../../src/js/tracing/origin';
 
 const mockStartInactiveSpan = jest.fn();
 
@@ -51,6 +52,7 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch /details/123',
       origin: 'auto.navigation.react_navigation',
       attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
         'route.href': '/details/123',
         'route.name': '/details/123',
       },
@@ -74,6 +76,7 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch /profile',
       origin: 'auto.navigation.react_navigation',
       attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
         'route.href': JSON.stringify(href),
         'route.name': '/profile',
       },
@@ -97,6 +100,7 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch unknown',
       origin: 'auto.navigation.react_navigation',
       attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
         'route.href': JSON.stringify(href),
         'route.name': 'unknown',
       },
