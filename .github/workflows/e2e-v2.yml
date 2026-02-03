@@ -190,7 +190,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.71.19', '0.84.0-rc.3']
+        rn-version: ['0.71.19', '0.84.0-rc.4']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -200,26 +200,16 @@ jobs:
           # Use Xcode 16 for older RN versions
           - platform: ios
             rn-version: '0.71.19'
-<<<<<<< antonis/rn-0.83.1
-            xcode-version: '16.4'
-            runs-on: macos-15
-          # Use Xcode 26 for newer RN versions (0.84.0-rc.3)
-          - platform: ios
-            rn-version: '0.84.0-rc.3'
-            xcode-version: '26.1.1'
-            runs-on: macos-26
-=======
             runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
-            rn-version: '0.83.0'
+            rn-version: '0.84.0-rc.4'
             runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
->>>>>>> main
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.84.0-rc.3'
+          - rn-version: '0.84.0-rc.4'
             engine: 'jsc'
           # exclude all rn versions lower than 0.80.0 for new architecture
           - rn-version: '0.71.19'
@@ -334,7 +324,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.84.0-rc.3']
+        rn-version: ['0.84.0-rc.4']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -342,13 +332,8 @@ jobs:
         engine: ['hermes']
         include:
           - platform: ios
-<<<<<<< antonis/rn-0.83.1
-            rn-version: '0.84.0-rc.3'
-            runs-on: macos-26
-=======
-            rn-version: '0.83.0'
+            rn-version: '0.84.0-rc.4'
             runs-on:  macos-26
->>>>>>> main
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
 
