@@ -9,6 +9,9 @@ export type { ReactNativeTracingIntegration } from './reactnativetracing';
 export { reactNavigationIntegration } from './reactnavigation';
 export { reactNativeNavigationIntegration } from './reactnativenavigation';
 
+export { wrapExpoRouter } from './expoRouter';
+export type { ExpoRouter } from './expoRouter';
+
 export { startIdleNavigationSpan, startIdleSpan, getDefaultIdleNavigationSpanOptions } from './span';
 
 export type { ReactNavigationCurrentRoute, ReactNavigationRoute } from './types';
