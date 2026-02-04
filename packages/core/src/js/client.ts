@@ -224,7 +224,8 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
         'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]
           ? (this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] as ReturnType<typeof mobileReplayIntegration>).options
           : undefined,
-      profilingOptions: this._options._experiments?.profilingOptions,
+      profilingOptions:
+        this._options._experiments?.profilingOptions ?? this._options._experiments?.androidProfilingOptions,
     })
       .then(
         (result: boolean) => {

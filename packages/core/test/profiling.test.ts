@@ -156,4 +156,64 @@ describe('UI Profiling Options', () => {
       }),
     );
   });
+
+  describe('deprecated androidProfilingOptions', () => {
+    it('passes deprecated androidProfilingOptions as profilingOptions to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'https://example@sentry.io/123',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+        androidProfilingOptions: {
+          profileSessionSampleRate: 0.7,
+          lifecycle: 'trace',
+          startOnAppStart: true,
+        },
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalledWith(
+        expect.objectContaining({
+          _experiments: expect.objectContaining({
+            profilingOptions: {
+              profileSessionSampleRate: 0.7,
+              lifecycle: 'trace',
+              startOnAppStart: true,
+            },
+          }),
+        }),
+      );
+    });
+
+    it('prefers profilingOptions over deprecated androidProfilingOptions', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'https://example@sentry.io/123',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+        profilingOptions: {
+          profileSessionSampleRate: 0.5,
+          lifecycle: 'manual',
+        },
+        androidProfilingOptions: {
+          profileSessionSampleRate: 0.9,
+          lifecycle: 'trace',
+        },
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalledWith(
+        expect.objectContaining({
+          _experiments: expect.objectContaining({
+            profilingOptions: {
+              profileSessionSampleRate: 0.5,
+              lifecycle: 'manual',
+            },
+          }),
+        }),
+      );
+    });
+  });
 });

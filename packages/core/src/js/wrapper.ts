@@ -58,6 +58,8 @@ export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
 } & {
   mobileReplayOptions: MobileReplayOptions | undefined;
   profilingOptions?: ProfilingOptions | undefined;
+  /** @deprecated Use `profilingOptions` instead. */
+  androidProfilingOptions?: ProfilingOptions | undefined;
 };
 
 interface SentryNativeWrapper {
@@ -290,15 +292,18 @@ export const NATIVE: SentryNativeWrapper = {
       ignoreErrors,
       logsOrigin,
       profilingOptions,
+      androidProfilingOptions,
       ...filteredOptions
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
 
     // Move profilingOptions into _experiments
-    if (profilingOptions) {
+    // Support deprecated androidProfilingOptions for backwards compatibility
+    const resolvedProfilingOptions = profilingOptions ?? androidProfilingOptions;
+    if (resolvedProfilingOptions) {
       filteredOptions._experiments = {
         ...filteredOptions._experiments,
-        profilingOptions,
+        profilingOptions: resolvedProfilingOptions,
       };
     }
 

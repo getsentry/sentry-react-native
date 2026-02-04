@@ -301,9 +301,19 @@ export interface BaseReactNativeOptions {
      * - In `manual` mode, profiling is controlled via start/stop API calls.
      *
      * @experimental
-     * @platform android
      */
     profilingOptions?: ProfilingOptions;
+
+    /**
+     * Configuration options for Android UI profiling.
+     * It supports two modes: `manual` and `trace`.
+     * - In `trace` mode, the profiler runs based on active sampled spans.
+     * - In `manual` mode, profiling is controlled via start/stop API calls.
+     *
+     * @experimental
+     * @deprecated Use `profilingOptions` instead. This option will be removed in the next major version.
+     */
+    androidProfilingOptions?: ProfilingOptions;
   };
 
   /**
