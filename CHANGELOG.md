@@ -53,6 +53,10 @@
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#490)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.8.0...4.9.0)
 
+### Fixes
+
+- Fix `SENTRY_ALLOW_FAILURE` environment variable not being respected in Xcode build scripts ([#5616](https://github.com/getsentry/sentry-react-native/pull/5616))
+
 ## 7.11.0
 
 ### Features
