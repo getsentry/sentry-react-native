@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Fix `SENTRY_ALLOW_FAILURE` environment variable not being respected in Xcode build scripts ([#5616](https://github.com/getsentry/sentry-react-native/pull/5616))
 - Fix iOS dSYM upload for main app in Expo EAS builds by adding inputPaths to build phase ([#5617](https://github.com/getsentry/sentry-react-native/pull/5617))
 
 ### Features
@@ -56,10 +57,6 @@
 - Bump Bundler Plugins from v4.8.0 to v4.9.0 ([#5608](https://github.com/getsentry/sentry-react-native/pull/5608))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#490)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.8.0...4.9.0)
-
-### Fixes
-
-- Fix `SENTRY_ALLOW_FAILURE` environment variable not being respected in Xcode build scripts ([#5616](https://github.com/getsentry/sentry-react-native/pull/5616))
 
 ## 7.11.0
 
