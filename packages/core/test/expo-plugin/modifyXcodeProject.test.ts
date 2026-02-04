@@ -77,3 +77,74 @@ describe('Configures iOS native project correctly', () => {
     expect(warnOnce).toHaveBeenCalled();
   });
 });
+
+describe('Upload Debug Symbols to Sentry build phase', () => {
+  let mockXcodeProject: any;
+  let addBuildPhaseSpy: jest.Mock;
+
+  beforeEach(() => {
+    addBuildPhaseSpy = jest.fn();
+    mockXcodeProject = {
+      pbxItemByComment: jest.fn().mockReturnValue(null),
+      addBuildPhase: addBuildPhaseSpy,
+    };
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('creates Upload Debug Symbols build phase with correct shell script', () => {
+    const expectedShellScript = '/bin/sh `${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+
+    mockXcodeProject.addBuildPhase(
+      [],
+      'PBXShellScriptBuildPhase',
+      'Upload Debug Symbols to Sentry',
+      null,
+      {
+        shellPath: '/bin/sh',
+        shellScript: expectedShellScript,
+      }
+    );
+
+    expect(addBuildPhaseSpy).toHaveBeenCalledWith(
+      [],
+      'PBXShellScriptBuildPhase',
+      'Upload Debug Symbols to Sentry',
+      null,
+      {
+        shellPath: '/bin/sh',
+        shellScript: expectedShellScript,
+      }
+    );
+  });
+
+  it('does not include inputPaths in current implementation', () => {
+    const expectedShellScript = '/bin/sh `${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+
+    mockXcodeProject.addBuildPhase(
+      [],
+      'PBXShellScriptBuildPhase',
+      'Upload Debug Symbols to Sentry',
+      null,
+      {
+        shellPath: '/bin/sh',
+        shellScript: expectedShellScript,
+      }
+    );
+
+    const callArgs = addBuildPhaseSpy.mock.calls[0];
+    const options = callArgs[4];
+
+    expect(options.inputPaths).toBeUndefined();
+  });
+
+  it('skips creating build phase if it already exists', () => {
+    mockXcodeProject.pbxItemByComment = jest.fn().mockReturnValue({
+      shellScript: 'existing',
+    });
+
+    expect(addBuildPhaseSpy).not.toHaveBeenCalled();
+  });
+});
