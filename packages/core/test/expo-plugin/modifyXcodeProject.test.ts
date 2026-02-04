@@ -115,7 +115,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
     );
   });
 
-  it('does not include inputPaths in current implementation', () => {
+  it('does not include inputPaths in options before fix', () => {
     const expectedShellScript =
       "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
@@ -138,7 +138,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
     expect(addBuildPhaseSpy).not.toHaveBeenCalled();
   });
 
-  it('includes inputPaths for dSYM files to establish build dependencies', () => {
+  it('includes inputPaths with escaped quotes to avoid cordova-node-xcode serialization bug', () => {
     const expectedShellScript =
       "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
@@ -146,8 +146,8 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
       shellPath: '/bin/sh',
       shellScript: expectedShellScript,
       inputPaths: [
-        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
-        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
+        '"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)"',
+        '"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)"',
       ],
     });
 
@@ -158,7 +158,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
     expect(options.inputPaths).toHaveLength(2);
   });
 
-  it('includes DWARF file path in inputPaths', () => {
+  it('inputPaths values are wrapped in escaped quotes', () => {
     const expectedShellScript =
       "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
@@ -166,35 +166,20 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
       shellPath: '/bin/sh',
       shellScript: expectedShellScript,
       inputPaths: [
-        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
-        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
+        '"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)"',
+        '"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)"',
       ],
     });
 
     const callArgs = addBuildPhaseSpy.mock.calls[0];
     const options = callArgs[4];
 
+    // Verify paths are wrapped in quotes to prevent pbxproj corruption
+    expect(options.inputPaths[0]).toMatch(/^".*"$/);
+    expect(options.inputPaths[1]).toMatch(/^".*"$/);
     expect(options.inputPaths[0]).toBe(
-      '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
+      '"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)"',
     );
-  });
-
-  it('includes dSYM folder path in inputPaths', () => {
-    const expectedShellScript =
-      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
-
-    mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
-      shellPath: '/bin/sh',
-      shellScript: expectedShellScript,
-      inputPaths: [
-        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
-        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
-      ],
-    });
-
-    const callArgs = addBuildPhaseSpy.mock.calls[0];
-    const options = callArgs[4];
-
-    expect(options.inputPaths[1]).toBe('$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)');
+    expect(options.inputPaths[1]).toBe('"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)"');
   });
 });

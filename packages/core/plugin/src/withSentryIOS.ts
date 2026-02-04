@@ -24,8 +24,8 @@ export const withSentryIOS: ConfigPlugin<string> = (config, sentryProperties: st
         shellPath: '/bin/sh',
         shellScript: `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`,
         inputPaths: [
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
+          '"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)"',
+          '"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)"',
         ],
       });
     }
