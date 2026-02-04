@@ -70,11 +70,17 @@ else
   # 'warning:' triggers a warning in Xcode, 'error:' triggers an error
   set +x +e # disable printing commands otherwise we might print `error:` by accident and allow continuing on error
   SENTRY_UPLOAD_COMMAND_OUTPUT=$(/bin/sh -c "\"$LOCAL_NODE_BINARY\" $UPLOAD_DEBUG_FILES" 2>&1)
-  if [ $? -eq 0 ]; then
+  UPLOAD_EXIT_CODE=$?
+  if [ $UPLOAD_EXIT_CODE -eq 0 ]; then
     echo "$SENTRY_UPLOAD_COMMAND_OUTPUT" | awk '{print "output: sentry-cli - " $0}'
   else
-    echo "error: sentry-cli - To disable native debug files auto upload, set SENTRY_DISABLE_AUTO_UPLOAD=true in your environment variables. Or to allow failing upload, set SENTRY_ALLOW_FAILURE=true"
-    echo "error: sentry-cli - $SENTRY_UPLOAD_COMMAND_OUTPUT"
+    if [ "$SENTRY_ALLOW_FAILURE" == true ]; then
+      echo "warning: sentry-cli - Debug files upload failed, but continuing build because SENTRY_ALLOW_FAILURE=true"
+      echo "warning: sentry-cli - $SENTRY_UPLOAD_COMMAND_OUTPUT"
+    else
+      echo "error: sentry-cli - To disable native debug files auto upload, set SENTRY_DISABLE_AUTO_UPLOAD=true in your environment variables. Or to allow failing upload, set SENTRY_ALLOW_FAILURE=true"
+      echo "error: sentry-cli - $SENTRY_UPLOAD_COMMAND_OUTPUT"
+    fi
   fi
   set -x -e # re-enable
 fi
