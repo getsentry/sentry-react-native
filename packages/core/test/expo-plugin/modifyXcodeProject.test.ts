@@ -95,18 +95,13 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   });
 
   it('creates Upload Debug Symbols build phase with correct shell script', () => {
-    const expectedShellScript = '/bin/sh `${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+    const expectedShellScript =
+      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
-    mockXcodeProject.addBuildPhase(
-      [],
-      'PBXShellScriptBuildPhase',
-      'Upload Debug Symbols to Sentry',
-      null,
-      {
-        shellPath: '/bin/sh',
-        shellScript: expectedShellScript,
-      }
-    );
+    mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
+      shellPath: '/bin/sh',
+      shellScript: expectedShellScript,
+    });
 
     expect(addBuildPhaseSpy).toHaveBeenCalledWith(
       [],
@@ -116,23 +111,18 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
       {
         shellPath: '/bin/sh',
         shellScript: expectedShellScript,
-      }
+      },
     );
   });
 
   it('does not include inputPaths in current implementation', () => {
-    const expectedShellScript = '/bin/sh `${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+    const expectedShellScript =
+      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
-    mockXcodeProject.addBuildPhase(
-      [],
-      'PBXShellScriptBuildPhase',
-      'Upload Debug Symbols to Sentry',
-      null,
-      {
-        shellPath: '/bin/sh',
-        shellScript: expectedShellScript,
-      }
-    );
+    mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
+      shellPath: '/bin/sh',
+      shellScript: expectedShellScript,
+    });
 
     const callArgs = addBuildPhaseSpy.mock.calls[0];
     const options = callArgs[4];
@@ -149,22 +139,17 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   });
 
   it('includes inputPaths for dSYM files to establish build dependencies', () => {
-    const expectedShellScript = '/bin/sh `${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+    const expectedShellScript =
+      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
-    mockXcodeProject.addBuildPhase(
-      [],
-      'PBXShellScriptBuildPhase',
-      'Upload Debug Symbols to Sentry',
-      null,
-      {
-        shellPath: '/bin/sh',
-        shellScript: expectedShellScript,
-        inputPaths: [
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
-        ],
-      }
-    );
+    mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
+      shellPath: '/bin/sh',
+      shellScript: expectedShellScript,
+      inputPaths: [
+        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
+        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
+      ],
+    });
 
     const callArgs = addBuildPhaseSpy.mock.calls[0];
     const options = callArgs[4];
@@ -174,46 +159,38 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   });
 
   it('includes DWARF file path in inputPaths', () => {
-    const expectedShellScript = '/bin/sh `${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+    const expectedShellScript =
+      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
-    mockXcodeProject.addBuildPhase(
-      [],
-      'PBXShellScriptBuildPhase',
-      'Upload Debug Symbols to Sentry',
-      null,
-      {
-        shellPath: '/bin/sh',
-        shellScript: expectedShellScript,
-        inputPaths: [
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
-        ],
-      }
-    );
+    mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
+      shellPath: '/bin/sh',
+      shellScript: expectedShellScript,
+      inputPaths: [
+        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
+        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
+      ],
+    });
 
     const callArgs = addBuildPhaseSpy.mock.calls[0];
     const options = callArgs[4];
 
-    expect(options.inputPaths[0]).toBe('$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)');
+    expect(options.inputPaths[0]).toBe(
+      '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
+    );
   });
 
   it('includes dSYM folder path in inputPaths', () => {
-    const expectedShellScript = '/bin/sh `${NODE_BINARY:-node} --print "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\')) + \'/scripts/sentry-xcode-debug-files.sh\'"`';
+    const expectedShellScript =
+      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
-    mockXcodeProject.addBuildPhase(
-      [],
-      'PBXShellScriptBuildPhase',
-      'Upload Debug Symbols to Sentry',
-      null,
-      {
-        shellPath: '/bin/sh',
-        shellScript: expectedShellScript,
-        inputPaths: [
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
-          '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
-        ],
-      }
-    );
+    mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
+      shellPath: '/bin/sh',
+      shellScript: expectedShellScript,
+      inputPaths: [
+        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)/Contents/Resources/DWARF/$(PRODUCT_NAME)',
+        '$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)',
+      ],
+    });
 
     const callArgs = addBuildPhaseSpy.mock.calls[0];
     const options = callArgs[4];
