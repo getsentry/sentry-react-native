@@ -84,6 +84,11 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   const expectedShellScript =
     "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
+  const getOptions = () => {
+    const callArgs = addBuildPhaseSpy.mock.calls[0];
+    return callArgs[4];
+  };
+
   beforeEach(() => {
     addBuildPhaseSpy = jest.fn();
     mockXcodeProject = {
@@ -120,8 +125,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
       shellScript: expectedShellScript,
     });
 
-    const callArgs = addBuildPhaseSpy.mock.calls[0];
-    const options = callArgs[4];
+    const options = getOptions();
 
     expect(options.inputPaths).toBeUndefined();
   });
@@ -144,8 +148,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
       ],
     });
 
-    const callArgs = addBuildPhaseSpy.mock.calls[0];
-    const options = callArgs[4];
+    const options = getOptions();
 
     expect(options.inputPaths).toBeDefined();
     expect(options.inputPaths).toHaveLength(2);
@@ -161,8 +164,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
       ],
     });
 
-    const callArgs = addBuildPhaseSpy.mock.calls[0];
-    const options = callArgs[4];
+    const options = getOptions();
 
     // Verify paths are wrapped in quotes to prevent pbxproj corruption
     expect(options.inputPaths[0]).toMatch(/^".*"$/);
