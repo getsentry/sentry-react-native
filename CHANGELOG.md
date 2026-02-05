@@ -8,11 +8,6 @@
 
 ## Unreleased
 
-### Fixes
-
-- Fix `SENTRY_ALLOW_FAILURE` environment variable not being respected in Xcode build scripts ([#5616](https://github.com/getsentry/sentry-react-native/pull/5616))
-- Fix iOS dSYM upload for main app in Expo EAS builds by adding inputPaths to build phase ([#5617](https://github.com/getsentry/sentry-react-native/pull/5617))
-
 ### Features
 
 - Extends the experimental support of UI profiling to iOS ([#5611](https://github.com/getsentry/sentry-react-native/pull/5611))
@@ -48,6 +43,11 @@
     ],
   });
   ```
+
+### Fixes
+
+- Fix `SENTRY_ALLOW_FAILURE` environment variable not being respected in Xcode build scripts ([#5616](https://github.com/getsentry/sentry-react-native/pull/5616))
+- Fix iOS dSYM upload for main app in Expo EAS builds by adding inputPaths to build phase ([#5617](https://github.com/getsentry/sentry-react-native/pull/5617))
 
 ### Dependencies
 
