@@ -138,7 +138,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
     expect(addBuildPhaseSpy).not.toHaveBeenCalled();
   });
 
-  it('includes inputPaths with escaped quotes to avoid cordova-node-xcode serialization bug', () => {
+  it('includes inputPaths with escaped quotes to avoid pbxproj serialization issues', () => {
     const expectedShellScript =
       "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
