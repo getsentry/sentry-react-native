@@ -22,6 +22,7 @@ import { Alert } from 'react-native';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
+import { defaultNativeLogHandler, setupNativeLogListener } from './NativeLogListener';
 import type { ReactNativeClientOptions } from './options';
 import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
@@ -42,6 +43,7 @@ const DEFAULT_FLUSH_INTERVAL = 5000;
 export class ReactNativeClient extends Client<ReactNativeClientOptions> {
   private _outcomesBuffer: Outcome[];
   private _logFlushIdleTimeout: ReturnType<typeof setTimeout> | undefined;
+  private _removeNativeLogListener: (() => void) | undefined;
 
   /**
    * Creates a new React Native SDK instance.
@@ -127,6 +129,12 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
    * @inheritDoc
    */
   public close(): PromiseLike<boolean> {
+    // Clean up native log listener
+    if (this._removeNativeLogListener) {
+      this._removeNativeLogListener();
+      this._removeNativeLogListener = undefined;
+    }
+
     // As super.close() flushes queued events, we wait for that to finish before closing the native SDK.
     return super.close().then((result: boolean) => {
       return NATIVE.closeNativeSdk().then(() => result);
@@ -215,6 +223,12 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
    * Starts native client with dsn and options
    */
   private _initNativeSdk(): void {
+    // Set up native log listener if debug is enabled
+    if (this._options.debug) {
+      const logHandler = this._options.onNativeLog ?? defaultNativeLogHandler;
+      this._removeNativeLogListener = setupNativeLogListener(logHandler);
+    }
+
     NATIVE.initNativeSdk({
       ...this._options,
       defaultSidecarUrl: getDefaultSidecarUrl(),
