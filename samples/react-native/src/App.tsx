@@ -48,9 +48,11 @@ Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: getDsn(),
   onNativeLog: ({ level, component, message }) => {
-    console.log(`ALWX [Sentry Native] [${level}] [${component}] ${message}`);
+    if (level === 'fatal') {
+      console.log(`ALWX [Sentry Native] [${level}] [${component}] ${message}`);
+    }
   },
-  debug: true,
+  debug: false,
   environment: 'dev',
   beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
