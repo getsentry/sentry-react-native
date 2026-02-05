@@ -69,7 +69,7 @@ export {
 export * from './integrations/exports';
 
 export { SDK_NAME, SDK_VERSION } from './version';
-export type { ReactNativeOptions } from './options';
+export type { ReactNativeOptions, NativeLogEntry } from './options';
 export { ReactNativeClient } from './client';
 
 export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun } from './sdk';

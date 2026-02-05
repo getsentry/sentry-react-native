@@ -47,6 +47,9 @@ const BottomTabNavigator = createBottomTabNavigator();
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: getDsn(),
+  onNativeLog: ({ level, component, message }) => {
+    console.log(`ALWX [Sentry Native] [${level}] [${component}] ${message}`);
+  },
   debug: true,
   environment: 'dev',
   beforeSend: (event: Sentry.ErrorEvent) => {
