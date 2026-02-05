@@ -205,65 +205,61 @@ final class RNSentryStart {
     }
 
     @Nullable final ReadableMap experiments = rnOptions.getMap("_experiments");
-    if (experiments == null || !experiments.hasKey("androidProfilingOptions")) {
+    if (experiments == null || !experiments.hasKey("profilingOptions")) {
       return;
     }
 
-    @Nullable
-    final ReadableMap androidProfilingOptions = experiments.getMap("androidProfilingOptions");
-    if (androidProfilingOptions == null) {
+    @Nullable final ReadableMap profilingOptions = experiments.getMap("profilingOptions");
+    if (profilingOptions == null) {
       return;
     }
 
     // Set profile session sample rate
-    if (androidProfilingOptions.hasKey("profileSessionSampleRate")) {
-      if (androidProfilingOptions.getType("profileSessionSampleRate") == ReadableType.Number) {
+    if (profilingOptions.hasKey("profileSessionSampleRate")) {
+      if (profilingOptions.getType("profileSessionSampleRate") == ReadableType.Number) {
         final double profileSessionSampleRate =
-            androidProfilingOptions.getDouble("profileSessionSampleRate");
+            profilingOptions.getDouble("profileSessionSampleRate");
         options.setProfileSessionSampleRate(profileSessionSampleRate);
         logger.log(
             SentryLevel.INFO,
             String.format(
-                "Android UI Profiling profileSessionSampleRate set to: %.2f",
-                profileSessionSampleRate));
+                "UI Profiling profileSessionSampleRate set to: %.2f", profileSessionSampleRate));
       } else {
         logger.log(
             SentryLevel.WARNING,
-            "Android UI Profiling profileSessionSampleRate must be a number, ignoring invalid"
-                + " value");
+            "UI Profiling profileSessionSampleRate must be a number, ignoring invalid value");
       }
     }
 
     // Set profiling lifecycle mode
-    if (androidProfilingOptions.hasKey("lifecycle")) {
-      if (androidProfilingOptions.getType("lifecycle") == ReadableType.String) {
-        final String lifecycle = androidProfilingOptions.getString("lifecycle");
+    if (profilingOptions.hasKey("lifecycle")) {
+      if (profilingOptions.getType("lifecycle") == ReadableType.String) {
+        final String lifecycle = profilingOptions.getString("lifecycle");
         if ("manual".equalsIgnoreCase(lifecycle)) {
           options.setProfileLifecycle(ProfileLifecycle.MANUAL);
-          logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to MANUAL");
+          logger.log(SentryLevel.INFO, "UI Profile Lifecycle set to MANUAL");
         } else if ("trace".equalsIgnoreCase(lifecycle)) {
           options.setProfileLifecycle(ProfileLifecycle.TRACE);
-          logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to TRACE");
+          logger.log(SentryLevel.INFO, "UI Profile Lifecycle set to TRACE");
         }
       } else {
         logger.log(
-            SentryLevel.WARNING,
-            "Android UI Profiling lifecycle must be a string, ignoring invalid value");
+            SentryLevel.WARNING, "UI Profiling lifecycle must be a string, ignoring invalid value");
       }
     }
 
     // Set start on app start
-    if (androidProfilingOptions.hasKey("startOnAppStart")) {
-      if (androidProfilingOptions.getType("startOnAppStart") == ReadableType.Boolean) {
-        final boolean startOnAppStart = androidProfilingOptions.getBoolean("startOnAppStart");
+    if (profilingOptions.hasKey("startOnAppStart")) {
+      if (profilingOptions.getType("startOnAppStart") == ReadableType.Boolean) {
+        final boolean startOnAppStart = profilingOptions.getBoolean("startOnAppStart");
         options.setStartProfilerOnAppStart(startOnAppStart);
         logger.log(
             SentryLevel.INFO,
-            String.format("Android UI Profiling startOnAppStart set to %b", startOnAppStart));
+            String.format("UI Profiling startOnAppStart set to %b", startOnAppStart));
       } else {
         logger.log(
             SentryLevel.WARNING,
-            "Android UI Profiling startOnAppStart must be a boolean, ignoring invalid value");
+            "UI Profiling startOnAppStart must be a boolean, ignoring invalid value");
       }
     }
   }

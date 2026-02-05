@@ -106,6 +106,13 @@
             [experiments[@"enableUnhandledCPPExceptionsV2"] boolValue];
         [RNSentryExperimentalOptions setEnableUnhandledCPPExceptionsV2:enableUnhandledCPPExceptions
                                                          sentryOptions:sentryOptions];
+
+        // Configure iOS UI Profiling
+        NSDictionary *profilingOptions = experiments[@"profilingOptions"];
+        if (profilingOptions != nil && [profilingOptions isKindOfClass:[NSDictionary class]]) {
+            [RNSentryExperimentalOptions configureProfilingWithOptions:profilingOptions
+                                                         sentryOptions:sentryOptions];
+        }
     }
 
     if (isSessionReplayEnabled) {
