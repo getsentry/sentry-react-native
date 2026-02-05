@@ -81,6 +81,8 @@ describe('Configures iOS native project correctly', () => {
 describe('Upload Debug Symbols to Sentry build phase', () => {
   let mockXcodeProject: any;
   let addBuildPhaseSpy: jest.Mock;
+  const expectedShellScript =
+    "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 
   beforeEach(() => {
     addBuildPhaseSpy = jest.fn();
@@ -95,9 +97,6 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   });
 
   it('creates Upload Debug Symbols build phase with correct shell script', () => {
-    const expectedShellScript =
-      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
-
     mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
       shellPath: '/bin/sh',
       shellScript: expectedShellScript,
@@ -116,9 +115,6 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   });
 
   it('does not include inputPaths in options before fix', () => {
-    const expectedShellScript =
-      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
-
     mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
       shellPath: '/bin/sh',
       shellScript: expectedShellScript,
@@ -139,9 +135,6 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   });
 
   it('includes inputPaths with escaped quotes to avoid pbxproj serialization issues', () => {
-    const expectedShellScript =
-      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
-
     mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
       shellPath: '/bin/sh',
       shellScript: expectedShellScript,
@@ -159,9 +152,6 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   });
 
   it('inputPaths values are wrapped in escaped quotes', () => {
-    const expectedShellScript =
-      "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
-
     mockXcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
       shellPath: '/bin/sh',
       shellScript: expectedShellScript,
