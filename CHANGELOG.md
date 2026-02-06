@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add `autoCorrect` and `spellCheck` config options to `FeedbackWidget` ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+- Add `autoCapitalize="none"` to `FeedbackWidget` email input ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+
 ## 7.12.0
 
 ### Features

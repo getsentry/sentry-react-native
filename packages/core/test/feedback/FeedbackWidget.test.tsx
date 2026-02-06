@@ -149,6 +149,37 @@ describe('FeedbackWidget', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('passes autoCorrect and spellCheck props to message input', () => {
+    const { getByTestId } = render(
+      <FeedbackWidget {...defaultProps} autoCorrect={false} spellCheck={false} />,
+    );
+
+    expect(getByTestId('sentry-feedback-message-input').props.autoCorrect).toBe(false);
+    expect(getByTestId('sentry-feedback-message-input').props.spellCheck).toBe(false);
+  });
+
+  it('defaults autoCorrect and spellCheck to true on message input', () => {
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
+
+    expect(getByTestId('sentry-feedback-message-input').props.autoCorrect).toBe(true);
+    expect(getByTestId('sentry-feedback-message-input').props.spellCheck).toBe(true);
+  });
+
+  it('hardcodes autoCorrect and spellCheck to false on name and email inputs', () => {
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
+
+    expect(getByTestId('sentry-feedback-name-input').props.autoCorrect).toBe(false);
+    expect(getByTestId('sentry-feedback-name-input').props.spellCheck).toBe(false);
+    expect(getByTestId('sentry-feedback-email-input').props.autoCorrect).toBe(false);
+    expect(getByTestId('sentry-feedback-email-input').props.spellCheck).toBe(false);
+  });
+
+  it('sets autoCapitalize to none on email input', () => {
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
+
+    expect(getByTestId('sentry-feedback-email-input').props.autoCapitalize).toBe('none');
+  });
+
   it('renders correctly', () => {
     const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<FeedbackWidget {...defaultProps} />);
 
