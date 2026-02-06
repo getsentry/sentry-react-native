@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.3.0 to v9.4.0 ([#5619](https://github.com/getsentry/sentry-react-native/pull/5619))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#940)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.3.0...9.4.0)
+
 ## 8.0.0-beta.0
 
 ### Upgrading from 7.x to 8.0
