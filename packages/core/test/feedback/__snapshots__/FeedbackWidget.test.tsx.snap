@@ -24,6 +24,8 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
+      "flex": 1,
+      "padding": 20,
     }
   }
 >
@@ -39,7 +41,11 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       style={
         {
           "color": "#ff0000",
+          "flex": 1,
           "fontSize": 20,
+          "fontWeight": "bold",
+          "marginBottom": 20,
+          "textAlign": "left",
         }
       }
       testID="sentry-feedback-form-title"
@@ -67,6 +73,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -78,9 +85,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-name-input"
@@ -91,6 +102,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -103,9 +115,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-email-input"
@@ -116,6 +132,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -130,13 +147,18 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       [
         {
           "borderColor": "#0000ff",
+          "borderRadius": 5,
+          "borderWidth": 1,
           "color": "#000000",
           "fontSize": 13,
           "height": 50,
+          "marginBottom": 15,
+          "paddingHorizontal": 10,
         },
         {
           "color": "#00ff00",
           "height": 50,
+          "textAlignVertical": "top",
         },
       ]
     }
@@ -173,8 +195,12 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
         "backgroundColor": "#ffff00",
+        "borderRadius": 5,
+        "marginBottom": 10,
         "opacity": 1,
+        "paddingVertical": 15,
       }
     }
   >
@@ -220,7 +246,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "rgba(41, 35, 47, 0.13)",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "opacity": 1,
+        "padding": 15,
         "paddingVertical": 10,
       }
     }
@@ -263,6 +295,8 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
   style={
     {
       "backgroundColor": "#ffffff",
+      "flex": 1,
+      "padding": 20,
     }
   }
 >
@@ -278,7 +312,11 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       style={
         {
           "color": "#ff0000",
+          "flex": 1,
           "fontSize": 20,
+          "fontWeight": "bold",
+          "marginBottom": 20,
+          "textAlign": "left",
         }
       }
       testID="sentry-feedback-form-title"
@@ -306,6 +344,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -317,9 +356,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-name-input"
@@ -330,6 +373,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -342,9 +386,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-email-input"
@@ -355,6 +403,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -369,13 +418,18 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       [
         {
           "borderColor": "#0000ff",
+          "borderRadius": 5,
+          "borderWidth": 1,
           "color": "#000000",
           "fontSize": 13,
           "height": 50,
+          "marginBottom": 15,
+          "paddingHorizontal": 10,
         },
         {
           "color": "#00ff00",
           "height": 50,
+          "textAlignVertical": "top",
         },
       ]
     }
@@ -422,8 +476,14 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       onStartShouldSetResponder={[Function]}
       style={
         {
+          "alignItems": "center",
           "backgroundColor": "#00ff00",
+          "borderColor": "rgba(41, 35, 47, 0.13)",
+          "borderRadius": 5,
+          "borderWidth": 1,
+          "flex": 1,
           "opacity": 1,
+          "padding": 15,
         }
       }
     >
@@ -469,8 +529,12 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
         "backgroundColor": "#ffff00",
+        "borderRadius": 5,
+        "marginBottom": 10,
         "opacity": 1,
+        "paddingVertical": 15,
       }
     }
   >
@@ -516,7 +580,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "rgba(41, 35, 47, 0.13)",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "opacity": 1,
+        "padding": 15,
         "paddingVertical": 10,
       }
     }
