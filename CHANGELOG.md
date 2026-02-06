@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Deep merge custom `styles` with defaults in `FeedbackWidget` instead of replacing them ([#5625](https://github.com/getsentry/sentry-react-native/pull/5625))
+  - Note that partial style overrides now preserve default properties like padding and borders
+
 ## 7.12.0
 
 ### Features
