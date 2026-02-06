@@ -494,47 +494,44 @@ public class RNSentryModuleImpl {
     }
 
     @Nullable final ReadableMap experiments = rnOptions.getMap("_experiments");
-    if (experiments == null || !experiments.hasKey("androidProfilingOptions")) {
+    if (experiments == null || !experiments.hasKey("profilingOptions")) {
       return;
     }
 
-    @Nullable
-    final ReadableMap androidProfilingOptions = experiments.getMap("androidProfilingOptions");
-    if (androidProfilingOptions == null) {
+    @Nullable final ReadableMap profilingOptions = experiments.getMap("profilingOptions");
+    if (profilingOptions == null) {
       return;
     }
 
     // Set profile session sample rate
-    if (androidProfilingOptions.hasKey("profileSessionSampleRate")) {
+    if (profilingOptions.hasKey("profileSessionSampleRate")) {
       final double profileSessionSampleRate =
-          androidProfilingOptions.getDouble("profileSessionSampleRate");
+          profilingOptions.getDouble("profileSessionSampleRate");
       options.setProfileSessionSampleRate(profileSessionSampleRate);
       logger.log(
           SentryLevel.INFO,
           String.format(
-              "Android UI Profiling profileSessionSampleRate set to: %.2f",
-              profileSessionSampleRate));
+              "UI Profiling profileSessionSampleRate set to: %.2f", profileSessionSampleRate));
     }
 
     // Set profiling lifecycle mode
-    if (androidProfilingOptions.hasKey("lifecycle")) {
-      final String lifecycle = androidProfilingOptions.getString("lifecycle");
+    if (profilingOptions.hasKey("lifecycle")) {
+      final String lifecycle = profilingOptions.getString("lifecycle");
       if ("manual".equalsIgnoreCase(lifecycle)) {
         options.setProfileLifecycle(ProfileLifecycle.MANUAL);
-        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to MANUAL");
+        logger.log(SentryLevel.INFO, "UI Profile Lifecycle set to MANUAL");
       } else if ("trace".equalsIgnoreCase(lifecycle)) {
         options.setProfileLifecycle(ProfileLifecycle.TRACE);
-        logger.log(SentryLevel.INFO, "Android UI Profile Lifecycle set to TRACE");
+        logger.log(SentryLevel.INFO, "UI Profile Lifecycle set to TRACE");
       }
     }
 
     // Set start on app start
-    if (androidProfilingOptions.hasKey("startOnAppStart")) {
-      final boolean startOnAppStart = androidProfilingOptions.getBoolean("startOnAppStart");
+    if (profilingOptions.hasKey("startOnAppStart")) {
+      final boolean startOnAppStart = profilingOptions.getBoolean("startOnAppStart");
       options.setStartProfilerOnAppStart(startOnAppStart);
       logger.log(
-          SentryLevel.INFO,
-          String.format("Android UI Profiling startOnAppStart set to %b", startOnAppStart));
+          SentryLevel.INFO, String.format("Profiling startOnAppStart set to %b", startOnAppStart));
     }
   }
 

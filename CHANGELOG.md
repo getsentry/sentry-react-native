@@ -6,7 +6,48 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 7.12.0
+
+### Features
+
+- Extends the experimental support of UI profiling to iOS ([#5611](https://github.com/getsentry/sentry-react-native/pull/5611))
+  ```js
+  Sentry.init({
+    _experiments: {
+      profilingOptions: {
+        profileSessionSampleRate: 1.0,
+        lifecycle: 'trace', // or 'manual'
+        startOnAppStart: true,
+      },
+    },
+  });
+  ```
+  - Note that the `androidProfilingOptions` key is now deprecated, and `profilingOptions` should be used instead
+- Add performance tracking for Expo Router route prefetching ([#5606](https://github.com/getsentry/sentry-react-native/pull/5606))
+  - New `wrapExpoRouter` utility to instrument manual `prefetch()` calls with performance spans
+  - New `enablePrefetchTracking` option for `reactNavigationIntegration` to automatically track PRELOAD actions
+  ```tsx
+  // Option 1: Wrap the router for manual prefetch tracking
+  import { wrapExpoRouter } from '@sentry/react-native';
+  import { useRouter } from 'expo-router';
+
+  const router = wrapExpoRouter(useRouter());
+  router.prefetch('/details'); // Creates a span measuring prefetch performance
+
+  // Option 2: Enable automatic prefetch tracking in the integration
+  Sentry.init({
+    integrations: [
+      Sentry.reactNavigationIntegration({
+        enablePrefetchTracking: true,
+      }),
+    ],
+  });
+  ```
+
+### Fixes
+
+- Fix `SENTRY_ALLOW_FAILURE` environment variable not being respected in Xcode build scripts ([#5616](https://github.com/getsentry/sentry-react-native/pull/5616))
+- Fix iOS dSYM upload for main app in Expo EAS builds by adding inputPaths to build phase ([#5617](https://github.com/getsentry/sentry-react-native/pull/5617))
 
 ### Dependencies
 
