@@ -178,6 +178,8 @@ describe('FeedbackWidget', () => {
     const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
 
     expect(getByTestId('sentry-feedback-email-input').props.autoCapitalize).toBe('none');
+   });
+
   it('deep merges custom styles with defaults instead of replacing them', () => {
     const partialStyles: FeedbackWidgetStyles = {
       input: {
