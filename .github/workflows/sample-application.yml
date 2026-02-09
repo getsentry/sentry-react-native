@@ -53,7 +53,7 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            xcode-version: '16.4'
+            xcode-version: '26'
             runs-on: macos-15
           - platform: macos
             runs-on: macos-15
