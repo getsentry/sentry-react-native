@@ -73,6 +73,10 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -247,6 +251,10 @@ jobs:
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
         with:
           version: ${{env.MAESTRO_VERSION}}
+
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - name: Download iOS App Archive
         if: ${{ matrix.platform == 'ios' }}
