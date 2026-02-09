@@ -37,6 +37,10 @@ static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
             [strongSelf forwardLogMessage:message];
         }
     }];
+
+    // Send a test log to verify the forwarding works
+    [self forwardLogMessage:@"[Sentry] [info] [0] [RNSentryNativeLogsForwarder] Native log forwarding "
+                            @"configured successfully"];
 }
 
 - (void)stopForwarding
@@ -54,6 +58,11 @@ static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
         return;
     }
 
+    // Only forward messages that look like Sentry SDK logs
+    if (![message hasPrefix:@"[Sentry]"]) {
+        return;
+    }
+
     // Parse the log message to extract level and component
     // Format: "[Sentry] [level] [timestamp] [Component:line] message"
     // or: "[Sentry] [level] [timestamp] message"
@@ -67,7 +76,13 @@ static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
         @"message" : cleanMessage,
     };
 
-    [emitter sendEventWithName:RNSentryNativeLogEventName body:body];
+    // Dispatch async to avoid blocking the calling thread and potential deadlocks
+    dispatch_async(dispatch_get_main_queue(), ^{
+        RCTEventEmitter *currentEmitter = self.eventEmitter;
+        if (currentEmitter != nil) {
+            [currentEmitter sendEventWithName:RNSentryNativeLogEventName body:body];
+        }
+    });
 }
 
 - (NSString *)extractLevelFromMessage:(NSString *)message
