@@ -260,7 +260,6 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const config: FeedbackGeneralConfiguration = this.props;
     const imagePickerConfiguration: ImagePickerConfiguration = this.props;
     const text: FeedbackTextConfiguration = this.props;
-    const styles: FeedbackWidgetStyles = { ...defaultStyles(theme), ...this.props.styles };
     const _defaultStyles = defaultStyles(theme);
     const _propStyles = this.props.styles || {};
     const autoCorrect = config.autoCorrect !== false;
