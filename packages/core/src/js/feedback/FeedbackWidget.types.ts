@@ -61,6 +61,20 @@ export interface FeedbackGeneralConfiguration {
   enableTakeScreenshot?: boolean;
 
   /**
+   * Enable auto-correct for text inputs.
+   *
+   * @default true
+   */
+  autoCorrect?: boolean;
+
+  /**
+   * Enable spell check for text inputs.
+   *
+   * @default true
+   */
+  spellCheck?: boolean;
+
+  /**
    * Fill in email/name input fields with Sentry user context if it exists.
    * The value of the email/name keys represent the properties of your user context.
    */

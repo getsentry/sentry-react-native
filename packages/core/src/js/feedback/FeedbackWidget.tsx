@@ -262,6 +262,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const text: FeedbackTextConfiguration = this.props;
     const _defaultStyles = defaultStyles(theme);
     const _propStyles = this.props.styles || {};
+    const autoCorrect = config.autoCorrect !== false;
+    const spellCheck = config.spellCheck !== false;
     const styles = (Object.keys(_defaultStyles) as Array<keyof FeedbackWidgetStyles>).reduce<FeedbackWidgetStyles>(
       (merged, key) => {
         (merged as Record<string, unknown>)[key] = { ...(_defaultStyles[key] as object), ...(_propStyles[key] as object) };
@@ -318,6 +320,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 placeholder={text.namePlaceholder}
                 value={name}
                 onChangeText={value => this.setState({ name: value })}
+                autoCorrect={false}
+                spellCheck={false}
               />
             </>
           )}
@@ -333,6 +337,9 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                 testID="sentry-feedback-email-input"
                 placeholder={text.emailPlaceholder}
                 keyboardType={'email-address' as KeyboardTypeOptions}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
                 value={email}
                 onChangeText={value => this.setState({ email: value })}
               />
@@ -350,6 +357,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             value={description}
             onChangeText={value => this.setState({ description: value })}
             multiline
+            autoCorrect={autoCorrect}
+            spellCheck={spellCheck}
           />
           {(config.enableScreenshot || imagePickerConfiguration.imagePicker || this._hasScreenshot()) && (
             <View style={styles.screenshotContainer}>

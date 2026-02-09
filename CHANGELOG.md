@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Add `autoCorrect` and `spellCheck` config options to `FeedbackWidget` ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+- Add `autoCapitalize="none"` to `FeedbackWidget` email input ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+
 ### Fixes
 
 - Deep merge custom `styles` with defaults in `FeedbackWidget` instead of replacing them ([#5625](https://github.com/getsentry/sentry-react-native/pull/5625))

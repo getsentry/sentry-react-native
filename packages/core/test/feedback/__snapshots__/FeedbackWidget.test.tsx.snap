@@ -80,8 +80,10 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
@@ -109,9 +111,12 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
@@ -140,9 +145,11 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
@@ -351,8 +358,10 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
@@ -380,9 +389,12 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
@@ -411,9 +423,11 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
@@ -685,8 +699,10 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
     Name Label
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Name Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -714,9 +730,12 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
     Email Label
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="Email Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -745,9 +764,11 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
      (is required label)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="Message Placeholder"
+    spellCheck={true}
     style={
       [
         {
@@ -955,8 +976,10 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
     Name Label
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Name Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -984,9 +1007,12 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
     Email Label
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="Email Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1015,9 +1041,11 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
      (is required label)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="Message Placeholder"
+    spellCheck={true}
     style={
       [
         {
@@ -1288,8 +1316,10 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1317,9 +1347,12 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1348,9 +1381,11 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
@@ -1558,8 +1593,10 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1587,9 +1624,12 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1618,9 +1658,11 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
