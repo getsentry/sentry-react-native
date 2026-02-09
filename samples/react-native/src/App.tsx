@@ -46,11 +46,10 @@ const BottomTabNavigator = createBottomTabNavigator();
 
 Sentry.init({
   onNativeLog: ({ level, component, message }) => {
-    if (level === 'fatal') {
-      console.log(`ALWX [Sentry Native] [${level}] [${component}] ${message}`);
-    }
+    // Use logWithoutTracing to avoid feedback loops with Sentry's console integration
+    logWithoutTracing(`[Sentry Native] [${level.toUpperCase()}] [${component}] ${message}`);
   },
-  debug: false,
+  debug: true,
   environment: 'dev',
   beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
