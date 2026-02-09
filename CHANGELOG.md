@@ -20,6 +20,9 @@
 
 ### Dependencies
 
+- Bump Android SDK from v8.31.0 to v8.32.0 ([#5633](https://github.com/getsentry/sentry-react-native/pull/5633))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
 - Bump Android SDK Stubs from v8.31.0 to v8.32.0 ([#5634](https://github.com/getsentry/sentry-react-native/pull/5634))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
