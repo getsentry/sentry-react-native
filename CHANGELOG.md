@@ -18,6 +18,12 @@
 - Deep merge custom `styles` with defaults in `FeedbackWidget` instead of replacing them ([#5625](https://github.com/getsentry/sentry-react-native/pull/5625))
   - Note that partial style overrides now preserve default properties like padding and borders
 
+### Dependencies
+
+- Bump Android SDK Stubs from v8.31.0 to v8.32.0 ([#5634](https://github.com/getsentry/sentry-react-native/pull/5634))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
+
 ## 7.12.0
 
 ### Features
