@@ -8,8 +8,24 @@
 
 ## Unreleased
 
+### Features
+
+- Add `autoCorrect` and `spellCheck` config options to `FeedbackWidget` ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+- Add `autoCapitalize="none"` to `FeedbackWidget` email input ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+
+### Fixes
+
+- Deep merge custom `styles` with defaults in `FeedbackWidget` instead of replacing them ([#5625](https://github.com/getsentry/sentry-react-native/pull/5625))
+  - Note that partial style overrides now preserve default properties like padding and borders
+
 ### Dependencies
 
+- Bump Android SDK from v8.31.0 to v8.32.0 ([#5633](https://github.com/getsentry/sentry-react-native/pull/5633))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
+- Bump Android SDK Stubs from v8.31.0 to v8.32.0 ([#5634](https://github.com/getsentry/sentry-react-native/pull/5634))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
 - Bump Cocoa SDK from v9.3.0 to v9.4.0 ([#5619](https://github.com/getsentry/sentry-react-native/pull/5619))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#940)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.3.0...9.4.0)

@@ -24,6 +24,8 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
+      "flex": 1,
+      "padding": 20,
     }
   }
 >
@@ -39,7 +41,11 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       style={
         {
           "color": "#ff0000",
+          "flex": 1,
           "fontSize": 20,
+          "fontWeight": "bold",
+          "marginBottom": 20,
+          "textAlign": "left",
         }
       }
       testID="sentry-feedback-form-title"
@@ -67,20 +73,27 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-name-input"
@@ -91,21 +104,29 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-email-input"
@@ -116,6 +137,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -123,20 +145,27 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
           "borderColor": "#0000ff",
+          "borderRadius": 5,
+          "borderWidth": 1,
           "color": "#000000",
           "fontSize": 13,
           "height": 50,
+          "marginBottom": 15,
+          "paddingHorizontal": 10,
         },
         {
           "color": "#00ff00",
           "height": 50,
+          "textAlignVertical": "top",
         },
       ]
     }
@@ -173,8 +202,12 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
         "backgroundColor": "#ffff00",
+        "borderRadius": 5,
+        "marginBottom": 10,
         "opacity": 1,
+        "paddingVertical": 15,
       }
     }
   >
@@ -220,7 +253,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "rgba(41, 35, 47, 0.13)",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "opacity": 1,
+        "padding": 15,
         "paddingVertical": 10,
       }
     }
@@ -263,6 +302,8 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
   style={
     {
       "backgroundColor": "#ffffff",
+      "flex": 1,
+      "padding": 20,
     }
   }
 >
@@ -278,7 +319,11 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       style={
         {
           "color": "#ff0000",
+          "flex": 1,
           "fontSize": 20,
+          "fontWeight": "bold",
+          "marginBottom": 20,
+          "textAlign": "left",
         }
       }
       testID="sentry-feedback-form-title"
@@ -306,20 +351,27 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-name-input"
@@ -330,21 +382,29 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "#0000ff",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "color": "#000000",
         "fontSize": 13,
         "height": 50,
+        "marginBottom": 15,
+        "paddingHorizontal": 10,
       }
     }
     testID="sentry-feedback-email-input"
@@ -355,6 +415,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       {
         "color": "#00ff00",
         "fontSize": 15,
+        "marginBottom": 4,
       }
     }
   >
@@ -362,20 +423,27 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
           "borderColor": "#0000ff",
+          "borderRadius": 5,
+          "borderWidth": 1,
           "color": "#000000",
           "fontSize": 13,
           "height": 50,
+          "marginBottom": 15,
+          "paddingHorizontal": 10,
         },
         {
           "color": "#00ff00",
           "height": 50,
+          "textAlignVertical": "top",
         },
       ]
     }
@@ -422,8 +490,14 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
       onStartShouldSetResponder={[Function]}
       style={
         {
+          "alignItems": "center",
           "backgroundColor": "#00ff00",
+          "borderColor": "rgba(41, 35, 47, 0.13)",
+          "borderRadius": 5,
+          "borderWidth": 1,
+          "flex": 1,
           "opacity": 1,
+          "padding": 15,
         }
       }
     >
@@ -469,8 +543,12 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
         "backgroundColor": "#ffff00",
+        "borderRadius": 5,
+        "marginBottom": 10,
         "opacity": 1,
+        "paddingVertical": 15,
       }
     }
   >
@@ -516,7 +594,13 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
     onStartShouldSetResponder={[Function]}
     style={
       {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "rgba(41, 35, 47, 0.13)",
+        "borderRadius": 5,
+        "borderWidth": 1,
         "opacity": 1,
+        "padding": 15,
         "paddingVertical": 10,
       }
     }
@@ -615,8 +699,10 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
     Name Label
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Name Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -644,9 +730,12 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
     Email Label
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="Email Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -675,9 +764,11 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
      (is required label)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="Message Placeholder"
+    spellCheck={true}
     style={
       [
         {
@@ -885,8 +976,10 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
     Name Label
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Name Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -914,9 +1007,12 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
     Email Label
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="Email Placeholder"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -945,9 +1041,11 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
      (is required label)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="Message Placeholder"
+    spellCheck={true}
     style={
       [
         {
@@ -1218,8 +1316,10 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1247,9 +1347,12 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1278,9 +1381,11 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
@@ -1488,8 +1593,10 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
     Name
   </Text>
   <TextInput
+    autoCorrect={false}
     onChangeText={[Function]}
     placeholder="Your Name"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1517,9 +1624,12 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
     Email
   </Text>
   <TextInput
+    autoCapitalize="none"
+    autoCorrect={false}
     keyboardType="email-address"
     onChangeText={[Function]}
     placeholder="your.email@example.org"
+    spellCheck={false}
     style={
       {
         "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1548,9 +1658,11 @@ exports[`FeedbackWidget matches the snapshot with default configuration and scre
      (required)
   </Text>
   <TextInput
+    autoCorrect={true}
     multiline={true}
     onChangeText={[Function]}
     placeholder="What's the bug? What did you expect?"
+    spellCheck={true}
     style={
       [
         {
