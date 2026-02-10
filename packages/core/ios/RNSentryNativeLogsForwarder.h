@@ -9,23 +9,10 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface RNSentryNativeLogsForwarder : NSObject
 
-/**
- * Returns the shared instance of the logs forwarder.
- */
 + (instancetype)shared;
 
-/**
- * Configures the forwarder with the event emitter to use for sending events to JS.
- * Call this when the React Native module starts observing events.
- *
- * @param emitter The RCTEventEmitter instance (typically the RNSentry module).
- */
 - (void)configureWithEventEmitter:(RCTEventEmitter *)emitter;
 
-/**
- * Clears the event emitter reference.
- * Call this when the React Native module stops observing events.
- */
 - (void)stopForwarding;
 
 @end
