@@ -372,19 +372,8 @@ export interface BaseReactNativeOptions {
  * Represents a log entry from the native SDK.
  */
 export interface NativeLogEntry {
-  /**
-   * The log level (e.g., 'debug', 'info', 'warning', 'error', 'fatal').
-   */
   level: string;
-
-  /**
-   * The component or module that emitted the log (e.g., 'Sentry', 'SentryHttpTransport').
-   */
   component: string;
-
-  /**
-   * The log message.
-   */
   message: string;
 }
 
