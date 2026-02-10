@@ -29,6 +29,10 @@
 
 ## 7.12.0
 
+> [!WARNING]
+> This release contains an issue that can cause iOS builds to fail with circular dependency errors.
+> See issue [#5641](https://github.com/getsentry/sentry-react-native/issues/5641) for more details.
+
 ### Features
 
 - Extends the experimental support of UI profiling to iOS ([#5611](https://github.com/getsentry/sentry-react-native/pull/5611))
