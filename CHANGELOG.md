@@ -27,6 +27,12 @@
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
 
+## 7.12.1
+
+### Fixes
+
+- Revert inputPaths to fix circular dependency build errors on iOS ([#5644](https://github.com/getsentry/sentry-react-native/pull/5644))
+
 ## 7.12.0
 
 > [!WARNING]
