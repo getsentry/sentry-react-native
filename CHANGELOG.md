@@ -6,6 +6,27 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add `autoCorrect` and `spellCheck` config options to `FeedbackWidget` ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+- Add `autoCapitalize="none"` to `FeedbackWidget` email input ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
+
+### Fixes
+
+- Deep merge custom `styles` with defaults in `FeedbackWidget` instead of replacing them ([#5625](https://github.com/getsentry/sentry-react-native/pull/5625))
+  - Note that partial style overrides now preserve default properties like padding and borders
+
+### Dependencies
+
+- Bump Android SDK from v8.31.0 to v8.32.0 ([#5633](https://github.com/getsentry/sentry-react-native/pull/5633))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
+- Bump Android SDK Stubs from v8.31.0 to v8.32.0 ([#5634](https://github.com/getsentry/sentry-react-native/pull/5634))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
+
 ## 7.12.1
 
 ### Fixes
@@ -13,6 +34,10 @@
 - Revert inputPaths to fix circular dependency build errors on iOS ([#5644](https://github.com/getsentry/sentry-react-native/pull/5644))
 
 ## 7.12.0
+
+> [!WARNING]
+> This release contains an issue that can cause iOS builds to fail with circular dependency errors.
+> See issue [#5641](https://github.com/getsentry/sentry-react-native/issues/5641) for more details.
 
 ### Features
 

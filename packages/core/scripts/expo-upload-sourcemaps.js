@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const process = require('process');
@@ -16,8 +16,11 @@ function getEnvVar(varname) {
 
 function getSentryPluginPropertiesFromExpoConfig() {
   try {
-    const stdOutBuffer = execSync('npx expo config --json');
-    const config = JSON.parse(stdOutBuffer.toString());
+    const result = spawnSync('npx', ['expo', 'config', '--json'], { encoding: 'utf8' });
+    if (result.error || result.status !== 0) {
+      throw result.error || new Error(`expo config exited with status ${result.status}`);
+    }
+    const config = JSON.parse(result.stdout);
     const plugins = config.plugins;
     if (!plugins) {
       return null;
@@ -217,8 +220,15 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
   }
 
   const isHermes = assets.find(asset => asset.endsWith('.hbc'));
-  const windowsCallback = process.platform === 'win32' ? 'node ' : '';
-  execSync(`${windowsCallback}${sentryCliBin} sourcemaps upload ${isHermes ? '--debug-id-reference' : ''} ${assets.join(' ')}`, {
+
+  // Build arguments array for spawnSync (no shell interpretation needed)
+  const args = ['sourcemaps', 'upload'];
+  if (isHermes) {
+    args.push('--debug-id-reference');
+  }
+  args.push(...assets);
+
+  const result = spawnSync(sentryCliBin, args, {
     env: {
       ...process.env,
       [SENTRY_PROJECT]: sentryProject,
@@ -227,6 +237,15 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
     },
     stdio: 'inherit',
   });
+
+  if (result.error) {
+    console.error('Failed to upload sourcemaps:', result.error);
+    process.exit(1);
+  }
+  if (result.status !== 0) {
+    console.error(`sentry-cli exited with status ${result.status}`);
+    process.exit(result.status);
+  }
   numAssetsUploaded++;
 }
 
