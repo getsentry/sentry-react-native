@@ -149,6 +149,61 @@ describe('FeedbackWidget', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('passes autoCorrect and spellCheck props to message input', () => {
+    const { getByTestId } = render(
+      <FeedbackWidget {...defaultProps} autoCorrect={false} spellCheck={false} />,
+    );
+
+    expect(getByTestId('sentry-feedback-message-input').props.autoCorrect).toBe(false);
+    expect(getByTestId('sentry-feedback-message-input').props.spellCheck).toBe(false);
+  });
+
+  it('defaults autoCorrect and spellCheck to true on message input', () => {
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
+
+    expect(getByTestId('sentry-feedback-message-input').props.autoCorrect).toBe(true);
+    expect(getByTestId('sentry-feedback-message-input').props.spellCheck).toBe(true);
+  });
+
+  it('hardcodes autoCorrect and spellCheck to false on name and email inputs', () => {
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
+
+    expect(getByTestId('sentry-feedback-name-input').props.autoCorrect).toBe(false);
+    expect(getByTestId('sentry-feedback-name-input').props.spellCheck).toBe(false);
+    expect(getByTestId('sentry-feedback-email-input').props.autoCorrect).toBe(false);
+    expect(getByTestId('sentry-feedback-email-input').props.spellCheck).toBe(false);
+  });
+
+  it('sets autoCapitalize to none on email input', () => {
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
+
+    expect(getByTestId('sentry-feedback-email-input').props.autoCapitalize).toBe('none');
+   });
+
+  it('deep merges custom styles with defaults instead of replacing them', () => {
+    const partialStyles: FeedbackWidgetStyles = {
+      input: {
+        color: '#ff0000',
+      },
+    };
+    const { getByTestId } = render(
+      <FeedbackWidget {...defaultProps} styles={partialStyles} />,
+    );
+
+    const nameInput = getByTestId('sentry-feedback-name-input');
+    const inputStyle = nameInput.props.style;
+
+    // The custom color should be applied
+    expect(inputStyle.color).toBe('#ff0000');
+    // Default properties should be preserved, not lost
+    expect(inputStyle.height).toBe(50);
+    expect(inputStyle.borderWidth).toBe(1);
+    expect(inputStyle.borderRadius).toBe(5);
+    expect(inputStyle.paddingHorizontal).toBe(10);
+    expect(inputStyle.marginBottom).toBe(15);
+    expect(inputStyle.fontSize).toBe(16);
+  });
+
   it('renders correctly', () => {
     const { getByPlaceholderText, getByText, getByTestId, queryByText } = render(<FeedbackWidget {...defaultProps} />);
 

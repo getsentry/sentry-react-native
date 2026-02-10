@@ -786,8 +786,10 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 Name
               </Text>
               <TextInput
+                autoCorrect={false}
                 onChangeText={[Function]}
                 placeholder="Your Name"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -815,9 +817,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 Email
               </Text>
               <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -846,9 +851,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                  (required)
               </Text>
               <TextInput
+                autoCorrect={true}
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
+                spellCheck={true}
                 style={
                   [
                     {
@@ -1138,8 +1145,10 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 Name
               </Text>
               <TextInput
+                autoCorrect={false}
                 onChangeText={[Function]}
                 placeholder="Your Name"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1167,9 +1176,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                 Email
               </Text>
               <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -1198,9 +1210,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
                  (required)
               </Text>
               <TextInput
+                autoCorrect={true}
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
+                spellCheck={true}
                 style={
                   [
                     {
@@ -1490,8 +1504,10 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 Name
               </Text>
               <TextInput
+                autoCorrect={false}
                 onChangeText={[Function]}
                 placeholder="Your Name"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -1519,9 +1535,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 Email
               </Text>
               <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -1550,9 +1569,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                  (required)
               </Text>
               <TextInput
+                autoCorrect={true}
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
+                spellCheck={true}
                 style={
                   [
                     {
@@ -1842,8 +1863,10 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 Name
               </Text>
               <TextInput
+                autoCorrect={false}
                 onChangeText={[Function]}
                 placeholder="Your Name"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -1871,9 +1894,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 Email
               </Text>
               <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -1902,9 +1928,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                  (required)
               </Text>
               <TextInput
+                autoCorrect={true}
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
+                spellCheck={true}
                 style={
                   [
                     {
@@ -2194,8 +2222,10 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 Name
               </Text>
               <TextInput
+                autoCorrect={false}
                 onChangeText={[Function]}
                 placeholder="Your Name"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -2223,9 +2253,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                 Email
               </Text>
               <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -2254,9 +2287,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
                  (required)
               </Text>
               <TextInput
+                autoCorrect={true}
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
+                spellCheck={true}
                 style={
                   [
                     {
@@ -2546,8 +2581,10 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 Name
               </Text>
               <TextInput
+                autoCorrect={false}
                 onChangeText={[Function]}
                 placeholder="Your Name"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -2575,9 +2612,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 Email
               </Text>
               <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(235, 230, 239, 0.15)",
@@ -2606,9 +2646,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                  (required)
               </Text>
               <TextInput
+                autoCorrect={true}
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
+                spellCheck={true}
                 style={
                   [
                     {
@@ -2898,8 +2940,10 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 Name
               </Text>
               <TextInput
+                autoCorrect={false}
                 onChangeText={[Function]}
                 placeholder="Your Name"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -2927,9 +2971,12 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                 Email
               </Text>
               <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
                 keyboardType="email-address"
                 onChangeText={[Function]}
                 placeholder="your.email@example.org"
+                spellCheck={false}
                 style={
                   {
                     "borderColor": "rgba(41, 35, 47, 0.13)",
@@ -2958,9 +3005,11 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
                  (required)
               </Text>
               <TextInput
+                autoCorrect={true}
                 multiline={true}
                 onChangeText={[Function]}
                 placeholder="What's the bug? What did you expect?"
+                spellCheck={true}
                 style={
                   [
                     {
