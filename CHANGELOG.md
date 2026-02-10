@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Revert inputPaths to fix circular dependency build errors on iOS ([#5644](https://github.com/getsentry/sentry-react-native/pull/5644))
+
 ## 7.12.0
 
 ### Features
