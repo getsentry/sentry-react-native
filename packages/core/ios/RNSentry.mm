@@ -24,9 +24,7 @@
 #import <Sentry/SentryDebugMeta.h>
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
-#import <Sentry/SentryFormatter.h>
 #import <Sentry/SentryGeo.h>
-#import <Sentry/SentryScreenFrames.h>
 #import <Sentry/SentryUser.h>
 
 // This guard prevents importing Hermes in JSC apps
@@ -47,18 +45,19 @@
 #endif
 
 #if SENTRY_HAS_UIKIT
-#    import "RNSentryFramesTrackerListener.h"
+#    import "RNSentryEmitNewFrameEvent.h"
 #    import "RNSentryRNSScreen.h"
 #endif
 
 #import "RNSentryExperimentalOptions.h"
+#import "RNSentryStart.h"
 #import "RNSentryVersion.h"
 #import "SentrySDKWrapper.h"
+#import "SentryScreenFramesWrapper.h"
 
 static bool hasFetchedAppStart;
 
 @implementation RNSentry {
-    bool sentHybridSdkDidBecomeActive;
     bool hasListeners;
     RNSentryTimeToDisplay *_timeToDisplay;
     NSArray<NSString *> *_ignoreErrorPatternsStr;
@@ -143,43 +142,17 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSMutableDictionary *mutableOptions = [self prepareOptions:options];
-#if SENTRY_TARGET_REPLAY_SUPPORTED
-    BOOL isSessionReplayEnabled = [RNSentryReplay updateOptions:mutableOptions];
-#else
-    // Defaulting to false for unsupported targets
-    BOOL isSessionReplayEnabled = NO;
-#endif
     NSError *error = nil;
-    [SentrySDKWrapper setupWithDictionary:mutableOptions
-                   isSessionReplayEnabled:isSessionReplayEnabled
-                                    error:&error];
+    [RNSentryStart startWithOptions:mutableOptions error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
 
-#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    BOOL appIsActive =
-        [[UIApplication sharedApplication] applicationState] == UIApplicationStateActive;
-#else
-    BOOL appIsActive = [[NSApplication sharedApplication] isActive];
-#endif
-
-    // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive
-    // notification, send it.
-    if (appIsActive && !sentHybridSdkDidBecomeActive
-        && ([SentrySDKWrapper enableAutoSessionTracking] ||
-            [SentrySDKWrapper enableWatchdogTerminationTracking])) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"SentryHybridSdkDidBecomeActive"
-                                                            object:nil];
-
-        sentHybridSdkDidBecomeActive = true;
-    }
-
-#if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryReplay postInit];
-#endif
-
+    // RNSentryStart.startWithOptions already handles:
+    // - Session tracking notification (SentryHybridSdkDidBecomeActive)
+    // - Replay postInit
+    // - SDK initialization
     resolve(@YES);
 }
 
@@ -499,21 +472,15 @@ RCT_EXPORT_METHOD(
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
-        SentryScreenFrames *frames = PrivateSentrySDKOnly.currentScreenFrames;
-
-        if (frames == nil) {
+        if (![SentryScreenFramesWrapper canTrackFrames]) {
             resolve(nil);
             return;
         }
 
-        NSNumber *total = [NSNumber numberWithLong:frames.total];
-        NSNumber *frozen = [NSNumber numberWithLong:frames.frozen];
-        NSNumber *slow = [NSNumber numberWithLong:frames.slow];
-
         resolve(@ {
-            @"totalFrames" : total,
-            @"frozenFrames" : frozen,
-            @"slowFrames" : slow,
+            @"totalFrames" : [SentryScreenFramesWrapper totalFrames],
+            @"frozenFrames" : [SentryScreenFramesWrapper frozenFrames],
+            @"slowFrames" : [SentryScreenFramesWrapper slowFrames],
         });
     } else {
         resolve(nil);

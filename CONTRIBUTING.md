@@ -136,8 +136,8 @@ cd sentry-react-native
 Comment out sentry dependency in `RNSentry.podspec`.
 
 ```diff
--   s.dependency 'Sentry/HybridSDK', '7.31.0'
-+   s.dependency 'Sentry/HybridSDK'
+-   s.dependency 'Sentry', '7.31.0'
++   s.dependency 'Sentry'
 ```
 
 Add local pods to `sample/ios/Podfile`.
@@ -147,7 +147,7 @@ target 'sample' do
 
   # ... react native config
 
- pod 'Sentry/HybridSDK', :path => '../../../../sentry-cocoa'
+ pod 'Sentry', :path => '../../../../sentry-cocoa'
   # ... rest of the configuration
 
 end

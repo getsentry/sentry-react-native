@@ -1,4 +1,5 @@
 #import "RNSentryDependencyContainer.h"
+#import "RNSentryFramesTrackerListener.h"
 @import Sentry;
 
 @implementation RNSentryDependencyContainer {
