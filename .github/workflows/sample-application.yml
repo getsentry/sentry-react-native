@@ -101,7 +101,7 @@ jobs:
         uses: gradle/gradle-build-action@v3
 
       - name: Setup Global Xcode Tools
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
@@ -160,6 +160,7 @@ jobs:
             -sdk 'iphonesimulator' \
             -destination 'generic/platform=iOS Simulator' \
             ONLY_ACTIVE_ARCH=yes \
+            ARCHS=arm64 \
             -derivedDataPath "$derivedData" \
             build \
             | tee xcodebuild.log \

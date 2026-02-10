@@ -58,6 +58,10 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -134,6 +138,7 @@ jobs:
             -sdk 'iphonesimulator' \
             -destination 'generic/platform=iOS Simulator' \
             ONLY_ACTIVE_ARCH=yes \
+            ARCHS=arm64 \
             -derivedDataPath "$derivedData" \
             build \
             | tee xcodebuild.log \
