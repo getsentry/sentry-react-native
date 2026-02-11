@@ -52,12 +52,11 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            xcode-version: '16.4'
-            runs-on: macos-15
+            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
           - platform: macos
-            runs-on: macos-15
+            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
           - platform: android
-            runs-on: ubuntu-latest
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
         exclude:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
@@ -71,7 +70,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Enable Corepack
-        run: npm i -g corepack
+        run: corepack enable
+
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -95,11 +99,8 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v3
 
-      - run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode-version }}.app/Contents/Developer
-        if: ${{ matrix.platform == 'ios' }}
-
       - name: Setup Global Xcode Tools
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
@@ -227,6 +228,10 @@ jobs:
         with:
           version: ${{env.MAESTRO_VERSION}}
 
+      - name: Install Ninja
+        if: ${{ matrix.platform == 'android' }}
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
       - name: Download iOS App Archive
         if: ${{ matrix.platform == 'ios' }}
         uses: actions/download-artifact@v7
@@ -254,7 +259,8 @@ jobs:
           rm app-androidTest.apk
 
       - name: Enable Corepack
-        run: npm i -g corepack
+        run: corepack enable
+
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
