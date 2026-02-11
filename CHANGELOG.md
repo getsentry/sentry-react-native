@@ -32,6 +32,15 @@
 - Bump Cocoa SDK from v9.3.0 to v9.4.0 ([#5619](https://github.com/getsentry/sentry-react-native/pull/5619))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#940)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.3.0...9.4.0)
+- Bump Bundler Plugins from v4.9.0 to v4.9.1 ([#5649](https://github.com/getsentry/sentry-react-native/pull/5649))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#491)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.9.0...4.9.1)
+
+## 7.12.1
+
+### Fixes
+
+- Revert inputPaths to fix circular dependency build errors on iOS ([#5644](https://github.com/getsentry/sentry-react-native/pull/5644))
 
 ## 8.0.0-beta.0
 
@@ -137,6 +146,10 @@ See our [migration docs](https://docs.sentry.io/platforms/react-native/migration
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.4...3.1.0)
 
 ## 7.12.0
+
+> [!WARNING]
+> This release contains an issue that can cause iOS builds to fail with circular dependency errors.
+> See issue [#5641](https://github.com/getsentry/sentry-react-native/issues/5641) for more details.
 
 ### Features
 
