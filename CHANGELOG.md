@@ -8,6 +8,17 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump CLI from v3.1.0 to v3.2.0 ([#5528](https://github.com/getsentry/sentry-react-native/pull/5528))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#320)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.1.0...3.2.0)
+- Bump Cocoa SDK from v9.3.0 to v9.4.1 ([#5619](https://github.com/getsentry/sentry-react-native/pull/5619), [#5656](https://github.com/getsentry/sentry-react-native/pull/5656))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#941)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.3.0...9.4.1)
+
+## 7.13.0
+
 ### Features
 
 - Add `autoCorrect` and `spellCheck` config options to `FeedbackWidget` ([#5627](https://github.com/getsentry/sentry-react-native/pull/5627))
@@ -26,12 +37,6 @@
 - Bump Android SDK Stubs from v8.31.0 to v8.32.0 ([#5634](https://github.com/getsentry/sentry-react-native/pull/5634))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
-- Bump CLI from v3.1.0 to v3.2.0 ([#5528](https://github.com/getsentry/sentry-react-native/pull/5528))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#320)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/3.1.0...3.2.0)
-- Bump Cocoa SDK from v9.3.0 to v9.4.1 ([#5619](https://github.com/getsentry/sentry-react-native/pull/5619), [#5656](https://github.com/getsentry/sentry-react-native/pull/5656))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#941)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.3.0...9.4.1)
 - Bump Bundler Plugins from v4.9.0 to v4.9.1 ([#5649](https://github.com/getsentry/sentry-react-native/pull/5649))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#491)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.9.0...4.9.1)
