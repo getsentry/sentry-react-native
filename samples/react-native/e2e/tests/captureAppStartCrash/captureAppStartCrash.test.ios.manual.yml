@@ -1,0 +1,16 @@
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      sentryCrashOnStart: true
+      isE2ETest: true
+
+# This launch sends the crash event before the app crashes again
+- launchApp:
+    clearState: false
+    stopApp: false
+    arguments:
+      sentryCrashOnStart: true
+      isE2ETest: true

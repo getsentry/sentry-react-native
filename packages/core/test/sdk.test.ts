@@ -1,7 +1,8 @@
-import type { BaseTransportOptions, Breadcrumb, BreadcrumbHint, ClientOptions, Integration, Scope } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
 import { debug, initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
 import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
+import type { ReactNativeClientOptions } from '../src/js/options';
 import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
@@ -106,6 +107,60 @@ describe('Tests the SDK functionality', () => {
           1,
         );
         expect(options.some(integration => integration === tracing)).toBe(true);
+      });
+    });
+
+    describe('initialization from sentry.options.json', () => {
+      it('initializes without __SENTRY_OPTIONS__', () => {
+        delete RN_GLOBAL_OBJ.__SENTRY_OPTIONS__;
+        init({});
+        expect(initAndBind).toHaveBeenCalledOnce();
+      });
+
+      it('adds options from __SENTRY_OPTIONS__', () => {
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {
+          dsn: 'https://key@example.io/value',
+        };
+        init({});
+        expect(usedOptions()?.dsn).toBe('https://key@example.io/value');
+      });
+
+      it('options init override options from __SENTRY_OPTIONS__', () => {
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {
+          dsn: 'https://key@example.io/file',
+        };
+        init({
+          dsn: 'https://key@example.io/code',
+        });
+        expect(usedOptions()?.dsn).toBe('https://key@example.io/code');
+      });
+
+      it('initializing with __SENTRY_OPTIONS__ disabled native auto initialization', () => {
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
+        init({});
+        expect(usedOptions()?.autoInitializeNativeSdk).toBe(false);
+      });
+
+      it('initializing without __SENTRY_OPTIONS__ enables native auto initialization', () => {
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = undefined;
+        init({});
+        expect(usedOptions()?.autoInitializeNativeSdk).toBe(true);
+      });
+
+      it('initializing with __SENTRY_OPTIONS__ keeps native auto initialization true if set', () => {
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
+        init({
+          autoInitializeNativeSdk: true,
+        });
+        expect(usedOptions()?.autoInitializeNativeSdk).toBe(true);
+      });
+
+      it('initializing with __SENTRY_OPTIONS__ keeps native auto initialization false if set', () => {
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
+        init({
+          autoInitializeNativeSdk: false,
+        });
+        expect(usedOptions()?.autoInitializeNativeSdk).toBe(false);
       });
     });
 
@@ -1207,7 +1262,7 @@ function createMockedIntegration({ name }: { name?: string } = {}): Integration 
   };
 }
 
-function usedOptions(): ClientOptions<BaseTransportOptions> | undefined {
+function usedOptions(): ReactNativeClientOptions | undefined {
   return (initAndBind as jest.MockedFunction<typeof initAndBind>).mock.calls[0]?.[secondArg];
 }
 

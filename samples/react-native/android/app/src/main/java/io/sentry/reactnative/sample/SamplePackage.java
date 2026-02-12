@@ -77,6 +77,38 @@ public class SamplePackage implements ReactPackage {
           }
         });
 
+    modules.add(
+        new ReactContextBaseJavaModule(reactContext) {
+          @Override
+          public String getName() {
+            return "TestControlModule";
+          }
+
+          @ReactMethod
+          public void enableCrashOnStart(Promise promise) {
+            try {
+              // Create flag file to trigger crash on next app start
+              getReactApplicationContext()
+                  .openFileOutput(".sentry_crash_on_start", ReactApplicationContext.MODE_PRIVATE)
+                  .close();
+              promise.resolve(true);
+            } catch (Exception e) {
+              promise.reject("ERROR", "Failed to enable crash on start", e);
+            }
+          }
+
+          @ReactMethod
+          public void disableCrashOnStart(Promise promise) {
+            try {
+              // Delete flag file
+              getReactApplicationContext().deleteFile(".sentry_crash_on_start");
+              promise.resolve(true);
+            } catch (Exception e) {
+              promise.reject("ERROR", "Failed to disable crash on start", e);
+            }
+          }
+        });
+
     return modules;
   }
 }

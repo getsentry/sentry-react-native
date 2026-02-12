@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "7.12.1",
+  "version": "8.0.0",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -70,7 +70,7 @@
   "dependencies": {
     "@sentry/babel-plugin-component-annotate": "4.9.1",
     "@sentry/browser": "10.38.0",
-    "@sentry/cli": "2.58.4",
+    "@sentry/cli": "3.2.0",
     "@sentry/core": "10.38.0",
     "@sentry/react": "10.38.0",
     "@sentry/types": "10.38.0"

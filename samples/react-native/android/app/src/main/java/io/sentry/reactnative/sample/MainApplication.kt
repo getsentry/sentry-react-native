@@ -11,10 +11,7 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import io.sentry.Hint
-import io.sentry.SentryEvent
-import io.sentry.SentryOptions.BeforeSendCallback
-import io.sentry.android.core.SentryAndroid
+import io.sentry.react.RNSentrySDK
 
 class MainApplication :
     Application(),
@@ -40,9 +37,15 @@ class MainApplication :
 
     override fun onCreate() {
         super.onCreate()
-        // When the native init is enabled the `autoInitializeNativeSdk`
-        // in JS has to be set to `false`
-        // this.initializeSentry()
+        if (!BuildConfig.SENTRY_DISABLE_NATIVE_START) {
+            RNSentrySDK.init(this)
+        }
+
+        // Check for crash-on-start intent for testing
+        if (shouldCrashOnStart()) {
+            throw RuntimeException("This was intentional test crash before JS started.")
+        }
+
         SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
@@ -50,29 +53,15 @@ class MainApplication :
         }
     }
 
-    private fun initializeSentry() {
-        SentryAndroid.init(this) { options ->
-            // Only options set here will apply to the Android SDK
-            // Options from JS are not passed to the Android SDK when initialized manually
-            options.dsn = "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561"
-            options.isDebug = true
-
-            options.beforeSend =
-                BeforeSendCallback { event: SentryEvent, hint: Hint? ->
-                    // React native internally throws a JavascriptException
-                    // Since we catch it before that, we don't want to send this one
-                    // because we would send it twice
-                    try {
-                        val ex = event.exceptions!![0]
-                        if (null != ex && ex.type!!.contains("JavascriptException")) {
-                            return@BeforeSendCallback null
-                        }
-                    } catch (ignored: Throwable) {
-                        // We do nothing
-                    }
-
-                    event
-                }
+    private fun shouldCrashOnStart(): Boolean {
+        // Check if crash flag file exists (for E2E testing)
+        val crashFile = getFileStreamPath(".sentry_crash_on_start")
+        if (crashFile.exists()) {
+            // Delete the flag immediately so we only crash once
+            // This allows the next launch to succeed and send the crash report
+            crashFile.delete()
+            return true
         }
+        return false
     }
 }
