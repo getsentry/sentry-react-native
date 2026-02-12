@@ -347,6 +347,34 @@ export interface BaseReactNativeOptions {
    * @default 'all'
    */
   logsOrigin?: 'all' | 'js' | 'native';
+
+  /**
+   * A callback that is invoked when the native SDK emits a log message.
+   * This is useful for surfacing native SDK logs (e.g., transport errors like HTTP 413)
+   * in the JavaScript console.
+   *
+   * Only works when `debug: true` is set.
+   *
+   * @example
+   * ```typescript
+   * Sentry.init({
+   *   debug: true,
+   *   onNativeLog: ({ level, component, message }) => {
+   *     console.log(`[Sentry Native] [${level}] [${component}] ${message}`);
+   *   },
+   * });
+   * ```
+   */
+  onNativeLog?: (log: NativeLogEntry) => void;
+}
+
+/**
+ * Represents a log entry from the native SDK.
+ */
+export interface NativeLogEntry {
+  level: string;
+  component: string;
+  message: string;
 }
 
 export type SentryReplayQuality = 'low' | 'medium' | 'high';

@@ -47,6 +47,8 @@ const BottomTabNavigator = createBottomTabNavigator();
 Sentry.init({
   // Replace the example DSN below with your own DSN:
   dsn: getDsn(),
+  // Native logs will be forwarded to JS and displayed via Sentry's debug logger
+  // when debug: true is set. No custom onNativeLog handler needed.
   debug: true,
   environment: 'dev',
   beforeSend: (event: Sentry.ErrorEvent) => {

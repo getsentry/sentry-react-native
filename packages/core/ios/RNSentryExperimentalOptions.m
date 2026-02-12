@@ -34,7 +34,7 @@
     if (sentryOptions == nil) {
         return;
     }
-    sentryOptions.experimental.enableSessionReplayInUnreliableEnvironment = enabled;
+    // sentryOptions.experimental.enableSessionReplayInUnreliableEnvironment = enabled;
 }
 
 + (void)configureProfilingWithOptions:(NSDictionary *)profilingOptions

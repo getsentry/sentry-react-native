@@ -41,6 +41,7 @@
 
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryEvents.h"
+#import "RNSentryNativeLogsForwarder.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 #    import "RNSentryReplay.h"
@@ -311,17 +312,19 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 - (void)startObserving
 {
     hasListeners = YES;
+    [[RNSentryNativeLogsForwarder shared] configureWithEventEmitter:self];
 }
 
 // Will be called when this module's last listener is removed, or on dealloc.
 - (void)stopObserving
 {
     hasListeners = NO;
+    [[RNSentryNativeLogsForwarder shared] stopForwarding];
 }
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[ RNSentryNewFrameEvent ];
+    return @[ RNSentryNewFrameEvent, RNSentryNativeLogEvent ];
 }
 
 RCT_EXPORT_METHOD(

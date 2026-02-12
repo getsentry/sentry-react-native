@@ -293,6 +293,7 @@ export const NATIVE: SentryNativeWrapper = {
       logsOrigin,
       profilingOptions,
       androidProfilingOptions,
+      onNativeLog,
       ...filteredOptions
     } = options;
     /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
