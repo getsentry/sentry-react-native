@@ -6,7 +6,110 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.0.0
+
+### Upgrading from 7.x to 8.0
+
+Version 8 of the Sentry React Native SDK updates the underlying native SDKs (Cocoa v9, CLI v3, Android Gradle Plugin v6) which introduce breaking changes in minimum version requirements and build tooling.
+
+See our [migration docs](https://docs.sentry.io/platforms/react-native/migration/v7-to-v8/) for more information.
+
+### Breaking Changes
+
+#### Minimum Version Requirements
+
+- **iOS/macOS/tvOS**: ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356))
+  - iOS **15.0+** (previously 11.0+)
+  - macOS **10.14+** (previously 10.13+)
+  - tvOS **15.0+** (previously 11.0+)
+
+- **Android**: ([#5578](https://github.com/getsentry/sentry-react-native/pull/5578))
+  - Sentry Android Gradle Plugin **6.0.0** (previously 5.x)
+  - Android Gradle Plugin **7.4.0+** (previously 7.3.0+)
+  - Kotlin **1.8+**
+
+- **Sentry Self-Hosted**: ([#5523](https://github.com/getsentry/sentry-react-native/pull/5523))
+  - Sentry CLI v3 requires self-hosted **25.11.1+** (previously 25.2.0)
+
+### Features
+
+- Capture App Start errors and crashes by initializing Sentry from `sentry.options.json` ([#4472](https://github.com/getsentry/sentry-react-native/pull/4472))
+
+  Create `sentry.options.json` in the React Native project root and set options the same as you currently have in `Sentry.init` in JS.
+
+  ```json
+  {
+      "dsn": "https://key@example.io/value",
+  }
+  ```
+
+  Initialize Sentry on the native layers by newly provided native methods.
+
+  ```kotlin
+  import io.sentry.react.RNSentrySDK
+
+  class MainApplication : Application(), ReactApplication {
+      override fun onCreate() {
+          super.onCreate()
+          RNSentrySDK.init(this)
+      }
+  }
+  ```
+
+  ```obj-c
+  #import <RNSentry/RNSentry.h>
+
+  @implementation AppDelegate
+  - (BOOL)application:(UIApplication *)application
+      didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+  {
+      [RNSentrySDK start];
+      return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  }
+  @end
+  ```
+
+- Add RNSentrySDK APIs support to @sentry/react-native/expo plugin ([#4633](https://github.com/getsentry/sentry-react-native/pull/4633))
+  - Adds `useNativeInit` option to automatically initialize Sentry natively before JavaScript loads, enabling capture of app start errors
+  ```json
+  {
+    "expo": {
+      "plugins": [
+        [
+          "@sentry/react-native/expo",
+          {
+            "useNativeInit": true
+          }
+        ]
+      ]
+    }
+  }
+  ```
+
+### Changes
+
+- Load `optionsFile` into the JS bundle during Metro bundle process ([#4476](https://github.com/getsentry/sentry-react-native/pull/4476))
+- Add experimental version of `startWithConfigureOptions` for Apple platforms ([#4444](https://github.com/getsentry/sentry-react-native/pull/4444))
+- Add experimental version of `init` with optional `OptionsConfiguration<SentryAndroidOptions>` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+- Add initialization using `sentry.options.json` for Apple platforms ([#4447](https://github.com/getsentry/sentry-react-native/pull/4447))
+- Add initialization using `sentry.options.json` for Android ([#4451](https://github.com/getsentry/sentry-react-native/pull/4451))
+- Merge options from file with `Sentry.init` options in JS ([#4510](https://github.com/getsentry/sentry-react-native/pull/4510))
+
+### Internal
+
+- Extract iOS native initialization to standalone structures ([#4442](https://github.com/getsentry/sentry-react-native/pull/4442))
+- Extract Android native initialization to standalone structures ([#4445](https://github.com/getsentry/sentry-react-native/pull/4445))
+
+### Dependencies
+
+- Bump Cocoa SDK from v8.58.0 to v9.4.1 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356), [#5515](https://github.com/getsentry/sentry-react-native/pull/5515), [#5619](https://github.com/getsentry/sentry-react-native/pull/5619), [#5656](https://github.com/getsentry/sentry-react-native/pull/5656))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#941)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.58.0...9.4.1)
+- Bump CLI from v2.58.4 to v3.2.0 ([#5523](https://github.com/getsentry/sentry-react-native/pull/5523), [#5471](https://github.com/getsentry/sentry-react-native/pull/5471), [#5514](https://github.com/getsentry/sentry-react-native/pull/5514), [#5502](https://github.com/getsentry/sentry-react-native/pull/5502), [#5528](https://github.com/getsentry/sentry-react-native/pull/5528))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#320)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.4...3.2.0)
+
+## 7.13.0
 
 ### Features
 
@@ -26,12 +129,6 @@
 - Bump Android SDK Stubs from v8.31.0 to v8.32.0 ([#5634](https://github.com/getsentry/sentry-react-native/pull/5634))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8320)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.31.0...8.32.0)
-- Bump CLI from v3.1.0 to v3.2.0 ([#5528](https://github.com/getsentry/sentry-react-native/pull/5528))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#320)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/3.1.0...3.2.0)
-- Bump Cocoa SDK from v9.3.0 to v9.4.0 ([#5619](https://github.com/getsentry/sentry-react-native/pull/5619))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#940)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.3.0...9.4.0)
 - Bump Bundler Plugins from v4.9.0 to v4.9.1 ([#5649](https://github.com/getsentry/sentry-react-native/pull/5649))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#491)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.9.0...4.9.1)
