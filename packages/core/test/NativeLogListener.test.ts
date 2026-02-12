@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+import { debug } from '@sentry/core';
 import { defaultNativeLogHandler, setupNativeLogListener } from '../src/js/NativeLogListener';
 import type { NativeLogEntry } from '../src/js/options';
 
@@ -13,6 +13,14 @@ jest.mock('react-native', () => ({
   })),
   Platform: {
     OS: 'ios',
+  },
+}));
+
+jest.mock('@sentry/core', () => ({
+  debug: {
+    log: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
@@ -53,23 +61,7 @@ describe('NativeLogListener', () => {
   });
 
   describe('defaultNativeLogHandler', () => {
-    const originalConsole = { ...console };
-
-    beforeEach(() => {
-      console.log = jest.fn();
-      console.info = jest.fn();
-      console.warn = jest.fn();
-      console.error = jest.fn();
-    });
-
-    afterEach(() => {
-      console.log = originalConsole.log;
-      console.info = originalConsole.info;
-      console.warn = originalConsole.warn;
-      console.error = originalConsole.error;
-    });
-
-    it('logs error level to console.error', () => {
+    it('logs error level using debug.error', () => {
       const log: NativeLogEntry = {
         level: 'error',
         component: 'TestComponent',
@@ -78,10 +70,10 @@ describe('NativeLogListener', () => {
 
       defaultNativeLogHandler(log);
 
-      expect(console.error).toHaveBeenCalledWith('[Sentry] [ERROR] [TestComponent] Test error message');
+      expect(debug.error).toHaveBeenCalledWith('[Native] [TestComponent] Test error message');
     });
 
-    it('logs fatal level to console.error', () => {
+    it('logs fatal level using debug.error', () => {
       const log: NativeLogEntry = {
         level: 'fatal',
         component: 'TestComponent',
@@ -90,10 +82,10 @@ describe('NativeLogListener', () => {
 
       defaultNativeLogHandler(log);
 
-      expect(console.error).toHaveBeenCalledWith('[Sentry] [FATAL] [TestComponent] Test fatal message');
+      expect(debug.error).toHaveBeenCalledWith('[Native] [TestComponent] Test fatal message');
     });
 
-    it('logs warning level to console.warn', () => {
+    it('logs warning level using debug.warn', () => {
       const log: NativeLogEntry = {
         level: 'warning',
         component: 'TestComponent',
@@ -102,10 +94,10 @@ describe('NativeLogListener', () => {
 
       defaultNativeLogHandler(log);
 
-      expect(console.warn).toHaveBeenCalledWith('[Sentry] [WARNING] [TestComponent] Test warning message');
+      expect(debug.warn).toHaveBeenCalledWith('[Native] [TestComponent] Test warning message');
     });
 
-    it('logs info level to console.info', () => {
+    it('logs info level using debug.log', () => {
       const log: NativeLogEntry = {
         level: 'info',
         component: 'TestComponent',
@@ -114,10 +106,10 @@ describe('NativeLogListener', () => {
 
       defaultNativeLogHandler(log);
 
-      expect(console.info).toHaveBeenCalledWith('[Sentry] [INFO] [TestComponent] Test info message');
+      expect(debug.log).toHaveBeenCalledWith('[Native] [TestComponent] Test info message');
     });
 
-    it('logs debug level to console.log', () => {
+    it('logs debug level using debug.log', () => {
       const log: NativeLogEntry = {
         level: 'debug',
         component: 'TestComponent',
@@ -126,10 +118,10 @@ describe('NativeLogListener', () => {
 
       defaultNativeLogHandler(log);
 
-      expect(console.log).toHaveBeenCalledWith('[Sentry] [DEBUG] [TestComponent] Test debug message');
+      expect(debug.log).toHaveBeenCalledWith('[Native] [TestComponent] Test debug message');
     });
 
-    it('logs unknown level to console.log', () => {
+    it('logs unknown level using debug.log', () => {
       const log: NativeLogEntry = {
         level: 'unknown',
         component: 'TestComponent',
@@ -138,7 +130,7 @@ describe('NativeLogListener', () => {
 
       defaultNativeLogHandler(log);
 
-      expect(console.log).toHaveBeenCalledWith('[Sentry] [UNKNOWN] [TestComponent] Test unknown message');
+      expect(debug.log).toHaveBeenCalledWith('[Native] [TestComponent] Test unknown message');
     });
   });
 });

@@ -45,10 +45,6 @@ const StackNavigator: TypedNavigator<any, any> = isMobileOs
 const BottomTabNavigator = createBottomTabNavigator();
 
 Sentry.init({
-  onNativeLog: ({ level, component, message }) => {
-    // Use logWithoutTracing to avoid feedback loops with Sentry's console integration
-    logWithoutTracing(`[Sentry Native] [${level.toUpperCase()}] [${component}] ${message}`);
-  },
   debug: true,
   environment: 'dev',
   beforeSend: (event: Sentry.ErrorEvent) => {
