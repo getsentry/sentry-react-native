@@ -51,7 +51,7 @@
     "@types/node": "20.10.4",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.26.0",
     "eslint-config-expo": "~10.0.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
