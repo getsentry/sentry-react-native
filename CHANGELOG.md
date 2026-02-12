@@ -104,7 +104,7 @@ See our [migration docs](https://docs.sentry.io/platforms/react-native/migration
 
 - Bump Cocoa SDK from v8.58.0 to v9.4.1 ([#5356](https://github.com/getsentry/sentry-react-native/pull/5356), [#5515](https://github.com/getsentry/sentry-react-native/pull/5515), [#5619](https://github.com/getsentry/sentry-react-native/pull/5619), [#5656](https://github.com/getsentry/sentry-react-native/pull/5656))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#941)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.1.0...9.4.1)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/8.58.0...9.4.1)
 - Bump CLI from v2.58.4 to v3.2.0 ([#5523](https://github.com/getsentry/sentry-react-native/pull/5523), [#5471](https://github.com/getsentry/sentry-react-native/pull/5471), [#5514](https://github.com/getsentry/sentry-react-native/pull/5514), [#5502](https://github.com/getsentry/sentry-react-native/pull/5502), [#5528](https://github.com/getsentry/sentry-react-native/pull/5528))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#320)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.58.4...3.2.0)
