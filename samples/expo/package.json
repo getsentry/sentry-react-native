@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "7.12.0",
+  "version": "7.12.1",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@sentry/core": "10.38.0",
-    "@sentry/react-native": "7.12.0",
+    "@sentry/react-native": "7.12.1",
     "@types/react": "~19.1.10",
     "expo": "^54.0.0",
     "expo-constants": "~18.0.13",
@@ -47,7 +47,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@react-native/eslint-config": "0.79.1",
-    "@sentry/babel-plugin-component-annotate": "4.9.0",
+    "@sentry/babel-plugin-component-annotate": "4.9.1",
     "@types/node": "20.10.4",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
