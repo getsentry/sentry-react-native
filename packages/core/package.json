@@ -45,7 +45,10 @@
     "lint:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore --check \"{src,test,scripts,plugin/src}/**/**.ts\""
   },
   "bin": {
-    "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js"
+    "sentry-expo-upload-sourcemaps": "scripts/expo-upload-sourcemaps.js",
+    "sentry-eas-build-on-error": "scripts/eas-build-on-error.js",
+    "sentry-eas-build-on-success": "scripts/eas-build-on-success.js",
+    "sentry-eas-build-on-complete": "scripts/eas-build-on-complete.js"
   },
   "keywords": [
     "react-native",
