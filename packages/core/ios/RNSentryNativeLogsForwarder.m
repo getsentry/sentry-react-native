@@ -39,8 +39,9 @@ static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
     }];
 
     // Send a test log to verify the forwarding works
-    [self forwardLogMessage:@"[Sentry] [info] [0] [RNSentryNativeLogsForwarder] Native log forwarding "
-                            @"configured successfully"];
+    [self forwardLogMessage:
+            @"[Sentry] [info] [0] [RNSentryNativeLogsForwarder] Native log forwarding "
+            @"configured successfully"];
 }
 
 - (void)stopForwarding

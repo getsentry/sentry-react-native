@@ -49,7 +49,6 @@ import io.sentry.SentryOptions;
 import io.sentry.SentryReplayOptions;
 import io.sentry.SentryReplayOptions.SentryReplayQuality;
 import io.sentry.UncaughtExceptionHandlerIntegration;
-import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
 import io.sentry.android.core.AnrIntegration;
 import io.sentry.android.core.BuildConfig;
@@ -107,7 +106,8 @@ public class RNSentryModuleImpl {
 
   public static final String NAME = "RNSentry";
 
-  private static final ILogger logger = new AndroidLogger(NAME);
+  private static final RNSentryLogger rnLogger = new RNSentryLogger();
+  private static final ILogger logger = rnLogger;
   private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
   private static final String modulesPath = "modules.json";
   private static final Charset UTF_8 = Charset.forName("UTF-8"); // NOPMD - Allow using UTF-8
@@ -207,8 +207,16 @@ public class RNSentryModuleImpl {
   }
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
+    // Set the React context for the logger so it can forward logs to JS
+    rnLogger.setReactContext(this.reactApplicationContext);
+
     SentryAndroid.init(
-        getApplicationContext(), options -> getSentryAndroidOptions(options, rnOptions, logger));
+        getApplicationContext(),
+        options -> {
+          // Use our custom logger that forwards to JS
+          options.setLogger(rnLogger);
+          getSentryAndroidOptions(options, rnOptions, logger);
+        });
 
     promise.resolve(true);
   }
