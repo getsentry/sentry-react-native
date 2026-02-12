@@ -1,0 +1,53 @@
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    # We expect cold start
+    clearState: true
+    stopApp: true
+    arguments:
+      isE2ETest: true
+
+# For unknown reasons tapOn: "Performance" does not work on iOS
+- tapOn:
+    id: "performance-tab-icon"
+- tapOn: "Open Spaceflight News"
+
+# Wait for the screen to load articles and initial data to appear
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Scroll down multiple times to trigger auto-load (AUTO_LOAD_LIMIT = 1)
+# This will trigger handleEndReached which increments autoLoadCount
+# After autoLoadCount >= 1, the "Load More Articles" button will appear
+- scroll
+- scroll
+- scroll
+
+# Wait a bit for the auto-load to complete and button to appear
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Now the "Load More Articles" button should be visible
+- scrollUntilVisible:
+    element: "Load More Articles"
+    timeout: 10000
+# On iOS the visibility is resolved when the button only peaks from the bottom tabs
+# this causes Maestro to click the bottom tab instead of the button
+# thus the extra scroll is needed to make the button visible
+- scroll
+- tapOn: "Load More Articles"
+
+# Wait for more articles to load after manual tap
+- waitForAnimationToEnd:
+    timeout: 3000
+- scroll
+- scrollUntilVisible:
+    element: "Load More Articles"
+    timeout: 10000
+
+- tapOn:
+    id: "errors-tab-icon"
+
+# The tab keeps News Screen open, but the data are updated on the next visit
+- tapOn:
+    id: "performance-tab-icon"

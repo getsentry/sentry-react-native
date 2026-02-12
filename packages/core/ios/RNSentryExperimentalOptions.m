@@ -25,7 +25,7 @@
     if (sentryOptions == nil) {
         return;
     }
-    sentryOptions.experimental.enableLogs = enabled;
+    sentryOptions.enableLogs = enabled;
 }
 
 + (void)setEnableSessionReplayInUnreliableEnvironment:(BOOL)enabled

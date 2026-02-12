@@ -5,7 +5,7 @@
     "jsEngine": "hermes",
     "newArchEnabled": true,
     "scheme": "sentry-expo-sample",
-    "version": "7.13.0",
+    "version": "8.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,7 +20,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "io.sentry.expo.sample",
-      "buildNumber": "72"
+      "buildNumber": "73"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +28,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "io.sentry.expo.sample",
-      "versionCode": 72
+      "versionCode": 73
     },
     "web": {
       "bundler": "metro",
@@ -46,6 +46,7 @@
           "url": "https://sentry.io/",
           "project": "sentry-react-native",
           "organization": "sentry-sdks",
+          "useNativeInit": true,
           "experimental_android": {
             "enableAndroidGradlePlugin": true,
             "autoUploadProguardMapping": true,

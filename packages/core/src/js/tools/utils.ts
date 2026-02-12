@@ -1,8 +1,10 @@
 import * as crypto from 'crypto';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import type { MixedOutput, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
+import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 import type CountingSet from 'metro/src/lib/CountingSet'; // types are in src but exports are in private
 import countLines from './vendor/metro/countLines';
+
+export type MetroCustomSerializer = Required<Required<MetroConfig>['serializer']>['customSerializer'] | undefined;
 
 // Variant of MixedOutput
 // https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/DeltaBundler/types.flow.js#L21

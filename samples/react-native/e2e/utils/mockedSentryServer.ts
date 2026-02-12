@@ -66,7 +66,6 @@ export function createSentryServer({ port = 8961 } = {}): {
     start: () => {
       return new Promise<void>((resolve, _reject) => {
         server.listen(port, () => {
-          console.log(`Sentry server listening on port ${port}`);
           resolve();
         });
       });
