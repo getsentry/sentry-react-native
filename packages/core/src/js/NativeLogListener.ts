@@ -61,30 +61,25 @@ export function setupNativeLogListener(callback: (log: NativeLogEntry) => void):
 }
 
 /**
- * Default handler for native logs that logs to the JS console.
+ * Default handler for native logs that uses Sentry's debug logger.
+ * This avoids interference with captureConsoleIntegration which would
+ * otherwise capture these logs as breadcrumbs or events.
  */
 export function defaultNativeLogHandler(log: NativeLogEntry): void {
-  const prefix = `[Sentry] [${log.level.toUpperCase()}] [${log.component}]`;
-  const message = `${prefix} ${log.message}`;
+  const message = `[Native] [${log.component}] ${log.message}`;
 
   switch (log.level.toLowerCase()) {
     case 'fatal':
     case 'error':
-      // eslint-disable-next-line no-console
-      console.error(message);
+      debug.error(message);
       break;
     case 'warning':
-      // eslint-disable-next-line no-console
-      console.warn(message);
+      debug.warn(message);
       break;
     case 'info':
-      // eslint-disable-next-line no-console
-      console.info(message);
-      break;
     case 'debug':
     default:
-      // eslint-disable-next-line no-console
-      console.log(message);
+      debug.log(message);
       break;
   }
 }
