@@ -8,6 +8,8 @@
 
 ## Unreleased
 
+### Features
+
 - Expose iOS options to ignore views from subtree traversal in version 8 ([#5663](https://github.com/getsentry/sentry-react-native/pull/5663))
   - Use `includedViewClasses` to only traverse specific view classes, or `excludedViewClasses` to skip problematic view classes during session replay and screenshot capture
   ```js
