@@ -1,6 +1,8 @@
 #!/bin/bash
 # Upload Debug Symbols to Sentry Xcode Build Phase
 # PWD=ios
+#
+# Configuration: See BUILD_CONFIGURATION.md for all available environment variables
 
 # print commands before executing them
 set -x
@@ -64,6 +66,7 @@ wait_for_dsym_files() {
   local max_attempts="${SENTRY_DSYM_WAIT_MAX_ATTEMPTS:-10}"
   local wait_interval="${SENTRY_DSYM_WAIT_INTERVAL:-2}"
   local attempt=1
+  local total_wait_time=0
 
   # Check if we should wait for dSYM files
   if [ "$SENTRY_DSYM_WAIT_ENABLED" == "false" ]; then
@@ -179,13 +182,14 @@ wait_for_dsym_files() {
 
       echo "Waiting ${current_interval}s for dSYM generation to complete..."
       sleep $current_interval
+      total_wait_time=$(awk "BEGIN {print $total_wait_time + $current_interval}")
     fi
 
     attempt=$((attempt + 1))
   done
 
   # Timeout reached
-  echo "warning: Timeout waiting for dSYM files after $((max_attempts * wait_interval))s"
+  echo "warning: Timeout waiting for dSYM files after ${total_wait_time}s ($max_attempts attempts)"
   echo "warning: This may result in incomplete debug symbol uploads"
   echo "warning: To disable this check, set SENTRY_DSYM_WAIT_ENABLED=false"
   return 1
