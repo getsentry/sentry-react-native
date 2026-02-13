@@ -27,6 +27,9 @@
 
     NSString *qualityString = options[@"replaysSessionQuality"];
 
+    NSArray *includedViewClasses = replayOptions[@"includedViewClasses"];
+    NSArray *excludedViewClasses = replayOptions[@"excludedViewClasses"];
+
     [options setValue:@{
         @"sessionSampleRate" : sessionSampleRate ?: [NSNull null],
         @"errorSampleRate" : errorSampleRate ?: [NSNull null],
@@ -36,6 +39,8 @@
         @"enableViewRendererV2" : replayOptions[@"enableViewRendererV2"] ?: [NSNull null],
         @"enableFastViewRendering" : replayOptions[@"enableFastViewRendering"] ?: [NSNull null],
         @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
+        @"includedViewClasses" : includedViewClasses ?: [NSNull null],
+        @"excludedViewClasses" : excludedViewClasses ?: [NSNull null],
         @"sdkInfo" :
             @ { @"name" : REACT_NATIVE_SDK_NAME, @"version" : REACT_NATIVE_SDK_PACKAGE_VERSION }
     }
