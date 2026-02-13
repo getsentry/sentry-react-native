@@ -330,7 +330,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+        let actualOptions = try! PrivateSentrySDKOnly.options(with: optionsDict as! [String: Any])
 
         let includedViewClasses = actualOptions.sessionReplay.includedViewClasses
         XCTAssertEqual(includedViewClasses.count, 3)
@@ -348,7 +348,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+        let actualOptions = try! PrivateSentrySDKOnly.options(with: optionsDict as! [String: Any])
 
         let excludedViewClasses = actualOptions.sessionReplay.excludedViewClasses
         XCTAssertEqual(excludedViewClasses.count, 3)
@@ -369,7 +369,7 @@ final class RNSentryReplayOptions: XCTestCase {
 
         RNSentryReplay.updateOptions(optionsDict)
 
-        let actualOptions = try! SentryOptionsInternal.initWithDict(optionsDict as! [String: Any])
+        let actualOptions = try! PrivateSentrySDKOnly.options(with: optionsDict as! [String: Any])
 
         let includedViewClasses = actualOptions.sessionReplay.includedViewClasses
         XCTAssertEqual(includedViewClasses.count, 2)
