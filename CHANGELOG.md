@@ -6,6 +6,24 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+- Expose iOS options to ignore views from subtree traversal in version 8 ([#5663](https://github.com/getsentry/sentry-react-native/pull/5663))
+  - Use `includedViewClasses` to only traverse specific view classes, or `excludedViewClasses` to skip problematic view classes during session replay and screenshot capture
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    replaysSessionSampleRate: 1.0,
+    integrations: [
+      Sentry.mobileReplayIntegration({
+        includedViewClasses: ['UILabel', 'UIView', 'MyCustomView'],
+        excludedViewClasses: ['WKWebView', 'UIWebView'],
+      }),
+    ],
+  });
+  ```
+
 ## 8.0.0
 
 ### Upgrading from 7.x to 8.0
