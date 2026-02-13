@@ -26,6 +26,10 @@
   });
   ```
 
+### Fixes
+
+- Fix race condition where iOS dSYM upload runs before debug symbols are fully generated ([#5653](https://github.com/getsentry/sentry-react-native/pull/5653))
+
 ## 8.0.0
 
 ### Upgrading from 7.x to 8.0
