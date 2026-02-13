@@ -1,6 +1,8 @@
 #!/bin/bash
 # Upload Debug Symbols to Sentry Xcode Build Phase
 # PWD=ios
+#
+# Configuration: See BUILD_CONFIGURATION.md for all available environment variables
 
 # print commands before executing them
 set -x
@@ -58,6 +60,141 @@ EXTRA_ARGS="$SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_DEBUG_FILES_UPLOAD_EXTRA_ARGS $IN
 
 UPLOAD_DEBUG_FILES="\"$SENTRY_CLI_EXECUTABLE\" debug-files upload $EXTRA_ARGS \"$DWARF_DSYM_FOLDER_PATH\""
 
+# Function to wait for dSYM files to be generated
+# This addresses a race condition where the upload script runs before dSYM generation completes
+wait_for_dsym_files() {
+  local max_attempts="${SENTRY_DSYM_WAIT_MAX_ATTEMPTS:-10}"
+  local wait_interval="${SENTRY_DSYM_WAIT_INTERVAL:-2}"
+  local attempt=1
+  local total_wait_time=0
+
+  # Check if we should wait for dSYM files
+  if [ "$SENTRY_DSYM_WAIT_ENABLED" == "false" ]; then
+    echo "SENTRY_DSYM_WAIT_ENABLED=false, skipping dSYM wait check"
+    return 0
+  fi
+
+  # Warn if DWARF_DSYM_FILE_NAME is not set - we can't verify the main app dSYM
+  if [ -z "$DWARF_DSYM_FILE_NAME" ]; then
+    echo "warning: DWARF_DSYM_FILE_NAME not set, cannot verify main app dSYM specifically"
+    echo "warning: Will proceed when any dSYM bundle is found"
+  fi
+
+  echo "Checking for dSYM files in: $DWARF_DSYM_FOLDER_PATH"
+
+  # Debug information to help diagnose issues
+  if [ -n "${SENTRY_DSYM_DEBUG}" ]; then
+    echo "DEBUG: DWARF_DSYM_FOLDER_PATH=$DWARF_DSYM_FOLDER_PATH"
+    echo "DEBUG: DWARF_DSYM_FILE_NAME=$DWARF_DSYM_FILE_NAME"
+    echo "DEBUG: PRODUCT_NAME=$PRODUCT_NAME"
+    if [ -d "$DWARF_DSYM_FOLDER_PATH" ]; then
+      echo "DEBUG: Contents of dSYM folder:"
+      ls -la "$DWARF_DSYM_FOLDER_PATH" 2>/dev/null || echo "Cannot list folder"
+    else
+      echo "DEBUG: dSYM folder does not exist yet"
+    fi
+  fi
+
+  while [ $attempt -le $max_attempts ]; do
+    # Check if the dSYM folder exists
+    if [ -d "$DWARF_DSYM_FOLDER_PATH" ]; then
+      # Check if there are any .dSYM bundles in the folder
+      local dsym_count=$(find "$DWARF_DSYM_FOLDER_PATH" -name "*.dSYM" -type d 2>/dev/null | wc -l | tr -d ' ')
+
+      if [ "$dsym_count" -gt 0 ]; then
+        echo "Found $dsym_count dSYM bundle(s) in $DWARF_DSYM_FOLDER_PATH"
+
+        # If DWARF_DSYM_FILE_NAME is set, verify the main app dSYM exists and is complete
+        if [ -n "$DWARF_DSYM_FILE_NAME" ]; then
+          local main_dsym="$DWARF_DSYM_FOLDER_PATH/$DWARF_DSYM_FILE_NAME"
+
+          if [ -d "$main_dsym" ]; then
+            # Directory exists, now verify the actual DWARF binary exists inside
+            local dwarf_dir="$main_dsym/Contents/Resources/DWARF"
+
+            if [ -d "$dwarf_dir" ]; then
+              # Check if there are any files in the DWARF directory
+              local dwarf_files=$(find "$dwarf_dir" -type f 2>/dev/null | head -1)
+
+              if [ -n "$dwarf_files" ]; then
+                # Verify the DWARF file is not empty (still being written)
+                local dwarf_size=$(find "$dwarf_dir" -type f -size +0 2>/dev/null | head -1)
+
+                if [ -n "$dwarf_size" ]; then
+                  echo "Verified main app dSYM is complete: $DWARF_DSYM_FILE_NAME"
+                  return 0
+                else
+                  echo "Main app dSYM DWARF binary is empty (still being written): $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
+                fi
+              else
+                echo "Main app dSYM DWARF directory is empty: $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
+              fi
+            else
+              echo "Main app dSYM structure incomplete (missing DWARF directory): $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
+            fi
+          else
+            echo "Main app dSYM not found yet: $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
+          fi
+        else
+          # DWARF_DSYM_FILE_NAME not set, check if any dSYM has valid DWARF content
+          # This is less strict but better than nothing
+          local has_valid_dsym=false
+          for dsym in "$DWARF_DSYM_FOLDER_PATH"/*.dSYM; do
+            if [ -d "$dsym/Contents/Resources/DWARF" ]; then
+              local dwarf_files=$(find "$dsym/Contents/Resources/DWARF" -type f -size +0 2>/dev/null | head -1)
+              if [ -n "$dwarf_files" ]; then
+                has_valid_dsym=true
+                break
+              fi
+            fi
+          done
+
+          if [ "$has_valid_dsym" = true ]; then
+            echo "Found dSYM bundle(s) with valid DWARF content"
+            return 0
+          else
+            echo "Found dSYM bundle(s) but none have complete DWARF content yet (attempt $attempt/$max_attempts)"
+          fi
+        fi
+      else
+        echo "No dSYM bundles found yet in $DWARF_DSYM_FOLDER_PATH (attempt $attempt/$max_attempts)"
+      fi
+    else
+      echo "dSYM folder does not exist yet: $DWARF_DSYM_FOLDER_PATH (attempt $attempt/$max_attempts)"
+    fi
+
+    if [ $attempt -lt $max_attempts ]; then
+      # Progressive backoff: quick checks first, longer waits later
+      # Attempts 1-3: 0.5s (total 1.5s)
+      # Attempts 4-6: 1s (total 3s)
+      # Attempts 7+: 2s (remaining time)
+      local current_interval="$wait_interval"
+      if [ -z "${SENTRY_DSYM_WAIT_INTERVAL}" ]; then
+        # Only use progressive intervals if user hasn't set custom interval
+        if [ $attempt -le 3 ]; then
+          current_interval=0.5
+        elif [ $attempt -le 6 ]; then
+          current_interval=1
+        else
+          current_interval=2
+        fi
+      fi
+
+      echo "Waiting ${current_interval}s for dSYM generation to complete..."
+      sleep $current_interval
+      total_wait_time=$(awk "BEGIN {print $total_wait_time + $current_interval}")
+    fi
+
+    attempt=$((attempt + 1))
+  done
+
+  # Timeout reached
+  echo "warning: Timeout waiting for dSYM files after ${total_wait_time}s ($max_attempts attempts)"
+  echo "warning: This may result in incomplete debug symbol uploads"
+  echo "warning: To disable this check, set SENTRY_DSYM_WAIT_ENABLED=false"
+  return 1
+}
+
 XCODE_BUILD_CONFIGURATION="${CONFIGURATION}"
 
 if [ "$SENTRY_DISABLE_AUTO_UPLOAD" == true ]; then
@@ -67,6 +204,12 @@ elif [ "$SENTRY_DISABLE_XCODE_DEBUG_UPLOAD" == true ]; then
 elif echo "$XCODE_BUILD_CONFIGURATION" | grep -iq "debug"; then # case insensitive check for "debug"
   echo "Skipping debug files upload for *Debug* configuration"
 else
+  # Wait for dSYM files to be generated (addresses race condition in EAS builds)
+  # Don't fail the script if wait times out - we still want to attempt upload
+  set +e
+  wait_for_dsym_files
+  set -e
+
   # 'warning:' triggers a warning in Xcode, 'error:' triggers an error
   set +x +e # disable printing commands otherwise we might print `error:` by accident and allow continuing on error
   SENTRY_UPLOAD_COMMAND_OUTPUT=$(/bin/sh -c "\"$LOCAL_NODE_BINARY\" $UPLOAD_DEBUG_FILES" 2>&1)
