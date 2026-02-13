@@ -156,7 +156,7 @@ if (actions.includes('create')) {
     env: Object.assign(env, { YARN_ENABLE_IMMUTABLE_INSTALLS: false }),
   });
 
-  // Patch react-native-launch-arguments for Gradle 9+ compatibility
+  // Patch react-native-launch-arguments for Gradle 9+ compatibility (Android) and React Native 0.84+ compatibility (iOS)
   execSync(`${patchScriptsDir}/rn.patch.launch-arguments.js --app-dir .`, {
     stdio: 'inherit',
     cwd: appDir,
@@ -188,6 +188,14 @@ if (actions.includes('create')) {
       cwd: `${appDir}/ios`,
       env: env,
     });
+
+    // Clean Pods to ensure CocoaPods reads the patched podspec
+    if (fs.existsSync(`${appDir}/ios/Pods`)) {
+      fs.rmSync(`${appDir}/ios/Pods`, { recursive: true });
+    }
+    if (fs.existsSync(`${appDir}/ios/Podfile.lock`)) {
+      fs.rmSync(`${appDir}/ios/Podfile.lock`);
+    }
 
     if (fs.existsSync(`${appDir}/Gemfile`)) {
       execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });

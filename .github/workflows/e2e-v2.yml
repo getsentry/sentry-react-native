@@ -189,7 +189,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.71.19', '0.83.0']
+        rn-version: ['0.71.19', '0.84.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -202,13 +202,13 @@ jobs:
             runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
-            rn-version: '0.83.0'
+            rn-version: '0.84.0'
             runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.83.0'
+          - rn-version: '0.84.0'
             engine: 'jsc'
           # exclude all rn versions lower than 0.80.0 for new architecture
           - rn-version: '0.71.19'
@@ -323,7 +323,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.83.0']
+        rn-version: ['0.84.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -331,7 +331,7 @@ jobs:
         engine: ['hermes']
         include:
           - platform: ios
-            rn-version: '0.83.0'
+            rn-version: '0.84.0'
             runs-on:  macos-26
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
