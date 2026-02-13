@@ -44,7 +44,7 @@ if (!fs.existsSync(buildGradlePath)) {
 }
 
 // Patch iOS podspec for React Native 0.71+ compatibility
-// Replace 'React' with 'React-Core' to fix RCTRegisterModule undefined symbol error in RN 0.84+ with dynamic frameworks
+// Replace 'React' with install_modules_dependencies() to fix RCTRegisterModule undefined symbol error in RN 0.84+ with dynamic frameworks
 const podspecPath = path.join(
   args['app-dir'],
   'node_modules',
@@ -58,23 +58,36 @@ if (fs.existsSync(podspecPath)) {
   const podspec = fs.readFileSync(podspecPath, 'utf8');
   debug.log('Found podspec, checking for React dependency...');
 
-  const isPatched = podspec.includes("s.dependency 'React-Core'") || podspec.includes('s.dependency "React-Core"');
+  // Check if already patched with install_modules_dependencies
+  const isPatched = podspec.includes('install_modules_dependencies');
   const hasReactDep = /s\.dependency\s+['"]React['"]/.test(podspec);
   const hasReactCoreDep = /s\.dependency\s+['"]React\/Core['"]/.test(podspec);
+  const hasReactCoreDepOnly = podspec.includes("s.dependency 'React-Core'") || podspec.includes('s.dependency "React-Core"');
 
-  debug.log(`Podspec status: isPatched=${isPatched}, hasReactDep=${hasReactDep}, hasReactCoreDep=${hasReactCoreDep}`);
+  debug.log(`Podspec status: isPatched=${isPatched}, hasReactDep=${hasReactDep}, hasReactCoreDep=${hasReactCoreDep}, hasReactCoreDepOnly=${hasReactCoreDepOnly}`);
 
-  if (!isPatched && (hasReactDep || hasReactCoreDep)) {
+  if (!isPatched && (hasReactDep || hasReactCoreDep || hasReactCoreDepOnly)) {
     let patched = podspec;
 
-    if (hasReactDep) {
-      debug.log("Replacing s.dependency 'React' with s.dependency 'React-Core'");
-      patched = patched.replace(/s\.dependency\s+['"]React['"]/g, "s.dependency 'React-Core'");
-    }
+    // Replace any React dependency with install_modules_dependencies(s)
+    // This is the modern approach that works with all framework configurations (static, dynamic, etc.)
+    // and automatically includes the correct React Native dependencies
+    const installModulesDepsBlock = `
+  if defined? install_modules_dependencies
+    install_modules_dependencies(s)
+  else
+    s.dependency "React-Core"
+  end`;
 
-    if (hasReactCoreDep) {
-      debug.log("Replacing s.dependency 'React/Core' with s.dependency 'React-Core'");
-      patched = patched.replace(/s\.dependency\s+['"]React\/Core['"]/g, "s.dependency 'React-Core'");
+    if (hasReactDep) {
+      debug.log("Replacing s.dependency 'React' with install_modules_dependencies(s)");
+      patched = patched.replace(/\s+s\.dependency\s+['"]React['"]\s*\n/g, installModulesDepsBlock + '\n');
+    } else if (hasReactCoreDep) {
+      debug.log("Replacing s.dependency 'React/Core' with install_modules_dependencies(s)");
+      patched = patched.replace(/\s+s\.dependency\s+['"]React\/Core['"]\s*\n/g, installModulesDepsBlock + '\n');
+    } else if (hasReactCoreDepOnly) {
+      debug.log("Replacing s.dependency 'React-Core' with install_modules_dependencies(s)");
+      patched = patched.replace(/\s+s\.dependency\s+['"]React-Core['"]\s*\n/g, installModulesDepsBlock + '\n');
     }
 
     fs.writeFileSync(podspecPath, patched);
@@ -82,7 +95,7 @@ if (fs.existsSync(podspecPath)) {
   } else if (isPatched) {
     debug.log('react-native-launch-arguments podspec is already patched!');
   } else {
-    debug.log('Podspec does not contain React dependency - may use install_modules_dependencies');
+    debug.log('Podspec does not contain React dependency - may already use install_modules_dependencies');
   }
 } else {
   debug.log('podspec not found, skipping iOS patch');
