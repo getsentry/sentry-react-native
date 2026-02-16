@@ -26,6 +26,12 @@
   });
   ```
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.38.0 to v10.39.0 ([#5674](https://github.com/getsentry/sentry-react-native/pull/5674))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10390)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.38.0...10.39.0)
+
 ## 8.0.0
 
 ### Upgrading from 7.x to 8.0
