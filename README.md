@@ -24,6 +24,8 @@ This repo uses the following ways to release SDK updates:
 - `Latest`: We continuously release major/minor/hotfix versions from the `main` branch. These releases go through all our internal quality gates and are very safe to use and intended to be the default for most teams.
 - `Stable`: We promote releases from `Latest` when they have been used in the field for some time and in scale, considering time since release, adoption, and other quality and stability metrics. These releases will be indicated on [the releases page](https://github.com/getsentry/sentry-react-native/releases/) with the `Stable` suffix.
 
+For a list of which SDK versions are bundled with each release, see [SDK-VERSIONS.md](SDK-VERSIONS.md).
+
 ## Requirements
 
 - `react-native >= 0.65.0`
