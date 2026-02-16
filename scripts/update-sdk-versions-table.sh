@@ -16,8 +16,12 @@ echo "  Android SDK: $ANDROID_VERSION"
 echo "  Cocoa SDK: $COCOA_VERSION"
 echo "  JavaScript SDK: $JS_VERSION"
 
-# Create the new row
-NEW_ROW="| $RN_VERSION | $ANDROID_VERSION | $COCOA_VERSION | $JS_VERSION |"
+# Create the new row with GitHub release links for all SDKs
+RN_RELEASE_URL="https://github.com/getsentry/sentry-react-native/releases/tag/$RN_VERSION"
+ANDROID_RELEASE_URL="https://github.com/getsentry/sentry-java/releases/tag/$ANDROID_VERSION"
+COCOA_RELEASE_URL="https://github.com/getsentry/sentry-cocoa/releases/tag/$COCOA_VERSION"
+JS_RELEASE_URL="https://github.com/getsentry/sentry-javascript/releases/tag/$JS_VERSION"
+NEW_ROW="| [$RN_VERSION]($RN_RELEASE_URL) | [$ANDROID_VERSION]($ANDROID_RELEASE_URL) | [$COCOA_VERSION]($COCOA_RELEASE_URL) | [$JS_VERSION]($JS_RELEASE_URL) |"
 
 # Check if the docs file exists
 if [ ! -f "$DOCS_FILE" ]; then
@@ -35,25 +39,27 @@ To manually update the table with the current version, run \`./scripts/update-sd
 
 ## Versions
 
-| Sentry React Native SDK | Sentry Android SDK | Sentry Cocoa SDK | Sentry JavaScript SDK |
-| ----------------------- | ------------------ | ---------------- | --------------------- |
+| React Native SDK | Android SDK | Cocoa SDK | JavaScript SDK |
+| ---------------- | ----------- | --------- | -------------- |
 $NEW_ROW
 EOF
     echo "Created $DOCS_FILE with initial version entry"
 else
     # Check if this version already exists in the table
-    if grep -q "^| $RN_VERSION |" "$DOCS_FILE"; then
+    if grep -q "\[$RN_VERSION\](" "$DOCS_FILE"; then
         echo "Version $RN_VERSION already exists in the table. Updating it..."
-        # Update the existing row
-        awk -v new_row="$NEW_ROW" -v rn_version="$RN_VERSION" '
-            /^\| [0-9]/ {
-                if ($2 == rn_version) {
-                    print new_row
-                    next
-                }
+        # Remove the old version line and add the new one at the top
+        grep -v "\[$RN_VERSION\](" "$DOCS_FILE" | \
+        awk -v new_row="$NEW_ROW" '
+            /^\| React Native SDK \|/ {
+                print
+                getline
+                print
+                print new_row
+                next
             }
             { print }
-        ' "$DOCS_FILE" > "$DOCS_FILE.tmp"
+        ' > "$DOCS_FILE.tmp"
         mv "$DOCS_FILE.tmp" "$DOCS_FILE"
         echo "Updated version $RN_VERSION in $DOCS_FILE"
     else
@@ -61,7 +67,7 @@ else
         # Find the header separator line and insert the new row after it
         awk -v new_row="$NEW_ROW" '
             BEGIN { added = 0 }
-            /^\| Sentry React Native SDK \|/ && added == 0 {
+            /^\| React Native SDK \|/ && added == 0 {
                 print
                 getline
                 print
