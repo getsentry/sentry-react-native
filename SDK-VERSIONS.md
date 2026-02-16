@@ -8,9 +8,9 @@ The SDK versions table is automatically updated during each release via the `cra
 
 To manually update the table with the current version, run `./scripts/update-sdk-versions-table.sh` from the repository root directory.
 
-## Versions
+## Sentry SDK Versions
 
-| Sentry React Native SDK | Sentry Android SDK | Sentry Cocoa SDK | Sentry JavaScript SDK |
+| React Native SDK | Android SDK | Cocoa SDK | JavaScript SDK |
 | ----------------------- | ------------------ | ---------------- | --------------------- |
 | 8.0.0 | 8.32.0 | 9.4.1 | 10.38.0 |
 | 7.13.0 | 8.32.0 | 8.58.0 | 10.38.0 |
