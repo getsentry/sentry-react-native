@@ -18,8 +18,13 @@ get-repo)
     echo "https://github.com/getsentry/sentry-java.git"
     ;;
 set-version)
-    newValue="${BASH_REMATCH[1]}$2"
-    echo "${content/${BASH_REMATCH[0]}/$newValue}" >$file
+    # Update all io.sentry dependencies to the same version
+    newContent="$content"
+    # Update sentry-android
+    newContent=$(echo "$newContent" | sed -E "s/(io\.sentry:sentry-android:)([0-9\.]+)/\1$2/g")
+    # Update sentry-spotlight
+    newContent=$(echo "$newContent" | sed -E "s/(io\.sentry:sentry-spotlight:)([0-9\.]+)/\1$2/g")
+    echo "$newContent" >$file
     ;;
 *)
     echo "Unknown argument $1"
