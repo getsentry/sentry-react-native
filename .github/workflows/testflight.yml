@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - alwx/ci/macos-tahoe-cl-runners
 
   pull_request:
     paths:
