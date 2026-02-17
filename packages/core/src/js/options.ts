@@ -184,7 +184,10 @@ export interface BaseReactNativeOptions {
    *
    * More details: https://spotlightjs.com/
    *
-   * IMPORTANT: Only set this option to `true` while developing, not in production!
+   * NOTE: Spotlight is automatically disabled in production builds (when __DEV__ is false).
+   * If you need Spotlight in non-development environments, you must manually add
+   * spotlightIntegration() to your integrations array. However, this is not recommended
+   * as Spotlight requires a local Sidecar server and is designed for development only.
    */
   spotlight?: boolean | string;
 
