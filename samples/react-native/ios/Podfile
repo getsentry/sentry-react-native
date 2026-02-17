@@ -61,5 +61,15 @@ target 'sentryreactnativesample' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Fix for Xcode 26+ which removed swiftCompatibility56 libraries.
+    # Override Swift version for Sentry to avoid compatibility shim references.
+    installer.pods_project.targets.each do |target|
+      if target.name == 'Sentry'
+        target.build_configurations.each do |config|
+          config.build_settings['SWIFT_VERSION'] = '6.0'
+        end
+      end
+    end
   end
 end
