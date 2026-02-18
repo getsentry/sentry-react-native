@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add `enableTombstone` option for improved native crash reporting on Android 12+ ([#5676](https://github.com/getsentry/sentry-react-native/pull/5676))
+- Add `enableTombstone` option for improved native crash reporting on Android 12+ ([#5680](https://github.com/getsentry/sentry-react-native/pull/5680))
   - When enabled, uses Android's `ApplicationExitInfo.REASON_CRASH_NATIVE` to capture native crashes with more detailed thread information
   ```js
   import * as Sentry from '@sentry/react-native';
