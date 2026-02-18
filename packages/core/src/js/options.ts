@@ -56,6 +56,16 @@ export interface BaseReactNativeOptions {
    */
   enableNdk?: boolean;
 
+  /**
+   * When enabled, the SDK captures native crashes using Android's ApplicationExitInfo
+   * (REASON_CRASH_NATIVE) available on Android 12+. This provides more detailed crash
+   * information including thread details.
+   *
+   * @default false
+   * @platform android
+   */
+  enableTombstone?: boolean;
+
   /** Enable scope sync from Java to NDK on Android
    * Only has an effect if `enableNdk` is `true`.
    *
