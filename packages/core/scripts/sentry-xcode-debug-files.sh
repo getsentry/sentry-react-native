@@ -58,6 +58,73 @@ EXTRA_ARGS="$SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_DEBUG_FILES_UPLOAD_EXTRA_ARGS $IN
 
 UPLOAD_DEBUG_FILES="\"$SENTRY_CLI_EXECUTABLE\" debug-files upload $EXTRA_ARGS \"$DWARF_DSYM_FOLDER_PATH\""
 
+# Check if dSYM files are fully generated and ready to upload.
+# Returns 0 (ready) or 1 (not ready yet), printing a status message in either case.
+_sentry_check_dsym_ready() {
+  local dsym_folder="$1"
+  local dsym_file_name="$2"
+  local attempt="$3"
+  local max_attempts="$4"
+
+  if [ ! -d "$dsym_folder" ]; then
+    echo "dSYM folder does not exist yet: $dsym_folder (attempt $attempt/$max_attempts)"
+    return 1
+  fi
+
+  local dsym_count
+  dsym_count=$(find "$dsym_folder" -name "*.dSYM" -type d 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$dsym_count" -eq 0 ]; then
+    echo "No dSYM bundles found yet in $dsym_folder (attempt $attempt/$max_attempts)"
+    return 1
+  fi
+
+  echo "Found $dsym_count dSYM bundle(s) in $dsym_folder"
+
+  # DWARF_DSYM_FILE_NAME not set: check if any dSYM has valid DWARF content
+  if [ -z "$dsym_file_name" ]; then
+    for dsym in "$dsym_folder"/*.dSYM; do
+      local dwarf_file
+      dwarf_file=$(find "$dsym/Contents/Resources/DWARF" -type f -size +0 2>/dev/null | head -1)
+      if [ -n "$dwarf_file" ]; then
+        echo "Found dSYM bundle(s) with valid DWARF content"
+        return 0
+      fi
+    done
+    echo "Found dSYM bundle(s) but none have complete DWARF content yet (attempt $attempt/$max_attempts)"
+    return 1
+  fi
+
+  # DWARF_DSYM_FILE_NAME set: verify the main app dSYM is complete
+  local main_dsym="$dsym_folder/$dsym_file_name"
+  if [ ! -d "$main_dsym" ]; then
+    echo "Main app dSYM not found yet: $dsym_file_name (attempt $attempt/$max_attempts)"
+    return 1
+  fi
+
+  local dwarf_dir="$main_dsym/Contents/Resources/DWARF"
+  if [ ! -d "$dwarf_dir" ]; then
+    echo "Main app dSYM structure incomplete (missing DWARF directory): $dsym_file_name (attempt $attempt/$max_attempts)"
+    return 1
+  fi
+
+  local dwarf_files
+  dwarf_files=$(find "$dwarf_dir" -type f 2>/dev/null | head -1)
+  if [ -z "$dwarf_files" ]; then
+    echo "Main app dSYM DWARF directory is empty: $dsym_file_name (attempt $attempt/$max_attempts)"
+    return 1
+  fi
+
+  local dwarf_size
+  dwarf_size=$(find "$dwarf_dir" -type f -size +0 2>/dev/null | head -1)
+  if [ -z "$dwarf_size" ]; then
+    echo "Main app dSYM DWARF binary is empty (still being written): $dsym_file_name (attempt $attempt/$max_attempts)"
+    return 1
+  fi
+
+  echo "Verified main app dSYM is complete: $dsym_file_name"
+  return 0
+}
+
 # Function to wait for dSYM files to be generated
 # This addresses a race condition where the upload script runs before dSYM generation completes
 wait_for_dsym_files() {
@@ -94,71 +161,8 @@ wait_for_dsym_files() {
   fi
 
   while [ $attempt -le $max_attempts ]; do
-    # Check if the dSYM folder exists
-    if [ -d "$DWARF_DSYM_FOLDER_PATH" ]; then
-      # Check if there are any .dSYM bundles in the folder
-      local dsym_count=$(find "$DWARF_DSYM_FOLDER_PATH" -name "*.dSYM" -type d 2>/dev/null | wc -l | tr -d ' ')
-
-      if [ "$dsym_count" -gt 0 ]; then
-        echo "Found $dsym_count dSYM bundle(s) in $DWARF_DSYM_FOLDER_PATH"
-
-        # If DWARF_DSYM_FILE_NAME is set, verify the main app dSYM exists and is complete
-        if [ -n "$DWARF_DSYM_FILE_NAME" ]; then
-          local main_dsym="$DWARF_DSYM_FOLDER_PATH/$DWARF_DSYM_FILE_NAME"
-
-          if [ -d "$main_dsym" ]; then
-            # Directory exists, now verify the actual DWARF binary exists inside
-            local dwarf_dir="$main_dsym/Contents/Resources/DWARF"
-
-            if [ -d "$dwarf_dir" ]; then
-              # Check if there are any files in the DWARF directory
-              local dwarf_files=$(find "$dwarf_dir" -type f 2>/dev/null | head -1)
-
-              if [ -n "$dwarf_files" ]; then
-                # Verify the DWARF file is not empty (still being written)
-                local dwarf_size=$(find "$dwarf_dir" -type f -size +0 2>/dev/null | head -1)
-
-                if [ -n "$dwarf_size" ]; then
-                  echo "Verified main app dSYM is complete: $DWARF_DSYM_FILE_NAME"
-                  return 0
-                else
-                  echo "Main app dSYM DWARF binary is empty (still being written): $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
-                fi
-              else
-                echo "Main app dSYM DWARF directory is empty: $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
-              fi
-            else
-              echo "Main app dSYM structure incomplete (missing DWARF directory): $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
-            fi
-          else
-            echo "Main app dSYM not found yet: $DWARF_DSYM_FILE_NAME (attempt $attempt/$max_attempts)"
-          fi
-        else
-          # DWARF_DSYM_FILE_NAME not set, check if any dSYM has valid DWARF content
-          # This is less strict but better than nothing
-          local has_valid_dsym=false
-          for dsym in "$DWARF_DSYM_FOLDER_PATH"/*.dSYM; do
-            if [ -d "$dsym/Contents/Resources/DWARF" ]; then
-              local dwarf_files=$(find "$dsym/Contents/Resources/DWARF" -type f -size +0 2>/dev/null | head -1)
-              if [ -n "$dwarf_files" ]; then
-                has_valid_dsym=true
-                break
-              fi
-            fi
-          done
-
-          if [ "$has_valid_dsym" = true ]; then
-            echo "Found dSYM bundle(s) with valid DWARF content"
-            return 0
-          else
-            echo "Found dSYM bundle(s) but none have complete DWARF content yet (attempt $attempt/$max_attempts)"
-          fi
-        fi
-      else
-        echo "No dSYM bundles found yet in $DWARF_DSYM_FOLDER_PATH (attempt $attempt/$max_attempts)"
-      fi
-    else
-      echo "dSYM folder does not exist yet: $DWARF_DSYM_FOLDER_PATH (attempt $attempt/$max_attempts)"
+    if _sentry_check_dsym_ready "$DWARF_DSYM_FOLDER_PATH" "$DWARF_DSYM_FILE_NAME" "$attempt" "$max_attempts"; then
+      return 0
     fi
 
     if [ $attempt -lt $max_attempts ]; then
