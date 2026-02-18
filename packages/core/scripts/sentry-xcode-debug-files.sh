@@ -1,8 +1,6 @@
 #!/bin/bash
 # Upload Debug Symbols to Sentry Xcode Build Phase
 # PWD=ios
-#
-# Configuration: See BUILD_CONFIGURATION.md for all available environment variables
 
 # print commands before executing them
 set -x
