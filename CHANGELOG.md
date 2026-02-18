@@ -10,6 +10,16 @@
 
 ### Features
 
+- Add `enableTombstone` option for improved native crash reporting on Android 12+ ([#5680](https://github.com/getsentry/sentry-react-native/pull/5680))
+  - When enabled, uses Android's `ApplicationExitInfo.REASON_CRASH_NATIVE` to capture native crashes with more detailed thread information
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    dsn: 'YOUR_DSN',
+    enableTombstone: true,
+  });
+  ```
 - Expose iOS options to ignore views from subtree traversal in version 8 ([#5663](https://github.com/getsentry/sentry-react-native/pull/5663))
   - Use `includedViewClasses` to only traverse specific view classes, or `excludedViewClasses` to skip problematic view classes during session replay and screenshot capture
   ```js
