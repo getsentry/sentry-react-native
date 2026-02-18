@@ -58,6 +58,13 @@ EXTRA_ARGS="$SENTRY_CLI_EXTRA_ARGS $SENTRY_CLI_DEBUG_FILES_UPLOAD_EXTRA_ARGS $IN
 
 UPLOAD_DEBUG_FILES="\"$SENTRY_CLI_EXECUTABLE\" debug-files upload $EXTRA_ARGS \"$DWARF_DSYM_FOLDER_PATH\""
 
+# Print a message only when SENTRY_DSYM_DEBUG is set
+_sentry_dsym_log() {
+  if [ -n "${SENTRY_DSYM_DEBUG}" ]; then
+    echo "$1"
+  fi
+}
+
 # Check if dSYM files are fully generated and ready to upload.
 # Returns 0 (ready) or 1 (not ready yet), printing a status message in either case.
 _sentry_check_dsym_ready() {
@@ -67,14 +74,14 @@ _sentry_check_dsym_ready() {
   local max_attempts="$4"
 
   if [ ! -d "$dsym_folder" ]; then
-    echo "dSYM folder does not exist yet: $dsym_folder (attempt $attempt/$max_attempts)"
+    _sentry_dsym_log "dSYM folder does not exist yet: $dsym_folder (attempt $attempt/$max_attempts)"
     return 1
   fi
 
   local dsym_count
   dsym_count=$(find "$dsym_folder" -name "*.dSYM" -type d 2>/dev/null | wc -l | tr -d ' ')
   if [ "$dsym_count" -eq 0 ]; then
-    echo "No dSYM bundles found yet in $dsym_folder (attempt $attempt/$max_attempts)"
+    _sentry_dsym_log "No dSYM bundles found yet in $dsym_folder (attempt $attempt/$max_attempts)"
     return 1
   fi
 
@@ -90,34 +97,34 @@ _sentry_check_dsym_ready() {
         return 0
       fi
     done
-    echo "Found dSYM bundle(s) but none have complete DWARF content yet (attempt $attempt/$max_attempts)"
+    _sentry_dsym_log "Found dSYM bundle(s) but none have complete DWARF content yet (attempt $attempt/$max_attempts)"
     return 1
   fi
 
   # DWARF_DSYM_FILE_NAME set: verify the main app dSYM is complete
   local main_dsym="$dsym_folder/$dsym_file_name"
   if [ ! -d "$main_dsym" ]; then
-    echo "Main app dSYM not found yet: $dsym_file_name (attempt $attempt/$max_attempts)"
+    _sentry_dsym_log "Main app dSYM not found yet: $dsym_file_name (attempt $attempt/$max_attempts)"
     return 1
   fi
 
   local dwarf_dir="$main_dsym/Contents/Resources/DWARF"
   if [ ! -d "$dwarf_dir" ]; then
-    echo "Main app dSYM structure incomplete (missing DWARF directory): $dsym_file_name (attempt $attempt/$max_attempts)"
+    _sentry_dsym_log "Main app dSYM structure incomplete (missing DWARF directory): $dsym_file_name (attempt $attempt/$max_attempts)"
     return 1
   fi
 
   local dwarf_files
   dwarf_files=$(find "$dwarf_dir" -type f 2>/dev/null | head -1)
   if [ -z "$dwarf_files" ]; then
-    echo "Main app dSYM DWARF directory is empty: $dsym_file_name (attempt $attempt/$max_attempts)"
+    _sentry_dsym_log "Main app dSYM DWARF directory is empty: $dsym_file_name (attempt $attempt/$max_attempts)"
     return 1
   fi
 
   local dwarf_size
   dwarf_size=$(find "$dwarf_dir" -type f -size +0 2>/dev/null | head -1)
   if [ -z "$dwarf_size" ]; then
-    echo "Main app dSYM DWARF binary is empty (still being written): $dsym_file_name (attempt $attempt/$max_attempts)"
+    _sentry_dsym_log "Main app dSYM DWARF binary is empty (still being written): $dsym_file_name (attempt $attempt/$max_attempts)"
     return 1
   fi
 
@@ -148,17 +155,9 @@ wait_for_dsym_files() {
   echo "Checking for dSYM files in: $DWARF_DSYM_FOLDER_PATH"
 
   # Debug information to help diagnose issues
-  if [ -n "${SENTRY_DSYM_DEBUG}" ]; then
-    echo "DEBUG: DWARF_DSYM_FOLDER_PATH=$DWARF_DSYM_FOLDER_PATH"
-    echo "DEBUG: DWARF_DSYM_FILE_NAME=$DWARF_DSYM_FILE_NAME"
-    echo "DEBUG: PRODUCT_NAME=$PRODUCT_NAME"
-    if [ -d "$DWARF_DSYM_FOLDER_PATH" ]; then
-      echo "DEBUG: Contents of dSYM folder:"
-      ls -la "$DWARF_DSYM_FOLDER_PATH" 2>/dev/null || echo "Cannot list folder"
-    else
-      echo "DEBUG: dSYM folder does not exist yet"
-    fi
-  fi
+  _sentry_dsym_log "DEBUG: DWARF_DSYM_FOLDER_PATH=$DWARF_DSYM_FOLDER_PATH"
+  _sentry_dsym_log "DEBUG: DWARF_DSYM_FILE_NAME=$DWARF_DSYM_FILE_NAME"
+  _sentry_dsym_log "DEBUG: PRODUCT_NAME=$PRODUCT_NAME"
 
   while [ $attempt -le $max_attempts ]; do
     if _sentry_check_dsym_ready "$DWARF_DSYM_FOLDER_PATH" "$DWARF_DSYM_FILE_NAME" "$attempt" "$max_attempts"; then

@@ -236,6 +236,7 @@ describe('sentry-xcode-debug-files.sh', () => {
         DWARF_DSYM_FILE_NAME: 'MainApp.app.dSYM', // Looking for this specific one
         SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
         SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
         MOCK_CLI_EXIT_CODE: '0',
       });
 
@@ -259,6 +260,7 @@ describe('sentry-xcode-debug-files.sh', () => {
         DWARF_DSYM_FILE_NAME: 'IncompleteApp.app.dSYM',
         SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
         SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
         MOCK_CLI_EXIT_CODE: '0',
       });
 
@@ -282,6 +284,7 @@ describe('sentry-xcode-debug-files.sh', () => {
         DWARF_DSYM_FILE_NAME: 'WritingApp.app.dSYM',
         SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
         SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
         MOCK_CLI_EXIT_CODE: '0',
       });
 
@@ -297,6 +300,7 @@ describe('sentry-xcode-debug-files.sh', () => {
         DWARF_DSYM_FOLDER_PATH: nonExistentPath,
         SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
         SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
         MOCK_CLI_EXIT_CODE: '0',
       });
 
