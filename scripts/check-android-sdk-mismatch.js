@@ -69,7 +69,7 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
     warn(
       createSectionWarning(
         'Android SDK Version Check',
-        '⚠️ Could not parse `sentryAndroidGradlePluginVersion` from withSentryAndroidGradlePlugin.ts',
+        'Could not parse `sentryAndroidGradlePluginVersion` from withSentryAndroidGradlePlugin.ts',
         '⚠️',
       ),
     );
@@ -93,7 +93,7 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
     warn(
       createSectionWarning(
         'Android SDK Version Check',
-        '⚠️ Could not parse `sentry-android` version from build.gradle',
+        'Could not parse `sentry-android` version from build.gradle',
         '⚠️',
       ),
     );
@@ -124,14 +124,14 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
     fail(
       createSectionWarning(
         'Android SDK Version Mismatch',
-          `| Component | Version |\n` +
+        `| Component | Version |\n` +
           `|-----------|--------|\n` +
           `| \`sentry-android\` in build.gradle | **${sdkVersion}** |\n` +
           `| \`sentry-android\` bundled by gradle plugin ${gradlePluginVersion} | **${bundledVersion}** |\n\n` +
           `This mismatch will cause crashes on Android with error:\n` +
           `> \`IllegalStateException: Sentry SDK has detected a mix of versions\`\n\n` +
           `**Fix:** Update \`packages/core/android/build.gradle\` to use version \`${bundledVersion}\` ` +
-          `or wait for a gradle plugin release that bundles \`${sdkVersion}\`.`,,
+          `or wait for a gradle plugin release that bundles \`${sdkVersion}\`.`,
       ),
     );
   } else {
