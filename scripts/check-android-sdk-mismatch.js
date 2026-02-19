@@ -5,7 +5,7 @@ const https = require('https');
 const GRADLE_PLUGIN_FILE = 'packages/core/plugin/src/withSentryAndroidGradlePlugin.ts';
 const BUILD_GRADLE_FILE = 'packages/core/android/build.gradle';
 
-const createSectionWarning = (title, content, icon = '🤖') => {
+const createSectionWarning = (title, content, icon = '❌') => {
   return `### ${icon} ${title}\n\n${content}\n`;
 };
 
@@ -124,7 +124,6 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
     fail(
       createSectionWarning(
         'Android SDK Version Mismatch',
-        `❌ **Version mismatch detected!**\n\n` +
           `| Component | Version |\n` +
           `|-----------|--------|\n` +
           `| \`sentry-android\` in build.gradle | **${sdkVersion}** |\n` +
@@ -132,8 +131,7 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
           `This mismatch will cause crashes on Android with error:\n` +
           `> \`IllegalStateException: Sentry SDK has detected a mix of versions\`\n\n` +
           `**Fix:** Update \`packages/core/android/build.gradle\` to use version \`${bundledVersion}\` ` +
-          `or wait for a gradle plugin release that bundles \`${sdkVersion}\`.`,
-        '❌',
+          `or wait for a gradle plugin release that bundles \`${sdkVersion}\`.`,,
       ),
     );
   } else {
