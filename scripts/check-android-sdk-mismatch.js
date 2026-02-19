@@ -44,12 +44,10 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
   const gradlePluginFileChanged = danger.git.modified_files.includes(GRADLE_PLUGIN_FILE);
   const buildGradleFileChanged = danger.git.modified_files.includes(BUILD_GRADLE_FILE);
 
-  /* Ignored for testing.
   if (!gradlePluginFileChanged && !buildGradleFileChanged) {
     console.log('Neither gradle plugin config nor build.gradle changed, skipping check.');
     return;
   }
-  */
 
   console.log('Running Android SDK version mismatch check...');
 
