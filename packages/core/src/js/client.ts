@@ -5,6 +5,7 @@ import type {
   Envelope,
   Event,
   EventHint,
+  Log,
   Outcome,
   SeverityLevel,
   TransportMakeRequestResponse,
@@ -22,6 +23,7 @@ import { Alert } from 'react-native';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
+import type { NativeLogEvent } from './NativeRNSentry';
 import type { ReactNativeClientOptions } from './options';
 import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
@@ -31,8 +33,6 @@ import { mergeOutcomes } from './utils/outcome';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { NATIVE } from './wrapper';
 
-const DEFAULT_FLUSH_INTERVAL = 5000;
-
 /**
  * The Sentry React Native SDK Client.
  *
@@ -41,7 +41,6 @@ const DEFAULT_FLUSH_INTERVAL = 5000;
  */
 export class ReactNativeClient extends Client<ReactNativeClientOptions> {
   private _outcomesBuffer: Outcome[];
-  private _logFlushIdleTimeout: ReturnType<typeof setTimeout> | undefined;
 
   /**
    * Creates a new React Native SDK instance.
@@ -82,18 +81,15 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
     }
 
     if (options.enableLogs) {
-      this.on('flush', () => {
-        _INTERNAL_flushLogsBuffer(this);
+      // Forward logs to native SDK for batching and lifecycle-aware flushing.
+      // Native SDKs handle flushing on background/termination to minimize data loss.
+      this.on('afterCaptureLog', (log: Log) => {
+        this._forwardLogToNative(log);
       });
 
-      this.on('afterCaptureLog', () => {
-        if (this._logFlushIdleTimeout) {
-          clearTimeout(this._logFlushIdleTimeout);
-        }
-
-        this._logFlushIdleTimeout = setTimeout(() => {
-          _INTERNAL_flushLogsBuffer(this);
-        }, DEFAULT_FLUSH_INTERVAL);
+      // Keep flush event handler as a fallback for explicit flush() calls
+      this.on('flush', () => {
+        _INTERNAL_flushLogsBuffer(this);
       });
     }
 
@@ -272,5 +268,72 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
 
       envelope[items].push(clientReportItem);
     }
+  }
+
+  /**
+   * Forwards a log to the native SDK for batching and lifecycle-aware flushing.
+   * Native SDKs handle flushing on background/termination to minimize data loss.
+   */
+  private _forwardLogToNative(log: Log): void {
+    if (!NATIVE.enableNative) {
+      return;
+    }
+
+    try {
+      // Extract message string from ParameterizedString
+      const messageStr = typeof log.message === 'string' ? log.message : log.message?.[0] || '';
+
+      const nativeLog: NativeLogEvent = {
+        timestamp: Date.now() / 1000,
+        level: log.level || 'info',
+        body: messageStr,
+        // traceId will be set by native SDK from current scope
+        traceId: '',
+        severityNumber: log.severityNumber,
+        attributes: this._convertLogAttributes(log.attributes),
+      };
+
+      NATIVE.captureLog(nativeLog);
+    } catch (e) {
+      debug.error('[ReactNativeClient] Failed to forward log to native:', e);
+    }
+  }
+
+  /**
+   * Converts log attributes to the format expected by the native SDK.
+   */
+  private _convertLogAttributes(
+    attributes: Record<string, unknown> | undefined,
+  ): Record<string, { type: string; value: unknown }> | undefined {
+    if (!attributes) {
+      return undefined;
+    }
+
+    const result: Record<string, { type: string; value: unknown }> = {};
+
+    for (const key in attributes) {
+      if (!Object.prototype.hasOwnProperty.call(attributes, key)) {
+        continue;
+      }
+
+      const value = attributes[key];
+
+      if (value === null || value === undefined) {
+        continue;
+      }
+
+      let type: string;
+      if (typeof value === 'boolean') {
+        type = 'boolean';
+      } else if (typeof value === 'number') {
+        type = Number.isInteger(value) ? 'integer' : 'double';
+      } else {
+        type = 'string';
+      }
+
+      result[key] = { type, value };
+    }
+
+    return Object.keys(result).length > 0 ? result : undefined;
   }
 }

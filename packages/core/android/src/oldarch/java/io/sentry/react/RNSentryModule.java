@@ -204,6 +204,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void captureLog(ReadableMap log) {
+    this.impl.captureLog(log);
+  }
+
+  @ReactMethod
   public void popTimeToDisplayFor(String key, Promise promise) {
     this.impl.popTimeToDisplayFor(key, promise);
   }

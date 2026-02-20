@@ -31,6 +31,7 @@ import com.facebook.react.bridge.WritableNativeMap;
 import io.sentry.Breadcrumb;
 import io.sentry.ILogger;
 import io.sentry.IScope;
+import io.sentry.ISentryClient;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.ScopesAdapter;
@@ -55,6 +56,10 @@ import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.User;
 import io.sentry.protocol.ViewHierarchy;
+import io.sentry.SentryLogEvent;
+import io.sentry.SentryLogEventAttributeValue;
+import io.sentry.SentryLogLevel;
+import io.sentry.SpanId;
 import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.FileUtils;
 import io.sentry.util.JsonSerializationUtils;
@@ -348,6 +353,136 @@ public class RNSentryModuleImpl {
       promise.resolve(false);
     }
     promise.resolve(true);
+  }
+
+  public void captureLog(ReadableMap log) {
+    if (log == null) {
+      return;
+    }
+
+    try {
+      String levelStr = log.hasKey("level") ? log.getString("level") : "info";
+      String body = log.hasKey("body") ? log.getString("body") : null;
+
+      if (body == null) {
+        return;
+      }
+
+      // Parse log level
+      SentryLogLevel level;
+      switch (levelStr != null ? levelStr : "info") {
+        case "trace":
+          level = SentryLogLevel.TRACE;
+          break;
+        case "debug":
+          level = SentryLogLevel.DEBUG;
+          break;
+        case "warn":
+          level = SentryLogLevel.WARN;
+          break;
+        case "error":
+          level = SentryLogLevel.ERROR;
+          break;
+        case "fatal":
+          level = SentryLogLevel.FATAL;
+          break;
+        case "info":
+        default:
+          level = SentryLogLevel.INFO;
+          break;
+      }
+
+      // Parse traceId
+      String traceIdStr = log.hasKey("traceId") ? log.getString("traceId") : null;
+      SentryId traceId =
+          traceIdStr != null && !traceIdStr.isEmpty()
+              ? new SentryId(traceIdStr)
+              : SentryId.EMPTY_ID;
+
+      // Parse timestamp (in seconds)
+      Double timestamp =
+          log.hasKey("timestamp") ? log.getDouble("timestamp") : System.currentTimeMillis() / 1000.0;
+
+      // Create the log event
+      SentryLogEvent logEvent = new SentryLogEvent(traceId, timestamp, body, level);
+
+      // Set spanId if provided
+      if (log.hasKey("spanId")) {
+        String spanIdStr = log.getString("spanId");
+        if (spanIdStr != null && !spanIdStr.isEmpty()) {
+          logEvent.setSpanId(new SpanId(spanIdStr));
+        }
+      }
+
+      // Set severity number if provided
+      if (log.hasKey("severityNumber")) {
+        logEvent.setSeverityNumber((int) log.getDouble("severityNumber"));
+      }
+
+      // Parse and set attributes
+      if (log.hasKey("attributes")) {
+        ReadableMap jsAttributes = log.getMap("attributes");
+        if (jsAttributes != null) {
+          Map<String, SentryLogEventAttributeValue> attributes = new HashMap<>();
+
+          ReadableMapKeySetIterator iterator = jsAttributes.keySetIterator();
+          while (iterator.hasNextKey()) {
+            String key = iterator.nextKey();
+            ReadableMap attrValue = jsAttributes.getMap(key);
+            if (attrValue != null && attrValue.hasKey("value")) {
+              String type = attrValue.hasKey("type") ? attrValue.getString("type") : "string";
+              SentryLogEventAttributeValue attributeValue = null;
+
+              switch (type != null ? type : "string") {
+                case "boolean":
+                  attributeValue =
+                      new SentryLogEventAttributeValue("boolean", attrValue.getBoolean("value"));
+                  break;
+                case "integer":
+                  attributeValue =
+                      new SentryLogEventAttributeValue("integer", (int) attrValue.getDouble("value"));
+                  break;
+                case "double":
+                  attributeValue =
+                      new SentryLogEventAttributeValue("double", attrValue.getDouble("value"));
+                  break;
+                case "string":
+                default:
+                  attributeValue =
+                      new SentryLogEventAttributeValue("string", attrValue.getString("value"));
+                  break;
+              }
+
+              if (attributeValue != null) {
+                attributes.put(key, attributeValue);
+              }
+            }
+          }
+
+          // Add origin attribute to indicate this log came from JavaScript
+          attributes.put(
+              "sentry.origin", new SentryLogEventAttributeValue("string", "react-native.js"));
+
+          logEvent.setAttributes(attributes);
+        }
+      } else {
+        // Still add the origin attribute even if no other attributes
+        Map<String, SentryLogEventAttributeValue> attributes = new HashMap<>();
+        attributes.put(
+            "sentry.origin", new SentryLogEventAttributeValue("string", "react-native.js"));
+        logEvent.setAttributes(attributes);
+      }
+
+      // Capture the log through the client
+      Sentry.configureScope(
+          scope -> {
+            final ISentryClient client = scope.getClient();
+            client.captureLog(logEvent, scope);
+          });
+
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.ERROR, "Error while capturing log", e);
+    }
   }
 
   public void captureScreenshot(Promise promise) {

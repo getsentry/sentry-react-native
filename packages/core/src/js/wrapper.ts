@@ -17,6 +17,7 @@ import type {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
   NativeFramesResponse,
+  NativeLogEvent,
   NativeReleaseResponse,
   NativeScreenshot,
   NativeStackFrames,
@@ -137,6 +138,12 @@ interface SentryNativeWrapper {
   setActiveSpanId(spanId: string): void;
 
   encodeToBase64(data: Uint8Array): Promise<string | null>;
+
+  /**
+   * Forwards a log event to the native SDK for batching and sending.
+   * The native SDK handles lifecycle events (background/termination) to minimize data loss.
+   */
+  captureLog(log: NativeLogEvent): void;
 
   primitiveProcessor(value: Primitive): string;
 }
@@ -860,6 +867,25 @@ export const NATIVE: SentryNativeWrapper = {
     } catch (error) {
       debug.error('Error:', error);
       return Promise.resolve(null);
+    }
+  },
+
+  /**
+   * Forwards a log event to the native SDK for batching and sending.
+   * The native SDK handles lifecycle events (background/termination) to minimize data loss.
+   */
+  captureLog(log: NativeLogEvent): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    try {
+      RNSentry.captureLog(log);
+    } catch (error) {
+      debug.error('[NATIVE] Failed to capture log:', error);
     }
   },
 
