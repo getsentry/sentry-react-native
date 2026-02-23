@@ -3,7 +3,7 @@ set -euo pipefail
 
 file="$(dirname "$0")/../packages/core/package.json"
 content=$(cat $file)
-regex='"version": *"([0-9\.]+)"'
+regex='"version": *"([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?)"'
 if ! [[ $content =~ $regex ]]; then
     echo "Failed to find the version in $file"
     exit 1
