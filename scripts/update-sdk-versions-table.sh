@@ -45,11 +45,11 @@ $NEW_ROW
 EOF
     echo "Created $DOCS_FILE with initial version entry"
 else
-    # Check if this version already exists in the table
-    if grep -q "\[$RN_VERSION\](" "$DOCS_FILE"; then
+    # Check if this version already exists in the first column of the table
+    if grep -qE "^\| \[$RN_VERSION\]\(" "$DOCS_FILE"; then
         echo "Version $RN_VERSION already exists in the table. Updating it..."
-        # Remove the old version line and add the new one at the top
-        grep -v "\[$RN_VERSION\](" "$DOCS_FILE" | \
+        # Remove the old version line (anchored to first column) and add the new one at the top
+        grep -vE "^\| \[$RN_VERSION\]\(" "$DOCS_FILE" | \
         awk -v new_row="$NEW_ROW" '
             /^\| React Native SDK \|/ {
                 print
