@@ -136,6 +136,197 @@ describe('sentry-xcode-debug-files.sh', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Skipping debug files upload for *Debug* configuration');
   });
+
+  describe('dSYM wait functionality', () => {
+    it('proceeds immediately when dSYM folder already exists with complete dSYM files', () => {
+      // Create a complete dSYM bundle structure with DWARF binary
+      const dsymPath = path.join(tempDir, 'TestApp.app.dSYM');
+      const dwarfDir = path.join(dsymPath, 'Contents', 'Resources', 'DWARF');
+      fs.mkdirSync(dwarfDir, { recursive: true });
+      // Create a non-empty DWARF binary file
+      fs.writeFileSync(path.join(dwarfDir, 'TestApp'), 'mock dwarf binary content');
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: tempDir,
+        DWARF_DSYM_FILE_NAME: 'TestApp.app.dSYM',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Checking for dSYM files');
+      expect(result.stdout).toContain('Found');
+      expect(result.stdout).toContain('dSYM bundle(s)');
+      expect(result.stdout).toContain('Verified main app dSYM is complete');
+      // Should not have waited since dSYM exists
+      expect(result.stdout).not.toContain('Waiting');
+    });
+
+    // Note: Testing "file appears during wait" scenario is difficult with execSync
+    // as it blocks the Node.js process. The wait logic is adequately covered by
+    // the "proceeds immediately" and "times out" tests.
+
+    it('times out when dSYM never appears', () => {
+      const dsymFolderPath = path.join(tempDir, 'empty-dsym-folder');
+      fs.mkdirSync(dsymFolderPath, { recursive: true });
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: dsymFolderPath,
+        DWARF_DSYM_FILE_NAME: 'NonExistent.app.dSYM',
+        SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
+        SENTRY_DSYM_WAIT_INTERVAL: '1',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Checking for dSYM files');
+      expect(result.stdout).toContain('Waiting');
+      expect(result.stdout).toContain('warning: Timeout waiting for dSYM files');
+      expect(result.stdout).toContain('This may result in incomplete debug symbol uploads');
+    });
+
+    it('skips wait check when SENTRY_DSYM_WAIT_ENABLED=false', () => {
+      const result = runScript({
+        SENTRY_DSYM_WAIT_ENABLED: 'false',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('SENTRY_DSYM_WAIT_ENABLED=false');
+      expect(result.stdout).toContain('skipping dSYM wait check');
+      expect(result.stdout).not.toContain('Checking for dSYM files');
+    });
+
+    it('proceeds when folder contains any dSYM even without DWARF_DSYM_FILE_NAME', () => {
+      // Create some complete dSYM bundles
+      const dsymPath1 = path.join(tempDir, 'Framework1.framework.dSYM');
+      const dwarfDir1 = path.join(dsymPath1, 'Contents', 'Resources', 'DWARF');
+      fs.mkdirSync(dwarfDir1, { recursive: true });
+      fs.writeFileSync(path.join(dwarfDir1, 'Framework1'), 'mock dwarf content');
+
+      const dsymPath2 = path.join(tempDir, 'Framework2.framework.dSYM');
+      const dwarfDir2 = path.join(dsymPath2, 'Contents', 'Resources', 'DWARF');
+      fs.mkdirSync(dwarfDir2, { recursive: true });
+      fs.writeFileSync(path.join(dwarfDir2, 'Framework2'), 'mock dwarf content');
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: tempDir,
+        // DWARF_DSYM_FILE_NAME not set
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('warning: DWARF_DSYM_FILE_NAME not set');
+      expect(result.stdout).toContain('Found');
+      expect(result.stdout).toContain('dSYM bundle(s)');
+      expect(result.stdout).toContain('Found dSYM bundle(s) with valid DWARF content');
+    });
+
+    it('continues waiting if main app dSYM not found but other dSYMs exist', () => {
+      const dsymFolderPath = path.join(tempDir, 'dsym-folder');
+      fs.mkdirSync(dsymFolderPath, { recursive: true });
+
+      // Create only framework dSYM with complete structure, not the main app dSYM
+      const frameworkDsym = path.join(dsymFolderPath, 'SomeFramework.framework.dSYM');
+      const frameworkDwarfDir = path.join(frameworkDsym, 'Contents', 'Resources', 'DWARF');
+      fs.mkdirSync(frameworkDwarfDir, { recursive: true });
+      fs.writeFileSync(path.join(frameworkDwarfDir, 'SomeFramework'), 'mock dwarf content');
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: dsymFolderPath,
+        DWARF_DSYM_FILE_NAME: 'MainApp.app.dSYM', // Looking for this specific one
+        SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
+        SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Main app dSYM not found yet');
+      expect(result.stdout).toContain('warning: Timeout waiting for dSYM files');
+    });
+
+    it('waits when dSYM directory exists but DWARF binary is missing (incomplete)', () => {
+      const dsymFolderPath = path.join(tempDir, 'incomplete-dsym-folder');
+      fs.mkdirSync(dsymFolderPath, { recursive: true });
+
+      // Create dSYM directory structure but without DWARF binary (incomplete)
+      const incompleteDsym = path.join(dsymFolderPath, 'IncompleteApp.app.dSYM');
+      const dwarfDir = path.join(incompleteDsym, 'Contents', 'Resources', 'DWARF');
+      fs.mkdirSync(dwarfDir, { recursive: true });
+      // Note: NOT creating the actual DWARF file
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: dsymFolderPath,
+        DWARF_DSYM_FILE_NAME: 'IncompleteApp.app.dSYM',
+        SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
+        SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Main app dSYM DWARF directory is empty');
+      expect(result.stdout).toContain('warning: Timeout waiting for dSYM files');
+    });
+
+    it('waits when dSYM exists but DWARF binary is empty (still being written)', () => {
+      const dsymFolderPath = path.join(tempDir, 'empty-dwarf-folder');
+      fs.mkdirSync(dsymFolderPath, { recursive: true });
+
+      // Create dSYM with empty DWARF file (simulates file being created but not written yet)
+      const dsymPath = path.join(dsymFolderPath, 'WritingApp.app.dSYM');
+      const dwarfDir = path.join(dsymPath, 'Contents', 'Resources', 'DWARF');
+      fs.mkdirSync(dwarfDir, { recursive: true });
+      fs.writeFileSync(path.join(dwarfDir, 'WritingApp'), ''); // Empty file
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: dsymFolderPath,
+        DWARF_DSYM_FILE_NAME: 'WritingApp.app.dSYM',
+        SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
+        SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Main app dSYM DWARF binary is empty (still being written)');
+      expect(result.stdout).toContain('warning: Timeout waiting for dSYM files');
+    });
+
+    it('handles non-existent dSYM folder path', () => {
+      const nonExistentPath = path.join(tempDir, 'does-not-exist');
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: nonExistentPath,
+        SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '2',
+        SENTRY_DSYM_WAIT_INTERVAL: '1',
+        SENTRY_DSYM_DEBUG: 'true',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('dSYM folder does not exist yet');
+      expect(result.stdout).toContain('warning: Timeout waiting for dSYM files');
+    });
+
+    it('respects custom wait interval and max attempts', () => {
+      const startTime = Date.now();
+
+      const result = runScript({
+        DWARF_DSYM_FOLDER_PATH: path.join(tempDir, 'nonexistent'),
+        SENTRY_DSYM_WAIT_MAX_ATTEMPTS: '3',
+        SENTRY_DSYM_WAIT_INTERVAL: '1',
+        MOCK_CLI_EXIT_CODE: '0',
+      });
+
+      const duration = Date.now() - startTime;
+
+      expect(result.exitCode).toBe(0);
+      // Should have waited approximately 2 seconds (3 attempts with 1s interval, but no wait after last attempt)
+      expect(duration).toBeGreaterThanOrEqual(2000);
+      expect(duration).toBeLessThan(4000); // Allow some margin
+    });
+  });
 });
 
 describe('sentry-xcode.sh', () => {

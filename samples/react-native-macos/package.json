@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-macos-sample",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "private": true,
   "scripts": {
     "start": "react-native start --experimental-debugger",
@@ -18,7 +18,7 @@
     "@react-navigation/stack": "^6.3.20",
     "@sentry/core": "10.39.0",
     "@sentry/react": "10.39.0",
-    "@sentry/react-native": "8.0.0",
+    "@sentry/react-native": "8.1.0",
     "delay": "^6.0.0",
     "react": "18.2.0",
     "react-native": "0.73.9",

@@ -145,6 +145,9 @@ final class RNSentryStart {
     if (rnOptions.hasKey("enableNdk")) {
       options.setEnableNdk(rnOptions.getBoolean("enableNdk"));
     }
+    if (rnOptions.hasKey("enableTombstone")) {
+      options.setTombstoneEnabled(rnOptions.getBoolean("enableTombstone"));
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));

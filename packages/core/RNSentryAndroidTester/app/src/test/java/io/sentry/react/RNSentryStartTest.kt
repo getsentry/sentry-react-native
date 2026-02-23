@@ -282,4 +282,34 @@ class RNSentryStartTest {
         val integrations = options.getIntegrations()
         assertNotNull("Integrations list should not be null", integrations)
     }
+
+    @Test
+    fun `when enableTombstone is true, tombstone reporting is enabled`() {
+        val rnOptions = JavaOnlyMap.of("enableTombstone", true)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertTrue("Tombstone should be enabled", options.isTombstoneEnabled)
+    }
+
+    @Test
+    fun `when enableTombstone is false, tombstone reporting is disabled`() {
+        val rnOptions = JavaOnlyMap.of("enableTombstone", false)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse("Tombstone should be disabled", options.isTombstoneEnabled)
+    }
+
+    @Test
+    fun `when enableTombstone is not set, tombstone reporting remains at default (disabled)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse("Tombstone should be disabled by default", options.isTombstoneEnabled)
+    }
 }

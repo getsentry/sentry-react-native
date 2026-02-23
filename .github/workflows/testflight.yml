@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - alwx/ci/macos-tahoe-cl-runners
 
   pull_request:
     paths:
@@ -14,7 +15,7 @@ jobs:
 
   upload_to_testflight:
     name: Build and Upload React Native Sample to Testflight
-    runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
+    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -62,6 +63,10 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_LOG_LEVEL: DEBUG
           SENTRY_CLI_EXTRA_ARGS: "--force-foreground"
+          # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
+          # missing Swift compatibility libraries (swiftCompatibility56, etc.)
+          # See: https://github.com/actions/runner-images/issues/13135
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
         run: |
           bundle exec fastlane ios build_react_native_sample
           bundle exec fastlane ios upload_react_native_sample_to_testflight
