@@ -92,6 +92,9 @@ plugins.withId('com.android.application') {
     // By the time afterEvaluate runs, all plugins have registered their onVariants
     // callbacks and the AGP Artifacts API transform chain is fully established.
     project.afterEvaluate {
+        if (releaseVariants.isEmpty()) {
+            project.logger.warn("[sentry] No release variants collected, onVariants may have run after afterEvaluate. Sourcemap upload tasks will not be registered.")
+        }
         releaseVariants.each { variantData ->
             // separately we then hook into the bundle task of react native to inject
             // sourcemap generation parameters.  In case for whatever reason no release
