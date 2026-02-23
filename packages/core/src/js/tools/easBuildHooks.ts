@@ -221,7 +221,8 @@ export async function captureEASBuildError(options: EASBuildHookOptions = {}): P
   }
   const env = getEASBuildEnv();
   const errorMessage =
-    options.errorMessage ?? `EAS Build Failed: ${env.EAS_BUILD_PLATFORM ?? 'unknown'} (${env.EAS_BUILD_PROFILE ?? 'unknown'})`;
+    options.errorMessage ??
+    `EAS Build Failed: ${env.EAS_BUILD_PLATFORM ?? 'unknown'} (${env.EAS_BUILD_PROFILE ?? 'unknown'})`;
   const event = createBaseEvent('error', env, { ...options.tags, 'eas.hook': 'on-error' });
   event.exception = {
     values: [{ type: 'EASBuildError', value: errorMessage, mechanism: { type: 'eas-build-hook', handled: true } }],
@@ -253,7 +254,8 @@ export async function captureEASBuildSuccess(options: EASBuildHookOptions = {}):
   }
   const env = getEASBuildEnv();
   const successMessage =
-    options.successMessage ?? `EAS Build Succeeded: ${env.EAS_BUILD_PLATFORM ?? 'unknown'} (${env.EAS_BUILD_PROFILE ?? 'unknown'})`;
+    options.successMessage ??
+    `EAS Build Succeeded: ${env.EAS_BUILD_PLATFORM ?? 'unknown'} (${env.EAS_BUILD_PROFILE ?? 'unknown'})`;
   const event = createBaseEvent('info', env, { ...options.tags, 'eas.hook': 'on-success' });
   event.message = { formatted: successMessage };
   event.fingerprint = ['eas-build-success', env.EAS_BUILD_PLATFORM ?? 'unknown', env.EAS_BUILD_PROFILE ?? 'unknown'];
