@@ -4,6 +4,8 @@
  * @see https://docs.expo.dev/build-reference/npm-hooks/
  */
 
+/* eslint-disable no-console */
+
 const path = require('path');
 const fs = require('fs');
 
@@ -51,7 +53,7 @@ function loadEnv() {
  */
 function loadHooksModule() {
   try {
-    return require('../dist/js/tools/easBuildHooks.js');
+    return require('../../dist/js/tools/easBuildHooks.js');
   } catch (_e) {
     console.error('[Sentry] Could not load EAS build hooks module. Make sure @sentry/react-native is properly installed.');
     process.exit(1);

@@ -18,7 +18,7 @@
  * @see https://docs.sentry.io/platforms/react-native/
  */
 
-const { loadEnv, loadHooksModule, parseBaseOptions, runHook } = require('./eas-build-utils');
+const { loadEnv, loadHooksModule, parseBaseOptions, runHook } = require('./utils');
 
 async function main() {
   loadEnv();
