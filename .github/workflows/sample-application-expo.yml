@@ -43,7 +43,7 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:16.4", "runner_group_id:10"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
           - platform: web
