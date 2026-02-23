@@ -66,7 +66,7 @@ jobs:
           clang --version
           clang-format --version
 
-      - name: Install Swiftly
+      - name: Install Swiftly and Swift
         run: |
           SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
           curl -sL https://download.swift.org/swiftly/linux/swiftly-x86_64.tar.gz -o $SWIFTLY_FILE
@@ -75,10 +75,17 @@ jobs:
           ./swiftly init --quiet-shell-followup
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
+
+          # Install Swift (required for SwiftLint)
+          swiftly install latest
+          swift --version
+
           sudo apt-get -y install libcurl4-openssl-dev
 
       - name: Lint
-        run: yarn lint
+        run: |
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+          yarn lint
 
   job_check_integrity:
     name: Check package integrity

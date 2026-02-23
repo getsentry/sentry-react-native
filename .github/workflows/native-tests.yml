@@ -44,6 +44,10 @@ jobs:
       - name: Install SDK JS Dependencies
         run: yarn install
 
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.0'
+
       - name: Install App Pods
         working-directory: packages/core/RNSentryCocoaTester
         run: pod install
