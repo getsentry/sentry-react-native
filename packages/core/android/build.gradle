@@ -55,6 +55,6 @@ android {
 dependencies {
     compileOnly files('libs/replay-stubs.jar')
     implementation 'com.facebook.react:react-native:+'
-    api 'io.sentry:sentry-android:8.32.0'
-    debugImplementation 'io.sentry:sentry-spotlight:8.32.0'
+    api 'io.sentry:sentry-android:8.33.0'
+    debugImplementation 'io.sentry:sentry-spotlight:8.33.0'
 }
