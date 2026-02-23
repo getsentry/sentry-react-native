@@ -17,7 +17,7 @@ jobs:
 
   job_test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -36,7 +36,7 @@ jobs:
 
   job_lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -82,7 +82,7 @@ jobs:
 
   job_check_integrity:
     name: Check package integrity
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -106,7 +106,7 @@ jobs:
 
   job_build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -148,7 +148,7 @@ jobs:
 
   job_type_check:
     name: Type Check Typescript 3.8
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     env:
@@ -181,7 +181,7 @@ jobs:
         run: yarn type-check
   job_circular_dep_check:
     name: Circular Dependency Check
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -210,7 +210,7 @@ jobs:
 
   job_bundle:
     name: Bundle
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     needs: [job_test, job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     strategy:

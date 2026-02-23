@@ -6,7 +6,7 @@ on:
 
 jobs:
   danger:
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
     steps:
       - uses: getsentry/github-workflows/danger@17cc15eb58ea3687cd8f2714a4192dcee4aa09ef
         with:
