@@ -119,7 +119,7 @@ plugins.withId('com.android.application') {
                 //     .join('\n')
 
                 def currentVariants = extractCurrentVariants(bundleTask, v)
-                if (currentVariants == null) return
+                if (currentVariants == null || currentVariants.isEmpty()) return
 
                 def previousCliTask = null
                 def applicationVariant = null
@@ -328,9 +328,10 @@ plugins.withId('com.android.application') {
                 previousCliTask.configure { finalizedBy cliCleanUpTask }
 
                 def packageTasks = tasks.matching {
-                    task -> ("package${applicationVariant}".equalsIgnoreCase(task.name) || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name)) && task.enabled
+                    task -> ("package${applicationVariant}".equalsIgnoreCase(task.name) || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name))
                 }
                 packageTasks.configureEach { packageTask ->
+                    if (!packageTask.enabled) return
                     packageTask.dependsOn modulesTask
                     packageTask.finalizedBy modulesCleanUpTask
                 }
