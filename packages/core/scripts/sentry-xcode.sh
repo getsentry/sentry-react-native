@@ -57,11 +57,11 @@ if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
     echo "$SENTRY_XCODE_COMMAND_OUTPUT" | awk '{print "output: sentry-cli - " $0}'
   else
     if [ "$SENTRY_ALLOW_FAILURE" == true ]; then
+      echo "$SENTRY_XCODE_COMMAND_OUTPUT" | awk '{print "warning: sentry-cli - " $0}'
       echo "warning: sentry-cli - Source maps upload failed, but continuing build because SENTRY_ALLOW_FAILURE=true"
-      echo "warning: sentry-cli - $SENTRY_XCODE_COMMAND_OUTPUT"
     else
+      echo "$SENTRY_XCODE_COMMAND_OUTPUT" | awk '{print "error: sentry-cli - " $0}'
       echo "error: sentry-cli - To disable source maps auto upload, set SENTRY_DISABLE_AUTO_UPLOAD=true in your environment variables. Or to allow failing upload, set SENTRY_ALLOW_FAILURE=true"
-      echo "error: sentry-cli - $SENTRY_XCODE_COMMAND_OUTPUT"
       exitCode=1
     fi
   fi
