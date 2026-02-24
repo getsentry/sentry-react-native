@@ -320,6 +320,19 @@ plugins.withId('com.android.application') {
                     packageTask.finalizedBy modulesCleanUpTask
                 }
             }
+
+            // Warn if neither expected bundle task was registered by the time the task
+            // graph is resolved — by then all plugins' onVariants callbacks (including
+            // the React Native plugin's) have run, so tasks.names is complete.
+            gradle.taskGraph.whenReady {
+                if (bundleTaskNames.every { !tasks.names.contains(it) }) {
+                    project.logger.warn(
+                        "[sentry] No React Native bundle task found for variant '${v.name}'. " +
+                        "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
+                        "'bundle${variantCapitalized}JsAndAssets' — neither is registered. " +
+                        "Source maps will NOT be uploaded for this variant.")
+                }
+            }
         }
     }
 }
