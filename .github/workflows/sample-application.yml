@@ -13,7 +13,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.1.0'
+  MAESTRO_VERSION: '2.2.0'
   MAESTRO_DRIVER_STARTUP_TIMEOUT: 90000 # Increase timeout from default 30s to 90s for CI stability
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip

@@ -7,8 +7,8 @@ async function safeRun(fnPath, { fail, warn, message, markdown, danger }) {
   }
 }
 
-
 module.exports = async function ({ fail, warn, message, markdown, danger }) {
   await safeRun('./check-github-label', { fail, warn, message, markdown, danger });
   await safeRun('./check-replay-stubs', { fail, warn, message, markdown, danger });
+  await safeRun('./check-android-sdk-mismatch', { fail, warn, message, markdown, danger });
 };

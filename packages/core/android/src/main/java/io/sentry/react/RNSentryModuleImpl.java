@@ -802,7 +802,7 @@ public class RNSentryModuleImpl {
             tracesFilesDirPath,
             (int) SECONDS.toMicros(1) / profilingTracesHz,
             new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
-            executorService,
+            () -> executorService,
             logger);
   }
 

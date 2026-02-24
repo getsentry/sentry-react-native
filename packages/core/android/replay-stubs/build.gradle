@@ -18,5 +18,5 @@ tasks.named('jar', Jar) {
 }
 
 dependencies {
-  compileOnly 'io.sentry:sentry:8.32.0'
+  compileOnly 'io.sentry:sentry:8.33.0'
 }
