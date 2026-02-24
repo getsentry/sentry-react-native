@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix AGP Artifacts API conflict caused by eager task realization in `sentry.gradle` ([#5714](https://github.com/getsentry/sentry-react-native/pull/5714))
+
 ### Dependencies
 
 - Bump Android SDK from v8.32.0 to v8.33.0 ([#5684](https://github.com/getsentry/sentry-react-native/pull/5684))
