@@ -67,11 +67,23 @@ plugins.withId('com.android.application') {
 
     androidComponents.onVariants(androidComponents.selector().all()) { v ->
         if (!v.name.toLowerCase().contains("debug")) {
-            // separately we then hook into the bundle task of react native to inject
-            // sourcemap generation parameters.  In case for whatever reason no release
-            // was found for the asset folder we just bail.
-            def bundleTasks = tasks.findAll { task -> (task.name.startsWith("createBundle") || task.name.startsWith("bundle")) && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug") && task.enabled }
-            bundleTasks.each { bundleTask ->
+            // Hook into the bundle task of react native to inject sourcemap generation parameters.
+            // We predict bundle task names from the variant and use tasks.named() to target them
+            // lazily — avoiding eager task realization that breaks AGP Artifacts API (e.g. Fullstory)
+            // and react-native-legal's lazily-registered tasks (issue #5236).
+            def variantCapitalized = v.name.capitalize()
+            def sentryBundleTaskName = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].find { tasks.names.contains(it) }
+            if (sentryBundleTaskName == null) {
+                project.logger.warn(
+                    "[sentry] No React Native bundle task found for variant '${v.name}'. " +
+                    "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
+                    "'bundle${variantCapitalized}JsAndAssets' — neither is registered. " +
+                    "Source maps will NOT be uploaded for this variant.")
+                return
+            }
+
+            tasks.named(sentryBundleTaskName).configure { bundleTask ->
+                if (!bundleTask.enabled) return
                 def shouldCleanUp
                 def sourcemapOutput
                 def bundleOutput
@@ -95,7 +107,7 @@ plugins.withId('com.android.application') {
                 //     .join('\n')
 
                 def currentVariants = extractCurrentVariants(bundleTask, v)
-                if (currentVariants == null) return
+                if (currentVariants == null || currentVariants.isEmpty()) return
 
                 def previousCliTask = null
                 def applicationVariant = null
@@ -274,7 +286,7 @@ plugins.withId('com.android.application') {
                     if (previousCliTask != null) {
                         previousCliTask.configure { finalizedBy cliTask }
                     } else {
-                        bundleTask.configure { finalizedBy cliTask }
+                        bundleTask.finalizedBy cliTask
                     }
                     previousCliTask = cliTask
                     cliTask.configure { finalizedBy modulesTask }
