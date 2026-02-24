@@ -68,18 +68,26 @@ plugins.withId('com.android.application') {
     androidComponents.onVariants(androidComponents.selector().all()) { v ->
         if (!v.name.toLowerCase().contains("debug")) {
             // Hook into the bundle task of react native to inject sourcemap generation parameters.
-            // We predict bundle task names from the variant name and use tasks.configureEach() to
-            // wire them lazily — avoiding eager task realization that breaks the AGP Artifacts API
-            // (e.g. Fullstory, issue #5698) and react-native-legal's lazily-registered tasks
-            // (issue #5236). configureEach also handles bundle tasks registered after this
-            // onVariants callback fires (e.g. when sentry.gradle is applied before the RN plugin).
+            // Defer task lookup to afterEvaluate so all plugins (including the React Native plugin)
+            // have registered their tasks — onVariants fires during project evaluation, before the
+            // task container is complete. tasks.named() is used for a targeted lazy reference that
+            // does not iterate the container and avoids realizing unrelated tasks (fixes Fullstory
+            // AGP Artifacts API conflict, issue #5698, and react-native-legal, issue #5236).
             //
             // Capitalization: only the first character is upper-cased so that flavored variants
             // like "freeRelease" become "FreeRelease" (not "Freerelease" from Groovy capitalize()).
             def variantCapitalized = v.name.substring(0, 1).toUpperCase() + v.name.substring(1)
-            def bundleTaskNames = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"] as Set
-            tasks.configureEach { bundleTask ->
-                if (!bundleTaskNames.contains(bundleTask.name)) return
+            project.afterEvaluate {
+                def sentryBundleTaskName = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].find { tasks.names.contains(it) }
+                if (sentryBundleTaskName == null) {
+                    project.logger.warn(
+                        "[sentry] No React Native bundle task found for variant '${v.name}'. " +
+                        "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
+                        "'bundle${variantCapitalized}JsAndAssets' — neither is registered. " +
+                        "Source maps will NOT be uploaded for this variant.")
+                    return
+                }
+                tasks.named(sentryBundleTaskName).configure { bundleTask ->
                 if (!bundleTask.enabled) return
                 def shouldCleanUp
                 def sourcemapOutput
@@ -320,18 +328,6 @@ plugins.withId('com.android.application') {
                     packageTask.finalizedBy modulesCleanUpTask
                 }
             }
-
-            // Warn if neither expected bundle task was registered by the time the task
-            // graph is resolved — by then all plugins' onVariants callbacks (including
-            // the React Native plugin's) have run, so tasks.names is complete.
-            gradle.taskGraph.whenReady {
-                if (bundleTaskNames.every { !tasks.names.contains(it) }) {
-                    project.logger.warn(
-                        "[sentry] No React Native bundle task found for variant '${v.name}'. " +
-                        "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
-                        "'bundle${variantCapitalized}JsAndAssets' — neither is registered. " +
-                        "Source maps will NOT be uploaded for this variant.")
-                }
             }
         }
     }
