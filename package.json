@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@naturalcycles/ktlint": "^1.13.0",
-    "@sentry/cli": "3.2.0",
+    "@sentry/cli": "3.2.2",
     "downlevel-dts": "^0.11.0",
     "google-java-format": "^1.4.0",
     "lerna": "^8.1.8",
