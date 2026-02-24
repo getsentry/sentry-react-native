@@ -60,6 +60,7 @@
   },
   "resolutions": {
     "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10",
+    "fast-xml-parser": "^5.3.6",
     "form-data": "4.0.4",
     "tar-fs": "^3.1.1",
     "tar": "^7.5.7"
