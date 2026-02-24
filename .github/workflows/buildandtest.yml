@@ -76,15 +76,14 @@ jobs:
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
 
-          # Install Swift (required for SwiftLint)
-          swiftly install latest
+          # Install Swift 5.10 (compatible with SwiftLint 0.61.0)
+          swiftly install 5.10
           swift --version
 
           sudo apt-get -y install libcurl4-openssl-dev
 
           # Export Swift toolchain path for SwiftLint's SourceKit
-          SWIFT_PATH=$(dirname $(dirname $(which swift)))
-          echo "LINUX_SOURCEKIT_LIB_PATH=${SWIFT_PATH}/lib/swift/linux" >> $GITHUB_ENV
+          echo "LINUX_SOURCEKIT_LIB_PATH=${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/toolchains/5.10/usr/lib/swift/linux" >> $GITHUB_ENV
 
       - name: Lint
         run: |

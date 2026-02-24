@@ -44,9 +44,19 @@ jobs:
       - name: Install SDK JS Dependencies
         run: yarn install
 
+      - name: Setup Ruby
+        run: |
+          # Disable rbenv to avoid .ruby-version conflicts
+          echo 'export PATH="/usr/local/bin:$PATH"' >> $GITHUB_ENV
+          export RBENV_VERSION=system
+          echo "RBENV_VERSION=system" >> $GITHUB_ENV
+
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3.0'
+
+      - name: Install CocoaPods
+        run: gem install cocoapods
 
       - name: Install App Pods
         working-directory: packages/core/RNSentryCocoaTester
