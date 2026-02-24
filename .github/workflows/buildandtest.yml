@@ -83,7 +83,10 @@ jobs:
           sudo apt-get -y install libcurl4-openssl-dev
 
           # Export Swift toolchain path for SwiftLint's SourceKit
-          echo "LINUX_SOURCEKIT_LIB_PATH=${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/toolchains/5.10/usr/lib/swift/linux" >> $GITHUB_ENV
+          # Dynamically determine the path from the swift binary location
+          SWIFT_BIN=$(which swift)
+          SWIFT_TOOLCHAIN=$(dirname $(dirname "$SWIFT_BIN"))
+          echo "LINUX_SOURCEKIT_LIB_PATH=${SWIFT_TOOLCHAIN}/lib/swift/linux" >> $GITHUB_ENV
 
       - name: Lint
         run: |
