@@ -31,6 +31,17 @@
     ```
 - Add expo constants on event context ([#5748](https://github.com/getsentry/sentry-react-native/pull/5748))
 - Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
+- EAS Build Hooks ([#5666](https://github.com/getsentry/sentry-react-native/pull/5666))
+  - Capture EAS build events in Sentry. Add the following to your `package.json`
+    ```json
+    {
+      "scripts": {
+        "eas-build-on-complete": "sentry-eas-build-on-complete"
+      }
+    }
+    ```
+    Set `SENTRY_DSN` in your EAS secrets, and optionally `SENTRY_EAS_BUILD_CAPTURE_SUCCESS=true` to also capture successful builds.
+
 
 ### Fixes
 
@@ -68,12 +79,6 @@
 - Bump Android SDK Stubs from v8.32.0 to v8.33.0 ([#5697](https://github.com/getsentry/sentry-react-native/pull/5697))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8330)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.32.0...8.33.0)
-- Bump Cocoa SDK from v9.4.1 to v9.5.1 ([#5685](https://github.com/getsentry/sentry-react-native/pull/5685), [#5724](https://github.com/getsentry/sentry-react-native/pull/5724))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#951)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.4.1...9.5.1)
-- Bump CLI from v3.2.0 to v3.2.2 ([#5692](https://github.com/getsentry/sentry-react-native/pull/5692))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#322)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.0...3.2.2)
 
 ## 8.1.0
 

@@ -7,6 +7,9 @@
  *
  *   "eas-build-on-success": "sentry-eas-build-on-success"
  *
+ * NOTE: Use EITHER this hook (with on-error) OR the on-complete hook, not both.
+ * Using both will result in duplicate events being sent to Sentry.
+ *
  * Required environment variables:
  *   - SENTRY_DSN: Your Sentry DSN
  *   - SENTRY_EAS_BUILD_CAPTURE_SUCCESS: Set to 'true' to capture successful builds

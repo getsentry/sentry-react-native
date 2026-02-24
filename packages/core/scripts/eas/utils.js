@@ -10,10 +10,25 @@ const path = require('path');
 const fs = require('fs');
 
 /**
+ * Merges parsed env vars into process.env without overwriting existing values.
+ * This preserves EAS secrets and other pre-set environment variables.
+ * @param {object} parsed - Parsed environment variables from dotenv
+ */
+function mergeEnvWithoutOverwrite(parsed) {
+  for (const key of Object.keys(parsed)) {
+    if (process.env[key] === undefined) {
+      process.env[key] = parsed[key];
+    }
+  }
+}
+
+/**
  * Loads environment variables from various sources:
  * - @expo/env (if available)
  * - .env file (via dotenv, if available)
  * - .env.sentry-build-plugin file
+ *
+ * NOTE: Existing environment variables (like EAS secrets) are NOT overwritten.
  */
 function loadEnv() {
   // Try @expo/env first
@@ -26,7 +41,7 @@ function loadEnv() {
       if (fs.existsSync(dotenvPath)) {
         const dotenvFile = fs.readFileSync(dotenvPath, 'utf-8');
         const dotenv = require('dotenv');
-        Object.assign(process.env, dotenv.parse(dotenvFile));
+        mergeEnvWithoutOverwrite(dotenv.parse(dotenvFile));
       }
     } catch (_e2) {
       // No dotenv available, continue with existing env vars
@@ -39,7 +54,7 @@ function loadEnv() {
     if (fs.existsSync(sentryEnvPath)) {
       const dotenvFile = fs.readFileSync(sentryEnvPath, 'utf-8');
       const dotenv = require('dotenv');
-      Object.assign(process.env, dotenv.parse(dotenvFile));
+      mergeEnvWithoutOverwrite(dotenv.parse(dotenvFile));
     }
   } catch (_e) {
     // Continue without .env.sentry-build-plugin

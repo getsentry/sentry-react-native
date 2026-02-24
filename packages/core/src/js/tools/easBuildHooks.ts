@@ -13,6 +13,9 @@
 /* eslint-disable no-console */
 /* eslint-disable no-bitwise */
 
+import type { DsnComponents } from '@sentry/core';
+import { dsnToString, makeDsn } from '@sentry/core';
+
 const SENTRY_DSN_ENV = 'SENTRY_DSN';
 const EAS_BUILD_ENV = 'EAS_BUILD';
 
@@ -42,13 +45,6 @@ export interface EASBuildHookOptions {
   captureSuccessfulBuilds?: boolean;
   errorMessage?: string;
   successMessage?: string;
-}
-
-interface ParsedDsn {
-  protocol: string;
-  host: string;
-  projectId: string;
-  publicKey: string;
 }
 
 interface SentryEvent {
@@ -92,18 +88,11 @@ export function getEASBuildEnv(): EASBuildEnv {
   };
 }
 
-function parseDsn(dsn: string): ParsedDsn | undefined {
-  try {
-    const url = new URL(dsn);
-    const projectId = url.pathname.replace('/', '');
-    return { protocol: url.protocol.replace(':', ''), host: url.host, projectId, publicKey: url.username };
-  } catch {
-    return undefined;
-  }
-}
-
-function getEnvelopeEndpoint(dsn: ParsedDsn): string {
-  return `${dsn.protocol}://${dsn.host}/api/${dsn.projectId}/envelope/?sentry_key=${dsn.publicKey}&sentry_version=7`;
+function getEnvelopeEndpoint(dsn: DsnComponents): string {
+  const { protocol, host, port, path, projectId, publicKey } = dsn;
+  const portStr = port ? `:${port}` : '';
+  const pathStr = path ? `/${path}` : '';
+  return `${protocol}://${host}${portStr}${pathStr}/api/${projectId}/envelope/?sentry_key=${publicKey}&sentry_version=7`;
 }
 
 function generateEventId(): string {
@@ -154,11 +143,11 @@ function createEASBuildContext(env: EASBuildEnv): Record<string, unknown> {
   };
 }
 
-function createEnvelope(event: SentryEvent, dsn: ParsedDsn): string {
+function createEnvelope(event: SentryEvent, dsn: DsnComponents): string {
   const envelopeHeaders = JSON.stringify({
     event_id: event.event_id,
     sent_at: new Date().toISOString(),
-    dsn: `${dsn.protocol}://${dsn.publicKey}@${dsn.host}/${dsn.projectId}`,
+    dsn: dsnToString(dsn),
     sdk: event.sdk,
   });
   const itemHeaders = JSON.stringify({ type: 'event', content_type: 'application/json' });
@@ -166,7 +155,7 @@ function createEnvelope(event: SentryEvent, dsn: ParsedDsn): string {
   return `${envelopeHeaders}\n${itemHeaders}\n${itemPayload}`;
 }
 
-async function sendEvent(event: SentryEvent, dsn: ParsedDsn): Promise<boolean> {
+async function sendEvent(event: SentryEvent, dsn: DsnComponents): Promise<boolean> {
   const endpoint = getEnvelopeEndpoint(dsn);
   const envelope = createEnvelope(event, dsn);
   try {
@@ -184,6 +173,18 @@ async function sendEvent(event: SentryEvent, dsn: ParsedDsn): Promise<boolean> {
   }
 }
 
+function getReleaseFromEASEnv(env: EASBuildEnv): string | undefined {
+  // Honour explicit override first
+  if (process.env.SENTRY_RELEASE) {
+    return process.env.SENTRY_RELEASE;
+  }
+  // Best approximation without bundle identifier: version+buildNumber
+  if (env.EAS_BUILD_APP_VERSION && env.EAS_BUILD_APP_BUILD_VERSION) {
+    return `${env.EAS_BUILD_APP_VERSION}+${env.EAS_BUILD_APP_BUILD_VERSION}`;
+  }
+  return env.EAS_BUILD_APP_VERSION;
+}
+
 function createBaseEvent(
   level: 'error' | 'info' | 'warning',
   env: EASBuildEnv,
@@ -196,7 +197,7 @@ function createBaseEvent(
     level,
     logger: 'eas-build-hook',
     environment: 'eas-build',
-    release: env.EAS_BUILD_APP_VERSION,
+    release: getReleaseFromEASEnv(env),
     tags: { ...createEASBuildTags(env), ...customTags },
     contexts: { eas_build: createEASBuildContext(env), runtime: { name: 'node', version: process.version } },
     sdk: { name: 'sentry.javascript.react-native.eas-build-hooks', version: '1.0.0' },
@@ -205,8 +206,8 @@ function createBaseEvent(
 
 /** Captures an EAS build error event. Call this from the eas-build-on-error hook. */
 export async function captureEASBuildError(options: EASBuildHookOptions = {}): Promise<void> {
-  const dsn = options.dsn ?? process.env[SENTRY_DSN_ENV];
-  if (!dsn) {
+  const dsnString = options.dsn ?? process.env[SENTRY_DSN_ENV];
+  if (!dsnString) {
     console.warn('[Sentry] No DSN provided. Set SENTRY_DSN environment variable or pass dsn option.');
     return;
   }
@@ -214,8 +215,8 @@ export async function captureEASBuildError(options: EASBuildHookOptions = {}): P
     console.warn('[Sentry] Not running in EAS Build environment. Skipping error capture.');
     return;
   }
-  const parsedDsn = parseDsn(dsn);
-  if (!parsedDsn) {
+  const dsn = makeDsn(dsnString);
+  if (!dsn) {
     console.error('[Sentry] Invalid DSN format.');
     return;
   }
@@ -228,7 +229,7 @@ export async function captureEASBuildError(options: EASBuildHookOptions = {}): P
     values: [{ type: 'EASBuildError', value: errorMessage, mechanism: { type: 'eas-build-hook', handled: true } }],
   };
   event.fingerprint = ['eas-build-error', env.EAS_BUILD_PLATFORM ?? 'unknown', env.EAS_BUILD_PROFILE ?? 'unknown'];
-  const success = await sendEvent(event, parsedDsn);
+  const success = await sendEvent(event, dsn);
   if (success) console.log('[Sentry] Build error captured.');
 }
 
@@ -238,8 +239,8 @@ export async function captureEASBuildSuccess(options: EASBuildHookOptions = {}):
     console.log('[Sentry] Skipping successful build capture (captureSuccessfulBuilds is false).');
     return;
   }
-  const dsn = options.dsn ?? process.env[SENTRY_DSN_ENV];
-  if (!dsn) {
+  const dsnString = options.dsn ?? process.env[SENTRY_DSN_ENV];
+  if (!dsnString) {
     console.warn('[Sentry] No DSN provided. Set SENTRY_DSN environment variable or pass dsn option.');
     return;
   }
@@ -247,8 +248,8 @@ export async function captureEASBuildSuccess(options: EASBuildHookOptions = {}):
     console.warn('[Sentry] Not running in EAS Build environment. Skipping success capture.');
     return;
   }
-  const parsedDsn = parseDsn(dsn);
-  if (!parsedDsn) {
+  const dsn = makeDsn(dsnString);
+  if (!dsn) {
     console.error('[Sentry] Invalid DSN format.');
     return;
   }
@@ -259,7 +260,7 @@ export async function captureEASBuildSuccess(options: EASBuildHookOptions = {}):
   const event = createBaseEvent('info', env, { ...options.tags, 'eas.hook': 'on-success' });
   event.message = { formatted: successMessage };
   event.fingerprint = ['eas-build-success', env.EAS_BUILD_PLATFORM ?? 'unknown', env.EAS_BUILD_PROFILE ?? 'unknown'];
-  const success = await sendEvent(event, parsedDsn);
+  const success = await sendEvent(event, dsn);
   if (success) console.log('[Sentry] Build success captured.');
 }
 

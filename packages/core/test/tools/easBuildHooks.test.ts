@@ -310,6 +310,65 @@ describe('EAS Build Hooks', () => {
     });
   });
 
+  describe('release naming', () => {
+    beforeEach(() => {
+      process.env.EAS_BUILD = 'true';
+      process.env.EAS_BUILD_PLATFORM = 'ios';
+      process.env.SENTRY_DSN = 'https://key@sentry.io/123';
+      delete process.env.SENTRY_RELEASE;
+      delete process.env.EAS_BUILD_APP_VERSION;
+      delete process.env.EAS_BUILD_APP_BUILD_VERSION;
+    });
+
+    it('uses SENTRY_RELEASE when set', async () => {
+      process.env.SENTRY_RELEASE = 'custom-release@1.0.0';
+      process.env.EAS_BUILD_APP_VERSION = '2.0.0';
+
+      await captureEASBuildError();
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = fetchCall[1].body as string;
+      const event = JSON.parse(body.split('\n')[2]);
+
+      expect(event.release).toBe('custom-release@1.0.0');
+    });
+
+    it('combines version and build number when both are available', async () => {
+      process.env.EAS_BUILD_APP_VERSION = '1.2.3';
+      process.env.EAS_BUILD_APP_BUILD_VERSION = '42';
+
+      await captureEASBuildError();
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = fetchCall[1].body as string;
+      const event = JSON.parse(body.split('\n')[2]);
+
+      expect(event.release).toBe('1.2.3+42');
+    });
+
+    it('uses only version when build number is not available', async () => {
+      process.env.EAS_BUILD_APP_VERSION = '1.2.3';
+
+      await captureEASBuildError();
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = fetchCall[1].body as string;
+      const event = JSON.parse(body.split('\n')[2]);
+
+      expect(event.release).toBe('1.2.3');
+    });
+
+    it('sets release to undefined when no version info is available', async () => {
+      await captureEASBuildError();
+
+      const fetchCall = mockFetch.mock.calls[0];
+      const body = fetchCall[1].body as string;
+      const event = JSON.parse(body.split('\n')[2]);
+
+      expect(event.release).toBeUndefined();
+    });
+  });
+
   describe('envelope format', () => {
     beforeEach(() => {
       process.env.EAS_BUILD = 'true';
