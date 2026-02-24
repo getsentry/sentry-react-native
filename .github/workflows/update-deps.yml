@@ -9,100 +9,55 @@ on:
     branches:
       - main
 
+env:
+  UBUNTU_RUNNER: '["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]'
+
 jobs:
-  android:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
+  update-deps:
+    runs-on: ${{ fromJson(vars.UBUNTU_RUNNER || '["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - path: scripts/update-android.sh
+            name: Android SDK
+            changelog-entry: true
+          - path: scripts/update-android-stubs.sh
+            name: Android SDK Stubs
+            changelog-entry: true
+          - path: scripts/update-cocoa.sh
+            name: Cocoa SDK
+            changelog-entry: true
+          - path: scripts/update-javascript.sh
+            name: JavaScript SDK
+            changelog-entry: true
+          - path: scripts/update-wizard.sh
+            name: Wizard
+            changelog-entry: false
+          - path: scripts/update-cli.sh
+            name: CLI
+            changelog-entry: true
+          - path: scripts/update-bundler-plugins.sh
+            name: Bundler Plugins
+            changelog-entry: true
+          - path: scripts/update-rn.sh
+            name: React Native
+            pattern: '^v[0-9.]+$'  # only match non-preview versions, also ignores "latest"
+            changelog-entry: false
+          - path: scripts/update-maestro.sh
+            name: Maestro
+            pattern: '^v[0-9.]+$'  # only match non-preview versions
+            changelog-entry: false
+          - path: scripts/update-sentry-android-gradle-plugin.sh
+            name: Sentry Android Gradle Plugin
+            pattern: '^[0-9.]+$'
+            changelog-entry: false
+    name: ${{ matrix.name }}
     steps:
       - uses: getsentry/github-workflows/updater@v3
         with:
-          path: scripts/update-android.sh
-          name: Android SDK
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  android-stubs:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-android-stubs.sh
-          name: Android SDK Stubs
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  cocoa:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-cocoa.sh
-          name: Cocoa SDK
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  javascript:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-javascript.sh
-          name: JavaScript SDK
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  wizard:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-wizard.sh
-          name: Wizard
-          changelog-entry: false
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  cli:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-cli.sh
-          name: CLI
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  bundler-plugins:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-bundler-plugins.sh
-          name: Bundler Plugins
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  sample-rn:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-rn.sh
-          name: React Native
-          pattern: '^v[0-9.]+$' # only match non-preview versions, also ignores "latest"
-          changelog-entry: false
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  maestro:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-maestro.sh
-          name: Maestro
-          pattern: '^v[0-9.]+$' # only match non-preview versions
-          changelog-entry: false
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
-  sentry-android-gradle-plugin:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
-    steps:
-      - uses: getsentry/github-workflows/updater@v3
-        with:
-          path: scripts/update-sentry-android-gradle-plugin.sh
-          name: Sentry Android Gradle Plugin
-          pattern: '^[0-9.]+$'
-          changelog-entry: false
+          path: ${{ matrix.path }}
+          name: ${{ matrix.name }}
+          pattern: ${{ matrix.pattern || '' }}
+          changelog-entry: ${{ matrix.changelog-entry }}
           ssh-key: ${{ secrets.CI_DEPLOY_KEY }}

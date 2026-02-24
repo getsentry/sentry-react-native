@@ -68,6 +68,10 @@ jobs:
 
       - name: Install Swiftly and Swift
         run: |
+          # Install Swift dependencies first
+          sudo apt-get update
+          sudo apt-get -y install libcurl4-openssl-dev libz3-dev
+
           SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
           curl -sL https://download.swift.org/swiftly/linux/swiftly-x86_64.tar.gz -o $SWIFTLY_FILE
           tar zxf $SWIFTLY_FILE
@@ -79,8 +83,6 @@ jobs:
           # Install Swift 5.10 (compatible with SwiftLint 0.61.0)
           swiftly install 5.10
           swift --version
-
-          sudo apt-get -y install libcurl4-openssl-dev
 
           # Export Swift toolchain path for SwiftLint's SourceKit
           # Dynamically determine the path from the swift binary location
