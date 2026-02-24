@@ -76,12 +76,20 @@ plugins.withId('com.android.application') {
             //
             // Capitalization: only the first character is upper-cased so that flavored variants
             // like "freeRelease" become "FreeRelease" (not "Freerelease" from Groovy capitalize()).
-            def variantCapitalized = v.name.substring(0, 1).toUpperCase() + v.name.substring(1)
+            // All AGP Variant API accesses (outputs, applicationId, versionCode/Name providers)
+            // must happen here inside onVariants — the variant object is not valid after this
+            // callback returns.
+            def variantName = v.name
+            def variantCapitalized = variantName.substring(0, 1).toUpperCase() + variantName.substring(1)
+            def variantApplicationId = v.applicationId.get()
+            def variantOutputsData = v.outputs.collect { output ->
+                [baseName: output.baseName, versionCode: output.versionCode.getOrElse(0), versionName: output.versionName.getOrElse('')]
+            }
             project.afterEvaluate {
                 def sentryBundleTaskName = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].find { tasks.names.contains(it) }
                 if (sentryBundleTaskName == null) {
                     project.logger.warn(
-                        "[sentry] No React Native bundle task found for variant '${v.name}'. " +
+                        "[sentry] No React Native bundle task found for variant '${variantName}'. " +
                         "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
                         "'bundle${variantCapitalized}JsAndAssets' — neither is registered. " +
                         "Source maps will NOT be uploaded for this variant.")
@@ -111,7 +119,7 @@ plugins.withId('com.android.application') {
                 //     .findAll{!['class', 'active'].contains(it.key)}
                 //     .join('\n')
 
-                def currentVariants = extractCurrentVariants(bundleTask, v)
+                def currentVariants = extractCurrentVariants(bundleTask, variantName, variantApplicationId, variantOutputsData)
                 if (currentVariants == null || currentVariants.isEmpty()) return
 
                 def previousCliTask = null
@@ -516,7 +524,7 @@ def forceSourceMapOutputFromBundleTask(bundleTask) {
 }
 
 /** compose array with one item - current build flavor name */
-static extractCurrentVariants(bundleTask, variant) {
+static extractCurrentVariants(bundleTask, String variantName, String applicationId, List outputsData) {
     // examples: bundleLocalReleaseJsAndAssets, createBundleYellowDebugJsAndAssets
     def pattern = Pattern.compile("(?:create)?(?:B|b)undle([A-Z][A-Za-z0-9_]+)JsAndAssets")
 
@@ -529,15 +537,13 @@ static extractCurrentVariants(bundleTask, variant) {
     }
 
     def currentVariants = null
-    if (variant.name.equalsIgnoreCase(currentRelease)) {
+    if (variantName.equalsIgnoreCase(currentRelease)) {
         currentVariants = [:]
-        def variantName = variant.name
-        variant.outputs.each { output ->
-            def defaultVersionCode = output.versionCode.getOrElse(0)
+        outputsData.each { output ->
+            def defaultVersionCode = output.versionCode
             def versionCode        = System.getenv('SENTRY_DIST') ?: defaultVersionCode
-            def appId              = variant.applicationId.get()
-            def versionName        = output.versionName.getOrElse('')  // may be empty if not set
-            def defaultReleaseName = "${appId}@${versionName}+${versionCode}"
+            def versionName        = output.versionName  // may be empty if not set
+            def defaultReleaseName = "${applicationId}@${versionName}+${versionCode}"
             def releaseName        = System.getenv('SENTRY_RELEASE') ?: defaultReleaseName
 
             def outputName = output.baseName
