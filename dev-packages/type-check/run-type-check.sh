@@ -6,14 +6,13 @@ __dirpath=$(dirname $(realpath "$0"))
 
 cd "${__dirpath}/../../packages/core"
 
-yalc publish --sig
+yalc publish
 
 cd "${__dirpath}/ts3.8-test"
 
 # Add yalc package (creates .yalc/ directory and updates package.json)
 yalc add @sentry/react-native
 
-# Run yarn install to process dependencies
 yarn install
 
 # Re-add yalc package to ensure it's in node_modules (yarn might have removed it)
