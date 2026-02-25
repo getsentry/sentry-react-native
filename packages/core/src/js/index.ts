@@ -92,9 +92,11 @@ export {
   createTimeToFullDisplay,
   createTimeToInitialDisplay,
   wrapExpoRouter,
+  wrapExpoImage,
+  wrapExpoAsset,
 } from './tracing';
 
-export type { TimeToDisplayProps, ExpoRouter } from './tracing';
+export type { TimeToDisplayProps, ExpoRouter, ExpoImage, ExpoAsset, ExpoAssetInstance } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
 
