@@ -70,7 +70,7 @@ plugins.withId('com.android.application') {
             // Hook into the bundle task of react native to inject sourcemap generation parameters.
             // tasks.names.contains() checks task existence without iterating the container, avoiding
             // eager realization of unrelated tasks (fixes #5698, Fullstory AGP Artifacts API).
-            def variantCapitalized = v.name.substring(0, 1).toUpperCase() + v.name.substring(1)
+            def variantCapitalized = v.name.capitalize()
             def sentryBundleTaskName = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].find { tasks.names.contains(it) }
             if (sentryBundleTaskName == null) {
                 project.logger.warn("[sentry] No bundle task found for variant '${v.name}'. " +
