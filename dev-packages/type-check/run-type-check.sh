@@ -6,11 +6,11 @@ __dirpath=$(dirname $(realpath "$0"))
 
 cd "${__dirpath}/../../packages/core"
 
-yalc publish
+yalc publish --sig
 
 cd "${__dirpath}/ts3.8-test"
 
-yalc add @sentry/react-native
+yalc add @sentry/react-native --pure
 
 yarn install
 
