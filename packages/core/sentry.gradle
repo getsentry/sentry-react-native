@@ -68,14 +68,11 @@ plugins.withId('com.android.application') {
     androidComponents.onVariants(androidComponents.selector().all()) { v ->
         if (!v.name.toLowerCase().contains("debug")) {
             // Hook into the bundle task of react native to inject sourcemap generation parameters.
-            // Defer task lookup to afterEvaluate so all plugins (including the React Native plugin)
-            // have registered their tasks — onVariants fires during project evaluation, before the
-            // task container is complete. tasks.named() is used for a targeted lazy reference that
-            // does not iterate the container and avoids realizing unrelated tasks (fixes Fullstory
-            // AGP Artifacts API conflict, issue #5698, and react-native-legal, issue #5236).
+            // tasks.names.contains() checks task existence without iterating or realizing the
+            // container. tasks.named() provides a targeted lazy reference to the specific task,
+            // avoiding the eager realization that tasks.findAll caused (fixes Fullstory AGP
+            // Artifacts API conflict, issue #5698, and react-native-legal, issue #5236).
             //
-            // Capitalization: only the first character is upper-cased so that flavored variants
-            // like "freeRelease" become "FreeRelease" (not "Freerelease" from Groovy capitalize()).
             // All AGP Variant API accesses (outputs, applicationId, versionCode/Name providers)
             // must happen here inside onVariants — the variant object is not valid after this
             // callback returns.
@@ -85,17 +82,16 @@ plugins.withId('com.android.application') {
             def variantOutputsData = v.outputs.collect { output ->
                 [baseName: output.baseName, versionCode: output.versionCode.getOrElse(0), versionName: output.versionName.getOrElse('')]
             }
-            project.afterEvaluate {
-                def sentryBundleTaskName = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].find { tasks.names.contains(it) }
-                if (sentryBundleTaskName == null) {
-                    project.logger.warn(
-                        "[sentry] No React Native bundle task found for variant '${variantName}'. " +
-                        "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
-                        "'bundle${variantCapitalized}JsAndAssets' — neither is registered. " +
-                        "Source maps will NOT be uploaded for this variant.")
-                    return
-                }
-                tasks.named(sentryBundleTaskName).configure { bundleTask ->
+            def sentryBundleTaskName = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].find { tasks.names.contains(it) }
+            if (sentryBundleTaskName == null) {
+                project.logger.warn(
+                    "[sentry] No React Native bundle task found for variant '${variantName}'. " +
+                    "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
+                    "'bundle${variantCapitalized}JsAndAssets' — neither is registered. " +
+                    "Source maps will NOT be uploaded for this variant.")
+                return
+            }
+            tasks.named(sentryBundleTaskName).configure { bundleTask ->
                 if (!bundleTask.enabled) return
                 def shouldCleanUp
                 def sourcemapOutput
@@ -335,7 +331,6 @@ plugins.withId('com.android.application') {
                     packageTask.dependsOn modulesTask
                     packageTask.finalizedBy modulesCleanUpTask
                 }
-            }
             }
         }
     }
