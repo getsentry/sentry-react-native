@@ -91,6 +91,25 @@ plugins.withId('com.android.application') {
                     "Source maps will NOT be uploaded for this variant.")
                 return
             }
+            // All task-related values that come from the bundle task are shared via a mutable
+            // context map. Task action closures (doFirst/doLast/onlyIf/delete) capture ctx
+            // by reference and read from it at execution time, after bundleTask.configure {}
+            // has populated it during the configuration phase.
+            //
+            // Gradle 8.x prohibits both tasks.register() AND TaskProvider.configure {} inside
+            // a task configuration action. The tasks.named(bundleTask).configure {} block below
+            // therefore does only two things: populate ctx, and call bundleTask.finalizedBy.
+            // All task registration, wiring, and doFirst/doLast setup happens here in onVariants.
+            def ctx = [
+                reactRoot: null,
+                modulesOutput: null,
+                shouldCleanUp: false,
+                sourcemapOutput: null,
+                bundleOutput: null,
+                packagerSourcemapOutput: null,
+                bundleCommand: null
+            ]
+
             // Pre-compute currentVariants in onVariants (all inputs are available here).
             // The static helper only reads bundleTask.name, so a simple map proxy suffices.
             def currentVariants = extractCurrentVariants([name: sentryBundleTaskName], variantName, variantApplicationId, variantOutputsData)
@@ -99,17 +118,21 @@ plugins.withId('com.android.application') {
             def nameCleanup = "${sentryBundleTaskName}_SentryUploadCleanUp"
             def nameModulesCleanup = "${sentryBundleTaskName}_SentryCollectModulesCleanUp"
 
-            // Pre-register all Sentry tasks here in onVariants. Gradle 8.x prohibits
-            // tasks.register() inside a task configuration action (the closure passed to
-            // tasks.named().configure {}). We create stubs with metadata here and wire
-            // their doFirst/doLast logic lazily from inside bundleTask.configure {}.
             def modulesCleanUpTask = tasks.register(nameModulesCleanup, Delete) {
                 description = "clean up collected modules generated file"
                 group = 'sentry.io'
+                // Groovy closure passed to delete() is a Callable evaluated at execution time.
+                delete { ctx.modulesOutput }
             }
+
+            /** Delete sourcemap files */
             def cliCleanUpTask = tasks.register(nameCleanup, Delete) {
                 description = "clean up extra sourcemap"
                 group = 'sentry.io'
+                delete { ctx.sourcemapOutput }
+                delete "$buildDir/intermediates/assets/release/index.android.bundle.map"
+                // react native default bundle dir
+                onlyIf { ctx.shouldCleanUp }
             }
 
             def previousCliTask = null
@@ -143,16 +166,153 @@ plugins.withId('com.android.application') {
                 // upload for each of them.  No need to repeat.
                 if (tasks.names.contains(nameCliTask)) return
 
+                // extraArgs is per-variant and shared between doFirst (which populates it) and
+                // doLast (which appends it to the CLI invocation). Both closures capture it here.
+                def extraArgs = []
+
                 /** Upload source map file to the sentry server via CLI call. */
                 def cliTask = tasks.register(nameCliTask) {
                     onlyIf { shouldSentryAutoUploadGeneral() }
                     description = "upload debug symbols to sentry"
                     group = 'sentry.io'
+
+                    def injected = project.objects.newInstance(InjectedExecOps)
+                    doFirst {
+                        // ctx is populated by bundleTask.configure {} at configuration time;
+                        // doFirst runs at execution time so ctx values are already set.
+                        def sentryPackage = resolveSentryReactNativeSDKPath(ctx.reactRoot)
+                        def copyDebugIdScript = config.copyDebugIdScript
+                            ? file(config.copyDebugIdScript).getAbsolutePath()
+                            : "$sentryPackage/scripts/copy-debugid.js"
+                        def hasSourceMapDebugIdScript = config.hasSourceMapDebugIdScript
+                            ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
+                            : "$sentryPackage/scripts/has-sourcemap-debugid.js"
+
+                        // Copy Debug ID from packager source map to Hermes composed source map
+                        injected.execOps.exec {
+                            def args = ["node",
+                                copyDebugIdScript,
+                                ctx.packagerSourcemapOutput,
+                                ctx.sourcemapOutput]
+                            def osCompatibilityCopyCommand = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
+                            commandLine(*osCompatibilityCopyCommand, *args)
+                        }
+
+                        // Add release and dist for backward compatibility if no Debug ID detected in output soruce map
+                        def process = ["node", hasSourceMapDebugIdScript, ctx.sourcemapOutput].execute(null, new File("${ctx.reactRoot}"))
+                        def exitValue = process.waitFor()
+                        project.logger.lifecycle("Check generated source map for Debug ID: ${process.text}")
+
+                        project.logger.lifecycle("Sentry Source Maps upload will include the release name and dist.")
+                        extraArgs.addAll([
+                            "--release", releaseName,
+                            "--dist", versionCode
+                        ])
+                    }
+
+                    doLast {
+                        injected.execOps.exec {
+                            workingDir ctx.reactRoot
+
+                            def propertiesFile = config.sentryProperties
+                                ? config.sentryProperties
+                                : "${ctx.reactRoot}/android/sentry.properties"
+
+                            if (config.flavorAware) {
+                                propertiesFile = "${ctx.reactRoot}/android/sentry-${variant}.properties"
+                                project.logger.info("For $variant using: $propertiesFile")
+                            } else {
+                                environment("SENTRY_PROPERTIES", propertiesFile)
+                            }
+
+                            Properties sentryProps = new Properties()
+                            try {
+                                sentryProps.load(new FileInputStream(propertiesFile))
+                            } catch (FileNotFoundException e) {
+                                project.logger.info("file not found '$propertiesFile' for '$variant'")
+                            }
+
+                            def cliPackage = resolveSentryCliPackagePath(ctx.reactRoot)
+                            def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
+
+                            // fix path separator for Windows
+                            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                                cliExecutable = cliExecutable.replaceAll("/", "\\\\")
+                            }
+
+                            //
+                            // based on:
+                            //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
+                            //
+                            def args = [cliExecutable]
+
+                            args.addAll(!config.logLevel ? [] : [
+                                "--log-level", config.logLevel      // control verbosity of the output
+                            ])
+                            args.addAll(!config.flavorAware ? [] : [
+                                "--url", sentryProps.get("defaults.url"),
+                                "--auth-token", sentryProps.get("auth.token") ?: System.getenv("SENTRY_AUTH_TOKEN")
+                            ])
+                            args.addAll(["react-native", "gradle",
+                                "--bundle", ctx.bundleOutput,           // The path to a bundle that should be uploaded.
+                                "--sourcemap", ctx.sourcemapOutput      // The path to a sourcemap that should be uploaded.
+                            ])
+                            args.addAll(!config.flavorAware ? [] : [
+                                "--org", sentryProps.get("defaults.org"),
+                                "--project", sentryProps.get("defaults.project")
+                            ])
+
+                            args.addAll(extraArgs)
+
+                            project.logger.lifecycle("Sentry-CLI arguments: ${args}")
+                            def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
+                            if (!System.getenv('SENTRY_DOTENV_PATH') && file("${ctx.reactRoot}/.env.sentry-build-plugin").exists()) {
+                                environment('SENTRY_DOTENV_PATH', "${ctx.reactRoot}/.env.sentry-build-plugin")
+                            }
+                            commandLine(*osCompatibility, *args)
+                        }
+                    }
+
                     enabled true
                 }
+
                 def modulesTask = tasks.register(nameModulesTask, Exec) {
                     description = "collect javascript modules from bundle source map"
                     group = 'sentry.io'
+
+                    onlyIf {
+                        def sentryPackage = resolveSentryReactNativeSDKPath(ctx.reactRoot)
+                        def collectModulesScript = config.collectModulesScript
+                            ? file(config.collectModulesScript).getAbsolutePath()
+                            : "$sentryPackage/dist/js/tools/collectModules.js"
+                        def skip = config.skipCollectModules
+                            ? config.skipCollectModules == true
+                            : false
+                        def exists = (new File(collectModulesScript)).exists()
+                        if (!exists) {
+                            project.logger.info("collectModulesScript not found: $collectModulesScript")
+                        }
+                        exists && !skip
+                    }
+
+                    doFirst {
+                        def sentryPackage = resolveSentryReactNativeSDKPath(ctx.reactRoot)
+                        def collectModulesScript = config.collectModulesScript
+                            ? file(config.collectModulesScript).getAbsolutePath()
+                            : "$sentryPackage/dist/js/tools/collectModules.js"
+                        def modulesPaths = config.modulesPaths
+                            ? config.modulesPaths.join(',')
+                            : "${ctx.reactRoot}/node_modules"
+                        def args = ["node",
+                                    collectModulesScript,
+                                    ctx.sourcemapOutput,
+                                    ctx.modulesOutput,
+                                    modulesPaths
+                        ]
+                        project.logger.info("Sentry-CollectModules arguments: ${args}")
+                        workingDir ctx.reactRoot
+                        commandLine(*args)
+                    }
                 }
                 lastModulesTask = modulesTask
 
@@ -174,21 +334,34 @@ plugins.withId('com.android.application') {
             def capturedApplicationVariant = applicationVariant
             def capturedLastModulesTask = lastModulesTask
 
+            // Wire cleanup and package task dependencies here in onVariants.
+            // All TaskProvider.configure {} calls must happen outside of any task
+            // configuration action to comply with Gradle 8.x restrictions.
+            // due to chaining the last value of capturedPreviousCliTask will be the final
+            // upload task, after which the cleanup can be done
+            capturedPreviousCliTask.configure { finalizedBy cliCleanUpTask }
+
+            def packageTasks = tasks.matching {
+                task -> ("package${capturedApplicationVariant}".equalsIgnoreCase(task.name) || "package${capturedApplicationVariant}Bundle".equalsIgnoreCase(task.name)) && task.enabled
+            }
+            packageTasks.configureEach { packageTask ->
+                packageTask.dependsOn capturedLastModulesTask
+                packageTask.finalizedBy modulesCleanUpTask
+            }
+
+            // Configure the bundle task — ONLY reads its properties to populate ctx and
+            // calls bundleTask.finalizedBy. No task registration or TaskProvider.configure {}
+            // calls here — Gradle 8.x forbids both inside a task configuration action.
             tasks.named(sentryBundleTaskName).configure { bundleTask ->
                 if (!bundleTask.enabled) return
-                def shouldCleanUp
-                def sourcemapOutput
-                def bundleOutput
-                def packagerSourcemapOutput
-                def bundleCommand
                 def props = bundleTask.getProperties()
-                def reactRoot = props.get("workingDir")
-                if (reactRoot == null) {
-                    reactRoot = props.get("root").get() // RN 0.71 and above
+                ctx.reactRoot = props.get("workingDir")
+                if (ctx.reactRoot == null) {
+                    ctx.reactRoot = props.get("root").get() // RN 0.71 and above
                 }
-                def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
+                ctx.modulesOutput = "${ctx.reactRoot}/android/app/src/main/assets/modules.json"
 
-                (shouldCleanUp, bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = forceSourceMapOutputFromBundleTask(bundleTask)
+                (ctx.shouldCleanUp, ctx.bundleOutput, ctx.sourcemapOutput, ctx.packagerSourcemapOutput, ctx.bundleCommand) = forceSourceMapOutputFromBundleTask(bundleTask)
 
                 // Lets leave this here if we need to debug
                 // println bundleTask.properties
@@ -197,180 +370,7 @@ plugins.withId('com.android.application') {
                 //     .findAll{!['class', 'active'].contains(it.key)}
                 //     .join('\n')
 
-                // Configure pre-registered Sentry tasks with values from this bundle task.
-                // tasks.named(name).configure {} on an existing task is allowed inside a
-                // configuration action; only tasks.register() is forbidden (Gradle 8.x).
-                currentVariants.each { key, currentVariant ->
-                    def variant = currentVariant[0]
-                    def releaseName = currentVariant[1]
-                    def versionCode = currentVariant[2]
-
-                    try {
-                        if (versionCode instanceof String) {
-                            versionCode = Integer.parseInt(versionCode)
-                            versionCode = Math.abs(versionCode)
-                        }
-                    } catch (NumberFormatException e) {
-                        project.logger.info("versionCode: '$versionCode' isn't an Integer, using the plain value.")
-                    }
-
-                    def nameCliTask = "${sentryBundleTaskName}_SentryUpload_${releaseName}_${versionCode}"
-                    def nameModulesTask = "${sentryBundleTaskName}_SentryCollectModules_${releaseName}_${versionCode}"
-
-                    def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
-                    def copyDebugIdScript = config.copyDebugIdScript
-                        ? file(config.copyDebugIdScript).getAbsolutePath()
-                        : "$sentryPackage/scripts/copy-debugid.js"
-                    def hasSourceMapDebugIdScript = config.hasSourceMapDebugIdScript
-                        ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
-                        : "$sentryPackage/scripts/has-sourcemap-debugid.js"
-
-                    def extraArgs = []
-
-                    tasks.named(nameCliTask).configure {
-                        def injected = project.objects.newInstance(InjectedExecOps)
-                        doFirst {
-                            // Copy Debug ID from packager source map to Hermes composed source map
-                            injected.execOps.exec {
-                                def args = ["node",
-                                    copyDebugIdScript,
-                                    packagerSourcemapOutput,
-                                    sourcemapOutput]
-                                def osCompatibilityCopyCommand = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
-                                commandLine(*osCompatibilityCopyCommand, *args)
-                            }
-
-                            // Add release and dist for backward compatibility if no Debug ID detected in output soruce map
-                            def process = ["node", hasSourceMapDebugIdScript, sourcemapOutput].execute(null, new File("$reactRoot"))
-                            def exitValue = process.waitFor()
-                            project.logger.lifecycle("Check generated source map for Debug ID: ${process.text}")
-
-                            project.logger.lifecycle("Sentry Source Maps upload will include the release name and dist.")
-                            extraArgs.addAll([
-                                "--release", releaseName,
-                                "--dist", versionCode
-                            ])
-                        }
-
-                        doLast {
-                            injected.execOps.exec {
-                                workingDir reactRoot
-
-                                def propertiesFile = config.sentryProperties
-                                    ? config.sentryProperties
-                                    : "$reactRoot/android/sentry.properties"
-
-                                if (config.flavorAware) {
-                                    propertiesFile = "$reactRoot/android/sentry-${variant}.properties"
-                                    project.logger.info("For $variant using: $propertiesFile")
-                                } else {
-                                    environment("SENTRY_PROPERTIES", propertiesFile)
-                                }
-
-                                Properties sentryProps = new Properties()
-                                try {
-                                    sentryProps.load(new FileInputStream(propertiesFile))
-                                } catch (FileNotFoundException e) {
-                                    project.logger.info("file not found '$propertiesFile' for '$variant'")
-                                }
-
-                                def cliPackage = resolveSentryCliPackagePath(reactRoot)
-                                def cliExecutable = sentryProps.get("cli.executable", "$cliPackage/bin/sentry-cli")
-
-                                // fix path separator for Windows
-                                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                                    cliExecutable = cliExecutable.replaceAll("/", "\\\\")
-                                }
-
-                                //
-                                // based on:
-                                //   https://github.com/getsentry/sentry-cli/blob/master/src/commands/react_native_gradle.rs
-                                //
-                                def args = [cliExecutable]
-
-                                args.addAll(!config.logLevel ? [] : [
-                                    "--log-level", config.logLevel      // control verbosity of the output
-                                ])
-                                args.addAll(!config.flavorAware ? [] : [
-                                    "--url", sentryProps.get("defaults.url"),
-                                    "--auth-token", sentryProps.get("auth.token") ?: System.getenv("SENTRY_AUTH_TOKEN")
-                                ])
-                                args.addAll(["react-native", "gradle",
-                                    "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
-                                    "--sourcemap", sourcemapOutput      // The path to a sourcemap that should be uploaded.
-                                ])
-                                args.addAll(!config.flavorAware ? [] : [
-                                    "--org", sentryProps.get("defaults.org"),
-                                    "--project", sentryProps.get("defaults.project")
-                                ])
-
-                                args.addAll(extraArgs)
-
-                                project.logger.lifecycle("Sentry-CLI arguments: ${args}")
-                                def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
-                                if (!System.getenv('SENTRY_DOTENV_PATH') && file("$reactRoot/.env.sentry-build-plugin").exists()) {
-                                    environment('SENTRY_DOTENV_PATH', "$reactRoot/.env.sentry-build-plugin")
-                                }
-                                commandLine(*osCompatibility, *args)
-                            }
-                        }
-
-                        enabled true
-                    }
-
-                    tasks.named(nameModulesTask).configure {
-                        workingDir reactRoot
-
-                        def collectModulesScript = config.collectModulesScript
-                            ? file(config.collectModulesScript).getAbsolutePath()
-                            : "$sentryPackage/dist/js/tools/collectModules.js"
-                        def modulesPaths = config.modulesPaths
-                            ? config.modulesPaths.join(',')
-                            : "$reactRoot/node_modules"
-                        def args = ["node",
-                                    collectModulesScript,
-                                    sourcemapOutput,
-                                    modulesOutput,
-                                    modulesPaths
-                        ]
-
-                        if ((new File(collectModulesScript)).exists()) {
-                            project.logger.info("Sentry-CollectModules arguments: ${args}")
-                            commandLine(*args)
-
-                            def skip = config.skipCollectModules
-                                ? config.skipCollectModules == true
-                                : false
-                            enabled !skip
-                        } else {
-                            project.logger.info("collectModulesScript not found: $collectModulesScript")
-                            enabled false
-                        }
-                    }
-                }
-
-                // register clean task extension
-                cliCleanUpTask.configure {
-                    delete sourcemapOutput
-                    delete "$buildDir/intermediates/assets/release/index.android.bundle.map"
-                    // react native default bundle dir
-                    onlyIf { shouldCleanUp }
-                }
-                modulesCleanUpTask.configure {
-                    delete modulesOutput
-                }
-                // due to chaining the last value of capturedPreviousCliTask will be the final
-                // upload task, after which the cleanup can be done
                 bundleTask.finalizedBy capturedFirstCliTask
-                capturedPreviousCliTask.configure { finalizedBy cliCleanUpTask }
-
-                def packageTasks = tasks.matching {
-                    task -> ("package${capturedApplicationVariant}".equalsIgnoreCase(task.name) || "package${capturedApplicationVariant}Bundle".equalsIgnoreCase(task.name)) && task.enabled
-                }
-                packageTasks.configureEach { packageTask ->
-                    packageTask.dependsOn capturedLastModulesTask
-                    packageTask.finalizedBy modulesCleanUpTask
-                }
             }
         }
     }
