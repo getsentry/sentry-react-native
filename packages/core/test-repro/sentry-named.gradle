@@ -1,0 +1,21 @@
+// Approach: predict bundle task names from variant name, use tasks.named().
+// tasks.named(specificName) only targets one specific task by name — it does
+// NOT iterate the task container, so it does NOT realize unrelated tasks.
+plugins.withId('com.android.application') {
+    def androidComponents = extensions.getByName("androidComponents")
+    androidComponents.onVariants(androidComponents.selector().all()) { v ->
+        if (!v.name.toLowerCase().contains("debug")) {
+            def variantCapitalized = v.name.substring(0, 1).toUpperCase() + v.name.substring(1)
+            // Bundle task names follow a predictable pattern from the variant name.
+            // We check tasks.names (name metadata only, no realization) to find which
+            // pattern is registered, then wire lazily with tasks.named().
+            ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].each { bundleTaskName ->
+                if (tasks.names.contains(bundleTaskName)) {
+                    tasks.named(bundleTaskName).configure { bundleTask ->
+                        project.logger.lifecycle("[sentry-named] found bundle task: ${bundleTask.name}")
+                    }
+                }
+            }
+        }
+    }
+}

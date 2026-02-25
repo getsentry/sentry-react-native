@@ -1,0 +1,17 @@
+// Reproduces the CURRENT MAIN approach (as of after PR #5253):
+// tasks.findAll inside androidComponents.onVariants
+// This is known to WORK with react-native-legal.
+plugins.withId('com.android.application') {
+    def androidComponents = extensions.getByName("androidComponents")
+    androidComponents.onVariants(androidComponents.selector().all()) { v ->
+        if (!v.name.toLowerCase().contains("debug")) {
+            def bundleTasks = tasks.findAll { task ->
+                (task.name.startsWith("createBundle") || task.name.startsWith("bundle")) &&
+                task.name.endsWith("JsAndAssets") &&
+                !task.name.contains("Debug") &&
+                task.enabled
+            }
+            project.logger.lifecycle("[sentry-main] found ${bundleTasks.size()} bundle task(s) in onVariants")
+        }
+    }
+}
