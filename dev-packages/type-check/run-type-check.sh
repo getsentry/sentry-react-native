@@ -6,7 +6,7 @@ __dirpath=$(dirname $(realpath "$0"))
 
 cd "${__dirpath}/../../packages/core"
 
-yalc publish --sig
+yalc publish
 
 cd "${__dirpath}/ts3.8-test"
 
