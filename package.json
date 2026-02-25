@@ -58,15 +58,6 @@
     "node": "18.20.8",
     "yarn": "3.6.4"
   },
-  "resolutions": {
-    "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10",
-    "fast-xml-parser": "^5.3.6",
-    "form-data": "4.0.4",
-    "qs": "^6.14.2",
-    "lodash": "^4.17.23",
-    "tar-fs": "^3.1.1",
-    "tar": "^7.5.7"
-  },
   "version": "0.0.0",
   "name": "sentry-react-native",
   "packageManager": "yarn@3.6.4+sha512.e70835d4d6d62c07be76b3c1529cb640c7443f0fe434ef4b6478a5a399218cbaf1511b396b3c56eb03bc86424cff2320f6167ad2fde273aa0df6e60b7754029f"
