@@ -87,7 +87,12 @@ function parseBaseOptions() {
   // Parse additional tags if provided
   if (process.env.SENTRY_EAS_BUILD_TAGS) {
     try {
-      options.tags = JSON.parse(process.env.SENTRY_EAS_BUILD_TAGS);
+      const parsed = JSON.parse(process.env.SENTRY_EAS_BUILD_TAGS);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        options.tags = parsed;
+      } else {
+        console.warn('[Sentry] SENTRY_EAS_BUILD_TAGS must be a JSON object (e.g., {"key":"value"}). Ignoring.');
+      }
     } catch (_e) {
       console.warn('[Sentry] Could not parse SENTRY_EAS_BUILD_TAGS as JSON. Ignoring.');
     }

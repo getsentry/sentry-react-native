@@ -37,4 +37,7 @@ async function main() {
   await runHook('on-success', () => hooks.captureEASBuildSuccess(options));
 }
 
-main();
+main().catch(error => {
+  console.error('[Sentry] Unexpected error in eas-build-on-success hook:', error);
+  process.exit(1);
+});
