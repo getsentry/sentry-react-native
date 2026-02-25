@@ -27,6 +27,10 @@
 #import <Sentry/SentryGeo.h>
 #import <Sentry/SentryUser.h>
 
+#if __has_include(<Sentry/Sentry-Swift.h>)
+#    import <Sentry/Sentry-Swift.h>
+#endif
+
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
 #    import <hermes/hermes.h>
@@ -976,6 +980,95 @@ RCT_EXPORT_METHOD(encodeToBase64 : (NSArray *)array resolver : (
 
     NSString *base64String = [data base64EncodedStringWithOptions:0];
     resolve(base64String);
+}
+
+RCT_EXPORT_METHOD(captureLog : (NSDictionary *)log)
+{
+#if __has_include(<Sentry/Sentry-Swift.h>)
+    NSString *levelStr = log[@"level"];
+    NSString *body = log[@"body"];
+
+    if (body == nil) {
+        return;
+    }
+
+    SentryLogLevel level = SentryLogLevelInfo;
+    if ([levelStr isEqualToString:@"trace"]) {
+        level = SentryLogLevelTrace;
+    } else if ([levelStr isEqualToString:@"debug"]) {
+        level = SentryLogLevelDebug;
+    } else if ([levelStr isEqualToString:@"info"]) {
+        level = SentryLogLevelInfo;
+    } else if ([levelStr isEqualToString:@"warn"]) {
+        level = SentryLogLevelWarning;
+    } else if ([levelStr isEqualToString:@"error"]) {
+        level = SentryLogLevelError;
+    } else if ([levelStr isEqualToString:@"fatal"]) {
+        level = SentryLogLevelFatal;
+    }
+
+    // Convert attributes from JS format to SentryAttribute dictionary
+    NSMutableDictionary<NSString *, SentryAttribute *> *attributes = [NSMutableDictionary new];
+    NSDictionary *jsAttributes = log[@"attributes"];
+    if ([jsAttributes isKindOfClass:[NSDictionary class]]) {
+        for (NSString *key in jsAttributes) {
+            NSDictionary *attrValue = jsAttributes[key];
+            if ([attrValue isKindOfClass:[NSDictionary class]]) {
+                id value = attrValue[@"value"];
+                if (value != nil) {
+                    if ([value isKindOfClass:[NSString class]]) {
+                        attributes[key] = [[SentryAttribute alloc] initWithValue:value];
+                    } else if ([value isKindOfClass:[NSNumber class]]) {
+                        // Check if it's a boolean
+                        if (strcmp([value objCType], @encode(BOOL)) == 0) {
+                            attributes[key] = [[SentryAttribute alloc] initWithValue:value];
+                        } else {
+                            attributes[key] = [[SentryAttribute alloc] initWithValue:value];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Add origin attribute to indicate this log came from JavaScript
+    attributes[@"sentry.origin"] = [[SentryAttribute alloc] initWithValue:@"react-native.js"];
+
+    // Create SentryLog with level, body, and attributes
+    SentryLog *sentryLog = [[SentryLog alloc] initWithLevel:level body:body attributes:attributes];
+
+    // Set timestamp if provided (convert from seconds to Date)
+    NSNumber *timestamp = log[@"timestamp"];
+    if ([timestamp isKindOfClass:[NSNumber class]]) {
+        sentryLog.timestamp = [NSDate dateWithTimeIntervalSince1970:[timestamp doubleValue]];
+    }
+
+    // Set traceId if provided
+    NSString *traceId = log[@"traceId"];
+    if ([traceId isKindOfClass:[NSString class]] && traceId.length > 0) {
+        sentryLog.traceId = [[SentryId alloc] initWithUUIDString:traceId];
+    }
+
+    // Set spanId if provided
+    NSString *spanId = log[@"spanId"];
+    if ([spanId isKindOfClass:[NSString class]] && spanId.length > 0) {
+        sentryLog.spanId = [[SpanId alloc] initWithValue:spanId];
+    }
+
+    // Set severityNumber if provided
+    NSNumber *severityNumber = log[@"severityNumber"];
+    if ([severityNumber isKindOfClass:[NSNumber class]]) {
+        sentryLog.severityNumber = severityNumber;
+    }
+
+    // Capture the log through the SDK
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+        SentryClient *client = [PrivateSentrySDKOnly getCurrentHub].client;
+        if (client != nil) {
+            [client captureLog:sentryLog withScope:scope];
+        }
+    }];
+#endif
 }
 
 @end

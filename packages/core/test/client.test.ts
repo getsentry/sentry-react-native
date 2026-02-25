@@ -885,14 +885,30 @@ describe('Tests ReactNativeClient', () => {
       expect(flushLogsSpy).not.toHaveBeenCalled();
     });
 
-    it.each([['all' as const], ['js' as const]])('flushes logs when logsOrigin is %s', logOrlogsOriginigin => {
-      jest.useFakeTimers();
+    it.each([['all' as const], ['js' as const]])('forwards logs to native when logsOrigin is %s', logsOrigin => {
+      const captureLogSpy = jest.spyOn(NATIVE, 'captureLog').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin });
+
+      client.emit('afterCaptureLog', { message: 'test', level: 'info', attributes: {} } as unknown);
+
+      expect(captureLogSpy).toHaveBeenCalledTimes(1);
+      expect(captureLogSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: 'test',
+          level: 'info',
+        }),
+      );
+
+      captureLogSpy.mockRestore();
+    });
+
+    it('flushes logs on explicit flush event', () => {
       const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
 
-      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: logOrlogsOriginigin });
+      const { client } = createClientWithSpy({ enableLogs: true, logsOrigin: 'js' });
 
-      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
-      jest.advanceTimersByTime(5000);
+      client.emit('flush');
 
       expect(flushLogsSpy).toHaveBeenCalledTimes(1);
       expect(flushLogsSpy).toHaveBeenLastCalledWith(client);

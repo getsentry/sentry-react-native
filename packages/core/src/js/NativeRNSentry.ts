@@ -54,6 +54,7 @@ export interface Spec extends TurboModule {
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
   setActiveSpanId(spanId: string): boolean;
   encodeToBase64(data: number[]): Promise<string | undefined | null>;
+  captureLog(log: UnsafeObject): void;
 }
 
 export type NativeStackFrame = {
@@ -157,6 +158,27 @@ export type NativeScreenshot = {
   data: number[];
   contentType: string;
   filename: string;
+};
+
+/**
+ * Log event structure for forwarding JS logs to native SDK.
+ * The native SDK will batch and handle lifecycle events (background/termination).
+ */
+export type NativeLogEvent = {
+  /** Timestamp in seconds since epoch */
+  timestamp: number;
+  /** Log level: trace, debug, info, warn, error, fatal */
+  level: string;
+  /** The log message body */
+  body: string;
+  /** Trace ID to associate this log with distributed tracing */
+  traceId: string;
+  /** Span ID of the active span when the log was captured */
+  spanId?: string;
+  /** Numeric severity level */
+  severityNumber?: number;
+  /** Structured attributes attached to the log */
+  attributes?: Record<string, { type: string; value: unknown }>;
 };
 
 // The export must be here to pass codegen even if not used

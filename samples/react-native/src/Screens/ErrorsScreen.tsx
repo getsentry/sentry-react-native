@@ -22,7 +22,8 @@ import { setScopeProperties } from '../setScopeProperties';
 import { TimeToFullDisplay } from '../utils';
 import type { Event as SentryEvent } from '@sentry/core';
 
-const { AssetsModule, CppModule, CrashModule, TestControlModule } = NativeModules;
+const { AssetsModule, CppModule, CrashModule, TestControlModule } =
+  NativeModules;
 
 interface Props {
   navigation: StackNavigationProp<any, 'HomeScreen'>;
@@ -129,7 +130,9 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Send count metric with attributes"
           onPress={() => {
-            Sentry.metrics.count('count_metric', 100, { attributes: { from_test_app: true } });
+            Sentry.metrics.count('count_metric', 100, {
+              attributes: { from_test_app: true },
+            });
           }}
         />
         <Button
@@ -176,13 +179,17 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Log console"
           onPress={() => {
-            Sentry.logger.info('info log');
-            Sentry.logger.trace('trace log');
-            Sentry.logger.debug('debug log');
-            Sentry.logger.warn('warn log');
-            Sentry.logger.error('error log');
+            Sentry.logger.info('info log Hybrid');
+            Sentry.logger.trace('trace log Hybrid');
+            Sentry.logger.debug('debug log Hybrid');
+            Sentry.logger.warn('warn log Hybrid');
+            Sentry.logger.error('error log Hybrid');
 
-            Sentry.logger.info('info log with data', { database: 'admin', number: 123, obj: { password: 'admin' } });
+            Sentry.logger.info('info log with data', {
+              database: 'admin',
+              number: 123,
+              obj: { password: 'admin' },
+            });
           }}
         />
         {Platform.OS === 'android' && (
@@ -212,7 +219,9 @@ const ErrorsScreen = (_props: Props) => {
               onPress={() => {
                 TestControlModule?.enableCrashOnStart()
                   .then(() => {
-                    console.log('Crash on start enabled. Restart app to crash.');
+                    console.log(
+                      'Crash on start enabled. Restart app to crash.',
+                    );
                   })
                   .catch((e: Error) => {
                     console.error('Failed to enable crash on start:', e);
@@ -287,7 +296,9 @@ const ErrorsScreen = (_props: Props) => {
               string: 'string',
               bigint: BigInt(123),
             });
-            Sentry.captureMessage('Message with different types of tags globally');
+            Sentry.captureMessage(
+              'Message with different types of tags globally',
+            );
             Sentry.setTags({
               number: undefined,
               boolean: undefined,

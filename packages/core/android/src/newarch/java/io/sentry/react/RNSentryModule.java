@@ -204,6 +204,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void captureLog(ReadableMap log) {
+    this.impl.captureLog(log);
+  }
+
+  @Override
   public void popTimeToDisplayFor(String key, Promise promise) {
     this.impl.popTimeToDisplayFor(key, promise);
   }
