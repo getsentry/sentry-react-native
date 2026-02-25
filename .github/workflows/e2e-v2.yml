@@ -48,11 +48,11 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
@@ -199,13 +199,13 @@ jobs:
           # Use Xcode 16 for older RN versions
           - platform: ios
             rn-version: '0.71.19'
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
             rn-version: '0.84.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
           - rn-version: '0.84.0'
@@ -334,7 +334,7 @@ jobs:
             rn-version: '0.84.0'
             runs-on:  macos-26
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
