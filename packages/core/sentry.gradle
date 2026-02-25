@@ -91,6 +91,89 @@ plugins.withId('com.android.application') {
                     "Source maps will NOT be uploaded for this variant.")
                 return
             }
+            // Pre-compute currentVariants in onVariants (all inputs are available here).
+            // The static helper only reads bundleTask.name, so a simple map proxy suffices.
+            def currentVariants = extractCurrentVariants([name: sentryBundleTaskName], variantName, variantApplicationId, variantOutputsData)
+            if (currentVariants == null || currentVariants.isEmpty()) return
+
+            def nameCleanup = "${sentryBundleTaskName}_SentryUploadCleanUp"
+            def nameModulesCleanup = "${sentryBundleTaskName}_SentryCollectModulesCleanUp"
+
+            // Pre-register all Sentry tasks here in onVariants. Gradle 8.x prohibits
+            // tasks.register() inside a task configuration action (the closure passed to
+            // tasks.named().configure {}). We create stubs with metadata here and wire
+            // their doFirst/doLast logic lazily from inside bundleTask.configure {}.
+            def modulesCleanUpTask = tasks.register(nameModulesCleanup, Delete) {
+                description = "clean up collected modules generated file"
+                group = 'sentry.io'
+            }
+            def cliCleanUpTask = tasks.register(nameCleanup, Delete) {
+                description = "clean up extra sourcemap"
+                group = 'sentry.io'
+            }
+
+            def previousCliTask = null
+            def firstCliTask = null
+            def applicationVariant = null
+            def lastModulesTask = null
+
+            // Upload the source map several times if necessary: once for each release and versionCode.
+            currentVariants.each { key, currentVariant ->
+                def variant = currentVariant[0]
+                def releaseName = currentVariant[1]
+                def versionCode = currentVariant[2]
+                applicationVariant = currentVariant[3]
+
+                try {
+                    if (versionCode instanceof String) {
+                        versionCode = Integer.parseInt(versionCode)
+                        versionCode = Math.abs(versionCode)
+                    }
+                } catch (NumberFormatException e) {
+                    project.logger.info("versionCode: '$versionCode' isn't an Integer, using the plain value.")
+                }
+
+                // The Sentry server distinguishes source maps by release (`--release` in the command
+                // below) and distribution identifier (`--dist` below).  Give the task a unique name
+                // based on where we're uploading to.
+                def nameCliTask = "${sentryBundleTaskName}_SentryUpload_${releaseName}_${versionCode}"
+                def nameModulesTask = "${sentryBundleTaskName}_SentryCollectModules_${releaseName}_${versionCode}"
+
+                // If several outputs have the same releaseName and versionCode, we'd do the exact same
+                // upload for each of them.  No need to repeat.
+                if (tasks.names.contains(nameCliTask)) return
+
+                /** Upload source map file to the sentry server via CLI call. */
+                def cliTask = tasks.register(nameCliTask) {
+                    onlyIf { shouldSentryAutoUploadGeneral() }
+                    description = "upload debug symbols to sentry"
+                    group = 'sentry.io'
+                    enabled true
+                }
+                def modulesTask = tasks.register(nameModulesTask, Exec) {
+                    description = "collect javascript modules from bundle source map"
+                    group = 'sentry.io'
+                }
+                lastModulesTask = modulesTask
+
+                // chain the upload tasks so they run sequentially in order to run
+                // the cliCleanUpTask after the final upload task is run
+                if (previousCliTask != null) {
+                    previousCliTask.configure { finalizedBy cliTask }
+                } else {
+                    firstCliTask = cliTask
+                }
+                previousCliTask = cliTask
+                cliTask.configure { finalizedBy modulesTask }
+            }
+
+            if (firstCliTask == null) return
+
+            def capturedFirstCliTask = firstCliTask
+            def capturedPreviousCliTask = previousCliTask
+            def capturedApplicationVariant = applicationVariant
+            def capturedLastModulesTask = lastModulesTask
+
             tasks.named(sentryBundleTaskName).configure { bundleTask ->
                 if (!bundleTask.enabled) return
                 def shouldCleanUp
@@ -104,7 +187,6 @@ plugins.withId('com.android.application') {
                     reactRoot = props.get("root").get() // RN 0.71 and above
                 }
                 def modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
-                def modulesTask = null
 
                 (shouldCleanUp, bundleOutput, sourcemapOutput, packagerSourcemapOutput, bundleCommand) = forceSourceMapOutputFromBundleTask(bundleTask)
 
@@ -115,20 +197,13 @@ plugins.withId('com.android.application') {
                 //     .findAll{!['class', 'active'].contains(it.key)}
                 //     .join('\n')
 
-                def currentVariants = extractCurrentVariants(bundleTask, variantName, variantApplicationId, variantOutputsData)
-                if (currentVariants == null || currentVariants.isEmpty()) return
-
-                def previousCliTask = null
-                def applicationVariant = null
-
-                def nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
-                def nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
-                // Upload the source map several times if necessary: once for each release and versionCode.
+                // Configure pre-registered Sentry tasks with values from this bundle task.
+                // tasks.named(name).configure {} on an existing task is allowed inside a
+                // configuration action; only tasks.register() is forbidden (Gradle 8.x).
                 currentVariants.each { key, currentVariant ->
                     def variant = currentVariant[0]
                     def releaseName = currentVariant[1]
                     def versionCode = currentVariant[2]
-                    applicationVariant = currentVariant[3]
 
                     try {
                         if (versionCode instanceof String) {
@@ -139,32 +214,20 @@ plugins.withId('com.android.application') {
                         project.logger.info("versionCode: '$versionCode' isn't an Integer, using the plain value.")
                     }
 
-                    // The Sentry server distinguishes source maps by release (`--release` in the command
-                    // below) and distribution identifier (`--dist` below).  Give the task a unique name
-                    // based on where we're uploading to.
-                    def nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_${versionCode}"
-                    def nameModulesTask = "${bundleTask.name}_SentryCollectModules_${releaseName}_${versionCode}"
+                    def nameCliTask = "${sentryBundleTaskName}_SentryUpload_${releaseName}_${versionCode}"
+                    def nameModulesTask = "${sentryBundleTaskName}_SentryCollectModules_${releaseName}_${versionCode}"
 
-                    // If several outputs have the same releaseName and versionCode, we'd do the exact same
-                    // upload for each of them.  No need to repeat.
-                    try { tasks.named(nameCliTask); return } catch (Exception e) {}
+                    def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
+                    def copyDebugIdScript = config.copyDebugIdScript
+                        ? file(config.copyDebugIdScript).getAbsolutePath()
+                        : "$sentryPackage/scripts/copy-debugid.js"
+                    def hasSourceMapDebugIdScript = config.hasSourceMapDebugIdScript
+                        ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
+                        : "$sentryPackage/scripts/has-sourcemap-debugid.js"
 
-                    /** Upload source map file to the sentry server via CLI call. */
-                    def cliTask = tasks.register(nameCliTask) {
-                        onlyIf { shouldSentryAutoUploadGeneral() }
-                        description = "upload debug symbols to sentry"
-                        group = 'sentry.io'
+                    def extraArgs = []
 
-                        def extraArgs = []
-
-                        def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
-                        def copyDebugIdScript = config.copyDebugIdScript
-                            ? file(config.copyDebugIdScript).getAbsolutePath()
-                            : "$sentryPackage/scripts/copy-debugid.js"
-                        def hasSourceMapDebugIdScript = config.hasSourceMapDebugIdScript
-                            ? file(config.hasSourceMapDebugIdScript).getAbsolutePath()
-                            : "$sentryPackage/scripts/has-sourcemap-debugid.js"
-
+                    tasks.named(nameCliTask).configure {
                         def injected = project.objects.newInstance(InjectedExecOps)
                         doFirst {
                             // Copy Debug ID from packager source map to Hermes composed source map
@@ -255,13 +318,8 @@ plugins.withId('com.android.application') {
                         enabled true
                     }
 
-                    modulesTask = tasks.register(nameModulesTask, Exec) {
-                        description = "collect javascript modules from bundle source map"
-                        group = 'sentry.io'
-
+                    tasks.named(nameModulesTask).configure {
                         workingDir reactRoot
-
-                        def sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
 
                         def collectModulesScript = config.collectModulesScript
                             ? file(config.collectModulesScript).getAbsolutePath()
@@ -289,46 +347,28 @@ plugins.withId('com.android.application') {
                             enabled false
                         }
                     }
-
-                    // chain the upload tasks so they run sequentially in order to run
-                    // the cliCleanUpTask after the final upload task is run
-                    if (previousCliTask != null) {
-                        previousCliTask.configure { finalizedBy cliTask }
-                    } else {
-                        bundleTask.finalizedBy cliTask
-                    }
-                    previousCliTask = cliTask
-                    cliTask.configure { finalizedBy modulesTask }
-                }
-
-                def modulesCleanUpTask = tasks.register(nameModulesCleanup, Delete) {
-                    description = "clean up collected modules generated file"
-                    group = 'sentry.io'
-
-                    delete modulesOutput
-                }
-
-                /** Delete sourcemap files */
-                def cliCleanUpTask = tasks.register(nameCleanup, Delete) {
-                    description = "clean up extra sourcemap"
-                    group = 'sentry.io'
-
-                    delete sourcemapOutput
-                    delete "$buildDir/intermediates/assets/release/index.android.bundle.map"
-                    // react native default bundle dir
                 }
 
                 // register clean task extension
-                cliCleanUpTask.configure { onlyIf { shouldCleanUp } }
-                // due to chaining the last value of previousCliTask will be the final
+                cliCleanUpTask.configure {
+                    delete sourcemapOutput
+                    delete "$buildDir/intermediates/assets/release/index.android.bundle.map"
+                    // react native default bundle dir
+                    onlyIf { shouldCleanUp }
+                }
+                modulesCleanUpTask.configure {
+                    delete modulesOutput
+                }
+                // due to chaining the last value of capturedPreviousCliTask will be the final
                 // upload task, after which the cleanup can be done
-                previousCliTask.configure { finalizedBy cliCleanUpTask }
+                bundleTask.finalizedBy capturedFirstCliTask
+                capturedPreviousCliTask.configure { finalizedBy cliCleanUpTask }
 
                 def packageTasks = tasks.matching {
-                    task -> ("package${applicationVariant}".equalsIgnoreCase(task.name) || "package${applicationVariant}Bundle".equalsIgnoreCase(task.name)) && task.enabled
+                    task -> ("package${capturedApplicationVariant}".equalsIgnoreCase(task.name) || "package${capturedApplicationVariant}Bundle".equalsIgnoreCase(task.name)) && task.enabled
                 }
                 packageTasks.configureEach { packageTask ->
-                    packageTask.dependsOn modulesTask
+                    packageTask.dependsOn capturedLastModulesTask
                     packageTask.finalizedBy modulesCleanUpTask
                 }
             }
