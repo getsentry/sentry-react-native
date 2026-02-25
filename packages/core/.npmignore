@@ -4,7 +4,9 @@
 !LICENSE.md
 !CHANGELOG.md
 !README.md
+!/dist/
 !/dist/**/*
+!/ts3.8/
 !/ts3.8/**/*
 !RNSentry.podspec
 !sentry.gradle
