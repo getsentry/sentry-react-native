@@ -1,9 +1,0 @@
-// No-op: does nothing. Baseline to verify canary setup is correct.
-plugins.withId('com.android.application') {
-    def androidComponents = extensions.getByName("androidComponents")
-    androidComponents.onVariants(androidComponents.selector().all()) { v ->
-        if (!v.name.toLowerCase().contains("debug")) {
-            project.logger.lifecycle("[sentry-noop] onVariants called for ${v.name}")
-        }
-    }
-}
