@@ -179,6 +179,13 @@ jobs:
       - name: Type Check
         working-directory: dev-packages/type-check
         run: yarn type-check
+      - name: Archive type-check-debug
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: type-check-debug
+          path: dev-packages/type-check
+
   job_circular_dep_check:
     name: Circular Dependency Check
     runs-on: ubuntu-latest
