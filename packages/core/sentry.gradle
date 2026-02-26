@@ -67,11 +67,19 @@ plugins.withId('com.android.application') {
 
     androidComponents.onVariants(androidComponents.selector().all()) { v ->
         if (!v.name.toLowerCase().contains("debug")) {
-            // separately we then hook into the bundle task of react native to inject
-            // sourcemap generation parameters.  In case for whatever reason no release
-            // was found for the asset folder we just bail.
-            def bundleTasks = tasks.findAll { task -> (task.name.startsWith("createBundle") || task.name.startsWith("bundle")) && task.name.endsWith("JsAndAssets") && !task.name.contains("Debug") && task.enabled }
-            bundleTasks.each { bundleTask ->
+            // Hook into the bundle task of react native to inject sourcemap generation parameters.
+            // tasks.names.contains() checks task existence without iterating the container, avoiding
+            // eager realization of unrelated tasks (fixes #5698, Fullstory AGP Artifacts API).
+            def variantCapitalized = v.name.capitalize()
+            def sentryBundleTaskName = ["createBundle${variantCapitalized}JsAndAssets", "bundle${variantCapitalized}JsAndAssets"].find { tasks.names.contains(it) }
+            if (sentryBundleTaskName == null) {
+                project.logger.warn("[sentry] No bundle task found for variant '${v.name}'. " +
+                    "Expected 'createBundle${variantCapitalized}JsAndAssets' or " +
+                    "'bundle${variantCapitalized}JsAndAssets'. Source maps will not be uploaded.")
+                return
+            }
+            def bundleTask = tasks.named(sentryBundleTaskName).get()
+            if (bundleTask.enabled) {
                 def shouldCleanUp
                 def sourcemapOutput
                 def bundleOutput

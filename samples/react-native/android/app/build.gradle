@@ -130,8 +130,8 @@ android {
         applicationId "io.sentry.reactnative.sample"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 76
-        versionName "8.1.0"
+        versionCode 77
+        versionName "8.2.0"
         buildConfigField "boolean", "SENTRY_DISABLE_NATIVE_START", System.getenv('SENTRY_DISABLE_NATIVE_START') ?: String.valueOf(sentryDisableNativeStart)
 
         testBuildType System.getProperty('testBuildType', 'debug')

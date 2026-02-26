@@ -8,8 +8,17 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.39.0 to v10.40.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10400)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.39.0...10.40.0)
+
+## 8.2.0
+
 ### Fixes
 
+- Fix AGP Artifacts API conflict caused by eager task realization in `sentry.gradle` ([#5714](https://github.com/getsentry/sentry-react-native/pull/5714))
 - Fix Android crash on app launch caused by version mismatch between Sentry Android SDK and Sentry Android Gradle Plugin ([#5726](https://github.com/getsentry/sentry-react-native/pull/5726))
 
 ### Dependencies
@@ -20,9 +29,9 @@
 - Bump Android SDK Stubs from v8.32.0 to v8.33.0 ([#5697](https://github.com/getsentry/sentry-react-native/pull/5697))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8330)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.32.0...8.33.0)
-- Bump Cocoa SDK from v9.4.1 to v9.5.0 ([#5685](https://github.com/getsentry/sentry-react-native/pull/5685))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#950)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.4.1...9.5.0)
+- Bump Cocoa SDK from v9.4.1 to v9.5.1 ([#5685](https://github.com/getsentry/sentry-react-native/pull/5685), [#5724](https://github.com/getsentry/sentry-react-native/pull/5724))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#951)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.4.1...9.5.1)
 - Bump CLI from v3.2.0 to v3.2.2 ([#5692](https://github.com/getsentry/sentry-react-native/pull/5692))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#322)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.0...3.2.2)
