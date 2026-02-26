@@ -70,7 +70,7 @@ jobs:
         run: |
           # Install Swift dependencies first
           sudo apt-get update
-          sudo apt-get -y install libcurl4-openssl-dev libz3-dev
+          sudo apt-get -y install libcurl4-openssl-dev libz3-dev libncurses-dev libedit-dev libxml2-dev
 
           ARCH=$(uname -m)
           SWIFTLY_FILE="swiftly-${ARCH}.tar.gz"
@@ -86,12 +86,15 @@ jobs:
           swift --version
 
           # Export Swift toolchain path for SwiftLint's SourceKit
-          # Dynamically determine the path from the swift binary location
           SWIFT_BIN=$(which swift)
           SWIFT_TOOLCHAIN=$(dirname $(dirname "$SWIFT_BIN"))
-          # Temp solution (todo(alwx): remove)
-          find "${SWIFT_TOOLCHAIN}" -name "libsourcekitdInProc.so" 2>/dev/null
-          echo "LINUX_SOURCEKIT_LIB_PATH=${SWIFT_TOOLCHAIN}/lib" >> $GITHUB_ENV
+          SOURCEKIT_PATH=$(find "${SWIFT_TOOLCHAIN}" -name "libsourcekitdInProc.so" -print -quit 2>/dev/null)
+          if [ -n "$SOURCEKIT_PATH" ]; then
+            echo "LINUX_SOURCEKIT_LIB_PATH=$(dirname "$SOURCEKIT_PATH")" >> $GITHUB_ENV
+          else
+            echo "ERROR: libsourcekitdInProc.so not found under ${SWIFT_TOOLCHAIN}"
+            exit 1
+          fi
 
       - name: Lint
         run: |
