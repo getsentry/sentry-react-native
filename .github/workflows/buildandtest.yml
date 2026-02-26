@@ -89,7 +89,9 @@ jobs:
           # Dynamically determine the path from the swift binary location
           SWIFT_BIN=$(which swift)
           SWIFT_TOOLCHAIN=$(dirname $(dirname "$SWIFT_BIN"))
-          echo "LINUX_SOURCEKIT_LIB_PATH=${SWIFT_TOOLCHAIN}/lib/swift/linux" >> $GITHUB_ENV
+          # Temp solution (todo(alwx): remove)
+          find "${SWIFT_TOOLCHAIN}" -name "libsourcekitdInProc.so" 2>/dev/null
+          echo "LINUX_SOURCEKIT_LIB_PATH=${SWIFT_TOOLCHAIN}/lib" >> $GITHUB_ENV
 
       - name: Lint
         run: |
