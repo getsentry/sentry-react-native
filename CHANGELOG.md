@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
+
 ## 8.2.0
 
 ### Fixes
