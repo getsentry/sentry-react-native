@@ -27,6 +27,7 @@
  *
  * @see https://docs.expo.dev/build-reference/npm-hooks/
  * @see https://docs.sentry.io/platforms/react-native/
+ *
  */
 
 const { loadEnv, loadHooksModule, parseBaseOptions, runHook } = require('./utils');
@@ -46,6 +47,7 @@ async function main() {
 }
 
 main().catch(error => {
+  // eslint-disable-next-line no-console
   console.error('[Sentry] Unexpected error in eas-build-on-complete hook:', error);
   process.exit(1);
 });

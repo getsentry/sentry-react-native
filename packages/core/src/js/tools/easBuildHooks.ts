@@ -11,10 +11,9 @@
  */
 
 /* eslint-disable no-console */
-/* eslint-disable no-bitwise */
 
 import type { DsnComponents } from '@sentry/core';
-import { dsnToString, makeDsn } from '@sentry/core';
+import { dsnToString, makeDsn, uuid4 } from '@sentry/core';
 
 const SENTRY_DSN_ENV = 'SENTRY_DSN';
 const EAS_BUILD_ENV = 'EAS_BUILD';
@@ -95,26 +94,6 @@ function getEnvelopeEndpoint(dsn: DsnComponents): string {
   return `${protocol}://${host}${portStr}${pathStr}/api/${projectId}/envelope/?sentry_key=${publicKey}&sentry_version=7`;
 }
 
-function generateEventId(): string {
-  const bytes = new Uint8Array(16);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(bytes);
-  } else {
-    for (let i = 0; i < 16; i++) {
-      bytes[i] = Math.floor(Math.random() * 256);
-    }
-  }
-  const byte6 = bytes[6];
-  const byte8 = bytes[8];
-  if (byte6 !== undefined && byte8 !== undefined) {
-    bytes[6] = (byte6 & 0x0f) | 0x40;
-    bytes[8] = (byte8 & 0x3f) | 0x80;
-  }
-  return Array.from(bytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
 function createEASBuildTags(env: EASBuildEnv): Record<string, string> {
   const tags: Record<string, string> = {};
   if (env.EAS_BUILD_PLATFORM) tags['eas.platform'] = env.EAS_BUILD_PLATFORM;
@@ -191,7 +170,7 @@ function createBaseEvent(
   customTags?: Record<string, string>,
 ): SentryEvent {
   return {
-    event_id: generateEventId(),
+    event_id: uuid4(),
     timestamp: Date.now() / 1000,
     platform: 'node',
     level,
