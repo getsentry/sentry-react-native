@@ -12,6 +12,12 @@
 
 - Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.39.0 to v10.40.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10400)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.39.0...10.40.0)
+
 ## 8.2.0
 
 ### Fixes
