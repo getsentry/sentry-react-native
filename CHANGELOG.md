@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix Android crash on app launch caused by version mismatch between Sentry Android SDK and Sentry Android Gradle Plugin ([#5726](https://github.com/getsentry/sentry-react-native/pull/5726))
+
 ### Dependencies
 
 - Bump Android SDK from v8.32.0 to v8.33.0 ([#5684](https://github.com/getsentry/sentry-react-native/pull/5684))
