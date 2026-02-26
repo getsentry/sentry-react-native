@@ -47,7 +47,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@react-native/eslint-config": "0.79.1",
-    "@sentry/babel-plugin-component-annotate": "4.9.1",
+    "@sentry/babel-plugin-component-annotate": "5.1.1",
     "@types/node": "20.10.4",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
