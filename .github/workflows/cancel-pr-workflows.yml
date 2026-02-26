@@ -36,12 +36,16 @@ jobs:
               if (run.id === context.runId) {
                 continue;
               }
-              console.log(`Cancelling run ${run.id} (${run.name})`);
-              await github.rest.actions.cancelWorkflowRun({
-                owner,
-                repo,
-                run_id: run.id,
-              });
+              try {
+                console.log(`Cancelling run ${run.id} (${run.name})`);
+                await github.rest.actions.cancelWorkflowRun({
+                  owner,
+                  repo,
+                  run_id: run.id,
+                });
+              } catch (error) {
+                console.log(`Failed to cancel run ${run.id}: ${error.message}`);
+              }
             }
 
             console.log(`Cancelled ${runs.length > 1 ? runs.length - 1 : 0} workflow run(s) for branch ${branch}`);
