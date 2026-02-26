@@ -332,7 +332,7 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.84.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
 
