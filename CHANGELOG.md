@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Fix Android crash on app launch caused by version mismatch between Sentry Android SDK and Sentry Android Gradle Plugin ([#](https://github.com/getsentry/sentry-react-native/pull/))
+- Fix Android crash on app launch caused by version mismatch between Sentry Android SDK and Sentry Android Gradle Plugin ([#5726](https://github.com/getsentry/sentry-react-native/pull/5726))
 
 ### Dependencies
 
