@@ -81,8 +81,8 @@ jobs:
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
 
-          # Install Swift 5.10 (compatible with SwiftLint 0.61.0)
-          swiftly install 5.10
+          # Install Swift 6.0 (compatible with SwiftLint 0.63.2)
+          swiftly install 6.0
           swift --version
 
           # Export Swift toolchain path for SwiftLint's SourceKit

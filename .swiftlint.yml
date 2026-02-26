@@ -50,13 +50,13 @@ only_rules:
   - number_separator
   - opening_brace
   - operator_usage_whitespace
-  - operator_whitespace
+  - function_name_whitespace
   - overridden_super_call
   - private_outlet
   - private_unit_test
   - prohibited_super_call
   - redundant_nil_coalescing
-  - redundant_optional_initialization
+  - implicit_optional_initialization
   - redundant_string_enum_value
   - redundant_void_return
   - return_arrow_whitespace
