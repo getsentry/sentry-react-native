@@ -39,6 +39,7 @@
 
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryEvents.h"
+#import "RNSentryShakeDetector.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 #    import "RNSentryReplay.h"
@@ -284,17 +285,33 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 - (void)startObserving
 {
     hasListeners = YES;
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleShakeDetected)
+                                                 name:RNSentryShakeDetectedNotification
+                                               object:nil];
+    [RNSentryShakeDetector enable];
 }
 
 // Will be called when this module's last listener is removed, or on dealloc.
 - (void)stopObserving
 {
     hasListeners = NO;
+    [RNSentryShakeDetector disable];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:RNSentryShakeDetectedNotification
+                                                  object:nil];
+}
+
+- (void)handleShakeDetected
+{
+    if (hasListeners) {
+        [self sendEventWithName:RNSentryOnShakeEvent body:@{}];
+    }
 }
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[ RNSentryNewFrameEvent ];
+    return @[ RNSentryNewFrameEvent, RNSentryOnShakeEvent ];
 }
 
 RCT_EXPORT_METHOD(

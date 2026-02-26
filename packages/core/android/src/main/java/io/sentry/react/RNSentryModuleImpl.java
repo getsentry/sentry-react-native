@@ -122,6 +122,10 @@ public class RNSentryModuleImpl {
 
   private final @NotNull Runnable emitNewFrameEvent;
 
+  private static final String ON_SHAKE_EVENT = "rn_sentry_on_shake";
+  private @Nullable RNSentryShakeDetector shakeDetector;
+  private int shakeListenerCount = 0;
+
   /** Max trace file size in bytes. */
   private long maxTraceFileSize = 5 * 1024 * 1024;
 
@@ -192,16 +196,50 @@ public class RNSentryModuleImpl {
   }
 
   public void addListener(String eventType) {
+    if (ON_SHAKE_EVENT.equals(eventType)) {
+      shakeListenerCount++;
+      if (shakeListenerCount == 1) {
+        startShakeDetection();
+      }
+      return;
+    }
     // Is must be defined otherwise the generated interface from TS won't be
     // fulfilled
     logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
   }
 
   public void removeListeners(double id) {
-    // Is must be defined otherwise the generated interface from TS won't be
-    // fulfilled
-    logger.log(
-        SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
+    shakeListenerCount = Math.max(0, shakeListenerCount - (int) id);
+    if (shakeListenerCount == 0) {
+      stopShakeDetection();
+    }
+  }
+
+  private void startShakeDetection() {
+    if (shakeDetector != null) {
+      return;
+    }
+
+    final ReactApplicationContext context = getReactApplicationContext();
+    shakeDetector = new RNSentryShakeDetector(logger);
+    shakeDetector.start(
+        context,
+        () -> {
+          final ReactApplicationContext ctx = getReactApplicationContext();
+          if (ctx.hasActiveReactInstance()) {
+            ctx.getJSModule(
+                    com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+                        .class)
+                .emit(ON_SHAKE_EVENT, null);
+          }
+        });
+  }
+
+  private void stopShakeDetection() {
+    if (shakeDetector != null) {
+      shakeDetector.stop();
+      shakeDetector = null;
+    }
   }
 
   public void fetchModules(Promise promise) {

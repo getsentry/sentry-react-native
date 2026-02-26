@@ -1,6 +1,7 @@
 import { debug } from '@sentry/core';
 import { isWeb  } from '../utils/environment';
 import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration, lazyLoadAutoInjectScreenshotButtonIntegration } from './lazy';
+import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 
 export const PULL_DOWN_CLOSE_THRESHOLD = 200;
 export const SLIDE_ANIMATION_DURATION = 200;
@@ -132,4 +133,13 @@ const resetScreenshotButtonManager = (): void => {
   ScreenshotButtonManager.reset();
 };
 
-export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, showScreenshotButton, hideScreenshotButton, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager };
+const showFeedbackOnShake = (): void => {
+  lazyLoadAutoInjectFeedbackIntegration();
+  startShakeListener(showFeedbackWidget);
+};
+
+const hideFeedbackOnShake = (): void => {
+  stopShakeListener();
+};
+
+export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, showFeedbackOnShake, hideFeedbackOnShake, showScreenshotButton, hideScreenshotButton, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager };
