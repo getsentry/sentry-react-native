@@ -11,6 +11,7 @@
 ### Fixes
 
 - Fix AGP Artifacts API conflict caused by eager task realization in `sentry.gradle` ([#5714](https://github.com/getsentry/sentry-react-native/pull/5714))
+- Fix Android crash on app launch caused by version mismatch between Sentry Android SDK and Sentry Android Gradle Plugin ([#5726](https://github.com/getsentry/sentry-react-native/pull/5726))
 
 ### Dependencies
 
