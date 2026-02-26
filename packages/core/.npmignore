@@ -4,6 +4,8 @@
 !LICENSE.md
 !CHANGELOG.md
 !README.md
+!/dist/
+!/ts3.8/
 !/dist/**/*
 !ts3.8/**/*
 !RNSentry.podspec

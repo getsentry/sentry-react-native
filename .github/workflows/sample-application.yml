@@ -52,11 +52,11 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
           - platform: macos
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:12"]
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
         exclude:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
