@@ -10,7 +10,7 @@ concurrency:
 jobs:
   files-changed:
     name: Detect changed files
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
+    runs-on: ubuntu-latest
     # Map a step output to a job output
     outputs:
       high_risk_code: ${{ steps.changes.outputs.high_risk_code }}
@@ -31,7 +31,7 @@ jobs:
   validate-high-risk-code:
     if: needs.files-changed.outputs.high_risk_code == 'true'
     needs: files-changed
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
+    runs-on: ubuntu-latest
     steps:
       - name: Comment on PR to notify of changes in high risk files
         uses: actions/github-script@v8

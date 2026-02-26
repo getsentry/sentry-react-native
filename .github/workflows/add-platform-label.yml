@@ -7,7 +7,7 @@ on:
 
 jobs:
   add_label:
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
+    runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:

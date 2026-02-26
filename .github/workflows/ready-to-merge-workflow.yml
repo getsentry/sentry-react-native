@@ -14,7 +14,7 @@ on:
 jobs:
   ready-to-merge-gate:
     name: 'Missing "ready-to-merge" label'
-    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:12"]
+    runs-on: ubuntu-latest
     steps:
       - name: Check for exact 'ready-to-merge' label
         if: ${{ inputs.is-pr }}
