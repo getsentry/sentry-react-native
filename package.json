@@ -50,14 +50,14 @@
     "performance-tests/TestAppPlain",
     "performance-tests/TestAppSentry"
   ],
-  "//": [
-    "Appium has a dependency on @xmldom/xmldom@^0.x, which causes chromedrive build to fail yarn install",
-    "See: https://github.com/appium/appium-chromedriver/pull/424"
-  ],
   "volta": {
     "node": "18.20.8",
     "yarn": "3.6.4"
   },
+  "//": [
+    "Appium has a dependency on @xmldom/xmldom@^0.x, which causes chromedrive build to fail yarn install",
+    "See: https://github.com/appium/appium-chromedriver/pull/424"
+  ],
   "resolutions": {
     "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10",
     "fast-xml-parser": "^5.3.6",

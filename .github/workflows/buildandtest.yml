@@ -175,7 +175,7 @@ jobs:
           name: ts3.8
           path: packages/core/ts3.8
       - name: Install Global Dependencies
-        run: npm i -g add yalc
+        run: npm i -g yalc
       - name: Type Check
         working-directory: dev-packages/type-check
         run: yarn type-check
