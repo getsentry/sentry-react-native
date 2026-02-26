@@ -13,6 +13,12 @@
 - Show feedback widget on device shake ([#5729](https://github.com/getsentry/sentry-react-native/pull/5729))
   - Use `Sentry.showFeedbackOnShake()` / `Sentry.hideFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.39.0 to v10.40.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10400)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.39.0...10.40.0)
+
 ## 8.2.0
 
 ### Fixes
