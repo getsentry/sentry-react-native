@@ -289,6 +289,7 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 {
     [super addListener:eventName];
     if ([eventName isEqualToString:RNSentryOnShakeEvent]) {
+        NSLog(@"[Sentry] addListener called for shake event, setting up detector");
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(handleShakeDetected)
                                                      name:RNSentryShakeDetectedNotification
@@ -316,6 +317,7 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 
 - (void)handleShakeDetected
 {
+    NSLog(@"[Sentry] handleShakeDetected called, hasListeners=%d", hasListeners);
     if (hasListeners) {
         [self sendEventWithName:RNSentryOnShakeEvent body:@{}];
     }

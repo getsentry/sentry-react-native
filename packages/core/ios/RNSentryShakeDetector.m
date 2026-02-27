@@ -23,10 +23,13 @@ static const NSTimeInterval SHAKE_COOLDOWN_SECONDS = 1.0;
 static void
 sentry_motionEnded(UIWindow *self, SEL _cmd, UIEventSubtype motion, UIEvent *event)
 {
+    NSLog(@"[Sentry] sentry_motionEnded called: enabled=%d motion=%ld shake=%ld",
+        _shakeDetectionEnabled, (long)motion, (long)UIEventSubtypeMotionShake);
     if (_shakeDetectionEnabled && motion == UIEventSubtypeMotionShake) {
         NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
         if (now - _lastShakeTimestamp > SHAKE_COOLDOWN_SECONDS) {
             _lastShakeTimestamp = now;
+            NSLog(@"[Sentry] posting RNSentryShakeDetectedNotification");
             [[NSNotificationCenter defaultCenter]
                 postNotificationName:RNSentryShakeDetectedNotification
                               object:nil];
@@ -44,22 +47,22 @@ sentry_motionEnded(UIWindow *self, SEL _cmd, UIEventSubtype motion, UIEvent *eve
 + (void)enable
 {
     @synchronized(self) {
+        NSLog(@"[Sentry] RNSentryShakeDetector enable called, swizzled=%d", _swizzled);
         if (!_swizzled) {
-            // React Native's dev menu swizzles UIWindow.motionEnded:withEvent: at bridge
-            // load time, before any JS runs. Because enable is called from startObserving
-            // (triggered by componentDidMount via NativeEventEmitter.addListener), we always
-            // swizzle after RN — making our function the outermost wrapper that calls
-            // through to RN's handler via _originalMotionEndedIMP.
             Class windowClass = [UIWindow class];
             Method originalMethod
                 = class_getInstanceMethod(windowClass, @selector(motionEnded:withEvent:));
+            NSLog(
+                @"[Sentry] motionEnded:withEvent: method found: %s", originalMethod ? "YES" : "NO");
             if (originalMethod) {
                 _originalMotionEndedIMP = method_getImplementation(originalMethod);
                 method_setImplementation(originalMethod, (IMP)sentry_motionEnded);
                 _swizzled = YES;
+                NSLog(@"[Sentry] UIWindow.motionEnded:withEvent: swizzled successfully");
             }
         }
         _shakeDetectionEnabled = YES;
+        NSLog(@"[Sentry] shake detection enabled");
     }
 }
 
