@@ -1,13 +1,13 @@
 import type { getDefaultConfig } from 'expo/metro-config';
 import type { MetroConfig } from 'metro';
 import * as process from 'process';
+import type { SentryExpoConfigOptions } from '../../src/js/tools/metroconfig';
 import {
   getSentryExpoConfig,
   withSentryBabelTransformer,
   withSentryFramesCollapsed,
   withSentryResolver,
 } from '../../src/js/tools/metroconfig';
-import type { SentryExpoConfigOptions } from '../../src/js/tools/metroconfig';
 import {
   SENTRY_BABEL_TRANSFORMER_OPTIONS,
   SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH,
@@ -56,10 +56,7 @@ describe('metroconfig', () => {
       // and the spread object return type is compatible with Record<string, unknown>.
       const expoGetDefaultConfigMock: typeof getDefaultConfig = jest.fn().mockReturnValue({});
 
-      const oldPatternGetDefaultConfig = (
-        projectRoot: string,
-        options?: Record<string, unknown>,
-      ) => {
+      const oldPatternGetDefaultConfig = (projectRoot: string, options?: Record<string, unknown>) => {
         // Record<string, unknown> is compatible with DefaultConfigOptions (all optional fields)
         const config = expoGetDefaultConfigMock(projectRoot, options as Parameters<typeof getDefaultConfig>[1]);
         return {
