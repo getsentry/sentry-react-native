@@ -72,6 +72,23 @@
     ],
   });
   ```
+- Add `onNativeLog` callback to intercept and forward native SDK logs to JavaScript console
+  - The callback receives native log events with `level`, `component`, and `message` properties
+  - Only works when `debug: true` is enabled in `Sentry.init`
+  - Use `logWithoutTracing` inside the callback to prevent feedback loops with Sentry's console integration
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.init({
+    debug: true,
+    onNativeLog: ({ level, component, message }) => {
+      // Use logWithoutTracing to avoid feedback loops
+      Sentry.logWithoutTracing(
+        `[Sentry Native] [${level.toUpperCase()}] [${component}] ${message}`
+      );
+    },
+  });
+  ```
 
 ### Fixes
 
