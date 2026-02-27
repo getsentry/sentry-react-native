@@ -1,6 +1,7 @@
 import type { getDefaultConfig } from 'expo/metro-config';
 import type { MetroConfig } from 'metro';
 import * as process from 'process';
+import type { SentryExpoConfigOptions } from '../../src/js/tools/metroconfig';
 import {
   getSentryExpoConfig,
   withSentryBabelTransformer,
@@ -29,6 +30,45 @@ describe('metroconfig', () => {
       expect(true).toBe(true);
     };
     acceptsExpoDefaultConfigFactory(getSentryExpoConfig);
+  });
+
+  describe('SentryExpoConfigOptions.getDefaultConfig type compatibility', () => {
+    const checkCompatibility = (_options: SentryExpoConfigOptions): void => {
+      expect(true).toBe(true);
+    };
+
+    test('accepts a getDefaultConfig with the new flexible Record<string, unknown> signature (Expo SDK 54 format)', () => {
+      // Expo SDK 54 Metro type definitions diverged from the metro package.
+      // The fix allows passing a getDefaultConfig with flexible types rather than
+      // the exact MetroConfig return type, accommodating different Metro versions.
+      const newFormatGetDefaultConfig = (
+        _projectRoot: string,
+        _options?: Record<string, unknown>,
+      ): Record<string, unknown> => ({});
+
+      checkCompatibility({ getDefaultConfig: newFormatGetDefaultConfig });
+    });
+
+    test('accepts a getDefaultConfig wrapping expo/metro-config (old usage pattern)', () => {
+      // Old usage pattern: users wrapping expo/metro-config's getDefaultConfig to
+      // add custom transformer or resolver config (e.g. react-native-svg-transformer).
+      // Record<string, unknown> options are compatible with DefaultConfigOptions,
+      // and the spread object return type is compatible with Record<string, unknown>.
+      const expoGetDefaultConfigMock: typeof getDefaultConfig = jest.fn().mockReturnValue({});
+
+      const oldPatternGetDefaultConfig = (projectRoot: string, options?: Record<string, unknown>) => {
+        // Record<string, unknown> is compatible with DefaultConfigOptions (all optional fields)
+        const config = expoGetDefaultConfigMock(projectRoot, options as Parameters<typeof getDefaultConfig>[1]);
+        return {
+          ...config,
+          transformer: {
+            ...config.transformer,
+          },
+        };
+      };
+
+      checkCompatibility({ getDefaultConfig: oldPatternGetDefaultConfig });
+    });
   });
 
   describe('withSentryFramesCollapsed', () => {
