@@ -43,23 +43,24 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
+            runs-on: ubuntu-latest
           - platform: web
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
+            runs-on: ubuntu-latest
         exclude:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Enable Corepack (NPM)
+        if: ${{ matrix.platform != 'ios' }}
+        run: npm i -g corepack
 
-      - name: Install Ninja
-        if: ${{ matrix.platform == 'android' }}
-        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Enable Corepack
+        if: ${{ matrix.platform == 'ios' }}
+        run: corepack enable
 
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
@@ -125,6 +126,11 @@ jobs:
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
         working-directory: samples/expo/ios
+        env:
+          # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
+          # missing Swift compatibility libraries (swiftCompatibility56, etc.)
+          # See: https://github.com/actions/runner-images/issues/13135
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"

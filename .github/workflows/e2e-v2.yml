@@ -52,7 +52,7 @@ jobs:
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
@@ -205,7 +205,7 @@ jobs:
             rn-version: '0.84.0'
             runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
         exclude:
           # exclude JSC for new RN versions (keeping the matrix manageable)
           - rn-version: '0.84.0'
@@ -332,9 +332,9 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.84.0'
-            runs-on:  macos-26
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
+            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6

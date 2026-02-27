@@ -17729,9 +17729,9 @@ __metadata:
   linkType: hard
 
 "dottie@npm:^2.0.0":
-  version: 2.0.6
-  resolution: "dottie@npm:2.0.6"
-  checksum: 4c778df9dc631a1108a32ef390916836814999a7411d10883f4151bd49c9c6934dc329b3f50fc7692849aa75ba87dba880fd54be501a3b39a6b9c23d6f772a09
+  version: 2.0.7
+  resolution: "dottie@npm:2.0.7"
+  checksum: 0473ffce832b1af111e75c00cca0d275f4f6f72b90a4bf195abf3f17eec3e4ed24aed9094c5f1444ebef66683a1434a3cc979e6a24d9b99d0d33fc5b00dfbf54
   languageName: node
   linkType: hard
 
@@ -27580,10 +27580,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"on-headers@npm:~1.0.2":
-  version: 1.0.2
-  resolution: "on-headers@npm:1.0.2"
-  checksum: 2bf13467215d1e540a62a75021e8b318a6cfc5d4fc53af8e8f84ad98dbcea02d506c6d24180cd62e1d769c44721ba542f3154effc1f7579a8288c9f7873ed8e5
+"on-headers@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "on-headers@npm:1.1.0"
+  checksum: 98aa64629f986fb8cc4517dd8bede73c980e31208cba97f4442c330959f60ced3dc6214b83420491f5111fc7c4f4343abe2ea62c85f505cf041d67850f238776
   languageName: node
   linkType: hard
 
