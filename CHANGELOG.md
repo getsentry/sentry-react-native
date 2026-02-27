@@ -18,13 +18,13 @@
     import * as Sentry from '@sentry/react-native';
 
     Sentry.init({
-    debug: true,
-    onNativeLog: ({ level, component, message }) => {
-      // Use logWithoutTracing to avoid feedback loops
-      Sentry.logWithoutTracing(
-        `[Sentry Native] [${level.toUpperCase()}] [${component}] ${message}`
-      );
-    },
+      debug: true,
+      onNativeLog: ({ level, component, message }) => {
+        // Use logWithoutTracing to avoid feedback loops
+        Sentry.logWithoutTracing(
+          `[Sentry Native] [${level.toUpperCase()}] [${component}] ${message}`
+        );
+      }
     });
     ```
 
