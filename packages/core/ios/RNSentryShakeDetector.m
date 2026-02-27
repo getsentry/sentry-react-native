@@ -8,20 +8,30 @@
 NSNotificationName const RNSentryShakeDetectedNotification = @"RNSentryShakeDetected";
 
 static BOOL _shakeDetectionEnabled = NO;
-static IMP _originalMotionEndedIMP = NULL;
+static IMP _originalSendEventIMP = NULL;
 static BOOL _swizzled = NO;
+static NSTimeInterval _lastShakeTimestamp = 0;
+static const NSTimeInterval SHAKE_COOLDOWN_SECONDS = 1.0;
 
+// Intercepts all UIApplication events before they enter the responder chain.
+// This ensures shake events are detected even when React Native's dev menu
+// or another responder consumes the motion event without calling super.
 static void
-sentry_motionEnded(id self, SEL _cmd, UIEventSubtype motion, UIEvent *event)
+sentry_sendEvent(UIApplication *self, SEL _cmd, UIEvent *event)
 {
-    if (_shakeDetectionEnabled && motion == UIEventSubtypeMotionShake) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:RNSentryShakeDetectedNotification
-                                                            object:nil];
+    if (_shakeDetectionEnabled && event.type == UIEventTypeMotion
+        && event.subtype == UIEventSubtypeMotionShake) {
+        NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+        if (now - _lastShakeTimestamp > SHAKE_COOLDOWN_SECONDS) {
+            _lastShakeTimestamp = now;
+            [[NSNotificationCenter defaultCenter]
+                postNotificationName:RNSentryShakeDetectedNotification
+                              object:nil];
+        }
     }
 
-    if (_originalMotionEndedIMP) {
-        ((void (*)(id, SEL, UIEventSubtype, UIEvent *))_originalMotionEndedIMP)(
-            self, _cmd, motion, event);
+    if (_originalSendEventIMP) {
+        ((void (*)(id, SEL, UIEvent *))_originalSendEventIMP)(self, _cmd, event);
     }
 }
 
@@ -31,11 +41,12 @@ sentry_motionEnded(id self, SEL _cmd, UIEventSubtype motion, UIEvent *event)
 {
     @synchronized(self) {
         if (!_swizzled) {
-            Method originalMethod
-                = class_getInstanceMethod([UIWindow class], @selector(motionEnded:withEvent:));
+            // Use the actual class of the shared application to handle UIApplication subclasses
+            Class appClass = [[UIApplication sharedApplication] class];
+            Method originalMethod = class_getInstanceMethod(appClass, @selector(sendEvent:));
             if (originalMethod) {
-                _originalMotionEndedIMP = method_getImplementation(originalMethod);
-                method_setImplementation(originalMethod, (IMP)sentry_motionEnded);
+                _originalSendEventIMP = method_getImplementation(originalMethod);
+                method_setImplementation(originalMethod, (IMP)sentry_sendEvent);
                 _swizzled = YES;
             }
         }
