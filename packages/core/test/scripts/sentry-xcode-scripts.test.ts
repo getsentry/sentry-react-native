@@ -457,7 +457,7 @@ describe('sentry-xcode.sh', () => {
 
   describe('SOURCEMAP_FILE path resolution', () => {
     // Returns a mock sentry-cli that prints the SOURCEMAP_FILE env var it received.
-    const makeSourcmapEchoScript = (dir: string): string => {
+    const makeSourcemapEchoScript = (dir: string): string => {
       const scriptPath = path.join(dir, 'mock-sentry-cli-echo-sourcemap.js');
       fs.writeFileSync(
         scriptPath,
@@ -472,7 +472,7 @@ describe('sentry-xcode.sh', () => {
 
     it('leaves an absolute SOURCEMAP_FILE unchanged', () => {
       const absolutePath = path.join(tempDir, 'absolute', 'main.jsbundle.map');
-      const echoScript = makeSourcmapEchoScript(tempDir);
+      const echoScript = makeSourcemapEchoScript(tempDir);
 
       const result = runScript({
         SENTRY_CLI_EXECUTABLE: echoScript,
@@ -487,7 +487,7 @@ describe('sentry-xcode.sh', () => {
       // PROJECT_DIR is tempDir (simulates the ios/ folder).
       // RN_PROJECT_ROOT = PROJECT_DIR/.. = parent of tempDir.
       // A user setting SOURCEMAP_FILE=relative/path.map expects it relative to the project root.
-      const echoScript = makeSourcmapEchoScript(tempDir);
+      const echoScript = makeSourcemapEchoScript(tempDir);
 
       const result = runScript({
         SENTRY_CLI_EXECUTABLE: echoScript,
@@ -502,7 +502,7 @@ describe('sentry-xcode.sh', () => {
     });
 
     it('resolves a ./prefixed SOURCEMAP_FILE against the project root', () => {
-      const echoScript = makeSourcmapEchoScript(tempDir);
+      const echoScript = makeSourcemapEchoScript(tempDir);
 
       const result = runScript({
         SENTRY_CLI_EXECUTABLE: echoScript,
@@ -519,7 +519,7 @@ describe('sentry-xcode.sh', () => {
     });
 
     it('uses the absolute default SOURCEMAP_FILE when not set by the user', () => {
-      const echoScript = makeSourcmapEchoScript(tempDir);
+      const echoScript = makeSourcemapEchoScript(tempDir);
 
       const result = runScript({
         SENTRY_CLI_EXECUTABLE: echoScript,
