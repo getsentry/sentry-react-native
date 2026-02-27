@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - alwx/experiment/cirrus-labs-for-everythin
 
   pull_request:
     paths:
