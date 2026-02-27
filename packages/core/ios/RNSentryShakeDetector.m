@@ -8,19 +8,22 @@
 NSNotificationName const RNSentryShakeDetectedNotification = @"RNSentryShakeDetected";
 
 static BOOL _shakeDetectionEnabled = NO;
-static IMP _originalSendEventIMP = NULL;
+static IMP _originalMotionEndedIMP = NULL;
 static BOOL _swizzled = NO;
 static NSTimeInterval _lastShakeTimestamp = 0;
 static const NSTimeInterval SHAKE_COOLDOWN_SECONDS = 1.0;
 
-// Intercepts all UIApplication events before they enter the responder chain.
-// This ensures shake events are detected even when React Native's dev menu
-// or another responder consumes the motion event without calling super.
+// Intercepts UIWindow motion events before they continue up the responder chain.
+//
+// The iOS simulator routes shake (Cmd+Ctrl+Z) through UIWindow.motionEnded:withEvent:,
+// not through UIApplication.sendEvent:. React Native's dev menu also hooks UIWindow
+// via RCTSwapInstanceMethods. Because we swizzle from startObserving (which fires after
+// RN finishes loading), our IMP becomes the outermost layer: our code runs first,
+// then the saved original IMP (RN's dev menu handler) is called.
 static void
-sentry_sendEvent(UIApplication *self, SEL _cmd, UIEvent *event)
+sentry_motionEnded(UIWindow *self, SEL _cmd, UIEventSubtype motion, UIEvent *event)
 {
-    if (_shakeDetectionEnabled && event.type == UIEventTypeMotion
-        && event.subtype == UIEventSubtypeMotionShake) {
+    if (_shakeDetectionEnabled && motion == UIEventSubtypeMotionShake) {
         NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
         if (now - _lastShakeTimestamp > SHAKE_COOLDOWN_SECONDS) {
             _lastShakeTimestamp = now;
@@ -30,8 +33,9 @@ sentry_sendEvent(UIApplication *self, SEL _cmd, UIEvent *event)
         }
     }
 
-    if (_originalSendEventIMP) {
-        ((void (*)(id, SEL, UIEvent *))_originalSendEventIMP)(self, _cmd, event);
+    if (_originalMotionEndedIMP) {
+        ((void (*)(id, SEL, UIEventSubtype, UIEvent *))_originalMotionEndedIMP)(
+            self, _cmd, motion, event);
     }
 }
 
@@ -41,12 +45,17 @@ sentry_sendEvent(UIApplication *self, SEL _cmd, UIEvent *event)
 {
     @synchronized(self) {
         if (!_swizzled) {
-            // Use the actual class of the shared application to handle UIApplication subclasses
-            Class appClass = [[UIApplication sharedApplication] class];
-            Method originalMethod = class_getInstanceMethod(appClass, @selector(sendEvent:));
+            // React Native's dev menu swizzles UIWindow.motionEnded:withEvent: at bridge
+            // load time, before any JS runs. Because enable is called from startObserving
+            // (triggered by componentDidMount via NativeEventEmitter.addListener), we always
+            // swizzle after RN — making our function the outermost wrapper that calls
+            // through to RN's handler via _originalMotionEndedIMP.
+            Class windowClass = [UIWindow class];
+            Method originalMethod
+                = class_getInstanceMethod(windowClass, @selector(motionEnded:withEvent:));
             if (originalMethod) {
-                _originalSendEventIMP = method_getImplementation(originalMethod);
-                method_setImplementation(originalMethod, (IMP)sentry_sendEvent);
+                _originalMotionEndedIMP = method_getImplementation(originalMethod);
+                method_setImplementation(originalMethod, (IMP)sentry_motionEnded);
                 _swizzled = YES;
             }
         }
