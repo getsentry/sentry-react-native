@@ -123,7 +123,7 @@ jobs:
         run: yarn install
       - name: Check lock file integrity
         run: |
-          ["$(diff yarn.lock.initial yarn.lock)" -eq ""]
+          [ "$(diff yarn.lock.initial yarn.lock)" = "" ]
 
   job_build:
     name: Build
