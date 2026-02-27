@@ -20,7 +20,7 @@ RN_PROJECT_ROOT="${PROJECT_DIR}/.."
 # would resolve relative paths against `ios/` and fail to find the file.
 # See: https://github.com/getsentry/sentry-react-native/issues/3889
 if [[ "$SOURCEMAP_FILE" != /* ]]; then
-  export SOURCEMAP_FILE="$(cd "$RN_PROJECT_ROOT" && pwd)/$SOURCEMAP_FILE"
+  export SOURCEMAP_FILE="$(cd "$RN_PROJECT_ROOT" && pwd)/${SOURCEMAP_FILE#./}"
 fi
 
 if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then

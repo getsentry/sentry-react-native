@@ -509,10 +509,10 @@ describe('sentry-xcode.sh', () => {
         SOURCEMAP_FILE: './maps/main.jsbundle.map',
       });
 
-      // The script concatenates: "$(cd RN_PROJECT_ROOT && pwd)/./maps/main.jsbundle.map"
-      // The ./ is preserved but the path is absolute and valid for sentry-cli.
+      // The leading ./ is stripped via ${SOURCEMAP_FILE#./} before concatenation,
+      // so the result is a clean absolute path without any ./ component.
       const projectRoot = path.dirname(tempDir);
-      const expectedPath = `${projectRoot}/./maps/main.jsbundle.map`;
+      const expectedPath = path.join(projectRoot, 'maps/main.jsbundle.map');
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain(`SOURCEMAP_FILE=${expectedPath}`);
