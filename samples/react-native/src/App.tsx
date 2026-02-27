@@ -10,6 +10,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Sentry from '@sentry/react-native';
+import { FeedbackWidgetProvider } from '@sentry/react-native';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
 import { LogBox, Platform } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
@@ -259,10 +260,10 @@ function RootNavigationContainer() {
 
 function App() {
   return (
-    <>
+    <FeedbackWidgetProvider>
       <RootNavigationContainer />
       <RunningIndicator />
-    </>
+    </FeedbackWidgetProvider>
   );
 }
 
