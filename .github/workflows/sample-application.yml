@@ -52,11 +52,11 @@ jobs:
         build-type: ['dev', 'production']
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: macos
             runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:22.04", "runner_group_id:10"]
+            runs-on: ubuntu-latest
         exclude:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
@@ -69,12 +69,13 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install Ninja
+      - name: Enable Corepack (NPM)
         if: ${{ matrix.platform == 'android' }}
-        run: sudo apt-get update && sudo apt-get install -y ninja-build
+        run: npm i -g corepack
+
+      - name: Enable Corepack
+        if: ${{ matrix.platform != 'android' }}
+        run: corepack enable
 
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
@@ -135,6 +136,11 @@ jobs:
       - name: Build iOS App
         if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        env:
+          # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
+          # missing Swift compatibility libraries (swiftCompatibility56, etc.)
+          # See: https://github.com/actions/runner-images/issues/13135
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
 
@@ -210,7 +216,7 @@ jobs:
       matrix:
         include:
           - platform: ios
-            runs-on: macos-15
+            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
             rn-architecture: 'new'
             ios-use-frameworks: 'no-frameworks'
             build-type: 'production'
@@ -227,10 +233,6 @@ jobs:
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
         with:
           version: ${{env.MAESTRO_VERSION}}
-
-      - name: Install Ninja
-        if: ${{ matrix.platform == 'android' }}
-        run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - name: Download iOS App Archive
         if: ${{ matrix.platform == 'ios' }}
@@ -258,7 +260,12 @@ jobs:
           unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
           rm app-androidTest.apk
 
+      - name: Enable Corepack (NPM)
+        if: ${{ matrix.platform == 'android' }}
+        run: npm i -g corepack
+
       - name: Enable Corepack
+        if: ${{ matrix.platform != 'android' }}
         run: corepack enable
 
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6

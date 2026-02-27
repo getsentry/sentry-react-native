@@ -77,7 +77,7 @@
     "@react-native/eslint-config": "0.80.2",
     "@react-native/metro-config": "0.80.2",
     "@react-native/typescript-config": "0.80.2",
-    "@sentry/babel-plugin-component-annotate": "4.9.1",
+    "@sentry/babel-plugin-component-annotate": "5.1.1",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.1",
