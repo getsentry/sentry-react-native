@@ -17784,9 +17784,9 @@ __metadata:
   linkType: hard
 
 "dottie@npm:^2.0.0":
-  version: 2.0.6
-  resolution: "dottie@npm:2.0.6"
-  checksum: 4c778df9dc631a1108a32ef390916836814999a7411d10883f4151bd49c9c6934dc329b3f50fc7692849aa75ba87dba880fd54be501a3b39a6b9c23d6f772a09
+  version: 2.0.7
+  resolution: "dottie@npm:2.0.7"
+  checksum: 0473ffce832b1af111e75c00cca0d275f4f6f72b90a4bf195abf3f17eec3e4ed24aed9094c5f1444ebef66683a1434a3cc979e6a24d9b99d0d33fc5b00dfbf54
   languageName: node
   linkType: hard
 
