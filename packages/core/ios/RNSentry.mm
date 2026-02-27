@@ -281,15 +281,27 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 #endif
 }
 
+// Override addListener to explicitly enable shake detection when the shake event is
+// subscribed to. This mirrors the Android addListener override and is more reliable
+// than relying solely on startObserving, which only fires for the module's first
+// listener regardless of event type.
+- (void)addListener:(NSString *)eventName
+{
+    [super addListener:eventName];
+    if ([eventName isEqualToString:RNSentryOnShakeEvent]) {
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(handleShakeDetected)
+                                                     name:RNSentryShakeDetectedNotification
+                                                   object:nil];
+        [RNSentryShakeDetector enable];
+        hasListeners = YES;
+    }
+}
+
 // Will be called when this module's first listener is added.
 - (void)startObserving
 {
     hasListeners = YES;
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(handleShakeDetected)
-                                                 name:RNSentryShakeDetectedNotification
-                                               object:nil];
-    [RNSentryShakeDetector enable];
 }
 
 // Will be called when this module's last listener is removed, or on dealloc.
