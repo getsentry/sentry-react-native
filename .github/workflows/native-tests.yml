@@ -26,14 +26,14 @@ jobs:
 
   test-ios:
     name: ios
-    runs-on: macos-15
+    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Enable Corepack
-        run: npm i -g corepack
+        run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -43,6 +43,16 @@ jobs:
 
       - name: Install SDK JS Dependencies
         run: yarn install
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.0'
+        env:
+          # Disable rbenv to avoid .ruby-version conflicts
+          RBENV_VERSION: system
+
+      - name: Install CocoaPods
+        run: gem install cocoapods
 
       - name: Install App Pods
         working-directory: packages/core/RNSentryCocoaTester
@@ -56,6 +66,10 @@ jobs:
         env:
           SCHEME: RNSentryCocoaTester
           CONFIGURATION: Release
+          # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
+          # missing Swift compatibility libraries (swiftCompatibility56, etc.)
+          # See: https://github.com/actions/runner-images/issues/13135
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
         run: |
           # Find first available iPhone simulator from latest iOS runtime
           DEVICE_ID=$(xcrun simctl list devices available iPhone -j | jq -r '
@@ -83,7 +97,7 @@ jobs:
 
   test-android:
     name: android
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:

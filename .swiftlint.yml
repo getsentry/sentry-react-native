@@ -50,7 +50,7 @@ only_rules:
   - number_separator
   - opening_brace
   - operator_usage_whitespace
-  - operator_whitespace
+  - function_name_whitespace
   - overridden_super_call
   - private_outlet
   - private_unit_test

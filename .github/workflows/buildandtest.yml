@@ -17,12 +17,12 @@ jobs:
 
   job_test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -36,12 +36,12 @@ jobs:
 
   job_lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -66,28 +66,49 @@ jobs:
           clang --version
           clang-format --version
 
-      - name: Install Swiftly
+      - name: Install Swiftly and Swift
         run: |
-          SWIFTLY_FILE="swiftly-$(uname -m).tar.gz"
-          curl -sL https://download.swift.org/swiftly/linux/swiftly-x86_64.tar.gz -o $SWIFTLY_FILE
-          tar zxf $SWIFTLY_FILE
+          # Install Swift dependencies first
+          sudo apt-get update
+          sudo apt-get -y install libcurl4-openssl-dev libz3-dev libncurses-dev libedit-dev libxml2-dev
+
+          ARCH=$(uname -m)
+          SWIFTLY_FILE="swiftly-${ARCH}.tar.gz"
+          curl -sL "https://download.swift.org/swiftly/linux/swiftly-${ARCH}.tar.gz" -o "$SWIFTLY_FILE"
+          tar zxf "$SWIFTLY_FILE"
 
           ./swiftly init --quiet-shell-followup
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
-          sudo apt-get -y install libcurl4-openssl-dev
+
+          # Install Swift 6.0 (compatible with SwiftLint 0.63.2)
+          swiftly install 6.0
+          swift --version
+
+          # Export Swift toolchain path for SwiftLint's SourceKit
+          SWIFT_BIN=$(which swift)
+          SWIFT_TOOLCHAIN=$(dirname $(dirname "$SWIFT_BIN"))
+          SOURCEKIT_PATH=$(find "${SWIFT_TOOLCHAIN}" -name "libsourcekitdInProc.so" -print -quit 2>/dev/null)
+          if [ -n "$SOURCEKIT_PATH" ]; then
+            echo "LINUX_SOURCEKIT_LIB_PATH=$(dirname "$SOURCEKIT_PATH")" >> $GITHUB_ENV
+          else
+            echo "ERROR: libsourcekitdInProc.so not found under ${SWIFT_TOOLCHAIN}"
+            exit 1
+          fi
 
       - name: Lint
-        run: yarn lint
+        run: |
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+          yarn lint
 
   job_check_integrity:
     name: Check package integrity
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -102,16 +123,16 @@ jobs:
         run: yarn install
       - name: Check lock file integrity
         run: |
-          ["$(diff yarn.lock.initial yarn.lock)" -eq ""]
+          [ "$(diff yarn.lock.initial yarn.lock)" = "" ]
 
   job_build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -148,14 +169,14 @@ jobs:
 
   job_type_check:
     name: Type Check Typescript 3.8
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     env:
       YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -181,12 +202,12 @@ jobs:
         run: yarn type-check
   job_circular_dep_check:
     name: Circular Dependency Check
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
@@ -210,7 +231,7 @@ jobs:
 
   job_bundle:
     name: Bundle
-    runs-on: ubuntu-latest
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
     needs: [job_test, job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     strategy:
@@ -221,7 +242,7 @@ jobs:
         dev: [true, false]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - run: npm i -g corepack
+      - run: corepack enable
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
         with:
           package-manager-cache: false
