@@ -11,6 +11,7 @@
 ### Fixes
 
 - Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
+- Handle `inactive` state for spans ([#5742](https://github.com/getsentry/sentry-react-native/pull/5742))
 
 ### Dependencies
 
