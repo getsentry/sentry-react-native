@@ -36,12 +36,12 @@ export const defaultIdleOptions: {
    * The max. time an idle span may run.
    * If this time is exceeded, the idle span will finish no matter what.
    *
-   * @default 60_0000 (ms)
+   * @default 60_000 (ms)
    */
   idleTimeout: number;
 } = {
   idleTimeout: 1_000,
-  finalTimeout: 60_0000,
+  finalTimeout: 60_000,
 };
 
 export const startIdleNavigationSpan = (
