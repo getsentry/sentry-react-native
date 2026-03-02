@@ -118,7 +118,7 @@ export const startIdleSpan = (
   }
 
   const currentAppState = AppState.currentState;
-  if (currentAppState === 'background') {
+  if (currentAppState === 'background' || currentAppState === 'inactive') {
     debug.log(`[startIdleSpan] App is already in background, not starting span for ${startSpanOption.name}`);
     return new SentryNonRecordingSpan();
   }
