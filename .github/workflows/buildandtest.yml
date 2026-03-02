@@ -144,24 +144,24 @@ jobs:
       - name: Build
         run: yarn build
       - name: Archive dist
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: packages/core/dist
       - name: Archive ts3.8
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ts3.8
           path: packages/core/ts3.8
       - name: Archive Expo Plugin
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: expo-plugin
           path: packages/core/plugin/build
       - name: Pack
         run: yarn build:tarball
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.sha }}
           path: |
