@@ -12,7 +12,7 @@ import {
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import {
@@ -118,8 +118,10 @@ export const startIdleSpan = (
   }
 
   const currentAppState = AppState.currentState;
-  if (currentAppState === 'background' || currentAppState === 'inactive') {
-    debug.log(`[startIdleSpan] App is already in '${currentAppState}' state, not starting span for ${startSpanOption.name}`);
+  if (currentAppState === 'background' || (Platform.OS === 'ios' && currentAppState === 'inactive')) {
+    debug.log(
+      `[startIdleSpan] App is already in '${currentAppState}' state, not starting span for ${startSpanOption.name}`,
+    );
     return new SentryNonRecordingSpan();
   }
 
