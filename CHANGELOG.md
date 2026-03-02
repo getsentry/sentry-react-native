@@ -11,6 +11,7 @@
 ### Fixes
 
 - Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
+- Fixes the issue with unit mismatch in `adjustTransactionDuration` ([#5740](https://github.com/getsentry/sentry-react-native/pull/5740))
 
 ### Dependencies
 
