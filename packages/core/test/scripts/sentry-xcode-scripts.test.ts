@@ -454,4 +454,81 @@ describe('sentry-xcode.sh', () => {
     expect(result.stdout).toContain('SENTRY_DISABLE_AUTO_UPLOAD=true');
     expect(result.stdout).toContain('skipping sourcemaps upload');
   });
+
+  describe('SOURCEMAP_FILE path resolution', () => {
+    // Returns a mock sentry-cli that prints the SOURCEMAP_FILE env var it received.
+    const makeSourcemapEchoScript = (dir: string): string => {
+      const scriptPath = path.join(dir, 'mock-sentry-cli-echo-sourcemap.js');
+      fs.writeFileSync(
+        scriptPath,
+        `
+        const sourcemapFile = process.env.SOURCEMAP_FILE || 'not-set';
+        console.log('SOURCEMAP_FILE=' + sourcemapFile);
+        process.exit(0);
+        `,
+      );
+      return scriptPath;
+    };
+
+    it('leaves an absolute SOURCEMAP_FILE unchanged', () => {
+      const absolutePath = path.join(tempDir, 'absolute', 'main.jsbundle.map');
+      const echoScript = makeSourcemapEchoScript(tempDir);
+
+      const result = runScript({
+        SENTRY_CLI_EXECUTABLE: echoScript,
+        SOURCEMAP_FILE: absolutePath,
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain(`SOURCEMAP_FILE=${absolutePath}`);
+    });
+
+    it('resolves a relative SOURCEMAP_FILE against the project root, not ios/', () => {
+      // PROJECT_DIR is tempDir (simulates the ios/ folder).
+      // RN_PROJECT_ROOT = PROJECT_DIR/.. = parent of tempDir.
+      // A user setting SOURCEMAP_FILE=relative/path.map expects it relative to the project root.
+      const echoScript = makeSourcemapEchoScript(tempDir);
+
+      const result = runScript({
+        SENTRY_CLI_EXECUTABLE: echoScript,
+        SOURCEMAP_FILE: 'relative/path.map',
+      });
+
+      const projectRoot = path.dirname(tempDir); // PROJECT_DIR/.. = RN_PROJECT_ROOT
+      const expectedPath = path.join(projectRoot, 'relative/path.map');
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain(`SOURCEMAP_FILE=${expectedPath}`);
+    });
+
+    it('resolves a ./prefixed SOURCEMAP_FILE against the project root', () => {
+      const echoScript = makeSourcemapEchoScript(tempDir);
+
+      const result = runScript({
+        SENTRY_CLI_EXECUTABLE: echoScript,
+        SOURCEMAP_FILE: './maps/main.jsbundle.map',
+      });
+
+      // The leading ./ is stripped via ${SOURCEMAP_FILE#./} before concatenation,
+      // so the result is a clean absolute path without any ./ component.
+      const projectRoot = path.dirname(tempDir);
+      const expectedPath = path.join(projectRoot, 'maps/main.jsbundle.map');
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain(`SOURCEMAP_FILE=${expectedPath}`);
+    });
+
+    it('uses the absolute default SOURCEMAP_FILE when not set by the user', () => {
+      const echoScript = makeSourcemapEchoScript(tempDir);
+
+      const result = runScript({
+        SENTRY_CLI_EXECUTABLE: echoScript,
+        // SOURCEMAP_FILE intentionally not set — script should default to $DERIVED_FILE_DIR/main.jsbundle.map
+        DERIVED_FILE_DIR: tempDir,
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain(`SOURCEMAP_FILE=${tempDir}/main.jsbundle.map`);
+    });
+  });
 });

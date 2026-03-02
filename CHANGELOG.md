@@ -13,6 +13,11 @@
 - Show feedback widget on device shake ([#5729](https://github.com/getsentry/sentry-react-native/pull/5729))
   - Use `Sentry.showFeedbackOnShake()` / `Sentry.hideFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
 
+### Fixes
+
+- Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
+- Handle `inactive` state for spans ([#5742](https://github.com/getsentry/sentry-react-native/pull/5742))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.39.0 to v10.40.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715))
