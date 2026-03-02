@@ -69,6 +69,7 @@
     "eslint@npm:8.57.0/ajv": "^6.14.0",
     "eslint@npm:8.57.1/ajv": "^6.14.0",
     "eslint@npm:9.39.2/ajv": "^6.14.0",
+    "express@npm:4.19.2/path-to-regexp": "0.1.12",
     "axios": "^1.13.5",
     "fast-xml-parser": "^5.3.6",
     "form-data": "4.0.5",
