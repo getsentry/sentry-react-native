@@ -186,12 +186,12 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: packages/core/dist
       - name: Download ts3.8
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ts3.8
           path: packages/core/ts3.8
@@ -217,12 +217,12 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: packages/core/dist
       - name: Download Expo Plugin
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: expo-plugin
           path: packages/core/plugin/build

@@ -236,14 +236,14 @@ jobs:
 
       - name: Download iOS App Archive
         if: ${{ matrix.platform == 'ios' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.platform }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Download Android APK
         if: ${{ matrix.platform == 'android' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
