@@ -39,8 +39,9 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
       return;
     }
 
-    const diff = endTimestamp - startTimestamp;
-    const isOutdatedTransaction = endTimestamp && (diff > maxDurationMs || diff < 0);
+    const diff = endTimestamp - startTimestamp; // a diff in *seconds*
+    const isOutdatedTransaction = diff > maxDurationMs / 1000 || diff < 0;
+
     if (isOutdatedTransaction) {
       span.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
       // TODO: check where was used, might be possible to delete
