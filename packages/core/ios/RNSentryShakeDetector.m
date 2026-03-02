@@ -1,5 +1,7 @@
 #import "RNSentryShakeDetector.h"
 
+@import Sentry;
+
 #if SENTRY_HAS_UIKIT
 
 #    import <UIKit/UIKit.h>
