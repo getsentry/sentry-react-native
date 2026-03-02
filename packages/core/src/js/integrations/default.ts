@@ -17,6 +17,7 @@ import {
   dedupeIntegration,
   deviceContextIntegration,
   eventOriginIntegration,
+  expoConstantsIntegration,
   expoContextIntegration,
   functionToStringIntegration,
   hermesProfilingIntegration,
@@ -131,6 +132,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   }
 
   integrations.push(expoContextIntegration());
+  integrations.push(expoConstantsIntegration());
 
   if (options.spotlight && __DEV__) {
     const sidecarUrl = typeof options.spotlight === 'string' ? options.spotlight : undefined;
