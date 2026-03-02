@@ -71,7 +71,7 @@ jobs:
           bundle exec fastlane ios upload_react_native_sample_to_testflight
 
       - name: Upload Xcode Archive
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: sentry-react-native-sample-xcode-archive-for-testflight
           path: samples/react-native/sentryreactnativesample.xcarchive
