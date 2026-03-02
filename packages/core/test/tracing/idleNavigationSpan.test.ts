@@ -1,5 +1,5 @@
 import type { Span } from '@sentry/core';
-import { getActiveSpan, getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
+import { getActiveSpan, getCurrentScope, spanToJSON, startInactiveSpan, startSpanManual } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
 import type { ScopeWithMaybeSpan } from '../../src/js/tracing/span';
@@ -115,6 +115,103 @@ describe('startIdleNavigationSpan', () => {
 
     // No subscription removal should happen since no listener was set up
     expect(mockedAppState.removeSubscription).not.toHaveBeenCalled();
+  });
+
+  it('Returns non-recording span when app is already inactive', () => {
+    mockedAppState.currentState = 'inactive';
+
+    const span = startIdleNavigationSpan({
+      name: 'test',
+    });
+
+    expect(getActiveSpan()).toBeUndefined();
+    expect(span).toBeDefined();
+    expect(span?.constructor.name).toBe('SentryNonRecordingSpan');
+    expect(mockedAppState.removeSubscription).not.toHaveBeenCalled();
+  });
+
+  describe('cancelInBackground with iOS inactive state', () => {
+    it('Schedules deferred cancellation on inactive and cancels after timeout', () => {
+      const routeTransaction = startIdleNavigationSpan({
+        name: 'test',
+      });
+
+      // Keep the span alive with an open child span (simulates in-flight network request)
+      startInactiveSpan({ name: 'child-span' });
+
+      // App goes inactive (e.g. user presses home button on iOS)
+      mockedAppState.setState('inactive');
+
+      // Span should still be open — not cancelled immediately
+      expect(spanToJSON(routeTransaction!).status).not.toBe('cancelled');
+      expect(spanToJSON(routeTransaction!).timestamp).toBeUndefined();
+
+      // Advance past the deferred cancellation timeout (5 seconds)
+      jest.advanceTimersByTime(5_000);
+
+      // Now the deferred cancellation should have fired
+      expect(spanToJSON(routeTransaction!).status).toBe('cancelled');
+      expect(spanToJSON(routeTransaction!).timestamp).toBeDefined();
+      expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
+    });
+
+    it('Clears deferred cancellation when app returns to active', () => {
+      const routeTransaction = startIdleNavigationSpan({
+        name: 'test',
+      });
+
+      // App goes inactive (e.g. Control Center pulled down)
+      mockedAppState.setState('inactive');
+
+      // Advance part way — not enough for the timeout to fire
+      jest.advanceTimersByTime(2_000);
+
+      // App returns to active (Control Center dismissed)
+      mockedAppState.setState('active');
+
+      // Advance well past the original timeout
+      jest.advanceTimersByTime(10_000);
+
+      // Span should NOT be cancelled — it's still recording
+      expect(spanToJSON(routeTransaction!).status).not.toBe('cancelled');
+    });
+
+    it('Cancels immediately on background even if inactive timeout is pending', () => {
+      const routeTransaction = startIdleNavigationSpan({
+        name: 'test',
+      });
+
+      // App goes inactive first
+      mockedAppState.setState('inactive');
+
+      // Then transitions to background before the timeout fires
+      jest.advanceTimersByTime(100);
+      mockedAppState.setState('background');
+
+      // Span should be cancelled immediately
+      expect(spanToJSON(routeTransaction!).status).toBe('cancelled');
+      expect(spanToJSON(routeTransaction!).timestamp).toBeDefined();
+      expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
+    });
+
+    it('Clears inactive timeout when span ends normally', () => {
+      const routeTransaction = startIdleNavigationSpan({
+        name: 'test',
+      });
+
+      // App goes inactive — deferred cancellation is scheduled
+      mockedAppState.setState('inactive');
+
+      // Span ends normally (e.g. idle timeout, new navigation)
+      routeTransaction!.end();
+
+      jest.runAllTimers();
+
+      // AppState listener should be cleaned up
+      expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
+      // Span should not have the cancelled status since it ended normally
+      expect(spanToJSON(routeTransaction!).status).not.toBe('cancelled');
+    });
   });
 
   describe('Start a new active root span (without parent)', () => {

@@ -1,8 +1,14 @@
 import type { Client, Span } from '@sentry/core';
 import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { isRootSpan, isSentrySpan } from '../utils/span';
+
+/**
+ * The time to wait after the app enters the `inactive` state on iOS before
+ * cancelling the span.
+ */
+const IOS_INACTIVE_CANCEL_DELAY_MS = 5_000;
 
 /**
  * Hooks on span end event to execute a callback when the span ends.
@@ -175,13 +181,43 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 
 /**
  * Hooks on AppState change to cancel the span if the app goes background.
+ *
+ * On iOS the JS thread can be suspended between the `inactive` and
+ * `background` transitions, which means the `background` event may never
+ * reach JS in time. To handle this we schedule a deferred cancellation when
+ * the app becomes `inactive`. If the app returns to `active` before the
+ * timeout fires, the cancellation is cleared. If it transitions to
+ * `background` first, we cancel immediately and clear the timeout.
  */
 export const cancelInBackground = (client: Client, span: Span): void => {
+  let inactiveTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  const cancelSpan = (): void => {
+    if (inactiveTimeout !== undefined) {
+      clearTimeout(inactiveTimeout);
+      inactiveTimeout = undefined;
+    }
+    debug.log(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
+    span.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
+    span.end();
+  };
+
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
-      debug.log(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
-      span.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
-      span.end();
+      cancelSpan();
+    } else if (Platform.OS === 'ios' && newState === 'inactive') {
+      // Schedule a deferred cancellation — if the JS thread is suspended
+      // before the 'background' event fires, this timer will execute when
+      // the app is eventually resumed and end the span.
+      if (inactiveTimeout === undefined) {
+        inactiveTimeout = setTimeout(cancelSpan, IOS_INACTIVE_CANCEL_DELAY_MS);
+      }
+    } else if (newState === 'active') {
+      // App returned to foreground — clear any pending inactive cancellation.
+      if (inactiveTimeout !== undefined) {
+        clearTimeout(inactiveTimeout);
+        inactiveTimeout = undefined;
+      }
     }
   });
 
@@ -189,6 +225,10 @@ export const cancelInBackground = (client: Client, span: Span): void => {
     client.on('spanEnd', (endedSpan: Span) => {
       if (endedSpan === span) {
         debug.log(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
+        if (inactiveTimeout !== undefined) {
+          clearTimeout(inactiveTimeout);
+          inactiveTimeout = undefined;
+        }
         subscription?.remove?.();
       }
     });
