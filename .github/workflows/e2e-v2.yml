@@ -423,7 +423,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         run: xcrun simctl list devices available
 
-      - uses: futureware-tech/simulator-action@dab10d813144ef59b48d401cd95da151222ef8cd # pin@v4
+      - uses: futureware-tech/simulator-action@e89aa8f93d3aec35083ff49d2854d07f7186f7f5 # pin@v5
         if: ${{ matrix.platform == 'ios' }}
         with:
           model: ${{ env.IOS_DEVICE }}
