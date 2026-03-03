@@ -10,7 +10,7 @@
 
 ### Features
 
-- Capture dynamic route params (`[id]`, `[...slug]`) as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
+- Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
 
 ### Fixes
 
