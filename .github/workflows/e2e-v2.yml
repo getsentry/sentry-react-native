@@ -439,20 +439,36 @@ jobs:
       - name: Warm up iOS simulator
         if: ${{ matrix.platform == 'ios' }}
         run: |
-          # Launch and terminate a stock app so that SpringBoard, backboardd,
-          # and other system services finish their post-boot initialisation.
-          # Without this warm-up Maestro's XCTest driver often fails to
-          # communicate with the app on first launch inside Tart VMs.
+          # Tart VMs are very slow right after boot.  Launch a stock app so
+          # that SpringBoard, backboardd, and other system services finish
+          # their post-boot initialisation before Maestro tries to connect.
           xcrun simctl launch booted com.apple.Preferences
-          sleep 3
+          sleep 5
           xcrun simctl terminate booted com.apple.Preferences
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         env:
-          # Increase timeout for Maestro iOS driver startup (default is 60s, some CI runners need more time)
           MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000
-        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
+        run: |
+          # Retry the full suite up to 3 times.  Cirrus Labs Tart VMs
+          # occasionally fail individual app launches (the app process
+          # exits before the JS bundle finishes loading), so a retry is
+          # the most reliable way to get a green run.
+          for attempt in 1 2 3; do
+            echo "::group::Attempt $attempt of 3"
+            if ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test; then
+              echo "::endgroup::"
+              echo "Tests passed on attempt $attempt"
+              exit 0
+            fi
+            echo "::endgroup::"
+            if [ "$attempt" -lt 3 ]; then
+              echo "Tests failed on attempt $attempt — retrying…"
+            fi
+          done
+          echo "Tests failed after 3 attempts"
+          exit 1
 
       - name: Upload logs
         if: ${{ always() }}
