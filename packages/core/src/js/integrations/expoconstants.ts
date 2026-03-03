@@ -123,6 +123,6 @@ type ExpoConstantsContext = Partial<{
   app_name: string;
   app_slug: string;
   app_version: string;
-  sdk_version: string;
+  expo_sdk_version?: string;
   eas_project_id: string;
 }>;
