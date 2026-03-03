@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Capture dynamic route params (`[id]`, `[...slug]`) as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
+
 ### Fixes
 
 - Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
