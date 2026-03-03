@@ -98,7 +98,7 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "babel-preset-fbjs": "^3.4.0",
     "downlevel-dts": "^0.11.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.26.0",
     "eslint-plugin-react": "^7.37.0",
     "eslint-plugin-react-native": "^3.8.1",
     "expo": "^53.0.0",
