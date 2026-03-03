@@ -31,15 +31,20 @@
 ### Fixes
 
 - Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
+- Fixes the issue with unit mismatch in `adjustTransactionDuration` ([#5740](https://github.com/getsentry/sentry-react-native/pull/5740))
+- Handle `inactive` state for spans ([#5742](https://github.com/getsentry/sentry-react-native/pull/5742))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.39.0 to v10.40.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10400)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.39.0...10.40.0)
+- Bump JavaScript SDK from v10.39.0 to v10.41.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715), [#5744](https://github.com/getsentry/sentry-react-native/pull/5744))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10410)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.39.0...10.41.0)
 - Bump Bundler Plugins from v4.9.1 to v5.1.1 ([#5700](https://github.com/getsentry/sentry-react-native/pull/5700))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#511)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.9.1...5.1.1)
+- Bump CLI from v3.2.2 to v3.2.3 ([#5743](https://github.com/getsentry/sentry-react-native/pull/5743))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#323)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.2...3.2.3)
 
 ## 8.2.0
 
