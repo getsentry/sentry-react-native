@@ -1,8 +1,7 @@
 #import "RNSentryNativeLogsForwarder.h"
+#import "RNSentryEvents.h"
 
 @import Sentry;
-
-static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
 
 @interface RNSentryNativeLogsForwarder ()
 
@@ -38,7 +37,7 @@ static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
         }
     }];
 
-    // Send a test log to verify the forwarding works
+    // Send a log to notify user the forwarding works
     [self forwardLogMessage:
             @"[Sentry] [info] [0] [RNSentryNativeLogsForwarder] Native log forwarding "
             @"configured successfully"];
@@ -83,7 +82,7 @@ static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
     dispatch_async(dispatch_get_main_queue(), ^{
         RCTEventEmitter *currentEmitter = self.eventEmitter;
         if (currentEmitter != nil) {
-            [currentEmitter sendEventWithName:RNSentryNativeLogEventName body:body];
+            [currentEmitter sendEventWithName:RNSentryNativeLogEvent body:body];
         }
     });
 }

@@ -4,8 +4,6 @@ import type { NativeLogEntry } from './options';
 
 const NATIVE_LOG_EVENT_NAME = 'SentryNativeLog';
 
-let nativeLogListener: ReturnType<NativeEventEmitter['addListener']> | null = null;
-
 /**
  * Sets up the native log listener that forwards logs from the native SDK to JS.
  * This only works when `debug: true` is set in Sentry options.
@@ -25,15 +23,9 @@ export function setupNativeLogListener(callback: (log: NativeLogEntry) => void):
   }
 
   try {
-    // Remove existing listener if any
-    if (nativeLogListener) {
-      nativeLogListener.remove();
-      nativeLogListener = null;
-    }
-
     const eventEmitter = new NativeEventEmitter(NativeModules.RNSentry);
 
-    nativeLogListener = eventEmitter.addListener(
+    const listener = eventEmitter.addListener(
       NATIVE_LOG_EVENT_NAME,
       (event: { level?: string; component?: string; message?: string }) => {
         const logEntry: NativeLogEntry = {
@@ -47,10 +39,11 @@ export function setupNativeLogListener(callback: (log: NativeLogEntry) => void):
 
     debug.log('Native log listener set up successfully.');
 
+    let removed = false;
     return () => {
-      if (nativeLogListener) {
-        nativeLogListener.remove();
-        nativeLogListener = null;
+      if (!removed) {
+        listener.remove();
+        removed = true;
         debug.log('Native log listener removed.');
       }
     };

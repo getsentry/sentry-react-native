@@ -38,6 +38,48 @@ describe('NativeLogListener', () => {
       expect(typeof cleanup).toBe('function');
     });
 
+    it('cleanup removes only its own listener, not a later one', () => {
+      const mockRemove1 = jest.fn();
+      const mockRemove2 = jest.fn();
+      const { NativeEventEmitter } = require('react-native');
+
+      // First call returns listener with mockRemove1
+      NativeEventEmitter.mockImplementationOnce(() => ({
+        addListener: jest.fn().mockReturnValue({ remove: mockRemove1 }),
+      }));
+      const cleanup1 = setupNativeLogListener(jest.fn());
+
+      // Second call returns listener with mockRemove2
+      NativeEventEmitter.mockImplementationOnce(() => ({
+        addListener: jest.fn().mockReturnValue({ remove: mockRemove2 }),
+      }));
+      const cleanup2 = setupNativeLogListener(jest.fn());
+
+      // Calling the first cleanup should remove the first listener only
+      cleanup1!();
+      expect(mockRemove1).toHaveBeenCalledTimes(1);
+      expect(mockRemove2).not.toHaveBeenCalled();
+
+      // Calling the second cleanup should remove the second listener
+      cleanup2!();
+      expect(mockRemove2).toHaveBeenCalledTimes(1);
+    });
+
+    it('cleanup is idempotent and does not remove listener twice', () => {
+      const mockRemove = jest.fn();
+      const { NativeEventEmitter } = require('react-native');
+
+      NativeEventEmitter.mockImplementationOnce(() => ({
+        addListener: jest.fn().mockReturnValue({ remove: mockRemove }),
+      }));
+      const cleanup = setupNativeLogListener(jest.fn());
+
+      cleanup!();
+      cleanup!();
+
+      expect(mockRemove).toHaveBeenCalledTimes(1);
+    });
+
     it('returns undefined when platform is not ios or android', () => {
       jest.resetModules();
       jest.doMock('react-native', () => ({
