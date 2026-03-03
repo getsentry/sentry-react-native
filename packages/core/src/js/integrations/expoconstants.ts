@@ -101,7 +101,7 @@ function addExpoConfigFields(context: ExpoConstantsContext, expoConstants: ExpoC
   addStringField(context, 'app_name', expoConstants.expoConfig.name);
   addStringField(context, 'app_slug', expoConstants.expoConfig.slug);
   addStringField(context, 'app_version', expoConstants.expoConfig.version);
-  addStringField(context, 'sdk_version', expoConstants.expoConfig.sdkVersion);
+  addStringField(context, 'expo_sdk_version', expoConstants.expoConfig.sdkVersion);
 }
 
 function addEasConfigFields(context: ExpoConstantsContext, expoConstants: ExpoConstants): void {

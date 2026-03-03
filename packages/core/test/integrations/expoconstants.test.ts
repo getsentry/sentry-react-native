@@ -101,7 +101,7 @@ describe('Expo Constants Integration', () => {
         app_name: 'TestApp',
         app_slug: 'test-app',
         app_version: '1.0.0',
-        sdk_version: '51.0.0',
+        expo_sdk_version: '51.0.0',
         eas_project_id: 'test-project-id',
       });
     });
