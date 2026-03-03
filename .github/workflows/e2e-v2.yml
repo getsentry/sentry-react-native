@@ -428,12 +428,15 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          # Cirrus Labs Tart VMs need more time to fully boot the simulator before
+          # Maestro can connect; without this the boot races with driver startup.
+          wait_for_boot: true
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
         env:
           # Increase timeout for Maestro iOS driver startup (default is 60s, some CI runners need more time)
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs
