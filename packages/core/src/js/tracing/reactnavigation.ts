@@ -41,9 +41,9 @@ const NAVIGATION_HISTORY_MAX_SIZE = 200;
  * Only params whose keys appear as dynamic segments in the route name are returned,
  * filtering out non-structural params (query params, etc.) that may contain PII.
  *
- * Note: dynamic segment values (e.g. the `123` in `profile/[id]`) are captured as-is.
- * Avoid using emails or other PII as route segment identifiers in your app, as these
- * values will appear in Sentry spans.
+ * Note: dynamic segment values (e.g. the `123` in `profile/[id]`) may be user-identifiable.
+ * This function only extracts params — callers are responsible for checking `sendDefaultPii`
+ * before including the result in span attributes.
  *
  * Previous route params are intentionally not captured — only the current route's
  * structural params are needed for trace attribution.
@@ -458,10 +458,11 @@ export const reactNavigationIntegration = ({
     if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
       latestNavigationSpan.updateName(routeName);
     }
+    const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
     latestNavigationSpan.setAttributes({
       'route.name': routeName,
       'route.key': route.key,
-      ...extractDynamicRouteParams(routeName, route.params),
+      ...(sendDefaultPii ? extractDynamicRouteParams(routeName, route.params) : undefined),
       'route.has_been_seen': routeHasBeenSeen,
       'previous_route.name': previousRoute?.name,
       'previous_route.key': previousRoute?.key,

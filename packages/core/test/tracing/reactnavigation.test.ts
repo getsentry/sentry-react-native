@@ -1053,8 +1053,8 @@ describe('ReactNavigationInstrumentation', () => {
   });
 
   describe('dynamic route params', () => {
-    it('includes dynamic route params from [id] route', async () => {
-      setupTestClient();
+    it('includes dynamic route params from [id] route when sendDefaultPii is true', async () => {
+      setupTestClient({ sendDefaultPii: true });
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
       // Navigate to a static screen first so previous_route.name is set to a known value
@@ -1084,8 +1084,8 @@ describe('ReactNavigationInstrumentation', () => {
       );
     });
 
-    it('includes dynamic route params from [...slug] catch-all route joined with /', async () => {
-      setupTestClient();
+    it('includes dynamic route params from [...slug] catch-all route joined with / when sendDefaultPii is true', async () => {
+      setupTestClient({ sendDefaultPii: true });
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
       mockNavigation.navigateToCatchAllRoute();
@@ -1110,8 +1110,22 @@ describe('ReactNavigationInstrumentation', () => {
       );
     });
 
+    it('does not include dynamic route params when sendDefaultPii is false', async () => {
+      setupTestClient({ sendDefaultPii: false });
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      mockNavigation.navigateToDynamicRoute();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('profile/[id]');
+      expect(traceData['route.params.id']).toBeUndefined();
+    });
+
     it('does not include non-dynamic params from static routes', async () => {
-      setupTestClient();
+      setupTestClient({ sendDefaultPii: true });
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
       mockNavigation.navigateToStaticRouteWithParams();
@@ -1119,9 +1133,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       await client.flush();
 
-      const actualEvent = client.event;
-      const traceData = actualEvent?.contexts?.trace?.data as Record<string, unknown>;
-
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
       expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('StaticScreen');
       expect(traceData['route.params.utm_source']).toBeUndefined();
     });
@@ -1131,6 +1143,7 @@ describe('ReactNavigationInstrumentation', () => {
     setupOptions: {
       beforeSpanStart?: (options: StartSpanOptions) => StartSpanOptions;
       useDispatchedActionData?: boolean;
+      sendDefaultPii?: boolean;
     } = {},
   ) {
     const rNavigation = reactNavigationIntegration({
@@ -1149,6 +1162,7 @@ describe('ReactNavigationInstrumentation', () => {
       tracesSampleRate: 1.0,
       integrations: [rNavigation, rnTracing],
       enableAppStartTracking: false,
+      sendDefaultPii: setupOptions.sendDefaultPii,
     });
     client = new TestClient(options);
     setCurrentClient(client);
