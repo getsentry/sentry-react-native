@@ -1053,14 +1053,14 @@ describe('ReactNavigationInstrumentation', () => {
   });
 
   describe('dynamic route params', () => {
-    test('navigation span includes dynamic route params from [id] route', async () => {
+    it('includes dynamic route params from [id] route', async () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
+      // Navigate to a static screen first so previous_route.name is set to a known value
       mockNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush the navigation transaction
 
-      // Navigate to a dynamic route
       mockNavigation.navigateToDynamicRoute();
       jest.runOnlyPendingTimers();
 
@@ -1084,7 +1084,7 @@ describe('ReactNavigationInstrumentation', () => {
       );
     });
 
-    test('navigation span includes dynamic route params from [...slug] catch-all route', async () => {
+    it('includes dynamic route params from [...slug] catch-all route joined with /', async () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
@@ -1110,7 +1110,7 @@ describe('ReactNavigationInstrumentation', () => {
       );
     });
 
-    test('navigation span does not include non-dynamic params', async () => {
+    it('does not include non-dynamic params from static routes', async () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 

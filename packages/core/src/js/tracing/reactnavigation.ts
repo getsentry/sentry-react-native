@@ -40,6 +40,13 @@ const NAVIGATION_HISTORY_MAX_SIZE = 200;
  *
  * Only params whose keys appear as dynamic segments in the route name are returned,
  * filtering out non-structural params (query params, etc.) that may contain PII.
+ *
+ * Note: dynamic segment values (e.g. the `123` in `profile/[id]`) are captured as-is.
+ * Avoid using emails or other PII as route segment identifiers in your app, as these
+ * values will appear in Sentry spans.
+ *
+ * Previous route params are intentionally not captured — only the current route's
+ * structural params are needed for trace attribution.
  */
 export function extractDynamicRouteParams(
   routeName: string,
@@ -66,7 +73,7 @@ export function extractDynamicRouteParams(
   for (const key of dynamicKeys) {
     if (key in params) {
       const value = params[key];
-      result[`route.params.${key}`] = Array.isArray(value) ? value.join('/') : String(value);
+      result[`route.params.${key}`] = Array.isArray(value) ? value.join('/') : String(value ?? '');
     }
   }
 
