@@ -39,7 +39,7 @@
 
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryEvents.h"
-#import "RNSentryShakeDetector.h"
+#import <Sentry/SentryShakeDetector.h>
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 #    import "RNSentryReplay.h"
@@ -296,7 +296,7 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 - (void)handleShakeDetected
 {
     if (hasListeners) {
-        [self sendEventWithName:RNSentryOnShakeEvent body:@{}];
+        [self sendEventWithName:RNSentryOnShakeEvent body:@{ }];
     }
 }
 
@@ -308,21 +308,21 @@ RCT_EXPORT_METHOD(enableShakeDetection)
 {
     // Remove any existing observer first to avoid duplicate notifications
     [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:RNSentryShakeDetectedNotification
+                                                    name:SentryShakeDetectedNotification
                                                   object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleShakeDetected)
-                                                 name:RNSentryShakeDetectedNotification
+                                                 name:SentryShakeDetectedNotification
                                                object:nil];
-    [RNSentryShakeDetector enable];
+    [SentryShakeDetector enable];
     hasListeners = YES;
 }
 
 RCT_EXPORT_METHOD(disableShakeDetection)
 {
-    [RNSentryShakeDetector disable];
+    [SentryShakeDetector disable];
     [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:RNSentryShakeDetectedNotification
+                                                    name:SentryShakeDetectedNotification
                                                   object:nil];
 }
 

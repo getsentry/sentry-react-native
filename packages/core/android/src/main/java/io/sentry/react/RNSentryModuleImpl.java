@@ -46,6 +46,7 @@ import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
+import io.sentry.android.core.SentryShakeDetector;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
@@ -123,7 +124,7 @@ public class RNSentryModuleImpl {
   private final @NotNull Runnable emitNewFrameEvent;
 
   private static final String ON_SHAKE_EVENT = "rn_sentry_on_shake";
-  private @Nullable RNSentryShakeDetector shakeDetector;
+  private @Nullable SentryShakeDetector shakeDetector;
   private int shakeListenerCount = 0;
 
   /** Max trace file size in bytes. */
@@ -221,7 +222,7 @@ public class RNSentryModuleImpl {
     }
 
     final ReactApplicationContext context = getReactApplicationContext();
-    shakeDetector = new RNSentryShakeDetector(logger);
+    shakeDetector = new SentryShakeDetector(logger);
     shakeDetector.start(
         context,
         () -> {
