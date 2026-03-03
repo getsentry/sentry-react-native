@@ -48,6 +48,8 @@ static NSString *const RNSentryNativeLogEventName = @"SentryNativeLog";
 {
     self.eventEmitter = nil;
 
+    // TODO: Ideally we should save the previous output block in configureWithEventEmitter:
+    // and restore it here instead of hardcoding NSLog.
     // Reset to default print behavior
     [SentrySDKLog setOutput:^(NSString *_Nonnull message) { NSLog(@"%@", message); }];
 }

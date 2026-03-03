@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * This allows native SDK logs to appear in the Metro console when debug mode is enabled.
  */
 public class RNSentryLogger implements ILogger {
-  private static final String TAG = "Sentry";
+  private static final String TAG = "RNSentry";
   private static final String EVENT_NAME = "SentryNativeLog";
 
   private final AndroidLogger androidLogger;

@@ -45,8 +45,6 @@ const StackNavigator: TypedNavigator<any, any> = isMobileOs
 const BottomTabNavigator = createBottomTabNavigator();
 
 Sentry.init({
-  debug: true,
-  environment: 'dev',
   beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
     return event;
