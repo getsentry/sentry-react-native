@@ -50,7 +50,7 @@ export function extractDynamicRouteParams(
   }
 
   const dynamicKeys = new Set<string>();
-  const pattern = /\[(?:\.\.\.)?([^\]]+)\]/g;
+  const pattern = /\[(?:\.\.\.)?(\w+)\]/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(routeName)) !== null) {
     if (match[1]) {
