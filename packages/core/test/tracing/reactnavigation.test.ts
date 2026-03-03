@@ -13,7 +13,7 @@ import {
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
-import { reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
+import { extractDynamicRouteParams, reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
 import {
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY,
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME,
@@ -58,6 +58,54 @@ class MockNavigationContainer {
     return this.currentRoute;
   }
 }
+
+describe('extractDynamicRouteParams', () => {
+  it('returns undefined when params is undefined', () => {
+    expect(extractDynamicRouteParams('profile/[id]', undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when route name has no dynamic segments', () => {
+    expect(extractDynamicRouteParams('StaticScreen', { foo: 'bar' })).toBeUndefined();
+  });
+
+  it('extracts single dynamic segment [id]', () => {
+    expect(extractDynamicRouteParams('profile/[id]', { id: '123' })).toEqual({
+      'route.params.id': '123',
+    });
+  });
+
+  it('extracts catch-all segment [...slug] and joins array values with /', () => {
+    expect(extractDynamicRouteParams('posts/[...slug]', { slug: ['tech', 'react-native'] })).toEqual({
+      'route.params.slug': 'tech/react-native',
+    });
+  });
+
+  it('extracts multiple dynamic segments', () => {
+    expect(
+      extractDynamicRouteParams('[org]/[project]/issues/[id]', { org: 'sentry', project: 'react-native', id: '42' }),
+    ).toEqual({
+      'route.params.org': 'sentry',
+      'route.params.project': 'react-native',
+      'route.params.id': '42',
+    });
+  });
+
+  it('ignores params not matching dynamic segments', () => {
+    expect(extractDynamicRouteParams('profile/[id]', { id: '123', utm_source: 'email' })).toEqual({
+      'route.params.id': '123',
+    });
+  });
+
+  it('returns undefined when dynamic segment key is missing from params', () => {
+    expect(extractDynamicRouteParams('profile/[id]', { name: 'test' })).toBeUndefined();
+  });
+
+  it('converts non-string param values to strings', () => {
+    expect(extractDynamicRouteParams('items/[count]', { count: 42 })).toEqual({
+      'route.params.count': '42',
+    });
+  });
+});
 
 describe('ReactNavigationInstrumentation', () => {
   let client: TestClient;
@@ -1001,6 +1049,81 @@ describe('ReactNavigationInstrumentation', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('dynamic route params', () => {
+    test('navigation span includes dynamic route params from [id] route', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+      // Navigate to a dynamic route
+      mockNavigation.navigateToDynamicRoute();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const actualEvent = client.event;
+      expect(actualEvent).toEqual(
+        expect.objectContaining({
+          type: 'transaction',
+          transaction: 'profile/[id]',
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: expect.objectContaining({
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'profile/[id]',
+                'route.params.id': '123',
+                [SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]: 'New Screen',
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    test('navigation span includes dynamic route params from [...slug] catch-all route', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      mockNavigation.navigateToCatchAllRoute();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const actualEvent = client.event;
+      expect(actualEvent).toEqual(
+        expect.objectContaining({
+          type: 'transaction',
+          transaction: 'posts/[...slug]',
+          contexts: expect.objectContaining({
+            trace: expect.objectContaining({
+              data: expect.objectContaining({
+                [SEMANTIC_ATTRIBUTE_ROUTE_NAME]: 'posts/[...slug]',
+                'route.params.slug': 'tech/react-native',
+              }),
+            }),
+          }),
+        }),
+      );
+    });
+
+    test('navigation span does not include non-dynamic params', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      mockNavigation.navigateToStaticRouteWithParams();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const actualEvent = client.event;
+      const traceData = actualEvent?.contexts?.trace?.data as Record<string, unknown>;
+
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('StaticScreen');
+      expect(traceData['route.params.utm_source']).toBeUndefined();
     });
   });
 

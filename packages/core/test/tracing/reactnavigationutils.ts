@@ -68,6 +68,33 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
         // this object is not used by the instrumentation
       });
     },
+    navigateToDynamicRoute: () => {
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
+      mockedNavigationContained.currentRoute = {
+        key: 'profile_123',
+        name: 'profile/[id]',
+        params: { id: '123' },
+      };
+      mockedNavigationContained.listeners['state']({});
+    },
+    navigateToCatchAllRoute: () => {
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
+      mockedNavigationContained.currentRoute = {
+        key: 'posts_slug',
+        name: 'posts/[...slug]',
+        params: { slug: ['tech', 'react-native'] },
+      };
+      mockedNavigationContained.listeners['state']({});
+    },
+    navigateToStaticRouteWithParams: () => {
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
+      mockedNavigationContained.currentRoute = {
+        key: 'static_screen',
+        name: 'StaticScreen',
+        params: { utm_source: 'email', referrer: 'homepage' },
+      };
+      mockedNavigationContained.listeners['state']({});
+    },
     emitNavigationWithUndefinedRoute: () => {
       mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
       mockedNavigationContained.currentRoute = undefined as any;
