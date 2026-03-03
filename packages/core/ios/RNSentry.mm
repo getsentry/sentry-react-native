@@ -306,6 +306,10 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 // that JS calls directly from startShakeListener/stopShakeListener.
 RCT_EXPORT_METHOD(enableShakeDetection)
 {
+    // Remove any existing observer first to avoid duplicate notifications
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:RNSentryShakeDetectedNotification
+                                                  object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleShakeDetected)
                                                  name:RNSentryShakeDetectedNotification

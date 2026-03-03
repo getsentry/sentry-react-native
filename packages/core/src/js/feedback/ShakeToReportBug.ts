@@ -25,7 +25,6 @@ const defaultEmitterFactory: EmitterFactory = nativeModule => new NativeEventEmi
  */
 export function startShakeListener(onShake: () => void, createEmitter: EmitterFactory = defaultEmitterFactory): void {
   if (_shakeSubscription) {
-    debug.log('Shake listener is already active.');
     return;
   }
 
@@ -42,14 +41,18 @@ export function startShakeListener(onShake: () => void, createEmitter: EmitterFa
 
   const emitter = createEmitter(nativeModule);
   _shakeSubscription = emitter.addListener(OnShakeEventName, () => {
-    debug.log('Shake detected.');
     onShake();
   });
 
   // Explicitly enable native shake detection. On iOS with New Architecture (TurboModules),
   // NativeEventEmitter.addListener does not dispatch to native addListener:, so the
   // native shake listener would never start without this explicit call.
-  (nativeModule as { enableShakeDetection?: () => void }).enableShakeDetection?.();
+  const module = nativeModule as { enableShakeDetection?: () => void };
+  if (module.enableShakeDetection) {
+    module.enableShakeDetection();
+  } else {
+    debug.warn('enableShakeDetection is not available on the native module.');
+  }
 }
 
 /**
