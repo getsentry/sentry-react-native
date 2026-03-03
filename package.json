@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@naturalcycles/ktlint": "^1.13.0",
-    "@sentry/cli": "3.2.2",
+    "@sentry/cli": "3.2.3",
     "downlevel-dts": "^0.11.0",
     "google-java-format": "^1.4.0",
     "lerna": "^8.1.8",
@@ -60,6 +60,20 @@
   ],
   "resolutions": {
     "appium-chromedriver@npm:5.6.73/@xmldom/xmldom": "0.8.10",
+    "@istanbuljs/load-nyc-config@npm:1.1.0/js-yaml": "^3.14.2",
+    "@yarnpkg/parsers@npm:3.0.0-rc.46/js-yaml": "^3.14.2",
+    "cosmiconfig@npm:5.2.1/js-yaml": "^3.14.2",
+    "front-matter@npm:4.0.2/js-yaml": "^3.14.2",
+    "js-yaml": "^4.1.1",
+    "ajv-formats@npm:2.1.1/ajv": "^8.18.0",
+    "appium@npm:2.4.1/ajv": "^8.18.0",
+    "detox@npm:20.46.0/ajv": "^8.18.0",
+    "expo-dev-launcher@npm:6.0.20/ajv": "^8.18.0",
+    "@eslint/eslintrc@npm:2.1.4/ajv": "^6.14.0",
+    "@eslint/eslintrc@npm:3.3.3/ajv": "^6.14.0",
+    "eslint@npm:8.57.0/ajv": "^6.14.0",
+    "eslint@npm:8.57.1/ajv": "^6.14.0",
+    "eslint@npm:9.39.2/ajv": "^6.14.0",
     "express@npm:4.19.2/path-to-regexp": "0.1.12",
     "axios": "^1.13.5",
     "fast-xml-parser": "^5.3.6",
@@ -69,7 +83,7 @@
     "tar-fs": "^3.1.1",
     "on-headers": "^1.1.0",
     "diff": "^5.2.2",
-    "tar": "^7.5.7"
+    "tar": "^7.5.8"
     "tmp": "^0.2.4"
   },
   "version": "0.0.0",
