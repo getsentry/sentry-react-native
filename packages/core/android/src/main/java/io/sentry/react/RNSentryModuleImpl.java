@@ -242,6 +242,17 @@ public class RNSentryModuleImpl {
     }
   }
 
+  public void enableShakeDetection() {
+    // On Android, shake detection is started via addListener. This method is a no-op
+    // because it exists to satisfy the cross-platform spec (on iOS, the NativeEventEmitter
+    // addListener does not reliably dispatch to native, so an explicit call is needed).
+  }
+
+  public void disableShakeDetection() {
+    // On Android, shake detection is stopped via removeListeners. This method is a no-op
+    // for the same reason as enableShakeDetection.
+  }
+
   public void fetchModules(Promise promise) {
     final AssetManager assets = this.getReactApplicationContext().getResources().getAssets();
     try (InputStream stream = new BufferedInputStream(assets.open(modulesPath))) {

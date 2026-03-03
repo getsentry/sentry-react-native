@@ -281,24 +281,6 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 #endif
 }
 
-// Override addListener to explicitly enable shake detection when the shake event is
-// subscribed to. This mirrors the Android addListener override and is more reliable
-// than relying solely on startObserving, which only fires for the module's first
-// listener regardless of event type.
-- (void)addListener:(NSString *)eventName
-{
-    [super addListener:eventName];
-    if ([eventName isEqualToString:RNSentryOnShakeEvent]) {
-        NSLog(@"[Sentry] addListener called for shake event, setting up detector");
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(handleShakeDetected)
-                                                     name:RNSentryShakeDetectedNotification
-                                                   object:nil];
-        [RNSentryShakeDetector enable];
-        hasListeners = YES;
-    }
-}
-
 // Will be called when this module's first listener is added.
 - (void)startObserving
 {
@@ -309,18 +291,35 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 - (void)stopObserving
 {
     hasListeners = NO;
-    [RNSentryShakeDetector disable];
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:RNSentryShakeDetectedNotification
-                                                  object:nil];
 }
 
 - (void)handleShakeDetected
 {
-    NSLog(@"[Sentry] handleShakeDetected called, hasListeners=%d", hasListeners);
     if (hasListeners) {
         [self sendEventWithName:RNSentryOnShakeEvent body:@{}];
     }
+}
+
+// Explicit method to start shake detection.
+// NativeEventEmitter.addListener does not reliably dispatch to native addListener: on iOS
+// with New Architecture (TurboModules), so we expose explicit enable/disable methods
+// that JS calls directly from startShakeListener/stopShakeListener.
+RCT_EXPORT_METHOD(enableShakeDetection)
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleShakeDetected)
+                                                 name:RNSentryShakeDetectedNotification
+                                               object:nil];
+    [RNSentryShakeDetector enable];
+    hasListeners = YES;
+}
+
+RCT_EXPORT_METHOD(disableShakeDetection)
+{
+    [RNSentryShakeDetector disable];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:RNSentryShakeDetectedNotification
+                                                  object:nil];
 }
 
 - (NSArray<NSString *> *)supportedEvents

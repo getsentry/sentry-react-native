@@ -45,6 +45,11 @@ export function startShakeListener(onShake: () => void, createEmitter: EmitterFa
     debug.log('Shake detected.');
     onShake();
   });
+
+  // Explicitly enable native shake detection. On iOS with New Architecture (TurboModules),
+  // NativeEventEmitter.addListener does not dispatch to native addListener:, so the
+  // native shake listener would never start without this explicit call.
+  (nativeModule as { enableShakeDetection?: () => void }).enableShakeDetection?.();
 }
 
 /**
@@ -54,6 +59,9 @@ export function stopShakeListener(): void {
   if (_shakeSubscription) {
     _shakeSubscription.remove();
     _shakeSubscription = null;
+
+    const nativeModule = getRNSentryModule() as { disableShakeDetection?: () => void } | undefined;
+    nativeModule?.disableShakeDetection?.();
   }
 }
 
