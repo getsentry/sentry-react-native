@@ -309,17 +309,16 @@ if (actions.includes('test')) {
           const label = `[${flowName}] Attempt ${attempt}/${maxAttempts}`;
           console.log(`\n${'='.repeat(60)}\n${label}\n${'='.repeat(60)}`);
           try {
-            execSync(
-              `maestro test "maestro/${flowFile}" \
-                --env=APP_ID="${appId}" \
-                --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
-                --debug-output maestro-logs \
-                --flatten-debug-output`,
-              {
-                stdio: 'inherit',
-                cwd: e2eDir,
-              },
-            );
+            execFileSync('maestro', [
+              'test', `maestro/${flowFile}`,
+              '--env', `APP_ID=${appId}`,
+              '--env', `SENTRY_AUTH_TOKEN=${sentryAuthToken}`,
+              '--debug-output', 'maestro-logs',
+              '--flatten-debug-output',
+            ], {
+              stdio: 'inherit',
+              cwd: e2eDir,
+            });
             console.log(`${label} — PASSED`);
             passed = true;
             break;
