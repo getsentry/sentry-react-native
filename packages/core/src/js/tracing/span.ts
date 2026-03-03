@@ -12,7 +12,7 @@ import {
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import {
@@ -30,18 +30,18 @@ export const defaultIdleOptions: {
    *
    * @default 1_000 (ms)
    */
-  finalTimeout: number;
+  idleTimeout: number;
 
   /**
    * The max. time an idle span may run.
    * If this time is exceeded, the idle span will finish no matter what.
    *
-   * @default 60_0000 (ms)
+   * @default 600_000 (ms)
    */
-  idleTimeout: number;
+  finalTimeout: number;
 } = {
   idleTimeout: 1_000,
-  finalTimeout: 60_0000,
+  finalTimeout: 600_000,
 };
 
 export const startIdleNavigationSpan = (
@@ -118,8 +118,10 @@ export const startIdleSpan = (
   }
 
   const currentAppState = AppState.currentState;
-  if (currentAppState === 'background') {
-    debug.log(`[startIdleSpan] App is already in background, not starting span for ${startSpanOption.name}`);
+  if (currentAppState === 'background' || (Platform.OS === 'ios' && currentAppState === 'inactive')) {
+    debug.log(
+      `[startIdleSpan] App is already in '${currentAppState}' state, not starting span for ${startSpanOption.name}`,
+    );
     return new SentryNonRecordingSpan();
   }
 
