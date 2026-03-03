@@ -450,25 +450,7 @@ jobs:
         if: ${{ matrix.platform == 'ios' }}
         env:
           MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000
-        run: |
-          # Retry the full suite up to 3 times.  Cirrus Labs Tart VMs
-          # occasionally fail individual app launches (the app process
-          # exits before the JS bundle finishes loading), so a retry is
-          # the most reliable way to get a green run.
-          for attempt in 1 2 3; do
-            echo "::group::Attempt $attempt of 3"
-            if ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test; then
-              echo "::endgroup::"
-              echo "Tests passed on attempt $attempt"
-              exit 0
-            fi
-            echo "::endgroup::"
-            if [ "$attempt" -lt 3 ]; then
-              echo "Tests failed on attempt $attempt — retrying…"
-            fi
-          done
-          echo "Tests failed after 3 attempts"
-          exit 1
+        run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs
         if: ${{ always() }}

@@ -290,20 +290,51 @@ if (actions.includes('test')) {
   if (!sentryAuthToken) {
     console.log('Skipping maestro test due to unavailable or empty SENTRY_AUTH_TOKEN');
   } else {
+    const maxAttempts = 3;
+    const maestroDir = path.join(e2eDir, 'maestro');
+    const flowFiles = fs.readdirSync(maestroDir)
+      .filter(f => f.endsWith('.yml') && !fs.statSync(path.join(maestroDir, f)).isDirectory())
+      .sort();
+
+    console.log(`Found ${flowFiles.length} test flows: ${flowFiles.join(', ')}`);
+
+    const results = [];
+
     try {
-      execSync(
-        `maestro test maestro \
-          --env=APP_ID="${appId}" \
-          --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
-          --debug-output maestro-logs \
-          --flatten-debug-output`,
-        {
-          stdio: 'inherit',
-          cwd: e2eDir,
-        },
-      );
+      for (const flowFile of flowFiles) {
+        const flowName = flowFile.replace('.yml', '');
+        let passed = false;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          const label = `[${flowName}] Attempt ${attempt}/${maxAttempts}`;
+          console.log(`\n${'='.repeat(60)}\n${label}\n${'='.repeat(60)}`);
+          try {
+            execSync(
+              `maestro test "maestro/${flowFile}" \
+                --env=APP_ID="${appId}" \
+                --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
+                --debug-output maestro-logs \
+                --flatten-debug-output`,
+              {
+                stdio: 'inherit',
+                cwd: e2eDir,
+              },
+            );
+            console.log(`${label} — PASSED`);
+            passed = true;
+            break;
+          } catch (error) {
+            console.error(`${label} — FAILED`);
+            if (attempt < maxAttempts) {
+              console.log(`Retrying ${flowName}…`);
+            }
+          }
+        }
+
+        results.push({ flowName, passed });
+      }
     } finally {
-      // Always redact sensitive data, even if the test fails
+      // Always redact sensitive data, even if a test fails
       const redactScript = `
         if [[ "$(uname)" == "Darwin" ]]; then
           find ./maestro-logs -type f -exec sed -i '' "s/${sentryAuthToken}/[REDACTED]/g" {} +
@@ -320,5 +351,20 @@ if (actions.includes('test')) {
         console.warn('Failed to redact sensitive data from logs:', error.message);
       }
     }
+
+    // Print summary
+    console.log(`\n${'='.repeat(60)}\nTest Summary\n${'='.repeat(60)}`);
+    const failed = [];
+    for (const { flowName, passed } of results) {
+      const icon = passed ? 'PASS' : 'FAIL';
+      console.log(`  ${icon}  ${flowName}`);
+      if (!passed) failed.push(flowName);
+    }
+
+    if (failed.length > 0) {
+      console.error(`\n${failed.length}/${results.length} flows failed after ${maxAttempts} attempts: ${failed.join(', ')}`);
+      process.exit(1);
+    }
+    console.log(`\nAll ${results.length} flows passed.`);
   }
 }
