@@ -27,6 +27,7 @@
       }
     });
     ```
+- Add expo constants on event context ([#5748](https://github.com/getsentry/sentry-react-native/pull/5748))
 - Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
 
 ### Fixes
