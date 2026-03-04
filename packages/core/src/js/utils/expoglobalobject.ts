@@ -5,15 +5,9 @@
  *
  * https://github.com/expo/expo/blob/b51b5139f2caa2a9495e4132437d7ca612276158/packages/expo-constants/src/Constants.ts
  * https://github.com/expo/expo/blob/b51b5139f2caa2a9495e4132437d7ca612276158/packages/expo-manifests/src/Manifests.ts
+ * https://github.com/expo/expo/blob/fce7f6eb2ea2611cb30e9cb20baaeee2ac0a18b6/packages/expo-constants/src/Constants.types.ts
  */
 export interface ExpoConstants {
-  /**
-   * Deprecated. But until removed we can use it as user ID to match the native SDKs.
-   */
-  installationId?: string;
-  /**
-   * Version of the Expo Go app
-   */
   expoVersion?: string | null;
   manifest?: null | {
     [key: string]: unknown;
@@ -22,6 +16,52 @@ export interface ExpoConstants {
      * Example "exposdk:50.0.0"
      */
     runtimeVersion?: string;
+  };
+  /**
+   * Returns the current execution environment.
+   * Values: 'bare', 'standalone', 'storeClient'
+   */
+  executionEnvironment?: string;
+  /**
+   * Deprecated. Returns 'expo' when running in Expo Go, otherwise null.
+   */
+  appOwnership?: string | null;
+  /**
+   * Identifies debug vs. production builds.
+   */
+  debugMode?: boolean;
+  /**
+   * Unique identifier per app session.
+   */
+  sessionId?: string;
+  /**
+   * Runtime version info.
+   */
+  expoRuntimeVersion?: string | null;
+  /**
+   * Device status bar height.
+   */
+  statusBarHeight?: number;
+  /**
+   * Available system fonts.
+   */
+  systemFonts?: string[];
+  /**
+   * The standard Expo config object defined in app.json and app.config.js files.
+   */
+  expoConfig?: null | {
+    [key: string]: unknown;
+    name?: string;
+    slug?: string;
+    version?: string;
+    sdkVersion?: string;
+  };
+  /**
+   * EAS configuration when applicable.
+   */
+  easConfig?: null | {
+    [key: string]: unknown;
+    projectId?: string;
   };
 }
 
