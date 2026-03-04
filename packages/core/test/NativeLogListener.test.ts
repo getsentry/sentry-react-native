@@ -2,6 +2,10 @@ import { debug } from '@sentry/core';
 import { defaultNativeLogHandler, setupNativeLogListener } from '../src/js/NativeLogListener';
 import type { NativeLogEntry } from '../src/js/options';
 
+jest.mock('../src/js/utils/environment', () => ({
+  isExpoGo: jest.fn().mockReturnValue(false),
+}));
+
 jest.mock('react-native', () => ({
   NativeModules: {
     RNSentry: {},

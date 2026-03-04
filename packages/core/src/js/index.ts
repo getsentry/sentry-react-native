@@ -47,6 +47,7 @@ export {
   setCurrentClient,
   addEventProcessor,
   lastEventId,
+  consoleSandbox,
 } from '@sentry/core';
 
 export {
