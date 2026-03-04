@@ -14,7 +14,7 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.2.0'
-  MAESTRO_DRIVER_STARTUP_TIMEOUT: 90000 # Increase timeout from default 30s to 90s for CI stability
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000 # Increase timeout from default 30s to 180s for CI stability on Tart VMs
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -299,6 +299,16 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          wait_for_boot: true
+          erase_before_boot: false
+
+      - name: Warm up iOS Simulator
+        if: ${{ matrix.platform == 'ios' }}
+        run: |
+          # Launch and kill a dummy app to ensure the simulator is fully ready
+          xcrun simctl launch booted com.apple.Preferences || true
+          sleep 3
+          xcrun simctl terminate booted com.apple.Preferences || true
 
       - name: Run iOS Tests
         if: ${{ matrix.platform == 'ios' }}
