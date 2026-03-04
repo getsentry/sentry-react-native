@@ -5,6 +5,7 @@ import {
   getIsolationScope,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  SentryNonRecordingSpan,
   setCurrentClient,
   startInactiveSpan,
   timestampInSeconds,
@@ -461,6 +462,50 @@ describe('App Start Integration', () => {
       expect(actualEvent).toEqual({
         type: undefined,
       });
+    });
+
+    it('Does not lock firstStartedActiveRootSpanId to unsampled root span', async () => {
+      mockAppStart({ cold: true });
+
+      const integration = appStartIntegration();
+      const client = new TestClient({
+        ...getDefaultTestClientOptions(),
+        enableAppStartTracking: true,
+        tracesSampleRate: 1.0,
+      });
+      setCurrentClient(client);
+      integration.setup(client);
+      integration.afterAllSetup(client);
+
+      // Simulate an unsampled root span starting first
+      const unsampledSpan = new SentryNonRecordingSpan();
+      client.emit('spanStart', unsampledSpan);
+
+      // Then a sampled root span starts
+      const sampledSpan = startInactiveSpan({
+        name: 'Sampled Root Span',
+        forceTransaction: true,
+      });
+      const sampledSpanId = sampledSpan.spanContext().spanId;
+
+      // Process a transaction event matching the sampled span
+      const event = getMinimalTransactionEvent();
+      event.contexts!.trace!.span_id = sampledSpanId;
+
+      const actualEvent = await processEventWithIntegration(integration, event);
+
+      // App start should be attached to the sampled transaction
+      const appStartSpan = (actualEvent as TransactionEvent)?.spans?.find(
+        ({ description }) => description === 'Cold Start',
+      );
+      expect(appStartSpan).toBeDefined();
+      expect(appStartSpan).toEqual(
+        expect.objectContaining({
+          description: 'Cold Start',
+          op: APP_START_COLD_OP,
+        }),
+      );
+      expect((actualEvent as TransactionEvent)?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeDefined();
     });
 
     it('Adds Cold App Start Span to Active Span', async () => {
