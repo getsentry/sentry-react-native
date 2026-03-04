@@ -71,9 +71,12 @@ describe('Capture Spaceflight News Screen Transaction', () => {
     allTransactionEnvelopes
       .filter(envelope => {
         const item = getItemOfTypeFrom<EventItem>(envelope, 'transaction');
-        // Only check navigation transactions, not user interaction transactions
-        // User interaction transactions (ui.action.touch) don't have time-to-display measurements
-        return item?.[1]?.contexts?.trace?.op !== 'ui.action.touch';
+        const traceContext = item?.[1]?.contexts?.trace;
+        // Exclude user interaction transactions (no time-to-display measurements)
+        if (traceContext?.op === 'ui.action.touch') return false;
+        // Exclude app start transactions (have app_start_cold measurements, not time-to-display)
+        if (traceContext?.origin === 'auto.app.start') return false;
+        return true;
       })
       .forEach(envelope => {
         expectToContainTimeToDisplayMeasurements(
