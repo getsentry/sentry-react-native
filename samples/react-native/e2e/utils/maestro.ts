@@ -25,6 +25,11 @@ const runMaestro = (test: string): Promise<void> => {
 /**
  * Run a Maestro test with retries to handle transient app crashes on slow CI VMs.
  *
+ * Note: Retries happen at the Maestro flow level. If a failed attempt sends partial
+ * envelopes to the mock server before crashing, they will accumulate across retries.
+ * In practice, crashes occur on app launch before any SDK transactions are sent,
+ * so this does not cause issues with test assertions.
+ *
  * @param test - The path to the Maestro test file relative to the `e2e` directory.
  * @returns A promise that resolves when the test passes.
  */

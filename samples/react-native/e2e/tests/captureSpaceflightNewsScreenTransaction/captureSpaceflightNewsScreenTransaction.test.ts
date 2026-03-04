@@ -143,6 +143,6 @@ describe('Capture Spaceflight News Screen Transaction', () => {
     const httpSpans = spans?.filter(
       span => span.data?.['sentry.op'] === 'http.client',
     );
-    expect(httpSpans!.length).toBeGreaterThanOrEqual(1);
+    expect(httpSpans?.length ?? 0).toBeGreaterThanOrEqual(1);
   });
 });
