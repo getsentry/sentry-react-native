@@ -1,6 +1,7 @@
 import { debug } from '@sentry/core';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import type { NativeLogEntry } from './options';
+import { isExpoGo } from './utils/environment';
 
 const NATIVE_LOG_EVENT_NAME = 'SentryNativeLog';
 
@@ -14,6 +15,10 @@ const NATIVE_LOG_EVENT_NAME = 'SentryNativeLog';
 export function setupNativeLogListener(callback: (log: NativeLogEntry) => void): (() => void) | undefined {
   if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
     debug.log('Native log listener is only supported on iOS and Android.');
+    return undefined;
+  }
+
+  if (isExpoGo()) {
     return undefined;
   }
 
