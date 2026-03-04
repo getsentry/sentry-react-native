@@ -176,6 +176,7 @@ public class RNSentryModuleImpl {
     RNSentryStart.startWithOptions(
         getApplicationContext(),
         rnOptions,
+        getCurrentActivity(),
         options -> {
           // Use our custom logger that forwards to JS
           options.setLogger(rnLogger);
