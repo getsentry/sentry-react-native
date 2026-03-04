@@ -12,6 +12,8 @@
 
 - Show feedback widget on device shake ([#5729](https://github.com/getsentry/sentry-react-native/pull/5729))
   - Use `Sentry.showFeedbackOnShake()` / `Sentry.hideFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
+- Add expo constants on event context ([#5748](https://github.com/getsentry/sentry-react-native/pull/5748))
+- Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
 
 ### Fixes
 
@@ -21,9 +23,9 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.39.0 to v10.41.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715), [#5744](https://github.com/getsentry/sentry-react-native/pull/5744))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10410)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.39.0...10.41.0)
+- Bump JavaScript SDK from v10.39.0 to v10.42.0 ([#5715](https://github.com/getsentry/sentry-react-native/pull/5715), [#5744](https://github.com/getsentry/sentry-react-native/pull/5744), [#5753](https://github.com/getsentry/sentry-react-native/pull/5753))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10420)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.39.0...10.42.0)
 - Bump Bundler Plugins from v4.9.1 to v5.1.1 ([#5700](https://github.com/getsentry/sentry-react-native/pull/5700))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#511)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.9.1...5.1.1)

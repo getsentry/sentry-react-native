@@ -11,6 +11,7 @@ export { hermesProfilingIntegration } from '../profiling/integration';
 export { screenshotIntegration } from './screenshot';
 export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';
+export { expoConstantsIntegration } from './expoconstants';
 export { spotlightIntegration } from './spotlight';
 export { mobileReplayIntegration } from '../replay/mobilereplay';
 export { feedbackIntegration } from '../feedback/integration';
