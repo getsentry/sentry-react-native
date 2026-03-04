@@ -305,9 +305,11 @@ jobs:
       - name: Warm up iOS Simulator
         if: ${{ matrix.platform == 'ios' }}
         run: |
-          # Launch and kill a dummy app to ensure the simulator is fully ready
+          # Tart VMs are very slow right after boot.  Launch a stock app so
+          # that SpringBoard, backboardd, and other system services finish
+          # their post-boot initialisation before Maestro tries to connect.
           xcrun simctl launch booted com.apple.Preferences || true
-          sleep 3
+          sleep 5
           xcrun simctl terminate booted com.apple.Preferences || true
 
       - name: Run iOS Tests
