@@ -442,9 +442,9 @@ jobs:
           # Tart VMs are very slow right after boot.  Launch a stock app so
           # that SpringBoard, backboardd, and other system services finish
           # their post-boot initialisation before Maestro tries to connect.
-          xcrun simctl launch booted com.apple.Preferences
+          xcrun simctl launch booted com.apple.Preferences || true
           sleep 5
-          xcrun simctl terminate booted com.apple.Preferences
+          xcrun simctl terminate booted com.apple.Preferences || true
 
       - name: Run tests on iOS
         if: ${{ matrix.platform == 'ios' }}
