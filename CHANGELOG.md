@@ -52,6 +52,9 @@
 - Bump Cocoa SDK from v9.5.1 to v9.6.0 ([#5759](https://github.com/getsentry/sentry-react-native/pull/5759))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#960)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.5.1...9.6.0)
+- Bump Android SDK Stubs from v8.33.0 to v8.34.0 ([#5761](https://github.com/getsentry/sentry-react-native/pull/5761))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8340)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.33.0...8.34.0)
 
 ## 8.2.0
 
