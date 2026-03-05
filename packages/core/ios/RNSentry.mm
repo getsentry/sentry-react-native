@@ -39,7 +39,6 @@
 
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryEvents.h"
-#import <Sentry/SentryShakeDetector.h>
 #import "RNSentryNativeLogsForwarder.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
@@ -303,29 +302,40 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
     }
 }
 
-// Explicit method to start shake detection.
-// NativeEventEmitter.addListener does not reliably dispatch to native addListener: on iOS
-// with New Architecture (TurboModules), so we expose explicit enable/disable methods
-// that JS calls directly from startShakeListener/stopShakeListener.
+// SentryShakeDetector is a Swift class; its notification name and methods are accessed
+// via the raw string / NSClassFromString to avoid requiring @import Sentry in this .mm file.
+static NSNotificationName const RNSentryShakeNotification = @"SentryShakeDetected";
+
 RCT_EXPORT_METHOD(enableShakeDetection)
 {
-    // Remove any existing observer first to avoid duplicate notifications
     [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:SentryShakeDetectedNotification
+                                                    name:RNSentryShakeNotification
                                                   object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleShakeDetected)
-                                                 name:SentryShakeDetectedNotification
+                                                 name:RNSentryShakeNotification
                                                object:nil];
-    [SentryShakeDetector enable];
+    Class shakeDetector = NSClassFromString(@"SentryShakeDetector");
+    if (shakeDetector) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [shakeDetector performSelector:@selector(enable)];
+#pragma clang diagnostic pop
+    }
     hasListeners = YES;
 }
 
 RCT_EXPORT_METHOD(disableShakeDetection)
 {
-    [SentryShakeDetector disable];
+    Class shakeDetector = NSClassFromString(@"SentryShakeDetector");
+    if (shakeDetector) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [shakeDetector performSelector:@selector(disable)];
+#pragma clang diagnostic pop
+    }
     [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:SentryShakeDetectedNotification
+                                                    name:RNSentryShakeNotification
                                                   object:nil];
 }
 
