@@ -10,6 +10,8 @@
 
 ### Features
 
+- Show feedback widget on device shake ([#5729](https://github.com/getsentry/sentry-react-native/pull/5729))
+  - Use `Sentry.showFeedbackOnShake()` / `Sentry.hideFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
 - Add `onNativeLog` callback to intercept and forward native SDK logs to JavaScript console ([#5622](https://github.com/getsentry/sentry-react-native/pull/5622))
   - The callback receives native log events with `level`, `component`, and `message` properties
   - Only works when `debug: true` is enabled in `Sentry.init`

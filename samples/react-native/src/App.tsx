@@ -112,6 +112,7 @@ Sentry.init({
         imagePicker: ImagePicker,
         enableScreenshot: true,
         enableTakeScreenshot: true,
+        enableShakeToReport: true,
         styles: {
           submitButton: {
             backgroundColor: '#6a1b9a',

@@ -45,6 +45,7 @@ import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
+import io.sentry.android.core.SentryShakeDetector;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
@@ -121,6 +122,10 @@ public class RNSentryModuleImpl {
   private ISentryExecutorService executorService = null;
 
   private final @NotNull Runnable emitNewFrameEvent;
+
+  private static final String ON_SHAKE_EVENT = "rn_sentry_on_shake";
+  private @Nullable SentryShakeDetector shakeDetector;
+  private int shakeListenerCount = 0;
 
   /** Max trace file size in bytes. */
   private long maxTraceFileSize = 5 * 1024 * 1024;
@@ -202,16 +207,61 @@ public class RNSentryModuleImpl {
   }
 
   public void addListener(String eventType) {
+    if (ON_SHAKE_EVENT.equals(eventType)) {
+      shakeListenerCount++;
+      if (shakeListenerCount == 1) {
+        startShakeDetection();
+      }
+      return;
+    }
     // Is must be defined otherwise the generated interface from TS won't be
     // fulfilled
     logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
   }
 
   public void removeListeners(double id) {
-    // Is must be defined otherwise the generated interface from TS won't be
-    // fulfilled
-    logger.log(
-        SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
+    shakeListenerCount = Math.max(0, shakeListenerCount - (int) id);
+    if (shakeListenerCount == 0) {
+      stopShakeDetection();
+    }
+  }
+
+  private void startShakeDetection() {
+    if (shakeDetector != null) {
+      return;
+    }
+
+    final ReactApplicationContext context = getReactApplicationContext();
+    shakeDetector = new SentryShakeDetector(logger);
+    shakeDetector.start(
+        context,
+        () -> {
+          final ReactApplicationContext ctx = getReactApplicationContext();
+          if (ctx.hasActiveReactInstance()) {
+            ctx.getJSModule(
+                    com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+                        .class)
+                .emit(ON_SHAKE_EVENT, null);
+          }
+        });
+  }
+
+  private void stopShakeDetection() {
+    if (shakeDetector != null) {
+      shakeDetector.stop();
+      shakeDetector = null;
+    }
+  }
+
+  public void enableShakeDetection() {
+    // On Android, shake detection is started via addListener. This method is a no-op
+    // because it exists to satisfy the cross-platform spec (on iOS, the NativeEventEmitter
+    // addListener does not reliably dispatch to native, so an explicit call is needed).
+  }
+
+  public void disableShakeDetection() {
+    // On Android, shake detection is stopped via removeListeners. This method is a no-op
+    // for the same reason as enableShakeDetection.
   }
 
   public void fetchModules(Promise promise) {

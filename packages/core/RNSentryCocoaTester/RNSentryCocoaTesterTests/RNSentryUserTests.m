@@ -51,9 +51,9 @@
 - (void)testEmptyUser
 {
     SentryUser *expected = [[SentryUser alloc] init];
-    [expected setData:@{}];
+    [expected setData:@{ }];
 
-    SentryUser *actual = [RNSentry userFrom:@{} otherUserKeys:@{}];
+    SentryUser *actual = [RNSentry userFrom:@{ } otherUserKeys:@{ }];
     XCTAssertTrue([actual isEqualToUser:expected]);
 }
 
@@ -63,9 +63,9 @@
 
     SentryUser *actual = [RNSentry userFrom:@{
         @"id" : @123,
-        @"ip_address" : @ {},
-        @"email" : @ {},
-        @"username" : @ {},
+        @"ip_address" : @ { },
+        @"email" : @ { },
+        @"username" : @ { },
     }
                               otherUserKeys:nil];
 
@@ -79,9 +79,9 @@
 
     SentryUser *actual = [RNSentry userFrom:@{
         @"id" : @"123",
-        @"ip_address" : @ {},
-        @"email" : @ {},
-        @"username" : @ {},
+        @"ip_address" : @ { },
+        @"email" : @ { },
+        @"username" : @ { },
     }
                               otherUserKeys:nil];
 
@@ -156,7 +156,7 @@
     SentryGeo *expectedGeo = [SentryGeo alloc];
     [expected setGeo:expectedGeo];
 
-    SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @ {} } otherUserKeys:nil];
+    SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @ { } } otherUserKeys:nil];
 
     XCTAssertTrue([actual isEqualToUser:expected]);
 }
