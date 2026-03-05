@@ -31,6 +31,17 @@
     ```
 - Add expo constants on event context ([#5748](https://github.com/getsentry/sentry-react-native/pull/5748))
 - Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
+- EAS Build Hooks ([#5666](https://github.com/getsentry/sentry-react-native/pull/5666))
+  - Capture EAS build events in Sentry. Add the following to your `package.json`:
+    ```json
+    {
+      "scripts": {
+        "eas-build-on-complete": "sentry-eas-build-on-complete"
+      }
+    }
+    ```
+    Set `SENTRY_DSN` in your EAS secrets, and optionally `SENTRY_EAS_BUILD_CAPTURE_SUCCESS=true` to also capture successful builds.
+
 
 ### Fixes
 
