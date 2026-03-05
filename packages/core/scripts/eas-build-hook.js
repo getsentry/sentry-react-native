@@ -148,6 +148,9 @@ const HOOK_CONFIGS = {
       successMessage: 'SENTRY_EAS_BUILD_SUCCESS_MESSAGE',
       captureSuccessfulBuilds: 'SENTRY_EAS_BUILD_CAPTURE_SUCCESS',
     },
+    // When a user explicitly configures the on-success hook, they intend to
+    // capture successful builds, so default captureSuccessfulBuilds to true.
+    defaults: { captureSuccessfulBuilds: true },
     method: 'captureEASBuildSuccess',
   },
 };
@@ -169,11 +172,17 @@ async function runEASBuildHook(hookName) {
   loadEnv();
 
   const hooks = loadHooksModule();
-  const options = parseBaseOptions();
+  const options = {
+    ...parseBaseOptions(),
+    ...config.defaults,
+  };
 
   for (const [optionKey, envKey] of Object.entries(config.envKeys)) {
     if (optionKey === 'captureSuccessfulBuilds') {
-      options[optionKey] = process.env[envKey] === 'true';
+      // Only override the default when the env var is explicitly set
+      if (process.env[envKey] !== undefined) {
+        options[optionKey] = process.env[envKey] === 'true';
+      }
     } else if (process.env[envKey] !== undefined) {
       options[optionKey] = process.env[envKey];
     }

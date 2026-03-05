@@ -14,6 +14,7 @@
 
 import type { DsnComponents } from '@sentry/core';
 import { dsnToString, makeDsn, uuid4 } from '@sentry/core';
+import { SDK_VERSION } from '../version';
 
 const SENTRY_DSN_ENV = 'SENTRY_DSN';
 const EAS_BUILD_ENV = 'EAS_BUILD';
@@ -179,7 +180,7 @@ function createBaseEvent(
     release: getReleaseFromEASEnv(env),
     tags: { ...createEASBuildTags(env), ...customTags },
     contexts: { eas_build: createEASBuildContext(env), runtime: { name: 'node', version: process.version } },
-    sdk: { name: 'sentry.javascript.react-native.eas-build-hooks', version: '1.0.0' },
+    sdk: { name: 'sentry.javascript.react-native.eas-build-hooks', version: SDK_VERSION },
   };
 }
 
