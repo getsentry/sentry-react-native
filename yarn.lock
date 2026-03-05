@@ -11321,9 +11321,9 @@ __metadata:
     expo:
       optional: true
   bin:
-    sentry-eas-build-on-complete: scripts/eas/build-on-complete.js
-    sentry-eas-build-on-error: scripts/eas/build-on-error.js
-    sentry-eas-build-on-success: scripts/eas/build-on-success.js
+    sentry-eas-build-on-complete: scripts/eas-build-hook.js
+    sentry-eas-build-on-error: scripts/eas-build-hook.js
+    sentry-eas-build-on-success: scripts/eas-build-hook.js
     sentry-expo-upload-sourcemaps: scripts/expo-upload-sourcemaps.js
   languageName: unknown
   linkType: soft
