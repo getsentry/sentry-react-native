@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function getPlaygroundTab() {
+export default function getPlaygroundTab(_Navigator: any) {
   return Sentry.withProfiler(
     (props: Props) => {
       return (
@@ -70,6 +70,13 @@ export default function getPlaygroundTab() {
                     title="Webview Example"
                     onPress={() => {
                       props.navigation.navigate('Webview');
+                    }}
+                  />
+                  <View style={{ height: 10 }} />
+                  <Button
+                    title="Playground Integration"
+                    onPress={() => {
+                      props.navigation.navigate('BundledPlayground');
                     }}
                   />
                   <Text>Custom Mask:</Text>
