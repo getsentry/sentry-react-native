@@ -49,6 +49,9 @@
 - Bump CLI from v3.2.2 to v3.2.3 ([#5743](https://github.com/getsentry/sentry-react-native/pull/5743))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#323)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.2...3.2.3)
+- Bump Cocoa SDK from v9.5.1 to v9.6.0 ([#5759](https://github.com/getsentry/sentry-react-native/pull/5759))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#960)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.5.1...9.6.0)
 
 ## 8.2.0
 
