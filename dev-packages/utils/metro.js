@@ -35,7 +35,7 @@ const withMonorepo = config => {
       (!!config.resolver.blockList && [config.resolver.blockList]) ||
       []),
     ...getBlockList(monorepoPackages, ['react-native', 'react']),
-    new RegExp('.*\\android\\.*'), // Required for Windows in order to run the Sample.
+    new RegExp(`${projectRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[/\\\\]android[/\\\\].*`), // Required for Windows in order to run the Sample.
   ];
   config.resolver.blockList = exclusionList(blockList);
 
