@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.3.0
 
 ### Features
 
@@ -31,9 +31,21 @@
     ```
 - Add expo constants on event context ([#5748](https://github.com/getsentry/sentry-react-native/pull/5748))
 - Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
+- EAS Build Hooks ([#5666](https://github.com/getsentry/sentry-react-native/pull/5666))
+  - Capture EAS build events in Sentry. Add the following to your `package.json`:
+    ```json
+    {
+      "scripts": {
+        "eas-build-on-complete": "sentry-eas-build-on-complete"
+      }
+    }
+    ```
+    Set `SENTRY_DSN` in your EAS secrets, and optionally `SENTRY_EAS_BUILD_CAPTURE_SUCCESS=true` to also capture successful builds.
+
 
 ### Fixes
 
+- App start data not attached to sampled transactions when preceded by unsampled transactions ([#5756](https://github.com/getsentry/sentry-react-native/pull/5756))
 - Resolve relative `SOURCEMAP_FILE` paths against the project root in the Xcode build script ([#5730](https://github.com/getsentry/sentry-react-native/pull/5730))
 - Fixes the issue with unit mismatch in `adjustTransactionDuration` ([#5740](https://github.com/getsentry/sentry-react-native/pull/5740))
 - Handle `inactive` state for spans ([#5742](https://github.com/getsentry/sentry-react-native/pull/5742))
@@ -46,9 +58,9 @@
 - Bump Bundler Plugins from v4.9.1 to v5.1.1 ([#5700](https://github.com/getsentry/sentry-react-native/pull/5700))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#511)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.9.1...5.1.1)
-- Bump CLI from v3.2.2 to v3.2.3 ([#5743](https://github.com/getsentry/sentry-react-native/pull/5743))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#323)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.2...3.2.3)
+- Bump CLI from v3.2.2 to v3.3.0 ([#5743](https://github.com/getsentry/sentry-react-native/pull/5743), [#5762](https://github.com/getsentry/sentry-react-native/pull/5762))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#330)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.2...3.3.0)
 - Bump Cocoa SDK from v9.5.1 to v9.6.0 ([#5759](https://github.com/getsentry/sentry-react-native/pull/5759))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#960)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.5.1...9.6.0)

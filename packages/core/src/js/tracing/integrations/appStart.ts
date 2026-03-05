@@ -7,6 +7,7 @@ import {
   getCurrentScope,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
+  spanIsSampled,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -238,6 +239,10 @@ export const appStartIntegration = ({
     }
 
     if (!isRootSpan(rootSpan)) {
+      return;
+    }
+
+    if (!spanIsSampled(rootSpan)) {
       return;
     }
 

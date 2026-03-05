@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "8.2.0",
+  "version": "8.3.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -17,13 +17,14 @@
     "prebuild": "expo prebuild --clean --no-install",
     "set-version": "npx react-native-version --skip-tag --never-amend",
     "eas-build-pre-install": "npm i -g corepack && yarn install --no-immutable --inline-builds && yarn workspace @sentry/react-native build",
+    "eas-build-on-complete": "sentry-eas-build-on-complete",
     "eas-update-configure": "eas update:configure",
     "eas-update-publish-development": "eas update --channel development --message 'Development update'",
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
     "@sentry/core": "10.42.0",
-    "@sentry/react-native": "8.2.0",
+    "@sentry/react-native": "8.3.0",
     "@types/react": "~19.1.10",
     "expo": "^54.0.0",
     "expo-constants": "~18.0.13",
