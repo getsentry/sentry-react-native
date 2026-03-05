@@ -8,6 +8,20 @@
 
 ## Unreleased
 
+### Features
+
+- Add `wrapExpoImage` and `wrapExpoAsset` for Expo performance monitoring ([#5427](https://github.com/getsentry/sentry-react-native/issues/5427))
+  - `wrapExpoImage` instruments `Image.prefetch` and `Image.loadAsync` from `expo-image`
+  - `wrapExpoAsset` instruments `Asset.loadAsync` from `expo-asset`
+  ```js
+  import { Image } from 'expo-image';
+  import { Asset } from 'expo-asset';
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.wrapExpoImage(Image);
+  Sentry.wrapExpoAsset(Asset);
+  ```
+
 ### Dependencies
 
 - Bump Android SDK from v8.32.0 to v8.33.0 ([#5684](https://github.com/getsentry/sentry-react-native/pull/5684))
