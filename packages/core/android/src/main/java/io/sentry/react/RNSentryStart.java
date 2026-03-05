@@ -49,14 +49,7 @@ final class RNSentryStart {
       @NotNull final ReadableMap rnOptions,
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
       @NotNull ILogger logger) {
-    Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
-        options -> updateWithReactDefaults(options, null);
-    Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
-        options -> getSentryAndroidOptions(options, rnOptions, logger);
-    RNSentryCompositeOptionsConfiguration compositeConfiguration =
-        new RNSentryCompositeOptionsConfiguration(
-            rnConfigurationOptions, defaults, configuration, RNSentryStart::updateWithReactFinals);
-    SentryAndroid.init(context, compositeConfiguration);
+    startWithOptions(context, rnOptions, null, configuration, logger);
   }
 
   static void startWithOptions(
@@ -64,13 +57,22 @@ final class RNSentryStart {
       @NotNull final ReadableMap rnOptions,
       @Nullable Activity currentActivity,
       @NotNull ILogger logger) {
+    startWithOptions(context, rnOptions, currentActivity, options -> {}, logger);
+  }
+
+  static void startWithOptions(
+      @NotNull final Context context,
+      @NotNull final ReadableMap rnOptions,
+      @Nullable Activity currentActivity,
+      @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
+      @NotNull ILogger logger) {
     Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
         options -> updateWithReactDefaults(options, currentActivity);
     Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
         options -> getSentryAndroidOptions(options, rnOptions, logger);
     RNSentryCompositeOptionsConfiguration compositeConfiguration =
         new RNSentryCompositeOptionsConfiguration(
-            rnConfigurationOptions, defaults, RNSentryStart::updateWithReactFinals);
+            rnConfigurationOptions, defaults, configuration, RNSentryStart::updateWithReactFinals);
     SentryAndroid.init(context, compositeConfiguration);
   }
 

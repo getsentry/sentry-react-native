@@ -12,6 +12,25 @@
 
 - Show feedback widget on device shake ([#5729](https://github.com/getsentry/sentry-react-native/pull/5729))
   - Use `Sentry.showFeedbackOnShake()` / `Sentry.hideFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
+- Add `onNativeLog` callback to intercept and forward native SDK logs to JavaScript console ([#5622](https://github.com/getsentry/sentry-react-native/pull/5622))
+  - The callback receives native log events with `level`, `component`, and `message` properties
+  - Only works when `debug: true` is enabled in `Sentry.init`
+  - Use `consoleSandbox` inside the callback to prevent feedback loops with Sentry's console integration
+    ```js
+    import * as Sentry from '@sentry/react-native';
+
+    Sentry.init({
+      debug: true,
+      onNativeLog: ({ level, component, message }) => {
+        // Use consoleSandbox to avoid feedback loops
+        Sentry.consoleSandbox(() => {
+          console.log(
+            `[Sentry Native] [${level.toUpperCase()}] [${component}] ${message}`
+          );
+        });
+      }
+    });
+    ```
 - Add expo constants on event context ([#5748](https://github.com/getsentry/sentry-react-native/pull/5748))
 - Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
 
@@ -29,9 +48,12 @@
 - Bump Bundler Plugins from v4.9.1 to v5.1.1 ([#5700](https://github.com/getsentry/sentry-react-native/pull/5700))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#511)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/4.9.1...5.1.1)
-- Bump CLI from v3.2.2 to v3.2.3 ([#5743](https://github.com/getsentry/sentry-react-native/pull/5743))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#323)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.2...3.2.3)
+- Bump CLI from v3.2.2 to v3.3.0 ([#5743](https://github.com/getsentry/sentry-react-native/pull/5743), [#5762](https://github.com/getsentry/sentry-react-native/pull/5762))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#330)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.2.2...3.3.0)
+- Bump Cocoa SDK from v9.5.1 to v9.6.0 ([#5759](https://github.com/getsentry/sentry-react-native/pull/5759))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#960)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.5.1...9.6.0)
 
 ## 8.2.0
 

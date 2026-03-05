@@ -40,6 +40,7 @@
 #import "RNSentryDependencyContainer.h"
 #import "RNSentryEvents.h"
 #import <Sentry/SentryShakeDetector.h>
+#import "RNSentryNativeLogsForwarder.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 #    import "RNSentryReplay.h"
@@ -285,12 +286,14 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 - (void)startObserving
 {
     hasListeners = YES;
+    [[RNSentryNativeLogsForwarder shared] configureWithEventEmitter:self];
 }
 
 // Will be called when this module's last listener is removed, or on dealloc.
 - (void)stopObserving
 {
     hasListeners = NO;
+    [[RNSentryNativeLogsForwarder shared] stopForwarding];
 }
 
 - (void)handleShakeDetected
@@ -328,7 +331,7 @@ RCT_EXPORT_METHOD(disableShakeDetection)
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[ RNSentryNewFrameEvent, RNSentryOnShakeEvent ];
+    return @[ RNSentryNewFrameEvent, RNSentryNativeLogEvent, RNSentryOnShakeEvent ];
 }
 
 RCT_EXPORT_METHOD(
