@@ -40,7 +40,6 @@ import io.sentry.SentryDateProvider;
 import io.sentry.SentryExecutorService;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
-import io.sentry.android.core.AndroidLogger;
 import io.sentry.android.core.AndroidProfiler;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
@@ -87,7 +86,8 @@ public class RNSentryModuleImpl {
 
   public static final String NAME = "RNSentry";
 
-  private static final ILogger logger = new AndroidLogger(NAME);
+  private static final RNSentryLogger rnLogger = new RNSentryLogger();
+  private static final ILogger logger = rnLogger;
   private static final BuildInfoProvider buildInfo = new BuildInfoProvider(logger);
   private static final String modulesPath = "modules.json";
   private static final Charset UTF_8 = Charset.forName("UTF-8"); // NOPMD - Allow using UTF-8
@@ -170,8 +170,18 @@ public class RNSentryModuleImpl {
   }
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
+    // Set the React context for the logger so it can forward logs to JS
+    rnLogger.setReactContext(this.reactApplicationContext);
+
     RNSentryStart.startWithOptions(
-        getApplicationContext(), rnOptions, getCurrentActivity(), logger);
+        getApplicationContext(),
+        rnOptions,
+        getCurrentActivity(),
+        options -> {
+          // Use our custom logger that forwards to JS
+          options.setLogger(rnLogger);
+        },
+        logger);
 
     promise.resolve(true);
   }

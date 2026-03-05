@@ -10,6 +10,25 @@
 
 ### Features
 
+- Add `onNativeLog` callback to intercept and forward native SDK logs to JavaScript console ([#5622](https://github.com/getsentry/sentry-react-native/pull/5622))
+  - The callback receives native log events with `level`, `component`, and `message` properties
+  - Only works when `debug: true` is enabled in `Sentry.init`
+  - Use `consoleSandbox` inside the callback to prevent feedback loops with Sentry's console integration
+    ```js
+    import * as Sentry from '@sentry/react-native';
+
+    Sentry.init({
+      debug: true,
+      onNativeLog: ({ level, component, message }) => {
+        // Use consoleSandbox to avoid feedback loops
+        Sentry.consoleSandbox(() => {
+          console.log(
+            `[Sentry Native] [${level.toUpperCase()}] [${component}] ${message}`
+          );
+        });
+      }
+    });
+    ```
 - Add expo constants on event context ([#5748](https://github.com/getsentry/sentry-react-native/pull/5748))
 - Capture dynamic route params as span attributes for Expo Router navigations ([#5750](https://github.com/getsentry/sentry-react-native/pull/5750))
 
