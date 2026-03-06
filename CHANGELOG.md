@@ -72,6 +72,20 @@
 - Fix AGP Artifacts API conflict caused by eager task realization in `sentry.gradle` ([#5714](https://github.com/getsentry/sentry-react-native/pull/5714))
 - Fix Android crash on app launch caused by version mismatch between Sentry Android SDK and Sentry Android Gradle Plugin ([#5726](https://github.com/getsentry/sentry-react-native/pull/5726))
 
+### Features
+
+- Add `wrapExpoImage` and `wrapExpoAsset` for Expo performance monitoring ([#5427](https://github.com/getsentry/sentry-react-native/issues/5427))
+  - `wrapExpoImage` instruments `Image.prefetch` and `Image.loadAsync` from `expo-image`
+  - `wrapExpoAsset` instruments `Asset.loadAsync` from `expo-asset`
+  ```js
+  import { Image } from 'expo-image';
+  import { Asset } from 'expo-asset';
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.wrapExpoImage(Image);
+  Sentry.wrapExpoAsset(Asset);
+  ```
+
 ### Dependencies
 
 - Bump Android SDK from v8.32.0 to v8.33.0 ([#5684](https://github.com/getsentry/sentry-react-native/pull/5684))
