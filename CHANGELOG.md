@@ -6,6 +6,10 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## 7.7.17
+
+- chore(deps): bump getsentry/craft from 2.21.7 to 2.23.2 by @dependabot in [#5783](https://github.com/getsentry/sentry-react-native/pull/5783)
+
 ## 8.3.0
 
 ### Features
