@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
+
 ## 8.3.0
 
 ### Features
