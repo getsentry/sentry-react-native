@@ -169,6 +169,48 @@ describe('wrapExpoImage', () => {
         }),
       );
     });
+
+    it('strips query string from URL in span name', async () => {
+      const mockPrefetch = jest.fn().mockResolvedValue(true);
+      const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
+
+      wrapExpoImage(imageClass);
+      await imageClass.prefetch('https://cdn.example.com/images/photo.jpg?token=SECRET&size=large');
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Image prefetch photo.jpg',
+        }),
+      );
+    });
+
+    it('strips fragment from URL in span name', async () => {
+      const mockPrefetch = jest.fn().mockResolvedValue(true);
+      const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
+
+      wrapExpoImage(imageClass);
+      await imageClass.prefetch('https://cdn.example.com/images/photo.jpg#section');
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Image prefetch photo.jpg',
+        }),
+      );
+    });
+
+    it('does not leak query string for URL ending with trailing slash', async () => {
+      const mockPrefetch = jest.fn().mockResolvedValue(true);
+      const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
+
+      wrapExpoImage(imageClass);
+      await imageClass.prefetch('https://cdn.example.com/images/?token=SECRET');
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.not.stringContaining('SECRET'),
+        }),
+      );
+    });
   });
 
   describe('loadAsync', () => {

@@ -184,7 +184,7 @@ export function describeUrl(url: string): string {
     const withoutQuery = url.split('?')[0] || url;
     const withoutFragment = withoutQuery.split('#')[0] || withoutQuery;
     const filename = withoutFragment.split('/').pop();
-    return filename || url;
+    return filename || withoutFragment;
   } catch {
     return url;
   }
