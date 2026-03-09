@@ -1,5 +1,6 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE } from './origin';
+import { describeUrl } from './utils';
 
 /**
  * Internal interface for expo-image's ImageSource.
@@ -107,7 +108,11 @@ function wrapPrefetch<T extends ExpoImage>(imageClass: T): void {
 
     return originalPrefetch(urls, cachePolicyOrOptions)
       .then(result => {
-        span?.setStatus({ code: SPAN_STATUS_OK });
+        if (result) {
+          span?.setStatus({ code: SPAN_STATUS_OK });
+        } else {
+          span?.setStatus({ code: SPAN_STATUS_ERROR, message: 'prefetch_failed' });
+        }
         span?.end();
         return result;
       })
@@ -156,18 +161,6 @@ function wrapLoadAsync<T extends ExpoImage>(imageClass: T): void {
         throw error;
       });
   }) as T['loadAsync'];
-}
-
-function describeUrl(url: string): string {
-  try {
-    // Remove query string and fragment
-    const withoutQuery = url.split('?')[0] || url;
-    const withoutFragment = withoutQuery.split('#')[0] || withoutQuery;
-    const filename = withoutFragment.split('/').pop();
-    return filename || url;
-  } catch {
-    return url;
-  }
 }
 
 function describeSource(source: ExpoImageSource | string | number): string {

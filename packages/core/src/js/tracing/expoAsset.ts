@@ -1,5 +1,6 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_ASSET } from './origin';
+import { describeUrl } from './utils';
 
 /**
  * Internal interface for expo-asset's Asset instance.
@@ -105,14 +106,4 @@ function describeModuleIds(moduleIds: (number | string)[]): string {
   return `${moduleIds.length} assets`;
 }
 
-function describeUrl(url: string): string {
-  try {
-    // Remove query string and fragment
-    const withoutQuery = url.split('?')[0] || url;
-    const withoutFragment = withoutQuery.split('#')[0] || withoutQuery;
-    const filename = withoutFragment.split('/').pop();
-    return filename || url;
-  } catch {
-    return url;
-  }
-}
+

@@ -109,6 +109,21 @@ describe('wrapExpoImage', () => {
       expect(mockSpan.end).toHaveBeenCalled();
     });
 
+    it('marks span as error when prefetch resolves to false', async () => {
+      const mockPrefetch = jest.fn().mockResolvedValue(false);
+      const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
+
+      wrapExpoImage(imageClass);
+      const result = await imageClass.prefetch('https://example.com/missing.png');
+
+      expect(result).toBe(false);
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SPAN_STATUS_ERROR,
+        message: 'prefetch_failed',
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
     it('handles URL without path correctly', async () => {
       const mockPrefetch = jest.fn().mockResolvedValue(true);
       const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;

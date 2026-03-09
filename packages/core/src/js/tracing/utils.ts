@@ -130,6 +130,22 @@ export function createSpanJSON(
   });
 }
 
+/**
+ * Extracts a short, human-readable description from a URL by stripping
+ * the query string, fragment, and path — returning only the filename.
+ */
+export function describeUrl(url: string): string {
+  try {
+    // Remove query string and fragment
+    const withoutQuery = url.split('?')[0] || url;
+    const withoutFragment = withoutQuery.split('#')[0] || withoutQuery;
+    const filename = withoutFragment.split('/').pop();
+    return filename || url;
+  } catch {
+    return url;
+  }
+}
+
 const SENTRY_DEFAULT_ORIGIN = 'manual';
 
 /**
