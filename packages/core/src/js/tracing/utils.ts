@@ -149,10 +149,7 @@ export function createSpanJSON(
  * @param fn           The function to call.
  * @returns            Whatever `fn` returns (the original `Promise`).
  */
-export function traceAsyncOperation<T>(
-  spanOptions: StartSpanOptions,
-  fn: () => Promise<T>,
-): Promise<T> {
+export function traceAsyncOperation<T>(spanOptions: StartSpanOptions, fn: () => Promise<T>): Promise<T> {
   const span = startInactiveSpan(spanOptions);
 
   try {

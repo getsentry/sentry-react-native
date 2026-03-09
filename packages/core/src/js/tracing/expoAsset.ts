@@ -95,5 +95,3 @@ function describeModuleIds(moduleIds: (number | string)[]): string {
   }
   return `${moduleIds.length} assets`;
 }
-
-
