@@ -15,6 +15,13 @@ RN_PROJECT_ROOT="${PROJECT_DIR}/.."
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 [ -z "$SENTRY_DOTENV_PATH" ] && [ -f "$RN_PROJECT_ROOT/.env.sentry-build-plugin" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
+# Resolve relative SOURCEMAP_FILE to absolute. The script runs from `ios/` (Xcode's PWD),
+# but users typically specify paths relative to the project root. Without this, sentry-cli
+# would resolve relative paths against `ios/` and fail to find the file.
+# See: https://github.com/getsentry/sentry-react-native/issues/3889
+if [[ "$SOURCEMAP_FILE" != /* ]]; then
+  export SOURCEMAP_FILE="$(cd "$RN_PROJECT_ROOT" && pwd)/${SOURCEMAP_FILE#./}"
+fi
 
 if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
   # Try standard resolution safely

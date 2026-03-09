@@ -35,6 +35,52 @@ export const INTEGRATION_NAME = 'ReactNavigation';
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
 
 /**
+ * Extracts dynamic route parameters from a route name and its params.
+ * Matches Expo Router style dynamic segments like `[id]` and `[...slug]`.
+ *
+ * Only params whose keys appear as dynamic segments in the route name are returned,
+ * filtering out non-structural params (query params, etc.) that may contain PII.
+ *
+ * Note: dynamic segment values (e.g. the `123` in `profile/[id]`) may be user-identifiable.
+ * This function only extracts params — callers are responsible for checking `sendDefaultPii`
+ * before including the result in span attributes.
+ *
+ * Previous route params are intentionally not captured — only the current route's
+ * structural params are needed for trace attribution.
+ */
+export function extractDynamicRouteParams(
+  routeName: string,
+  params?: Record<string, unknown>,
+): Record<string, string> | undefined {
+  if (!params) {
+    return undefined;
+  }
+
+  const dynamicKeys = new Set<string>();
+  const pattern = /\[(?:\.\.\.)?(\w+)\]/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(routeName)) !== null) {
+    if (match[1]) {
+      dynamicKeys.add(match[1]);
+    }
+  }
+
+  if (dynamicKeys.size === 0) {
+    return undefined;
+  }
+
+  const result: Record<string, string> = {};
+  for (const key of dynamicKeys) {
+    if (key in params) {
+      const value = params[key];
+      result[`route.params.${key}`] = Array.isArray(value) ? value.join('/') : String(value ?? '');
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
  * Builds a full path from the navigation state by traversing nested navigators.
  * For example, with nested navigators: "Home/Settings/Profile"
  */
@@ -412,16 +458,14 @@ export const reactNavigationIntegration = ({
     if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
       latestNavigationSpan.updateName(routeName);
     }
+    const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
     latestNavigationSpan.setAttributes({
       'route.name': routeName,
       'route.key': route.key,
-      // TODO: filter PII params instead of dropping them all
-      // 'route.params': {},
+      ...(sendDefaultPii ? extractDynamicRouteParams(routeName, route.params) : undefined),
       'route.has_been_seen': routeHasBeenSeen,
       'previous_route.name': previousRoute?.name,
       'previous_route.key': previousRoute?.key,
-      // TODO: filter PII params instead of dropping them all
-      // 'previous_route.params': {},
       [SEMANTIC_ATTRIBUTE_SENTRY_SOURCE]: 'component',
       [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'navigation',
     });

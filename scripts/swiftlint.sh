@@ -21,10 +21,10 @@ if [ -z "$SWIFT_PATH" ]; then
     exit 1
 fi
 
-LINUX_BIN="https://github.com/realm/SwiftLint/releases/download/0.61.0/swiftlint_linux_amd64.zip"
-LINUX_SHA="sha256:02f4f580bbb27fb618dbfa24ce2f14c926461c85c26941289f58340151b63ae4"
-DARWIN_BIN="https://github.com/realm/SwiftLint/releases/download/0.61.0/portable_swiftlint.zip"
-DARWIN_SHA="sha256:2342f3784307a02117e18f745fcd350c6acc6cab0e521c0c0e01c32a53a3b274"
+LINUX_BIN="https://github.com/realm/SwiftLint/releases/download/0.63.2/swiftlint_linux_amd64.zip"
+LINUX_SHA="sha256:dd1017cfd20a1457f264590bcb5875a6ee06cd75b9a9d4f77cd43a552499143b"
+DARWIN_BIN="https://github.com/realm/SwiftLint/releases/download/0.63.2/portable_swiftlint.zip"
+DARWIN_SHA="sha256:c59a405c85f95b92ced677a500804e081596a4cae4a6a485af76065557d6ed29"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     EXPECTED_SHA="$DARWIN_SHA"
