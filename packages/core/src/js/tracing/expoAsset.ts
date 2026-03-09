@@ -81,17 +81,23 @@ function wrapLoadAsync<T extends ExpoAsset>(assetClass: T): void {
       },
     });
 
-    return originalLoadAsync(moduleId)
-      .then(result => {
-        span?.setStatus({ code: SPAN_STATUS_OK });
-        span?.end();
-        return result;
-      })
-      .catch((error: unknown) => {
-        span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
-        span?.end();
-        throw error;
-      });
+    try {
+      return originalLoadAsync(moduleId)
+        .then(result => {
+          span?.setStatus({ code: SPAN_STATUS_OK });
+          span?.end();
+          return result;
+        })
+        .catch((error: unknown) => {
+          span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+          span?.end();
+          throw error;
+        });
+    } catch (error) {
+      span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+      span?.end();
+      throw error;
+    }
   }) as T['loadAsync'];
 }
 

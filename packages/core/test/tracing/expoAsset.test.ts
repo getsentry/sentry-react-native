@@ -171,6 +171,27 @@ describe('wrapExpoAsset', () => {
       expect(mockLoadAsync).toHaveBeenCalledWith([10, 20]);
     });
 
+    it('ends span when loadAsync throws synchronously', () => {
+      const error = new Error('Invalid module ID');
+      const mockLoadAsync = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      const assetClass = {
+        loadAsync: mockLoadAsync,
+        fromModule: jest.fn(),
+      } as unknown as ExpoAsset;
+
+      wrapExpoAsset(assetClass);
+
+      expect(() => assetClass.loadAsync(99)).toThrow('Invalid module ID');
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SPAN_STATUS_ERROR,
+        message: 'Error: Invalid module ID',
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
     it('handles non-URL string gracefully', async () => {
       const mockLoadAsync = jest.fn().mockResolvedValue([]);
       const assetClass = {

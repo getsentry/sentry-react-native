@@ -109,6 +109,24 @@ describe('wrapExpoImage', () => {
       expect(mockSpan.end).toHaveBeenCalled();
     });
 
+    it('ends span when prefetch throws synchronously', async () => {
+      const error = new Error('Invalid argument');
+      const mockPrefetch = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
+
+      wrapExpoImage(imageClass);
+
+      expect(() => imageClass.prefetch('https://example.com/image.png')).toThrow('Invalid argument');
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SPAN_STATUS_ERROR,
+        message: 'Error: Invalid argument',
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
     it('marks span as error when prefetch resolves to false', async () => {
       const mockPrefetch = jest.fn().mockResolvedValue(false);
       const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
@@ -241,6 +259,24 @@ describe('wrapExpoImage', () => {
       expect(mockSpan.setStatus).toHaveBeenCalledWith({
         code: SPAN_STATUS_ERROR,
         message: 'Error: Load failed',
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('ends span when loadAsync throws synchronously', () => {
+      const error = new Error('Invalid source');
+      const mockLoadAsync = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      const imageClass = { prefetch: jest.fn(), loadAsync: mockLoadAsync } as unknown as ExpoImage;
+
+      wrapExpoImage(imageClass);
+
+      expect(() => imageClass.loadAsync('bad-source')).toThrow('Invalid source');
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SPAN_STATUS_ERROR,
+        message: 'Error: Invalid source',
       });
       expect(mockSpan.end).toHaveBeenCalled();
     });

@@ -106,21 +106,27 @@ function wrapPrefetch<T extends ExpoImage>(imageClass: T): void {
       },
     });
 
-    return originalPrefetch(urls, cachePolicyOrOptions)
-      .then(result => {
-        if (result) {
-          span?.setStatus({ code: SPAN_STATUS_OK });
-        } else {
-          span?.setStatus({ code: SPAN_STATUS_ERROR, message: 'prefetch_failed' });
-        }
-        span?.end();
-        return result;
-      })
-      .catch((error: unknown) => {
-        span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
-        span?.end();
-        throw error;
-      });
+    try {
+      return originalPrefetch(urls, cachePolicyOrOptions)
+        .then(result => {
+          if (result) {
+            span?.setStatus({ code: SPAN_STATUS_OK });
+          } else {
+            span?.setStatus({ code: SPAN_STATUS_ERROR, message: 'prefetch_failed' });
+          }
+          span?.end();
+          return result;
+        })
+        .catch((error: unknown) => {
+          span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+          span?.end();
+          throw error;
+        });
+    } catch (error) {
+      span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+      span?.end();
+      throw error;
+    }
   }) as T['prefetch'];
 }
 
@@ -149,17 +155,23 @@ function wrapLoadAsync<T extends ExpoImage>(imageClass: T): void {
       },
     });
 
-    return originalLoadAsync(source, options)
-      .then(result => {
-        span?.setStatus({ code: SPAN_STATUS_OK });
-        span?.end();
-        return result;
-      })
-      .catch((error: unknown) => {
-        span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
-        span?.end();
-        throw error;
-      });
+    try {
+      return originalLoadAsync(source, options)
+        .then(result => {
+          span?.setStatus({ code: SPAN_STATUS_OK });
+          span?.end();
+          return result;
+        })
+        .catch((error: unknown) => {
+          span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+          span?.end();
+          throw error;
+        });
+    } catch (error) {
+      span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+      span?.end();
+      throw error;
+    }
   }) as T['loadAsync'];
 }
 
