@@ -1,6 +1,5 @@
-import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_ASSET } from './origin';
-import { describeUrl } from './utils';
+import { describeUrl, traceAsyncOperation } from './utils';
 
 /**
  * Internal interface for expo-asset's Asset instance.
@@ -72,32 +71,17 @@ function wrapLoadAsync<T extends ExpoAsset>(assetClass: T): void {
     const assetCount = moduleIds.length;
     const description = describeModuleIds(moduleIds);
 
-    const span = startInactiveSpan({
-      op: 'resource.asset',
-      name: `Asset load ${description}`,
-      attributes: {
-        'sentry.origin': SPAN_ORIGIN_AUTO_RESOURCE_EXPO_ASSET,
-        'asset.count': assetCount,
+    return traceAsyncOperation(
+      {
+        op: 'resource.asset',
+        name: `Asset load ${description}`,
+        attributes: {
+          'sentry.origin': SPAN_ORIGIN_AUTO_RESOURCE_EXPO_ASSET,
+          'asset.count': assetCount,
+        },
       },
-    });
-
-    try {
-      return originalLoadAsync(moduleId)
-        .then(result => {
-          span?.setStatus({ code: SPAN_STATUS_OK });
-          span?.end();
-          return result;
-        })
-        .catch((error: unknown) => {
-          span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
-          span?.end();
-          throw error;
-        });
-    } catch (error) {
-      span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
-      span?.end();
-      throw error;
-    }
+      () => originalLoadAsync(moduleId),
+    );
   }) as T['loadAsync'];
 }
 

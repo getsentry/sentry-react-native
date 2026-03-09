@@ -1,6 +1,6 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE } from './origin';
-import { describeUrl } from './utils';
+import { describeUrl, traceAsyncOperation } from './utils';
 
 /**
  * Internal interface for expo-image's ImageSource.
@@ -146,32 +146,17 @@ function wrapLoadAsync<T extends ExpoImage>(imageClass: T): void {
     const imageUrl =
       typeof source === 'string' ? source : typeof source === 'object' && source.uri ? source.uri : undefined;
 
-    const span = startInactiveSpan({
-      op: 'resource.image.load',
-      name: `Image load ${description}`,
-      attributes: {
-        'sentry.origin': SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE,
-        ...(imageUrl ? { 'image.url': imageUrl } : undefined),
+    return traceAsyncOperation(
+      {
+        op: 'resource.image.load',
+        name: `Image load ${description}`,
+        attributes: {
+          'sentry.origin': SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE,
+          ...(imageUrl ? { 'image.url': imageUrl } : undefined),
+        },
       },
-    });
-
-    try {
-      return originalLoadAsync(source, options)
-        .then(result => {
-          span?.setStatus({ code: SPAN_STATUS_OK });
-          span?.end();
-          return result;
-        })
-        .catch((error: unknown) => {
-          span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
-          span?.end();
-          throw error;
-        });
-    } catch (error) {
-      span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
-      span?.end();
-      throw error;
-    }
+      () => originalLoadAsync(source, options),
+    );
   }) as T['loadAsync'];
 }
 

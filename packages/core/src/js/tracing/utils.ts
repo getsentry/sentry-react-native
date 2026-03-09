@@ -1,4 +1,4 @@
-import type { MeasurementUnit, Span, SpanJSON, TransactionSource } from '@sentry/core';
+import type { MeasurementUnit, Span, SpanJSON, StartSpanOptions, TransactionSource } from '@sentry/core';
 import {
   debug,
   dropUndefinedKeys,
@@ -8,7 +8,10 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   setMeasurement,
+  SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
   spanToJSON,
+  startInactiveSpan,
   timestampInSeconds,
   uuid4,
 } from '@sentry/core';
@@ -128,6 +131,45 @@ export function createSpanJSON(
       ...(from.data ? from.data : {}),
     }),
   });
+}
+
+/**
+ * Wraps a function call that returns a `Promise` with an inactive span that
+ * is automatically ended on success or failure (both sync throws and async
+ * rejections).
+ *
+ * This is the standard pattern for instrumenting async SDK operations such as
+ * `Image.prefetch`, `Image.loadAsync`, and `Asset.loadAsync`.
+ *
+ * @param spanOptions  Options forwarded to `startInactiveSpan`.
+ * @param fn           The function to call. Receives the created span (or
+ *                     `undefined` when span creation is suppressed) so callers
+ *                     can customise status handling in the `.then` callback.
+ * @returns            Whatever `fn` returns (the original `Promise`).
+ */
+export function traceAsyncOperation<T>(
+  spanOptions: StartSpanOptions,
+  fn: (span: Span | undefined) => Promise<T>,
+): Promise<T> {
+  const span = startInactiveSpan(spanOptions);
+
+  try {
+    return fn(span)
+      .then(result => {
+        span?.setStatus({ code: SPAN_STATUS_OK });
+        span?.end();
+        return result;
+      })
+      .catch((error: unknown) => {
+        span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+        span?.end();
+        throw error;
+      });
+  } catch (error) {
+    span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
+    span?.end();
+    throw error;
+  }
 }
 
 /**
