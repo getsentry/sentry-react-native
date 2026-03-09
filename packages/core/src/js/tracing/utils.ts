@@ -139,22 +139,24 @@ export function createSpanJSON(
  * rejections).
  *
  * This is the standard pattern for instrumenting async SDK operations such as
- * `Image.prefetch`, `Image.loadAsync`, and `Asset.loadAsync`.
+ * `Image.loadAsync` and `Asset.loadAsync`.
+ *
+ * The span status is always set by this utility (`ok` on resolve, `error` on
+ * reject or sync throw). If you need custom status logic (e.g. inspecting the
+ * resolved value), handle span lifecycle manually instead.
  *
  * @param spanOptions  Options forwarded to `startInactiveSpan`.
- * @param fn           The function to call. Receives the created span (or
- *                     `undefined` when span creation is suppressed) so callers
- *                     can customise status handling in the `.then` callback.
+ * @param fn           The function to call.
  * @returns            Whatever `fn` returns (the original `Promise`).
  */
 export function traceAsyncOperation<T>(
   spanOptions: StartSpanOptions,
-  fn: (span: Span | undefined) => Promise<T>,
+  fn: () => Promise<T>,
 ): Promise<T> {
   const span = startInactiveSpan(spanOptions);
 
   try {
-    return fn(span)
+    return fn()
       .then(result => {
         span?.setStatus({ code: SPAN_STATUS_OK });
         span?.end();
