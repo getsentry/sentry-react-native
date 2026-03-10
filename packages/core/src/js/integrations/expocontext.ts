@@ -19,6 +19,7 @@ export const expoContextIntegration = (): Integration => {
       }
 
       setExpoUpdatesNativeContext();
+      captureEmergencyLaunchEvent(client);
     });
   }
 
@@ -35,6 +36,29 @@ export const expoContextIntegration = (): Integration => {
     } catch (error) {
       debug.error('Error setting Expo updates context:', error);
     }
+  }
+
+  function captureEmergencyLaunchEvent(client: ReactNativeClient): void {
+    if (!isExpo() || isExpoGo()) {
+      return;
+    }
+
+    const updatesContext = getExpoUpdatesContextCached();
+    if (!updatesContext.is_emergency_launch) {
+      return;
+    }
+
+    const message = updatesContext.emergency_launch_reason
+      ? `Expo Updates emergency launch: ${updatesContext.emergency_launch_reason}`
+      : 'Expo Updates emergency launch';
+
+    client.captureEvent({
+      level: 'warning',
+      message,
+      tags: {
+        'expo.updates.emergency_launch': 'true',
+      },
+    });
   }
 
   function processEvent(event: Event): Event {
