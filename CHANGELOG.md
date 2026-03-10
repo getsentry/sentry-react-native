@@ -11,7 +11,7 @@
 ### Features
 
 - Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
-- Automatically capture a warning event when Expo Updates performs an emergency launch ()
+- Automatically capture a warning event when Expo Updates performs an emergency launch ([#5794](https://github.com/getsentry/sentry-react-native/pull/5794))
 
 ## 8.3.0
 
