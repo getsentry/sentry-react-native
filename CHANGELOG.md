@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Defer initial navigation span creation until navigation container is registered ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+
 ## 8.3.0
 
 ### Features
