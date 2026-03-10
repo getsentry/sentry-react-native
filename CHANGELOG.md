@@ -10,6 +10,17 @@
 
 ### Features
 
+- Add `wrapExpoImage` and `wrapExpoAsset` for Expo performance monitoring ([#5427](https://github.com/getsentry/sentry-react-native/issues/5427))
+  - `wrapExpoImage` instruments `Image.prefetch` and `Image.loadAsync` from `expo-image`
+  - `wrapExpoAsset` instruments `Asset.loadAsync` from `expo-asset`
+  ```js
+  import { Image } from 'expo-image';
+  import { Asset } from 'expo-asset';
+  import * as Sentry from '@sentry/react-native';
+
+  Sentry.wrapExpoImage(Image);
+  Sentry.wrapExpoAsset(Asset);
+  ```
 - Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
 - Automatically capture a warning event when Expo Updates performs an emergency launch ([#5794](https://github.com/getsentry/sentry-react-native/pull/5794))
 
