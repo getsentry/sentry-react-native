@@ -16,7 +16,7 @@ export { wrapExpoImage } from './expoImage';
 export type { ExpoImage } from './expoImage';
 
 export { wrapExpoAsset } from './expoAsset';
-export type { ExpoAsset, ExpoAssetInstance } from './expoAsset';
+export type { ExpoAsset } from './expoAsset';
 
 export { startIdleNavigationSpan, startIdleSpan, getDefaultIdleNavigationSpanOptions } from './span';
 

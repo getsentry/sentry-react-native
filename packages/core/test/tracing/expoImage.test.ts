@@ -170,7 +170,7 @@ describe('wrapExpoImage', () => {
       );
     });
 
-    it('strips query string from URL in span name', async () => {
+    it('strips query string from URL in span name and attribute', async () => {
       const mockPrefetch = jest.fn().mockResolvedValue(true);
       const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
 
@@ -180,11 +180,14 @@ describe('wrapExpoImage', () => {
       expect(mockStartInactiveSpan).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Image prefetch photo.jpg',
+          attributes: expect.objectContaining({
+            'image.url': 'https://cdn.example.com/images/photo.jpg',
+          }),
         }),
       );
     });
 
-    it('strips fragment from URL in span name', async () => {
+    it('strips fragment from URL in span name and attribute', async () => {
       const mockPrefetch = jest.fn().mockResolvedValue(true);
       const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
 
@@ -194,22 +197,23 @@ describe('wrapExpoImage', () => {
       expect(mockStartInactiveSpan).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Image prefetch photo.jpg',
+          attributes: expect.objectContaining({
+            'image.url': 'https://cdn.example.com/images/photo.jpg',
+          }),
         }),
       );
     });
 
-    it('does not leak query string for URL ending with trailing slash', async () => {
+    it('does not leak query string in span name or attributes', async () => {
       const mockPrefetch = jest.fn().mockResolvedValue(true);
       const imageClass = { prefetch: mockPrefetch, loadAsync: jest.fn() } as unknown as ExpoImage;
 
       wrapExpoImage(imageClass);
       await imageClass.prefetch('https://cdn.example.com/images/?token=SECRET');
 
-      expect(mockStartInactiveSpan).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: expect.not.stringContaining('SECRET'),
-        }),
-      );
+      const call = mockStartInactiveSpan.mock.calls[0][0];
+      expect(call.name).not.toContain('SECRET');
+      expect(JSON.stringify(call.attributes)).not.toContain('SECRET');
     });
   });
 

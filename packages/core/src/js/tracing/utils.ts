@@ -172,6 +172,18 @@ export function traceAsyncOperation<T>(spanOptions: StartSpanOptions, fn: () => 
 }
 
 /**
+ * Strips query string and fragment from a URL, preserving the scheme, host, and path.
+ */
+export function sanitizeUrl(url: string): string {
+  try {
+    const withoutQuery = url.split('?')[0] || url;
+    return withoutQuery.split('#')[0] || withoutQuery;
+  } catch {
+    return url;
+  }
+}
+
+/**
  * Extracts a short, human-readable description from a URL by stripping
  * the query string, fragment, and path — returning only the filename.
  */

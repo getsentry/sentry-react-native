@@ -1,6 +1,6 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE } from './origin';
-import { describeUrl, traceAsyncOperation } from './utils';
+import { describeUrl, sanitizeUrl, traceAsyncOperation } from './utils';
 
 /**
  * Internal interface for expo-image's ImageSource.
@@ -102,7 +102,7 @@ function wrapPrefetch<T extends ExpoImage>(imageClass: T): void {
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE,
         'image.url_count': urlCount,
-        ...(urlCount === 1 ? { 'image.url': firstUrl } : undefined),
+        ...(urlCount === 1 ? { 'image.url': sanitizeUrl(firstUrl) } : undefined),
       },
     });
 
@@ -152,7 +152,7 @@ function wrapLoadAsync<T extends ExpoImage>(imageClass: T): void {
         name: `Image load ${description}`,
         attributes: {
           'sentry.origin': SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE,
-          ...(imageUrl ? { 'image.url': imageUrl } : undefined),
+          ...(imageUrl ? { 'image.url': sanitizeUrl(imageUrl) } : undefined),
         },
       },
       () => originalLoadAsync(source, options),

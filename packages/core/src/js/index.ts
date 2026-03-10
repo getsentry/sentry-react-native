@@ -97,7 +97,7 @@ export {
   wrapExpoAsset,
 } from './tracing';
 
-export type { TimeToDisplayProps, ExpoRouter, ExpoImage, ExpoAsset, ExpoAssetInstance } from './tracing';
+export type { TimeToDisplayProps, ExpoRouter, ExpoImage, ExpoAsset } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
 
