@@ -23,6 +23,10 @@
   ```
 - Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
 
+### Fixes
+
+- Defer initial navigation span creation until navigation container is registered ([#5789](https://github.com/getsentry/sentry-react-native/pull/5789))
+
 ## 8.3.0
 
 ### Features
