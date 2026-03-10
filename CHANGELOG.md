@@ -22,6 +22,14 @@
   Sentry.wrapExpoAsset(Asset);
   ```
 - Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
+- Add `environment` option to the Expo config plugin for native init ([#5796](https://github.com/getsentry/sentry-react-native/pull/5796))
+  - Sets the environment in `sentry.options.json` during `expo prebuild`, so pre-JS crashes are tagged correctly
+  ```json
+  ["@sentry/react-native/expo", {
+    "useNativeInit": true,
+    "environment": "staging"
+  }]
+  ```
 
 ### Fixes
 
