@@ -62,7 +62,7 @@ jobs:
         if: ${{ matrix.platform == 'android' }}
 
       - run: corepack enable
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -256,7 +256,7 @@ jobs:
           echo "SENTRY_DIST=$SENTRY_DIST"
 
       - run: corepack enable
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -365,7 +365,7 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
           node-version: 20

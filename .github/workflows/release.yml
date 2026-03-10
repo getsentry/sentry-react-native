@@ -35,7 +35,7 @@ jobs:
 
       - run: npm i -g corepack
 
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
           node-version: 20
@@ -43,7 +43,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Prepare release
-        uses: getsentry/craft@41defb379de52e5f0e3943944fa5575b22fb9f92 # v2
+        uses: getsentry/craft@d630201930c7fe5aee6366ebee19ebb681128512 # v2
         env:
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         with:
