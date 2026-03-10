@@ -90,6 +90,14 @@ describe('Expo Context Integration', () => {
 
       expect(actualEvent.contexts?.[OTA_UPDATES_CONTEXT_KEY]).toBeUndefined();
     });
+
+    it('does not add expo updates tags', () => {
+      const actualEvent = executeIntegrationFor({});
+
+      expect(actualEvent.tags?.['expo.updates.update_id']).toBeUndefined();
+      expect(actualEvent.tags?.['expo.updates.channel']).toBeUndefined();
+      expect(actualEvent.tags?.['expo.updates.runtime_version']).toBeUndefined();
+    });
   });
 
   describe('In Expo App', () => {
@@ -167,6 +175,57 @@ describe('Expo Context Integration', () => {
         launch_duration: 1000,
         created_at: '2021-01-01T00:00:00.000Z',
       });
+    });
+
+    it('adds expo updates tags for searchable fields', () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        updateId: '123',
+        channel: 'default',
+        runtimeVersion: '1.0.0',
+      });
+
+      const actualEvent = executeIntegrationFor({});
+
+      expect(actualEvent.tags).toEqual(
+        expect.objectContaining({
+          'expo.updates.update_id': '123',
+          'expo.updates.channel': 'default',
+          'expo.updates.runtime_version': '1.0.0',
+        }),
+      );
+    });
+
+    it('does not add expo updates tags when values are missing', () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({});
+
+      const actualEvent = executeIntegrationFor({});
+
+      expect(actualEvent.tags?.['expo.updates.update_id']).toBeUndefined();
+      expect(actualEvent.tags?.['expo.updates.channel']).toBeUndefined();
+      expect(actualEvent.tags?.['expo.updates.runtime_version']).toBeUndefined();
+    });
+
+    it('does not overwrite existing tags', () => {
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        updateId: '123',
+        channel: 'default',
+        runtimeVersion: '1.0.0',
+      });
+
+      const actualEvent = executeIntegrationFor({
+        tags: {
+          existing_tag: 'existing_value',
+        },
+      });
+
+      expect(actualEvent.tags).toEqual(
+        expect.objectContaining({
+          existing_tag: 'existing_value',
+          'expo.updates.update_id': '123',
+          'expo.updates.channel': 'default',
+          'expo.updates.runtime_version': '1.0.0',
+        }),
+      );
     });
 
     it('avoids adding values of unexpected types', () => {
