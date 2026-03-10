@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Defer initial navigation span creation until navigation container is registered ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Defer initial navigation span creation until navigation container is registered ([#5789](https://github.com/getsentry/sentry-react-native/pull/5789))
 
 ## 8.3.0
 
