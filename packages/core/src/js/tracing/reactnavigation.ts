@@ -285,7 +285,7 @@ export const reactNavigationIntegration = ({
 
     if (!latestNavigationSpan) {
       if (!isSetupComplete) {
-        debug.log(`${INTEGRATION_NAME} Navigation container registered, but integration has not been setup yet.`);
+        debug.log(`${INTEGRATION_NAME} Navigation container registered before integration setup. Initial span will be created when setup completes.`);
         return undefined;
       }
       startIdleNavigationSpan();
