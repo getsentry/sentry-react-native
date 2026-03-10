@@ -21,6 +21,7 @@
   Sentry.wrapExpoImage(Image);
   Sentry.wrapExpoAsset(Asset);
   ```
+- Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
 
 ## 8.3.0
 
