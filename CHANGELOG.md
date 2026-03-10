@@ -27,6 +27,12 @@
 
 - Defer initial navigation span creation until navigation container is registered ([#5789](https://github.com/getsentry/sentry-react-native/pull/5789))
 
+### Dependencies
+
+- Bump CLI from v3.3.0 to v3.3.1 ([#5793](https://github.com/getsentry/sentry-react-native/pull/5793))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#331)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.0...3.3.1)
+
 ## 8.3.0
 
 ### Features
