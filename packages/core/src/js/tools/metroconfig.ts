@@ -276,8 +276,19 @@ Please follow one of the following options:
   };
 }
 
-const SENTRY_CORE_SERVER_ONLY_MODULE_RE =
-  /@sentry\/core\/.*\/(mcp-server|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|$)/;
+/**
+ * Matches relative import paths to server-only AI/MCP modules within `@sentry/core`.
+ *
+ * Metro passes the module name as-written in the source code, so for imports inside
+ * `@sentry/core`'s barrel file like `export { ... } from './integrations/mcp-server/index.js'`,
+ * the `moduleName` will be `./integrations/mcp-server/index.js`.
+ */
+const SERVER_ONLY_MODULE_RE =
+  /\/(mcp-server|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|$)/;
+
+function isFromSentryCore(originModulePath: string): boolean {
+  return originModulePath.includes('@sentry/core');
+}
 
 /**
  * Excludes server-only AI/MCP modules from native (Android/iOS) bundles.
@@ -293,7 +304,8 @@ export function withSentryExcludeServerOnlyResolver(config: MetroConfig): MetroC
   ) => {
     if (
       (platform === 'android' || platform === 'ios') &&
-      SENTRY_CORE_SERVER_ONLY_MODULE_RE.test(oldMetroModuleName ?? moduleName)
+      isFromSentryCore((context as { originModulePath?: string }).originModulePath ?? '') &&
+      SERVER_ONLY_MODULE_RE.test(oldMetroModuleName ?? moduleName)
     ) {
       return { type: 'empty' } as Resolution;
     }

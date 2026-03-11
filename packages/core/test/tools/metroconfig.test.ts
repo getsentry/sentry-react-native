@@ -364,6 +364,8 @@ describe('metroconfig', () => {
     });
   });
   describe('withSentryExcludeServerOnlyResolver', () => {
+    const SENTRY_CORE_ORIGIN = '/project/node_modules/@sentry/core/build/esm/index.js';
+
     let originalResolverMock: any;
 
     // @ts-expect-error Can't see type CustomResolutionContext
@@ -374,6 +376,7 @@ describe('metroconfig', () => {
       originalResolverMock = jest.fn();
       contextMock = {
         resolveRequest: jest.fn(),
+        originModulePath: SENTRY_CORE_ORIGIN,
       };
 
       config = {
@@ -384,17 +387,15 @@ describe('metroconfig', () => {
     });
 
     describe.each([
-      ['@sentry/core/build/esm/integrations/mcp-server/index.js'],
-      ['@sentry/core/build/esm/tracing/openai/index.js'],
-      ['@sentry/core/build/esm/tracing/anthropic-ai/index.js'],
-      ['@sentry/core/build/esm/tracing/google-genai/index.js'],
-      ['@sentry/core/build/esm/tracing/vercel-ai/index.js'],
-      ['@sentry/core/build/esm/tracing/langchain/index.js'],
-      ['@sentry/core/build/esm/tracing/langgraph/index.js'],
-      ['@sentry/core/build/esm/utils/ai/providerSkip.js'],
-      ['@sentry/core/build/cjs/integrations/mcp-server/index.js'],
-      ['@sentry/core/build/cjs/tracing/openai/index.js'],
-    ])('with server-only module %s', serverOnlyModule => {
+      ['./integrations/mcp-server/index.js'],
+      ['./tracing/openai/index.js'],
+      ['./tracing/anthropic-ai/index.js'],
+      ['./tracing/google-genai/index.js'],
+      ['./tracing/vercel-ai/index.js'],
+      ['./tracing/langchain/index.js'],
+      ['./tracing/langgraph/index.js'],
+      ['./utils/ai/providerSkip.js'],
+    ])('with server-only module %s from @sentry/core', serverOnlyModule => {
       test('removes module when platform is android', () => {
         const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
         const result = modifiedConfig.resolver?.resolveRequest?.(contextMock, serverOnlyModule, 'android');
@@ -426,18 +427,39 @@ describe('metroconfig', () => {
       });
     });
 
+    test('does not exclude modules when origin is not @sentry/core', () => {
+      const nonSentryContext = {
+        ...contextMock,
+        originModulePath: '/project/node_modules/some-other-package/index.js',
+      };
+      const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+      modifiedConfig.resolver?.resolveRequest?.(nonSentryContext, './tracing/openai/index.js', 'android');
+
+      expect(originalResolverMock).toHaveBeenCalledWith(nonSentryContext, './tracing/openai/index.js', 'android');
+    });
+
+    test('does not exclude modules when originModulePath is not available', () => {
+      const noOriginContext = {
+        resolveRequest: jest.fn(),
+      };
+      const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+      modifiedConfig.resolver?.resolveRequest?.(noOriginContext, './tracing/openai/index.js', 'android');
+
+      expect(originalResolverMock).toHaveBeenCalledWith(noOriginContext, './tracing/openai/index.js', 'android');
+    });
+
     test('calls originalResolver for non-AI modules on native platforms', () => {
       const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
-      modifiedConfig.resolver?.resolveRequest?.(contextMock, 'some/other/module', 'android');
+      modifiedConfig.resolver?.resolveRequest?.(contextMock, './exports.js', 'android');
 
-      expect(originalResolverMock).toHaveBeenCalledWith(contextMock, 'some/other/module', 'android');
+      expect(originalResolverMock).toHaveBeenCalledWith(contextMock, './exports.js', 'android');
     });
 
     test('falls back to context.resolveRequest when no originalResolver', () => {
       const modifiedConfig = withSentryExcludeServerOnlyResolver({ resolver: {} });
-      modifiedConfig.resolver?.resolveRequest?.(contextMock, 'some/other/module', 'android');
+      modifiedConfig.resolver?.resolveRequest?.(contextMock, './exports.js', 'android');
 
-      expect(contextMock.resolveRequest).toHaveBeenCalledWith(contextMock, 'some/other/module', 'android');
+      expect(contextMock.resolveRequest).toHaveBeenCalledWith(contextMock, './exports.js', 'android');
     });
 
     test('exits process on old Metro when context.resolveRequest is the resolver itself (infinite recursion guard)', () => {
@@ -448,7 +470,7 @@ describe('metroconfig', () => {
       const resolver = modifiedConfig.resolver?.resolveRequest;
       // Simulate old Metro behavior where context.resolveRequest === the resolver itself
       const oldMetroContext = { resolveRequest: resolver };
-      resolver?.(oldMetroContext, 'some/other/module', 'android');
+      resolver?.(oldMetroContext, './exports.js', 'android');
 
       expect(mockExit).toHaveBeenCalledWith(-1);
     });
