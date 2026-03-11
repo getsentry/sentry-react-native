@@ -1,6 +1,8 @@
+import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
-import { createRunOncePlugin } from 'expo/config-plugins';
+import { createRunOncePlugin, withDangerousMod } from 'expo/config-plugins';
 import { bold, warnOnce } from './logger';
+import { writeSentryOptionsEnvironment } from './utils';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './version';
 import { withSentryAndroid } from './withSentryAndroid';
 import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
@@ -13,6 +15,7 @@ interface PluginProps {
   authToken?: string;
   url?: string;
   useNativeInit?: boolean;
+  environment?: string;
   experimental_android?: SentryAndroidGradlePluginOptions;
 }
 
@@ -25,6 +28,10 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   }
 
   let cfg = config;
+  const environment = props?.environment ?? process.env.SENTRY_ENVIRONMENT;
+  if (environment) {
+    cfg = withSentryOptionsEnvironment(cfg, environment);
+  }
   if (sentryProperties !== null) {
     try {
       cfg = withSentryAndroid(cfg, { sentryProperties, useNativeInit: props?.useNativeInit });
@@ -78,6 +85,26 @@ export function getSentryProperties(props: PluginProps | void): string | null {
 ${organization ? `defaults.org=${organization}` : missingOrgMessage}
 ${project ? `defaults.project=${project}` : missingProjectMessage}
 ${authToken ? `${existingAuthTokenMessage}\nauth.token=${authToken}` : missingAuthTokenMessage}`;
+}
+
+function withSentryOptionsEnvironment(config: ExpoConfig, environment: string): ExpoConfig {
+  // withDangerousMod requires a platform key, but sentry.options.json is at the project root.
+  // We apply to both platforms so it works with `expo prebuild --platform ios` or `--platform android`.
+  let cfg = withDangerousMod(config, [
+    'android',
+    mod => {
+      writeSentryOptionsEnvironment(mod.modRequest.projectRoot, environment);
+      return mod;
+    },
+  ]);
+  cfg = withDangerousMod(cfg, [
+    'ios',
+    mod => {
+      writeSentryOptionsEnvironment(mod.modRequest.projectRoot, environment);
+      return mod;
+    },
+  ]);
+  return cfg;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
