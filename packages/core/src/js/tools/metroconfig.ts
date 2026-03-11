@@ -91,6 +91,7 @@ export function withSentryConfig(
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
+  newConfig = withSentryExcludeServerOnlyResolver(newConfig);
   if (enableSourceContextInDevelopment) {
     newConfig = withSentryMiddleware(newConfig);
   }
@@ -128,6 +129,7 @@ export function getSentryExpoConfig(
   if (options.includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
+  newConfig = withSentryExcludeServerOnlyResolver(newConfig);
 
   if (options.enableSourceContextInDevelopment ?? true) {
     newConfig = withSentryMiddleware(newConfig);
@@ -270,6 +272,49 @@ Please follow one of the following options:
     resolver: {
       ...config.resolver,
       resolveRequest: sentryResolverRequest,
+    },
+  };
+}
+
+const SENTRY_CORE_SERVER_ONLY_MODULE_RE =
+  /@sentry\/core\/.*\/(mcp-server|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)\//;
+
+/**
+ * Excludes server-only AI/MCP modules from native (Android/iOS) bundles.
+ */
+export function withSentryExcludeServerOnlyResolver(config: MetroConfig): MetroConfig {
+  const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro068 | undefined;
+
+  const sentryServerOnlyResolverRequest: CustomResolver = (
+    context: CustomResolutionContext,
+    moduleName: string,
+    platform: string | null,
+    oldMetroModuleName?: string,
+  ) => {
+    if (
+      (platform === 'android' || platform === 'ios') &&
+      SENTRY_CORE_SERVER_ONLY_MODULE_RE.test(oldMetroModuleName ?? moduleName)
+    ) {
+      return { type: 'empty' } as Resolution;
+    }
+    if (originalResolver) {
+      return oldMetroModuleName
+        ? originalResolver(context, moduleName, platform, oldMetroModuleName)
+        : originalResolver(context, moduleName, platform);
+    }
+
+    if (context.resolveRequest === sentryServerOnlyResolverRequest) {
+      return context.resolveRequest(context, moduleName, platform);
+    }
+
+    return context.resolveRequest(context, moduleName, platform);
+  };
+
+  return {
+    ...config,
+    resolver: {
+      ...config.resolver,
+      resolveRequest: sentryServerOnlyResolverRequest,
     },
   };
 }

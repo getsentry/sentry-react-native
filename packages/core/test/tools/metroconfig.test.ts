@@ -5,6 +5,7 @@ import type { SentryExpoConfigOptions } from '../../src/js/tools/metroconfig';
 import {
   getSentryExpoConfig,
   withSentryBabelTransformer,
+  withSentryExcludeServerOnlyResolver,
   withSentryFramesCollapsed,
   withSentryResolver,
 } from '../../src/js/tools/metroconfig';
@@ -360,6 +361,83 @@ describe('metroconfig', () => {
           expect(received).toHaveBeenCalledWith(contextMock, moduleName, platform);
         }
       }
+    });
+  });
+  describe('withSentryExcludeServerOnlyResolver', () => {
+    let originalResolverMock: any;
+
+    // @ts-expect-error Can't see type CustomResolutionContext
+    let contextMock: CustomResolutionContext;
+    let config: MetroConfig = {};
+
+    beforeEach(() => {
+      originalResolverMock = jest.fn();
+      contextMock = {
+        resolveRequest: jest.fn(),
+      };
+
+      config = {
+        resolver: {
+          resolveRequest: originalResolverMock,
+        },
+      };
+    });
+
+    describe.each([
+      ['@sentry/core/build/esm/integrations/mcp-server/index.js'],
+      ['@sentry/core/build/esm/tracing/openai/index.js'],
+      ['@sentry/core/build/esm/tracing/anthropic-ai/index.js'],
+      ['@sentry/core/build/esm/tracing/google-genai/index.js'],
+      ['@sentry/core/build/esm/tracing/vercel-ai/index.js'],
+      ['@sentry/core/build/esm/tracing/langchain/index.js'],
+      ['@sentry/core/build/esm/tracing/langgraph/index.js'],
+      ['@sentry/core/build/esm/utils/ai/providerSkip.js'],
+      ['@sentry/core/build/cjs/integrations/mcp-server/index.js'],
+      ['@sentry/core/build/cjs/tracing/openai/index.js'],
+    ])('with server-only module %s', serverOnlyModule => {
+      test('removes module when platform is android', () => {
+        const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+        const result = modifiedConfig.resolver?.resolveRequest?.(contextMock, serverOnlyModule, 'android');
+
+        expect(result).toEqual({ type: 'empty' });
+        expect(originalResolverMock).not.toHaveBeenCalled();
+      });
+
+      test('removes module when platform is ios', () => {
+        const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+        const result = modifiedConfig.resolver?.resolveRequest?.(contextMock, serverOnlyModule, 'ios');
+
+        expect(result).toEqual({ type: 'empty' });
+        expect(originalResolverMock).not.toHaveBeenCalled();
+      });
+
+      test('keeps module when platform is web', () => {
+        const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+        modifiedConfig.resolver?.resolveRequest?.(contextMock, serverOnlyModule, 'web');
+
+        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, serverOnlyModule, 'web');
+      });
+
+      test('keeps module when platform is null', () => {
+        const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+        modifiedConfig.resolver?.resolveRequest?.(contextMock, serverOnlyModule, null);
+
+        expect(originalResolverMock).toHaveBeenCalledWith(contextMock, serverOnlyModule, null);
+      });
+    });
+
+    test('calls originalResolver for non-AI modules on native platforms', () => {
+      const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+      modifiedConfig.resolver?.resolveRequest?.(contextMock, 'some/other/module', 'android');
+
+      expect(originalResolverMock).toHaveBeenCalledWith(contextMock, 'some/other/module', 'android');
+    });
+
+    test('falls back to context.resolveRequest when no originalResolver', () => {
+      const modifiedConfig = withSentryExcludeServerOnlyResolver({ resolver: {} });
+      modifiedConfig.resolver?.resolveRequest?.(contextMock, 'some/other/module', 'android');
+
+      expect(contextMock.resolveRequest).toHaveBeenCalledWith(contextMock, 'some/other/module', 'android');
     });
   });
 });
