@@ -22,6 +22,7 @@
   Sentry.wrapExpoAsset(Asset);
   ```
 - Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
+- Automatically capture a warning event when Expo Updates performs an emergency launch ([#5794](https://github.com/getsentry/sentry-react-native/pull/5794))
 - Adds environment configuration in the Expo config plugin. This can be set with the `SENTRY_ENVIRONMENT` env variable or in `sentry.options.json` ([#5796](https://github.com/getsentry/sentry-react-native/pull/5796))
   ```json
   ["@sentry/react-native/expo", {
