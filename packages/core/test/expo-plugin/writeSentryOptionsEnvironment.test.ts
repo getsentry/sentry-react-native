@@ -5,7 +5,6 @@ import { writeSentryOptionsEnvironment } from '../../plugin/src/utils';
 
 jest.mock('../../plugin/src/logger');
 
-
 describe('writeSentryOptionsEnvironment', () => {
   let tempDir: string;
 
