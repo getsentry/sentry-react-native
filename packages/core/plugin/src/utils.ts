@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { warnOnce } from './logger';
 
 export function writeSentryPropertiesTo(filepath: string, sentryProperties: string): void {
   if (!fs.existsSync(filepath)) {
@@ -16,7 +17,12 @@ export function writeSentryOptionsEnvironment(projectRoot: string, environment: 
 
   let options: Record<string, unknown> = {};
   if (fs.existsSync(optionsFilePath)) {
-    options = JSON.parse(fs.readFileSync(optionsFilePath, 'utf8'));
+    try {
+      options = JSON.parse(fs.readFileSync(optionsFilePath, 'utf8'));
+    } catch (e) {
+      warnOnce(`Failed to parse ${SENTRY_OPTIONS_FILE_NAME}: ${e}. The environment will not be set.`);
+      return;
+    }
   }
 
   options.environment = environment;

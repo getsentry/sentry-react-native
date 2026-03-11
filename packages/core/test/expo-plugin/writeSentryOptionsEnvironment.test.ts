@@ -3,6 +3,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { writeSentryOptionsEnvironment } from '../../plugin/src/utils';
 
+jest.mock('../../plugin/src/logger');
+
+
 describe('writeSentryOptionsEnvironment', () => {
   let tempDir: string;
 
@@ -42,5 +45,17 @@ describe('writeSentryOptionsEnvironment', () => {
     const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     expect(content.environment).toBe('staging');
     expect(content.dsn).toBe('https://key@sentry.io/123');
+  });
+
+  test('does not crash and warns when sentry.options.json contains invalid JSON', () => {
+    const { warnOnce } = require('../../plugin/src/logger');
+    const filePath = path.join(tempDir, 'sentry.options.json');
+    fs.writeFileSync(filePath, 'invalid json{{{');
+
+    writeSentryOptionsEnvironment(tempDir, 'staging');
+
+    expect(warnOnce).toHaveBeenCalledWith(expect.stringContaining('Failed to parse'));
+    // File should remain unchanged
+    expect(fs.readFileSync(filePath, 'utf8')).toBe('invalid json{{{');
   });
 });

@@ -28,7 +28,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   }
 
   let cfg = config;
-  const environment = props?.environment || process.env.SENTRY_ENVIRONMENT;
+  const environment = props?.environment ?? process.env.SENTRY_ENVIRONMENT;
   if (environment) {
     cfg = withSentryOptionsEnvironment(cfg, environment);
   }
