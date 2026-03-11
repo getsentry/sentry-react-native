@@ -277,7 +277,7 @@ Please follow one of the following options:
 }
 
 const SENTRY_CORE_SERVER_ONLY_MODULE_RE =
-  /@sentry\/core\/.*\/(mcp-server|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)\//;
+  /@sentry\/core\/.*\/(mcp-server|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|$)/;
 
 /**
  * Excludes server-only AI/MCP modules from native (Android/iOS) bundles.
