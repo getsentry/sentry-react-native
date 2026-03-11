@@ -31,7 +31,7 @@
     }
   }]
   ```
-- Generate `sentry.options.json` from the Expo config plugin `options` property ([#5664](https://github.com/getsentry/sentry-react-native/issues/5664))
+- Generate `sentry.options.json` from the Expo config plugin `options` property ([#5804](https://github.com/getsentry/sentry-react-native/pull/5804/))
   ```json
   ["@sentry/react-native/expo", {
     "useNativeInit": true,
