@@ -44,6 +44,18 @@ feat(replay): Add mobile replay masking support
 fix(android): Fix crash on startup with Hermes
 ```
 
+## Pull Requests
+
+When asked to open a PR:
+- **Ask** if it should be a **draft** PR (default: draft).
+- Use the repo's PR template (`.github/pull_request_template.md`) for the body. Fill in the sections:
+  - **Type of change** — check the applicable boxes (Bugfix, New feature, Enhancement, Refactoring).
+  - **Description** — describe the changes in detail.
+  - **Motivation and Context** — why the change is needed, link related issues.
+  - **How did you test it?** — list tests added/run.
+  - **Checklist** — check the applicable boxes.
+  - **Next steps** — note any follow-up work, or leave empty.
+
 ## Pre-Commit Checklist
 
 - [ ] Code compiles without errors (`yarn build`)

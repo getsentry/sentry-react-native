@@ -33,6 +33,25 @@ body:
         - 'sentry.io (SaS)'
         - 'on-premise (Self-Hosted)'
 
+  - type: dropdown
+    id: other_error_monitoring
+    validations:
+      required: true
+    attributes:
+      label: 'Are you using any other error monitoring solution alongside Sentry?'
+      description: 'Select exactly one option.'
+      options:
+        - "Yes"
+        - "No"
+
+  - type: input
+    id: other_error_monitoring_name
+    validations:
+      required: false
+    attributes:
+      label: 'Other Error Monitoring Solution Name'
+      description: "If you're using another error monitoring solution side-by-side, please enter the name of the other solution."
+
   - type: input
     id: version
     validations:
