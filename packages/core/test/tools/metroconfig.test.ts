@@ -439,6 +439,19 @@ describe('metroconfig', () => {
 
       expect(contextMock.resolveRequest).toHaveBeenCalledWith(contextMock, 'some/other/module', 'android');
     });
+
+    test('exits process on old Metro when context.resolveRequest is the resolver itself (infinite recursion guard)', () => {
+      // @ts-expect-error mock.
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
+      const modifiedConfig = withSentryExcludeServerOnlyResolver({ resolver: {} });
+
+      const resolver = modifiedConfig.resolver?.resolveRequest;
+      // Simulate old Metro behavior where context.resolveRequest === the resolver itself
+      const oldMetroContext = { resolveRequest: resolver };
+      resolver?.(oldMetroContext, 'some/other/module', 'android');
+
+      expect(mockExit).toHaveBeenCalledWith(-1);
+    });
   });
 });
 

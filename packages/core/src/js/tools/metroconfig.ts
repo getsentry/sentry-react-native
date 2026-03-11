@@ -303,8 +303,16 @@ export function withSentryExcludeServerOnlyResolver(config: MetroConfig): MetroC
         : originalResolver(context, moduleName, platform);
     }
 
+    // Prior 0.68, context.resolveRequest is sentryServerOnlyResolverRequest itself, which would cause infinite recursion.
     if (context.resolveRequest === sentryServerOnlyResolverRequest) {
-      return context.resolveRequest(context, moduleName, platform);
+      // eslint-disable-next-line no-console
+      console.error(
+        `Error: [@sentry/react-native/metro] Can not resolve the defaultResolver on Metro older than 0.68.
+Please include your resolverRequest on your metroconfig or update your Metro version to 0.68 or higher.
+If you are still facing issues, report the issue at http://www.github.com/getsentry/sentry-react-native/issues`,
+      );
+      // Return required for test.
+      return process.exit(-1);
     }
 
     return context.resolveRequest(context, moduleName, platform);
