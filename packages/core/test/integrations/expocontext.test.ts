@@ -8,7 +8,7 @@ import * as environment from '../../src/js/utils/environment';
 import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 import { getExpoDevice } from '../../src/js/utils/expomodules';
 import * as expoModules from '../../src/js/utils/expomodules';
-import { setupTestClient } from '../mocks/client';
+import { setupTestClient, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
@@ -77,6 +77,111 @@ describe('Expo Context Integration', () => {
       setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
 
       expect(NATIVE.setContext).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Emergency Launch Event', () => {
+    it('captures a warning event on emergency launch', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEmergencyLaunch: true,
+        emergencyLaunchReason: 'The previous launch failed with a fatal error.',
+      });
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      const capturedEvent = TestClient.instance?.eventQueue.find(
+        e => e.tags?.['expo.updates.emergency_launch'] === 'true',
+      );
+
+      expect(capturedEvent).toBeDefined();
+      expect(capturedEvent?.level).toBe('warning');
+      expect(capturedEvent?.message).toBe(
+        'Expo Updates emergency launch: The previous launch failed with a fatal error.',
+      );
+    });
+
+    it('captures a warning event without reason when reason is missing', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEmergencyLaunch: true,
+      });
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      const capturedEvent = TestClient.instance?.eventQueue.find(
+        e => e.tags?.['expo.updates.emergency_launch'] === 'true',
+      );
+
+      expect(capturedEvent).toBeDefined();
+      expect(capturedEvent?.level).toBe('warning');
+      expect(capturedEvent?.message).toBe('Expo Updates emergency launch');
+    });
+
+    it('does not capture event when not emergency launch', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEmergencyLaunch: false,
+      });
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      const capturedEvent = TestClient.instance?.eventQueue.find(
+        e => e.tags?.['expo.updates.emergency_launch'] === 'true',
+      );
+
+      expect(capturedEvent).toBeUndefined();
+    });
+
+    it('does not capture event when not expo', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(false);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEmergencyLaunch: true,
+      });
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      const capturedEvent = TestClient.instance?.eventQueue.find(
+        e => e.tags?.['expo.updates.emergency_launch'] === 'true',
+      );
+
+      expect(capturedEvent).toBeUndefined();
+    });
+
+    it('does not capture event when in Expo Go', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEmergencyLaunch: true,
+      });
+
+      setupTestClient({ enableNative: true, integrations: [expoContextIntegration()] });
+
+      const capturedEvent = TestClient.instance?.eventQueue.find(
+        e => e.tags?.['expo.updates.emergency_launch'] === 'true',
+      );
+
+      expect(capturedEvent).toBeUndefined();
+    });
+
+    it('does not capture event when native is disabled', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+      jest.spyOn(expoModules, 'getExpoUpdates').mockReturnValue({
+        isEmergencyLaunch: true,
+      });
+
+      setupTestClient({ enableNative: false, integrations: [expoContextIntegration()] });
+
+      const capturedEvent = TestClient.instance?.eventQueue.find(
+        e => e.tags?.['expo.updates.emergency_launch'] === 'true',
+      );
+
+      expect(capturedEvent).toBeUndefined();
     });
   });
 

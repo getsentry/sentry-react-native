@@ -22,6 +22,7 @@
   Sentry.wrapExpoAsset(Asset);
   ```
 - Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
+- Automatically capture a warning event when Expo Updates performs an emergency launch ([#5794](https://github.com/getsentry/sentry-react-native/pull/5794))
 - Adds environment configuration in the Expo config plugin. This can be set with the `SENTRY_ENVIRONMENT` env variable or in `sentry.options.json` ([#5796](https://github.com/getsentry/sentry-react-native/pull/5796))
   ```json
   ["@sentry/react-native/expo", {
@@ -45,15 +46,19 @@
 ### Fixes
 
 - Defer initial navigation span creation until navigation container is registered ([#5789](https://github.com/getsentry/sentry-react-native/pull/5789))
+- Exclude server-only AI/MCP modules from native bundles, reducing bundle size by ~150kb ([#5802](https://github.com/getsentry/sentry-react-native/pull/5802))
 
 ### Dependencies
 
-- Bump CLI from v3.3.0 to v3.3.2 ([#5793](https://github.com/getsentry/sentry-react-native/pull/5793), [#5799](https://github.com/getsentry/sentry-react-native/pull/5799))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#332)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.0...3.3.2)
+- Bump CLI from v3.3.0 to v3.3.3 ([#5793](https://github.com/getsentry/sentry-react-native/pull/5793), [#5799](https://github.com/getsentry/sentry-react-native/pull/5799), [#5806](https://github.com/getsentry/sentry-react-native/pull/5806))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#333)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.0...3.3.3)
 - Bump JavaScript SDK from v10.42.0 to v10.43.0 ([#5791](https://github.com/getsentry/sentry-react-native/pull/5791))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10430)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.42.0...10.43.0)
+- Bump Cocoa SDK from v9.6.0 to v9.7.0 ([#5805](https://github.com/getsentry/sentry-react-native/pull/5805))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#970)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.6.0...9.7.0)
 
 ## 8.3.0
 
