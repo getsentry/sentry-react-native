@@ -1,4 +1,4 @@
-import { addBreadcrumb, debug, type Integration } from '@sentry/core';
+import { addBreadcrumb, debug, type Integration, type SeverityLevel } from '@sentry/core';
 import type { ReactNativeClient } from '../client';
 import { isExpo, isExpoGo } from '../utils/environment';
 
@@ -27,28 +27,79 @@ interface UpdatesNativeStateChangeEvent {
   context: UpdatesNativeStateMachineContext;
 }
 
-interface UpdatesStateChangeSubscription {
-  remove(): void;
-}
-
 /**
  * Tries to load `expo-updates` and retrieve `addUpdatesStateChangeListener`.
  * Returns `undefined` if `expo-updates` is not installed.
  */
-function getAddUpdatesStateChangeListener(): ((
-  listener: (event: UpdatesNativeStateChangeEvent) => void,
-) => UpdatesStateChangeSubscription) | undefined {
+function getAddUpdatesStateChangeListener():
+  | ((listener: (event: UpdatesNativeStateChangeEvent) => void) => void)
+  | undefined {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const expoUpdates = require('expo-updates');
-    if (typeof expoUpdates.addUpdatesStateChangeListener === 'function') {
-      return expoUpdates.addUpdatesStateChangeListener;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
+    const addListener = require('expo-updates').addUpdatesStateChangeListener;
+    if (typeof addListener === 'function') {
+      return addListener as (listener: (event: UpdatesNativeStateChangeEvent) => void) => void;
     }
   } catch (_) {
-    // expo-updates is not installed
+    // that happens when expo-updates is not installed
   }
   return undefined;
 }
+
+interface StateTransition {
+  field: keyof UpdatesNativeStateMachineContext;
+  message: string;
+  level: SeverityLevel;
+  getData?: (ctx: UpdatesNativeStateMachineContext) => Record<string, unknown> | undefined;
+}
+
+const STATE_TRANSITIONS: StateTransition[] = [
+  { field: 'isChecking', message: 'Checking for update', level: 'info' },
+  {
+    field: 'isUpdateAvailable',
+    message: 'Update available',
+    level: 'info',
+    getData: ctx => {
+      const updateId = ctx.latestManifest?.id;
+      return updateId ? { updateId } : undefined;
+    },
+  },
+  { field: 'isDownloading', message: 'Downloading update', level: 'info' },
+  {
+    field: 'isUpdatePending',
+    message: 'Update downloaded',
+    level: 'info',
+    getData: ctx => {
+      const updateId = ctx.downloadedManifest?.id;
+      return updateId ? { updateId } : undefined;
+    },
+  },
+  {
+    field: 'checkError',
+    message: 'Update check failed',
+    level: 'error',
+    getData: ctx => ({
+      error: (ctx.checkError as Error).message || String(ctx.checkError),
+    }),
+  },
+  {
+    field: 'downloadError',
+    message: 'Update download failed',
+    level: 'error',
+    getData: ctx => ({
+      error: (ctx.downloadError as Error).message || String(ctx.downloadError),
+    }),
+  },
+  {
+    field: 'rollback',
+    message: 'Rollback directive received',
+    level: 'warning',
+    getData: ctx => ({
+      commitTime: ctx.rollback!.commitTime,
+    }),
+  },
+  { field: 'isRestarting', message: 'Restarting for update', level: 'info' },
+];
 
 /**
  * Listens to Expo Updates native state machine changes and records
@@ -56,8 +107,6 @@ function getAddUpdatesStateChangeListener(): ((
  * downloading updates, errors, rollbacks, and restarts.
  */
 export const expoUpdatesListenerIntegration = (): Integration => {
-  let _subscription: UpdatesStateChangeSubscription | undefined;
-
   function setup(client: ReactNativeClient): void {
     client.on('afterInit', () => {
       if (!isExpo() || isExpoGo()) {
@@ -72,7 +121,7 @@ export const expoUpdatesListenerIntegration = (): Integration => {
 
       let previousContext: Partial<UpdatesNativeStateMachineContext> = {};
 
-      _subscription = addListener((event: UpdatesNativeStateChangeEvent) => {
+      addListener((event: UpdatesNativeStateChangeEvent) => {
         const ctx = event.context;
         handleStateChange(previousContext, ctx);
         previousContext = ctx;
@@ -88,7 +137,7 @@ export const expoUpdatesListenerIntegration = (): Integration => {
 
 /**
  * Compares previous and current state machine contexts and emits
- * breadcrumbs for meaningful transitions.
+ * breadcrumbs for meaningful transitions (falsy→truthy).
  *
  * @internal Exposed for testing purposes
  */
@@ -96,88 +145,14 @@ export function handleStateChange(
   previous: Partial<UpdatesNativeStateMachineContext>,
   current: UpdatesNativeStateMachineContext,
 ): void {
-  // Checking for update
-  if (!previous.isChecking && current.isChecking) {
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Checking for update',
-      level: 'info',
-    });
-  }
-
-  // Update available
-  if (!previous.isUpdateAvailable && current.isUpdateAvailable) {
-    const updateId = current.latestManifest?.id;
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Update available',
-      level: 'info',
-      data: updateId ? { updateId } : undefined,
-    });
-  }
-
-  // Downloading update
-  if (!previous.isDownloading && current.isDownloading) {
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Downloading update',
-      level: 'info',
-    });
-  }
-
-  // Update downloaded and pending
-  if (!previous.isUpdatePending && current.isUpdatePending) {
-    const updateId = current.downloadedManifest?.id;
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Update downloaded',
-      level: 'info',
-      data: updateId ? { updateId } : undefined,
-    });
-  }
-
-  // Check error
-  if (!previous.checkError && current.checkError) {
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Update check failed',
-      level: 'error',
-      data: {
-        error: current.checkError.message || String(current.checkError),
-      },
-    });
-  }
-
-  // Download error
-  if (!previous.downloadError && current.downloadError) {
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Update download failed',
-      level: 'error',
-      data: {
-        error: current.downloadError.message || String(current.downloadError),
-      },
-    });
-  }
-
-  // Rollback
-  if (!previous.rollback && current.rollback) {
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Rollback directive received',
-      level: 'warning',
-      data: {
-        commitTime: current.rollback.commitTime,
-      },
-    });
-  }
-
-  // Restarting
-  if (!previous.isRestarting && current.isRestarting) {
-    addBreadcrumb({
-      category: BREADCRUMB_CATEGORY,
-      message: 'Restarting for update',
-      level: 'info',
-    });
+  for (const transition of STATE_TRANSITIONS) {
+    if (!previous[transition.field] && current[transition.field]) {
+      addBreadcrumb({
+        category: BREADCRUMB_CATEGORY,
+        message: transition.message,
+        level: transition.level,
+        data: transition.getData?.(current),
+      });
+    }
   }
 }

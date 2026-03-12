@@ -1,8 +1,5 @@
 import { addBreadcrumb, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
-import {
-  expoUpdatesListenerIntegration,
-  handleStateChange,
-} from '../../src/js/integrations/expoupdateslistener';
+import { expoUpdatesListenerIntegration, handleStateChange } from '../../src/js/integrations/expoupdateslistener';
 import * as environment from '../../src/js/utils/environment';
 import { setupTestClient } from '../mocks/client';
 
@@ -34,9 +31,13 @@ describe('ExpoUpdatesListener Integration', () => {
 
       const mockRemove = jest.fn();
       const mockAddListener = jest.fn().mockReturnValue({ remove: mockRemove });
-      jest.mock('expo-updates', () => ({
-        addUpdatesStateChangeListener: mockAddListener,
-      }), { virtual: true });
+      jest.mock(
+        'expo-updates',
+        () => ({
+          addUpdatesStateChangeListener: mockAddListener,
+        }),
+        { virtual: true },
+      );
 
       setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
 
@@ -49,9 +50,13 @@ describe('ExpoUpdatesListener Integration', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
 
       const mockAddListener = jest.fn();
-      jest.mock('expo-updates', () => ({
-        addUpdatesStateChangeListener: mockAddListener,
-      }), { virtual: true });
+      jest.mock(
+        'expo-updates',
+        () => ({
+          addUpdatesStateChangeListener: mockAddListener,
+        }),
+        { virtual: true },
+      );
 
       setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
 
@@ -63,9 +68,13 @@ describe('ExpoUpdatesListener Integration', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
 
       const mockAddListener = jest.fn();
-      jest.mock('expo-updates', () => ({
-        addUpdatesStateChangeListener: mockAddListener,
-      }), { virtual: true });
+      jest.mock(
+        'expo-updates',
+        () => ({
+          addUpdatesStateChangeListener: mockAddListener,
+        }),
+        { virtual: true },
+      );
 
       setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
 
@@ -87,10 +96,7 @@ describe('ExpoUpdatesListener Integration', () => {
     });
 
     it('adds breadcrumb when checking starts', () => {
-      handleStateChange(
-        { ...baseContext },
-        { ...baseContext, isChecking: true },
-      );
+      handleStateChange({ ...baseContext }, { ...baseContext, isChecking: true });
 
       expect(mockAddBreadcrumb).toHaveBeenCalledWith({
         category: 'expo.updates',
@@ -100,10 +106,7 @@ describe('ExpoUpdatesListener Integration', () => {
     });
 
     it('does not add breadcrumb when checking stays true', () => {
-      handleStateChange(
-        { ...baseContext, isChecking: true },
-        { ...baseContext, isChecking: true },
-      );
+      handleStateChange({ ...baseContext, isChecking: true }, { ...baseContext, isChecking: true });
 
       expect(mockAddBreadcrumb).not.toHaveBeenCalled();
     });
@@ -144,10 +147,7 @@ describe('ExpoUpdatesListener Integration', () => {
     });
 
     it('adds breadcrumb when downloading starts', () => {
-      handleStateChange(
-        { ...baseContext },
-        { ...baseContext, isDownloading: true },
-      );
+      handleStateChange({ ...baseContext }, { ...baseContext, isDownloading: true });
 
       expect(mockAddBreadcrumb).toHaveBeenCalledWith({
         category: 'expo.updates',
@@ -226,10 +226,7 @@ describe('ExpoUpdatesListener Integration', () => {
     });
 
     it('adds breadcrumb when restarting starts', () => {
-      handleStateChange(
-        { ...baseContext },
-        { ...baseContext, isRestarting: true },
-      );
+      handleStateChange({ ...baseContext }, { ...baseContext, isRestarting: true });
 
       expect(mockAddBreadcrumb).toHaveBeenCalledWith({
         category: 'expo.updates',
@@ -249,29 +246,19 @@ describe('ExpoUpdatesListener Integration', () => {
       );
 
       expect(mockAddBreadcrumb).toHaveBeenCalledTimes(2);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Checking for update' }),
-      );
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Downloading update' }),
-      );
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining({ message: 'Checking for update' }));
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining({ message: 'Downloading update' }));
     });
 
     it('does not add breadcrumbs when nothing changes', () => {
-      handleStateChange(
-        { ...baseContext },
-        { ...baseContext },
-      );
+      handleStateChange({ ...baseContext }, { ...baseContext });
 
       expect(mockAddBreadcrumb).not.toHaveBeenCalled();
     });
 
     it('does not re-emit breadcrumbs for already-present errors', () => {
       const existingError = new Error('Old error');
-      handleStateChange(
-        { ...baseContext, checkError: existingError },
-        { ...baseContext, checkError: existingError },
-      );
+      handleStateChange({ ...baseContext, checkError: existingError }, { ...baseContext, checkError: existingError });
 
       expect(mockAddBreadcrumb).not.toHaveBeenCalled();
     });
