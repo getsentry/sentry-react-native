@@ -43,6 +43,9 @@
 - Bump JavaScript SDK from v10.42.0 to v10.43.0 ([#5791](https://github.com/getsentry/sentry-react-native/pull/5791))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10430)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.42.0...10.43.0)
+- Bump Cocoa SDK from v9.6.0 to v9.7.0 ([#5805](https://github.com/getsentry/sentry-react-native/pull/5805))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#970)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.6.0...9.7.0)
 
 ## 8.3.0
 
