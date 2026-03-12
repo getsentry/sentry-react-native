@@ -22,7 +22,7 @@
   Sentry.wrapExpoAsset(Asset);
   ```
 - Adds tags with Expo Updates context variables to make them searchable and filterable ([#5788](https://github.com/getsentry/sentry-react-native/pull/5788))
-- Add `expoUpdatesListenerIntegration` that records breadcrumbs for Expo Updates lifecycle events ()
+- Add `expoUpdatesListenerIntegration` that records breadcrumbs for Expo Updates lifecycle events ([#5795](https://github.com/getsentry/sentry-react-native/pull/5795))
   - Tracks update checks, downloads, errors, rollbacks, and restarts as `expo.updates` breadcrumbs
   - Enabled by default in Expo apps (requires `expo-updates` to be installed)
 
