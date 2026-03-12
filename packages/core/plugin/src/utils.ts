@@ -20,7 +20,7 @@ export function writeSentryOptions(projectRoot: string, pluginOptions: Record<st
     try {
       existingOptions = JSON.parse(fs.readFileSync(optionsFilePath, 'utf8'));
     } catch (e) {
-      warnOnce(`Failed to parse ${SENTRY_OPTIONS_FILE_NAME}: ${e}. The options will not be set.`);
+      warnOnce(`Failed to parse ${SENTRY_OPTIONS_FILE_NAME}: ${e}. These options will not be set.`);
       return;
     }
   }
