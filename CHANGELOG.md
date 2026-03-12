@@ -34,6 +34,7 @@
 ### Fixes
 
 - Defer initial navigation span creation until navigation container is registered ([#5789](https://github.com/getsentry/sentry-react-native/pull/5789))
+- Exclude server-only AI/MCP modules from native bundles, reducing bundle size by ~150kb ([#5802](https://github.com/getsentry/sentry-react-native/pull/5802))
 
 ### Dependencies
 
