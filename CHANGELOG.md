@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Pass `screenshotStrategy` option from `mobileReplayIntegration` to the Android native SDK ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Pass `screenshotStrategy` option from `mobileReplayIntegration` to the Android native SDK ([#5808](https://github.com/getsentry/sentry-react-native/pull/5808))
 
 ### Features
 
