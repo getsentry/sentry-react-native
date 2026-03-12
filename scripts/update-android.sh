@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ORIGINAL_DIR=$(cd "$(dirname "$0")" && pwd)
 cd $(dirname "$0")/../packages/core/android
 file='build.gradle'
 content=$(cat $file)
@@ -27,7 +28,8 @@ set-version)
     echo "$newContent" >$file
 
     # Update replay-stubs to match
-    $(dirname "$0")/update-android-stubs.sh set-version $2
+    cd $ORIGINAL_DIR
+    ./update-android-stubs.sh set-version $2
     ;;
 *)
     echo "Unknown argument $1"
