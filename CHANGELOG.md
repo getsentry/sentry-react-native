@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Pass `screenshotStrategy` option from `mobileReplayIntegration` to the Android native SDK ([#5808](https://github.com/getsentry/sentry-react-native/pull/5808))
+
 ### Features
 
 - Add `wrapExpoImage` and `wrapExpoAsset` for Expo performance monitoring ([#5427](https://github.com/getsentry/sentry-react-native/issues/5427))
