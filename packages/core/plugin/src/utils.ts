@@ -12,19 +12,19 @@ export function writeSentryPropertiesTo(filepath: string, sentryProperties: stri
 
 const SENTRY_OPTIONS_FILE_NAME = 'sentry.options.json';
 
-export function writeSentryOptionsEnvironment(projectRoot: string, environment: string): void {
+export function writeSentryOptions(projectRoot: string, pluginOptions: Record<string, unknown>): void {
   const optionsFilePath = path.resolve(projectRoot, SENTRY_OPTIONS_FILE_NAME);
 
-  let options: Record<string, unknown> = {};
+  let existingOptions: Record<string, unknown> = {};
   if (fs.existsSync(optionsFilePath)) {
     try {
-      options = JSON.parse(fs.readFileSync(optionsFilePath, 'utf8'));
+      existingOptions = JSON.parse(fs.readFileSync(optionsFilePath, 'utf8'));
     } catch (e) {
-      warnOnce(`Failed to parse ${SENTRY_OPTIONS_FILE_NAME}: ${e}. The environment will not be set.`);
+      warnOnce(`Failed to parse ${SENTRY_OPTIONS_FILE_NAME}: ${e}. These options will not be set.`);
       return;
     }
   }
 
-  options.environment = environment;
-  fs.writeFileSync(optionsFilePath, `${JSON.stringify(options, null, 2)}\n`);
+  const mergedOptions = { ...existingOptions, ...pluginOptions };
+  fs.writeFileSync(optionsFilePath, `${JSON.stringify(mergedOptions, null, 2)}\n`);
 }

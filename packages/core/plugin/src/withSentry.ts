@@ -2,7 +2,7 @@ import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { createRunOncePlugin, withDangerousMod } from 'expo/config-plugins';
 import { bold, warnOnce } from './logger';
-import { writeSentryOptionsEnvironment } from './utils';
+import { writeSentryOptions } from './utils';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './version';
 import { withSentryAndroid } from './withSentryAndroid';
 import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
@@ -15,7 +15,7 @@ interface PluginProps {
   authToken?: string;
   url?: string;
   useNativeInit?: boolean;
-  environment?: string;
+  options?: Record<string, unknown>;
   experimental_android?: SentryAndroidGradlePluginOptions;
 }
 
@@ -28,9 +28,13 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   }
 
   let cfg = config;
-  const environment = props?.environment ?? process.env.SENTRY_ENVIRONMENT;
+  const pluginOptions = props?.options ? { ...props.options } : {};
+  const environment = process.env.SENTRY_ENVIRONMENT;
   if (environment) {
-    cfg = withSentryOptionsEnvironment(cfg, environment);
+    pluginOptions.environment = environment;
+  }
+  if (Object.keys(pluginOptions).length > 0) {
+    cfg = withSentryOptionsFile(cfg, pluginOptions);
   }
   if (sentryProperties !== null) {
     try {
@@ -87,20 +91,20 @@ ${project ? `defaults.project=${project}` : missingProjectMessage}
 ${authToken ? `${existingAuthTokenMessage}\nauth.token=${authToken}` : missingAuthTokenMessage}`;
 }
 
-function withSentryOptionsEnvironment(config: ExpoConfig, environment: string): ExpoConfig {
+function withSentryOptionsFile(config: ExpoConfig, pluginOptions: Record<string, unknown>): ExpoConfig {
   // withDangerousMod requires a platform key, but sentry.options.json is at the project root.
   // We apply to both platforms so it works with `expo prebuild --platform ios` or `--platform android`.
   let cfg = withDangerousMod(config, [
     'android',
     mod => {
-      writeSentryOptionsEnvironment(mod.modRequest.projectRoot, environment);
+      writeSentryOptions(mod.modRequest.projectRoot, pluginOptions);
       return mod;
     },
   ]);
   cfg = withDangerousMod(cfg, [
     'ios',
     mod => {
-      writeSentryOptionsEnvironment(mod.modRequest.projectRoot, environment);
+      writeSentryOptions(mod.modRequest.projectRoot, pluginOptions);
       return mod;
     },
   ]);

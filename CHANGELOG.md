@@ -31,7 +31,19 @@
   ```json
   ["@sentry/react-native/expo", {
     "useNativeInit": true,
-    "environment": "staging"
+    "options": {
+      "environment": "staging"
+    }
+  }]
+  ```
+- Generate `sentry.options.json` from the Expo config plugin `options` property ([#5804](https://github.com/getsentry/sentry-react-native/pull/5804/))
+  ```json
+  ["@sentry/react-native/expo", {
+    "useNativeInit": true,
+    "options": {
+      "dsn": "https://key@sentry.io/123",
+      "tracesSampleRate": 1.0
+    }
   }]
   ```
 
