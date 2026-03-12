@@ -25,6 +25,9 @@ set-version)
     # Update sentry-spotlight
     newContent=$(echo "$newContent" | sed -E "s/(io\.sentry:sentry-spotlight:)([0-9\.]+)/\1$2/g")
     echo "$newContent" >$file
+
+    # Update replay-stubs to match
+    $(dirname "$0")/update-android-stubs.sh set-version $2
     ;;
 *)
     echo "Unknown argument $1"
