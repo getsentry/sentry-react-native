@@ -41,6 +41,9 @@ const styles = StyleSheet.create({
     padding: 5,
     flex: 1,
   },
+  separator: {
+    marginVertical: 8,
+  },
   image: {
     width: 200,
     height: 200,
@@ -55,6 +58,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
 });
+
+const Separator = () => <View style={styles.separator} />;
 
 export default function getPlaygroundTab() {
   return Sentry.withProfiler(
@@ -72,6 +77,14 @@ export default function getPlaygroundTab() {
                       props.navigation.navigate('Webview');
                     }}
                   />
+                  <Separator />
+                  <Button
+                    title="Playground Integration"
+                    onPress={() => {
+                      props.navigation.navigate('BundledPlayground');
+                    }}
+                  />
+                  <Separator />
                   <Text>Custom Mask:</Text>
                   <View>
                     <Sentry.Unmask>

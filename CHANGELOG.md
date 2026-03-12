@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Pass `screenshotStrategy` option from `mobileReplayIntegration` to the Android native SDK ([#5808](https://github.com/getsentry/sentry-react-native/pull/5808))
+
 ### Features
 
 - Add `wrapExpoImage` and `wrapExpoAsset` for Expo performance monitoring ([#5427](https://github.com/getsentry/sentry-react-native/issues/5427))
@@ -25,6 +29,44 @@
 - Add `expoUpdatesListenerIntegration` that records breadcrumbs for Expo Updates lifecycle events ([#5795](https://github.com/getsentry/sentry-react-native/pull/5795))
   - Tracks update checks, downloads, errors, rollbacks, and restarts as `expo.updates` breadcrumbs
   - Enabled by default in Expo apps (requires `expo-updates` to be installed)
+
+- Automatically capture a warning event when Expo Updates performs an emergency launch ([#5794](https://github.com/getsentry/sentry-react-native/pull/5794))
+- Adds environment configuration in the Expo config plugin. This can be set with the `SENTRY_ENVIRONMENT` env variable or in `sentry.options.json` ([#5796](https://github.com/getsentry/sentry-react-native/pull/5796))
+  ```json
+  ["@sentry/react-native/expo", {
+    "useNativeInit": true,
+    "options": {
+      "environment": "staging"
+    }
+  }]
+  ```
+- Generate `sentry.options.json` from the Expo config plugin `options` property ([#5804](https://github.com/getsentry/sentry-react-native/pull/5804/))
+  ```json
+  ["@sentry/react-native/expo", {
+    "useNativeInit": true,
+    "options": {
+      "dsn": "https://key@sentry.io/123",
+      "tracesSampleRate": 1.0
+    }
+  }]
+  ```
+
+### Fixes
+
+- Defer initial navigation span creation until navigation container is registered ([#5789](https://github.com/getsentry/sentry-react-native/pull/5789))
+- Exclude server-only AI/MCP modules from native bundles, reducing bundle size by ~150kb ([#5802](https://github.com/getsentry/sentry-react-native/pull/5802))
+
+### Dependencies
+
+- Bump CLI from v3.3.0 to v3.3.3 ([#5793](https://github.com/getsentry/sentry-react-native/pull/5793), [#5799](https://github.com/getsentry/sentry-react-native/pull/5799), [#5806](https://github.com/getsentry/sentry-react-native/pull/5806))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#333)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.0...3.3.3)
+- Bump JavaScript SDK from v10.42.0 to v10.43.0 ([#5791](https://github.com/getsentry/sentry-react-native/pull/5791))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10430)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.42.0...10.43.0)
+- Bump Cocoa SDK from v9.6.0 to v9.7.0 ([#5805](https://github.com/getsentry/sentry-react-native/pull/5805))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#970)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.6.0...9.7.0)
 
 ## 8.3.0
 

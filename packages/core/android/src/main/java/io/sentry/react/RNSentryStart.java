@@ -11,6 +11,7 @@ import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
 import io.sentry.SentryOptions.BeforeSendCallback;
+import io.sentry.ScreenshotStrategyType;
 import io.sentry.SentryReplayOptions;
 import io.sentry.UncaughtExceptionHandlerIntegration;
 import io.sentry.android.core.AnrIntegration;
@@ -373,6 +374,15 @@ final class RNSentryStart {
             || rnMobileReplayOptions.getBoolean("maskAllVectors");
     if (redactVectors) {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
+    }
+
+    if (rnMobileReplayOptions.hasKey("screenshotStrategy")) {
+      final String strategy = rnMobileReplayOptions.getString("screenshotStrategy");
+      if ("canvas".equals(strategy)) {
+        androidReplayOptions.setScreenshotStrategy(ScreenshotStrategyType.CANVAS);
+      } else {
+        androidReplayOptions.setScreenshotStrategy(ScreenshotStrategyType.PIXEL_COPY);
+      }
     }
 
     androidReplayOptions.setMaskViewContainerClass(RNSentryReplayMask.class.getName());

@@ -195,6 +195,7 @@ export const reactNavigationIntegration = ({
   let navigationProcessingSpan: Span | undefined;
 
   let initialStateHandled: boolean = false;
+  let isSetupComplete: boolean = false;
   let stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
   let recentRouteKeys: string[] = [];
 
@@ -233,14 +234,15 @@ export const reactNavigationIntegration = ({
       }
     });
 
-    startIdleNavigationSpan();
+    isSetupComplete = true;
 
     if (!navigationContainer) {
       // This is expected as navigation container is registered after the root component is mounted.
       return undefined;
     }
 
-    // Navigation container already registered, just populate with route state
+    // Navigation container already registered, create and populate initial span
+    startIdleNavigationSpan();
     updateLatestNavigationSpanWithCurrentRoute();
     initialStateHandled = true;
   };
@@ -282,8 +284,13 @@ export const reactNavigationIntegration = ({
     }
 
     if (!latestNavigationSpan) {
-      debug.log(`${INTEGRATION_NAME} Navigation container registered, but integration has not been setup yet.`);
-      return undefined;
+      if (!isSetupComplete) {
+        debug.log(
+          `${INTEGRATION_NAME} Navigation container registered before integration setup. Initial span will be created when setup completes.`,
+        );
+        return undefined;
+      }
+      startIdleNavigationSpan();
     }
 
     // Navigation Container is registered after the first navigation
