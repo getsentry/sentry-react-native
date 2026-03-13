@@ -332,6 +332,71 @@ describe('NativeFramesInstrumentation', () => {
     expect(childSpan!.data).not.toHaveProperty('frames.frozen');
   });
 
+  it('falls back to last child span end frames when root span end timestamp does not match event timestamp (idle transaction trim)', async () => {
+    // Simulate idle transaction trimming: an event processor before NativeFrames shifts
+    // event.timestamp back to the child span's end time. This makes the root span's end frames
+    // timestamp (captured at idle timeout) no longer match within the 50ms margin of error,
+    // forcing processEvent to fall back to the child span's end frames.
+    let childEndTimestamp: number | undefined;
+    asyncProcessorBeforeNativeFrames = async (event: Event) => {
+      if (event.timestamp && childEndTimestamp) {
+        event.timestamp = childEndTimestamp; // Trim to child span end time (simulates idle trimEnd)
+      }
+      return event;
+    };
+
+    const rootStartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
+    const childStartFrames = { totalFrames: 110, slowFrames: 11, frozenFrames: 6 };
+    const childEndFrames = { totalFrames: 160, slowFrames: 16, frozenFrames: 8 };
+    const rootEndFrames = { totalFrames: 200, slowFrames: 20, frozenFrames: 10 };
+
+    mockFunction(NATIVE.fetchNativeFrames)
+      .mockResolvedValueOnce(rootStartFrames) // root span start
+      .mockResolvedValueOnce(childStartFrames) // child span start
+      .mockResolvedValueOnce(childEndFrames) // child span end (fallback + span attributes)
+      .mockResolvedValueOnce(rootEndFrames) // root span end (stored in endMap)
+      .mockResolvedValueOnce(rootEndFrames); // root span end (for span attributes)
+
+    await startSpan({ name: 'idle-transaction' }, async () => {
+      startSpan({ name: 'child-activity' }, childSpan => {
+        // Child span ends here at current mock time
+        childEndTimestamp = Date.now() / 1000;
+      });
+      await Promise.resolve(); // Flush frame captures
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Advance time to simulate idle timeout gap (1 second > 50ms margin)
+      global.Date.now = jest.fn(() => mockDate.getTime() + 1000);
+      // Root span ends here at the advanced time
+    });
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    // The root span end frames timestamp won't match event.timestamp (off by 1s > 50ms margin),
+    // so processEvent falls back to the child span end frames.
+    // measurements = childEndFrames - rootStartFrames
+    expect(client.event!).toEqual(
+      expect.objectContaining<Partial<Event>>({
+        measurements: expect.objectContaining<Measurements>({
+          frames_total: {
+            value: 60, // 160 - 100
+            unit: 'none',
+          },
+          frames_slow: {
+            value: 6, // 16 - 10
+            unit: 'none',
+          },
+          frames_frozen: {
+            value: 3, // 8 - 5
+            unit: 'none',
+          },
+        }),
+      }),
+    );
+  });
+
   it('attaches frame data to multiple child spans', async () => {
     const rootStartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
     const child1StartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
