@@ -23,7 +23,7 @@ set-version)
 
 cd android/replay-stubs && ./gradlew jar
     # Rebuild the stubs jar and JS types
-    cd ../android/replay-stubs
+    cd replay-stubs
     echo "Building Stub"
     ./gradlew jar
     ;;
