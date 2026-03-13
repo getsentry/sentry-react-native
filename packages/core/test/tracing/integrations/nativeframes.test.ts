@@ -358,7 +358,7 @@ describe('NativeFramesInstrumentation', () => {
       .mockResolvedValueOnce(rootEndFrames); // root span end (for span attributes)
 
     await startSpan({ name: 'idle-transaction' }, async () => {
-      startSpan({ name: 'child-activity' }, childSpan => {
+      startSpan({ name: 'child-activity' }, () => {
         // Child span ends here at current mock time
         childEndTimestamp = Date.now() / 1000;
       });
