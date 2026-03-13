@@ -295,9 +295,53 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
     [[RNSentryNativeLogsForwarder shared] stopForwarding];
 }
 
+- (void)handleShakeDetected
+{
+    if (hasListeners) {
+        [self sendEventWithName:RNSentryOnShakeEvent body:@{ }];
+    }
+}
+
+// SentryShakeDetector is a Swift class; its notification name and methods are accessed
+// via the raw string / NSClassFromString to avoid requiring @import Sentry in this .mm file.
+static NSNotificationName const RNSentryShakeNotification = @"SentryShakeDetected";
+
+RCT_EXPORT_METHOD(enableShakeDetection)
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:RNSentryShakeNotification
+                                                  object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleShakeDetected)
+                                                 name:RNSentryShakeNotification
+                                               object:nil];
+    Class shakeDetector = NSClassFromString(@"SentryShakeDetector");
+    if (shakeDetector) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [shakeDetector performSelector:@selector(enable)];
+#pragma clang diagnostic pop
+    }
+    hasListeners = YES;
+}
+
+RCT_EXPORT_METHOD(disableShakeDetection)
+{
+    Class shakeDetector = NSClassFromString(@"SentryShakeDetector");
+    if (shakeDetector) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [shakeDetector performSelector:@selector(disable)];
+#pragma clang diagnostic pop
+    }
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:RNSentryShakeNotification
+                                                  object:nil];
+}
+
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[ RNSentryNewFrameEvent, RNSentryNativeLogEvent ];
+    return @[ RNSentryNewFrameEvent, RNSentryNativeLogEvent, RNSentryOnShakeEvent ];
 }
 
 RCT_EXPORT_METHOD(

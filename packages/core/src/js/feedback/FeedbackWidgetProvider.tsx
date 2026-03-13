@@ -13,10 +13,12 @@ import {
   FeedbackWidgetManager,
   PULL_DOWN_CLOSE_THRESHOLD,
   ScreenshotButtonManager,
+  showFeedbackWidget,
   SLIDE_ANIMATION_DURATION,
 } from './FeedbackWidgetManager';
-import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotButtonOptions } from './integration';
+import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotButtonOptions, isShakeToReportEnabled } from './integration';
 import { ScreenshotButton } from './ScreenshotButton';
+import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';
 
 const useNativeDriverForColorAnimations = isNativeDriverSupportedForColorAnimations();
@@ -92,21 +94,27 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
   }
 
   /**
-   * Add a listener to the theme change event.
+   * Add a listener to the theme change event and start shake detection if configured.
    */
   public componentDidMount(): void {
     this._themeListener = Appearance.addChangeListener(() => {
       this.forceUpdate();
     });
+
+    if (isShakeToReportEnabled()) {
+      startShakeListener(showFeedbackWidget);
+    }
   }
 
   /**
-   * Clean up the theme listener.
+   * Clean up the theme listener and stop shake detection.
    */
   public componentWillUnmount(): void {
     if (this._themeListener) {
       this._themeListener.remove();
     }
+
+    stopShakeListener();
   }
 
   /**
