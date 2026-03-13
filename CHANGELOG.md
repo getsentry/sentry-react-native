@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))
+
 ## 8.4.0
 
 ### Fixes
