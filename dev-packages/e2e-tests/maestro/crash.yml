@@ -4,6 +4,11 @@ jsEngine: graaljs
 - runFlow: utils/launchTestAppClear.yml
 - tapOn: "Crash"
 
-- launchApp
+# Use clearState to reinstall the app after the intentional crash.
+# Without clearState, Sentry reads the pending crash report on relaunch and
+# crashes immediately (~82ms), which then triggers iOS crash-loop protection
+# and causes the next test in the suite to also fail.
+- launchApp:
+    clearState: true
 
 - runFlow: utils/assertTestReady.yml
