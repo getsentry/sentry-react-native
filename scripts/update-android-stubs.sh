@@ -20,6 +20,10 @@ get-repo)
 set-version)
     newValue="${BASH_REMATCH[1]}$2"
     echo "${content/${BASH_REMATCH[0]}/$newValue}" >$file
+
+    # Rebuild the stubs jar and JS types
+    cd ..
+    yarn build:replay-stubs || true
     ;;
 *)
     echo "Unknown argument $1"
