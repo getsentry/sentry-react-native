@@ -21,9 +21,11 @@ set-version)
     newValue="${BASH_REMATCH[1]}$2"
     echo "${content/${BASH_REMATCH[0]}/$newValue}" >$file
 
+cd android/replay-stubs && ./gradlew jar
     # Rebuild the stubs jar and JS types
-    cd ..
-    yarn build:replay-stubs || true
+    cd ../android/replay-stubs
+    echo "Building Stub"
+    ./gradlew jar
     ;;
 *)
     echo "Unknown argument $1"
