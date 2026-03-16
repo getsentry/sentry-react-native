@@ -134,10 +134,7 @@ export const nativeFramesIntegration = (): Integration => {
           rootSpanId,
           childEndFramesPromise
             .then(frames => ({ timestamp: spanTimestamp, nativeFrames: frames }))
-            .then(undefined, error => {
-              debug.log(`[${INTEGRATION_NAME}] Error while fetching child span end frames.`, error);
-              return null;
-            }),
+            .then(undefined, () => null),
         );
       }
     }
