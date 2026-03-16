@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## 7.7.18
+
+- chore(deps): bump getsentry/craft from 2.23.2 to 2.24.1 by @dependabot in [#5819](https://github.com/getsentry/sentry-react-native/pull/5819)
+- chore(deps): bump flatted from 3.3.1 to 3.4.1 by @dependabot in [#5816](https://github.com/getsentry/sentry-react-native/pull/5816)
+- Ref: remove yarn from stub update by @lucas-zimerman in [#5811](https://github.com/getsentry/sentry-react-native/pull/5811)
+- Ref(CI): Unify stub update with android update by @lucas-zimerman in [#5807](https://github.com/getsentry/sentry-react-native/pull/5807)
+
 ## 8.4.0
 
 ### Fixes
