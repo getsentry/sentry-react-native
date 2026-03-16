@@ -103,10 +103,12 @@ if [ "$SENTRY_COPY_OPTIONS_FILE" = true ]; then
     if [ -n "$SENTRY_ENVIRONMENT" ]; then
       if "$LOCAL_NODE_BINARY" -e "
         var fs = require('fs');
-        var opts = JSON.parse(fs.readFileSync('$SENTRY_OPTIONS_FILE_PATH', 'utf8'));
+        var sourcePath = process.argv[1];
+        var destinationPath = process.argv[2];
+        var opts = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
         opts.environment = process.env.SENTRY_ENVIRONMENT;
-        fs.writeFileSync('$SENTRY_OPTIONS_FILE_DESTINATION_PATH', JSON.stringify(opts));
-      " 2>/dev/null; then
+        fs.writeFileSync(destinationPath, JSON.stringify(opts));
+      " -- "$SENTRY_OPTIONS_FILE_PATH" "$SENTRY_OPTIONS_FILE_DESTINATION_PATH" 2>/dev/null; then
         echo "[Sentry] Overriding 'environment' from SENTRY_ENVIRONMENT environment variable"
       else
         echo "[Sentry] Failed to override environment, copying file as-is." 1>&2
