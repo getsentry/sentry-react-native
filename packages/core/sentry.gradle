@@ -39,26 +39,22 @@ tasks.register("copySentryJsonConfiguration") {
                 androidAssetsDir.mkdirs()
             }
 
+            copy {
+                from sentryOptionsFile
+                into androidAssetsDir
+                rename { String fileName -> configFile }
+            }
+
             def sentryEnv = System.getenv('SENTRY_ENVIRONMENT')
             if (sentryEnv) {
                 try {
-                    def content = new groovy.json.JsonSlurper().parseText(sentryOptionsFile.text)
+                    def destFile = new File(androidAssetsDir, configFile)
+                    def content = new groovy.json.JsonSlurper().parseText(destFile.text)
                     content.environment = sentryEnv
-                    new File(androidAssetsDir, configFile).text = groovy.json.JsonOutput.toJson(content)
+                    destFile.text = groovy.json.JsonOutput.toJson(content)
                     logger.lifecycle("Overriding 'environment' from SENTRY_ENVIRONMENT environment variable")
                 } catch (Exception e) {
-                    logger.warn("Failed to override environment in ${configFile}: ${e.message}. Copying file as-is.")
-                    copy {
-                        from sentryOptionsFile
-                        into androidAssetsDir
-                        rename { String fileName -> configFile }
-                    }
-                }
-            } else {
-                copy {
-                    from sentryOptionsFile
-                    into androidAssetsDir
-                    rename { String fileName -> configFile }
+                    logger.warn("Failed to override environment in ${configFile}: ${e.message}. Copied file as-is.")
                 }
             }
             logger.lifecycle("Copied ${configFile} to Android assets")

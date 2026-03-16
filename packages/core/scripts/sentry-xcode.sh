@@ -100,22 +100,20 @@ if [ "$SENTRY_COPY_OPTIONS_FILE" = true ]; then
   elif [ ! -f "$SENTRY_OPTIONS_FILE_PATH" ]; then
     echo "[Sentry] $SENTRY_OPTIONS_FILE_PATH not found. $SENTRY_OPTIONS_FILE_ERROR_MESSAGE_POSTFIX" 1>&2
   else
+    cp "$SENTRY_OPTIONS_FILE_PATH" "$SENTRY_OPTIONS_FILE_DESTINATION_PATH"
+
     if [ -n "$SENTRY_ENVIRONMENT" ]; then
       if "$LOCAL_NODE_BINARY" -e "
         var fs = require('fs');
-        var sourcePath = process.argv[1];
-        var destinationPath = process.argv[2];
-        var opts = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+        var destPath = process.argv[1];
+        var opts = JSON.parse(fs.readFileSync(destPath, 'utf8'));
         opts.environment = process.env.SENTRY_ENVIRONMENT;
-        fs.writeFileSync(destinationPath, JSON.stringify(opts));
-      " -- "$SENTRY_OPTIONS_FILE_PATH" "$SENTRY_OPTIONS_FILE_DESTINATION_PATH" 2>/dev/null; then
+        fs.writeFileSync(destPath, JSON.stringify(opts));
+      " -- "$SENTRY_OPTIONS_FILE_DESTINATION_PATH" 2>/dev/null; then
         echo "[Sentry] Overriding 'environment' from SENTRY_ENVIRONMENT environment variable"
       else
-        echo "[Sentry] Failed to override environment, copying file as-is." 1>&2
-        cp "$SENTRY_OPTIONS_FILE_PATH" "$SENTRY_OPTIONS_FILE_DESTINATION_PATH"
+        echo "[Sentry] Failed to override environment, copied file as-is." 1>&2
       fi
-    else
-      cp "$SENTRY_OPTIONS_FILE_PATH" "$SENTRY_OPTIONS_FILE_DESTINATION_PATH"
     fi
     echo "[Sentry] Copied $SENTRY_OPTIONS_FILE_PATH to $SENTRY_OPTIONS_FILE_DESTINATION_PATH"
   fi
