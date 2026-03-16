@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Support `SENTRY_ENVIRONMENT` in bare React Native builds ([#5823](https://github.com/getsentry/sentry-react-native/pull/5823))
+
 ## 8.4.0
 
 ### Fixes
