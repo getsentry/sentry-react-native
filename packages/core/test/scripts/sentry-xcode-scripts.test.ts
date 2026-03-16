@@ -527,6 +527,29 @@ describe('sentry-xcode.sh', () => {
       const source = JSON.parse(fs.readFileSync(optionsFile, 'utf8'));
       expect(source.environment).toBe('production');
     });
+
+    it('falls back to plain copy when sentry.options.json contains invalid JSON', () => {
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, 'invalid json{{{');
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_ENVIRONMENT: 'staging',
+      });
+
+      expect(result.exitCode).toBe(0);
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      expect(fs.readFileSync(destPath, 'utf8')).toBe('invalid json{{{');
+      expect(result.stdout).toContain('Copied');
+    });
   });
 
   describe('SOURCEMAP_FILE path resolution', () => {
