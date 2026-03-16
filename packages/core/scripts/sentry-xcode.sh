@@ -100,7 +100,17 @@ if [ "$SENTRY_COPY_OPTIONS_FILE" = true ]; then
   elif [ ! -f "$SENTRY_OPTIONS_FILE_PATH" ]; then
     echo "[Sentry] $SENTRY_OPTIONS_FILE_PATH not found. $SENTRY_OPTIONS_FILE_ERROR_MESSAGE_POSTFIX" 1>&2
   else
-    cp "$SENTRY_OPTIONS_FILE_PATH" "$SENTRY_OPTIONS_FILE_DESTINATION_PATH"
+    if [ -n "$SENTRY_ENVIRONMENT" ]; then
+      "$LOCAL_NODE_BINARY" -e "
+        var fs = require('fs');
+        var opts = JSON.parse(fs.readFileSync('$SENTRY_OPTIONS_FILE_PATH', 'utf8'));
+        opts.environment = process.env.SENTRY_ENVIRONMENT;
+        fs.writeFileSync('$SENTRY_OPTIONS_FILE_DESTINATION_PATH', JSON.stringify(opts));
+      "
+      echo "[Sentry] Overriding 'environment' from SENTRY_ENVIRONMENT environment variable"
+    else
+      cp "$SENTRY_OPTIONS_FILE_PATH" "$SENTRY_OPTIONS_FILE_DESTINATION_PATH"
+    fi
     echo "[Sentry] Copied $SENTRY_OPTIONS_FILE_PATH to $SENTRY_OPTIONS_FILE_DESTINATION_PATH"
   fi
 fi
