@@ -12,6 +12,10 @@
 
 - Support `SENTRY_ENVIRONMENT` in bare React Native builds ([#5823](https://github.com/getsentry/sentry-react-native/pull/5823))
 
+### Fixes
+
+- Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))
+
 ## 8.4.0
 
 ### Fixes
