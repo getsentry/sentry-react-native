@@ -447,4 +447,77 @@ describe('NativeFramesInstrumentation', () => {
       }),
     );
   });
+
+  it('does not mix up child end frames between overlapping transactions', async () => {
+    // During txn-1's event processing, txn-2 starts and its child ends,
+    // writing to the per-root-span map. txn-1's processEvent should still
+    // read its own child's end frames, not txn-2's.
+    let txn1ChildEndTimestamp: number | undefined;
+
+    const txn2RootStart = { totalFrames: 900, slowFrames: 90, frozenFrames: 45 };
+    const txn2ChildStart = { totalFrames: 910, slowFrames: 91, frozenFrames: 46 };
+    const txn2ChildEnd = { totalFrames: 950, slowFrames: 95, frozenFrames: 48 };
+    const txn2RootEnd = { totalFrames: 999, slowFrames: 99, frozenFrames: 49 };
+
+    asyncProcessorBeforeNativeFrames = async (event: Event) => {
+      if (event.transaction === 'txn-1' && txn1ChildEndTimestamp) {
+        event.timestamp = txn1ChildEndTimestamp; // Simulate idle trim
+
+        // Start and complete txn-2 during txn-1's event processing.
+        // With a global variable (old code), txn-2's child end would overwrite txn-1's data.
+        // Clear scope so txn-2 is a new root span, not a child of txn-1.
+        getCurrentScope().clear();
+        await startSpan({ name: 'txn-2' }, async () => {
+          startSpan({ name: 'txn-2-child' }, () => {});
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+      }
+      return event;
+    };
+
+    const txn1RootStart = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
+    const txn1ChildStart = { totalFrames: 110, slowFrames: 11, frozenFrames: 6 };
+    const txn1ChildEnd = { totalFrames: 160, slowFrames: 16, frozenFrames: 8 };
+    const txn1RootEnd = { totalFrames: 200, slowFrames: 20, frozenFrames: 10 };
+
+    mockFunction(NATIVE.fetchNativeFrames)
+      .mockResolvedValueOnce(txn1RootStart) // txn-1 root start
+      .mockResolvedValueOnce(txn1ChildStart) // txn-1 child start
+      .mockResolvedValueOnce(txn1ChildEnd) // txn-1 child end
+      .mockResolvedValueOnce(txn1RootEnd) // txn-1 root end (endMap)
+      .mockResolvedValueOnce(txn1RootEnd) // txn-1 root end (span attributes)
+      // txn-2 mocks (consumed during txn-1's async processor)
+      .mockResolvedValueOnce(txn2RootStart) // txn-2 root start
+      .mockResolvedValueOnce(txn2ChildStart) // txn-2 child start
+      .mockResolvedValueOnce(txn2ChildEnd) // txn-2 child end
+      .mockResolvedValueOnce(txn2RootEnd) // txn-2 root end (endMap)
+      .mockResolvedValueOnce(txn2RootEnd); // txn-2 root end (span attributes)
+
+    await startSpan({ name: 'txn-1' }, async () => {
+      startSpan({ name: 'txn-1-child' }, () => {
+        txn1ChildEndTimestamp = Date.now() / 1000;
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      // Advance time to simulate idle timeout (root end timestamp won't match child end)
+      global.Date.now = jest.fn(() => mockDate.getTime() + 1000);
+    });
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    // txn-1 should use its own child end frames, not txn-2's
+    // measurements = txn1ChildEnd - txn1RootStart
+    const txn1Event = client.eventQueue.find(e => e.transaction === 'txn-1');
+    expect(txn1Event).toBeDefined();
+    expect(txn1Event!.measurements).toEqual(
+      expect.objectContaining<Measurements>({
+        frames_total: { value: 60, unit: 'none' }, // 160 - 100
+        frames_slow: { value: 6, unit: 'none' }, // 16 - 10
+        frames_frozen: { value: 3, unit: 'none' }, // 8 - 5
+      }),
+    );
+  });
 });
