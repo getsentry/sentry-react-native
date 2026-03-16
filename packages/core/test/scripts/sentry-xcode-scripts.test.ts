@@ -455,6 +455,103 @@ describe('sentry-xcode.sh', () => {
     expect(result.stdout).toContain('skipping sourcemaps upload');
   });
 
+  describe('sentry.options.json SENTRY_ENVIRONMENT override', () => {
+    it('copies file without modification when SENTRY_ENVIRONMENT is not set', () => {
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', environment: 'production' });
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+      });
+
+      expect(result.exitCode).toBe(0);
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
+      expect(copied.dsn).toBe('https://key@sentry.io/123');
+      expect(copied.environment).toBe('production');
+    });
+
+    it('overrides environment from SENTRY_ENVIRONMENT env var', () => {
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', environment: 'production' });
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_ENVIRONMENT: 'staging',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Overriding');
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
+      expect(copied.environment).toBe('staging');
+      expect(copied.dsn).toBe('https://key@sentry.io/123');
+    });
+
+    it('does not modify the source sentry.options.json', () => {
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', environment: 'production' });
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_ENVIRONMENT: 'staging',
+      });
+
+      const source = JSON.parse(fs.readFileSync(optionsFile, 'utf8'));
+      expect(source.environment).toBe('production');
+    });
+
+    it('falls back to plain copy when sentry.options.json contains invalid JSON', () => {
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, 'invalid json{{{');
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_ENVIRONMENT: 'staging',
+      });
+
+      expect(result.exitCode).toBe(0);
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      expect(fs.readFileSync(destPath, 'utf8')).toBe('invalid json{{{');
+      expect(result.stdout).toContain('Copied');
+    });
+  });
+
   describe('SOURCEMAP_FILE path resolution', () => {
     // Returns a mock sentry-cli that prints the SOURCEMAP_FILE env var it received.
     const makeSourcemapEchoScript = (dir: string): string => {
