@@ -85,6 +85,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
       : newStack;
 
     const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
+      // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- keep falsy check for empty string file paths
       (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
     );
 

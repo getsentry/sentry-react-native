@@ -197,8 +197,7 @@ export const nativeFramesIntegration = (): Integration => {
     if (
       event.type !== 'transaction' ||
       !event.transaction ||
-      !event.contexts ||
-      !event.contexts.trace ||
+      !event.contexts?.trace ||
       !event.timestamp ||
       !event.contexts.trace.span_id
     ) {

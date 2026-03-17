@@ -1,7 +1,6 @@
 /* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { SentrySpan } from '@sentry/core';
-import type { Event, Measurements, StartSpanOptions } from '@sentry/core';
+import type { Event, Measurements, SentrySpan, StartSpanOptions } from '@sentry/core';
 import {
   getActiveSpan,
   getCurrentScope,

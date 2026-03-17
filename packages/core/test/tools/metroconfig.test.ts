@@ -344,9 +344,7 @@ describe('metroconfig', () => {
           context.resolveRequest = resolver;
           return resolver(context, `real${moduleName}`, platform, moduleName);
         }
-        return (
-          metroConfig.resolver?.resolveRequest && metroConfig.resolver.resolveRequest(context, moduleName, platform)
-        );
+        return metroConfig.resolver?.resolveRequest?.(context, moduleName, platform);
       }
 
       function ExpectToBeCalledWithMetroParameters(
