@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add `strictTraceContinuation` and `orgId` options for trace continuation validation ([#5828](https://github.com/getsentry/sentry-react-native/pull/5828))
 - Support `SENTRY_ENVIRONMENT` in bare React Native builds ([#5823](https://github.com/getsentry/sentry-react-native/pull/5823))
 
 ### Fixes
