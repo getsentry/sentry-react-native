@@ -1,5 +1,5 @@
 import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
-import { debug, timestampInSeconds } from '@sentry/core';
+import { debug, getRootSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import type { NativeFramesResponse } from '../../NativeRNSentry';
 import { AsyncExpiringMap } from '../../utils/AsyncExpiringMap';
 import { isRootSpan } from '../../utils/span';
@@ -58,8 +58,11 @@ export const createNativeFramesIntegrations = (enable: boolean | undefined): Int
  * and frame data (frames.total, frames.slow, frames.frozen) onto all spans.
  */
 export const nativeFramesIntegration = (): Integration => {
-  /** The native frames at the finish time of the most recent span. */
-  let _lastChildSpanEndFrames: NativeFramesResponseWithTimestamp | null = null;
+  /** The native frames at the finish time of the most recent child span, keyed by root span ID.
+   *  Stores promises so the data is available for processEvent to await even before
+   *  the async native bridge call completes. */
+  const _lastChildSpanEndFramesByRootSpan: AsyncExpiringMap<string, NativeFramesResponseWithTimestamp | null> =
+    new AsyncExpiringMap({ ttl: START_FRAMES_TIMEOUT_MS });
   const _spanToNativeFramesAtStartMap: AsyncExpiringMap<string, NativeFramesResponse | null> = new AsyncExpiringMap({
     ttl: START_FRAMES_TIMEOUT_MS,
   });
@@ -109,7 +112,6 @@ export const nativeFramesIntegration = (): Integration => {
    * produce incorrect deltas. The native bridge calls are async and non-blocking.
    */
   const fetchEndFramesForSpan = async (span: Span): Promise<void> => {
-    const timestamp = timestampInSeconds();
     const spanId = span.spanContext().spanId;
     const hasStartFrames = _spanToNativeFramesAtStartMap.has(spanId);
 
@@ -118,8 +120,28 @@ export const nativeFramesIntegration = (): Integration => {
       return;
     }
 
+    // For child spans: immediately store a promise for fallback end frames before any awaits,
+    // so processEvent can find and await it even if this async function hasn't completed yet.
+    // Uses the actual span timestamp (not wall-clock time) so it matches the trimmed event.timestamp
+    // for idle transactions. Scoped per root span to avoid concurrent transaction interference.
+    let childEndFramesPromise: Promise<NativeFramesResponse> | undefined;
+    if (!isRootSpan(span)) {
+      const rootSpanId = getRootSpan(span).spanContext().spanId;
+      const spanTimestamp = spanToJSON(span).timestamp;
+      if (spanTimestamp) {
+        childEndFramesPromise = fetchNativeFrames();
+        _lastChildSpanEndFramesByRootSpan.set(
+          rootSpanId,
+          childEndFramesPromise
+            .then(frames => ({ timestamp: spanTimestamp, nativeFrames: frames }))
+            .then(undefined, () => null),
+        );
+      }
+    }
+
     if (isRootSpan(span)) {
       // Root spans: Store end frames for transaction measurements (backward compatibility)
+      const timestamp = timestampInSeconds();
       debug.log(`[${INTEGRATION_NAME}] Fetch frames for root span end (${spanId}).`);
       _spanToNativeFramesAtEndMap.set(
         spanId,
@@ -147,10 +169,10 @@ export const nativeFramesIntegration = (): Integration => {
         return;
       }
 
-      // NOTE: For root spans, this is the second call to fetchNativeFrames() for the same span.
+      // For child spans, reuse the already-kicked-off promise to avoid a redundant native bridge call.
+      // For root spans, this is the second call to fetchNativeFrames() for the same span.
       // The calls are very close together (microseconds apart), so inconsistency is minimal.
-      // Future optimization: reuse the first call's promise to avoid redundant native bridge call.
-      const endFrames = await fetchNativeFrames();
+      const endFrames = childEndFramesPromise ? await childEndFramesPromise : await fetchNativeFrames();
 
       // Calculate deltas
       const totalFrames = endFrames.totalFrames - startFrames.totalFrames;
@@ -165,14 +187,6 @@ export const nativeFramesIntegration = (): Integration => {
         debug.log(
           `[${INTEGRATION_NAME}] Attached frame data to span ${spanId}: total=${totalFrames}, slow=${slowFrames}, frozen=${frozenFrames}`,
         );
-      }
-
-      // Update last child span end frames for root span fallback logic
-      if (!isRootSpan(span)) {
-        _lastChildSpanEndFrames = {
-          timestamp,
-          nativeFrames: endFrames,
-        };
       }
     } catch (error) {
       debug.log(`[${INTEGRATION_NAME}] Error while capturing end frames for span ${spanId}.`, error);
@@ -202,17 +216,18 @@ export const nativeFramesIntegration = (): Integration => {
     }
 
     const endFrames = await _spanToNativeFramesAtEndMap.pop(spanId);
+    const lastChildFrames = await _lastChildSpanEndFramesByRootSpan.pop(spanId);
     let finalEndFrames: NativeFramesResponse | undefined;
 
     if (endFrames && isClose(endFrames.timestamp, event.timestamp)) {
       // Must be in the margin of error of the actual transaction finish time (finalEndTimestamp)
       debug.log(`[${INTEGRATION_NAME}] Using frames from root span end (spanId, ${spanId}).`);
       finalEndFrames = endFrames.nativeFrames;
-    } else if (_lastChildSpanEndFrames && isClose(_lastChildSpanEndFrames.timestamp, event.timestamp)) {
-      // Fallback to the last span finish if it is within the margin of error of the actual finish timestamp.
-      // This should be the case for trimEnd.
+    } else if (lastChildFrames && isClose(lastChildFrames.timestamp, event.timestamp)) {
+      // Fallback to the last child span finish if it is within the margin of error of the actual finish timestamp.
+      // This handles idle transactions where event.timestamp is trimmed to the last child span's end time.
       debug.log(`[${INTEGRATION_NAME}] Using native frames from last child span end (spanId, ${spanId}).`);
-      finalEndFrames = _lastChildSpanEndFrames.nativeFrames;
+      finalEndFrames = lastChildFrames.nativeFrames;
     } else {
       debug.warn(
         `[${INTEGRATION_NAME}] Frames were collected within larger than margin of error delay for spanId (${spanId}). Dropping the inaccurate values.`,

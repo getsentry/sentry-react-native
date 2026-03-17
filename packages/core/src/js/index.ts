@@ -47,6 +47,7 @@ export {
   setCurrentClient,
   addEventProcessor,
   lastEventId,
+  consoleSandbox,
 } from '@sentry/core';
 
 export {
@@ -69,7 +70,7 @@ export {
 export * from './integrations/exports';
 
 export { SDK_NAME, SDK_VERSION } from './version';
-export type { ReactNativeOptions } from './options';
+export type { ReactNativeOptions, NativeLogEntry } from './options';
 export { ReactNativeClient } from './client';
 
 export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun } from './sdk';
@@ -92,9 +93,11 @@ export {
   createTimeToFullDisplay,
   createTimeToInitialDisplay,
   wrapExpoRouter,
+  wrapExpoImage,
+  wrapExpoAsset,
 } from './tracing';
 
-export type { TimeToDisplayProps, ExpoRouter } from './tracing';
+export type { TimeToDisplayProps, ExpoRouter, ExpoImage, ExpoAsset } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
 

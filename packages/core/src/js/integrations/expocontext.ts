@@ -19,6 +19,7 @@ export const expoContextIntegration = (): Integration => {
       }
 
       setExpoUpdatesNativeContext();
+      captureEmergencyLaunchEvent(client);
     });
   }
 
@@ -37,6 +38,29 @@ export const expoContextIntegration = (): Integration => {
     }
   }
 
+  function captureEmergencyLaunchEvent(client: ReactNativeClient): void {
+    if (!isExpo() || isExpoGo()) {
+      return;
+    }
+
+    const updatesContext = getExpoUpdatesContextCached();
+    if (!updatesContext.is_emergency_launch) {
+      return;
+    }
+
+    const message = updatesContext.emergency_launch_reason
+      ? `Expo Updates emergency launch: ${updatesContext.emergency_launch_reason}`
+      : 'Expo Updates emergency launch';
+
+    client.captureEvent({
+      level: 'warning',
+      message,
+      tags: {
+        'expo.updates.emergency_launch': 'true',
+      },
+    });
+  }
+
   function processEvent(event: Event): Event {
     if (!isExpo()) {
       return event;
@@ -48,10 +72,14 @@ export const expoContextIntegration = (): Integration => {
   }
 
   function addExpoUpdatesContext(event: Event): void {
+    const updatesContext = getExpoUpdatesContextCached();
+
     event.contexts = event.contexts || {};
     event.contexts[OTA_UPDATES_CONTEXT_KEY] = {
-      ...getExpoUpdatesContextCached(),
+      ...updatesContext,
     };
+
+    addExpoUpdatesTags(event, updatesContext);
   }
 
   function getExpoUpdatesContextCached(): ExpoUpdatesContext {
@@ -109,6 +137,20 @@ export function getExpoUpdatesContext(): ExpoUpdatesContext {
     updatesContext.created_at = expoUpdates.createdAt.toISOString();
   }
   return updatesContext;
+}
+
+function addExpoUpdatesTags(event: Event, updatesContext: ExpoUpdatesContext): void {
+  event.tags = event.tags || {};
+
+  if (updatesContext.update_id) {
+    event.tags['expo.updates.update_id'] = updatesContext.update_id;
+  }
+  if (updatesContext.channel) {
+    event.tags['expo.updates.channel'] = updatesContext.channel;
+  }
+  if (updatesContext.runtime_version) {
+    event.tags['expo.updates.runtime_version'] = updatesContext.runtime_version;
+  }
 }
 
 function addExpoGoContext(event: Event): void {
