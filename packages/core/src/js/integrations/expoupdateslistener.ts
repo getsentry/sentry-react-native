@@ -31,20 +31,23 @@ interface UpdatesStateChangeSubscription {
   remove(): void;
 }
 
+interface ExpoUpdatesExports {
+  addUpdatesStateChangeListener: (
+    listener: (event: UpdatesNativeStateChangeEvent) => void,
+  ) => UpdatesStateChangeSubscription;
+  latestContext: UpdatesNativeStateMachineContext;
+}
+
 /**
- * Tries to load `expo-updates` and retrieve `addUpdatesStateChangeListener`.
+ * Tries to load `expo-updates` and retrieve exports needed by this integration.
  * Returns `undefined` if `expo-updates` is not installed.
  */
-function getAddUpdatesStateChangeListener():
-  | ((listener: (event: UpdatesNativeStateChangeEvent) => void) => UpdatesStateChangeSubscription)
-  | undefined {
+function getExpoUpdatesExports(): ExpoUpdatesExports | undefined {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
-    const addListener = require('expo-updates').addUpdatesStateChangeListener;
-    if (typeof addListener === 'function') {
-      return addListener as (
-        listener: (event: UpdatesNativeStateChangeEvent) => void,
-      ) => UpdatesStateChangeSubscription;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const expoUpdates = require('expo-updates') as Partial<ExpoUpdatesExports>;
+    if (typeof expoUpdates.addUpdatesStateChangeListener === 'function') {
+      return expoUpdates as ExpoUpdatesExports;
     }
   } catch (_) {
     // that happens when expo-updates is not installed
@@ -121,8 +124,8 @@ export const expoUpdatesListenerIntegration = (): Integration => {
         return;
       }
 
-      const addListener = getAddUpdatesStateChangeListener();
-      if (!addListener) {
+      const expoUpdates = getExpoUpdatesExports();
+      if (!expoUpdates) {
         debug.log('[ExpoUpdatesListener] expo-updates is not available, skipping.');
         return;
       }
@@ -131,9 +134,11 @@ export const expoUpdatesListenerIntegration = (): Integration => {
       // if Sentry.init() is called multiple times.
       subscription?.remove();
 
-      let previousContext: Partial<UpdatesNativeStateMachineContext> = {};
+      // Seed with the current state so that the first event does not
+      // generate spurious breadcrumbs for already-truthy fields.
+      let previousContext: Partial<UpdatesNativeStateMachineContext> = expoUpdates.latestContext ?? {};
 
-      subscription = addListener((event: UpdatesNativeStateChangeEvent) => {
+      subscription = expoUpdates.addUpdatesStateChangeListener((event: UpdatesNativeStateChangeEvent) => {
         const ctx = event.context;
         handleStateChange(previousContext, ctx);
         previousContext = ctx;

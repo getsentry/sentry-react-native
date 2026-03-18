@@ -14,13 +14,18 @@ jest.mock('@sentry/core', () => {
 
 const mockRemove = jest.fn();
 const mockAddListener = jest.fn().mockReturnValue({ remove: mockRemove });
-jest.mock(
-  'expo-updates',
-  () => ({
-    addUpdatesStateChangeListener: mockAddListener,
-  }),
-  { virtual: true },
-);
+const mockLatestContext = {
+  isChecking: false,
+  isDownloading: false,
+  isUpdateAvailable: false,
+  isUpdatePending: false,
+  isRestarting: false,
+};
+const mockExpoUpdates = {
+  addUpdatesStateChangeListener: mockAddListener,
+  latestContext: mockLatestContext,
+};
+jest.mock('expo-updates', () => mockExpoUpdates, { virtual: true });
 
 const mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<typeof addBreadcrumb>;
 
@@ -28,6 +33,15 @@ describe('ExpoUpdatesListener Integration', () => {
   afterEach(() => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
+
+    // Reset latestContext to default idle state
+    mockExpoUpdates.latestContext = {
+      isChecking: false,
+      isDownloading: false,
+      isUpdateAvailable: false,
+      isUpdatePending: false,
+      isRestarting: false,
+    };
 
     getCurrentScope().clear();
     getIsolationScope().clear();
@@ -84,6 +98,81 @@ describe('ExpoUpdatesListener Integration', () => {
       client2.emit('close');
 
       expect(mockRemove2).toHaveBeenCalledTimes(1);
+    });
+
+    it('seeds previousContext from latestContext to avoid spurious breadcrumbs', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      // Simulate an update already pending before Sentry.init()
+      mockExpoUpdates.latestContext = {
+        isChecking: false,
+        isDownloading: false,
+        isUpdateAvailable: true,
+        isUpdatePending: true,
+        isRestarting: false,
+        latestManifest: { id: 'pre-existing-123' },
+        downloadedManifest: { id: 'pre-existing-123' },
+      };
+
+      let capturedListener: ((event: { context: Record<string, unknown> }) => void) | undefined;
+      mockAddListener.mockImplementation((listener: (event: { context: Record<string, unknown> }) => void) => {
+        capturedListener = listener;
+        return { remove: jest.fn() };
+      });
+
+      setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
+
+      // First event repeats the same state — should NOT produce breadcrumbs
+      capturedListener!({
+        context: {
+          isChecking: false,
+          isDownloading: false,
+          isUpdateAvailable: true,
+          isUpdatePending: true,
+          isRestarting: false,
+          latestManifest: { id: 'pre-existing-123' },
+          downloadedManifest: { id: 'pre-existing-123' },
+        },
+      });
+
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('emits breadcrumb for new transitions after seeded state', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      // Simulate an idle state before Sentry.init()
+      mockExpoUpdates.latestContext = {
+        isChecking: false,
+        isDownloading: false,
+        isUpdateAvailable: false,
+        isUpdatePending: false,
+        isRestarting: false,
+      };
+
+      let capturedListener: ((event: { context: Record<string, unknown> }) => void) | undefined;
+      mockAddListener.mockImplementation((listener: (event: { context: Record<string, unknown> }) => void) => {
+        capturedListener = listener;
+        return { remove: jest.fn() };
+      });
+
+      setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
+
+      // A genuine new transition should still produce a breadcrumb
+      capturedListener!({
+        context: {
+          isChecking: true,
+          isDownloading: false,
+          isUpdateAvailable: false,
+          isUpdatePending: false,
+          isRestarting: false,
+        },
+      });
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(expect.objectContaining({ message: 'Checking for update' }));
     });
 
     it('does not subscribe when not expo', () => {
