@@ -866,19 +866,22 @@ public class RNSentryModuleImpl {
       promise.resolve(null);
       return;
     }
-    if (currentScope != null) {
-      // Remove react-native breadcrumbs
-      Iterator<Breadcrumb> breadcrumbsIterator = currentScope.getBreadcrumbs().iterator();
-      while (breadcrumbsIterator.hasNext()) {
-        Breadcrumb breadcrumb = breadcrumbsIterator.next();
-        if ("react-native".equals(breadcrumb.getOrigin())) {
-          breadcrumbsIterator.remove();
-        }
-      }
-    }
 
     final @NotNull Map<String, Object> serialized =
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
+
+    if (serialized.containsKey("breadcrumbs")) {
+      final @Nullable var breadcrumbs = (ArrayList<Map<String, Object>>) serialized.get("breadcrumbs");
+      if (breadcrumbs != null) {
+        var filtered = new ArrayList();
+        for (Map<String, Object> b: breadcrumbs) {
+          if ("react-native".equals(b.getOrDefault("origin", ""))) continue;
+          filtered.add(b);
+        }
+        serialized.put("breadcrumbs", filtered);
+      }
+    }
+
     final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
     promise.resolve(deviceContext);
   }
