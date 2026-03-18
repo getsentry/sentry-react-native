@@ -83,21 +83,28 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
   isRecordedAppStartEndTimestampMsManual = isManual;
 
   const timestampMs = timestampInSeconds() * 1000;
-  let endFrames: NativeFramesResponse | null = null;
+
+  // Set end timestamp immediately to avoid race with processEvent
+  // Frames data will be updated after the async fetch
+  _setAppStartEndData({
+    timestampMs,
+    endFrames: null,
+  });
 
   if (NATIVE.enableNative) {
     try {
-      endFrames = await NATIVE.fetchNativeFrames();
+      const endFrames = await NATIVE.fetchNativeFrames();
       debug.log('[AppStart] Captured end frames for app start.', endFrames);
+      // Update the existing data with frames, not a new _setAppStartEndData call
+      // to avoid the "Overwriting already set app start end data" warning
+      appStartEndData = {
+        timestampMs,
+        endFrames,
+      };
     } catch (error) {
       debug.log('[AppStart] Failed to capture end frames for app start.', error);
     }
   }
-
-  _setAppStartEndData({
-    timestampMs,
-    endFrames,
-  });
 
   await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
 }
@@ -247,6 +254,33 @@ export const appStartIntegration = ({
     }
 
     setFirstStartedActiveRootSpanId(rootSpan.spanContext().spanId);
+
+    // Listen for spanEnd to detect if this root span is dropped (e.g., by
+    // ignoreEmptyBackNavigation or onlySampleIfChildSpans setting _sampled = false).
+    // If the span is unsampled at end time, no transaction event will be created and
+    // processEvent will never run for it — so we must reset the lock here.
+    _client?.on('spanEnd', (endedSpan: Span) => {
+      if (endedSpan !== rootSpan) {
+        return;
+      }
+      if (!spanIsSampled(endedSpan) && firstStartedActiveRootSpanId === rootSpan.spanContext().spanId) {
+        debug.log(
+          '[AppStart] First started active root span was unsampled at end. Resetting to allow next transaction.',
+        );
+        resetFirstStartedActiveRootSpanId();
+      }
+    });
+  };
+
+  /**
+   * Resets the first started active root span id to allow the next
+   * root span's transaction to attempt app start attachment.
+   * Called when the matching transaction fails to attach app start
+   * due to a potentially transient condition (e.g., native data not yet available).
+   */
+  const resetFirstStartedActiveRootSpanId = (): void => {
+    debug.log('[AppStart] Resetting first started active root span id to allow retry on next transaction.');
+    firstStartedActiveRootSpanId = undefined;
   };
 
   /**
@@ -322,6 +356,7 @@ export const appStartIntegration = ({
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
     if (appStartDataFlushed) {
       // App start data is only relevant for the first transaction of the app run
+      debug.log('[AppStart] App start data already flushed. Skipping.');
       return;
     }
 
@@ -350,16 +385,19 @@ export const appStartIntegration = ({
     const appStart = await NATIVE.fetchNativeAppStart();
     if (!appStart) {
       debug.warn('[AppStart] Failed to retrieve the app start metrics from the native layer.');
+      resetFirstStartedActiveRootSpanId();
       return;
     }
     if (appStart.has_fetched) {
       debug.warn('[AppStart] Measured app start metrics were already reported from the native layer.');
+      appStartDataFlushed = true;
       return;
     }
 
     const appStartTimestampMs = appStart.app_start_timestamp_ms;
     if (!appStartTimestampMs) {
       debug.warn('[AppStart] App start timestamp could not be loaded from the native layer.');
+      resetFirstStartedActiveRootSpanId();
       return;
     }
 
@@ -368,6 +406,7 @@ export const appStartIntegration = ({
       debug.warn(
         '[AppStart] Javascript failed to record app start end. `_setAppStartEndData` was not called nor could the bundle start be found.',
       );
+      resetFirstStartedActiveRootSpanId();
       return;
     }
 
@@ -375,6 +414,7 @@ export const appStartIntegration = ({
       !!event.start_timestamp && appStartTimestampMs >= event.start_timestamp * 1_000 - MAX_APP_START_AGE_MS;
     if (!__DEV__ && !isAppStartWithinBounds) {
       debug.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
+      appStartDataFlushed = true;
       return;
     }
 
@@ -382,6 +422,7 @@ export const appStartIntegration = ({
     if (!__DEV__ && appStartDurationMs >= MAX_APP_START_DURATION_MS) {
       // Dev builds can have long app start waiting over minute for the first bundle to be produced
       debug.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
+      appStartDataFlushed = true;
       return;
     }
 
@@ -393,6 +434,7 @@ export const appStartIntegration = ({
         '[AppStart] Last recorded app start end timestamp is before the app start timestamp.',
         'This is usually caused by missing `Sentry.wrap(RootComponent)` call.',
       );
+      resetFirstStartedActiveRootSpanId();
       return;
     }
 

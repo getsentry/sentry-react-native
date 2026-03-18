@@ -464,6 +464,57 @@ describe('App Start Integration', () => {
       });
     });
 
+    it('Attaches app start to next transaction when first root span is dropped at spanEnd', async () => {
+      mockAppStart({ cold: true });
+
+      const integration = appStartIntegration();
+      const client = new TestClient({
+        ...getDefaultTestClientOptions(),
+        enableAppStartTracking: true,
+        tracesSampleRate: 1.0,
+      });
+      setCurrentClient(client);
+      integration.setup(client);
+      integration.afterAllSetup(client);
+
+      // First root span starts — locks firstStartedActiveRootSpanId
+      const firstSpan = startInactiveSpan({
+        name: 'First Navigation',
+        forceTransaction: true,
+      });
+
+      // Simulate the span being dropped at spanEnd (e.g., ignoreEmptyBackNavigation
+      // or onlySampleIfChildSpans sets _sampled = false before spanEnd fires)
+      (firstSpan as any)['_sampled'] = false;
+      client.emit('spanEnd', firstSpan);
+
+      // Second root span starts — should now be picked up since first was reset
+      const secondSpan = startInactiveSpan({
+        name: 'Second Navigation',
+        forceTransaction: true,
+      });
+      const secondSpanId = secondSpan.spanContext().spanId;
+
+      // Process a transaction event matching the second span
+      const event = getMinimalTransactionEvent();
+      event.contexts!.trace!.span_id = secondSpanId;
+
+      const actualEvent = await processEventWithIntegration(integration, event);
+
+      // App start should be attached to the second transaction
+      const appStartSpan = (actualEvent as TransactionEvent)?.spans?.find(
+        ({ description }) => description === 'Cold Start',
+      );
+      expect(appStartSpan).toBeDefined();
+      expect(appStartSpan).toEqual(
+        expect.objectContaining({
+          description: 'Cold Start',
+          op: APP_START_COLD_OP,
+        }),
+      );
+      expect((actualEvent as TransactionEvent)?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeDefined();
+    });
+
     it('Does not lock firstStartedActiveRootSpanId to unsampled root span', async () => {
       mockAppStart({ cold: true });
 
@@ -893,6 +944,88 @@ describe('App Start Integration', () => {
       const actualEvent = await processEvent(getMinimalTransactionEvent());
       expect(actualEvent).toStrictEqual(getMinimalTransactionEvent());
       expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('Resets firstStartedActiveRootSpanId when native returns null so next transaction can retry', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValueOnce(null);
+
+      const integration = appStartIntegration();
+      const client = new TestClient(getDefaultTestClientOptions());
+
+      const firstEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      // First transaction fails because native returns null
+      const actualFirstEvent = await integration.processEvent(firstEvent, {}, client);
+      expect((actualFirstEvent as TransactionEvent).measurements).toBeUndefined();
+
+      // Now mock a successful native response for the retry
+      mockAppStart({ cold: true });
+      const secondEvent = getMinimalTransactionEvent();
+      secondEvent.contexts!.trace!.span_id = '456';
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
+
+      // Second transaction should succeed
+      const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
+      const appStartSpan = (actualSecondEvent as TransactionEvent)?.spans?.find(
+        ({ description }) => description === 'Cold Start',
+      );
+      expect(appStartSpan).toBeDefined();
+    });
+
+    it('Does not retry when has_fetched is true because data was already consumed', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+        type: 'cold',
+        has_fetched: true,
+        spans: [],
+      });
+
+      const integration = appStartIntegration();
+      const client = new TestClient(getDefaultTestClientOptions());
+
+      const firstEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      // First transaction fails because has_fetched is true
+      await integration.processEvent(firstEvent, {}, client);
+
+      // Mock a fresh response, but it should not be tried
+      mockAppStart({ cold: true });
+      const secondEvent = getMinimalTransactionEvent();
+      secondEvent.contexts!.trace!.span_id = '456';
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
+
+      const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
+
+      // appStartDataFlushed was set, so second event should not have app start
+      expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
+    });
+
+    it('Resets firstStartedActiveRootSpanId when app start end timestamp is before app start timestamp', async () => {
+      mockAppStart({ cold: true, appStartEndTimestampMs: Date.now() - 1000 });
+
+      const integration = appStartIntegration();
+      const client = new TestClient(getDefaultTestClientOptions());
+
+      const firstEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      // First transaction fails due to negative duration
+      const actualFirstEvent = await integration.processEvent(firstEvent, {}, client);
+      expect((actualFirstEvent as TransactionEvent).measurements).toBeUndefined();
+
+      // Mock valid data for retry
+      mockAppStart({ cold: true });
+      const secondEvent = getMinimalTransactionEvent();
+      secondEvent.contexts!.trace!.span_id = '456';
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
+
+      // Second transaction should succeed
+      const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
+      const appStartSpan = (actualSecondEvent as TransactionEvent)?.spans?.find(
+        ({ description }) => description === 'Cold Start',
+      );
+      expect(appStartSpan).toBeDefined();
     });
   });
 });
