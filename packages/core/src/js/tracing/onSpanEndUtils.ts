@@ -14,10 +14,11 @@ const IOS_INACTIVE_CANCEL_DELAY_MS = 5_000;
  * Hooks on span end event to execute a callback when the span ends.
  */
 export function onThisSpanEnd(client: Client, span: Span, callback: (span: Span) => void): void {
-  client.on('spanEnd', (endedSpan: Span) => {
+  const unsubscribe = client.on('spanEnd', (endedSpan: Span) => {
     if (span !== endedSpan) {
       return;
     }
+    unsubscribe();
     callback(endedSpan);
   });
 }
@@ -28,10 +29,11 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
     return;
   }
 
-  client.on('spanEnd', (endedSpan: Span) => {
+  const unsubscribe = client.on('spanEnd', (endedSpan: Span) => {
     if (endedSpan !== span) {
       return;
     }
+    unsubscribe();
 
     const endTimestamp = spanToJSON(span).timestamp;
     const startTimestamp = spanToJSON(span).start_timestamp;
@@ -87,10 +89,11 @@ function discardEmptyNavigationSpan(
     return;
   }
 
-  client.on('spanEnd', (endedSpan: Span) => {
+  const unsubscribe = client.on('spanEnd', (endedSpan: Span) => {
     if (endedSpan !== span) {
       return;
     }
+    unsubscribe();
 
     if (!shouldDiscardFn(span)) {
       return;
@@ -164,10 +167,11 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
     return;
   }
 
-  client.on('spanEnd', (endedSpan: Span) => {
+  const unsubscribe = client.on('spanEnd', (endedSpan: Span) => {
     if (endedSpan !== span) {
       return;
     }
+    unsubscribe();
 
     const children = getSpanDescendants(span);
 
@@ -221,15 +225,18 @@ export const cancelInBackground = (client: Client, span: Span): void => {
     }
   });
 
-  subscription &&
-    client.on('spanEnd', (endedSpan: Span) => {
-      if (endedSpan === span) {
-        debug.log(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
-        if (inactiveTimeout !== undefined) {
-          clearTimeout(inactiveTimeout);
-          inactiveTimeout = undefined;
-        }
-        subscription?.remove?.();
+  if (subscription) {
+    const unsubscribe = client.on('spanEnd', (endedSpan: Span) => {
+      if (endedSpan !== span) {
+        return;
       }
+      unsubscribe();
+      debug.log(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
+      if (inactiveTimeout !== undefined) {
+        clearTimeout(inactiveTimeout);
+        inactiveTimeout = undefined;
+      }
+      subscription.remove?.();
     });
+  }
 };
