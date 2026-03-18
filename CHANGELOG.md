@@ -16,6 +16,12 @@
 
 - Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.43.0 to v10.44.0 ([#5832](https://github.com/getsentry/sentry-react-native/pull/5832))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10440)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.43.0...10.44.0)
+
 ## 8.4.0
 
 ### Fixes
