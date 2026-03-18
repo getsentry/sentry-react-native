@@ -14,7 +14,8 @@
 - Add `expoUpdatesListenerIntegration` that records breadcrumbs for Expo Updates lifecycle events ([#5795](https://github.com/getsentry/sentry-react-native/pull/5795))
   - Tracks update checks, downloads, errors, rollbacks, and restarts as `expo.updates` breadcrumbs
   - Enabled by default in Expo apps (requires `expo-updates` to be installed)
-  - 
+- feat(android): Expose `enableAnrFingerprinting` option ([#5837](https://github.com/getsentry/sentry-react-native/issues/5837))
+
 ### Fixes
 
 - Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))

@@ -74,6 +74,19 @@ export interface BaseReactNativeOptions {
   enableNdkScopeSync?: boolean;
 
   /**
+   * When enabled, ANR events whose stacktraces contain only system frames
+   * (e.g. `java.lang`, `android.os`) are assigned a static fingerprint and
+   * grouped into a single issue instead of creating many separate issues.
+   *
+   * Enabled by default in the Android SDK since v8.35.0.
+   * Set to `false` to restore per-stacktrace ANR grouping.
+   *
+   * @default true
+   * @platform android
+   */
+  enableAnrFingerprinting?: boolean;
+
+  /**
    * When enabled, all the threads are automatically attached to all logged events on Android
    *
    * @platform android
