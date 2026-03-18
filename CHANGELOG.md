@@ -15,6 +15,7 @@
 ### Fixes
 
 - Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))
+- Fix app start data lost when first navigation transaction is discarded ([#5833](https://github.com/getsentry/sentry-react-native/pull/5833))
 
 ## 8.4.0
 
