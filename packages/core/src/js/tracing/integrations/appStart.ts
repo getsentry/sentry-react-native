@@ -199,6 +199,7 @@ export const appStartIntegration = ({
   let appStartDataFlushed = false;
   let afterAllSetupCalled = false;
   let firstStartedActiveRootSpanId: string | undefined = undefined;
+  let firstStartedActiveRootSpan: Span | undefined = undefined;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -225,6 +226,7 @@ export const appStartIntegration = ({
         debug.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
         appStartDataFlushed = false;
         firstStartedActiveRootSpanId = undefined;
+        firstStartedActiveRootSpan = undefined;
       } else {
         debug.log(
           '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
@@ -250,7 +252,21 @@ export const appStartIntegration = ({
 
   const recordFirstStartedActiveRootSpanId = (rootSpan: Span): void => {
     if (firstStartedActiveRootSpanId) {
-      return;
+      // Check if the previously locked span was dropped after it ended (e.g., by
+      // ignoreEmptyRouteChangeTransactions or ignoreEmptyBackNavigation setting
+      // _sampled = false during spanEnd). If so, reset and allow this new span.
+      // We check here (at the next spanStart) rather than at spanEnd because
+      // the discard listeners run after the app start listener in registration order,
+      // so _sampled is not yet false when our own spanEnd listener would fire.
+      if (firstStartedActiveRootSpan && !spanIsSampled(firstStartedActiveRootSpan)) {
+        debug.log(
+          '[AppStart] Previously locked root span was unsampled after ending. Resetting to allow next transaction.',
+        );
+        resetFirstStartedActiveRootSpanId();
+        // Fall through to lock to this new span
+      } else {
+        return;
+      }
     }
 
     if (!isRootSpan(rootSpan)) {
@@ -261,37 +277,18 @@ export const appStartIntegration = ({
       return;
     }
 
+    firstStartedActiveRootSpan = rootSpan;
     setFirstStartedActiveRootSpanId(rootSpan.spanContext().spanId);
-
-    // Listen for spanEnd to detect if this root span is dropped (e.g., by
-    // ignoreEmptyBackNavigation or onlySampleIfChildSpans setting _sampled = false).
-    // If the span is unsampled at end time, no transaction event will be created and
-    // processEvent will never run for it — so we must reset the lock here.
-    const unsubscribe = _client?.on('spanEnd', (endedSpan: Span) => {
-      if (endedSpan !== rootSpan) {
-        return;
-      }
-
-      unsubscribe?.();
-
-      if (!spanIsSampled(endedSpan) && firstStartedActiveRootSpanId === rootSpan.spanContext().spanId) {
-        debug.log(
-          '[AppStart] First started active root span was unsampled at end. Resetting to allow next transaction.',
-        );
-        resetFirstStartedActiveRootSpanId();
-      }
-    });
   };
 
   /**
-   * Resets the first started active root span id to allow the next
-   * root span's transaction to attempt app start attachment.
-   * Called when the locked root span is discarded at spanEnd (e.g., by
-   * ignoreEmptyRouteChangeTransactions setting _sampled = false).
+   * Resets the first started active root span id and span reference to allow
+   * the next root span's transaction to attempt app start attachment.
    */
   const resetFirstStartedActiveRootSpanId = (): void => {
     debug.log('[AppStart] Resetting first started active root span id to allow retry on next transaction.');
     firstStartedActiveRootSpanId = undefined;
+    firstStartedActiveRootSpan = undefined;
   };
 
   /**

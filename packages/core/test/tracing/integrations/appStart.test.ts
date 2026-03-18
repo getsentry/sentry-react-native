@@ -464,7 +464,7 @@ describe('App Start Integration', () => {
       });
     });
 
-    it('Attaches app start to next transaction when first root span is dropped at spanEnd', async () => {
+    it('Attaches app start to next transaction when first root span was dropped', async () => {
       mockAppStart({ cold: true });
 
       const integration = appStartIntegration();
@@ -483,14 +483,14 @@ describe('App Start Integration', () => {
         forceTransaction: true,
       });
 
-      // Simulate the span being dropped at spanEnd (e.g., ignoreEmptyBackNavigation
-      // or onlySampleIfChildSpans sets _sampled = false before spanEnd fires).
+      // Simulate the span being dropped (e.g., ignoreEmptyRouteChangeTransactions
+      // sets _sampled = false during spanEnd processing).
       // Note: _sampled is a @sentry/core SentrySpan internal — this couples to the
       // same mechanism used by onSpanEndUtils.ts (discardEmptyNavigationSpan).
       (firstSpan as any)['_sampled'] = false;
-      client.emit('spanEnd', firstSpan);
 
-      // Second root span starts — should now be picked up since first was reset
+      // Second root span starts — recordFirstStartedActiveRootSpanId detects
+      // the previously locked span is no longer sampled and resets the lock
       const secondSpan = startInactiveSpan({
         name: 'Second Navigation',
         forceTransaction: true,
