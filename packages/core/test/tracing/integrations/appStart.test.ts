@@ -484,7 +484,9 @@ describe('App Start Integration', () => {
       });
 
       // Simulate the span being dropped at spanEnd (e.g., ignoreEmptyBackNavigation
-      // or onlySampleIfChildSpans sets _sampled = false before spanEnd fires)
+      // or onlySampleIfChildSpans sets _sampled = false before spanEnd fires).
+      // Note: _sampled is a @sentry/core SentrySpan internal — this couples to the
+      // same mechanism used by onSpanEndUtils.ts (discardEmptyNavigationSpan).
       (firstSpan as any)['_sampled'] = false;
       client.emit('spanEnd', firstSpan);
 
@@ -946,8 +948,8 @@ describe('App Start Integration', () => {
       expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
     });
 
-    it('Resets firstStartedActiveRootSpanId when native returns null so next transaction can retry', async () => {
-      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValueOnce(null);
+    it('Sets appStartDataFlushed when native returns null to prevent wasteful retries', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
 
       const integration = appStartIntegration();
       const client = new TestClient(getDefaultTestClientOptions());
@@ -955,25 +957,22 @@ describe('App Start Integration', () => {
       const firstEvent = getMinimalTransactionEvent();
       (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
 
-      // First transaction fails because native returns null
-      const actualFirstEvent = await integration.processEvent(firstEvent, {}, client);
-      expect((actualFirstEvent as TransactionEvent).measurements).toBeUndefined();
+      await integration.processEvent(firstEvent, {}, client);
+      expect(firstEvent.measurements).toBeUndefined();
 
-      // Now mock a successful native response for the retry
+      // Second transaction should be skipped (appStartDataFlushed = true)
       mockAppStart({ cold: true });
       const secondEvent = getMinimalTransactionEvent();
       secondEvent.contexts!.trace!.span_id = '456';
       (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
 
-      // Second transaction should succeed
       const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
-      const appStartSpan = (actualSecondEvent as TransactionEvent)?.spans?.find(
-        ({ description }) => description === 'Cold Start',
-      );
-      expect(appStartSpan).toBeDefined();
+      expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
+      // fetchNativeAppStart should only be called once — the second event was skipped
+      expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
     });
 
-    it('Does not retry when has_fetched is true because data was already consumed', async () => {
+    it('Sets appStartDataFlushed when has_fetched is true to prevent wasteful retries', async () => {
       mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
         type: 'cold',
         has_fetched: true,
@@ -986,22 +985,19 @@ describe('App Start Integration', () => {
       const firstEvent = getMinimalTransactionEvent();
       (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
 
-      // First transaction fails because has_fetched is true
       await integration.processEvent(firstEvent, {}, client);
 
-      // Mock a fresh response, but it should not be tried
+      // Second transaction should be skipped (appStartDataFlushed = true)
       mockAppStart({ cold: true });
       const secondEvent = getMinimalTransactionEvent();
       secondEvent.contexts!.trace!.span_id = '456';
       (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
 
       const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
-
-      // appStartDataFlushed was set, so second event should not have app start
       expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
     });
 
-    it('Resets firstStartedActiveRootSpanId when app start end timestamp is before app start timestamp', async () => {
+    it('Sets appStartDataFlushed when app start end timestamp is before app start timestamp', async () => {
       mockAppStart({ cold: true, appStartEndTimestampMs: Date.now() - 1000 });
 
       const integration = appStartIntegration();
@@ -1010,22 +1006,17 @@ describe('App Start Integration', () => {
       const firstEvent = getMinimalTransactionEvent();
       (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
 
-      // First transaction fails due to negative duration
-      const actualFirstEvent = await integration.processEvent(firstEvent, {}, client);
-      expect((actualFirstEvent as TransactionEvent).measurements).toBeUndefined();
+      await integration.processEvent(firstEvent, {}, client);
+      expect(firstEvent.measurements).toBeUndefined();
 
-      // Mock valid data for retry
+      // Second transaction should be skipped (appStartDataFlushed = true)
       mockAppStart({ cold: true });
       const secondEvent = getMinimalTransactionEvent();
       secondEvent.contexts!.trace!.span_id = '456';
       (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
 
-      // Second transaction should succeed
       const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
-      const appStartSpan = (actualSecondEvent as TransactionEvent)?.spans?.find(
-        ({ description }) => description === 'Cold Start',
-      );
-      expect(appStartSpan).toBeDefined();
+      expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
     });
   });
 });

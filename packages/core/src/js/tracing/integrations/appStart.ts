@@ -95,12 +95,7 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
     try {
       const endFrames = await NATIVE.fetchNativeFrames();
       debug.log('[AppStart] Captured end frames for app start.', endFrames);
-      // Update the existing data with frames, not a new _setAppStartEndData call
-      // to avoid the "Overwriting already set app start end data" warning
-      appStartEndData = {
-        timestampMs,
-        endFrames,
-      };
+      _updateAppStartEndFrames(endFrames);
     } catch (error) {
       debug.log('[AppStart] Failed to capture end frames for app start.', error);
     }
@@ -138,6 +133,19 @@ export function _setRootComponentCreationTimestampMs(timestampMs: number): void 
 export const _setAppStartEndData = (data: AppStartEndData): void => {
   appStartEndData && debug.warn('Overwriting already set app start end data.');
   appStartEndData = data;
+};
+
+/**
+ * Updates only the endFrames on existing appStartEndData.
+ * Used after the async fetchNativeFrames completes to attach frame data
+ * without triggering the overwrite warning from _setAppStartEndData.
+ *
+ * @private
+ */
+export const _updateAppStartEndFrames = (endFrames: NativeFramesResponse | null): void => {
+  if (appStartEndData) {
+    appStartEndData.endFrames = endFrames;
+  }
 };
 
 /**
@@ -259,10 +267,13 @@ export const appStartIntegration = ({
     // ignoreEmptyBackNavigation or onlySampleIfChildSpans setting _sampled = false).
     // If the span is unsampled at end time, no transaction event will be created and
     // processEvent will never run for it — so we must reset the lock here.
-    _client?.on('spanEnd', (endedSpan: Span) => {
+    const unsubscribe = _client?.on('spanEnd', (endedSpan: Span) => {
       if (endedSpan !== rootSpan) {
         return;
       }
+
+      unsubscribe?.();
+
       if (!spanIsSampled(endedSpan) && firstStartedActiveRootSpanId === rootSpan.spanContext().spanId) {
         debug.log(
           '[AppStart] First started active root span was unsampled at end. Resetting to allow next transaction.',
@@ -275,8 +286,8 @@ export const appStartIntegration = ({
   /**
    * Resets the first started active root span id to allow the next
    * root span's transaction to attempt app start attachment.
-   * Called when the matching transaction fails to attach app start
-   * due to a potentially transient condition (e.g., native data not yet available).
+   * Called when the locked root span is discarded at spanEnd (e.g., by
+   * ignoreEmptyRouteChangeTransactions setting _sampled = false).
    */
   const resetFirstStartedActiveRootSpanId = (): void => {
     debug.log('[AppStart] Resetting first started active root span id to allow retry on next transaction.');
@@ -382,10 +393,12 @@ export const appStartIntegration = ({
       }
     }
 
+    // All failure paths below set appStartDataFlushed = true to prevent
+    // wasteful retries — these conditions won't change within the same app start.
     const appStart = await NATIVE.fetchNativeAppStart();
     if (!appStart) {
       debug.warn('[AppStart] Failed to retrieve the app start metrics from the native layer.');
-      resetFirstStartedActiveRootSpanId();
+      appStartDataFlushed = true;
       return;
     }
     if (appStart.has_fetched) {
@@ -397,7 +410,7 @@ export const appStartIntegration = ({
     const appStartTimestampMs = appStart.app_start_timestamp_ms;
     if (!appStartTimestampMs) {
       debug.warn('[AppStart] App start timestamp could not be loaded from the native layer.');
-      resetFirstStartedActiveRootSpanId();
+      appStartDataFlushed = true;
       return;
     }
 
@@ -406,7 +419,7 @@ export const appStartIntegration = ({
       debug.warn(
         '[AppStart] Javascript failed to record app start end. `_setAppStartEndData` was not called nor could the bundle start be found.',
       );
-      resetFirstStartedActiveRootSpanId();
+      appStartDataFlushed = true;
       return;
     }
 
@@ -434,7 +447,7 @@ export const appStartIntegration = ({
         '[AppStart] Last recorded app start end timestamp is before the app start timestamp.',
         'This is usually caused by missing `Sentry.wrap(RootComponent)` call.',
       );
-      resetFirstStartedActiveRootSpanId();
+      appStartDataFlushed = true;
       return;
     }
 
