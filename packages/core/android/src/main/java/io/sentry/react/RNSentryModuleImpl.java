@@ -871,9 +871,9 @@ public class RNSentryModuleImpl {
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
 
     if (serialized.containsKey("breadcrumbs")) {
-      final @Nullable var breadcrumbs = (ArrayList<Map<String, Object>>) serialized.get("breadcrumbs");
+      final @Nullable var breadcrumbs = (List<Map<String, Object>>) serialized.get("breadcrumbs");
       if (breadcrumbs != null) {
-        var filtered = new ArrayList();
+        var filtered = new ArrayList<Map<String, Object>>();
         for (Map<String, Object> b: breadcrumbs) {
           if ("react-native".equals(b.getOrDefault("origin", ""))) continue;
           filtered.add(b);
