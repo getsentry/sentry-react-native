@@ -12,6 +12,16 @@ jest.mock('@sentry/core', () => {
   };
 });
 
+const mockRemove = jest.fn();
+const mockAddListener = jest.fn().mockReturnValue({ remove: mockRemove });
+jest.mock(
+  'expo-updates',
+  () => ({
+    addUpdatesStateChangeListener: mockAddListener,
+  }),
+  { virtual: true },
+);
+
 const mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<typeof addBreadcrumb>;
 
 describe('ExpoUpdatesListener Integration', () => {
@@ -29,34 +39,56 @@ describe('ExpoUpdatesListener Integration', () => {
       jest.spyOn(environment, 'isExpo').mockReturnValue(true);
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
 
-      const mockRemove = jest.fn();
-      const mockAddListener = jest.fn().mockReturnValue({ remove: mockRemove });
-      jest.mock(
-        'expo-updates',
-        () => ({
-          addUpdatesStateChangeListener: mockAddListener,
-        }),
-        { virtual: true },
-      );
-
       setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
 
       expect(mockAddListener).toHaveBeenCalledTimes(1);
       expect(mockAddListener).toHaveBeenCalledWith(expect.any(Function));
     });
 
+    it('removes subscription on client close', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      const client = setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
+
+      expect(mockRemove).not.toHaveBeenCalled();
+
+      // @ts-expect-error emit is not typed for 'close' on TestClient
+      client.emit('close');
+
+      expect(mockRemove).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes previous subscription when setup is called again', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      const mockRemove1 = jest.fn();
+      const mockRemove2 = jest.fn();
+      mockAddListener.mockReturnValueOnce({ remove: mockRemove1 }).mockReturnValueOnce({ remove: mockRemove2 });
+
+      const integration = expoUpdatesListenerIntegration();
+      setupTestClient({ enableNative: true, integrations: [integration] });
+
+      expect(mockAddListener).toHaveBeenCalledTimes(1);
+      expect(mockRemove1).not.toHaveBeenCalled();
+
+      // Simulate a second Sentry.init() reusing the same integration instance
+      const client2 = setupTestClient({ enableNative: true, integrations: [integration] });
+
+      expect(mockAddListener).toHaveBeenCalledTimes(2);
+      expect(mockRemove1).toHaveBeenCalledTimes(1);
+      expect(mockRemove2).not.toHaveBeenCalled();
+
+      // @ts-expect-error emit is not typed for 'close' on TestClient
+      client2.emit('close');
+
+      expect(mockRemove2).toHaveBeenCalledTimes(1);
+    });
+
     it('does not subscribe when not expo', () => {
       jest.spyOn(environment, 'isExpo').mockReturnValue(false);
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
-
-      const mockAddListener = jest.fn();
-      jest.mock(
-        'expo-updates',
-        () => ({
-          addUpdatesStateChangeListener: mockAddListener,
-        }),
-        { virtual: true },
-      );
 
       setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
 
@@ -66,15 +98,6 @@ describe('ExpoUpdatesListener Integration', () => {
     it('does not subscribe when in Expo Go', () => {
       jest.spyOn(environment, 'isExpo').mockReturnValue(true);
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
-
-      const mockAddListener = jest.fn();
-      jest.mock(
-        'expo-updates',
-        () => ({
-          addUpdatesStateChangeListener: mockAddListener,
-        }),
-        { virtual: true },
-      );
 
       setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
 

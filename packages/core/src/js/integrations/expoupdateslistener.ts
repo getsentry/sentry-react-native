@@ -27,18 +27,24 @@ interface UpdatesNativeStateChangeEvent {
   context: UpdatesNativeStateMachineContext;
 }
 
+interface UpdatesStateChangeSubscription {
+  remove(): void;
+}
+
 /**
  * Tries to load `expo-updates` and retrieve `addUpdatesStateChangeListener`.
  * Returns `undefined` if `expo-updates` is not installed.
  */
 function getAddUpdatesStateChangeListener():
-  | ((listener: (event: UpdatesNativeStateChangeEvent) => void) => void)
+  | ((listener: (event: UpdatesNativeStateChangeEvent) => void) => UpdatesStateChangeSubscription)
   | undefined {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
     const addListener = require('expo-updates').addUpdatesStateChangeListener;
     if (typeof addListener === 'function') {
-      return addListener as (listener: (event: UpdatesNativeStateChangeEvent) => void) => void;
+      return addListener as (
+        listener: (event: UpdatesNativeStateChangeEvent) => void,
+      ) => UpdatesStateChangeSubscription;
     }
   } catch (_) {
     // that happens when expo-updates is not installed
@@ -107,6 +113,8 @@ const STATE_TRANSITIONS: StateTransition[] = [
  * downloading updates, errors, rollbacks, and restarts.
  */
 export const expoUpdatesListenerIntegration = (): Integration => {
+  let subscription: UpdatesStateChangeSubscription | undefined;
+
   function setup(client: ReactNativeClient): void {
     client.on('afterInit', () => {
       if (!isExpo() || isExpoGo()) {
@@ -119,13 +127,22 @@ export const expoUpdatesListenerIntegration = (): Integration => {
         return;
       }
 
+      // Remove any previous subscription to prevent duplicate breadcrumbs
+      // if Sentry.init() is called multiple times.
+      subscription?.remove();
+
       let previousContext: Partial<UpdatesNativeStateMachineContext> = {};
 
-      addListener((event: UpdatesNativeStateChangeEvent) => {
+      subscription = addListener((event: UpdatesNativeStateChangeEvent) => {
         const ctx = event.context;
         handleStateChange(previousContext, ctx);
         previousContext = ctx;
       });
+    });
+
+    client.on('close', () => {
+      subscription?.remove();
+      subscription = undefined;
     });
   }
 
