@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ORIGINAL_DIR=$(cd "$(dirname "$0")" && pwd)
 cd $(dirname "$0")/../packages/core/android
 file='build.gradle'
 content=$(cat $file)
@@ -25,6 +26,10 @@ set-version)
     # Update sentry-spotlight
     newContent=$(echo "$newContent" | sed -E "s/(io\.sentry:sentry-spotlight:)([0-9\.]+)/\1$2/g")
     echo "$newContent" >$file
+
+    # Update replay-stubs to match
+    cd $ORIGINAL_DIR
+    ./update-android-stubs.sh set-version $2
     ;;
 *)
     echo "Unknown argument $1"

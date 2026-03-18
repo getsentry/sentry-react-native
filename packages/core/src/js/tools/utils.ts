@@ -139,11 +139,7 @@ export function prependModule(
   module: Module<VirtualJSOutput>,
 ): Module<MixedOutput>[] {
   const modifiedPreModules = [...modules];
-  if (
-    modifiedPreModules.length > 0 &&
-    modifiedPreModules[0] !== undefined &&
-    modifiedPreModules[0].path === PRELUDE_MODULE_PATH
-  ) {
+  if (modifiedPreModules.length > 0 && modifiedPreModules[0]?.path === PRELUDE_MODULE_PATH) {
     // prelude module must be first as it measures the bundle startup time
     modifiedPreModules.unshift(modules[0] as Module<VirtualJSOutput>);
     modifiedPreModules[1] = module;

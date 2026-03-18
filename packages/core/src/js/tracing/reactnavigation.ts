@@ -308,6 +308,7 @@ export const reactNavigationIntegration = ({
    * @param unknownEvent - The event object that contains navigation action data
    * @param isAppRestart - Whether this span is being started due to an app restart rather than a normal navigation action
    */
+  // eslint-disable-next-line complexity
   const startIdleNavigationSpan = (unknownEvent?: unknown, isAppRestart = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
     if (useDispatchedActionData && event?.data.noop) {
@@ -414,6 +415,7 @@ export const reactNavigationIntegration = ({
   /**
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
+  // eslint-disable-next-line complexity
   const updateLatestNavigationSpanWithCurrentRoute = (): void => {
     const stateChangedTimestamp = timestampInSeconds();
     const previousRoute = latestRoute;
@@ -438,7 +440,7 @@ export const reactNavigationIntegration = ({
 
     addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
 
-    if (previousRoute && previousRoute.key === route.key) {
+    if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
       pushRecentRouteKey(route.key);
       latestRoute = route;
