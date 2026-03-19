@@ -32,6 +32,9 @@ jobs:
   detect-changes:
     needs: [ready-to-merge-gate]
     uses: ./.github/workflows/detect-changes.yml
+    with:
+      caller_event_name: ${{ github.event_name }}
+      caller_ref: ${{ github.ref }}
   auth_token_check:
     uses: ./.github/workflows/skip-ci-noauth.yml
     secrets: inherit

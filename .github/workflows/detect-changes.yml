@@ -1,6 +1,18 @@
 name: Detect Changes
 on:
   workflow_call:
+    inputs:
+      # Pass the caller's event name and ref so we can detect push-to-main/release.
+      # Inside a reusable workflow github.event_name is always 'workflow_call',
+      # so the caller must forward the real values explicitly.
+      caller_event_name:
+        description: 'The triggering event name from the caller (github.event_name)'
+        required: true
+        type: string
+      caller_ref:
+        description: 'The triggering ref from the caller (github.ref)'
+        required: true
+        type: string
     outputs:
       # Raw filter outputs
       ios_native:
@@ -64,7 +76,7 @@ jobs:
           JS_SOURCE: ${{ steps.filter.outputs.js_source }}
           CI_CHANGED: ${{ steps.filter.outputs.ci }}
           E2E_TESTS: ${{ steps.filter.outputs.e2e_tests }}
-          IS_MAIN_OR_RELEASE: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+          IS_MAIN_OR_RELEASE: ${{ inputs.caller_event_name == 'push' && (inputs.caller_ref == 'refs/heads/main' || startsWith(inputs.caller_ref, 'refs/heads/release/')) }}
         run: |
           echo "--- Change Detection Summary ---"
           echo "ios_native=$IOS_NATIVE"

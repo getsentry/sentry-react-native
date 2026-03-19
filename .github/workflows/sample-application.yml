@@ -38,6 +38,9 @@ jobs:
   detect-changes:
     needs: [ready-to-merge-gate]
     uses: ./.github/workflows/detect-changes.yml
+    with:
+      caller_event_name: ${{ github.event_name }}
+      caller_ref: ${{ github.ref }}
 
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
