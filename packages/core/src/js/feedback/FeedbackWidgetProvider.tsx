@@ -103,8 +103,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
     });
 
     if (isShakeToReportEnabled()) {
-      startShakeListener(showFeedbackWidget);
-      this._startedShakeListener = true;
+      this._startedShakeListener = startShakeListener(showFeedbackWidget);
     }
   }
 

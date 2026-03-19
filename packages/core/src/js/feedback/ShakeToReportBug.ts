@@ -23,20 +23,20 @@ const defaultEmitterFactory: EmitterFactory = nativeModule => new NativeEventEmi
  * - iOS: Uses UIKit's motion event detection (no permissions required)
  * - Android: Uses the accelerometer sensor (no permissions required)
  */
-export function startShakeListener(onShake: () => void, createEmitter: EmitterFactory = defaultEmitterFactory): void {
+export function startShakeListener(onShake: () => void, createEmitter: EmitterFactory = defaultEmitterFactory): boolean {
   if (_shakeSubscription) {
-    return;
+    return false;
   }
 
   if (isWeb()) {
     debug.warn('Shake detection is not supported on Web.');
-    return;
+    return false;
   }
 
   const nativeModule = getRNSentryModule() as NativeModule | undefined;
   if (!nativeModule) {
     debug.warn('Native module is not available. Shake detection will not work.');
-    return;
+    return false;
   }
 
   try {
@@ -54,12 +54,14 @@ export function startShakeListener(onShake: () => void, createEmitter: EmitterFa
     } else {
       debug.warn('enableShakeDetection is not available on the native module.');
     }
+    return true;
   } catch (e) {
     debug.warn('Failed to start shake listener:', e);
     if (_shakeSubscription) {
       _shakeSubscription.remove();
       _shakeSubscription = null;
     }
+    return false;
   }
 }
 
