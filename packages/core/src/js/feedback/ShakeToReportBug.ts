@@ -39,19 +39,24 @@ export function startShakeListener(onShake: () => void, createEmitter: EmitterFa
     return;
   }
 
-  const emitter = createEmitter(nativeModule);
-  _shakeSubscription = emitter.addListener(OnShakeEventName, () => {
-    onShake();
-  });
+  try {
+    const emitter = createEmitter(nativeModule);
+    _shakeSubscription = emitter.addListener(OnShakeEventName, () => {
+      onShake();
+    });
 
-  // Explicitly enable native shake detection. On iOS with New Architecture (TurboModules),
-  // NativeEventEmitter.addListener does not dispatch to native addListener:, so the
-  // native shake listener would never start without this explicit call.
-  const module = nativeModule as { enableShakeDetection?: () => void };
-  if (module.enableShakeDetection) {
-    module.enableShakeDetection();
-  } else {
-    debug.warn('enableShakeDetection is not available on the native module.');
+    // Explicitly enable native shake detection. On iOS with New Architecture (TurboModules),
+    // NativeEventEmitter.addListener does not dispatch to native addListener:, so the
+    // native shake listener would never start without this explicit call.
+    const module = nativeModule as { enableShakeDetection?: () => void };
+    if (module.enableShakeDetection) {
+      module.enableShakeDetection();
+    } else {
+      debug.warn('enableShakeDetection is not available on the native module.');
+    }
+  } catch (e) {
+    debug.warn('Failed to start shake listener:', e);
+    _shakeSubscription = null;
   }
 }
 

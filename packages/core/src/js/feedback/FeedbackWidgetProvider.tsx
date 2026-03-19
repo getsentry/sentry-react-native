@@ -53,6 +53,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
   };
 
   private _themeListener: NativeEventSubscription | undefined;
+  private _startedShakeListener: boolean = false;
 
   private _panResponder = PanResponder.create({
     onStartShouldSetPanResponder: (_, gestureState) => {
@@ -103,6 +104,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
 
     if (isShakeToReportEnabled()) {
       startShakeListener(showFeedbackWidget);
+      this._startedShakeListener = true;
     }
   }
 
@@ -114,7 +116,9 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
       this._themeListener.remove();
     }
 
-    stopShakeListener();
+    if (this._startedShakeListener) {
+      stopShakeListener();
+    }
   }
 
   /**
