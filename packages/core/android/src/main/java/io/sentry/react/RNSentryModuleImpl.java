@@ -228,12 +228,16 @@ public class RNSentryModuleImpl {
       shakeDetector.start(
           context,
           () -> {
-            final ReactApplicationContext ctx = getReactApplicationContext();
-            if (ctx.hasActiveReactInstance()) {
-              ctx.getJSModule(
-                      com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-                          .class)
-                  .emit(ON_SHAKE_EVENT, null);
+            try { // NOPMD - We don't want to crash in any case
+              final ReactApplicationContext ctx = getReactApplicationContext();
+              if (ctx.hasActiveReactInstance()) {
+                ctx.getJSModule(
+                        com.facebook.react.modules.core.DeviceEventManagerModule
+                            .RCTDeviceEventEmitter.class)
+                    .emit(ON_SHAKE_EVENT, null);
+              }
+            } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+              logger.log(SentryLevel.WARNING, "Failed to emit shake event.", e);
             }
           });
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
