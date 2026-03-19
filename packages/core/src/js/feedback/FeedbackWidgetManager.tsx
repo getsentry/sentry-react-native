@@ -133,13 +133,13 @@ const resetScreenshotButtonManager = (): void => {
   ScreenshotButtonManager.reset();
 };
 
-const showFeedbackOnShake = (): void => {
+const enableFeedbackOnShake = (): void => {
   lazyLoadAutoInjectFeedbackIntegration();
   startShakeListener(showFeedbackWidget);
 };
 
-const hideFeedbackOnShake = (): void => {
+const disableFeedbackOnShake = (): void => {
   stopShakeListener();
 };
 
-export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, showFeedbackOnShake, hideFeedbackOnShake, showScreenshotButton, hideScreenshotButton, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager };
+export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, enableFeedbackOnShake, disableFeedbackOnShake, showScreenshotButton, hideScreenshotButton, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager };

@@ -15,7 +15,7 @@
   - Tracks update checks, downloads, errors, rollbacks, and restarts as `expo.updates` breadcrumbs
   - Enabled by default in Expo apps (requires `expo-updates` to be installed)
 - Show feedback widget on device shake ([#5729](https://github.com/getsentry/sentry-react-native/pull/5729))
-  - Use `Sentry.showFeedbackOnShake()` / `Sentry.hideFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
+  - Use `Sentry.enableFeedbackOnShake()` / `Sentry.disableFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
 
 ### Fixes
 

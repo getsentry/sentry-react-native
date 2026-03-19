@@ -107,8 +107,8 @@ export {
   showFeedbackWidget,
   showFeedbackButton,
   hideFeedbackButton,
-  showFeedbackOnShake,
-  hideFeedbackOnShake,
+  enableFeedbackOnShake,
+  disableFeedbackOnShake,
 } from './feedback/FeedbackWidgetManager';
 
 export { getDataFromUri } from './wrapper';
