@@ -520,31 +520,4 @@ describe('NativeFramesInstrumentation', () => {
       }),
     );
   });
-
-  describe('unsampled spans', () => {
-    beforeEach(() => {
-      global.Date.now = jest.fn(() => mockDate.getTime());
-
-      getCurrentScope().clear();
-      getIsolationScope().clear();
-      getGlobalScope().clear();
-
-      const options = getDefaultTestClientOptions({
-        tracesSampleRate: 0,
-        enableNativeFramesTracking: true,
-        integrations: [nativeFramesIntegration()],
-      });
-      client = new TestClient(options);
-      setCurrentClient(client);
-      client.init();
-    });
-
-    it('does not fetch native frames for unsampled spans', () => {
-      startSpan({ name: 'unsampled transaction', forceTransaction: true }, () => {
-        // span starts and ends — no work expected
-      });
-
-      expect(NATIVE.fetchNativeFrames).not.toHaveBeenCalled();
-    });
-  });
 });

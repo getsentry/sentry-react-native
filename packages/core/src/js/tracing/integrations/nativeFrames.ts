@@ -1,5 +1,5 @@
 import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
-import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
+import { debug, getRootSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import type { NativeFramesResponse } from '../../NativeRNSentry';
 import { AsyncExpiringMap } from '../../utils/AsyncExpiringMap';
 import { isRootSpan } from '../../utils/span';
@@ -86,10 +86,6 @@ export const nativeFramesIntegration = (): Integration => {
   };
 
   const fetchStartFramesForSpan = (span: Span): void => {
-    if (!spanIsSampled(span)) {
-      return;
-    }
-
     const spanId = span.spanContext().spanId;
     const spanType = isRootSpan(span) ? 'root' : 'child';
     debug.log(`[${INTEGRATION_NAME}] Fetching frames for ${spanType} span start (${spanId}).`);
