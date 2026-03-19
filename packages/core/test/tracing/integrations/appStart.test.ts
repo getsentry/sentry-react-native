@@ -464,6 +464,59 @@ describe('App Start Integration', () => {
       });
     });
 
+    it('Attaches app start to next transaction when first root span was dropped', async () => {
+      mockAppStart({ cold: true });
+
+      const integration = appStartIntegration();
+      const client = new TestClient({
+        ...getDefaultTestClientOptions(),
+        enableAppStartTracking: true,
+        tracesSampleRate: 1.0,
+      });
+      setCurrentClient(client);
+      integration.setup(client);
+      integration.afterAllSetup(client);
+
+      // First root span starts — locks firstStartedActiveRootSpanId
+      const firstSpan = startInactiveSpan({
+        name: 'First Navigation',
+        forceTransaction: true,
+      });
+
+      // Simulate the span being dropped (e.g., ignoreEmptyRouteChangeTransactions
+      // sets _sampled = false during spanEnd processing).
+      // Note: _sampled is a @sentry/core SentrySpan internal — this couples to the
+      // same mechanism used by onSpanEndUtils.ts (discardEmptyNavigationSpan).
+      (firstSpan as any)['_sampled'] = false;
+
+      // Second root span starts — recordFirstStartedActiveRootSpanId detects
+      // the previously locked span is no longer sampled and resets the lock
+      const secondSpan = startInactiveSpan({
+        name: 'Second Navigation',
+        forceTransaction: true,
+      });
+      const secondSpanId = secondSpan.spanContext().spanId;
+
+      // Process a transaction event matching the second span
+      const event = getMinimalTransactionEvent();
+      event.contexts!.trace!.span_id = secondSpanId;
+
+      const actualEvent = await processEventWithIntegration(integration, event);
+
+      // App start should be attached to the second transaction
+      const appStartSpan = (actualEvent as TransactionEvent)?.spans?.find(
+        ({ description }) => description === 'Cold Start',
+      );
+      expect(appStartSpan).toBeDefined();
+      expect(appStartSpan).toEqual(
+        expect.objectContaining({
+          description: 'Cold Start',
+          op: APP_START_COLD_OP,
+        }),
+      );
+      expect((actualEvent as TransactionEvent)?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeDefined();
+    });
+
     it('Does not lock firstStartedActiveRootSpanId to unsampled root span', async () => {
       mockAppStart({ cold: true });
 
@@ -893,6 +946,77 @@ describe('App Start Integration', () => {
       const actualEvent = await processEvent(getMinimalTransactionEvent());
       expect(actualEvent).toStrictEqual(getMinimalTransactionEvent());
       expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('Sets appStartDataFlushed when native returns null to prevent wasteful retries', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(null);
+
+      const integration = appStartIntegration();
+      const client = new TestClient(getDefaultTestClientOptions());
+
+      const firstEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      await integration.processEvent(firstEvent, {}, client);
+      expect(firstEvent.measurements).toBeUndefined();
+
+      // Second transaction should be skipped (appStartDataFlushed = true)
+      mockAppStart({ cold: true });
+      const secondEvent = getMinimalTransactionEvent();
+      secondEvent.contexts!.trace!.span_id = '456';
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
+
+      const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
+      expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
+      // fetchNativeAppStart should only be called once — the second event was skipped
+      expect(NATIVE.fetchNativeAppStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('Sets appStartDataFlushed when has_fetched is true to prevent wasteful retries', async () => {
+      mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+        type: 'cold',
+        has_fetched: true,
+        spans: [],
+      });
+
+      const integration = appStartIntegration();
+      const client = new TestClient(getDefaultTestClientOptions());
+
+      const firstEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      await integration.processEvent(firstEvent, {}, client);
+
+      // Second transaction should be skipped (appStartDataFlushed = true)
+      mockAppStart({ cold: true });
+      const secondEvent = getMinimalTransactionEvent();
+      secondEvent.contexts!.trace!.span_id = '456';
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
+
+      const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
+      expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
+    });
+
+    it('Sets appStartDataFlushed when app start end timestamp is before app start timestamp', async () => {
+      mockAppStart({ cold: true, appStartEndTimestampMs: Date.now() - 1000 });
+
+      const integration = appStartIntegration();
+      const client = new TestClient(getDefaultTestClientOptions());
+
+      const firstEvent = getMinimalTransactionEvent();
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(firstEvent.contexts?.trace?.span_id);
+
+      await integration.processEvent(firstEvent, {}, client);
+      expect(firstEvent.measurements).toBeUndefined();
+
+      // Second transaction should be skipped (appStartDataFlushed = true)
+      mockAppStart({ cold: true });
+      const secondEvent = getMinimalTransactionEvent();
+      secondEvent.contexts!.trace!.span_id = '456';
+      (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(secondEvent.contexts?.trace?.span_id);
+
+      const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
+      expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
     });
   });
 });
