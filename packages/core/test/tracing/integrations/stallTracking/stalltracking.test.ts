@@ -225,4 +225,31 @@ describe('StallTracking', () => {
 
     expect(client.eventQueue[0].measurements).toBeUndefined();
   });
+
+  it('does not track stalls for unsampled spans', async () => {
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    const unsampledOptions = getDefaultTestClientOptions({
+      tracesSampleRate: 0,
+      enableStallTracking: true,
+      integrations: [stallTrackingIntegration()],
+      enableAppStartTracking: false,
+    });
+    const unsampledClient = new TestClient(unsampledOptions);
+    setCurrentClient(unsampledClient);
+    unsampledClient.init();
+
+    startSpan({ name: 'unsampled transaction', forceTransaction: true }, () => {
+      expensiveOperation();
+      jest.runOnlyPendingTimers();
+    });
+
+    await unsampledClient.flush();
+
+    // Event is either not sent or has no stall measurements
+    const event = unsampledClient.eventQueue[0];
+    expect(event?.measurements?.stall_count).toBeUndefined();
+  });
 });
