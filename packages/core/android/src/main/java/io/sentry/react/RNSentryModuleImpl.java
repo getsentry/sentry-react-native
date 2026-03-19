@@ -222,24 +222,34 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    final ReactApplicationContext context = getReactApplicationContext();
-    shakeDetector = new SentryShakeDetector(logger);
-    shakeDetector.start(
-        context,
-        () -> {
-          final ReactApplicationContext ctx = getReactApplicationContext();
-          if (ctx.hasActiveReactInstance()) {
-            ctx.getJSModule(
-                    com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
-                        .class)
-                .emit(ON_SHAKE_EVENT, null);
-          }
-        });
+    try { // NOPMD - We don't want to crash in any case
+      final ReactApplicationContext context = getReactApplicationContext();
+      shakeDetector = new SentryShakeDetector(logger);
+      shakeDetector.start(
+          context,
+          () -> {
+            final ReactApplicationContext ctx = getReactApplicationContext();
+            if (ctx.hasActiveReactInstance()) {
+              ctx.getJSModule(
+                      com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+                          .class)
+                  .emit(ON_SHAKE_EVENT, null);
+            }
+          });
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Failed to start shake detection.", e);
+      shakeDetector = null;
+    }
   }
 
   private void stopShakeDetection() {
-    if (shakeDetector != null) {
-      shakeDetector.stop();
+    try { // NOPMD - We don't want to crash in any case
+      if (shakeDetector != null) {
+        shakeDetector.stop();
+        shakeDetector = null;
+      }
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Failed to stop shake detection.", e);
       shakeDetector = null;
     }
   }
