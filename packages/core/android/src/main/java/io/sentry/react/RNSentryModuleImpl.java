@@ -873,7 +873,9 @@ public class RNSentryModuleImpl {
       if (breadcrumbs != null) {
         var filtered = new ArrayList<Map<String, Object>>();
         for (Map<String, Object> b : breadcrumbs) {
-          if ("react-native".equals(b.getOrDefault("origin", ""))) continue;
+          if ("react-native".equals(b.getOrDefault("origin", ""))) {
+            continue;
+          }
           filtered.add(b);
         }
         serialized.put("breadcrumbs", filtered);
