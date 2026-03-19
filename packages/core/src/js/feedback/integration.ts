@@ -11,6 +11,7 @@ type FeedbackIntegration = Integration & {
   colorScheme?: 'system' | 'light' | 'dark';
   themeLight: Partial<FeedbackWidgetTheme>;
   themeDark: Partial<FeedbackWidgetTheme>;
+  enableShakeToReport: boolean;
 };
 
 export const feedbackIntegration = (
@@ -20,6 +21,15 @@ export const feedbackIntegration = (
     colorScheme?: 'system' | 'light' | 'dark';
     themeLight?: Partial<FeedbackWidgetTheme>;
     themeDark?: Partial<FeedbackWidgetTheme>;
+    /**
+     * Enable showing the feedback widget when the user shakes the device.
+     *
+     * - iOS: Uses UIKit's motion event detection (no permissions required)
+     * - Android: Uses the accelerometer sensor (no permissions required)
+     *
+     * @default false
+     */
+    enableShakeToReport?: boolean;
   } = {},
 ): FeedbackIntegration => {
   const {
@@ -28,6 +38,7 @@ export const feedbackIntegration = (
     colorScheme,
     themeLight: lightTheme,
     themeDark: darkTheme,
+    enableShakeToReport: shakeToReport,
     ...widgetOptions
   } = initOptions;
 
@@ -39,6 +50,7 @@ export const feedbackIntegration = (
     colorScheme: colorScheme || 'system',
     themeLight: lightTheme || {},
     themeDark: darkTheme || {},
+    enableShakeToReport: shakeToReport || false,
   };
 };
 
@@ -98,4 +110,9 @@ export const getFeedbackDarkTheme = (): Partial<FeedbackWidgetTheme> => {
   }
 
   return integration.themeDark;
+};
+
+export const isShakeToReportEnabled = (): boolean => {
+  const integration = _getClientIntegration();
+  return integration?.enableShakeToReport ?? false;
 };
