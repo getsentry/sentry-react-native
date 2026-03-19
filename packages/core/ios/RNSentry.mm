@@ -60,6 +60,7 @@ static bool hasFetchedAppStart;
 
 @implementation RNSentry {
     bool hasListeners;
+    bool _shakeDetectionEnabled;
     RNSentryTimeToDisplay *_timeToDisplay;
     NSArray<NSString *> *_ignoreErrorPatternsStr;
     NSArray<NSRegularExpression *> *_ignoreErrorPatternsRegex;
@@ -297,7 +298,7 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 
 - (void)handleShakeDetected
 {
-    if (hasListeners) {
+    if (_shakeDetectionEnabled) {
         [self sendEventWithName:RNSentryOnShakeEvent body:@{}];
     }
 }
@@ -322,10 +323,12 @@ RCT_EXPORT_METHOD(enableShakeDetection)
         [shakeDetector performSelector:@selector(enable)];
 #pragma clang diagnostic pop
     }
+    _shakeDetectionEnabled = YES;
 }
 
 RCT_EXPORT_METHOD(disableShakeDetection)
 {
+    _shakeDetectionEnabled = NO;
     Class shakeDetector = NSClassFromString(@"SentryShakeDetector");
     if (shakeDetector) {
 #pragma clang diagnostic push
