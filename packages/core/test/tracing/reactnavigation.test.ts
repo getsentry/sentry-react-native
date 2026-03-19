@@ -1,7 +1,6 @@
 /* eslint-disable deprecation/deprecation */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { SentrySpan } from '@sentry/core';
-import type { Event, Measurements, StartSpanOptions } from '@sentry/core';
+import type { Event, Measurements, SentrySpan, StartSpanOptions } from '@sentry/core';
 import {
   getActiveSpan,
   getCurrentScope,
@@ -594,6 +593,176 @@ describe('ReactNavigationInstrumentation', () => {
       reactNavigationIntegration().afterAllSetup(client);
 
       expect(mockedGetAppRegistryIntegration).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('deferred initial span creation', () => {
+    test('initial span is created in registerNavigationContainer when called after afterAllSetup', async () => {
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+      });
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      // No span created yet — no navigation container registered
+      expect(getActiveSpan()).toBeUndefined();
+
+      // Register navigation container after init (production flow)
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer({ current: mockNavigationContainer });
+
+      const span = getActiveSpan();
+      expect(span).toBeDefined();
+      expect(spanToJSON(span!).description).toBe('Route');
+
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event).toEqual(
+        expect.objectContaining({
+          type: 'transaction',
+          transaction: 'Route',
+        }),
+      );
+    });
+
+    test('initial span is not discarded by idle timeout when container registers after init', async () => {
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+      });
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      // Simulate a delay before container registration (e.g. auth gate, slow render)
+      jest.advanceTimersByTime(500);
+      expect(getActiveSpan()).toBeUndefined();
+
+      // Register after 500ms — should still create the span successfully
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer({ current: mockNavigationContainer });
+
+      const span = getActiveSpan();
+      expect(span).toBeDefined();
+
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event).toEqual(
+        expect.objectContaining({
+          type: 'transaction',
+          transaction: 'Route',
+        }),
+      );
+    });
+
+    test('afterAllSetup does not create span when navigation container is not registered', () => {
+      const instrumentation = reactNavigationIntegration();
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      // No navigation container registered — no span should be created
+      expect(getActiveSpan()).toBeUndefined();
+    });
+
+    test('subsequent navigations work after deferred initial span', async () => {
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+      });
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      mockNavigation = createMockNavigationAndAttachTo(instrumentation);
+
+      // Flush the initial span
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      expect(client.event).toEqual(
+        expect.objectContaining({
+          type: 'transaction',
+          transaction: 'Initial Screen',
+        }),
+      );
+
+      // Navigate to a new screen
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      expect(client.event).toEqual(
+        expect.objectContaining({
+          type: 'transaction',
+          transaction: 'New Screen',
+        }),
+      );
+    });
+
+    test('runApplication creates span after deferred initial state is handled', async () => {
+      const { mockedOnRunApplication } = mockAppRegistryIntegration();
+
+      const instrumentation = reactNavigationIntegration();
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      // Register container after init
+      const mockNavigationContainer = new MockNavigationContainer();
+      instrumentation.registerNavigationContainer({ current: mockNavigationContainer });
+
+      // Flush initial span
+      await jest.runOnlyPendingTimersAsync();
+
+      // Simulate app restart via runApplication
+      const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+      runApplicationCallback();
+
+      const span = getActiveSpan();
+      expect(span).toBeDefined();
+      expect(spanToJSON(span!).op).toBe('navigation');
     });
   });
 

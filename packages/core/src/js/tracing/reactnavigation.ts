@@ -195,6 +195,7 @@ export const reactNavigationIntegration = ({
   let navigationProcessingSpan: Span | undefined;
 
   let initialStateHandled: boolean = false;
+  let isSetupComplete: boolean = false;
   let stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
   let recentRouteKeys: string[] = [];
 
@@ -233,14 +234,15 @@ export const reactNavigationIntegration = ({
       }
     });
 
-    startIdleNavigationSpan();
+    isSetupComplete = true;
 
     if (!navigationContainer) {
       // This is expected as navigation container is registered after the root component is mounted.
       return undefined;
     }
 
-    // Navigation container already registered, just populate with route state
+    // Navigation container already registered, create and populate initial span
+    startIdleNavigationSpan();
     updateLatestNavigationSpanWithCurrentRoute();
     initialStateHandled = true;
   };
@@ -282,8 +284,13 @@ export const reactNavigationIntegration = ({
     }
 
     if (!latestNavigationSpan) {
-      debug.log(`${INTEGRATION_NAME} Navigation container registered, but integration has not been setup yet.`);
-      return undefined;
+      if (!isSetupComplete) {
+        debug.log(
+          `${INTEGRATION_NAME} Navigation container registered before integration setup. Initial span will be created when setup completes.`,
+        );
+        return undefined;
+      }
+      startIdleNavigationSpan();
     }
 
     // Navigation Container is registered after the first navigation
@@ -301,6 +308,7 @@ export const reactNavigationIntegration = ({
    * @param unknownEvent - The event object that contains navigation action data
    * @param isAppRestart - Whether this span is being started due to an app restart rather than a normal navigation action
    */
+  // eslint-disable-next-line complexity
   const startIdleNavigationSpan = (unknownEvent?: unknown, isAppRestart = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
     if (useDispatchedActionData && event?.data.noop) {
@@ -407,6 +415,7 @@ export const reactNavigationIntegration = ({
   /**
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
+  // eslint-disable-next-line complexity
   const updateLatestNavigationSpanWithCurrentRoute = (): void => {
     const stateChangedTimestamp = timestampInSeconds();
     const previousRoute = latestRoute;
@@ -431,7 +440,7 @@ export const reactNavigationIntegration = ({
 
     addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
 
-    if (previousRoute && previousRoute.key === route.key) {
+    if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
       pushRecentRouteKey(route.key);
       latestRoute = route;

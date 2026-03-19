@@ -7,6 +7,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.JavascriptException;
 import io.sentry.ILogger;
 import io.sentry.ProfileLifecycle;
+import io.sentry.ScreenshotStrategyType;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
@@ -373,6 +374,15 @@ final class RNSentryStart {
             || rnMobileReplayOptions.getBoolean("maskAllVectors");
     if (redactVectors) {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
+    }
+
+    if (rnMobileReplayOptions.hasKey("screenshotStrategy")) {
+      final String strategy = rnMobileReplayOptions.getString("screenshotStrategy");
+      if ("canvas".equals(strategy)) {
+        androidReplayOptions.setScreenshotStrategy(ScreenshotStrategyType.CANVAS);
+      } else {
+        androidReplayOptions.setScreenshotStrategy(ScreenshotStrategyType.PIXEL_COPY);
+      }
     }
 
     androidReplayOptions.setMaskViewContainerClass(RNSentryReplayMask.class.getName());

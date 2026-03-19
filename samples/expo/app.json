@@ -3,9 +3,8 @@
     "name": "sentry-react-native-expo-sample",
     "slug": "sentry-react-native-expo-sample",
     "jsEngine": "hermes",
-    "newArchEnabled": true,
     "scheme": "sentry-expo-sample",
-    "version": "8.2.0",
+    "version": "8.4.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,11 +13,13 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "io.sentry.expo.sample",
-      "buildNumber": "75"
+      "buildNumber": "77"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +27,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "io.sentry.expo.sample",
-      "versionCode": 75
+      "versionCode": 77
     },
     "web": {
       "bundler": "metro",
@@ -45,6 +46,24 @@
           "project": "sentry-react-native",
           "organization": "sentry-sdks",
           "useNativeInit": true,
+          "options": {
+            "dsn": "https://1df17bd4e543fdb31351dee1768bb679@o447951.ingest.sentry.io/5428561",
+            "debug": true,
+            "environment": "dev",
+            "enableUserInteractionTracing": true,
+            "enableAutoSessionTracking": true,
+            "sessionTrackingIntervalMillis": 30000,
+            "enableTracing": true,
+            "tracesSampleRate": 1,
+            "attachStacktrace": true,
+            "attachScreenshot": true,
+            "attachViewHierarchy": true,
+            "enableCaptureFailedRequests": true,
+            "profilesSampleRate": 1,
+            "replaysSessionSampleRate": 1,
+            "replaysOnErrorSampleRate": 1,
+            "spotlight": true
+          },
           "experimental_android": {
             "enableAndroidGradlePlugin": true,
             "autoUploadProguardMapping": true,

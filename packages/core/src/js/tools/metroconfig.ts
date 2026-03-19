@@ -91,6 +91,7 @@ export function withSentryConfig(
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
+  newConfig = withSentryExcludeServerOnlyResolver(newConfig);
   if (enableSourceContextInDevelopment) {
     newConfig = withSentryMiddleware(newConfig);
   }
@@ -128,6 +129,7 @@ export function getSentryExpoConfig(
   if (options.includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
+  newConfig = withSentryExcludeServerOnlyResolver(newConfig);
 
   if (options.enableSourceContextInDevelopment ?? true) {
     newConfig = withSentryMiddleware(newConfig);
@@ -270,6 +272,69 @@ Please follow one of the following options:
     resolver: {
       ...config.resolver,
       resolveRequest: sentryResolverRequest,
+    },
+  };
+}
+
+/**
+ * Matches relative import paths to server-only AI/MCP modules within `@sentry/core`.
+ *
+ * Metro passes the module name as-written in the source code, so for imports inside
+ * `@sentry/core`'s barrel file like `export { ... } from './integrations/mcp-server/index.js'`,
+ * the `moduleName` will be `./integrations/mcp-server/index.js`.
+ */
+const SERVER_ONLY_MODULE_RE =
+  /\/(mcp-server|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|$)/;
+
+function isFromSentryCore(originModulePath: string): boolean {
+  return originModulePath.includes('@sentry/core');
+}
+
+/**
+ * Excludes server-only AI/MCP modules from native (Android/iOS) bundles.
+ */
+export function withSentryExcludeServerOnlyResolver(config: MetroConfig): MetroConfig {
+  const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro068 | undefined;
+
+  const sentryServerOnlyResolverRequest: CustomResolver = (
+    context: CustomResolutionContext,
+    moduleName: string,
+    platform: string | null,
+    oldMetroModuleName?: string,
+  ) => {
+    if (
+      (platform === 'android' || platform === 'ios') &&
+      isFromSentryCore((context as { originModulePath?: string }).originModulePath ?? '') &&
+      SERVER_ONLY_MODULE_RE.test(oldMetroModuleName ?? moduleName)
+    ) {
+      return { type: 'empty' } as Resolution;
+    }
+    if (originalResolver) {
+      return oldMetroModuleName
+        ? originalResolver(context, moduleName, platform, oldMetroModuleName)
+        : originalResolver(context, moduleName, platform);
+    }
+
+    // Prior 0.68, context.resolveRequest is sentryServerOnlyResolverRequest itself, which would cause infinite recursion.
+    if (context.resolveRequest === sentryServerOnlyResolverRequest) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `Error: [@sentry/react-native/metro] Can not resolve the defaultResolver on Metro older than 0.68.
+Please include your resolverRequest on your metroconfig or update your Metro version to 0.68 or higher.
+If you are still facing issues, report the issue at http://www.github.com/getsentry/sentry-react-native/issues`,
+      );
+      // Return required for test.
+      return process.exit(-1);
+    }
+
+    return context.resolveRequest(context, moduleName, platform);
+  };
+
+  return {
+    ...config,
+    resolver: {
+      ...config.resolver,
+      resolveRequest: sentryServerOnlyResolverRequest,
     },
   };
 }

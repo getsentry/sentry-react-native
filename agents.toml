@@ -1,0 +1,5 @@
+version = 1
+agents = ["claude", "cursor"]
+
+[trust]
+github_orgs = ["getsentry"]

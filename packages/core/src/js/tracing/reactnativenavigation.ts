@@ -158,7 +158,7 @@ export const reactNativeNavigationIntegration = ({
     }
 
     // We ignore actions that pertain to the same screen.
-    const isSameComponent = prevComponentEvent && event.componentId === prevComponentEvent.componentId;
+    const isSameComponent = event.componentId === prevComponentEvent?.componentId;
     if (isSameComponent) {
       discardLatestNavigationSpan();
       return;

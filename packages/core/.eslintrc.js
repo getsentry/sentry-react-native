@@ -28,15 +28,27 @@ module.exports = {
       files: ['*.ts', '*.tsx'],
       extends: ['plugin:react/recommended'],
       plugins: ['react', 'react-native'],
+      parserOptions: {
+        project: './tsconfig.json',
+      },
       rules: {
         '@typescript-eslint/typedef': ['error', { arrowParameter: false, variableDeclarationIgnoreFunction: true }],
+        // @typescript-eslint/ban-types was removed in v8, replaced by more specific rules.
+        // no-empty-object-type was 'off' under ban-types, keep it off.
+        '@typescript-eslint/no-empty-object-type': 'off',
+        // no-explicit-any was 'warn' in v5 recommended, keep it as 'warn' (v8 defaults to 'error')
+        '@typescript-eslint/no-explicit-any': 'warn',
+        // Allow require() in React Native code (dynamic requires are a common RN pattern)
+        '@typescript-eslint/no-require-imports': 'off',
+        // In @typescript-eslint v8, caughtErrors defaults to 'all' (was 'none' in v5).
+        // The codebase commonly uses catch(e) {} without using the error variable.
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrors: 'none' }],
       },
     },
     {
       // Test Files
       files: ['*.test.ts', '*.test.tsx', '*.test.js', '*.test.jsx'],
       rules: {
-        '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/unbound-method': 'off',
@@ -51,6 +63,8 @@ module.exports = {
       },
       rules: {
         'no-console': 'off',
+        // In ESLint 9, no-unused-vars reports catch clause variables by default
+        'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrors: 'none' }],
       },
     },
     {

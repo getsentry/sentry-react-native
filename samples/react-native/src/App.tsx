@@ -15,6 +15,7 @@ import { LogBox, Platform } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 
 import RunningIndicator from './components/RunningIndicator';
+import BundledPlaygroundScreen from './Screens/BundledPlaygroundScreen';
 import WebviewScreen from './Screens/WebviewScreen';
 import getErrorsTab from './tabs/ErrorsTab';
 import getPerformanceTab from './tabs/PerformanceTab';
@@ -69,7 +70,7 @@ Sentry.init({
   },
   logsOrigin: 'all',
   enableLogs: true,
-  beforeSendLog: (log) => {
+  beforeSendLog: log => {
     return log;
   },
   enableUserInteractionTracing: true,
@@ -105,7 +106,7 @@ Sentry.init({
           Platform.OS === 'ios' && isTurboModuleEnabled()
             ? // The global patch doesn't work on iOS with the New Architecture in this Sample app
               // In
-            false
+              false
             : true,
       }),
       Sentry.feedbackIntegration({
@@ -212,7 +213,7 @@ function BottomTabsNavigator() {
       />
       <BottomTabNavigator.Screen
         name="PlaygroundTab"
-        component={getPlaygroundTab()}
+        component={getPlaygroundTab(StackNavigator)}
         options={{
           tabBarLabel: 'Playground',
           // eslint-disable-next-line react/no-unstable-nested-components
@@ -250,6 +251,11 @@ function RootNavigationContainer() {
         <StackNavigator.Screen
           name="Webview"
           component={WebviewScreen}
+          options={{ headerShown: true }}
+        />
+        <StackNavigator.Screen
+          name="BundledPlayground"
+          component={BundledPlaygroundScreen}
           options={{ headerShown: true }}
         />
       </StackNavigator.Navigator>
