@@ -54,6 +54,8 @@ export interface Spec extends TurboModule {
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
   setActiveSpanId(spanId: string): boolean;
   encodeToBase64(data: number[]): Promise<string | undefined | null>;
+  enableShakeDetection(): void;
+  disableShakeDetection(): void;
 }
 
 export type NativeStackFrame = {

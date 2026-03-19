@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.5.0
 
 ### Features
 
@@ -14,7 +14,10 @@
 - Add `expoUpdatesListenerIntegration` that records breadcrumbs for Expo Updates lifecycle events ([#5795](https://github.com/getsentry/sentry-react-native/pull/5795))
   - Tracks update checks, downloads, errors, rollbacks, and restarts as `expo.updates` breadcrumbs
   - Enabled by default in Expo apps (requires `expo-updates` to be installed)
-  - 
+- feat(android): Expose `enableAnrFingerprinting` option ([#5838](https://github.com/getsentry/sentry-react-native/issues/5838))
+- Show feedback widget on device shake ([#5754](https://github.com/getsentry/sentry-react-native/pull/5754))
+  - Use `Sentry.enableFeedbackOnShake()` / `Sentry.disableFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
+
 ### Fixes
 
 - Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))
