@@ -16,4 +16,53 @@ high_risk_code: &high_risk_code
   - 'scripts/sentry-xcode.sh'
   - 'scripts/sentry-xcode-debug-files.sh'
   - 'sentry.gradle'
-  
+
+# --- Platform-specific filters for CI optimization ---
+# Used by detect-changes.yml to skip platform-irrelevant CI jobs.
+
+# Changes that affect iOS native code
+ios_native:
+  - 'packages/core/ios/**'
+  - 'packages/core/RNSentryCocoaTester/**'
+  - 'packages/core/RNSentry.podspec'
+  - 'samples/react-native/ios/**'
+  - 'samples/react-native/scripts/*ios*'
+  - 'samples/react-native/scripts/pod-install.sh'
+  - 'samples/react-native/Gemfile'
+  - 'samples/react-native-macos/**'
+  - 'samples/expo/ios/**'
+
+# Changes that affect Android native code
+android_native:
+  - 'packages/core/android/**'
+  - 'packages/core/RNSentryAndroidTester/**'
+  - 'packages/core/sentry.gradle'
+  - 'samples/react-native/android/**'
+  - 'samples/react-native/scripts/*android*'
+  - 'samples/expo/android/**'
+
+# Changes to JS/TS source code (affects ALL platforms)
+js_source:
+  - 'packages/core/src/**'
+  - 'packages/core/plugin/**'
+  - 'packages/core/scripts/**'
+  - 'packages/core/package.json'
+  - 'packages/core/tsconfig.json'
+
+# Changes to JS/TS test files only
+js_test:
+  - 'packages/core/test/**'
+
+# Changes to E2E test infrastructure
+e2e_tests:
+  - 'dev-packages/e2e-tests/**'
+
+# Changes to performance test infrastructure
+perf_tests:
+  - 'performance-tests/**'
+
+# CI workflow or infrastructure changes (should trigger everything)
+ci:
+  - '.github/workflows/**'
+  - '.github/actions/**'
+  - '.github/file-filters.yml'

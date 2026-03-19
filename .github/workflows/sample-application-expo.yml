@@ -27,10 +27,14 @@ jobs:
     needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
 
+  detect-changes:
+    needs: [ready-to-merge-gate]
+    uses: ./.github/workflows/detect-changes.yml
+
   build:
     name: Build ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
+    needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
@@ -52,17 +56,32 @@ jobs:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
     steps:
+      - name: Check if platform is needed
+        id: platform-check
+        run: |
+          if [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping iOS — no relevant changes detected."
+          elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping Android — no relevant changes detected."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
 
       - name: Enable Corepack (NPM)
-        if: ${{ matrix.platform != 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform != 'ios' }}
         run: npm i -g corepack
 
       - name: Enable Corepack
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         run: corepack enable
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
           node-version: 20
@@ -70,7 +89,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - uses: ruby/setup-ruby@v1
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           working-directory: ${{ matrix.platform == 'ios' && ' samples/expo' }}
           ruby-version: '3.3.0' # based on what is used in the sample
@@ -78,30 +97,34 @@ jobs:
           cache-version: 1 # cache the installed gems
 
       - uses: actions/setup-java@v5
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
 
       - name: Setup Global Xcode Tools
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
       - name: Build SDK
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn build
 
       - name: Prebuild apps
-        if: ${{ matrix.platform == 'android' || matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && (matrix.platform == 'android' || matrix.platform == 'ios') }}
         working-directory: samples/expo
         run: npx expo prebuild
 
       - name: Install App Pods
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         working-directory: samples/expo/ios
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && ENABLE_PROD=1 || ENABLE_PROD=0
@@ -113,7 +136,7 @@ jobs:
           cat Podfile.lock | grep $RN_SENTRY_POD_NAME
 
       - name: Build Android App
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         working-directory: samples/expo/android
         env:
           # Increase memory for Expo SDK 55 lint tasks
@@ -124,7 +147,7 @@ jobs:
           ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
 
       - name: Build iOS App
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         working-directory: samples/expo/ios
         env:
           # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
@@ -150,18 +173,19 @@ jobs:
             | xcbeautify --quieter --is-ci --disable-colored-output
 
       - name: Build Web App
-        if: ${{ matrix.platform == 'web' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'web' }}
         working-directory: samples/expo
         run: |
           npx expo export -p web
 
       - name: Export Expo
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         working-directory: samples/expo
         run: |
           npx expo export
 
       - name: Upload logs
-        if: ${{ always() }}
+        if: ${{ always() && steps.platform-check.outputs.skip != 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: build-sample-expo-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
