@@ -438,7 +438,9 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
-    addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
+    if (enableTimeToInitialDisplay) {
+      addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
+    }
 
     if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
