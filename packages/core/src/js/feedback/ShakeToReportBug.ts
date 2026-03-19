@@ -23,7 +23,10 @@ const defaultEmitterFactory: EmitterFactory = nativeModule => new NativeEventEmi
  * - iOS: Uses UIKit's motion event detection (no permissions required)
  * - Android: Uses the accelerometer sensor (no permissions required)
  */
-export function startShakeListener(onShake: () => void, createEmitter: EmitterFactory = defaultEmitterFactory): boolean {
+export function startShakeListener(
+  onShake: () => void,
+  createEmitter: EmitterFactory = defaultEmitterFactory,
+): boolean {
   if (_shakeSubscription) {
     return false;
   }
