@@ -137,7 +137,9 @@ let _imperativeShakeListenerStarted = false;
 
 const enableFeedbackOnShake = (): void => {
   lazyLoadAutoInjectFeedbackIntegration();
-  _imperativeShakeListenerStarted = startShakeListener(showFeedbackWidget);
+  if (!_imperativeShakeListenerStarted) {
+    _imperativeShakeListenerStarted = startShakeListener(showFeedbackWidget);
+  }
 };
 
 const disableFeedbackOnShake = (): void => {

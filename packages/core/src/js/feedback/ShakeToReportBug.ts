@@ -73,11 +73,19 @@ export function startShakeListener(
  */
 export function stopShakeListener(): void {
   if (_shakeSubscription) {
-    _shakeSubscription.remove();
+    try {
+      _shakeSubscription.remove();
+    } catch (e) {
+      debug.warn('Failed to remove shake subscription:', e);
+    }
     _shakeSubscription = null;
 
-    const nativeModule = getRNSentryModule() as { disableShakeDetection?: () => void } | undefined;
-    nativeModule?.disableShakeDetection?.();
+    try {
+      const nativeModule = getRNSentryModule() as { disableShakeDetection?: () => void } | undefined;
+      nativeModule?.disableShakeDetection?.();
+    } catch (e) {
+      debug.warn('Failed to disable native shake detection:', e);
+    }
   }
 }
 
