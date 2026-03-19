@@ -56,7 +56,10 @@ export function startShakeListener(onShake: () => void, createEmitter: EmitterFa
     }
   } catch (e) {
     debug.warn('Failed to start shake listener:', e);
-    _shakeSubscription = null;
+    if (_shakeSubscription) {
+      _shakeSubscription.remove();
+      _shakeSubscription = null;
+    }
   }
 }
 
