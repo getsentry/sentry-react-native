@@ -133,13 +133,18 @@ const resetScreenshotButtonManager = (): void => {
   ScreenshotButtonManager.reset();
 };
 
+let _imperativeShakeListenerStarted = false;
+
 const enableFeedbackOnShake = (): void => {
   lazyLoadAutoInjectFeedbackIntegration();
-  startShakeListener(showFeedbackWidget);
+  _imperativeShakeListenerStarted = startShakeListener(showFeedbackWidget);
 };
 
 const disableFeedbackOnShake = (): void => {
-  stopShakeListener();
+  if (_imperativeShakeListenerStarted) {
+    stopShakeListener();
+    _imperativeShakeListenerStarted = false;
+  }
 };
 
 export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, enableFeedbackOnShake, disableFeedbackOnShake, showScreenshotButton, hideScreenshotButton, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager };
