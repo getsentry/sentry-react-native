@@ -38,7 +38,7 @@ jobs:
     name: Build ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, detect-changes]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_sample_expo == 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
