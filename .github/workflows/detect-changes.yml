@@ -64,7 +64,6 @@ jobs:
           JS_SOURCE: ${{ steps.filter.outputs.js_source }}
           CI_CHANGED: ${{ steps.filter.outputs.ci }}
           E2E_TESTS: ${{ steps.filter.outputs.e2e_tests }}
-          PERF_TESTS: ${{ steps.filter.outputs.perf_tests }}
           IS_MAIN_OR_RELEASE: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
         run: |
           echo "--- Change Detection Summary ---"
@@ -73,20 +72,20 @@ jobs:
           echo "js_source=$JS_SOURCE"
           echo "ci=$CI_CHANGED"
           echo "e2e_tests=$E2E_TESTS"
-          echo "perf_tests=$PERF_TESTS"
           echo "is_main_or_release=$IS_MAIN_OR_RELEASE"
 
           # iOS is needed if:
           # - iOS native code changed
           # - JS source changed (may affect native bridges)
           # - CI config changed (need to validate workflows)
-          # - E2E or perf tests changed (they test both platforms)
+          # - E2E tests changed (they test both platforms end-to-end)
           # - Push to main or release branch (always run everything)
+          # Note: perf_tests changes only affect the `metrics` job in e2e-v2.yml,
+          # not the native test suites or sample app builds.
           if [[ "$IOS_NATIVE" == "true" \
              || "$JS_SOURCE" == "true" \
              || "$CI_CHANGED" == "true" \
              || "$E2E_TESTS" == "true" \
-             || "$PERF_TESTS" == "true" \
              || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
             echo "needs_ios=true" >> "$GITHUB_OUTPUT"
             echo "=> needs_ios=true"
@@ -99,13 +98,14 @@ jobs:
           # - Android native code changed
           # - JS source changed (may affect native bridges)
           # - CI config changed (need to validate workflows)
-          # - E2E or perf tests changed (they test both platforms)
+          # - E2E tests changed (they test both platforms end-to-end)
           # - Push to main or release branch (always run everything)
+          # Note: perf_tests changes only affect the `metrics` job in e2e-v2.yml,
+          # not the native test suites or sample app builds.
           if [[ "$ANDROID_NATIVE" == "true" \
              || "$JS_SOURCE" == "true" \
              || "$CI_CHANGED" == "true" \
              || "$E2E_TESTS" == "true" \
-             || "$PERF_TESTS" == "true" \
              || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
             echo "needs_android=true" >> "$GITHUB_OUTPUT"
             echo "=> needs_android=true"
