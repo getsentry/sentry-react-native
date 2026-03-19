@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
+
 ## 8.5.0
 
 ### Features
