@@ -322,7 +322,6 @@ RCT_EXPORT_METHOD(enableShakeDetection)
         [shakeDetector performSelector:@selector(enable)];
 #pragma clang diagnostic pop
     }
-    hasListeners = YES;
 }
 
 RCT_EXPORT_METHOD(disableShakeDetection)

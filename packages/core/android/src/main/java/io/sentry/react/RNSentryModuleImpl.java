@@ -125,7 +125,6 @@ public class RNSentryModuleImpl {
 
   private static final String ON_SHAKE_EVENT = "rn_sentry_on_shake";
   private @Nullable SentryShakeDetector shakeDetector;
-  private int shakeListenerCount = 0;
 
   /** Max trace file size in bytes. */
   private long maxTraceFileSize = 5 * 1024 * 1024;
@@ -207,23 +206,15 @@ public class RNSentryModuleImpl {
   }
 
   public void addListener(String eventType) {
-    if (ON_SHAKE_EVENT.equals(eventType)) {
-      shakeListenerCount++;
-      if (shakeListenerCount == 1) {
-        startShakeDetection();
-      }
-      return;
-    }
     // Is must be defined otherwise the generated interface from TS won't be
     // fulfilled
     logger.log(SentryLevel.ERROR, "addListener of NativeEventEmitter can't be used on Android!");
   }
 
   public void removeListeners(double id) {
-    shakeListenerCount = Math.max(0, shakeListenerCount - (int) id);
-    if (shakeListenerCount == 0) {
-      stopShakeDetection();
-    }
+    // removeListeners does not carry event-type information, so it cannot be used
+    // to track shake listeners selectively. Shake detection is managed exclusively
+    // via enableShakeDetection / disableShakeDetection.
   }
 
   private void startShakeDetection() {
@@ -254,14 +245,11 @@ public class RNSentryModuleImpl {
   }
 
   public void enableShakeDetection() {
-    // On Android, shake detection is started via addListener. This method is a no-op
-    // because it exists to satisfy the cross-platform spec (on iOS, the NativeEventEmitter
-    // addListener does not reliably dispatch to native, so an explicit call is needed).
+    startShakeDetection();
   }
 
   public void disableShakeDetection() {
-    // On Android, shake detection is stopped via removeListeners. This method is a no-op
-    // for the same reason as enableShakeDetection.
+    stopShakeDetection();
   }
 
   public void fetchModules(Promise promise) {
