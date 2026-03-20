@@ -11,6 +11,7 @@
 ### Fixes
 
 - Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
+- Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
 
 ## 8.5.0
 
@@ -28,7 +29,6 @@
 
 - Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))
 - Fix app start data lost when first navigation transaction is discarded ([#5833](https://github.com/getsentry/sentry-react-native/pull/5833))
-- Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
 
 ### Dependencies
 
