@@ -29,7 +29,8 @@
     [SentrySDK startWithOptions:options];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    if (options.sessionReplay.sessionSampleRate > 0 || options.sessionReplay.onErrorSampleRate > 0) {
+    if (options.sessionReplay.sessionSampleRate > 0
+        || options.sessionReplay.onErrorSampleRate > 0) {
         [RNSentryReplay postInit];
     }
 #endif
