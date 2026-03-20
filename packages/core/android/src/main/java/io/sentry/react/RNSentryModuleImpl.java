@@ -28,7 +28,6 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
-import io.sentry.Breadcrumb;
 import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
@@ -73,7 +72,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -866,19 +864,25 @@ public class RNSentryModuleImpl {
       promise.resolve(null);
       return;
     }
-    if (currentScope != null) {
-      // Remove react-native breadcrumbs
-      Iterator<Breadcrumb> breadcrumbsIterator = currentScope.getBreadcrumbs().iterator();
-      while (breadcrumbsIterator.hasNext()) {
-        Breadcrumb breadcrumb = breadcrumbsIterator.next();
-        if ("react-native".equals(breadcrumb.getOrigin())) {
-          breadcrumbsIterator.remove();
-        }
-      }
-    }
 
     final @NotNull Map<String, Object> serialized =
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
+
+    final @Nullable Object serializedBreadcrumbs = serialized.get("breadcrumbs");
+    if (serializedBreadcrumbs instanceof List) {
+      final List<?> breadcrumbs = (List<?>) serializedBreadcrumbs;
+      List<Map<?, ?>> filtered = new ArrayList<>();
+      for (Object o : breadcrumbs) {
+        if (o instanceof Map) {
+          final Map<?, ?> breadcrumb = (Map<?, ?>) o;
+          if (!"react-native".equals(breadcrumb.get("origin"))) {
+            filtered.add(breadcrumb);
+          }
+        }
+      }
+      serialized.put("breadcrumbs", filtered);
+    }
+
     final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
     promise.resolve(deviceContext);
   }
