@@ -62,7 +62,12 @@ jobs:
       - name: Check if platform is needed
         id: platform-check
         run: |
-          if [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
+          SAMPLE_CHANGED="${{ needs.detect-changes.outputs.sample_expo }}"
+
+          if [[ "$SAMPLE_CHANGED" == "true" ]]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Sample app changed — building ${{ matrix.platform }}."
+          elif [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Skipping iOS — no relevant changes detected."
           elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then

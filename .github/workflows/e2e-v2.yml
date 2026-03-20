@@ -65,7 +65,15 @@ jobs:
       - name: Check if platform is needed
         id: platform-check
         run: |
-          if [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
+          # Performance test changes should always run metrics (that's the
+          # whole point). The needs_ios/needs_android flags only track SDK
+          # source & native code — not performance-tests/** files.
+          PERF_CHANGED="${{ needs.detect-changes.outputs.perf_tests }}"
+
+          if [[ "$PERF_CHANGED" == "true" ]]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Performance tests changed — running metrics for ${{ matrix.platform }}."
+          elif [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Skipping iOS — no relevant changes detected."
           elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
