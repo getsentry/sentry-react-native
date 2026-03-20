@@ -13,6 +13,12 @@
 - Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
 - Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.7.0 to v9.8.0 ([#5847](https://github.com/getsentry/sentry-react-native/pull/5847))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#980)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.7.0...9.8.0)
+
 ## 8.5.0
 
 ### Features
