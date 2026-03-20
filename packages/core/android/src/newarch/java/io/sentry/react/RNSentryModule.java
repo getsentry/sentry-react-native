@@ -212,4 +212,14 @@ public class RNSentryModule extends NativeRNSentrySpec {
   public boolean setActiveSpanId(String spanId) {
     return this.impl.setActiveSpanId(spanId);
   }
+
+  @Override
+  public void enableShakeDetection() {
+    this.impl.enableShakeDetection();
+  }
+
+  @Override
+  public void disableShakeDetection() {
+    this.impl.disableShakeDetection();
+  }
 }

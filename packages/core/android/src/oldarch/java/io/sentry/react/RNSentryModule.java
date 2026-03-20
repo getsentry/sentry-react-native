@@ -212,4 +212,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   public boolean setActiveSpanId(String spanId) {
     return this.impl.setActiveSpanId(spanId);
   }
+
+  @ReactMethod
+  public void enableShakeDetection() {
+    this.impl.enableShakeDetection();
+  }
+
+  @ReactMethod
+  public void disableShakeDetection() {
+    this.impl.disableShakeDetection();
+  }
 }
