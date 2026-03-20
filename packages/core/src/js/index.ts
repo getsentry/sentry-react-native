@@ -103,6 +103,12 @@ export { Mask, Unmask } from './replay/CustomMask';
 
 export { FeedbackButton } from './feedback/FeedbackButton';
 export { FeedbackWidget } from './feedback/FeedbackWidget';
-export { showFeedbackWidget, showFeedbackButton, hideFeedbackButton } from './feedback/FeedbackWidgetManager';
+export {
+  showFeedbackWidget,
+  showFeedbackButton,
+  hideFeedbackButton,
+  enableFeedbackOnShake,
+  disableFeedbackOnShake,
+} from './feedback/FeedbackWidgetManager';
 
 export { getDataFromUri } from './wrapper';
