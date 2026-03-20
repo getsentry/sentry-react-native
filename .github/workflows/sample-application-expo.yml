@@ -99,7 +99,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
-          working-directory: ${{ matrix.platform == 'ios' && ' samples/expo' }}
+          working-directory: samples/expo
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
