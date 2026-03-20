@@ -868,18 +868,19 @@ public class RNSentryModuleImpl {
     final @NotNull Map<String, Object> serialized =
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
 
-    if (serialized.containsKey("breadcrumbs")) {
-      final @Nullable var breadcrumbs = (List<Map<String, Object>>) serialized.get("breadcrumbs");
-      if (breadcrumbs != null) {
-        var filtered = new ArrayList<Map<String, Object>>();
-        for (Map<String, Object> b : breadcrumbs) {
-          if ("react-native".equals(b.getOrDefault("origin", ""))) {
-            continue;
+    final @Nullable Object serializedBreadcrumbs = serialized.get("breadcrumbs");
+    if (serializedBreadcrumbs instanceof List) {
+      final List<?> breadcrumbs = (List<?>) serializedBreadcrumbs;
+      List<Map<?, ?>> filtered = new ArrayList<>();
+      for (Object o : breadcrumbs) {
+        if (o instanceof Map) {
+          final Map<?, ?> breadcrumb = (Map<?, ?>) o;
+          if (!"react-native".equals(breadcrumb.get("origin"))) {
+            filtered.add(breadcrumb);
           }
-          filtered.add(b);
         }
-        serialized.put("breadcrumbs", filtered);
       }
+      serialized.put("breadcrumbs", filtered);
     }
 
     final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
