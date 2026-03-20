@@ -585,6 +585,16 @@ describe('React Navigation - TTID', () => {
         }),
       );
     });
+
+    test('should not call getNewScreenTimeToDisplay when ttid is disabled', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockWrapper.NATIVE.getNewScreenTimeToDisplay.mockClear();
+      mockedNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush navigation transaction
+
+      expect(mockWrapper.NATIVE.getNewScreenTimeToDisplay).not.toHaveBeenCalled();
+    });
   });
 
   describe('ttid for preloaded/seen routes', () => {

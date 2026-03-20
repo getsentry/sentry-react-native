@@ -117,6 +117,9 @@ interface ReactNavigationIntegrationOptions {
    * Time to initial display measures the time it takes from
    * navigation dispatch to the render of the first frame of the new screen.
    *
+   * Note: Enabling this adds native bridge calls on every navigation
+   * which may cause noticeable overhead on low-end devices.
+   *
    * @default false
    */
   enableTimeToInitialDisplay: boolean;
@@ -438,7 +441,9 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
-    addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
+    if (enableTimeToInitialDisplay) {
+      addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
+    }
 
     if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
