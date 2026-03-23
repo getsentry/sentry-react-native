@@ -41,6 +41,9 @@ js_source:
   - 'packages/core/scripts/**'
   - 'packages/core/package.json'
   - 'packages/core/tsconfig.json'
+  - 'yarn.lock'
+  - 'package.json'
+  - '.yarnrc.yml'
 
 # Changes to JS/TS test files only
 js_test:

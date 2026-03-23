@@ -73,8 +73,9 @@ jobs:
           elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Skipping Android — no relevant changes detected."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ matrix.platform }}" == "web" && "${{ needs.detect-changes.outputs.js_source }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping Web — no relevant JS changes detected."
           fi
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
