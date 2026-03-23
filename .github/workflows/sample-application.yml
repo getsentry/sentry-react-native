@@ -35,11 +35,18 @@ jobs:
     needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
 
+  detect-changes:
+    needs: [ready-to-merge-gate]
+    uses: ./.github/workflows/detect-changes.yml
+    with:
+      caller_event_name: ${{ github.event_name }}
+      caller_ref: ${{ github.ref }}
+
   build:
     name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    needs: [diff_check, detect-changes]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_sample_react_native == 'true' }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
@@ -67,17 +74,43 @@ jobs:
           - ios-use-frameworks: 'dynamic-frameworks'
             platform: 'macos'
     steps:
+      - name: Check if platform is needed
+        id: platform-check
+        run: |
+          # Sample app changes should always build all platforms (that's the
+          # whole point of this workflow).  The needs_ios/needs_android flags
+          # only track SDK source & native code — not sample app files.
+          SAMPLE_CHANGED="${{ needs.detect-changes.outputs.sample_react_native }}"
+
+          if [[ "$SAMPLE_CHANGED" == "true" ]]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Sample app changed — building ${{ matrix.platform }}."
+          elif [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping iOS — no relevant changes detected."
+          elif [[ "${{ matrix.platform }}" == "macos" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping macOS — no relevant changes detected."
+          elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping Android — no relevant changes detected."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
 
       - name: Enable Corepack (NPM)
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: npm i -g corepack
 
       - name: Enable Corepack
-        if: ${{ matrix.platform != 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform != 'android' }}
         run: corepack enable
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
           node-version: 18
@@ -85,7 +118,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - uses: ruby/setup-ruby@v1
-        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && (matrix.platform == 'ios' || matrix.platform == 'macos') }}
         with:
           working-directory: ${{ matrix.platform == 'ios' && env.REACT_NATIVE_SAMPLE_PATH || 'samples/react-native-macos' }}
           ruby-version: '3.3.0' # based on what is used in the sample
@@ -93,25 +126,29 @@ jobs:
           cache-version: 1 # cache the installed gems
 
       - uses: actions/setup-java@v5
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/gradle-build-action@v3
 
       - name: Setup Global Xcode Tools
-        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && (matrix.platform == 'ios' || matrix.platform == 'macos') }}
         run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
       - name: Build SDK
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn build
 
       - name: Install App Pods
-        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && (matrix.platform == 'ios' || matrix.platform == 'macos') }}
         working-directory: samples
         run: |
           [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native
@@ -124,7 +161,7 @@ jobs:
           ./scripts/pod-install.sh
 
       - name: Build Android App
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
@@ -134,7 +171,7 @@ jobs:
           ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
       - name: Build iOS App
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         env:
           # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
@@ -148,7 +185,7 @@ jobs:
           ./scripts/build-ios.sh
 
       - name: Build macOS App
-        if: ${{ matrix.platform == 'macos' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'macos' }}
         working-directory: samples/react-native-macos/macos
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
@@ -167,7 +204,7 @@ jobs:
             | xcbeautify --quieter --is-ci --disable-colored-output
 
       - name: Archive iOS App
-        if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           zip -r \
@@ -175,7 +212,7 @@ jobs:
             sentryreactnativesample.app
 
       - name: Archive Android App
-        if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
         run: |
           zip -j \
             ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
@@ -183,7 +220,7 @@ jobs:
             ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app-androidTest.apk
 
       - name: Upload iOS APP
-        if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
         uses: actions/upload-artifact@v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.platform }}
@@ -191,7 +228,7 @@ jobs:
           retention-days: 1
 
       - name: Upload Android APK
-        if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
         uses: actions/upload-artifact@v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
@@ -199,7 +236,7 @@ jobs:
           retention-days: 1
 
       - name: Upload logs
-        if: ${{ always() }}
+        if: ${{ always() && steps.platform-check.outputs.skip != 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: build-sample-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
@@ -208,8 +245,8 @@ jobs:
   test:
     name: Test ${{ matrix.platform }} ${{ matrix.build-type }} REV2
     runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check, build]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    needs: [diff_check, detect-changes, build]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_sample_react_native == 'true' }}
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
@@ -227,48 +264,69 @@ jobs:
             build-type: 'production'
 
     steps:
+      - name: Check if platform is needed
+        id: platform-check
+        run: |
+          SAMPLE_CHANGED="${{ needs.detect-changes.outputs.sample_react_native }}"
+
+          if [[ "$SAMPLE_CHANGED" == "true" ]]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Sample app changed — testing ${{ matrix.platform }}."
+          elif [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping iOS — no relevant changes detected."
+          elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping Android — no relevant changes detected."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
 
       - name: Install Maestro
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
         with:
           version: ${{env.MAESTRO_VERSION}}
 
       - name: Download iOS App Archive
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         uses: actions/download-artifact@v8
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.platform }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Download Android APK
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         uses: actions/download-artifact@v8
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Unzip iOS App Archive
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: unzip ${{ env.IOS_APP_ARCHIVE_PATH }}
 
       - name: Unzip Android APK
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
           rm app-androidTest.apk
 
       - name: Enable Corepack (NPM)
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: npm i -g corepack
 
       - name: Enable Corepack
-        if: ${{ matrix.platform != 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform != 'android' }}
         run: corepack enable
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
           node-version: 18
@@ -276,13 +334,14 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Install JS Dependencies
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
       - uses: ./.github/actions/disk-cleanup
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
 
       - name: Setup KVM
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         shell: bash
         run: |
           # check if virtualization is supported...
@@ -295,18 +354,18 @@ jobs:
 
       - name: Boot ${{ env.IOS_DEVICE }} with iOS ${{ env.IOS_VERSION }}
         uses: futureware-tech/simulator-action@e89aa8f93d3aec35083ff49d2854d07f7186f7f5 # pin@v5
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
 
       - name: Run iOS Tests
-        if: ${{ matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: yarn test-ios
 
       - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
-        if: ${{ matrix.platform == 'android' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # pin@v2.37.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
