@@ -6,6 +6,22 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
+- Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.7.0 to v9.8.0 ([#5847](https://github.com/getsentry/sentry-react-native/pull/5847))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#980)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.7.0...9.8.0)
+- Bump JavaScript SDK from v10.44.0 to v10.45.0 ([#5848](https://github.com/getsentry/sentry-react-native/pull/5848))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10450)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.44.0...10.45.0)
+
 ## 8.5.0
 
 ### Features
