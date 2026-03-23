@@ -55,6 +55,9 @@ on:
       needs_sample_expo:
         description: 'Whether the Expo sample app workflow should run'
         value: ${{ jobs.changes.outputs.needs_sample_expo }}
+      needs_web:
+        description: 'Whether web jobs should run (sample builds)'
+        value: ${{ jobs.changes.outputs.needs_web }}
 
 jobs:
   changes:
@@ -74,6 +77,7 @@ jobs:
       needs_android: ${{ steps.evaluate.outputs.needs_android }}
       needs_sample_react_native: ${{ steps.evaluate.outputs.needs_sample_react_native }}
       needs_sample_expo: ${{ steps.evaluate.outputs.needs_sample_expo }}
+      needs_web: ${{ steps.evaluate.outputs.needs_web }}
     steps:
       - uses: actions/checkout@v4
 
@@ -167,4 +171,18 @@ jobs:
           else
             echo "needs_sample_expo=false" >> "$GITHUB_OUTPUT"
             echo "=> needs_sample_expo=false"
+          fi
+
+          # Web builds run when:
+          # - JS source changed (the web bundle depends on it)
+          # - CI config changed (need to validate workflows themselves)
+          # - Push to main or release branch (always run everything)
+          if [[ "$JS_SOURCE" == "true" \
+             || "$CI_CHANGED" == "true" \
+             || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
+            echo "needs_web=true" >> "$GITHUB_OUTPUT"
+            echo "=> needs_web=true"
+          else
+            echo "needs_web=false" >> "$GITHUB_OUTPUT"
+            echo "=> needs_web=false"
           fi
