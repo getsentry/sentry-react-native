@@ -232,7 +232,7 @@ jobs:
         platform: ['android', 'ios']
         build-type: ['production']
         ios-use-frameworks: ['no', 'static', 'dynamic']
-        engine: ['hermes', 'jsc']
+        engine: ['hermes']
         include:
           # Use Xcode 16 for older RN versions
           - platform: ios
@@ -245,9 +245,6 @@ jobs:
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
         exclude:
-          # exclude JSC for new RN versions (keeping the matrix manageable)
-          - rn-version: '0.84.0'
-            engine: 'jsc'
           # exclude all rn versions lower than 0.80.0 for new architecture
           - rn-version: '0.71.19'
             rn-architecture: 'new'
