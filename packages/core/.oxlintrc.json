@@ -105,7 +105,11 @@
         "complexity": "off",
         "import/first": "off",
         "typescript/prefer-optional-chain": "off",
-        "typescript/no-misused-spread": "off"
+        "typescript/no-misused-spread": "off",
+        "sdk/no-focused-tests": "error",
+        // TODO: Re-enable once oxlint supports inline disable for jsPlugin rules
+        // One intentional test.skip exists (big-data.test.ts)
+        "sdk/no-skipped-tests": "warn"
       }
     },
     {
