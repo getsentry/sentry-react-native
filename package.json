@@ -128,7 +128,8 @@
     "on-headers": "^1.1.0",
     "diff": "^5.2.2",
     "tar": "^7.5.11",
-    "tmp": "^0.2.4"
+    "tmp": "^0.2.4",
+    "@appium/support@npm:6.1.1/yauzl": "^3.2.1"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
