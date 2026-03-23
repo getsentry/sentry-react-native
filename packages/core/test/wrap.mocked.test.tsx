@@ -7,7 +7,6 @@ import * as environment from '../src/js/utils/environment';
 jest.doMock('../src/js/touchevents', () => {
   return {
     TouchEventBoundary: ({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
       <div testID="touch-boundaryID">{children}</div>
     ),
   };
@@ -16,7 +15,6 @@ jest.doMock('../src/js/touchevents', () => {
 jest.doMock('../src/js/tracing', () => {
   return {
     ReactNativeProfiler: jest.fn(({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
       <div testID="react-native-profilerID">{children}</div>
     )),
   };
@@ -25,7 +23,6 @@ jest.doMock('../src/js/tracing', () => {
 jest.doMock('@sentry/react', () => {
   return {
     Profiler: jest.fn(({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
       <div testID="react-profilerID">{children}</div>
     )),
   };
@@ -34,7 +31,6 @@ jest.doMock('@sentry/react', () => {
 jest.doMock('../src/js/feedback/FeedbackWidgetProvider', () => {
   return {
     FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
       <div testID="feedback-widgetID">{children}</div>
     ),
   };

@@ -7,7 +7,6 @@ import { fetchSourceContext, parseErrorStack, symbolicateStackTrace } from './de
 
 const INTEGRATION_NAME = 'DebugSymbolicator';
 
-// eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
 
 /**
@@ -85,7 +84,6 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
       : newStack;
 
     const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
-      // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- keep falsy check for empty string file paths
       (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
     );
 

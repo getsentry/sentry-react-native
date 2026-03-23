@@ -68,7 +68,6 @@ const missingAuthTokenMessage = '# Using SENTRY_AUTH_TOKEN environment variable'
 
 export function getSentryProperties(props: PluginProps | void): string | null {
   const { organization, project, authToken, url = 'https://sentry.io/' } = props ?? {};
-  // eslint-disable-next-line no-prototype-builtins
   const missingProperties = ['organization', 'project'].filter(each => !props?.hasOwnProperty(each));
 
   if (missingProperties.length) {
@@ -111,7 +110,6 @@ function withSentryOptionsFile(config: ExpoConfig, pluginOptions: Record<string,
   return cfg;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const withSentry = createRunOncePlugin(withSentryPlugin, PLUGIN_NAME, PLUGIN_VERSION);
 
 export { withSentry };

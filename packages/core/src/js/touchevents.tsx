@@ -113,7 +113,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     return (
       <View
         style={touchEventStyles.wrapperView}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line typescript-eslint(no-explicit-any)
         onTouchStart={this._onTouchStart.bind(this) as any}
       >
         {this.props.children}
@@ -151,10 +151,8 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    */
   private _isNameIgnored(name: string): boolean {
     let ignoreNames = this.props.ignoreNames || [];
-    // eslint-disable-next-line deprecation/deprecation
     if (this.props.ignoredDisplayNames) {
       // This is to make it compatible with prior version.
-      // eslint-disable-next-line deprecation/deprecation
       ignoreNames = [...ignoreNames, ...this.props.ignoredDisplayNames];
     }
 
@@ -173,7 +171,6 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    * Traverses through the component tree when a touch happens and logs it.
    * @param e
    */
-  // eslint-disable-next-line complexity
   private _onTouchStart(e: PrivateGestureResponderEvent): void {
     if (!e._targetInst) {
       return;
@@ -347,7 +344,7 @@ function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAtt
  * @param boundaryProps TouchEventBoundaryProps
  */
 const withTouchEventBoundary = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   InnerComponent: React.ComponentType<any>,
   boundaryProps?: TouchEventBoundaryProps,
 ): React.FunctionComponent => {

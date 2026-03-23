@@ -24,7 +24,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type * as baseJSBundleType from 'metro/private/DeltaBundler/Serializers/baseJSBundle';
 import type * as sourceMapStringType from 'metro/private/DeltaBundler/Serializers/sourceMapString';
@@ -41,12 +40,10 @@ try {
 const baseJSBundle: typeof baseJSBundleType =
   typeof baseJSBundleModule === 'function'
     ? baseJSBundleModule
-    : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      baseJSBundleModule?.baseJSBundle ?? baseJSBundleModule?.default;
+    : baseJSBundleModule?.baseJSBundle ?? baseJSBundleModule?.default;
 
 let sourceMapString: typeof sourceMapStringType;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const sourceMapStringModule = require('metro/private/DeltaBundler/Serializers/sourceMapString');
   sourceMapString = (sourceMapStringModule as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
 } catch (e) {
@@ -68,8 +65,7 @@ try {
 const bundleToString: typeof bundleToStringType =
   typeof bundleToStringModule === 'function'
     ? bundleToStringModule
-    : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      bundleToStringModule?.bundleToString ?? bundleToStringModule?.default;
+    : bundleToStringModule?.bundleToString ?? bundleToStringModule?.default;
 
 type NewSourceMapStringExport = {
   // Since Metro v0.80.10 https://github.com/facebook/metro/compare/v0.80.9...v0.80.10#diff-1b836d1729e527a725305eef0cec22e44605af2700fa413f4c2489ea1a03aebcL28

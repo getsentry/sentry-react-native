@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/core';
 import { debug, getActiveSpan, getClient, spanIsSampled, uuid4 } from '@sentry/core';
 import { Platform } from 'react-native';

@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+/* oxlint-disable eslint(max-lines) */
 import { debug } from '@sentry/core';
 import * as React from 'react';
 import {
@@ -215,7 +215,6 @@ const Animation = ({ id }: { id: string }): React.ReactElement | null => {
 
 const Row = ({
   last = false,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   action = () => {},
   actionDescription = '',
   title,

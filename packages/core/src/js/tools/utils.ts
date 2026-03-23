@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 import type CountingSet from 'metro/src/lib/CountingSet'; // types are in src but exports are in private
 import countLines from './vendor/metro/countLines';
@@ -106,7 +105,6 @@ function resolveSetCreator(): () => CountingSet<string> {
  */
 function safeRequireCountingSetFromSrc(): { default: new <T>() => CountingSet<T> } | undefined {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
     return require('metro/src/lib/CountingSet');
   } catch (e) {
     return undefined;
@@ -120,7 +118,6 @@ function safeRequireCountingSetFromSrc(): { default: new <T>() => CountingSet<T>
  */
 function safeRequireCountingSetFromPrivate(): { default: new <T>() => CountingSet<T> } | undefined {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
     return require('metro/private/lib/CountingSet');
   } catch (e) {
     return undefined;
@@ -187,7 +184,6 @@ export function getExpoConfig(projectRoot: string): Partial<{
   version: string;
 }> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
     const expoConfig = require('@expo/config') as {
       getConfig?: (projectRoot: string) => { exp: Record<string, unknown> };
     };

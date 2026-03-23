@@ -143,7 +143,7 @@ function setupErrorUtilsGlobalHandler(): void {
 
   const defaultHandler = errorUtils.getGlobalHandler?.();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
     // We want to handle fatals, but only in production mode.
     const shouldHandleFatal = isFatal && !__DEV__;

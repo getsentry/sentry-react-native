@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+/* oxlint-disable eslint(max-lines) */
 import type { Span, StartSpanOptions } from '@sentry/core';
 import { debug, fill, getActiveSpan, getSpanDescendants, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
 import * as React from 'react';
