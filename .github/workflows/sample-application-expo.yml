@@ -61,22 +61,13 @@ jobs:
     steps:
       - name: Check if platform is needed
         id: platform-check
-        run: |
-          SAMPLE_CHANGED="${{ needs.detect-changes.outputs.sample_expo }}"
-
-          if [[ "$SAMPLE_CHANGED" == "true" ]]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "Sample app changed — building ${{ matrix.platform }}."
-          elif [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping iOS — no relevant changes detected."
-          elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping Android — no relevant changes detected."
-          elif [[ "${{ matrix.platform }}" == "web" && "${{ needs.detect-changes.outputs.needs_web }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping Web — no relevant changes detected."
-          fi
+        uses: ./.github/actions/platform-check
+        with:
+          platform: ${{ matrix.platform }}
+          sample_changed: ${{ needs.detect-changes.outputs.sample_expo }}
+          needs_ios: ${{ needs.detect-changes.outputs.needs_ios }}
+          needs_android: ${{ needs.detect-changes.outputs.needs_android }}
+          needs_web: ${{ needs.detect-changes.outputs.needs_web }}
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
