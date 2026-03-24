@@ -14,7 +14,7 @@
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }
     ],
 
-    // === Base rules from eslint-config-sdk/base.js ===
+    // === Base rules (ported from @sentry-internal/eslint-config-sdk) ===
     "no-console": "error",
     "no-alert": "error",
     "no-param-reassign": "error",
@@ -32,7 +32,7 @@
     "import/namespace": "off",
     "import/no-unresolved": "off",
 
-    // === Rules turned off (not enforced in ESLint or causing false positives) ===
+    // === Rules turned off (not needed or causing false positives) ===
     "no-control-regex": "off",
     "jsdoc/check-tag-names": "off",
     "jsdoc/require-yields": "off",

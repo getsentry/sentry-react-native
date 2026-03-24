@@ -423,7 +423,7 @@ function openURLInBrowser(url: string): void {
   const devServer = getDevServer();
   if (devServer?.url) {
     // This doesn't work for Expo project with Web enabled
-    // disable-next-line @typescript-eslint/no-floating-promises
+    // oxlint-disable-next-line typescript-eslint(no-floating-promises)
     fetch(`${devServer.url}open-url`, {
       method: 'POST',
       body: JSON.stringify({ url }),
