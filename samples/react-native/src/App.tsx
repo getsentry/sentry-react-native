@@ -273,3 +273,4 @@ function App() {
 }
 
 export default Sentry.wrap(App);
+// platform-check test: sample-only change
