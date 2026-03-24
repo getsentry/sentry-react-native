@@ -29401,6 +29401,7 @@ __metadata:
     google-java-format: ^1.4.0
     lerna: ^8.1.8
     npm-run-all2: ^6.2.2
+    oxlint: ^1.56.0
     pmd-bin: ^2.5.0
     prettier: ^2.0.5
     react-native-version: ^4.0.0
