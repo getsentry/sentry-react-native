@@ -48,6 +48,9 @@ android {
             } else {
                 java.srcDirs += ['src/oldarch']
             }
+            if (findProject(':expo-modules-core') != null) {
+                java.srcDirs += ['src/expo']
+            }
         }
     }
 }
@@ -57,4 +60,13 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
     api 'io.sentry:sentry-android:8.36.0'
     debugImplementation 'io.sentry:sentry-spotlight:8.36.0'
+
+    // Optional: Used only in Expo projects for capturing native exceptions
+    // swallowed by Expo's bridgeless error handling (ExpoReactHostDelegate).
+    // This is compileOnly so it doesn't pull expo-modules-core into non-Expo projects.
+    // The classes are only loaded when Expo's autolinking discovers SentryExpoPackage.
+    def expoModulesCore = findProject(':expo-modules-core')
+    if (expoModulesCore != null) {
+        compileOnly project(':expo-modules-core')
+    }
 }
