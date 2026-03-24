@@ -59,6 +59,8 @@ jobs:
           - platform: 'android'
             ios-use-frameworks: 'dynamic-frameworks'
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Check if platform is needed
         id: platform-check
         uses: ./.github/actions/platform-check
@@ -68,9 +70,6 @@ jobs:
           needs_ios: ${{ needs.detect-changes.outputs.needs_ios }}
           needs_android: ${{ needs.detect-changes.outputs.needs_android }}
           needs_web: ${{ needs.detect-changes.outputs.needs_web }}
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
 
       - name: Enable Corepack (NPM)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform != 'ios' }}

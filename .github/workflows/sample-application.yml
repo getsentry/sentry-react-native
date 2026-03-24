@@ -74,6 +74,8 @@ jobs:
           - ios-use-frameworks: 'dynamic-frameworks'
             platform: 'macos'
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Check if platform is needed
         id: platform-check
         uses: ./.github/actions/platform-check
@@ -82,9 +84,6 @@ jobs:
           sample_changed: ${{ needs.detect-changes.outputs.sample_react_native }}
           needs_ios: ${{ needs.detect-changes.outputs.needs_ios }}
           needs_android: ${{ needs.detect-changes.outputs.needs_android }}
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
 
       - name: Enable Corepack (NPM)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -249,6 +248,8 @@ jobs:
             build-type: 'production'
 
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Check if platform is needed
         id: platform-check
         uses: ./.github/actions/platform-check
@@ -257,9 +258,6 @@ jobs:
           sample_changed: ${{ needs.detect-changes.outputs.sample_react_native }}
           needs_ios: ${{ needs.detect-changes.outputs.needs_ios }}
           needs_android: ${{ needs.detect-changes.outputs.needs_android }}
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
 
       - name: Install Maestro
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
