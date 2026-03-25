@@ -314,7 +314,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
           // Event was dropped by user's beforeSend, don't capture replay
           return null;
         }
-        return processEvent(result, hint);
       }
       return processEvent(event, hint);
     };
