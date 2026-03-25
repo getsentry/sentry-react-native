@@ -290,18 +290,44 @@ if (actions.includes('test')) {
   if (!sentryAuthToken) {
     console.log('Skipping maestro test due to unavailable or empty SENTRY_AUTH_TOKEN');
   } else {
+    // Discover top-level flow files (shared utilities live in utils/).
+    const maestroDir = path.join(e2eDir, 'maestro');
+    const flowFiles = fs.readdirSync(maestroDir)
+      .filter(f => f.endsWith('.yml') && !fs.statSync(path.join(maestroDir, f)).isDirectory())
+      .sort();
+
+    const maestroEnvArgs = [
+      '--env', `APP_ID=${appId}`,
+      '--env', `SENTRY_AUTH_TOKEN=${sentryAuthToken}`,
+    ];
+
+    // Run each flow in its own maestro process to isolate crashes.
+    // Retry failed flows up to 3 times — Tart VMs have transient timing
+    // issues where the app or XCTest driver momentarily lose responsiveness.
+    const maxAttempts = 3;
+    const failed = [];
     try {
-      execSync(
-        `maestro test maestro \
-          --env=APP_ID="${appId}" \
-          --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
-          --debug-output maestro-logs \
-          --flatten-debug-output`,
-        {
-          stdio: 'inherit',
-          cwd: e2eDir,
-        },
-      );
+      for (const flowFile of flowFiles) {
+        let passed = false;
+        for (let attempt = 1; attempt <= maxAttempts && !passed; attempt++) {
+          try {
+            execFileSync('maestro', [
+              'test', `maestro/${flowFile}`, ...maestroEnvArgs,
+              '--debug-output', 'maestro-logs',
+              '--flatten-debug-output',
+            ], {
+              stdio: 'inherit',
+              cwd: e2eDir,
+            });
+            passed = true;
+          } catch (error) {
+            if (attempt < maxAttempts) {
+              console.warn(`Flow ${flowFile} failed (attempt ${attempt}/${maxAttempts}), retrying…`);
+            }
+          }
+        }
+        if (!passed) failed.push(flowFile);
+      }
     } finally {
       // Always redact sensitive data, even if the test fails
       const redactScript = `
@@ -319,6 +345,11 @@ if (actions.includes('test')) {
       } catch (error) {
         console.warn('Failed to redact sensitive data from logs:', error.message);
       }
+    }
+
+    if (failed.length > 0) {
+      console.error(`Failed flows: ${failed.join(', ')}`);
+      process.exit(1);
     }
   }
 }

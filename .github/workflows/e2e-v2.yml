@@ -508,12 +508,27 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          # Cirrus Labs Tart VMs need more time to fully boot the simulator before
+          # Maestro can connect; without this the boot races with driver startup.
+          wait_for_boot: true
+          # Skip erasing the simulator before boot — each Maestro flow already
+          # reinstalls the app via clearState, and the erase adds overhead that
+          # makes the simulator less stable on nested-virtualisation Tart VMs.
+          erase_before_boot: false
+
+      - name: Warm up iOS simulator
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+        run: |
+          # Tart VMs are slow after boot. Launch a stock app so SpringBoard
+          # and system services finish post-boot init before Maestro connects.
+          xcrun simctl launch booted com.apple.Preferences || true
+          sleep 5
+          xcrun simctl terminate booted com.apple.Preferences || true
 
       - name: Run tests on iOS
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         env:
-          # Increase timeout for Maestro iOS driver startup (default is 60s, some CI runners need more time)
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs

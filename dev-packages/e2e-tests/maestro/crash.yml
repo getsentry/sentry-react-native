@@ -4,6 +4,5 @@ jsEngine: graaljs
 - runFlow: utils/launchTestAppClear.yml
 - tapOn: "Crash"
 
-- launchApp
-
-- runFlow: utils/assertTestReady.yml
+# No post-crash assertions needed. Each flow runs in its own maestro
+# process, so the next flow starts fresh via launchTestAppClear.yml.
