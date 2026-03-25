@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Fix iOS crash (`EXC_BAD_ACCESS` in `stringByAppendingString:`) when recording time-to-initial-display from the frame tracker by synchronizing access to `activeSpanId` and TTD caches across the main thread and JS/bridge thread, and by copying the active span id when set ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))
 - Fix SIGABRT crash on launch when `mobileReplayIntegration` is not configured and iOS deployment target >= 16.0 ([#5858](https://github.com/getsentry/sentry-react-native/pull/5858))
 - Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
 - Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
