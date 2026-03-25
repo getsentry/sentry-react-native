@@ -315,7 +315,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
           return null;
         }
       }
-      return processEvent(event, hint);
+      return processEvent(result, hint);
     };
   }
 
