@@ -11,7 +11,7 @@
     "ios": "expo run:ios",
     "ts:check": "tsc",
     "lint": "npx oxlint",
-    "fix": "npx oxlint --fix && prettier --write \"**/*.{js,jsx,ts,tsx,json}\"",
+    "fix": "npx oxlint --fix && npx oxfmt \"**/*.{js,jsx,ts,tsx}\"",
     "export": "expo export --source-maps --clear --platform all",
     "export:web": "expo export --source-maps --clear --platform web",
     "prebuild": "expo prebuild --clean --no-install",
@@ -49,7 +49,6 @@
     "@babel/preset-env": "^7.26.0",
     "@sentry/babel-plugin-component-annotate": "5.1.1",
     "@types/node": "20.10.4",
-    "prettier": "2.8.8",
     "sentry-react-native-samples-utils": "workspace:^"
   },
   "overrides": {
