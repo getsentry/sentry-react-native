@@ -143,6 +143,57 @@ describe('Mobile Replay Integration', () => {
       expect(mockCaptureReplay).not.toHaveBeenCalled();
       expect(result?.contexts?.replay).toBeUndefined();
     });
+
+    it('should return event unchanged when native bridge call fails', async () => {
+      mockCaptureReplay.mockRejectedValue(new Error('Native bridge error'));
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(result).toBe(event);
+      expect(result?.contexts?.replay).toBeUndefined();
+    });
+
+    it('should return modified event from user beforeSend when native bridge fails', async () => {
+      mockCaptureReplay.mockRejectedValue(new Error('Native bridge error'));
+
+      const userBeforeSend = jest
+        .fn<(event: ErrorEvent, hint: EventHint) => ErrorEvent>()
+        .mockImplementation(event => ({
+          ...event,
+          tags: { modified: 'true' },
+        }));
+      clientOptions.beforeSend = userBeforeSend;
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(userBeforeSend).toHaveBeenCalledWith(event, hint);
+      expect(result?.tags).toEqual({ modified: 'true' });
+      expect(result?.contexts?.replay).toBeUndefined();
+    });
   });
 
   describe('beforeErrorSampling', () => {

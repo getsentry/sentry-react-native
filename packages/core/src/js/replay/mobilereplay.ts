@@ -308,15 +308,21 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     const clientOptions = client.getOptions();
     const originalBeforeSend = clientOptions.beforeSend;
     clientOptions.beforeSend = async (event: ErrorEvent, hint: EventHint): Promise<ErrorEvent | null> => {
+      let eventToProcess = event;
       if (originalBeforeSend) {
         const result = await originalBeforeSend(event, hint);
         if (result === null) {
           // Event was dropped by user's beforeSend, don't capture replay
           return null;
         }
-        return processEvent(result, hint);
+        eventToProcess = result;
       }
-      return processEvent(event, hint);
+      try {
+        return await processEvent(eventToProcess, hint);
+      } catch (error) {
+        debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} failed to process event, sending without replay data`, error);
+        return eventToProcess;
+      }
     };
   }
 
