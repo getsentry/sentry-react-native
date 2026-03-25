@@ -1,5 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { Client, DynamicSamplingContext, Event, EventHint } from '@sentry/core';
+
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+
 import { mobileReplayIntegration } from '../../src/js/replay/mobilereplay';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';

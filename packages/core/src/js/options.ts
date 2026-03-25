@@ -2,8 +2,11 @@ import type { makeFetchTransport } from '@sentry/browser';
 import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
 import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
+
 import { Platform } from 'react-native';
+
 import type { TouchEventBoundaryProps } from './touchevents';
+
 import { isExpoGo } from './utils/environment';
 
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
@@ -459,12 +462,10 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  */
 
 export interface ReactNativeOptions
-  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>,
-    BaseReactNativeOptions {}
+  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>, BaseReactNativeOptions {}
 
 export interface ReactNativeClientOptions
-  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>,
-    BaseReactNativeOptions {}
+  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>, BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */

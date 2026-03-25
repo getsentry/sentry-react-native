@@ -1,5 +1,7 @@
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
+
 import type { VirtualJSOutput } from './utils';
+
 import { createVirtualJSModule, getExpoConfig, prependModule } from './utils';
 
 const RELEASE_CONSTANTS_MODULE_PATH = '__sentryReleaseConstants__';

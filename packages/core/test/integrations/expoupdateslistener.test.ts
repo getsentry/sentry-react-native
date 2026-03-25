@@ -1,4 +1,5 @@
 import { addBreadcrumb, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
+
 import { expoUpdatesListenerIntegration, handleStateChange } from '../../src/js/integrations/expoupdateslistener';
 import * as environment from '../../src/js/utils/environment';
 import { setupTestClient } from '../mocks/client';

@@ -1,4 +1,5 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK } from '@sentry/core';
+
 import { type ExpoRouter, wrapExpoRouter } from '../../src/js/tracing';
 import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from '../../src/js/tracing/origin';
 

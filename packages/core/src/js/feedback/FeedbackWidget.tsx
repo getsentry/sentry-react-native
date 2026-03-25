@@ -1,9 +1,9 @@
 /* oxlint-disable eslint(max-lines) */
 import type { SendFeedbackParams, User } from '@sentry/core';
+import type { KeyboardTypeOptions, NativeEventSubscription } from 'react-native';
+
 import { captureFeedback, debug, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId } from '@sentry/core';
 import * as React from 'react';
-import type { KeyboardTypeOptions ,
-  NativeEventSubscription} from 'react-native';
 import {
   Appearance,
   Image,
@@ -12,20 +12,29 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from 'react-native';
-import { isExpoGo, isWeb, notWeb } from '../utils/environment';
+
 import type { Screenshot } from '../wrapper';
+import type {
+  FeedbackGeneralConfiguration,
+  FeedbackTextConfiguration,
+  FeedbackWidgetProps,
+  FeedbackWidgetState,
+  FeedbackWidgetStyles,
+  ImagePickerConfiguration,
+} from './FeedbackWidget.types';
+
+import { isExpoGo, isWeb, notWeb } from '../utils/environment';
 import { getDataFromUri, NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
 import defaultStyles from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
-import type { FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackWidgetProps, FeedbackWidgetState, FeedbackWidgetStyles, ImagePickerConfiguration } from './FeedbackWidget.types';
 import { hideFeedbackButton, showScreenshotButton } from './FeedbackWidgetManager';
 import { lazyLoadFeedbackIntegration } from './lazy';
 import { getCapturedScreenshot } from './ScreenshotButton';
-import { base64ToUint8Array, feedbackAlertDialog, isValidEmail  } from './utils';
+import { base64ToUint8Array, feedbackAlertDialog, isValidEmail } from './utils';
 
 /**
  * @beta
@@ -54,8 +63,8 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       useSentryUser: {
         email: this.props?.useSentryUser?.email || this._getUser()?.email || '',
         name: this.props?.useSentryUser?.name || this._getUser()?.name || '',
-      }
-    }
+      },
+    };
 
     this.state = {
       isVisible: true,
@@ -159,9 +168,9 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
           ? // expo-image-picker library is available
             () => imagePicker.launchImageLibraryAsync?.({ mediaTypes: ['images'], base64: isWeb() })
           : // react-native-image-picker library is available
-          imagePicker.launchImageLibrary
-          ? () => imagePicker.launchImageLibrary?.({ mediaType: 'photo', includeBase64: isWeb() })
-          : null;
+            imagePicker.launchImageLibrary
+            ? () => imagePicker.launchImageLibrary?.({ mediaType: 'photo', includeBase64: isWeb() })
+            : null;
         if (!launchImageLibrary) {
           debug.warn('No compatible image picker library found. Please provide a valid image picker library.');
           if (__DEV__) {
@@ -190,7 +199,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             const imageUri = result.assets[0]?.uri;
             imageUri &&
               getDataFromUri(imageUri)
-                .then((data) => {
+                .then(data => {
                   if (data != null) {
                     this.setState({ filename, attachment: data, attachmentUri: imageUri });
                   } else {
@@ -198,7 +207,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
                     debug.error('Failed to read image data from uri:', imageUri);
                   }
                 })
-                .catch((error) => {
+                .catch(error => {
                   this._showImageRetrievalDevelopmentNote();
                   debug.error('Failed to read image data from uri:', imageUri, 'error: ', error);
                 });
@@ -208,17 +217,19 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         // Defaulting to the onAddScreenshot callback
         const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
         onAddScreenshot((uri: string) => {
-          getDataFromUri(uri).then((data) => {
-            if (data != null) {
-              this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
-            } else {
+          getDataFromUri(uri)
+            .then(data => {
+              if (data != null) {
+                this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
+              } else {
+                this._showImageRetrievalDevelopmentNote();
+                debug.error('Failed to read image data from uri:', uri);
+              }
+            })
+            .catch(error => {
               this._showImageRetrievalDevelopmentNote();
-              debug.error('Failed to read image data from uri:', uri);
-            }
-          }).catch((error) => {
-            this._showImageRetrievalDevelopmentNote();
-            debug.error('Failed to read image data from uri:', uri, 'error: ', error);
-          });
+              debug.error('Failed to read image data from uri:', uri, 'error: ', error);
+            });
         });
       }
     } else {
@@ -266,7 +277,10 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const spellCheck = config.spellCheck !== false;
     const styles = (Object.keys(_defaultStyles) as Array<keyof FeedbackWidgetStyles>).reduce<FeedbackWidgetStyles>(
       (merged, key) => {
-        (merged as Record<string, unknown>)[key] = { ...(_defaultStyles[key] as object), ...(_propStyles[key] as object) };
+        (merged as Record<string, unknown>)[key] = {
+          ...(_defaultStyles[key] as object),
+          ...(_propStyles[key] as object),
+        };
         return merged;
       },
       {},
@@ -373,12 +387,17 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
             </View>
           )}
           {notWeb() && config.enableTakeScreenshot && !this.state.attachmentUri && (
-            <TouchableOpacity style={styles.takeScreenshotButton} onPress={() => {
-              hideFeedbackButton();
-              onCancel();
-              showScreenshotButton();
-            }}>
-              <Text style={styles.takeScreenshotText} testID='sentry-feedback-take-screenshot-button'>{text.captureScreenshotButtonLabel}</Text>
+            <TouchableOpacity
+              style={styles.takeScreenshotButton}
+              onPress={() => {
+                hideFeedbackButton();
+                onCancel();
+                showScreenshotButton();
+              }}
+            >
+              <Text style={styles.takeScreenshotText} testID="sentry-feedback-take-screenshot-button">
+                {text.captureScreenshotButtonLabel}
+              </Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
@@ -431,8 +450,10 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   };
 
   private _hasScreenshot = (): boolean => {
-    return this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined;
-  }
+    return (
+      this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined
+    );
+  };
 
   private _getUser = (): User | undefined => {
     const currentUser = getCurrentScope().getUser();
@@ -444,7 +465,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
       return isolationUser;
     }
     return getGlobalScope().getUser();
-  }
+  };
 
   private _showImageRetrievalDevelopmentNote = (): void => {
     if (isExpoGo()) {
@@ -453,5 +474,5 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
         'The feedback widget cannot retrieve image data in Expo Go. Please build your app to test this functionality.',
       );
     }
-  }
+  };
 }

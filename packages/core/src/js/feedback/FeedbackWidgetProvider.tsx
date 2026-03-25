@@ -1,12 +1,27 @@
 import { debug } from '@sentry/core';
 import * as React from 'react';
-import { Animated, Appearance, Dimensions, Easing, Modal, type NativeEventSubscription, type NativeScrollEvent,type NativeSyntheticEvent, PanResponder, Platform, ScrollView, View } from 'react-native';
+import {
+  Animated,
+  Appearance,
+  Dimensions,
+  Easing,
+  Modal,
+  type NativeEventSubscription,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  PanResponder,
+  Platform,
+  ScrollView,
+  View,
+} from 'react-native';
+
+import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
+
 import { notWeb } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
 import { FeedbackWidget } from './FeedbackWidget';
-import { modalSheetContainer,modalWrapper, topSpacer } from './FeedbackWidget.styles';
+import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
-import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
 import {
   BACKGROUND_ANIMATION_DURATION,
   FeedbackButtonManager,
@@ -16,7 +31,12 @@ import {
   showFeedbackWidget,
   SLIDE_ANIMATION_DURATION,
 } from './FeedbackWidgetManager';
-import { getFeedbackButtonOptions, getFeedbackOptions, getScreenshotButtonOptions, isShakeToReportEnabled } from './integration';
+import {
+  getFeedbackButtonOptions,
+  getFeedbackOptions,
+  getScreenshotButtonOptions,
+  isShakeToReportEnabled,
+} from './integration';
 import { ScreenshotButton } from './ScreenshotButton';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';

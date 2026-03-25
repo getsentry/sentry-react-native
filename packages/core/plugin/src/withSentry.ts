@@ -1,11 +1,14 @@
 import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
+
 import { createRunOncePlugin, withDangerousMod } from 'expo/config-plugins';
+
+import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
+
 import { bold, warnOnce } from './logger';
 import { writeSentryOptions } from './utils';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './version';
 import { withSentryAndroid } from './withSentryAndroid';
-import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
 import { withSentryAndroidGradlePlugin } from './withSentryAndroidGradlePlugin';
 import { withSentryIOS } from './withSentryIOS';
 

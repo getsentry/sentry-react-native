@@ -1,4 +1,5 @@
 import type { Client, Event, EventHint } from '@sentry/core';
+
 import { modulesLoaderIntegration } from '../../src/js/integrations/modulesloader';
 import { NATIVE } from '../../src/js/wrapper';
 

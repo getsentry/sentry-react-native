@@ -1,6 +1,11 @@
 import { debug } from '@sentry/core';
-import { isWeb  } from '../utils/environment';
-import { lazyLoadAutoInjectFeedbackButtonIntegration,lazyLoadAutoInjectFeedbackIntegration, lazyLoadAutoInjectScreenshotButtonIntegration } from './lazy';
+
+import { isWeb } from '../utils/environment';
+import {
+  lazyLoadAutoInjectFeedbackButtonIntegration,
+  lazyLoadAutoInjectFeedbackIntegration,
+  lazyLoadAutoInjectScreenshotButtonIntegration,
+} from './lazy';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 
 export const PULL_DOWN_CLOSE_THRESHOLD = 200;
@@ -38,7 +43,9 @@ abstract class FeedbackManager {
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
       // oxlint-disable-next-line eslint(no-console)
-      console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' to be called before 'show${this._feedbackComponentName}()'.`);
+      console.warn(
+        `[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' to be called before 'show${this._feedbackComponentName}()'.`,
+      );
     }
   }
 
@@ -49,7 +56,9 @@ abstract class FeedbackManager {
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
       // oxlint-disable-next-line eslint(no-console)
-      console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' before interacting with the widget.`);
+      console.warn(
+        `[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' before interacting with the widget.`,
+      );
     }
   }
 
@@ -149,4 +158,15 @@ const disableFeedbackOnShake = (): void => {
   }
 };
 
-export { showFeedbackButton, hideFeedbackButton, showFeedbackWidget, enableFeedbackOnShake, disableFeedbackOnShake, showScreenshotButton, hideScreenshotButton, resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager };
+export {
+  showFeedbackButton,
+  hideFeedbackButton,
+  showFeedbackWidget,
+  enableFeedbackOnShake,
+  disableFeedbackOnShake,
+  showScreenshotButton,
+  hideScreenshotButton,
+  resetFeedbackButtonManager,
+  resetFeedbackWidgetManager,
+  resetScreenshotButtonManager,
+};

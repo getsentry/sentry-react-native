@@ -1,4 +1,5 @@
 import * as process from 'process';
+
 import {
   createSentryBabelTransformer,
   SENTRY_BABEL_TRANSFORMER_OPTIONS,

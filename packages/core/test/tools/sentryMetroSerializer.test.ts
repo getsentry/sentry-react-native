@@ -1,8 +1,10 @@
-import * as fs from 'fs';
 import type { MixedOutput, Module } from 'metro';
+
+import * as fs from 'fs';
 import CountingSet from 'metro/private/lib/CountingSet';
 import * as countLines from 'metro/private/lib/countLines';
 import { minify } from 'uglify-js';
+
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
 import { createDebugIdSnippet, type MetroSerializer, type VirtualJSOutput } from '../../src/js/tools/utils';
 

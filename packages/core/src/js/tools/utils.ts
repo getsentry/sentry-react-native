@@ -1,6 +1,8 @@
-import * as crypto from 'crypto';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 import type CountingSet from 'metro/src/lib/CountingSet'; // types are in src but exports are in private
+
+import * as crypto from 'crypto';
+
 import countLines from './vendor/metro/countLines';
 
 export type MetroCustomSerializer = Required<Required<MetroConfig>['serializer']>['customSerializer'] | undefined;

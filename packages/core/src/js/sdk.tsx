@@ -1,5 +1,6 @@
 /* oxlint-disable eslint(complexity) */
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
+
 import {
   debug,
   getClient,
@@ -13,11 +14,13 @@ import {
 } from '@sentry/core';
 import { defaultStackParser, makeFetchTransport, Profiler } from '@sentry/react';
 import * as React from 'react';
+
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+
 import { ReactNativeClient } from './client';
 import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { getDefaultIntegrations } from './integrations/default';
-import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { shouldEnableNativeNagger } from './options';
 import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
@@ -62,13 +65,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...passedOptions,
   };
 
-  const maxQueueSize = userOptions.maxQueueSize
-    ?? userOptions.transportOptions?.bufferSize
-    ?? DEFAULT_OPTIONS.maxQueueSize;
+  const maxQueueSize =
+    userOptions.maxQueueSize ?? userOptions.transportOptions?.bufferSize ?? DEFAULT_OPTIONS.maxQueueSize;
 
-  const enableNative = userOptions.enableNative === undefined || userOptions.enableNative
-    ? NATIVE.isNativeAvailable()
-    : false;
+  const enableNative =
+    userOptions.enableNative === undefined || userOptions.enableNative ? NATIVE.isNativeAvailable() : false;
 
   useEncodePolyfill();
   if (enableNative) {
@@ -89,7 +90,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     return `${dsnComponents.protocol}://${dsnComponents.host}${port}`;
   };
 
-  const userBeforeBreadcrumb = safeFactory(userOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
+  const userBeforeBreadcrumb = safeFactory(userOptions.beforeBreadcrumb, {
+    loggerMessage: 'The beforeBreadcrumb threw an error',
+  });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
   const devServerUrl = getDevServer()?.url;
@@ -122,11 +125,12 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableNative,
     enableNativeNagger: shouldEnableNativeNagger(userOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
-    transport: userOptions.transport
-      || makeNativeTransportFactory({
+    transport:
+      userOptions.transport ||
+      makeNativeTransportFactory({
         enableNative,
-      })
-      || makeFetchTransport,
+      }) ||
+      makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(userOptions.transportOptions ?? {}),
@@ -143,7 +147,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     // Options file is present, native SDK is expected to be initialized
     // before JS from the native app entry point (e.g. AppDelegate, MainApplication).
     // oxlint-disable-next-line eslint(no-console)
-    console.info('[Sentry] Using options file. Native SDK is expected to be initialized before JS, skipping automatic native initialization from JS.');
+    console.info(
+      '[Sentry] Using options file. Native SDK is expected to be initialized before JS, skipping automatic native initialization from JS.',
+    );
     options.autoInitializeNativeSdk = false;
   }
 
@@ -155,9 +161,8 @@ export function init(passedOptions: ReactNativeOptions): void {
     options.environment = getDefaultEnvironment();
   }
 
-  const defaultIntegrations: false | Integration[] = userOptions.defaultIntegrations === undefined
-    ? getDefaultIntegrations(options)
-    : userOptions.defaultIntegrations;
+  const defaultIntegrations: false | Integration[] =
+    userOptions.defaultIntegrations === undefined ? getDefaultIntegrations(options) : userOptions.defaultIntegrations;
 
   options.integrations = getIntegrationsToSetup({
     integrations: safeFactory(userOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
@@ -180,12 +185,12 @@ export function init(passedOptions: ReactNativeOptions): void {
  */
 export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
-  options?: ReactNativeWrapperOptions
+  options?: ReactNativeWrapperOptions,
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps),
+    ...options?.profilerProps,
     name: RootComponent.displayName ?? 'Root',
-    updateProps: {}
+    updateProps: {},
   };
 
   const ProfilerComponent = isWeb() ? Profiler : ReactNativeProfiler;
@@ -226,7 +231,7 @@ export async function flush(): Promise<boolean> {
 
       return result;
     }
-  } catch (_) { }
+  } catch (_) {}
 
   debug.error('Failed to flush the event queue.');
 

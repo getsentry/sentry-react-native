@@ -1,4 +1,3 @@
-import { exceptionFromError } from '@sentry/browser';
 import type {
   Client,
   DebugImage,
@@ -10,8 +9,12 @@ import type {
   StackFrame,
   StackParser,
 } from '@sentry/core';
+
+import { exceptionFromError } from '@sentry/browser';
 import { isInstanceOf, isPlainObject, isString } from '@sentry/core';
+
 import type { NativeStackFrames } from '../NativeRNSentry';
+
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'NativeLinkedErrors';

@@ -1,4 +1,5 @@
 import type { Session, Transport, UserFeedback } from '@sentry/core';
+
 import { rejectedSyncPromise } from '@sentry/core';
 
 export type MockInterface<T> = {

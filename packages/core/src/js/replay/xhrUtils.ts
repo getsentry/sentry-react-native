@@ -1,6 +1,9 @@
 import type { Breadcrumb, BreadcrumbHint, SentryWrappedXMLHttpRequest, XhrBreadcrumbHint } from '@sentry/core';
+
 import { dropUndefinedKeys } from '@sentry/core';
+
 import type { RequestBody } from './networkUtils';
+
 import { getBodySize, parseContentLengthHeader } from './networkUtils';
 
 /**

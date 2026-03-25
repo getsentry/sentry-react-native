@@ -1,17 +1,8 @@
 /* oxlint-disable eslint(max-lines) */
 import { debug } from '@sentry/core';
 import * as React from 'react';
-import {
-  Animated,
-  Image,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Animated, Image, Modal, Platform, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
+
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
 import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';

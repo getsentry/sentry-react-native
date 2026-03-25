@@ -28,6 +28,7 @@ import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type * as baseJSBundleType from 'metro/private/DeltaBundler/Serializers/baseJSBundle';
 import type * as sourceMapStringType from 'metro/private/DeltaBundler/Serializers/sourceMapString';
 import type * as bundleToStringType from 'metro/private/lib/bundleToString';
+
 import type { MetroSerializer } from '../../utils';
 
 let baseJSBundleModule: any;
@@ -40,7 +41,7 @@ try {
 const baseJSBundle: typeof baseJSBundleType =
   typeof baseJSBundleModule === 'function'
     ? baseJSBundleModule
-    : baseJSBundleModule?.baseJSBundle ?? baseJSBundleModule?.default;
+    : (baseJSBundleModule?.baseJSBundle ?? baseJSBundleModule?.default);
 
 let sourceMapString: typeof sourceMapStringType;
 try {
@@ -65,7 +66,7 @@ try {
 const bundleToString: typeof bundleToStringType =
   typeof bundleToStringModule === 'function'
     ? bundleToStringModule
-    : bundleToStringModule?.bundleToString ?? bundleToStringModule?.default;
+    : (bundleToStringModule?.bundleToString ?? bundleToStringModule?.default);
 
 type NewSourceMapStringExport = {
   // Since Metro v0.80.10 https://github.com/facebook/metro/compare/v0.80.9...v0.80.10#diff-1b836d1729e527a725305eef0cec22e44605af2700fa413f4c2489ea1a03aebcL28

@@ -1,4 +1,5 @@
 import type { Event, Measurements, SentrySpan, StartSpanOptions } from '@sentry/core';
+
 import {
   getActiveSpan,
   getCurrentScope,
@@ -7,9 +8,11 @@ import {
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';
+
+import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
+
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
-import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import { extractDynamicRouteParams, reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
 import {
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY,

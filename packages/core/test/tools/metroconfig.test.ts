@@ -1,7 +1,10 @@
 import type { getDefaultConfig } from 'expo/metro-config';
 import type { MetroConfig } from 'metro';
+
 import * as process from 'process';
+
 import type { SentryExpoConfigOptions } from '../../src/js/tools/metroconfig';
+
 import {
   getSentryExpoConfig,
   withSentryBabelTransformer,

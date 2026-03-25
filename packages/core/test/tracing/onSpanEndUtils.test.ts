@@ -1,5 +1,7 @@
 import type { Client, Span } from '@sentry/core';
+
 import { getClient, startSpanManual } from '@sentry/core';
+
 import {
   adjustTransactionDuration,
   cancelInBackground,

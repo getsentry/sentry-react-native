@@ -1,8 +1,11 @@
+import type { MetroConfig, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
+
 import { logger } from '@sentry/core';
 import * as fs from 'fs';
-import type { MetroConfig, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 import * as path from 'path';
+
 import type { MetroCustomSerializer, VirtualJSOutput } from './utils';
+
 import { createSet } from './utils';
 import countLines from './vendor/metro/countLines';
 

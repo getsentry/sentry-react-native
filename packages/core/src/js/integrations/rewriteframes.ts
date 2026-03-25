@@ -1,6 +1,8 @@
 import type { Integration, StackFrame } from '@sentry/core';
+
 import { rewriteFramesIntegration } from '@sentry/core';
 import { Platform } from 'react-native';
+
 import { isExpo, isHermesEnabled } from '../utils/environment';
 
 export const ANDROID_DEFAULT_BUNDLE_NAME = 'app:///index.android.bundle';

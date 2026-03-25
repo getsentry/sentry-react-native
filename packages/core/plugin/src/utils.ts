@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+
 import { warnOnce } from './logger';
 
 export function writeSentryPropertiesTo(filepath: string, sentryProperties: string): void {

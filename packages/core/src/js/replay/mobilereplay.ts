@@ -1,5 +1,7 @@
 import type { Client, DynamicSamplingContext, Event, EventHint, Integration, Metric } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';

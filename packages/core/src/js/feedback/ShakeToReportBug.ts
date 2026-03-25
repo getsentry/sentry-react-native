@@ -1,6 +1,8 @@
-import { debug } from '@sentry/core';
 import type { EmitterSubscription, NativeModule } from 'react-native';
+
+import { debug } from '@sentry/core';
 import { NativeEventEmitter } from 'react-native';
+
 import { isWeb } from '../utils/environment';
 import { getRNSentryModule } from '../wrapper';
 

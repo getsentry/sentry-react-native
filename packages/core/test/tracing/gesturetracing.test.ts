@@ -1,5 +1,9 @@
 import type { Breadcrumb } from '@sentry/core';
+
 import { getActiveSpan, spanToJSON, startSpan } from '@sentry/core';
+
+import type { ReactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
+
 import { UI_ACTION } from '../../src/js/tracing';
 import {
   DEFAULT_BREADCRUMB_CATEGORY as DEFAULT_GESTURE_BREADCRUMB_CATEGORY,
@@ -8,7 +12,6 @@ import {
 } from '../../src/js/tracing/gesturetracing';
 import { startUserInteractionSpan } from '../../src/js/tracing/integrations/userInteraction';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from '../../src/js/tracing/origin';
-import type { ReactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
 import { setupTestClient, type TestClient } from '../mocks/client';

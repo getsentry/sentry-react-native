@@ -1,10 +1,17 @@
+import type { NativeEventSubscription } from 'react-native';
+
 import * as React from 'react';
-import type { NativeEventSubscription} from 'react-native';
 import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
+
+import type {
+  FeedbackButtonProps,
+  FeedbackButtonStyles,
+  FeedbackButtonTextConfiguration,
+} from './FeedbackWidget.types';
+
 import { defaultButtonConfiguration } from './defaults';
 import { defaultButtonStyles } from './FeedbackWidget.styles';
 import { getTheme } from './FeedbackWidget.theme';
-import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackWidget.types';
 import { showFeedbackWidget } from './FeedbackWidgetManager';
 import { feedbackIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';

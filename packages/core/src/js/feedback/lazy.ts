@@ -1,4 +1,5 @@
 import { getClient } from '@sentry/core';
+
 import { feedbackIntegration, MOBILE_FEEDBACK_INTEGRATION_NAME } from './integration';
 
 /**

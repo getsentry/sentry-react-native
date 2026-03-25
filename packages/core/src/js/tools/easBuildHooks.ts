@@ -13,7 +13,9 @@
 /* oxlint-disable eslint(no-console) */
 
 import type { DsnComponents } from '@sentry/core';
+
 import { dsnToString, makeDsn, uuid4 } from '@sentry/core';
+
 import { SDK_VERSION } from '../version';
 
 const SENTRY_DSN_ENV = 'SENTRY_DSN';

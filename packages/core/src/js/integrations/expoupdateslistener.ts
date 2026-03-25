@@ -1,5 +1,7 @@
 import { addBreadcrumb, debug, type Integration, type SeverityLevel } from '@sentry/core';
+
 import type { ReactNativeClient } from '../client';
+
 import { isExpo, isExpoGo } from '../utils/environment';
 
 const INTEGRATION_NAME = 'ExpoUpdatesListener';

@@ -1,4 +1,5 @@
 import type { NewFrameEventName } from '../../src/js/utils/sentryeventemitter';
+
 import { createSentryEventEmitter } from '../../src/js/utils/sentryeventemitter';
 
 describe('Sentry Event Emitter', () => {

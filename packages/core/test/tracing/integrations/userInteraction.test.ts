@@ -1,4 +1,6 @@
 import type { Span } from '@sentry/core';
+import type { AppStateStatus } from 'react-native';
+
 import {
   getActiveSpan,
   getCurrentScope,
@@ -7,19 +9,20 @@ import {
   startInactiveSpan,
   startSpanManual,
 } from '@sentry/core';
-import type { AppStateStatus } from 'react-native';
 import { AppState } from 'react-native';
+
+import type { ReactNativeTracingIntegration } from '../../../src/js/tracing/reactnativetracing';
+import type { TestClient } from '../../mocks/client';
+
 import {
   startUserInteractionSpan,
   userInteractionIntegration,
 } from '../../../src/js/tracing/integrations/userInteraction';
 import { SPAN_ORIGIN_MANUAL_INTERACTION } from '../../../src/js/tracing/origin';
-import type { ReactNativeTracingIntegration } from '../../../src/js/tracing/reactnativetracing';
 import { reactNativeTracingIntegration } from '../../../src/js/tracing/reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../../src/js/tracing/semanticAttributes';
 import { startIdleNavigationSpan } from '../../../src/js/tracing/span';
 import { NATIVE } from '../../../src/js/wrapper';
-import type { TestClient } from '../../mocks/client';
 import { setupTestClient } from '../../mocks/client';
 
 type MockAppState = {

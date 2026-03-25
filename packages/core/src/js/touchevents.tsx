@@ -1,8 +1,10 @@
 import type { SeverityLevel, SpanAttributeValue } from '@sentry/core';
+import type { GestureResponderEvent } from 'react-native';
+
 import { addBreadcrumb, debug, dropUndefinedKeys, getClient, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
 import * as React from 'react';
-import type { GestureResponderEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
+
 import { createIntegration } from './integrations/factory';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
@@ -262,7 +264,10 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
   }
 }
 
-function getTouchedComponentInfo(currentInst: ElementInstance, labelKey: string | undefined): TouchedComponentInfo | undefined {
+function getTouchedComponentInfo(
+  currentInst: ElementInstance,
+  labelKey: string | undefined,
+): TouchedComponentInfo | undefined {
   const displayName = currentInst.elementType?.displayName;
 
   const props = currentInst.memoizedProps;
@@ -288,33 +293,42 @@ function getTouchedComponentInfo(currentInst: ElementInstance, labelKey: string 
 }
 
 function getComponentName(props: Record<string, unknown>): string | undefined {
-  return typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
-    props[SENTRY_COMPONENT_PROP_KEY].length > 0 &&
-    props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown' &&
-    props[SENTRY_COMPONENT_PROP_KEY] || undefined;
+  return (
+    (typeof props[SENTRY_COMPONENT_PROP_KEY] === 'string' &&
+      props[SENTRY_COMPONENT_PROP_KEY].length > 0 &&
+      props[SENTRY_COMPONENT_PROP_KEY] !== 'unknown' &&
+      props[SENTRY_COMPONENT_PROP_KEY]) ||
+    undefined
+  );
 }
 
 function getElementName(props: Record<string, unknown>): string | undefined {
-  return typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' &&
-    props[SENTRY_ELEMENT_PROP_KEY].length > 0 &&
-    props[SENTRY_ELEMENT_PROP_KEY] !== 'unknown' &&
-    props[SENTRY_ELEMENT_PROP_KEY] || undefined;
+  return (
+    (typeof props[SENTRY_ELEMENT_PROP_KEY] === 'string' &&
+      props[SENTRY_ELEMENT_PROP_KEY].length > 0 &&
+      props[SENTRY_ELEMENT_PROP_KEY] !== 'unknown' &&
+      props[SENTRY_ELEMENT_PROP_KEY]) ||
+    undefined
+  );
 }
 
 function getFileName(props: Record<string, unknown>): string | undefined {
-  return typeof props[SENTRY_FILE_PROP_KEY] === 'string' &&
-    props[SENTRY_FILE_PROP_KEY].length > 0 &&
-    props[SENTRY_FILE_PROP_KEY] !== 'unknown' &&
-    props[SENTRY_FILE_PROP_KEY] || undefined;
+  return (
+    (typeof props[SENTRY_FILE_PROP_KEY] === 'string' &&
+      props[SENTRY_FILE_PROP_KEY].length > 0 &&
+      props[SENTRY_FILE_PROP_KEY] !== 'unknown' &&
+      props[SENTRY_FILE_PROP_KEY]) ||
+    undefined
+  );
 }
 
 function getLabelValue(props: Record<string, unknown>, labelKey: string | undefined): string | undefined {
   return typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0
     ? props[SENTRY_LABEL_PROP_KEY]
-    // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
-    // the "check-label" if sentence, so we have to assign it to a variable here first
-    : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
-      ? props[labelKey] as string
+    : // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
+      // the "check-label" if sentence, so we have to assign it to a variable here first
+      typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
+      ? (props[labelKey] as string)
       : undefined;
 }
 
@@ -327,11 +341,7 @@ function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAtt
   const attributes = props[SENTRY_SPAN_ATTRIBUTES_PROP_KEY];
 
   // Validate that it's an object (not null, not array)
-  if (
-    typeof attributes === 'object' &&
-    attributes !== null &&
-    !Array.isArray(attributes)
-  ) {
+  if (typeof attributes === 'object' && attributes !== null && !Array.isArray(attributes)) {
     return attributes as Record<string, SpanAttributeValue>;
   }
 

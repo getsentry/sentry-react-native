@@ -1,5 +1,7 @@
-import { breadcrumbsIntegration as browserBreadcrumbsIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
+
+import { breadcrumbsIntegration as browserBreadcrumbsIntegration } from '@sentry/browser';
+
 import { isWeb } from '../utils/environment';
 
 interface BreadcrumbsOptions {
@@ -63,8 +65,8 @@ export const breadcrumbsIntegration = (options: Partial<BreadcrumbsOptions> = {}
     sentry: true,
     ...options,
     fetch: options.fetch ?? (isWeb() ? true : false),
-    dom: isWeb() ? options.dom ?? true : false,
-    history: isWeb() ? options.history ?? true : false,
+    dom: isWeb() ? (options.dom ?? true) : false,
+    history: isWeb() ? (options.history ?? true) : false,
   };
 
   // Historically we had very little issue using the browser breadcrumbs integration

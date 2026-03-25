@@ -1,4 +1,5 @@
 import type { ExpoConfig } from '@expo/config-types';
+
 import { warnOnce } from '../../plugin/src/logger';
 import { modifyAppDelegate } from '../../plugin/src/withSentryIOS';
 

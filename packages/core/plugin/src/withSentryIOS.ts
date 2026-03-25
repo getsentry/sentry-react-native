@@ -1,7 +1,9 @@
 import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
+
 import { withAppDelegate, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import * as path from 'path';
+
 import { warnOnce } from './logger';
 import { writeSentryPropertiesTo } from './utils';
 

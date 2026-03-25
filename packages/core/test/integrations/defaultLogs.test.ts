@@ -1,8 +1,11 @@
-import { consoleLoggingIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
+
+import { consoleLoggingIntegration } from '@sentry/browser';
+
+import type { ReactNativeClientOptions } from '../../src/js/options';
+
 import { getDefaultIntegrations } from '../../src/js/integrations/default';
 import { logEnricherIntegration } from '../../src/js/integrations/logEnricherIntegration';
-import type { ReactNativeClientOptions } from '../../src/js/options';
 import { notWeb } from '../../src/js/utils/environment';
 
 jest.mock('../../src/js/utils/environment', () => {
