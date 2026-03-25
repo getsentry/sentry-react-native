@@ -125,7 +125,7 @@ export interface BaseReactNativeOptions {
 
   /**
    * Set data to the inital scope
-   * @deprecated Use `Sentry.configureScope(...)`
+   * @deprecated Use `Sentry.getGlobalScope().setTag(...)`, `Sentry.getGlobalScope().setUser(...)`, etc. instead.
    */
   initialScope?: CaptureContext;
 
