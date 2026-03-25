@@ -32,13 +32,17 @@ public class SentryReactNativeHostHandler implements ReactNativeHostHandler {
       return;
     }
 
-    final Mechanism mechanism = new Mechanism();
-    mechanism.setType(MECHANISM_TYPE);
-    mechanism.setHandled(false);
+    try { // NOPMD - We don't want to crash in any case
+      final Mechanism mechanism = new Mechanism();
+      mechanism.setType(MECHANISM_TYPE);
+      mechanism.setHandled(false);
 
-    final ExceptionMechanismException mechanismException =
-        new ExceptionMechanismException(mechanism, exception, Thread.currentThread());
+      final ExceptionMechanismException mechanismException =
+          new ExceptionMechanismException(mechanism, exception, Thread.currentThread());
 
-    Sentry.captureException(mechanismException);
+      Sentry.captureException(mechanismException);
+    } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
+      // ignore
+    }
   }
 }
