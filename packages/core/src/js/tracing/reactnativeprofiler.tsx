@@ -57,6 +57,7 @@ export class ReactNativeProfiler extends Profiler {
       debug.warn('AppRegistryIntegration.onRunApplication not found or invalid.');
     }
 
+    // oxlint-disable-next-line typescript-eslint(no-floating-promises)
     _captureAppStart({ isManual: false });
   }
 }

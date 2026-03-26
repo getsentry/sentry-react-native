@@ -123,6 +123,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
   /**
    * Animates the background opacity when the modal is shown.
    */
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   public componentDidUpdate(_prevProps: any, prevState: FeedbackWidgetProviderState): void {
     if (!prevState.isVisible && this.state.isVisible) {
       Animated.parallel([

@@ -1,3 +1,4 @@
+/* oxlint-disable typescript-eslint(no-unsafe-member-access) */
 // Vendored / modified from @facebook/metro
 
 // https://github.com/facebook/metro/commit/9b85f83c9cc837d8cd897aa7723be7da5b296067
@@ -30,6 +31,7 @@ import type * as sourceMapStringType from 'metro/private/DeltaBundler/Serializer
 import type * as bundleToStringType from 'metro/private/lib/bundleToString';
 import type { MetroSerializer } from '../../utils';
 
+// oxlint-disable-next-line typescript-eslint(no-explicit-any)
 let baseJSBundleModule: any;
 try {
   baseJSBundleModule = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
@@ -55,6 +57,7 @@ try {
   }
 }
 
+// oxlint-disable-next-line typescript-eslint(no-explicit-any)
 let bundleToStringModule: any;
 try {
   bundleToStringModule = require('metro/private/lib/bundleToString');
