@@ -38,6 +38,8 @@
     "jsdoc/require-yields": "off",
     "no-shadow": "off",
     "no-unsafe-optional-chaining": "off",
+    // Not in original ESLint config — auto-enabled by --type-aware, produces false positives on mocked functions
+    "typescript/await-thenable": "off",
 
     // === Custom SDK rules (via JS plugin) ===
     "sdk/no-eq-empty": "error"

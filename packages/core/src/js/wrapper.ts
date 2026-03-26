@@ -41,7 +41,7 @@ import { base64StringFromByteArray } from './vendor';
  */
 export function getRNSentryModule(): Spec | undefined {
   return isTurboModuleEnabled()
-    ? ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry')
+    ? (ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry') ?? undefined)
     : NativeModules.RNSentry;
 }
 
@@ -271,10 +271,10 @@ export const NATIVE: SentryNativeWrapper = {
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
-    const ignoreErrorsStr = options.ignoreErrors?.filter(item => typeof item === 'string') as string[] | undefined;
+    const ignoreErrorsStr = options.ignoreErrors?.filter((item): item is string => typeof item === 'string');
     const ignoreErrorsRegex = options.ignoreErrors
-      ?.filter(item => item instanceof RegExp)
-      .map(item => (item as RegExp).source) as string[] | undefined;
+      ?.filter((item): item is RegExp => item instanceof RegExp)
+      .map(item => item.source);
 
     if (ignoreErrorsStr && ignoreErrorsStr.length > 0) {
       options.ignoreErrorsStr = ignoreErrorsStr;
@@ -947,6 +947,7 @@ export const NATIVE: SentryNativeWrapper = {
     return !!module;
   },
 
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   _setPrimitiveProcessor: function (processor: (value: Primitive) => any): void {
     this.primitiveProcessor = processor;
   },

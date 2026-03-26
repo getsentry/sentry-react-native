@@ -74,32 +74,16 @@ jobs:
           - ios-use-frameworks: 'dynamic-frameworks'
             platform: 'macos'
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Check if platform is needed
         id: platform-check
-        run: |
-          # Sample app changes should always build all platforms (that's the
-          # whole point of this workflow).  The needs_ios/needs_android flags
-          # only track SDK source & native code — not sample app files.
-          SAMPLE_CHANGED="${{ needs.detect-changes.outputs.sample_react_native }}"
-
-          if [[ "$SAMPLE_CHANGED" == "true" ]]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "Sample app changed — building ${{ matrix.platform }}."
-          elif [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping iOS — no relevant changes detected."
-          elif [[ "${{ matrix.platform }}" == "macos" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping macOS — no relevant changes detected."
-          elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping Android — no relevant changes detected."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        uses: ./.github/actions/platform-check
+        with:
+          platform: ${{ matrix.platform }}
+          sample_changed: ${{ needs.detect-changes.outputs.sample_react_native }}
+          needs_ios: ${{ needs.detect-changes.outputs.needs_ios }}
+          needs_android: ${{ needs.detect-changes.outputs.needs_android }}
 
       - name: Enable Corepack (NPM)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -264,26 +248,16 @@ jobs:
             build-type: 'production'
 
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Check if platform is needed
         id: platform-check
-        run: |
-          SAMPLE_CHANGED="${{ needs.detect-changes.outputs.sample_react_native }}"
-
-          if [[ "$SAMPLE_CHANGED" == "true" ]]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "Sample app changed — testing ${{ matrix.platform }}."
-          elif [[ "${{ matrix.platform }}" == "ios" && "${{ needs.detect-changes.outputs.needs_ios }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping iOS — no relevant changes detected."
-          elif [[ "${{ matrix.platform }}" == "android" && "${{ needs.detect-changes.outputs.needs_android }}" != "true" ]]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Skipping Android — no relevant changes detected."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        uses: ./.github/actions/platform-check
+        with:
+          platform: ${{ matrix.platform }}
+          sample_changed: ${{ needs.detect-changes.outputs.sample_react_native }}
+          needs_ios: ${{ needs.detect-changes.outputs.needs_ios }}
+          needs_android: ${{ needs.detect-changes.outputs.needs_android }}
 
       - name: Install Maestro
         if: ${{ steps.platform-check.outputs.skip != 'true' }}

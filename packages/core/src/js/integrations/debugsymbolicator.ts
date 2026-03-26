@@ -87,6 +87,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
       : newStack;
 
     const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
+      // oxlint-disable-next-line typescript-eslint(prefer-optional-chain)
       (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
     );
 

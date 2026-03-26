@@ -104,6 +104,7 @@ function walkErrorTree(
   } else if (isInstanceOf(linkedError, Error)) {
     exception = exceptionFromError(parser, error[key]);
   } else if (isPlainObject(linkedError)) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const plainError = linkedError as Record<string, unknown>;
     exception = {
       type: typeof plainError.name === 'string' ? plainError.name : undefined,

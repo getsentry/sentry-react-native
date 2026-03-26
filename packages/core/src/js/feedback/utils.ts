@@ -43,6 +43,7 @@ export const base64ToUint8Array = (base64: string): Uint8Array => {
   }
 
   const binaryString = atob(base64);
+  // oxlint-disable-next-line typescript-eslint(no-misused-spread)
   return new Uint8Array([...binaryString].map(char => char.charCodeAt(0)));
 };
 

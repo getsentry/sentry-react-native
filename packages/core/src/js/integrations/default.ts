@@ -151,7 +151,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number');
 
   if (!hasReplayOptions && hasExperimentsReplayOptions) {
-    // Remove in the next major version (v7)
+    // Remove in the next major version (v9)
     options.replaysOnErrorSampleRate = options._experiments?.replaysOnErrorSampleRate;
     options.replaysSessionSampleRate = options._experiments?.replaysSessionSampleRate;
   }

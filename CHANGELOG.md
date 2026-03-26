@@ -6,10 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.6.0
 
 ### Fixes
 
+- Session replay will no longer start recording when an event was ignored or dropped. ([#5885](https://github.com/getsentry/sentry-react-native/pull/5885))
+- Capture native exceptions consumed by Expo's bridgeless error handling on Android ([#5871](https://github.com/getsentry/sentry-react-native/pull/5871))
 - Fix SIGABRT crash on launch when `mobileReplayIntegration` is not configured and iOS deployment target >= 16.0 ([#5858](https://github.com/getsentry/sentry-react-native/pull/5858))
 - Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
 - Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
@@ -19,9 +21,12 @@
 - Bump Cocoa SDK from v9.7.0 to v9.8.0 ([#5847](https://github.com/getsentry/sentry-react-native/pull/5847))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#980)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.7.0...9.8.0)
-- Bump JavaScript SDK from v10.44.0 to v10.45.0 ([#5848](https://github.com/getsentry/sentry-react-native/pull/5848))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10450)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.44.0...10.45.0)
+- Bump JavaScript SDK from v10.44.0 to v10.46.0 ([#5848](https://github.com/getsentry/sentry-react-native/pull/5848), [#5890](https://github.com/getsentry/sentry-react-native/pull/5890))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10460)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.44.0...10.46.0)
+- Bump CLI from v3.3.3 to v3.3.4 ([#5891](https://github.com/getsentry/sentry-react-native/pull/5891))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#334)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.3...3.3.4)
 
 ## 8.5.0
 

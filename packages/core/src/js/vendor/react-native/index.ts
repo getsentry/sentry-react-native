@@ -84,5 +84,6 @@ export type ReactNativeVersion = {
 };
 
 export type AppRegistry = {
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   runApplication: (appKey: string, appParameters: any) => void;
 };

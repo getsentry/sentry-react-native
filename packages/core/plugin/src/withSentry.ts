@@ -32,6 +32,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
 
   let cfg = config;
   const pluginOptions = props?.options ? { ...props.options } : {};
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
   const environment = process.env.SENTRY_ENVIRONMENT;
   if (environment) {
     pluginOptions.environment = environment;
