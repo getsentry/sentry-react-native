@@ -1,6 +1,6 @@
-This module provides stubs for `expo-modules-core` interfaces (`Package` and `ReactNativeHostHandler`) needed to compile the Expo-specific source set (`android/src/expo/`).
+This module provides stubs for `expo-modules-core` interfaces (`Package` and `ReactNativeHostHandler`) needed to compile the Expo handler tests in `RNSentryAndroidTester`.
 
-The Expo source set registers a `ReactNativeHostHandler` that captures native exceptions swallowed by Expo's bridgeless error handling (`ExpoReactHostDelegate.handleInstanceException`). These stubs are added as a `compileOnly` dependency to `android/build.gradle` (meaning, they are not present at runtime). In Expo projects, the real `expo-modules-core` classes are available at runtime via Expo's autolinking.
+The Expo handler (`android/expo-handler/`) registers a `ReactNativeHostHandler` that captures native exceptions swallowed by Expo's bridgeless error handling (`ExpoReactHostDelegate.handleInstanceException`). In Expo projects, the handler is compiled against the real `expo-modules-core` project. For unit testing in `RNSentryAndroidTester` (which doesn't have Expo), these stubs provide the interfaces at compile time.
 
 ## Updating the stubs
 

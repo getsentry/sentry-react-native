@@ -11,7 +11,7 @@
 ### Fixes
 
 - Session replay will no longer start recording when an event was ignored or dropped. ([#5885](https://github.com/getsentry/sentry-react-native/pull/5885))
-- Capture native exceptions consumed by Expo's bridgeless error handling on Android ([#5871](https://github.com/getsentry/sentry-react-native/pull/5871))
+- Capture native exceptions consumed by Expo's bridgeless error handling on Android ([#5898](https://github.com/getsentry/sentry-react-native/pull/5898))
 - Fix SIGABRT crash on launch when `mobileReplayIntegration` is not configured and iOS deployment target >= 16.0 ([#5858](https://github.com/getsentry/sentry-react-native/pull/5858))
 - Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
 - Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
