@@ -1,0 +1,7 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "name": "sentry-react-native-expo",
+    "path": "android/expo-handler"
+  }
+}
