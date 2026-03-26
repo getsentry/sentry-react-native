@@ -139,9 +139,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     initialScope: safeFactory(userOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
   };
 
-  if (!('autoInitializeNativeSdk' in userOptions) && RN_GLOBAL_OBJ.__SENTRY_OPTIONS__) {
-    // Options file is present, native SDK is expected to be initialized
+  if (!('autoInitializeNativeSdk' in userOptions) && RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ && !__DEV__) {
+    // Options file is present in a release build, native SDK is expected to be initialized
     // before JS from the native app entry point (e.g. AppDelegate, MainApplication).
+    // In dev builds, we always re-initialize from JS to set up the native log bridge
+    // and provide runtime values (devServerUrl, defaultSidecarUrl, etc.).
     // oxlint-disable-next-line eslint(no-console)
     console.info('[Sentry] Using options file. Native SDK is expected to be initialized before JS, skipping automatic native initialization from JS.');
     options.autoInitializeNativeSdk = false;
