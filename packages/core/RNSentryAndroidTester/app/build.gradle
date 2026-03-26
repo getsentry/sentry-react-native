@@ -37,7 +37,7 @@ android {
     }
 }
 
-android.sourceSets.main.java.srcDirs += ['../../android/src/expo/java']
+android.sourceSets.main.java.srcDirs += ['../../android/expo-handler/src/main/java']
 
 dependencies {
     implementation project(':RNSentry')
