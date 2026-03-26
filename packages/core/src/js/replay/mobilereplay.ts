@@ -308,7 +308,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     const clientOptions = client.getOptions();
     const originalBeforeSend = clientOptions.beforeSend;
     clientOptions.beforeSend = async (event: ErrorEvent, hint: EventHint): Promise<ErrorEvent | null> => {
-      var result: ErrorEvent | null = event;
+      let result: ErrorEvent | null = event;
       if (originalBeforeSend) {
         result = await originalBeforeSend(event, hint);
         if (result === null) {
