@@ -14,7 +14,7 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.3.0'
-  MAESTRO_DRIVER_STARTUP_TIMEOUT: 90000 # Increase timeout from default 30s to 90s for CI stability
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000 # Increase timeout from default 30s to 180s for CI stability
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -332,6 +332,42 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          wait_for_boot: true
+          erase_before_boot: false
+
+      - name: Wait for iOS simulator to be fully ready
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+        run: |
+          xcrun simctl bootstatus booted -b
+          xcrun simctl launch booted com.apple.Preferences
+          sleep 5
+          xcrun simctl terminate booted com.apple.Preferences
+
+      - name: Warm up Maestro driver on iOS
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+        continue-on-error: true
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          # Install the app first so Maestro can launch it
+          xcrun simctl install booted sentryreactnativesample.app
+          # The first Maestro launchApp after simulator boot can fail on
+          # Cirrus Labs Tart VMs. Run a throwaway launch cycle to warm up
+          # the IDB/XCUITest driver before real tests start.
+          WARMUP=$(mktemp /tmp/maestro-warmup-XXXXXX.yml)
+          cat > "$WARMUP" << 'YML'
+          appId: io.sentry.reactnative.sample
+          ---
+          - launchApp:
+              clearState: true
+          - extendedWaitUntil:
+              visible: "Sentry React Native Sample"
+              timeout: 120000
+          - killApp
+          YML
+          # Strip leading whitespace from heredoc (indented for readability)
+          sed -i '' 's/^          //' "$WARMUP"
+          maestro test "$WARMUP" || true
+          rm -f "$WARMUP"
 
       - name: Run iOS Tests
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
