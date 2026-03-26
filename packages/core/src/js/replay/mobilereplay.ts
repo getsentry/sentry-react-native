@@ -308,7 +308,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     const clientOptions = client.getOptions();
     const originalBeforeSend = clientOptions.beforeSend;
     clientOptions.beforeSend = async (event: ErrorEvent, hint: EventHint): Promise<ErrorEvent | null> => {
-      var result = event;
+      var result: ErrorEvent | null = event;
       if (originalBeforeSend) {
         result = await originalBeforeSend(event, hint);
         if (result === null) {
@@ -316,7 +316,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
           return null;
         }
       }
-      return processEvent(result, hint);
+      try {
+        return await processEvent(result, hint);
+      } catch (error) {
+        debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to process event for replay`, error);
+        return result;
+      }
     };
   }
 

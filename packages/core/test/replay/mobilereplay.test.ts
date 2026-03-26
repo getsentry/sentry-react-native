@@ -143,6 +143,50 @@ describe('Mobile Replay Integration', () => {
       expect(mockCaptureReplay).not.toHaveBeenCalled();
       expect(result?.contexts?.replay).toBeUndefined();
     });
+
+    it('should handle errors in processEvent and return original event', async () => {
+      // Mock captureReplay to throw an error BEFORE setting up integration
+      mockCaptureReplay.mockRejectedValue(new Error('Native bridge error'));
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      // Should return the original event even when processEvent fails
+      expect(result).toBeDefined();
+      expect(result?.event_id).toBe('test-event-id');
+      expect(mockCaptureReplay).toHaveBeenCalled();
+    });
+
+    it('should not crash the event pipeline when processEvent throws', async () => {
+      // Mock captureReplay to throw a synchronous error BEFORE setting up integration
+      mockCaptureReplay.mockImplementation(() => {
+        throw new TypeError('Synchronous native error');
+      });
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      // Should not throw and should return the event
+      await expect(clientOptions.beforeSend?.(event, hint)).resolves.toBeDefined();
+    });
   });
 
   describe('beforeErrorSampling', () => {
