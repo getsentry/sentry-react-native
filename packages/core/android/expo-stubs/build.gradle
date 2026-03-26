@@ -1,0 +1,23 @@
+allprojects {
+  repositories {
+    mavenCentral()
+    google()
+  }
+}
+
+apply plugin: 'java-library'
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.named('jar', Jar) {
+  archiveBaseName.set('expo-stubs')
+  archiveVersion.set('')
+  destinationDirectory.set(file("$rootDir/../libs"))
+}
+
+dependencies {
+  compileOnly 'com.google.android:android:4.1.1.4'
+}
