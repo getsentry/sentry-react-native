@@ -60,14 +60,14 @@ static NSString *activeSpanId;
 
 + (void)setActiveSpanId:(NSString *)spanId
 {
-    @synchronized ([RNSentryTimeToDisplay class]) {
+    @synchronized([RNSentryTimeToDisplay class]) {
         activeSpanId = spanId != nil ? [spanId copy] : nil;
     }
 }
 
 + (NSNumber *)popTimeToDisplayFor:(NSString *)screenId
 {
-    @synchronized ([RNSentryTimeToDisplay class]) {
+    @synchronized([RNSentryTimeToDisplay class]) {
         NSNumber *value = screenIdToRenderDuration[screenId];
         [screenIdToRenderDuration removeObjectForKey:screenId];
         return value;
@@ -76,7 +76,7 @@ static NSString *activeSpanId;
 
 + (void)putTimeToInitialDisplayForActiveSpan:(NSNumber *)value
 {
-    @synchronized ([RNSentryTimeToDisplay class]) {
+    @synchronized([RNSentryTimeToDisplay class]) {
         if (activeSpanId != nil) {
             NSString *prefixedSpanId = [@"ttid-navigation-" stringByAppendingString:activeSpanId];
             [self putTimeToDisplayForLocked:prefixedSpanId value:value];
@@ -86,7 +86,7 @@ static NSString *activeSpanId;
 
 + (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
 {
-    @synchronized ([RNSentryTimeToDisplay class]) {
+    @synchronized([RNSentryTimeToDisplay class]) {
         [self putTimeToDisplayForLocked:screenId value:value];
     }
 }
