@@ -126,7 +126,7 @@ function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+  // Expo Router uses Error Boundaries to catch errors in the navigation tree. test
   useEffect(() => {
     if (error) {
       throw error;
