@@ -154,6 +154,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
       dsn: this.getDsn(),
       tunnel: undefined,
     });
+    // oxlint-disable-next-line typescript-eslint(no-floating-promises)
     this.sendEnvelope(envelope);
   }
 

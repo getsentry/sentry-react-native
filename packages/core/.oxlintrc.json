@@ -55,6 +55,7 @@
         "typescript/explicit-function-return-type": ["error", { "allowExpressions": true }],
         "typescript/no-floating-promises": ["error", { "ignoreVoid": false }],
         "typescript/no-dynamic-delete": "error",
+        "typescript/unified-signatures": "error",
         "typescript/no-unsafe-member-access": "error",
         "typescript/unbound-method": "error",
         "typescript/no-explicit-any": "warn",
