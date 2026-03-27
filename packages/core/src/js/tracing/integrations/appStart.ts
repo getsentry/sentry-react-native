@@ -501,7 +501,10 @@ export const appStartIntegration = ({
     }
 
     try {
-      const framesDelay = await NATIVE.fetchNativeFramesDelay(appStartTimestampSeconds, appStartEndTimestampSeconds);
+      const framesDelay = await Promise.race([
+        NATIVE.fetchNativeFramesDelay(appStartTimestampSeconds, appStartEndTimestampSeconds),
+        new Promise<null>(resolve => setTimeout(() => resolve(null), 2_000)),
+      ]);
       if (framesDelay != null) {
         appStartSpanJSON.data = appStartSpanJSON.data || {};
         appStartSpanJSON.data['frames.delay'] = framesDelay;

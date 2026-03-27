@@ -490,7 +490,10 @@ async function captureEndFramesAndAttachToSpan(span: Span, spanEndTimestampSecon
     if (spanStartTimestamp) {
       try {
         const endTimestamp = spanEndTimestampSeconds || spanToJSON(span).timestamp || Date.now() / 1000;
-        const framesDelay = await NATIVE.fetchNativeFramesDelay(spanStartTimestamp, endTimestamp);
+        const framesDelay = await Promise.race([
+          NATIVE.fetchNativeFramesDelay(spanStartTimestamp, endTimestamp),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), FETCH_FRAMES_TIMEOUT_MS)),
+        ]);
         if (framesDelay != null) {
           span.setAttribute('frames.delay', framesDelay);
         }
