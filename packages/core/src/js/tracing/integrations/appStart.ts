@@ -498,19 +498,19 @@ export const appStartIntegration = ({
 
     if (appStartEndData?.endFrames) {
       attachFrameDataToSpan(appStartSpanJSON, appStartEndData.endFrames);
-    }
 
-    try {
-      const framesDelay = await Promise.race([
-        NATIVE.fetchNativeFramesDelay(appStartTimestampSeconds, appStartEndTimestampSeconds),
-        new Promise<null>(resolve => setTimeout(() => resolve(null), 2_000)),
-      ]);
-      if (framesDelay != null) {
-        appStartSpanJSON.data = appStartSpanJSON.data || {};
-        appStartSpanJSON.data['frames.delay'] = framesDelay;
+      try {
+        const framesDelay = await Promise.race([
+          NATIVE.fetchNativeFramesDelay(appStartTimestampSeconds, appStartEndTimestampSeconds),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 2_000)),
+        ]);
+        if (framesDelay != null) {
+          appStartSpanJSON.data = appStartSpanJSON.data || {};
+          appStartSpanJSON.data['frames.delay'] = framesDelay;
+        }
+      } catch (error) {
+        debug.log('[AppStart] Error while fetching frames delay for app start span.', error);
       }
-    } catch (error) {
-      debug.log('[AppStart] Error while fetching frames delay for app start span.', error);
     }
 
     const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
