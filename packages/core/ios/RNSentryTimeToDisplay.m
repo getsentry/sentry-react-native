@@ -2,6 +2,8 @@
 #import <QuartzCore/QuartzCore.h>
 #import <React/RCTLog.h>
 
+// All static state below is accessed from the main thread (CADisplayLink, UI) and from the
+// React Native bridge / JS thread (setActiveSpanId, pop). Synchronize every access.
 @implementation RNSentryTimeToDisplay {
     CADisplayLink *displayLink;
     RCTResponseSenderBlock resolveBlock;
@@ -13,42 +15,11 @@ static NSUInteger screenIdCurrentIndex;
 
 static NSString *activeSpanId;
 
-+ (void)initialize
++ (void)putTimeToDisplayForLocked:(NSString *)screenId value:(NSNumber *)value
 {
-    if (self == [RNSentryTimeToDisplay class]) {
-        screenIdToRenderDuration =
-            [[NSMutableDictionary alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
-        screenIdAge = [[NSMutableArray alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
-        screenIdCurrentIndex = 0;
-
-        activeSpanId = nil;
-    }
-}
-
-+ (void)setActiveSpanId:(NSString *)spanId
-{
-    activeSpanId = spanId;
-}
-
-+ (NSNumber *)popTimeToDisplayFor:(NSString *)screenId
-{
-    NSNumber *value = screenIdToRenderDuration[screenId];
-    [screenIdToRenderDuration removeObjectForKey:screenId];
-    return value;
-}
-
-+ (void)putTimeToInitialDisplayForActiveSpan:(NSNumber *)value
-{
-    if (activeSpanId != nil) {
-        NSString *prefixedSpanId = [@"ttid-navigation-" stringByAppendingString:activeSpanId];
-        [self putTimeToDisplayFor:prefixedSpanId value:value];
-    }
-}
-
-+ (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
-{
-    if (!screenId)
+    if (!screenId) {
         return;
+    }
 
     // If key already exists, just update the value,
     // this should never happen as TTD is recorded once per navigation
@@ -72,6 +43,51 @@ static NSString *activeSpanId;
 
         // Update circular index, point to the new oldest
         screenIdCurrentIndex = (screenIdCurrentIndex + 1) % TIME_TO_DISPLAY_ENTRIES_MAX_SIZE;
+    }
+}
+
++ (void)initialize
+{
+    if (self == [RNSentryTimeToDisplay class]) {
+        screenIdToRenderDuration =
+            [[NSMutableDictionary alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
+        screenIdAge = [[NSMutableArray alloc] initWithCapacity:TIME_TO_DISPLAY_ENTRIES_MAX_SIZE];
+        screenIdCurrentIndex = 0;
+
+        activeSpanId = nil;
+    }
+}
+
++ (void)setActiveSpanId:(NSString *)spanId
+{
+    @synchronized([RNSentryTimeToDisplay class]) {
+        activeSpanId = spanId != nil ? [spanId copy] : nil;
+    }
+}
+
++ (NSNumber *)popTimeToDisplayFor:(NSString *)screenId
+{
+    @synchronized([RNSentryTimeToDisplay class]) {
+        NSNumber *value = screenIdToRenderDuration[screenId];
+        [screenIdToRenderDuration removeObjectForKey:screenId];
+        return value;
+    }
+}
+
++ (void)putTimeToInitialDisplayForActiveSpan:(NSNumber *)value
+{
+    @synchronized([RNSentryTimeToDisplay class]) {
+        if (activeSpanId != nil) {
+            NSString *prefixedSpanId = [@"ttid-navigation-" stringByAppendingString:activeSpanId];
+            [self putTimeToDisplayForLocked:prefixedSpanId value:value];
+        }
+    }
+}
+
++ (void)putTimeToDisplayFor:(NSString *)screenId value:(NSNumber *)value
+{
+    @synchronized([RNSentryTimeToDisplay class]) {
+        [self putTimeToDisplayForLocked:screenId value:value];
     }
 }
 
