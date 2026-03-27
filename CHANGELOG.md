@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix iOS crash (EXC_BAD_ACCESS) in time-to-initial-display when navigating between screens ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))
+
 ## 8.6.0
 
 ### Fixes
