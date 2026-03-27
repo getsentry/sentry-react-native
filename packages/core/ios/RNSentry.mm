@@ -572,7 +572,7 @@ RCT_EXPORT_METHOD(fetchNativeFramesDelay : (double)startTimestampSeconds endTime
     SentryFramesDelayResultSPI *result = [framesTracker getFramesDelaySPI:startSystemTime
                                                        endSystemTimestamp:endSystemTime];
 
-    if (result.delayDuration >= 0) {
+    if (result != nil && result.delayDuration >= 0) {
         resolve(@(result.delayDuration));
     } else {
         resolve(nil);

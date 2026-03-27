@@ -31,6 +31,7 @@ public class RNSentryFrameDelayCollector
     if (frameMetricsCollector == null) {
       return false;
     }
+    stop();
     this.collector = frameMetricsCollector;
     this.listenerId = frameMetricsCollector.startCollection(this);
     return this.listenerId != null;
