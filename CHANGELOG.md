@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `frames.delay` span data from native SDKs to app start, TTID/TTFD, and JS API spans ([#5907](https://github.com/getsentry/sentry-react-native/pull/5907))
+
 ### Fixes
 
 - Fix iOS crash (EXC_BAD_ACCESS) in time-to-initial-display when navigating between screens ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))
