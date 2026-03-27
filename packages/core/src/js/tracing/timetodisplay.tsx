@@ -203,9 +203,10 @@ export function startTimeToFullDisplaySpan(
     }
     fullDisplaySpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
 
-    captureEndFramesAndAttachToSpan(fullDisplaySpan).then(() => {
+    const fullDisplayEndTimestamp = spanToJSON(initialDisplaySpan).timestamp;
+    captureEndFramesAndAttachToSpan(fullDisplaySpan, fullDisplayEndTimestamp).then(() => {
       debug.log(`[TimeToDisplay] span ${fullDisplaySpan.spanContext().spanId} updated with frame data.`);
-      fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
+      fullDisplaySpan.end(fullDisplayEndTimestamp);
       setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
     }).catch(() => {
       debug.warn(`[TimeToDisplay] Failed to capture end frames for full display span (${fullDisplaySpan.spanContext().spanId}).`);
@@ -265,7 +266,7 @@ export function updateInitialDisplaySpan(
     return;
   }
 
-  captureEndFramesAndAttachToSpan(span).then(() => {
+  captureEndFramesAndAttachToSpan(span, frameTimestampSeconds).then(() => {
     span.end(frameTimestampSeconds);
     span.setStatus({ code: SPAN_STATUS_OK });
     debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp and frame data.`);
@@ -322,8 +323,8 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  captureEndFramesAndAttachToSpan(span).then(() => {
-    const endTimestamp = initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
+  const endTimestamp = initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
+  captureEndFramesAndAttachToSpan(span, endTimestamp).then(() => {
 
     if (initialDisplayEndTimestamp > frameTimestampSeconds) {
       debug.warn('[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.');
@@ -466,7 +467,7 @@ async function captureStartFramesForSpan(spanId: string): Promise<void> {
 /**
  * Captures end frames and attaches frame data to span
  */
-async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
+async function captureEndFramesAndAttachToSpan(span: Span, spanEndTimestampSeconds?: number): Promise<void> {
   if (!NATIVE.enableNative) {
     return;
   }
@@ -488,7 +489,7 @@ async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
     const spanStartTimestamp = spanToJSON(span).start_timestamp;
     if (spanStartTimestamp) {
       try {
-        const endTimestamp = spanToJSON(span).timestamp || Date.now() / 1000;
+        const endTimestamp = spanEndTimestampSeconds || spanToJSON(span).timestamp || Date.now() / 1000;
         const framesDelay = await NATIVE.fetchNativeFramesDelay(spanStartTimestamp, endTimestamp);
         if (framesDelay != null) {
           span.setAttribute('frames.delay', framesDelay);
