@@ -539,6 +539,49 @@ RCT_EXPORT_METHOD(
 #endif
 }
 
+RCT_EXPORT_METHOD(fetchNativeFramesDelay : (double)startTimestampSeconds endTimestampSeconds : (
+    double)endTimestampSeconds resolve : (RCTPromiseResolveBlock)
+        resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    SentryFramesTracker *framesTracker = [[SentryDependencyContainer sharedInstance] framesTracker];
+
+    if (!framesTracker.isRunning) {
+        resolve(nil);
+        return;
+    }
+
+    id<SentryCurrentDateProvider> dateProvider =
+        [SentryDependencyContainer sharedInstance].dateProvider;
+    uint64_t currentSystemTime = [dateProvider systemTime];
+    NSTimeInterval currentWallClock = [[dateProvider date] timeIntervalSince1970];
+
+    double startOffsetSeconds = currentWallClock - startTimestampSeconds;
+    double endOffsetSeconds = currentWallClock - endTimestampSeconds;
+
+    if (startOffsetSeconds < 0 || endOffsetSeconds < 0
+        || (uint64_t)(startOffsetSeconds * 1e9) > currentSystemTime
+        || (uint64_t)(endOffsetSeconds * 1e9) > currentSystemTime) {
+        resolve(nil);
+        return;
+    }
+
+    uint64_t startSystemTime = currentSystemTime - (uint64_t)(startOffsetSeconds * 1e9);
+    uint64_t endSystemTime = currentSystemTime - (uint64_t)(endOffsetSeconds * 1e9);
+
+    SentryFramesDelayResultSPI *result = [framesTracker getFramesDelaySPI:startSystemTime
+                                                       endSystemTimestamp:endSystemTime];
+
+    if (result.delayDuration >= 0) {
+        resolve(@(result.delayDuration));
+    } else {
+        resolve(nil);
+    }
+#else
+    resolve(nil);
+#endif
+}
+
 RCT_EXPORT_METHOD(
     fetchNativeRelease : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {

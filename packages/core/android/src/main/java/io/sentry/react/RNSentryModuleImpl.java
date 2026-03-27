@@ -94,6 +94,7 @@ public class RNSentryModuleImpl {
   private final ReactApplicationContext reactApplicationContext;
   private final PackageInfo packageInfo;
   private FrameMetricsAggregator frameMetricsAggregator = null;
+  private final RNSentryFrameDelayCollector frameDelayCollector = new RNSentryFrameDelayCollector();
   private boolean androidXAvailable;
 
   @VisibleForTesting static long lastStartTimestampMs = -1;
@@ -376,6 +377,36 @@ public class RNSentryModuleImpl {
         logger.log(SentryLevel.WARNING, "Error fetching native frames.");
         promise.resolve(null);
       }
+    }
+  }
+
+  public void fetchNativeFramesDelay(
+      double startTimestampSeconds, double endTimestampSeconds, Promise promise) {
+    try {
+      // Convert wall-clock seconds to System.nanoTime() based nanos
+      long nowNanos = System.nanoTime();
+      double nowSeconds = System.currentTimeMillis() / 1e3;
+
+      double startOffsetSeconds = nowSeconds - startTimestampSeconds;
+      double endOffsetSeconds = nowSeconds - endTimestampSeconds;
+
+      if (startOffsetSeconds < 0 || endOffsetSeconds < 0) {
+        promise.resolve(null);
+        return;
+      }
+
+      long startNanos = nowNanos - (long) (startOffsetSeconds * 1e9);
+      long endNanos = nowNanos - (long) (endOffsetSeconds * 1e9);
+
+      double delaySeconds = frameDelayCollector.getFramesDelay(startNanos, endNanos);
+      if (delaySeconds >= 0) {
+        promise.resolve(delaySeconds);
+      } else {
+        promise.resolve(null);
+      }
+    } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Error fetching native frames delay.");
+      promise.resolve(null);
     }
   }
 
@@ -693,6 +724,19 @@ public class RNSentryModuleImpl {
     } else {
       logger.log(SentryLevel.WARNING, "androidx.core' isn't available as a dependency.");
     }
+
+    try {
+      final SentryOptions options = Sentry.getCurrentScopes().getOptions();
+      if (options instanceof SentryAndroidOptions) {
+        final SentryFrameMetricsCollector collector =
+            ((SentryAndroidOptions) options).getFrameMetricsCollector();
+        if (frameDelayCollector.start(collector)) {
+          logger.log(SentryLevel.INFO, "RNSentryFrameDelayCollector installed.");
+        }
+      }
+    } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Error starting RNSentryFrameDelayCollector.");
+    }
   }
 
   public void disableNativeFramesTracking() {
@@ -700,6 +744,7 @@ public class RNSentryModuleImpl {
       frameMetricsAggregator.stop();
       frameMetricsAggregator = null;
     }
+    frameDelayCollector.stop();
   }
 
   public void getNewScreenTimeToDisplay(Promise promise) {

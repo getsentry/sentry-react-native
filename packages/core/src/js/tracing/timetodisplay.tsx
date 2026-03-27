@@ -485,6 +485,19 @@ async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
 
     attachFrameDataToSpan(span, frameData.startFrames, endFrames);
 
+    const spanStartTimestamp = spanToJSON(span).start_timestamp;
+    if (spanStartTimestamp) {
+      try {
+        const endTimestamp = spanToJSON(span).timestamp || Date.now() / 1000;
+        const framesDelay = await NATIVE.fetchNativeFramesDelay(spanStartTimestamp, endTimestamp);
+        if (framesDelay != null) {
+          span.setAttribute('frames.delay', framesDelay);
+        }
+      } catch (delayError) {
+        debug.log(`[TimeToDisplay] Failed to fetch frames delay for span ${spanId}.`, delayError);
+      }
+    }
+
     debug.log(`[TimeToDisplay] Captured and attached end frames for span ${spanId}.`, endFrames);
   } catch (error) {
     debug.log(`[TimeToDisplay] Failed to capture end frames for span ${spanId}.`, error);

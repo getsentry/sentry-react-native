@@ -192,6 +192,18 @@ export const nativeFramesIntegration = (): Integration => {
           `[${INTEGRATION_NAME}] Attached frame data to span ${spanId}: total=${totalFrames}, slow=${slowFrames}, frozen=${frozenFrames}`,
         );
       }
+
+      const spanJson = spanToJSON(span);
+      if (spanJson.start_timestamp && spanJson.timestamp) {
+        try {
+          const delay = await fetchNativeFramesDelay(spanJson.start_timestamp, spanJson.timestamp);
+          if (delay != null) {
+            span.setAttribute('frames.delay', delay);
+          }
+        } catch (delayError) {
+          debug.log(`[${INTEGRATION_NAME}] Error while fetching frames delay for span ${spanId}.`, delayError);
+        }
+      }
     } catch (error) {
       debug.log(`[${INTEGRATION_NAME}] Error while capturing end frames for span ${spanId}.`, error);
     }
@@ -285,6 +297,37 @@ export const nativeFramesIntegration = (): Integration => {
   };
 };
 
+function withNativeBridgeTimeout<T>(promise: PromiseLike<T>, timeoutMessage: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject(timeoutMessage);
+      }
+    }, FETCH_FRAMES_TIMEOUT_MS);
+
+    promise
+      .then(value => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+        resolve(value);
+      })
+      .then(undefined, error => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+        reject(error);
+      });
+  });
+}
+
 function fetchNativeFrames(): Promise<NativeFramesResponse> {
   return new Promise<NativeFramesResponse>((resolve, reject) => {
     let settled = false;
@@ -319,6 +362,13 @@ function fetchNativeFrames(): Promise<NativeFramesResponse> {
         reject(error);
       });
   });
+}
+
+function fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): Promise<number | null> {
+  return withNativeBridgeTimeout(
+    NATIVE.fetchNativeFramesDelay(startTimestampSeconds, endTimestampSeconds),
+    'Fetching native frames delay took too long.',
+  );
 }
 
 function isClose(t1: number, t2: number): boolean {

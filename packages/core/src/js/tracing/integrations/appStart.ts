@@ -500,6 +500,16 @@ export const appStartIntegration = ({
       attachFrameDataToSpan(appStartSpanJSON, appStartEndData.endFrames);
     }
 
+    try {
+      const framesDelay = await NATIVE.fetchNativeFramesDelay(appStartTimestampSeconds, appStartEndTimestampSeconds);
+      if (framesDelay != null) {
+        appStartSpanJSON.data = appStartSpanJSON.data || {};
+        appStartSpanJSON.data['frames.delay'] = framesDelay;
+      }
+    } catch (error) {
+      debug.log('[AppStart] Error while fetching frames delay for app start span.', error);
+    }
+
     const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
 
     const appStartSpans = [

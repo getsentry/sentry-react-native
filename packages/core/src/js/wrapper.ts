@@ -90,6 +90,7 @@ interface SentryNativeWrapper {
   fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
+  fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): PromiseLike<number | null>;
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
 
   disableNativeFramesTracking(): void;
@@ -392,6 +393,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativeFrames();
+  },
+
+  async fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): Promise<number | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchNativeFramesDelay(startTimestampSeconds, endTimestampSeconds);
   },
 
   /**
