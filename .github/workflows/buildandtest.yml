@@ -51,19 +51,9 @@ jobs:
       - name: Install Dependencies
         run: yarn install
 
-      # Default of ubuntu and apt packages are too old compared to macos packages.
-      # This is required for using a newer version of clang-format.
-      - name: Setup clang-format V22
+      - name: Setup clang-format
         run: |
-          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" 22
-          sudo apt-get install -y clang-22 clang-format-22 lld-22 lldb-22
-
-      - name: Set clang-format V22 as default
-        run: |
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-22 200
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 200
-          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 200
-          clang --version
+          pip install clang-format==22.1.2
           clang-format --version
 
       - name: Install Swiftly and Swift
