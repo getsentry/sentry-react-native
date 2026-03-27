@@ -55,7 +55,7 @@ jobs:
       # This is required for using a newer version of clang-format.
       - name: Setup clang-format V22
         run: |
-          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" 22
+          wget -O - https://apt.llvm.org/llvm.sh | sudo bash -s 22
           sudo apt-get install -y clang-22 clang-format-22 lld-22 lldb-22
 
       - name: Set clang-format V22 as default
