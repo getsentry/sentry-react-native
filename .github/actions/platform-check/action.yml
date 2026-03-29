@@ -32,10 +32,13 @@ runs:
     - name: Check if platform is needed
       id: check
       shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        SAMPLE_CHANGED: ${{ inputs.sample_changed }}
+        NEEDS_IOS: ${{ inputs.needs_ios }}
+        NEEDS_ANDROID: ${{ inputs.needs_android }}
+        NEEDS_WEB: ${{ inputs.needs_web }}
       run: |
-        PLATFORM="${{ inputs.platform }}"
-        SAMPLE_CHANGED="${{ inputs.sample_changed }}"
-
         if [[ "$SAMPLE_CHANGED" == "true" ]]; then
           echo "skip=false" >> "$GITHUB_OUTPUT"
           echo "Sample app changed — building/testing $PLATFORM."
@@ -44,9 +47,9 @@ runs:
 
         # macOS uses the iOS change-detection flag
         case "$PLATFORM" in
-          ios|macos) NEEDS="${{ inputs.needs_ios }}" ;;
-          android)   NEEDS="${{ inputs.needs_android }}" ;;
-          web)       NEEDS="${{ inputs.needs_web }}" ;;
+          ios|macos) NEEDS="$NEEDS_IOS" ;;
+          android)   NEEDS="$NEEDS_ANDROID" ;;
+          web)       NEEDS="$NEEDS_WEB" ;;
           *)
             echo "::warning::Unknown platform '$PLATFORM' — not skipping."
             echo "skip=false" >> "$GITHUB_OUTPUT"
