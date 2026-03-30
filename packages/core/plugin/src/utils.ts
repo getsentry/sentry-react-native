@@ -1,4 +1,3 @@
-/* oxlint-disable typescript-eslint(no-unsafe-member-access) */
 import * as fs from 'fs';
 import * as path from 'path';
 import { warnOnce } from './logger';
