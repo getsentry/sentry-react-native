@@ -37,8 +37,7 @@
 + (NSNumber *)framesDelayForStartTimestamp:(double)startTimestampSeconds
                               endTimestamp:(double)endTimestampSeconds
 {
-    SentryFramesTracker *framesTracker =
-        [[SentryDependencyContainer sharedInstance] framesTracker];
+    SentryFramesTracker *framesTracker = [[SentryDependencyContainer sharedInstance] framesTracker];
 
     if (!framesTracker.isRunning) {
         return nil;

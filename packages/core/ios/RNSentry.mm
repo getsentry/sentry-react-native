@@ -550,7 +550,7 @@ RCT_EXPORT_METHOD(fetchNativeFramesDelay : (double)startTimestampSeconds endTime
     }
 
     resolve([SentryScreenFramesWrapper framesDelayForStartTimestamp:startTimestampSeconds
-                                                      endTimestamp:endTimestampSeconds]);
+                                                       endTimestamp:endTimestampSeconds]);
 #else
     resolve(nil);
 #endif

@@ -9,7 +9,7 @@
 + (NSNumber *)frozenFrames;
 + (NSNumber *)slowFrames;
 + (NSNumber *)framesDelayForStartTimestamp:(double)startTimestampSeconds
-                         endTimestamp:(double)endTimestampSeconds;
+                              endTimestamp:(double)endTimestampSeconds;
 
 @end
 
