@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
 import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
@@ -344,7 +343,6 @@ export const stallTrackingIntegration = ({
 
   // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
   if (AppState?.isAvailable) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     AppState.addEventListener('change', state.backgroundEventListener);
   }
 

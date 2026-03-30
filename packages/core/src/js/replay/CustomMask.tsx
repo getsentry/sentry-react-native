@@ -6,7 +6,6 @@ import { isExpoGo } from '../utils/environment';
 
 const NativeComponentRegistry: {
   get<T, C extends Record<string, unknown>>(componentName: string, createViewConfig: () => C): HostComponent<T>;
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 } = require('react-native/Libraries/NativeComponent/NativeComponentRegistry');
 
 const MaskNativeComponentName = 'RNSentryReplayMask';
@@ -18,7 +17,7 @@ const warn = (component: string): void => {
   setTimeout(() => {
     // Missing mask component could cause leaking PII, we have to ensure that the warning is visible
     // even if the app is running without debug.
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.warn(warnMessage(component));
   }, 0);
 };

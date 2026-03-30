@@ -23,7 +23,7 @@ export const timeToDisplayIntegration = (): Integration => {
       enableTimeToInitialDisplayForPreloadedRoutes =
         getReactNavigationIntegration(client)?.options.enableTimeToInitialDisplayForPreloadedRoutes ?? false;
     },
-    // eslint-disable-next-line complexity
+    // oxlint-disable-next-line eslint(complexity)
     processEvent: async event => {
       if (event.type !== 'transaction') {
         // TimeToDisplay data is only relevant for transactions

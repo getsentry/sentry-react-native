@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import type { Event, StartSpanOptions } from '@sentry/core';
 import {
   getActiveSpan,
@@ -405,21 +404,18 @@ describe('React Native Navigation Instrumentation', () => {
       registerComponentWillAppearListener(callback: (event: ComponentWillAppearEvent) => void) {
         this.componentWillAppearListener = callback;
         return {
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
           remove() {},
         } as EmitterSubscription;
       },
       registerCommandListener(callback: (name: string, params: unknown) => void) {
         this.commandListener = callback;
         return {
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
           remove() {},
         };
       },
       registerBottomTabPressedListener(callback: (event: BottomTabPressedEvent) => void) {
         this.bottomTabPressedListener = callback;
         return {
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
           remove() {},
         } as EmitterSubscription;
       },

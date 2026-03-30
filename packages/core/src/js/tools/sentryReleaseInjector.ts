@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { VirtualJSOutput } from './utils';
 import { createVirtualJSModule, getExpoConfig, prependModule } from './utils';

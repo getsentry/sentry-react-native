@@ -10,9 +10,8 @@ try {
   var stack = new Error().stack;
   if (stack) {
     _sentryDebugIds[stack] = '__SENTRY_DEBUG_ID__';
-    // eslint-disable-next-line no-unused-vars
     _sentryDebugIdIdentifier = 'sentry-dbid-__SENTRY_DEBUG_ID__';
   }
-} catch (e) {
+} catch (_e) {
   /**/
 }

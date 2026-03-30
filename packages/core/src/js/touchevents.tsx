@@ -113,7 +113,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     return (
       <View
         style={touchEventStyles.wrapperView}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line typescript-eslint(no-explicit-any)
         onTouchStart={this._onTouchStart.bind(this) as any}
       >
         {this.props.children}
@@ -151,10 +151,8 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    */
   private _isNameIgnored(name: string): boolean {
     let ignoreNames = this.props.ignoreNames || [];
-    // eslint-disable-next-line deprecation/deprecation
     if (this.props.ignoredDisplayNames) {
       // This is to make it compatible with prior version.
-      // eslint-disable-next-line deprecation/deprecation
       ignoreNames = [...ignoreNames, ...this.props.ignoredDisplayNames];
     }
 
@@ -173,7 +171,6 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
    * Traverses through the component tree when a touch happens and logs it.
    * @param e
    */
-  // eslint-disable-next-line complexity
   private _onTouchStart(e: PrivateGestureResponderEvent): void {
     if (!e._targetInst) {
       return;
@@ -316,9 +313,9 @@ function getLabelValue(props: Record<string, unknown>, labelKey: string | undefi
     ? props[SENTRY_LABEL_PROP_KEY]
     // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
     // the "check-label" if sentence, so we have to assign it to a variable here first
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
     : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
       ? (props[labelKey] as string)
       : undefined;
 }
@@ -349,7 +346,7 @@ function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAtt
  * @param boundaryProps TouchEventBoundaryProps
  */
 const withTouchEventBoundary = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   InnerComponent: React.ComponentType<any>,
   boundaryProps?: TouchEventBoundaryProps,
 ): React.FunctionComponent => {

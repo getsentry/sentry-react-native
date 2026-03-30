@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { instrumentOutgoingRequests } from '@sentry/browser';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/core';
 import { getClient } from '@sentry/core';

@@ -1,4 +1,4 @@
-/* eslint-disable complexity, max-lines */
+/* oxlint-disable eslint(complexity), eslint(max-lines) */
 import type { Client, Event, Integration, Span, SpanJSON, TransactionEvent } from '@sentry/core';
 import {
   debug,
@@ -303,7 +303,7 @@ export const appStartIntegration = ({
   async function captureStandaloneAppStart(): Promise<void> {
     if (!_client) {
       // If client is not set, SDK was not initialized, logger is thus disabled
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.warn('[AppStart] Could not capture App Start, missing client, call `Sentry.init` first.');
       return;
     }

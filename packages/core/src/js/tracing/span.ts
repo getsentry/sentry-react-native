@@ -161,7 +161,7 @@ export type ScopeWithMaybeSpan = Scope & {
  * Removes the active span from the scope.
  */
 export function clearActiveSpanFromScope(scope: ScopeWithMaybeSpan): void {
-  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
   delete scope[SCOPE_SPAN_FIELD];
 }
 

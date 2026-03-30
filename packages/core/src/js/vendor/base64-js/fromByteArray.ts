@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 
 // The MIT License (MIT)
 
