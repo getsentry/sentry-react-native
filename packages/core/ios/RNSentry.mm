@@ -299,7 +299,7 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
 - (void)handleShakeDetected
 {
     if (_shakeDetectionEnabled) {
-        [self sendEventWithName:RNSentryOnShakeEvent body:@{}];
+        [self sendEventWithName:RNSentryOnShakeEvent body:@{ }];
     }
 }
 
