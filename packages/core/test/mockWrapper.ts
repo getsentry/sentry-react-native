@@ -1,5 +1,6 @@
-import { type NATIVE as ORIGINAL_NATIVE } from '../src/js/wrapper';
 import type { MockInterface } from './testutils';
+
+import { type NATIVE as ORIGINAL_NATIVE } from '../src/js/wrapper';
 
 type NativeType = typeof ORIGINAL_NATIVE;
 

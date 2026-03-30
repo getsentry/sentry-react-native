@@ -1,6 +1,7 @@
 import componentAnnotatePlugin from '@sentry/babel-plugin-component-annotate';
 import { debug } from '@sentry/core';
 import * as process from 'process';
+
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
 export type SentryBabelTransformerOptions = { annotateReactComponents?: { ignoredComponents?: string[] } };
@@ -35,7 +36,6 @@ export function loadDefaultBabelTransformer(): BabelTransformer {
   }
 
   debug.log(`Loading default Babel transformer from ${defaultBabelTransformerPath}`);
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require(defaultBabelTransformerPath);
 }
 
@@ -48,7 +48,7 @@ export function setSentryBabelTransformerOptions(options: SentryBabelTransformer
     debug.log('Stringifying Sentry Babel transformer options', options);
     optionsString = JSON.stringify(options);
   } catch (e) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.error('Failed to stringify Sentry Babel transformer options', e);
   }
 
@@ -74,7 +74,7 @@ export function getSentryBabelTransformerOptions(): SentryBabelTransformerOption
     debug.log(`Parsing Sentry Babel transformer options from ${optionsString}`);
     return JSON.parse(optionsString);
   } catch (e) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.error('Failed to parse Sentry Babel transformer options', e);
     return undefined;
   }

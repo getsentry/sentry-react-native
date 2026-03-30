@@ -1,13 +1,15 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import type { ExtendedError } from '../utils/error';
-import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
+
+import { getFramesToPop, isErrorLike } from '../utils/error';
 import { fetchSourceContext, parseErrorStack, symbolicateStackTrace } from './debugsymbolicatorutils';
 
 const INTEGRATION_NAME = 'DebugSymbolicator';
 
-// eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
 
 /**
@@ -85,7 +87,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
       : newStack;
 
     const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
-      // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- keep falsy check for empty string file paths
+      // oxlint-disable-next-line typescript-eslint(prefer-optional-chain)
       (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
     );
 

@@ -2,10 +2,16 @@ import { captureFeedback, getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert } from 'react-native';
+
+import type {
+  FeedbackWidgetProps,
+  FeedbackWidgetStyles,
+  ImagePicker,
+} from '../../src/js/feedback/FeedbackWidget.types';
+
 import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
-import type { FeedbackWidgetProps, FeedbackWidgetStyles, ImagePicker } from '../../src/js/feedback/FeedbackWidget.types';
 import { MOBILE_FEEDBACK_INTEGRATION_NAME } from '../../src/js/feedback/integration';
-import { getDefaultTestClientOptions,TestClient } from '../mocks/client';
+import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 const mockOnFormClose = jest.fn();
 const mockOnAddScreenshot = jest.fn();
@@ -118,41 +124,39 @@ describe('FeedbackWidget', () => {
   });
 
   it('matches the snapshot with default configuration', () => {
-    const { toJSON } = render(<FeedbackWidget/>);
+    const { toJSON } = render(<FeedbackWidget />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom texts', () => {
-    const { toJSON } = render(<FeedbackWidget {...defaultProps}/>);
+    const { toJSON } = render(<FeedbackWidget {...defaultProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom styles', () => {
-    const customStyleProps = {styles: customStyles};
-    const { toJSON } = render(<FeedbackWidget {...customStyleProps}/>);
+    const customStyleProps = { styles: customStyles };
+    const { toJSON } = render(<FeedbackWidget {...customStyleProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with default configuration and screenshot button', () => {
-    const { toJSON } = render(<FeedbackWidget enableScreenshot={true}/>);
+    const { toJSON } = render(<FeedbackWidget enableScreenshot={true} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom texts and screenshot button', () => {
-    const { toJSON } = render(<FeedbackWidget {...defaultProps} enableScreenshot={true}/>);
+    const { toJSON } = render(<FeedbackWidget {...defaultProps} enableScreenshot={true} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom styles and screenshot button', () => {
-    const customStyleProps = {styles: customStyles};
-    const { toJSON } = render(<FeedbackWidget {...customStyleProps} enableScreenshot={true}/>);
+    const customStyleProps = { styles: customStyles };
+    const { toJSON } = render(<FeedbackWidget {...customStyleProps} enableScreenshot={true} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('passes autoCorrect and spellCheck props to message input', () => {
-    const { getByTestId } = render(
-      <FeedbackWidget {...defaultProps} autoCorrect={false} spellCheck={false} />,
-    );
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} autoCorrect={false} spellCheck={false} />);
 
     expect(getByTestId('sentry-feedback-message-input').props.autoCorrect).toBe(false);
     expect(getByTestId('sentry-feedback-message-input').props.spellCheck).toBe(false);
@@ -178,7 +182,7 @@ describe('FeedbackWidget', () => {
     const { getByTestId } = render(<FeedbackWidget {...defaultProps} />);
 
     expect(getByTestId('sentry-feedback-email-input').props.autoCapitalize).toBe('none');
-   });
+  });
 
   it('deep merges custom styles with defaults instead of replacing them', () => {
     const partialStyles: FeedbackWidgetStyles = {
@@ -186,9 +190,7 @@ describe('FeedbackWidget', () => {
         color: '#ff0000',
       },
     };
-    const { getByTestId } = render(
-      <FeedbackWidget {...defaultProps} styles={partialStyles} />,
-    );
+    const { getByTestId } = render(<FeedbackWidget {...defaultProps} styles={partialStyles} />);
 
     const nameInput = getByTestId('sentry-feedback-name-input');
     const inputStyle = nameInput.props.style;
@@ -213,7 +215,7 @@ describe('FeedbackWidget', () => {
     expect(getByPlaceholderText(defaultProps.namePlaceholder)).toBeTruthy();
     expect(getByText(defaultProps.emailLabel)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.emailPlaceholder)).toBeTruthy();
-    expect(getByText(`${defaultProps.messageLabel } ${  defaultProps.isRequiredLabel}`)).toBeTruthy();
+    expect(getByText(`${defaultProps.messageLabel} ${defaultProps.isRequiredLabel}`)).toBeTruthy();
     expect(getByPlaceholderText(defaultProps.messagePlaceholder)).toBeTruthy();
     expect(queryByText(defaultProps.addScreenshotButtonLabel)).toBeNull(); // default false
     expect(getByText(defaultProps.submitButtonLabel)).toBeTruthy();
@@ -242,9 +244,7 @@ describe('FeedbackWidget', () => {
 
     it('prefills from useSentryUser prop when provided', () => {
       mockCurrentScopeGetUser.mockReturnValue(users.current);
-      const { getByPlaceholderText } = render(
-        <FeedbackWidget {...defaultProps} useSentryUser={users.prop} />,
-      );
+      const { getByPlaceholderText } = render(<FeedbackWidget {...defaultProps} useSentryUser={users.prop} />);
       expect(getByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe(users.prop.name);
       expect(getByPlaceholderText(defaultProps.emailPlaceholder).props.value).toBe(users.prop.email);
     });
@@ -316,7 +316,7 @@ describe('FeedbackWidget', () => {
   });
 
   it('shows an error message if the email is not valid and the email is required', async () => {
-    const withEmailProps = {...defaultProps, ...{isEmailRequired: true}};
+    const withEmailProps = { ...defaultProps, ...{ isEmailRequired: true } };
     const { getByPlaceholderText, getByText } = render(<FeedbackWidget {...withEmailProps} />);
 
     fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
@@ -340,11 +340,14 @@ describe('FeedbackWidget', () => {
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
 
     await waitFor(() => {
-      expect(captureFeedback).toHaveBeenCalledWith({
-        message: 'This is a feedback message.',
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-      }, undefined);
+      expect(captureFeedback).toHaveBeenCalledWith(
+        {
+          message: 'This is a feedback message.',
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+        },
+        undefined,
+      );
     });
   });
 
@@ -444,7 +447,7 @@ describe('FeedbackWidget', () => {
       launchImageLibraryAsync: mockLaunchImageLibrary,
     };
 
-    const { getByText } = render(<FeedbackWidget {...defaultProps} imagePicker={ mockImagePicker } />);
+    const { getByText } = render(<FeedbackWidget {...defaultProps} imagePicker={mockImagePicker} />);
 
     fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
 
@@ -461,7 +464,7 @@ describe('FeedbackWidget', () => {
       launchImageLibrary: mockLaunchImageLibrary,
     };
 
-    const { getByText } = render(<FeedbackWidget {...defaultProps} imagePicker={ mockImagePicker } />);
+    const { getByText } = render(<FeedbackWidget {...defaultProps} imagePicker={mockImagePicker} />);
 
     fireEvent.press(getByText(defaultProps.addScreenshotButtonLabel));
 

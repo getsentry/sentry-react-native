@@ -1,7 +1,10 @@
-import { defaultStackParser } from '@sentry/browser';
 import type { Client, DebugImage, Event, EventHint, ExtendedError } from '@sentry/core';
-import { nativeLinkedErrorsIntegration } from '../../src/js/integrations/nativelinkederrors';
+
+import { defaultStackParser } from '@sentry/browser';
+
 import type { NativeStackFrames } from '../../src/js/NativeRNSentry';
+
+import { nativeLinkedErrorsIntegration } from '../../src/js/integrations/nativelinkederrors';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');

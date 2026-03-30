@@ -1,4 +1,5 @@
 import { getClient, type Integration } from '@sentry/core';
+
 import type { FeedbackWidgetTheme } from './FeedbackWidget.theme';
 import type { FeedbackButtonProps, FeedbackWidgetProps, ScreenshotButtonProps } from './FeedbackWidget.types';
 

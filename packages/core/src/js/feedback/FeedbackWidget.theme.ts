@@ -1,4 +1,5 @@
 import { Appearance } from 'react-native';
+
 import { getColorScheme, getFeedbackDarkTheme, getFeedbackLightTheme } from './integration';
 
 /**

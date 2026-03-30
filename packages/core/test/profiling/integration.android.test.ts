@@ -1,5 +1,6 @@
-import { createAndroidWithHermesProfile } from '../../src/js/profiling/integration';
 import type { AndroidCombinedProfileEvent } from '../../src/js/profiling/types';
+
+import { createAndroidWithHermesProfile } from '../../src/js/profiling/integration';
 import { createMockMinimalValidAndroidProfile, createMockMinimalValidHermesProfileEvent } from './fixtures';
 
 describe('merge Hermes and Android profiles - createAndroidWithHermesProfile', () => {

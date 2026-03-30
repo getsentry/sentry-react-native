@@ -1,4 +1,7 @@
 import type { Client, Event, EventHint, StackFrame } from '@sentry/core';
+
+import type * as ReactNative from '../../src/js/vendor/react-native';
+
 import { debugSymbolicatorIntegration } from '../../src/js/integrations/debugsymbolicator';
 import {
   fetchSourceContext,
@@ -6,7 +9,6 @@ import {
   parseErrorStack,
   symbolicateStackTrace,
 } from '../../src/js/integrations/debugsymbolicatorutils';
-import type * as ReactNative from '../../src/js/vendor/react-native';
 
 jest.mock('../../src/js/integrations/debugsymbolicatorutils');
 

@@ -8,10 +8,13 @@ import type {
   MetricType,
   SeverityLevel,
 } from '@sentry/core';
+
 import { createEnvelope, debug } from '@sentry/core';
 import * as RN from 'react-native';
+
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
+
 import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 

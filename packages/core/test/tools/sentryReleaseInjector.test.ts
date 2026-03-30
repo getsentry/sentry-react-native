@@ -1,4 +1,5 @@
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
+
 import { unstableReleaseConstantsPlugin } from '../../src/js/tools/sentryReleaseInjector';
 
 const mockedExpoConfigRequire = jest.fn();

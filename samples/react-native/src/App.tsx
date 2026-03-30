@@ -184,7 +184,6 @@ function BottomTabsNavigator() {
         component={getErrorsTab(StackNavigator)}
         options={{
           tabBarLabel: 'Errors',
-          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'bug' : 'bug-outline'}
@@ -200,7 +199,6 @@ function BottomTabsNavigator() {
         component={getPerformanceTab(StackNavigator)}
         options={{
           tabBarLabel: 'Performance',
-          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'speedometer' : 'speedometer-outline'}
@@ -216,7 +214,6 @@ function BottomTabsNavigator() {
         component={getPlaygroundTab(StackNavigator)}
         options={{
           tabBarLabel: 'Playground',
-          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'american-football' : 'american-football-outline'}

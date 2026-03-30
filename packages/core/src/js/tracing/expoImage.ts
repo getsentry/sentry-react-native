@@ -1,4 +1,5 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
+
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE } from './origin';
 import { describeUrl, sanitizeUrl, traceAsyncOperation } from './utils';
 
@@ -41,7 +42,7 @@ interface ExpoImageRef {
  * We only describe the methods that we instrument.
  */
 export interface ExpoImage {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   prefetch(urls: string | string[], cachePolicyOrOptions?: any): Promise<boolean>;
   loadAsync(source: ExpoImageSource | string | number, options?: ExpoImageLoadOptions): Promise<ExpoImageRef>;
   clearMemoryCache?(): Promise<boolean>;
@@ -89,7 +90,7 @@ function wrapPrefetch<T extends ExpoImage>(imageClass: T): void {
 
   const originalPrefetch = imageClass.prefetch.bind(imageClass);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   imageClass.prefetch = ((urls: string | string[], cachePolicyOrOptions?: any): Promise<boolean> => {
     const urlList = Array.isArray(urls) ? urls : [urls];
     const urlCount = urlList.length;

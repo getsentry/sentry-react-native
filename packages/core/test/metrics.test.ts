@@ -1,4 +1,5 @@
 import { getClient, metrics, setCurrentClient } from '@sentry/core';
+
 import { ReactNativeClient } from '../src/js';
 import { mobileReplayIntegration } from '../src/js/replay/mobilereplay';
 import { getDefaultTestClientOptions } from './mocks/client';

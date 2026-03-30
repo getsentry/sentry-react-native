@@ -1,7 +1,9 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
-import { FeedbackButton } from '../../src/js/feedback/FeedbackButton';
+
 import type { FeedbackButtonProps, FeedbackButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
+
+import { FeedbackButton } from '../../src/js/feedback/FeedbackButton';
 import { showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
 
 jest.mock('../../src/js/feedback/FeedbackWidgetManager', () => ({
@@ -28,18 +30,18 @@ describe('FeedbackButton', () => {
   });
 
   it('matches the snapshot with default configuration', () => {
-    const { toJSON } = render(<FeedbackButton/>);
+    const { toJSON } = render(<FeedbackButton />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom texts', () => {
-    const { toJSON } = render(<FeedbackButton {...customTextProps}/>);
+    const { toJSON } = render(<FeedbackButton {...customTextProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches the snapshot with custom styles', () => {
-    const customStyleProps = {styles: customStyles};
-    const { toJSON } = render(<FeedbackButton {...customStyleProps}/>);
+    const customStyleProps = { styles: customStyles };
+    const { toJSON } = render(<FeedbackButton {...customStyleProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 

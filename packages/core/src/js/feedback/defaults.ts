@@ -1,4 +1,5 @@
 import type { FeedbackButtonProps, FeedbackWidgetProps, ScreenshotButtonProps } from './FeedbackWidget.types';
+
 import { feedbackAlertDialog } from './utils';
 
 const FORM_TITLE = 'Report a Bug';

@@ -27,5 +27,5 @@ describe('timetodisplaynative', () => {
     const drawReported = getRNSentryOnDrawReporter();
 
     expect(drawReported.name).toBe('RNSentryOnDrawReporterNoop');
-    });
+  });
 });
