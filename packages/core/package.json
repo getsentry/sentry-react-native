@@ -41,7 +41,7 @@
     "fix:oxlint": "OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true oxlint --type-aware --tsconfig tsconfig.lint.json --fix",
     "fix:fmt": "oxfmt \"{src,test,scripts,plugin/src}/**/**.ts\" \"{src,test}/**/**.tsx\"",
     "lint": "npx run-s lint:oxlint lint:fmt",
-    "lint:oxlint": "sh -c 'OUT=$(OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true oxlint --type-aware --tsconfig tsconfig.lint.json --deny-warnings 2>&1); echo \"$OUT\"; echo \"$OUT\" | grep -qE \"Found 0 warnings and [01] error\"'",
+    "lint:oxlint": "sh -c 'OUT=$(OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true oxlint --type-aware --tsconfig tsconfig.lint.json --deny-warnings 2>&1); echo \"$OUT\"; echo \"$OUT\" | grep -qE \"Found 0 warnings and 0 errors\"'",
     "lint:fmt": "oxfmt --check \"{src,test,scripts,plugin/src}/**/**.ts\" \"{src,test}/**/**.tsx\""
   },
   "bin": {

@@ -27,6 +27,12 @@ set-version)
     newContent=$(echo "$newContent" | sed -E "s/(io\.sentry:sentry-spotlight:)([0-9\.]+)/\1$2/g")
     echo "$newContent" >$file
 
+    # Update expo-handler to match
+    expoHandlerFile='expo-handler/build.gradle'
+    expoHandlerContent=$(cat $expoHandlerFile)
+    expoHandlerContent=$(echo "$expoHandlerContent" | sed -E "s/(io\.sentry:sentry-android:)([0-9\.]+)/\1$2/g")
+    echo "$expoHandlerContent" >$expoHandlerFile
+
     # Update replay-stubs to match
     cd $ORIGINAL_DIR
     ./update-android-stubs.sh set-version $2
