@@ -4,7 +4,7 @@ set -eo pipefail
 
 echo "💡 If you get 'spawn Unknown system error -86', try running this script manually:"
 echo "   ./scripts/clang-format.sh $1"
-echo "💡 It is also recommended to use clang-version v20 or v21."
+echo "💡 It is also recommended to use clang-format v22 or newer."
 
 # Prioritize finding clang-format executable from brew since the run-s may introduce X86/ARM64 mismatch.
 CLANG_FORMAT_PATH=""
@@ -34,7 +34,7 @@ if ! printf '%s' "$CLANG_MAJOR_VERSION" | grep -qE '^[0-9]+$'; then
     exit 1
 fi
 
-REQUIRED_MAJOR=20
+REQUIRED_MAJOR=22
 if [ "$CLANG_MAJOR_VERSION" -lt "$REQUIRED_MAJOR" ]; then
     echo "❌ clang-format major version $CLANG_MAJOR_VERSION is lower than required $REQUIRED_MAJOR"
     exit 1

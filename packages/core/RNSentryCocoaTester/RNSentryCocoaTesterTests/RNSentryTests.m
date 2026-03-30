@@ -1014,7 +1014,7 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     NSDictionary *userKeys =
         @{ @"id" : @"456", @"geo" : @ { @"city" : @"New York", @"country_code" : @"US" } };
 
-    NSDictionary *userDataKeys = @{};
+    NSDictionary *userDataKeys = @{ };
 
     SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
 
@@ -1031,9 +1031,9 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 
 - (void)testCreateUserWithEmptyGeoDataCreatesSentryGeoObject
 {
-    NSDictionary *userKeys = @{ @"id" : @"789", @"geo" : @ {} };
+    NSDictionary *userKeys = @{ @"id" : @"789", @"geo" : @ { } };
 
-    NSDictionary *userDataKeys = @{};
+    NSDictionary *userDataKeys = @{ };
 
     SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
 
@@ -1052,7 +1052,7 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 {
     NSDictionary *userKeys = @{ @"id" : @"999", @"email" : @"test@example.com" };
 
-    NSDictionary *userDataKeys = @{};
+    NSDictionary *userDataKeys = @{ };
 
     SentryUser *user = [RNSentry userFrom:userKeys otherUserKeys:userDataKeys];
 
