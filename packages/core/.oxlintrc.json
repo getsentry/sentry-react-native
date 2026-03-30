@@ -114,7 +114,7 @@
       }
     },
     {
-      "files": ["*.tsx"],
+      "files": ["**/*.tsx"],
       "rules": {
         "jsdoc/require-jsdoc": "off"
       }
