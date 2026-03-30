@@ -106,7 +106,12 @@
     "on-headers": "^1.1.0",
     "diff": "^5.2.2",
     "tar": "^7.5.11",
-    "tmp": "^0.2.4"
+    "tmp": "^0.2.4",
+    "@expo/cli@npm:0.24.11/picomatch": "^3.0.2",
+    "@expo/cli@npm:55.0.15/picomatch": "^4.0.4",
+    "@expo/metro-config@npm:55.0.9/picomatch": "^4.0.4",
+    "npm-run-all2@npm:8.0.4/picomatch": "^4.0.4",
+    "tinyglobby@npm:0.2.15/picomatch": "^4.0.4"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
