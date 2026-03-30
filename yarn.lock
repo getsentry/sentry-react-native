@@ -28160,10 +28160,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"path-to-regexp@npm:8.3.0, path-to-regexp@npm:^8.0.0":
-  version: 8.3.0
-  resolution: "path-to-regexp@npm:8.3.0"
-  checksum: 73e0d3db449f9899692b10be8480bbcfa294fd575be2d09bce3e63f2f708d1fccd3aaa8591709f8b82062c528df116e118ff9df8f5c52ccc4c2443a90be73e10
+"path-to-regexp@npm:^8.4.0":
+  version: 8.4.0
+  resolution: "path-to-regexp@npm:8.4.0"
+  checksum: fa75cb500adc481d4f954c6764d7465ceb410a377b7dd2500d9e872aaf8bc873b37aac1cde735b90ce5baf19812860f0db9d39560ac952a7393f434a3522b9c4
   languageName: node
   linkType: hard
 
