@@ -79,7 +79,7 @@ jobs:
       needs_sample_expo: ${{ steps.evaluate.outputs.needs_sample_expo }}
       needs_web: ${{ steps.evaluate.outputs.needs_web }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Detect changed paths
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
