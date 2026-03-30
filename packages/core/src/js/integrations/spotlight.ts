@@ -1,5 +1,7 @@
 import type { BaseTransportOptions, Client, ClientOptions, Envelope, Integration } from '@sentry/core';
+
 import { debug, serializeEnvelope } from '@sentry/core';
+
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 

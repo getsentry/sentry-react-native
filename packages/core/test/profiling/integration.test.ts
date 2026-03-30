@@ -5,12 +5,15 @@ jest.mock('../../src/js/utils/environment');
 jest.mock('../../src/js/profiling/debugid');
 
 import type { Envelope, Event, Integration, Profile, Span, ThreadCpuProfile, Transport } from '@sentry/core';
+
 import { getClient, spanToJSON } from '@sentry/core';
+
+import type { HermesProfilingOptions } from '../../src/js/profiling/integration';
+import type { AndroidProfileEvent } from '../../src/js/profiling/types';
+
 import * as Sentry from '../../src/js';
 import { getDebugMetadata } from '../../src/js/profiling/debugid';
-import type { HermesProfilingOptions } from '../../src/js/profiling/integration';
 import { hermesProfilingIntegration } from '../../src/js/profiling/integration';
-import type { AndroidProfileEvent } from '../../src/js/profiling/types';
 import { getDefaultEnvironment, isHermesEnabled, notWeb } from '../../src/js/utils/environment';
 import { MOCK_DSN } from '../mockDsn';
 import { envelopeItemPayload, envelopeItems } from '../testutils';

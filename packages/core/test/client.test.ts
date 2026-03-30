@@ -1,4 +1,3 @@
-import { defaultStackParser } from '@sentry/browser';
 import type {
   Envelope,
   Event,
@@ -7,6 +6,8 @@ import type {
   Transport,
   TransportMakeRequestResponse,
 } from '@sentry/core';
+
+import { defaultStackParser } from '@sentry/browser';
 import * as SentryCore from '@sentry/core';
 import {
   addAutoIpAddressToSession,
@@ -16,8 +17,10 @@ import {
   SentryError,
 } from '@sentry/core';
 import * as RN from 'react-native';
-import { ReactNativeClient } from '../src/js/client';
+
 import type { ReactNativeClientOptions } from '../src/js/options';
+
+import { ReactNativeClient } from '../src/js/client';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';

@@ -1,6 +1,9 @@
-import * as crypto from 'crypto';
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
+
+import * as crypto from 'crypto';
+
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
+
 import {
   createDebugIdSnippet,
   createVirtualJSModule,

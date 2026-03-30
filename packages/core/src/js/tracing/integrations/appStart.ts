@@ -1,5 +1,6 @@
 /* oxlint-disable eslint(complexity), eslint(max-lines) */
 import type { Client, Event, Integration, Span, SpanJSON, TransactionEvent } from '@sentry/core';
+
 import {
   debug,
   getCapturedScopesOnSpan,
@@ -11,13 +12,15 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
+
+import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
+import type { ReactNativeClientOptions } from '../../options';
+
 import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
-import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
-import type { ReactNativeClientOptions } from '../../options';
 import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
 import {

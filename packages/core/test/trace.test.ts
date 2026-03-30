@@ -1,4 +1,5 @@
 import { setCurrentClient, spanToJSON, startSpan } from '@sentry/core';
+
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 
 describe('parentSpanIsAlwaysRootSpan', () => {

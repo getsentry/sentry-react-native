@@ -1,7 +1,9 @@
 import type { Integration } from '@sentry/core';
+
+import type { ReactNativeClientOptions } from '../../src/js/options';
+
 import { getDefaultIntegrations } from '../../src/js/integrations/default';
 import { spotlightIntegration } from '../../src/js/integrations/spotlight';
-import type { ReactNativeClientOptions } from '../../src/js/options';
 import { notWeb } from '../../src/js/utils/environment';
 
 jest.mock('../../src/js/utils/environment', () => {

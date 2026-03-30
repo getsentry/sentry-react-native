@@ -1,8 +1,11 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import type { ExtendedError } from '../utils/error';
-import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
+
+import { getFramesToPop, isErrorLike } from '../utils/error';
 import { fetchSourceContext, parseErrorStack, symbolicateStackTrace } from './debugsymbolicatorutils';
 
 const INTEGRATION_NAME = 'DebugSymbolicator';

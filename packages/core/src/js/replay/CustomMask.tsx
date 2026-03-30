@@ -1,7 +1,9 @@
+import type { HostComponent, ViewProps } from 'react-native';
+
 import { debug } from '@sentry/core';
 import * as React from 'react';
-import type { HostComponent, ViewProps } from 'react-native';
 import { UIManager, View } from 'react-native';
+
 import { isExpoGo } from '../utils/environment';
 
 const NativeComponentRegistry: {
@@ -11,7 +13,8 @@ const NativeComponentRegistry: {
 const MaskNativeComponentName = 'RNSentryReplayMask';
 const UnmaskNativeComponentName = 'RNSentryReplayUnmask';
 
-const warnMessage = (component: string): string => `[SentrySessionReplay] ${component} component is not supported on the current platform. If ${component} should be supported, please ensure that the application build is up to date.`;
+const warnMessage = (component: string): string =>
+  `[SentrySessionReplay] ${component} component is not supported on the current platform. If ${component} should be supported, please ensure that the application build is up to date.`;
 
 const warn = (component: string): void => {
   setTimeout(() => {
@@ -32,7 +35,8 @@ const UnmaskFallback = (viewProps: ViewProps): React.ReactElement => {
   return <View {...viewProps} />;
 };
 
-const hasViewManagerConfig = (nativeComponentName: string): boolean => UIManager.hasViewManagerConfig?.(nativeComponentName);
+const hasViewManagerConfig = (nativeComponentName: string): boolean =>
+  UIManager.hasViewManagerConfig?.(nativeComponentName);
 
 const Mask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
   if (isExpoGo() || !hasViewManagerConfig(MaskNativeComponentName)) {
@@ -45,7 +49,7 @@ const Mask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
   return NativeComponentRegistry.get(MaskNativeComponentName, () => ({
     uiViewClassName: MaskNativeComponentName,
   }));
-})()
+})();
 
 const Unmask = ((): HostComponent<ViewProps> | React.ComponentType<ViewProps> => {
   if (isExpoGo() || !hasViewManagerConfig(UnmaskNativeComponentName)) {

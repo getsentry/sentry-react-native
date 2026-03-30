@@ -2,11 +2,21 @@ import { debug, getClient, setCurrentClient } from '@sentry/core';
 import { act, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Appearance, Text } from 'react-native';
+
 import { defaultConfiguration } from '../../src/js/feedback/defaults';
-import { hideFeedbackButton,resetFeedbackButtonManager, resetFeedbackWidgetManager, showFeedbackButton, showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
+import {
+  hideFeedbackButton,
+  resetFeedbackButtonManager,
+  resetFeedbackWidgetManager,
+  showFeedbackButton,
+  showFeedbackWidget,
+} from '../../src/js/feedback/FeedbackWidgetManager';
 import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
-import { AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME,AUTO_INJECT_FEEDBACK_INTEGRATION_NAME } from '../../src/js/feedback/lazy';
+import {
+  AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME,
+  AUTO_INJECT_FEEDBACK_INTEGRATION_NAME,
+} from '../../src/js/feedback/lazy';
 import { isModalSupported } from '../../src/js/feedback/utils';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
@@ -24,7 +34,6 @@ beforeEach(() => {
 });
 
 describe('FeedbackWidgetManager', () => {
-
   beforeEach(() => {
     const client = new TestClient(getDefaultTestClientOptions());
     setCurrentClient(client);
@@ -42,7 +51,7 @@ describe('FeedbackWidgetManager', () => {
     const { getByText, getByTestId } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     await act(async () => {
@@ -58,7 +67,7 @@ describe('FeedbackWidgetManager', () => {
     const { getByText, queryByTestId } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     await act(async () => {
@@ -83,7 +92,7 @@ describe('FeedbackWidgetManager', () => {
     const { getByPlaceholderText, getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -107,7 +116,7 @@ describe('FeedbackWidgetManager', () => {
     const { getByPlaceholderText, getByText, queryByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -133,7 +142,9 @@ describe('FeedbackWidgetManager', () => {
       showFeedbackWidget();
     });
 
-    expect(consoleWarnSpy).toHaveBeenLastCalledWith('[Sentry] FeedbackWidget requires \'Sentry.wrap(RootComponent)\' to be called before \'showFeedbackWidget()\'.');
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith(
+      "[Sentry] FeedbackWidget requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackWidget()'.",
+    );
   });
 
   it('showFeedbackWidget does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {
@@ -142,7 +153,7 @@ describe('FeedbackWidgetManager', () => {
     render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     showFeedbackWidget();
@@ -166,7 +177,6 @@ describe('FeedbackButtonManager', () => {
     jest.resetAllMocks();
   });
 
-
   beforeEach(() => {
     const client = new TestClient(getDefaultTestClientOptions());
     setCurrentClient(client);
@@ -174,7 +184,7 @@ describe('FeedbackButtonManager', () => {
     consoleWarnSpy.mockReset();
     resetFeedbackButtonManager();
 
-    jest.spyOn(Appearance, 'addChangeListener').mockImplementation((cb) => {
+    jest.spyOn(Appearance, 'addChangeListener').mockImplementation(cb => {
       listener = cb;
       return { remove: jest.fn() };
     });
@@ -185,7 +195,7 @@ describe('FeedbackButtonManager', () => {
     const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     await act(async () => {
@@ -194,14 +204,14 @@ describe('FeedbackButtonManager', () => {
 
     await waitFor(() => {
       expect(getByText('Report a Bug')).toBeTruthy();
-    })
+    });
   });
 
   it('hideFeedbackButton hides the button', () => {
     const { queryByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     showFeedbackButton();
@@ -219,14 +229,16 @@ describe('FeedbackButtonManager', () => {
   it('showFeedbackButton warns about missing feedback provider', () => {
     showFeedbackButton();
 
-    expect(consoleWarnSpy).toHaveBeenLastCalledWith('[Sentry] FeedbackButton requires \'Sentry.wrap(RootComponent)\' to be called before \'showFeedbackButton()\'.');
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith(
+      "[Sentry] FeedbackButton requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackButton()'.",
+    );
   });
 
   it('showFeedbackButton does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {
     render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     showFeedbackButton();
@@ -245,7 +257,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
@@ -262,7 +274,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
@@ -293,7 +305,7 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
     await act(async () => {
       listener({ colorScheme: 'dark' });
-    })
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -303,7 +315,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -327,7 +339,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -351,7 +363,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -377,7 +389,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -403,14 +415,14 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     await act(async () => {
       showFeedbackButton();
-    })
+    });
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -420,7 +432,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
@@ -461,7 +473,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -485,7 +497,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -509,7 +521,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -535,7 +547,7 @@ describe('FeedbackButtonManager', () => {
     const { toJSON } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({

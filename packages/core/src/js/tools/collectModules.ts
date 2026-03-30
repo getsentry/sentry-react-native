@@ -1,4 +1,5 @@
 import { argv } from 'process';
+
 import ModulesCollector from './ModulesCollector';
 
 const sourceMapPath: string | undefined = argv[2];

@@ -1,7 +1,9 @@
+import type { ReactNativeWrapperOptions } from 'src/js/options';
+
 // We can't test wrap with mock and non mocked components, otherwise it will break the RN testing library.
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
-import type { ReactNativeWrapperOptions } from 'src/js/options';
+
 import * as environment from '../src/js/utils/environment';
 
 jest.doMock('../src/js/touchevents', () => {
@@ -22,9 +24,7 @@ jest.doMock('../src/js/tracing', () => {
 
 jest.doMock('@sentry/react', () => {
   return {
-    Profiler: jest.fn(({ children }: { children: React.ReactNode }) => (
-      <div testID="react-profilerID">{children}</div>
-    )),
+    Profiler: jest.fn(({ children }: { children: React.ReactNode }) => <div testID="react-profilerID">{children}</div>),
   };
 });
 
@@ -112,7 +112,7 @@ describe('Sentry.wrap', () => {
           includeRender: true,
           includeUpdates: true,
         }),
-        expect.toBeNil()
+        expect.toBeNil(),
       );
 
       expect(ReactNativeProfiler).not.toHaveBeenCalledWith(

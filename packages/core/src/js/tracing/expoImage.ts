@@ -1,4 +1,5 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
+
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE } from './origin';
 import { describeUrl, sanitizeUrl, traceAsyncOperation } from './utils';
 

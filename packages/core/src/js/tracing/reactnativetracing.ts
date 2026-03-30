@@ -1,6 +1,8 @@
-import { instrumentOutgoingRequests } from '@sentry/browser';
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/core';
+
+import { instrumentOutgoingRequests } from '@sentry/browser';
 import { getClient } from '@sentry/core';
+
 import { isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
 import { addDefaultOpForSpanFrom, addThreadInfoToSpan, defaultIdleOptions } from './span';

@@ -1,7 +1,9 @@
 import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
-import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
+
+import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
 import { AppState } from 'react-native';
+
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../../measurements';
 import { isRootSpan } from '../../utils/span';
 import { getLatestChildSpanEndTimestamp, isNearToNow, setSpanMeasurement } from '../utils';

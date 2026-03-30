@@ -1,11 +1,13 @@
 import { type Client, type Event, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
+
+import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
+
 import {
   expoContextIntegration,
   getExpoUpdatesContext,
   OTA_UPDATES_CONTEXT_KEY,
 } from '../../src/js/integrations/expocontext';
 import * as environment from '../../src/js/utils/environment';
-import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 import { getExpoDevice } from '../../src/js/utils/expomodules';
 import * as expoModules from '../../src/js/utils/expomodules';
 import { setupTestClient, TestClient } from '../mocks/client';

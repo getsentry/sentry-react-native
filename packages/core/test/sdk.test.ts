@@ -1,10 +1,13 @@
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
+
 import { debug, initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
+
 import type { ReactNativeClientOptions } from '../src/js/options';
-import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';
+
+import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
+import { init, withScope } from '../src/js/sdk';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';

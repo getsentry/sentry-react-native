@@ -1,4 +1,5 @@
 import type { HostComponent, ViewProps } from 'react-native';
+
 // The default export exists in the file but the linter doesn't see it
 import { codegenNativeComponent } from 'react-native';
 

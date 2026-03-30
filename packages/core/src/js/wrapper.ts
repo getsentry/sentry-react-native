@@ -10,9 +10,10 @@ import type {
   SeverityLevel,
   User,
 } from '@sentry/core';
+
 import { debug, normalize, SentryError } from '@sentry/core';
 import { NativeModules, Platform } from 'react-native';
-import { isHardCrash } from './misc';
+
 import type {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
@@ -27,6 +28,8 @@ import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
+
+import { isHardCrash } from './misc';
 import { encodeUTF8 } from './utils/encode';
 import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
@@ -38,7 +41,7 @@ import { base64StringFromByteArray } from './vendor';
  */
 export function getRNSentryModule(): Spec | undefined {
   return isTurboModuleEnabled()
-    ? ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry') ?? undefined
+    ? (ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry') ?? undefined)
     : NativeModules.RNSentry;
 }
 

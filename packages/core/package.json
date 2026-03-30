@@ -37,12 +37,12 @@
     "test:tools": "npx jest --config jest.config.tools.js",
     "test:watch": "npx jest --watch",
     "yalc:add:sentry-javascript": "yalc add @sentry/browser @sentry/core @sentry/react @sentry/types",
-    "fix": "npx run-s fix:oxlint fix:prettier",
+    "fix": "npx run-s fix:oxlint fix:fmt",
     "fix:oxlint": "OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true oxlint --type-aware --tsconfig tsconfig.lint.json --fix",
-    "fix:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore  --write \"{src,test,scripts,plugin/src}/**/**.ts\"",
-    "lint": "npx run-s lint:oxlint lint:prettier",
+    "fix:fmt": "oxfmt \"{src,test,scripts,plugin/src}/**/**.ts\" \"{src,test}/**/**.tsx\"",
+    "lint": "npx run-s lint:oxlint lint:fmt",
     "lint:oxlint": "sh -c 'OUT=$(OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true oxlint --type-aware --tsconfig tsconfig.lint.json --deny-warnings 2>&1); echo \"$OUT\"; echo \"$OUT\" | grep -qE \"Found 0 warnings and 0 errors\"'",
-    "lint:prettier": "prettier  --config ../../.prettierrc.json --ignore-path ../../.prettierignore --check \"{src,test,scripts,plugin/src}/**/**.ts\""
+    "lint:fmt": "oxfmt --check \"{src,test,scripts,plugin/src}/**/**.ts\" \"{src,test}/**/**.tsx\""
   },
   "bin": {
     "sentry-eas-build-on-complete": "scripts/eas-build-hook.js",
@@ -105,9 +105,9 @@
     "jest-extended": "^4.0.2",
     "madge": "^6.1.0",
     "metro": "0.83.1",
+    "oxfmt": "^0.42.0",
     "oxlint": "^1.56.0",
     "oxlint-tsgolint": "^0.17.4",
-    "prettier": "^2.0.5",
     "react": "19.1.0",
     "react-native": "0.80.1",
     "react-test-renderer": "19.1.0",

@@ -2,7 +2,9 @@ jest.mock('../../src/js/integrations/reactnativeerrorhandlersutils');
 jest.mock('../../src/js/utils/environment');
 
 import type { SeverityLevel } from '@sentry/core';
+
 import { addGlobalUnhandledRejectionInstrumentationHandler, captureException, setCurrentClient } from '@sentry/core';
+
 import { reactNativeErrorHandlersIntegration } from '../../src/js/integrations/reactnativeerrorhandlers';
 import {
   checkPromiseAndWarn,

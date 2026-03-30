@@ -1,6 +1,7 @@
 import componentAnnotatePlugin from '@sentry/babel-plugin-component-annotate';
 import { debug } from '@sentry/core';
 import * as process from 'process';
+
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
 export type SentryBabelTransformerOptions = { annotateReactComponents?: { ignoredComponents?: string[] } };

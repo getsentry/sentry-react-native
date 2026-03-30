@@ -1,4 +1,5 @@
 import type { DebugImage, MeasurementUnit, Profile, ThreadCpuFrame, ThreadCpuProfile } from '@sentry/core';
+
 import type { NativeProfileEvent } from './nativeTypes';
 
 export interface RawThreadCpuProfile extends ThreadCpuProfile {

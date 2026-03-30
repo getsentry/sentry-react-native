@@ -1,4 +1,5 @@
 import type { ErrorEvent, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
+
 import {
   getCurrentScope,
   getGlobalScope,
@@ -10,11 +11,13 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
+
+import type { NativeAppStartResponse } from '../../../src/js/NativeRNSentry';
+
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../../src/js/measurements';
-import type { NativeAppStartResponse } from '../../../src/js/NativeRNSentry';
 import {
   APP_START_COLD as APP_START_COLD_OP,
   APP_START_WARM as APP_START_WARM_OP,

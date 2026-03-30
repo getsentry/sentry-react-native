@@ -1,4 +1,5 @@
 import type { EventHint, Integration, SeverityLevel } from '@sentry/core';
+
 import {
   addExceptionMechanism,
   addGlobalUnhandledRejectionInstrumentationHandler,
@@ -7,7 +8,9 @@ import {
   getClient,
   getCurrentScope,
 } from '@sentry/core';
+
 import type { ReactNativeClientOptions } from '../options';
+
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';

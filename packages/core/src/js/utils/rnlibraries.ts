@@ -1,5 +1,6 @@
 /* oxlint-disable typescript-eslint(no-unsafe-member-access) */
 import { AppRegistry, Platform, TurboModuleRegistry } from 'react-native';
+
 import type * as ReactNative from '../vendor/react-native';
 import type { ReactNativeLibrariesInterface } from './rnlibrariesinterface';
 

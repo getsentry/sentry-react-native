@@ -1,8 +1,13 @@
-import { debug } from '@sentry/core';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
+
+import { debug } from '@sentry/core';
 import * as process from 'process';
 import { env } from 'process';
+
+import type { MetroCustomSerializer } from './utils';
+import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
+
 import { enableLogger } from './enableLogger';
 import { withSentryMiddleware } from './metroMiddleware';
 import {
@@ -12,8 +17,6 @@ import {
 import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
-import type { MetroCustomSerializer } from './utils';
-import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 export * from './sentryMetroSerializer';
 
@@ -116,7 +119,7 @@ export function getSentryExpoConfig(
     ...options,
     unstable_beforeAssetSerializationPlugins: [
       ...(options.unstable_beforeAssetSerializationPlugins || []),
-      ...(options.injectReleaseForWeb ?? true ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
+      ...((options.injectReleaseForWeb ?? true) ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
       unstableBeforeAssetSerializationDebugIdPlugin,
     ],
   });

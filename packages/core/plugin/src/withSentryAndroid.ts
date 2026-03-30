@@ -1,7 +1,9 @@
 import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
+
 import { withAppBuildGradle, withDangerousMod, withMainApplication } from 'expo/config-plugins';
 import * as path from 'path';
+
 import { warnOnce } from './logger';
 import { writeSentryPropertiesTo } from './utils';
 

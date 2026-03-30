@@ -34,9 +34,9 @@
     "google-java-format": "^1.4.0",
     "lerna": "^8.1.8",
     "npm-run-all2": "^6.2.2",
+    "oxfmt": "^0.42.0",
     "oxlint": "^1.56.0",
     "pmd-bin": "^2.5.0",
-    "prettier": "^2.0.5",
     "react-native-version": "^4.0.0",
     "replace-in-file": "^7.0.1"
   },

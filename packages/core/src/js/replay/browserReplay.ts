@@ -1,6 +1,8 @@
 import { replayIntegration } from '@sentry/react';
-import { notWeb } from '../utils/environment';
+
 import type { Replay } from './replayInterface';
+
+import { notWeb } from '../utils/environment';
 
 /**
  * ReplayConfiguration for browser replay integration.

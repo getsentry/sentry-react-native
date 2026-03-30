@@ -5,10 +5,7 @@ import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
  * The props for the feedback form
  */
 export interface FeedbackWidgetProps
-  extends FeedbackGeneralConfiguration,
-    FeedbackTextConfiguration,
-    FeedbackCallbacks,
-    ImagePickerConfiguration {
+  extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks, ImagePickerConfiguration {
   styles?: FeedbackWidgetStyles;
 }
 

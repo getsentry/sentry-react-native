@@ -1,4 +1,5 @@
 import type { Client } from '@sentry/core';
+
 import { nativeReleaseIntegration } from '../../src/js/integrations/release';
 
 jest.mock('../../src/js/wrapper', () => ({
