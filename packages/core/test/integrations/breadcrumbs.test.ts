@@ -1,4 +1,5 @@
 import { breadcrumbsIntegration as browserBreadcrumbsIntegration } from '@sentry/browser';
+
 import { breadcrumbsIntegration } from '../../src/js/integrations/breadcrumbs';
 import * as environment from '../../src/js/utils/environment';
 

@@ -1,8 +1,9 @@
 import type { StackFrame } from '@sentry/core';
-import { addContextToFrame, debug } from '@sentry/core';
-import { readFile } from 'fs';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { InputConfigT, Middleware } from 'metro-config';
+
+import { addContextToFrame, debug } from '@sentry/core';
+import { readFile } from 'fs';
 import { promisify } from 'util';
 
 const readFileAsync = promisify(readFile);

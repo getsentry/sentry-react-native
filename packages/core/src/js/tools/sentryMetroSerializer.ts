@@ -1,7 +1,9 @@
-import * as crypto from 'crypto';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
+
+import * as crypto from 'crypto';
+
 import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
+
 import {
   createDebugIdSnippet,
   createVirtualJSModule,
@@ -36,7 +38,7 @@ export function unstableBeforeAssetSerializationDebugIdPlugin({
 
   const debugIdModuleExists = premodules.findIndex(module => module.path === DEBUG_ID_MODULE_PATH) != -1;
   if (debugIdModuleExists) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.warn('\n\nDebug ID module found. Skipping Sentry Debug ID module...\n\n');
     return premodules;
   }
@@ -61,7 +63,7 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
 
     const debugIdModuleExists = preModules.findIndex(module => module.path === DEBUG_ID_MODULE_PATH) != -1;
     if (debugIdModuleExists) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.warn('Debug ID module found. Skipping Sentry Debug ID module...');
       return serializer(entryPoint, preModules, graph, options);
     }
@@ -84,11 +86,11 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
       // from `@babel/generator` and defined it locally, it subtly changed the source map output format.
       // https://github.com/facebook/metro/blob/main/packages/metro-source-map/src/source-map.js#L47
       debugId = calculateDebugId(bundleCode);
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.log('info ' + `Bundle Debug ID (calculated): ${debugId}`);
     }
     // Only print debug id for command line builds => not hot reload from dev server
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.log('info ' + `Bundle Debug ID: ${debugId}`);
 
     const debugIdComment = `${DEBUG_ID_COMMENT}${debugId}`;
@@ -164,6 +166,5 @@ function calculateDebugId(bundleCode: string, modules?: Array<[id: number, code:
 }
 
 function injectDebugId(code: string, debugId: string): string {
-  // eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
   return code.replace(new RegExp(DEBUG_ID_PLACE_HOLDER, 'g'), debugId);
 }

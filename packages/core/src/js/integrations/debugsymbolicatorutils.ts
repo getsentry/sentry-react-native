@@ -1,8 +1,11 @@
 import type { StackFrame as SentryStackFrame } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
+import type * as ReactNative from '../vendor/react-native';
+
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
-import type * as ReactNative from '../vendor/react-native';
 
 /**
  * Fetches source context for the Sentry Middleware (/__sentry/context)

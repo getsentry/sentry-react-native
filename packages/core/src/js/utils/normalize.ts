@@ -5,7 +5,7 @@ const KEY = 'value';
 /**
  * Converts any input into a valid record with string keys.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line typescript-eslint(no-explicit-any)
 export function convertToNormalizedObject(data: unknown): Record<string, any> {
   const normalized: unknown = normalize(data);
   if (
@@ -14,7 +14,7 @@ export function convertToNormalizedObject(data: unknown): Record<string, any> {
     !Array.isArray(normalized) &&
     normalized.constructor === Object
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line typescript-eslint(no-explicit-any)
     return normalized as Record<string, any>;
   } else {
     return {

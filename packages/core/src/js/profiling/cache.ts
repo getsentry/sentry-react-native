@@ -27,7 +27,7 @@ function makeFifoCache<Key extends string, Value>(
         const evictCandidate = evictionOrder.shift();
 
         if (evictCandidate !== undefined) {
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
           delete cache[evictCandidate];
         }
       }
@@ -56,7 +56,7 @@ function makeFifoCache<Key extends string, Value>(
         return false;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
       delete cache[key];
 
       for (let i = 0; i < evictionOrder.length; i++) {

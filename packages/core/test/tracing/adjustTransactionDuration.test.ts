@@ -1,4 +1,5 @@
 import { getClient, spanToJSON, startSpanManual } from '@sentry/core';
+
 import { adjustTransactionDuration } from '../../src/js/tracing/onSpanEndUtils';
 import { setupTestClient } from '../mocks/client';
 

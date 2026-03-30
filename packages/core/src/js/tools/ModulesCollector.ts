@@ -4,7 +4,7 @@ import { posix, sep } from 'path';
 
 debug.enable();
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
+// oxlint-disable-next-line typescript-eslint(unbound-method)
 const { dirname, join, resolve, sep: posixSep } = posix;
 
 interface Package {

@@ -1,6 +1,8 @@
 import type { Event, Integration } from '@sentry/core';
-import { isExpo } from '../utils/environment';
+
 import type { ExpoConstants } from '../utils/expoglobalobject';
+
+import { isExpo } from '../utils/environment';
 import { getExpoConstants } from '../utils/expomodules';
 
 const INTEGRATION_NAME = 'ExpoConstants';

@@ -1,7 +1,9 @@
 import type { Client, Span } from '@sentry/core';
-import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
+
+import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
 import { AppState, Platform } from 'react-native';
+
 import { isRootSpan, isSentrySpan } from '../utils/span';
 
 /**

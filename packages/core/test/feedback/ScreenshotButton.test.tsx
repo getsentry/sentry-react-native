@@ -2,14 +2,21 @@ import { getClient, setCurrentClient } from '@sentry/core';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert, Text } from 'react-native';
-import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
+
 import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
-import { resetFeedbackButtonManager, resetFeedbackWidgetManager, resetScreenshotButtonManager, showFeedbackButton } from '../../src/js/feedback/FeedbackWidgetManager';
+import type { Screenshot } from '../../src/js/wrapper';
+
+import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
+import {
+  resetFeedbackButtonManager,
+  resetFeedbackWidgetManager,
+  resetScreenshotButtonManager,
+  showFeedbackButton,
+} from '../../src/js/feedback/FeedbackWidgetManager';
 import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { getCapturedScreenshot, ScreenshotButton } from '../../src/js/feedback/ScreenshotButton';
-import type { Screenshot } from '../../src/js/wrapper';
-import { NATIVE  } from '../../src/js/wrapper';
+import { NATIVE } from '../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 
 jest.mock('../../src/js/wrapper', () => ({
@@ -46,7 +53,7 @@ describe('ScreenshotButton', () => {
   });
 
   it('matches the snapshot with default configuration', () => {
-    const { toJSON } = render(<ScreenshotButton/>);
+    const { toJSON } = render(<ScreenshotButton />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -54,7 +61,7 @@ describe('ScreenshotButton', () => {
     const defaultProps: ScreenshotButtonProps = {
       triggerLabel: 'Take Screenshot',
     };
-    const { toJSON } = render(<ScreenshotButton {...defaultProps}/>);
+    const { toJSON } = render(<ScreenshotButton {...defaultProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -67,8 +74,8 @@ describe('ScreenshotButton', () => {
         color: '#ff0000',
       },
     };
-    const customStyleProps = {styles: customStyles};
-    const { toJSON } = render(<ScreenshotButton {...customStyleProps}/>);
+    const customStyleProps = { styles: customStyles };
+    const { toJSON } = render(<ScreenshotButton {...customStyleProps} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -76,7 +83,7 @@ describe('ScreenshotButton', () => {
     const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -91,12 +98,11 @@ describe('ScreenshotButton', () => {
     expect(takeScreenshotButton).toBeTruthy();
   });
 
-
   it('the capture screenshot button is shown when tapping the Take a screenshot button in the feedback widget', async () => {
     const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -122,7 +128,7 @@ describe('ScreenshotButton', () => {
     const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -154,7 +160,7 @@ describe('ScreenshotButton', () => {
     const { getByText, queryByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -187,7 +193,7 @@ describe('ScreenshotButton', () => {
       const takeScreenshotButtonAfterCapture = queryByText('Take a screenshot');
       expect(takeScreenshotButtonAfterCapture).toBeNull();
     });
-    
+
     await waitFor(() => {
       const removeScreenshotButtonAfterCapture = queryByText('Remove screenshot');
       expect(removeScreenshotButtonAfterCapture).toBeTruthy();
@@ -200,7 +206,7 @@ describe('ScreenshotButton', () => {
     const { getByText } = render(
       <FeedbackWidgetProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackWidgetProvider>,
     );
 
     const integration = feedbackIntegration({

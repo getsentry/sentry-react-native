@@ -1,5 +1,6 @@
-/* eslint-disable complexity, max-lines */
+/* oxlint-disable eslint(complexity), eslint(max-lines) */
 import type { Client, Event, Integration, Span, SpanJSON, TransactionEvent } from '@sentry/core';
+
 import {
   debug,
   getCapturedScopesOnSpan,
@@ -11,13 +12,15 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
+
+import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
+import type { ReactNativeClientOptions } from '../../options';
+
 import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
-import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
-import type { ReactNativeClientOptions } from '../../options';
 import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
 import {
@@ -303,7 +306,7 @@ export const appStartIntegration = ({
   async function captureStandaloneAppStart(): Promise<void> {
     if (!_client) {
       // If client is not set, SDK was not initialized, logger is thus disabled
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.warn('[AppStart] Could not capture App Start, missing client, call `Sentry.init` first.');
       return;
     }

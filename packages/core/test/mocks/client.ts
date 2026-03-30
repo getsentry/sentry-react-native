@@ -1,4 +1,5 @@
 import type { Event, EventHint, Integration, Outcome, ParameterizedString, Session, SeverityLevel } from '@sentry/core';
+
 import {
   Client,
   createTransport,
@@ -9,6 +10,7 @@ import {
   resolvedSyncPromise,
   setCurrentClient,
 } from '@sentry/core';
+
 import type { ReactNativeClientOptions } from '../../src/js/options';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
@@ -57,7 +59,6 @@ export class TestClient extends Client<TestClientOptions> {
           {
             type: exception.name,
             value: exception.message,
-            /* eslint-enable @typescript-eslint/no-unsafe-member-access */
           },
         ],
       },

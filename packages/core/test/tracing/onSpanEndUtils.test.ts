@@ -1,5 +1,7 @@
 import type { Client, Span } from '@sentry/core';
+
 import { getClient, startSpanManual } from '@sentry/core';
+
 import {
   adjustTransactionDuration,
   cancelInBackground,
@@ -30,7 +32,6 @@ function trackUnsubscribes(client: Client): () => number {
   jest
     .spyOn(client, 'on')
     .mockImplementation((hook: Parameters<Client['on']>[0], callback: Parameters<Client['on']>[1]) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const realUnsubscribe = (originalOn as any)(hook, callback);
       return () => {
         count++;

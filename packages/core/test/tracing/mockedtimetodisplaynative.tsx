@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { View } from 'react-native';
+
 import type { RNSentryOnDrawReporterProps } from '../../src/js/tracing/timetodisplaynative.types';
+
 import { NATIVE } from '../mockWrapper';
 
 export let nativeComponentExists = true;
@@ -19,9 +21,9 @@ export function mockRecordedTimeToDisplay({
   ttid = {},
   ttfd = {},
 }: {
-  'ttidNavigation'?: Record<string, number>,
-  ttid?: Record<string, number>,
-  ttfd?: Record<string, number>,
+  ttidNavigation?: Record<string, number>;
+  ttid?: Record<string, number>;
+  ttfd?: Record<string, number>;
 }): void {
   NATIVE.popTimeToDisplayFor.mockImplementation((key: string) => {
     if (key.startsWith('ttid-navigation-')) {
@@ -52,4 +54,4 @@ function RNSentryOnDrawReporterMock(props: RNSentryOnDrawReporterProps): React.R
 
 export const getRNSentryOnDrawReporter = (): typeof RNSentryOnDrawReporterMock => {
   return RNSentryOnDrawReporterMock;
-}
+};

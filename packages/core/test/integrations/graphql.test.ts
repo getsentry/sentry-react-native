@@ -1,4 +1,5 @@
 import { graphqlClientIntegration as browserGraphqlClientIntegration } from '@sentry/browser';
+
 import { graphqlIntegration } from '../../src/js';
 
 jest.mock('@sentry/browser', () => ({

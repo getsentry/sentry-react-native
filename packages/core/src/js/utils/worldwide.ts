@@ -1,6 +1,8 @@
 import type { InternalGlobal } from '@sentry/core';
-import { GLOBAL_OBJ } from '@sentry/core';
 import type { ErrorUtils } from 'react-native/types';
+
+import { GLOBAL_OBJ } from '@sentry/core';
+
 import type { ReactNativeOptions } from '../options';
 import type { ExpoGlobalObject } from './expoglobalobject';
 

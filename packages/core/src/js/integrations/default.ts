@@ -1,7 +1,10 @@
-/* eslint-disable complexity */
-import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/browser';
+/* oxlint-disable eslint(complexity) */
 import type { Integration } from '@sentry/core';
+
+import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/browser';
+
 import type { ReactNativeClientOptions } from '../options';
+
 import { reactNativeTracingIntegration } from '../tracing';
 import { notWeb } from '../utils/environment';
 import {

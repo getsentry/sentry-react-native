@@ -1,5 +1,6 @@
-import { addNativeProfileToHermesProfile } from '../../src/js/profiling/integration';
 import type { CombinedProfileEvent } from '../../src/js/profiling/types';
+
+import { addNativeProfileToHermesProfile } from '../../src/js/profiling/integration';
 import { createMockMinimalValidAppleProfile, createMockMinimalValidHermesProfileEvent } from './fixtures';
 
 describe('merge Hermes and Native profiles - addNativeProfileToHermesProfile', () => {

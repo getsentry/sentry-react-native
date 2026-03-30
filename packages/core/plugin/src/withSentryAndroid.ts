@@ -1,7 +1,9 @@
 import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
+
 import { withAppBuildGradle, withDangerousMod, withMainApplication } from 'expo/config-plugins';
 import * as path from 'path';
+
 import { warnOnce } from './logger';
 import { writeSentryPropertiesTo } from './utils';
 
@@ -23,6 +25,7 @@ export const withSentryAndroid: ConfigPlugin<{ sentryProperties: string; useNati
   return withDangerousMod(mainApplicationCfg, [
     'android',
     dangerousMod => {
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
       writeSentryPropertiesTo(path.resolve(dangerousMod.modRequest.projectRoot, 'android'), sentryProperties);
       return dangerousMod;
     },
@@ -64,6 +67,7 @@ export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
       return config;
     }
 
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
     const fileName = path.basename(config.modResults.path);
 
     if (config.modResults.contents.includes('RNSentrySDK.init')) {

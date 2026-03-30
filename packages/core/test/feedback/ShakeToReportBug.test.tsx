@@ -2,9 +2,8 @@ import { debug, setCurrentClient } from '@sentry/core';
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
-import {
-  resetFeedbackWidgetManager,
-} from '../../src/js/feedback/FeedbackWidgetManager';
+
+import { resetFeedbackWidgetManager } from '../../src/js/feedback/FeedbackWidgetManager';
 import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { isShakeListenerActive, startShakeListener, stopShakeListener } from '../../src/js/feedback/ShakeToReportBug';

@@ -1,5 +1,14 @@
 import type { Event, Measurements, Span, SpanJSON } from '@sentry/core';
-import { debug , getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, spanToJSON, startSpanManual } from '@sentry/core';
+
+import {
+  debug,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  setCurrentClient,
+  spanToJSON,
+  startSpanManual,
+} from '@sentry/core';
 
 jest.spyOn(debug, 'warn');
 
@@ -13,11 +22,21 @@ jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplayn
 
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
+
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
-import { SEMANTIC_ATTRIBUTE_SENTRY_OP, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '../../src/js/tracing/semanticAttributes';
-import { SPAN_THREAD_NAME , SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
-import { startTimeToFullDisplaySpan, startTimeToInitialDisplaySpan, TimeToFullDisplay, TimeToInitialDisplay, updateInitialDisplaySpan } from '../../src/js/tracing/timetodisplay';
+import {
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+} from '../../src/js/tracing/semanticAttributes';
+import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
+import {
+  startTimeToFullDisplaySpan,
+  startTimeToInitialDisplaySpan,
+  TimeToFullDisplay,
+  TimeToInitialDisplay,
+  updateInitialDisplaySpan,
+} from '../../src/js/tracing/timetodisplay';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
 
@@ -26,11 +45,12 @@ jest.mock('../../src/js/utils/environment', () => ({
   isTurboModuleEnabled: jest.fn().mockReturnValue(false),
 }));
 
-const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } = mockedtimetodisplaynative;
+const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } =
+  mockedtimetodisplaynative;
 
 jest.useFakeTimers({
   advanceTimers: true,
-  doNotFake: ['performance'] // Keep real performance API
+  doNotFake: ['performance'], // Keep real performance API
 });
 
 describe('TimeToDisplay', () => {
@@ -47,10 +67,7 @@ describe('TimeToDisplay', () => {
     });
     client = new TestClient({
       ...options,
-      integrations: [
-        ...options.integrations,
-        timeToDisplayIntegration(),
-      ],
+      integrations: [...options.integrations, timeToDisplayIntegration()],
     });
     setCurrentClient(client);
     client.init();
@@ -68,7 +85,7 @@ describe('TimeToDisplay', () => {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
-       (activeSpan: Span | undefined) => {
+      (activeSpan: Span | undefined) => {
         startTimeToInitialDisplaySpan();
         render(<TimeToInitialDisplay record={true} />);
         mockRecordedTimeToDisplay({
@@ -251,8 +268,9 @@ describe('TimeToDisplay', () => {
 
     expectInitialDisplayMeasurementOnSpan(client.event!);
     expectFullDisplayMeasurementOnSpan(client.event!);
-    expect(client.event!.measurements!.time_to_full_display.value)
-      .toEqual(client.event!.measurements!.time_to_initial_display.value);
+    expect(client.event!.measurements!.time_to_full_display.value).toEqual(
+      client.event!.measurements!.time_to_initial_display.value,
+    );
   });
 
   test('full display which ended before initial display is extended to initial display end', async () => {
@@ -267,8 +285,18 @@ describe('TimeToDisplay', () => {
         startTimeToInitialDisplaySpan();
         startTimeToFullDisplaySpan();
 
-        const timeToDisplayComponent = render(<><TimeToInitialDisplay record={false} /><TimeToFullDisplay record={true}/></>);
-        timeToDisplayComponent.update(<><TimeToInitialDisplay record={true} /><TimeToFullDisplay record={true}/></>);
+        const timeToDisplayComponent = render(
+          <>
+            <TimeToInitialDisplay record={false} />
+            <TimeToFullDisplay record={true} />
+          </>,
+        );
+        timeToDisplayComponent.update(
+          <>
+            <TimeToInitialDisplay record={true} />
+            <TimeToFullDisplay record={true} />
+          </>,
+        );
 
         mockRecordedTimeToDisplay({
           ttfd: {
@@ -306,77 +334,88 @@ function getFullDisplaySpanJSON(spans: SpanJSON[]) {
 }
 
 function expectFinishedInitialDisplaySpan(event: Event) {
-  expect(getInitialDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
-    data: {
-      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.initial_display',
-      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
-      [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
-    },
-    description: 'Time To Initial Display',
-    op: 'ui.load.initial_display',
-    parent_span_id: event.contexts.trace.span_id,
-    start_timestamp: event.start_timestamp,
-    status: 'ok',
-    timestamp: expect.any(Number),
-  }));
+  expect(getInitialDisplaySpanJSON(event.spans!)).toEqual(
+    expect.objectContaining<Partial<SpanJSON>>({
+      data: {
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.initial_display',
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
+        [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
+      },
+      description: 'Time To Initial Display',
+      op: 'ui.load.initial_display',
+      parent_span_id: event.contexts.trace.span_id,
+      start_timestamp: event.start_timestamp,
+      status: 'ok',
+      timestamp: expect.any(Number),
+    }),
+  );
 }
 
 function expectFinishedFullDisplaySpan(event: Event) {
-  expect(getFullDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
-    data: {
-      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.full_display',
-      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
-      [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
-    },
-    description: 'Time To Full Display',
-    op: 'ui.load.full_display',
-    parent_span_id: event.contexts.trace.span_id,
-    start_timestamp: event.start_timestamp,
-    status: 'ok',
-    timestamp: expect.any(Number),
-  }));
+  expect(getFullDisplaySpanJSON(event.spans!)).toEqual(
+    expect.objectContaining<Partial<SpanJSON>>({
+      data: {
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.full_display',
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
+        [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
+      },
+      description: 'Time To Full Display',
+      op: 'ui.load.full_display',
+      parent_span_id: event.contexts.trace.span_id,
+      start_timestamp: event.start_timestamp,
+      status: 'ok',
+      timestamp: expect.any(Number),
+    }),
+  );
 }
 
-
 function expectDeadlineExceededFullDisplaySpan(event: Event) {
-  expect(getFullDisplaySpanJSON(event.spans!)).toEqual(expect.objectContaining<Partial<SpanJSON>>({
-    data: {
-      [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.full_display',
-      [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
-      [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
-    },
-    description: 'Time To Full Display',
-    op: 'ui.load.full_display',
-    parent_span_id: event.contexts.trace.span_id,
-    start_timestamp: event.start_timestamp,
-    status: 'deadline_exceeded',
-    timestamp: expect.any(Number),
-  }));
+  expect(getFullDisplaySpanJSON(event.spans!)).toEqual(
+    expect.objectContaining<Partial<SpanJSON>>({
+      data: {
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: 'ui.load.full_display',
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
+        [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
+      },
+      description: 'Time To Full Display',
+      op: 'ui.load.full_display',
+      parent_span_id: event.contexts.trace.span_id,
+      start_timestamp: event.start_timestamp,
+      status: 'deadline_exceeded',
+      timestamp: expect.any(Number),
+    }),
+  );
 }
 
 function expectNoTimeToDisplaySpans(event: Event) {
-  expect(event.spans).toEqual(expect.not.arrayContaining<SpanJSON[]>([
-    expect.objectContaining<Partial<SpanJSON>>({ op: 'ui.load.initial_display' }),
-    expect.objectContaining<Partial<SpanJSON>>({ op: 'ui.load.full_display' }),
-  ]));
+  expect(event.spans).toEqual(
+    expect.not.arrayContaining<SpanJSON[]>([
+      expect.objectContaining<Partial<SpanJSON>>({ op: 'ui.load.initial_display' }),
+      expect.objectContaining<Partial<SpanJSON>>({ op: 'ui.load.full_display' }),
+    ]),
+  );
 }
 
 function expectInitialDisplayMeasurementOnSpan(event: Event) {
-  expect(event.measurements).toEqual(expect.objectContaining<Measurements>({
-    time_to_initial_display: {
-      value: expect.any(Number),
-      unit: 'millisecond',
-    },
-  }));
+  expect(event.measurements).toEqual(
+    expect.objectContaining<Measurements>({
+      time_to_initial_display: {
+        value: expect.any(Number),
+        unit: 'millisecond',
+      },
+    }),
+  );
 }
 
 function expectFullDisplayMeasurementOnSpan(event: Event) {
-  expect(event.measurements).toEqual(expect.objectContaining<Measurements>({
-    time_to_full_display: {
-      value: expect.any(Number),
-      unit: 'millisecond',
-    },
-  }));
+  expect(event.measurements).toEqual(
+    expect.objectContaining<Measurements>({
+      time_to_full_display: {
+        value: expect.any(Number),
+        unit: 'millisecond',
+      },
+    }),
+  );
 }
 
 function expectNoInitialDisplayMeasurementOnSpan(event: Event) {
@@ -407,10 +446,7 @@ describe('Frame Data', () => {
     });
     client = new TestClient({
       ...options,
-      integrations: [
-        ...options.integrations,
-        timeToDisplayIntegration(),
-      ],
+      integrations: [...options.integrations, timeToDisplayIntegration()],
     });
     setCurrentClient(client);
     client.init();
@@ -429,9 +465,7 @@ describe('Frame Data', () => {
     const startFrames = { totalFrames: 100, slowFrames: 2, frozenFrames: 1 };
     const endFrames = { totalFrames: 150, slowFrames: 5, frozenFrames: 2 };
 
-    mockWrapper.NATIVE.fetchNativeFrames
-      .mockResolvedValueOnce(startFrames)
-      .mockResolvedValueOnce(endFrames);
+    mockWrapper.NATIVE.fetchNativeFrames.mockResolvedValueOnce(startFrames).mockResolvedValueOnce(endFrames);
 
     await startSpanManual(
       {
@@ -531,9 +565,7 @@ describe('Frame Data', () => {
   test('does not attach frame data when frames are zero', async () => {
     const frames = { totalFrames: 100, slowFrames: 2, frozenFrames: 1 };
 
-    mockWrapper.NATIVE.fetchNativeFrames
-      .mockResolvedValueOnce(frames)
-      .mockResolvedValueOnce(frames); // Same frames = delta of 0
+    mockWrapper.NATIVE.fetchNativeFrames.mockResolvedValueOnce(frames).mockResolvedValueOnce(frames); // Same frames = delta of 0
 
     startSpanManual(
       {

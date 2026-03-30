@@ -1,6 +1,8 @@
 import { debug } from '@sentry/core';
-import { defaultNativeLogHandler, setupNativeLogListener } from '../src/js/NativeLogListener';
+
 import type { NativeLogEntry } from '../src/js/options';
+
+import { defaultNativeLogHandler, setupNativeLogListener } from '../src/js/NativeLogListener';
 
 jest.mock('../src/js/utils/environment', () => ({
   isExpoGo: jest.fn().mockReturnValue(false),

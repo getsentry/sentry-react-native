@@ -1,7 +1,10 @@
 import type { Client, Log } from '@sentry/core';
+
 import { debug, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
-import { logEnricherIntegration } from '../../src/js/integrations/logEnricherIntegration';
+
 import type { NativeDeviceContextsResponse } from '../../src/js/NativeRNSentry';
+
+import { logEnricherIntegration } from '../../src/js/integrations/logEnricherIntegration';
 import { NATIVE } from '../../src/js/wrapper';
 
 // Mock the NATIVE wrapper

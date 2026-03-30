@@ -1,4 +1,5 @@
 import type { Client, Integration, Span } from '@sentry/core';
+
 import {
   addBreadcrumb,
   getClient,
@@ -7,11 +8,13 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
   spanToJSON,
 } from '@sentry/core';
+
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
+import type { ReactNativeTracingIntegration } from './reactnativetracing';
+
 import { isSentrySpan } from '../utils/span';
 import { ignoreEmptyBackNavigation, ignoreEmptyRouteChangeTransactions } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from './origin';
-import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import {
   DEFAULT_NAVIGATION_SPAN_NAME,

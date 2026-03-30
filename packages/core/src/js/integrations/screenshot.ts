@@ -1,6 +1,8 @@
 import type { Event, EventHint, Integration } from '@sentry/core';
+
 import type { ReactNativeClient } from '../client';
 import type { Screenshot as ScreenshotAttachment } from '../wrapper';
+
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'Screenshot';

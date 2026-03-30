@@ -1,17 +1,8 @@
-/* eslint-disable max-lines */
+/* oxlint-disable eslint(max-lines) */
 import { debug } from '@sentry/core';
 import * as React from 'react';
-import {
-  Animated,
-  Image,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Animated, Image, Modal, Platform, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
+
 import { getDevServer } from '../integrations/debugsymbolicatorutils';
 import { isExpo, isExpoGo, isWeb } from '../utils/environment';
 import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';
@@ -215,7 +206,6 @@ const Animation = ({ id }: { id: string }): React.ReactElement | null => {
 
 const Row = ({
   last = false,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   action = () => {},
   actionDescription = '',
   title,
@@ -424,7 +414,7 @@ function openURLInBrowser(url: string): void {
   const devServer = getDevServer();
   if (devServer?.url) {
     // This doesn't work for Expo project with Web enabled
-    // disable-next-line @typescript-eslint/no-floating-promises
+    // oxlint-disable-next-line typescript-eslint(no-floating-promises)
     fetch(`${devServer.url}open-url`, {
       method: 'POST',
       body: JSON.stringify({ url }),

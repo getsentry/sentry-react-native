@@ -3,7 +3,7 @@ import type { Span } from '@sentry/core';
 export interface ReactNavigationRoute {
   name: string;
   key: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   params: Record<string, any>;
 }
 
