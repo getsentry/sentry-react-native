@@ -7,7 +7,7 @@ const warningMap = new Map<string, boolean>();
 export function warnOnce(message: string): void {
   if (!warningMap.has(message)) {
     warningMap.set(message, true);
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console), typescript-eslint(no-unsafe-member-access)
     console.warn(yellow(prefix(message)));
   }
 }

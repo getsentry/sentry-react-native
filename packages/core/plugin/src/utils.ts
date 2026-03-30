@@ -1,3 +1,5 @@
+// tsgolint incorrectly types `fs` as `error` — false positive with DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS
+/* oxlint-disable typescript-eslint(no-unsafe-member-access) */
 import * as fs from 'fs';
 import * as path from 'path';
 import { warnOnce } from './logger';

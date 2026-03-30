@@ -44,7 +44,6 @@ interface ExpoUpdatesExports {
  */
 function getExpoUpdatesExports(): ExpoUpdatesExports | undefined {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const expoUpdates = require('expo-updates') as Partial<ExpoUpdatesExports>;
     if (typeof expoUpdates.addUpdatesStateChangeListener === 'function') {
       return expoUpdates as ExpoUpdatesExports;

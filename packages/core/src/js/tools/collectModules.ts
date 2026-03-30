@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { argv } from 'process';
 import ModulesCollector from './ModulesCollector';
 

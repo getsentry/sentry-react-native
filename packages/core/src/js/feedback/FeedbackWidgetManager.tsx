@@ -37,7 +37,7 @@ abstract class FeedbackManager {
       this._setVisibility(true);
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' to be called before 'show${this._feedbackComponentName}()'.`);
     }
   }
@@ -48,7 +48,7 @@ abstract class FeedbackManager {
       this._setVisibility(false);
     } else {
       // This message should be always shown otherwise it's not possible to use the widget.
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.warn(`[Sentry] ${this._feedbackComponentName} requires 'Sentry.wrap(RootComponent)' before interacting with the widget.`);
     }
   }
