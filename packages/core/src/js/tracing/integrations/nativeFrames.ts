@@ -191,17 +191,17 @@ export const nativeFramesIntegration = (): Integration => {
         debug.log(
           `[${INTEGRATION_NAME}] Attached frame data to span ${spanId}: total=${totalFrames}, slow=${slowFrames}, frozen=${frozenFrames}`,
         );
-      }
 
-      const spanJson = spanToJSON(span);
-      if (spanJson.start_timestamp && spanJson.timestamp) {
-        try {
-          const delay = await fetchNativeFramesDelay(spanJson.start_timestamp, spanJson.timestamp);
-          if (delay != null) {
-            span.setAttribute('frames.delay', delay);
+        const spanJson = spanToJSON(span);
+        if (spanJson.start_timestamp && spanJson.timestamp) {
+          try {
+            const delay = await fetchNativeFramesDelay(spanJson.start_timestamp, spanJson.timestamp);
+            if (delay != null) {
+              span.setAttribute('frames.delay', delay);
+            }
+          } catch (delayError) {
+            debug.log(`[${INTEGRATION_NAME}] Error while fetching frames delay for span ${spanId}.`, delayError);
           }
-        } catch (delayError) {
-          debug.log(`[${INTEGRATION_NAME}] Error while fetching frames delay for span ${spanId}.`, delayError);
         }
       }
     } catch (error) {
