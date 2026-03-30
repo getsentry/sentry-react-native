@@ -1,6 +1,6 @@
+/* oxlint-disable eslint(complexity) */
 import type { Integration } from '@sentry/core';
 
-/* oxlint-disable eslint(complexity) */
 import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/browser';
 
 import type { ReactNativeClientOptions } from '../options';
