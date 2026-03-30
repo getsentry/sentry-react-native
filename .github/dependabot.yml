@@ -13,9 +13,9 @@ updates:
       react-native-deps:
         patterns:
           - '@react-native/*'
-      typescript-eslint-deps:
+      oxlint:
         patterns:
-          - '@typescript-eslint/*'
+          - 'oxlint'
     ignore:
       - dependency-name: '@sentry*'
   - package-ecosystem: gradle

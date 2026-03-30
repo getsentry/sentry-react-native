@@ -1,5 +1,5 @@
+/* oxlint-disable typescript-eslint(no-unsafe-member-access) */
 import type { ExpoConfig } from '@expo/config-types';
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
 import { withAppDelegate, withDangerousMod, withXcodeProject } from 'expo/config-plugins';
 import * as path from 'path';
@@ -81,7 +81,6 @@ Run npx expo prebuild --clean`,
 export function addSentryWithBundledScriptsToBundleShellScript(script: string): string {
   return script.replace(
     /^.*?(packager|scripts)\/react-native-xcode\.sh\s*(\\'\\\\")?/m,
-    // eslint-disable-next-line no-useless-escape
     (match: string) => `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} ${match}`,
   );
 }

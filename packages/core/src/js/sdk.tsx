@@ -1,4 +1,4 @@
-/* eslint-disable complexity */
+/* oxlint-disable eslint(complexity) */
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
 import {
   debug,
@@ -63,7 +63,6 @@ export function init(passedOptions: ReactNativeOptions): void {
   };
 
   const maxQueueSize = userOptions.maxQueueSize
-    // eslint-disable-next-line deprecation/deprecation
     ?? userOptions.transportOptions?.bufferSize
     ?? DEFAULT_OPTIONS.maxQueueSize;
 
@@ -145,7 +144,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     // before JS from the native app entry point (e.g. AppDelegate, MainApplication).
     // In dev builds, we always re-initialize from JS to set up the native log bridge
     // and provide runtime values (devServerUrl, defaultSidecarUrl, etc.).
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.info('[Sentry] Using options file. Native SDK is expected to be initialized before JS, skipping automatic native initialization from JS.');
     options.autoInitializeNativeSdk = false;
   }
@@ -229,7 +228,6 @@ export async function flush(): Promise<boolean> {
 
       return result;
     }
-    // eslint-disable-next-line no-empty
   } catch (_) { }
 
   debug.error('Failed to flush the event queue.');

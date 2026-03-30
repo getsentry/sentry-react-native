@@ -12,7 +12,6 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  // eslint-disable-next-line react-native/no-inline-styles
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
@@ -29,7 +28,6 @@ function InfoButton({ colorScheme }: { colorScheme: 'light' | 'dark' | null }) {
             name="info-circle"
             size={25}
             color={Colors[colorScheme ?? 'light'].text}
-            // eslint-disable-next-line react-native/no-inline-styles
             style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
           />
         )}

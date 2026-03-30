@@ -1,4 +1,4 @@
-/* eslint-disable complexity */
+/* oxlint-disable eslint(complexity) */
 import type { Client, Event, EventHint, Integration } from '@sentry/core';
 import { debug, severityLevelFromString } from '@sentry/core';
 import { AppState } from 'react-native';

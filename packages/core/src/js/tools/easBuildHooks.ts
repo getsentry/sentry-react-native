@@ -10,7 +10,7 @@
  * @see https://docs.expo.dev/build-reference/npm-hooks/
  */
 
-/* eslint-disable no-console */
+/* oxlint-disable eslint(no-console) */
 
 import type { DsnComponents } from '@sentry/core';
 import { dsnToString, makeDsn, uuid4 } from '@sentry/core';

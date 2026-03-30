@@ -75,7 +75,7 @@ export function enableSyncToNative(scope: Scope): void {
     return original.call(scope);
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   fillTyped(scope, 'setContext', original => (key: string, context: { [key: string]: any } | null): Scope => {
     NATIVE.setContext(key, context);
     return original.call(scope, key, context);

@@ -18,7 +18,7 @@ describe('SentryBabelTransformer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
     delete process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS];
   });
 

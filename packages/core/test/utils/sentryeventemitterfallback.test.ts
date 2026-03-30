@@ -173,7 +173,6 @@ describe('SentryEventEmitterFallback', () => {
     jest.useFakeTimers();
 
     // Capture the callback passed to addListener
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-unsafe-function-type
     let callback: Function = () => {};
     const mockOnce = jest.fn().mockImplementationOnce((eventName, cb) => {
       if (eventName === NewFrameEventName) {

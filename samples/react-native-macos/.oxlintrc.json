@@ -1,0 +1,15 @@
+{
+  "$schema": "../../packages/core/node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-shadow": "off",
+    "typescript/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "caughtErrors": "none" }],
+    "typescript/no-require-imports": "off",
+    "typescript/no-explicit-any": "off",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "ignorePatterns": ["node_modules/**", "macos/**"]
+}
