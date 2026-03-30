@@ -111,7 +111,8 @@
     "@expo/cli@npm:55.0.15/picomatch": "^4.0.4",
     "@expo/metro-config@npm:55.0.9/picomatch": "^4.0.4",
     "npm-run-all2@npm:8.0.4/picomatch": "^4.0.4",
-    "tinyglobby@npm:0.2.15/picomatch": "^4.0.4"
+    "tinyglobby@npm:0.2.15/picomatch": "^4.0.4",
+    "yaml": "^2.8.3"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
