@@ -325,12 +325,12 @@ function getFileName(props: Record<string, unknown>): string | undefined {
 function getLabelValue(props: Record<string, unknown>, labelKey: string | undefined): string | undefined {
   return typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0
     ? props[SENTRY_LABEL_PROP_KEY]
-    : // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
-      // the "check-label" if sentence, so we have to assign it to a variable here first
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
-      ? // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        (props[labelKey] as string)
+    // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
+    // the "check-label" if sentence, so we have to assign it to a variable here first
+    // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
+    : typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
+      // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
+      ? (props[labelKey] as string)
       : undefined;
 }
 
