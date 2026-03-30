@@ -112,6 +112,7 @@
     "@expo/metro-config@npm:55.0.9/picomatch": "^4.0.4",
     "npm-run-all2@npm:8.0.4/picomatch": "^4.0.4",
     "tinyglobby@npm:0.2.15/picomatch": "^4.0.4",
+    "minimatch@npm:10.2.4/brace-expansion": "^5.0.5",
     "@appium/base-driver@npm:10.2.2/path-to-regexp": "^8.4.0",
     "router@npm:2.2.0/path-to-regexp": "^8.4.0",
     "yaml": "^2.8.3"
