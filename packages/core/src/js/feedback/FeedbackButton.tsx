@@ -14,6 +14,7 @@ import { lazyLoadFeedbackIntegration } from './lazy';
 
 /**
  * @beta
+ * @deprecated The `FeedbackButton` component will be removed in a future major version.
  * Implements a feedback button that opens the FeedbackForm.
  */
 export class FeedbackButton extends React.Component<FeedbackButtonProps> {

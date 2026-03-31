@@ -122,11 +122,13 @@ const showFeedbackWidget = showFeedbackForm;
 /** @deprecated Use `resetFeedbackFormManager` instead. */
 const resetFeedbackWidgetManager = resetFeedbackFormManager;
 
+/** @deprecated `showFeedbackButton` will be removed in a future major version. */
 const showFeedbackButton = (): void => {
   lazyLoadAutoInjectFeedbackButtonIntegration();
   FeedbackButtonManager.show();
 };
 
+/** @deprecated `hideFeedbackButton` will be removed in a future major version. */
 const hideFeedbackButton = (): void => {
   FeedbackButtonManager.hide();
 };
