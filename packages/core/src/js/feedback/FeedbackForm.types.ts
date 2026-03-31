@@ -4,9 +4,9 @@ import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
 /**
  * The props for the feedback form
  */
-export interface FeedbackWidgetProps
+export interface FeedbackFormProps
   extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks, ImagePickerConfiguration {
-  styles?: FeedbackWidgetStyles;
+  styles?: FeedbackFormStyles;
 }
 
 /**
@@ -286,7 +286,7 @@ export interface ImagePicker {
 /**
  * The styles for the feedback form
  */
-export interface FeedbackWidgetStyles {
+export interface FeedbackFormStyles {
   container?: ViewStyle;
   title?: TextStyle;
   label?: TextStyle;
@@ -341,7 +341,7 @@ export interface ScreenshotButtonStyles {
 /**
  * The state of the feedback form
  */
-export interface FeedbackWidgetState {
+export interface FeedbackFormState {
   isVisible: boolean;
   name: string;
   email: string;
@@ -350,3 +350,12 @@ export interface FeedbackWidgetState {
   attachment?: string | Uint8Array;
   attachmentUri?: string;
 }
+
+/** @deprecated Use `FeedbackFormProps` instead. */
+export type FeedbackWidgetProps = FeedbackFormProps;
+
+/** @deprecated Use `FeedbackFormStyles` instead. */
+export type FeedbackWidgetStyles = FeedbackFormStyles;
+
+/** @deprecated Use `FeedbackFormState` instead. */
+export type FeedbackWidgetState = FeedbackFormState;

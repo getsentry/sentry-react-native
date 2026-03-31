@@ -8,13 +8,13 @@ import type {
   ScreenshotButtonProps,
   ScreenshotButtonStyles,
   ScreenshotButtonTextConfiguration,
-} from './FeedbackWidget.types';
+} from './FeedbackForm.types';
 
 import { NATIVE } from '../wrapper';
 import { defaultScreenshotButtonConfiguration } from './defaults';
-import { defaultScreenshotButtonStyles } from './FeedbackWidget.styles';
-import { getTheme } from './FeedbackWidget.theme';
-import { hideScreenshotButton, showFeedbackWidget } from './FeedbackWidgetManager';
+import { defaultScreenshotButtonStyles } from './FeedbackForm.styles';
+import { getTheme } from './FeedbackForm.theme';
+import { hideScreenshotButton, showFeedbackForm } from './FeedbackFormManager';
 import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
@@ -30,7 +30,7 @@ const takeScreenshot = async (): Promise<void> => {
     } else {
       capturedScreenshot = 'ErrorCapturingScreenshot';
     }
-    showFeedbackWidget();
+    showFeedbackForm();
   }, 100);
 };
 

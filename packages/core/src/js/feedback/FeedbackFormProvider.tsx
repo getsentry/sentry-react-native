@@ -15,22 +15,22 @@ import {
   View,
 } from 'react-native';
 
-import type { FeedbackWidgetStyles } from './FeedbackWidget.types';
+import type { FeedbackFormStyles } from './FeedbackForm.types';
 
 import { notWeb } from '../utils/environment';
 import { FeedbackButton } from './FeedbackButton';
-import { FeedbackWidget } from './FeedbackWidget';
-import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackWidget.styles';
-import { getTheme } from './FeedbackWidget.theme';
+import { FeedbackForm } from './FeedbackForm';
+import { modalSheetContainer, modalWrapper, topSpacer } from './FeedbackForm.styles';
+import { getTheme } from './FeedbackForm.theme';
 import {
   BACKGROUND_ANIMATION_DURATION,
   FeedbackButtonManager,
-  FeedbackWidgetManager,
+  FeedbackFormManager,
   PULL_DOWN_CLOSE_THRESHOLD,
   ScreenshotButtonManager,
-  showFeedbackWidget,
+  showFeedbackForm,
   SLIDE_ANIMATION_DURATION,
-} from './FeedbackWidgetManager';
+} from './FeedbackFormManager';
 import {
   getFeedbackButtonOptions,
   getFeedbackOptions,
@@ -43,12 +43,12 @@ import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './u
 
 const useNativeDriverForColorAnimations = isNativeDriverSupportedForColorAnimations();
 
-export interface FeedbackWidgetProviderProps {
+export interface FeedbackFormProviderProps {
   children: React.ReactNode;
-  styles?: FeedbackWidgetStyles;
+  styles?: FeedbackFormStyles;
 }
 
-export interface FeedbackWidgetProviderState {
+export interface FeedbackFormProviderState {
   isButtonVisible: boolean;
   isScreenshotButtonVisible: boolean;
   isVisible: boolean;
@@ -58,12 +58,12 @@ export interface FeedbackWidgetProviderState {
 }
 
 /**
- * FeedbackWidgetProvider is a component that wraps the feedback widget and provides
+ * FeedbackFormProvider is a component that wraps the feedback widget and provides
  * functionality to show and hide the widget. It also manages the visibility of the
  * feedback button and screenshot button.
  */
-export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProviderProps> {
-  public state: FeedbackWidgetProviderState = {
+export class FeedbackFormProvider extends React.Component<FeedbackFormProviderProps> {
+  public state: FeedbackFormProviderState = {
     isButtonVisible: false,
     isScreenshotButtonVisible: false,
     isVisible: false,
@@ -107,11 +107,11 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
     },
   });
 
-  public constructor(props: FeedbackWidgetProviderProps) {
+  public constructor(props: FeedbackFormProviderProps) {
     super(props);
     FeedbackButtonManager.initialize(this._setButtonVisibilityFunction);
     ScreenshotButtonManager.initialize(this._setScreenshotButtonVisibilityFunction);
-    FeedbackWidgetManager.initialize(this._setVisibilityFunction);
+    FeedbackFormManager.initialize(this._setVisibilityFunction);
   }
 
   /**
@@ -123,7 +123,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
     });
 
     if (isShakeToReportEnabled()) {
-      this._startedShakeListener = startShakeListener(showFeedbackWidget);
+      this._startedShakeListener = startShakeListener(showFeedbackForm);
     }
   }
 
@@ -144,7 +144,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
    * Animates the background opacity when the modal is shown.
    */
   // oxlint-disable-next-line typescript-eslint(no-explicit-any)
-  public componentDidUpdate(_prevProps: any, prevState: FeedbackWidgetProviderState): void {
+  public componentDidUpdate(_prevProps: any, prevState: FeedbackFormProviderState): void {
     if (!prevState.isVisible && this.state.isVisible) {
       Animated.parallel([
         Animated.timing(this.state.backgroundOpacity, {
@@ -160,7 +160,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
           easing: Easing.in(Easing.quad),
         }),
       ]).start(() => {
-        debug.log('FeedbackWidgetProvider componentDidUpdate');
+        debug.log('FeedbackFormProvider componentDidUpdate');
       });
     } else if (prevState.isVisible && !this.state.isVisible) {
       this.state.backgroundOpacity.setValue(0);
@@ -172,7 +172,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
    */
   public render(): React.ReactNode {
     if (!isModalSupported()) {
-      debug.error('FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.');
+      debug.error('FeedbackForm Modal is not supported in React Native < 0.71 with Fabric renderer.');
       return <>{this.props.children}</>;
     }
 
@@ -212,7 +212,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
                   automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
                   onScroll={this._handleScroll}
                 >
-                  <FeedbackWidget
+                  <FeedbackForm
                     {...getFeedbackOptions()}
                     onFormClose={this._handleClose}
                     onFormSubmitted={this._handleClose}
@@ -267,6 +267,6 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
   };
 
   private _handleClose = (): void => {
-    FeedbackWidgetManager.hide();
+    FeedbackFormManager.hide();
   };
 }

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
+exports[`FeedbackForm matches the snapshot with custom styles 1`] = `
 <View
   accessibilityElementsHidden={false}
   accessibilityState={
@@ -278,7 +278,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles 1`] = `
 </View>
 `;
 
-exports[`FeedbackWidget matches the snapshot with custom styles and screenshot button 1`] = `
+exports[`FeedbackForm matches the snapshot with custom styles and screenshot button 1`] = `
 <View
   accessibilityElementsHidden={false}
   accessibilityState={
@@ -619,7 +619,7 @@ exports[`FeedbackWidget matches the snapshot with custom styles and screenshot b
 </View>
 `;
 
-exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
+exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
 <View
   accessibilityElementsHidden={false}
   accessibilityState={
@@ -896,7 +896,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts 1`] = `
 </View>
 `;
 
-exports[`FeedbackWidget matches the snapshot with custom texts and screenshot button 1`] = `
+exports[`FeedbackForm matches the snapshot with custom texts and screenshot button 1`] = `
 <View
   accessibilityElementsHidden={false}
   accessibilityState={
@@ -1236,7 +1236,7 @@ exports[`FeedbackWidget matches the snapshot with custom texts and screenshot bu
 </View>
 `;
 
-exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
+exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
 <View
   accessibilityElementsHidden={false}
   accessibilityState={
@@ -1513,7 +1513,7 @@ exports[`FeedbackWidget matches the snapshot with default configuration 1`] = `
 </View>
 `;
 
-exports[`FeedbackWidget matches the snapshot with default configuration and screenshot button 1`] = `
+exports[`FeedbackForm matches the snapshot with default configuration and screenshot button 1`] = `
 <View
   accessibilityElementsHidden={false}
   accessibilityState={

@@ -5,7 +5,7 @@ import { getColorScheme, getFeedbackDarkTheme, getFeedbackLightTheme } from './i
 /**
  * Get the theme for the feedback widget based on the current color scheme
  */
-export function getTheme(): FeedbackWidgetTheme {
+export function getTheme(): FeedbackFormTheme {
   const userTheme = getColorScheme();
   const colorScheme = userTheme === 'system' ? Appearance.getColorScheme() : userTheme;
   const lightTheme = { ...LightTheme, ...getFeedbackLightTheme() };
@@ -13,7 +13,7 @@ export function getTheme(): FeedbackWidgetTheme {
   return colorScheme === 'dark' ? darkTheme : lightTheme;
 }
 
-export interface FeedbackWidgetTheme {
+export interface FeedbackFormTheme {
   /**
    * Background color for surfaces
    */
@@ -50,7 +50,7 @@ export interface FeedbackWidgetTheme {
   sentryLogo?: string;
 }
 
-export const LightTheme: FeedbackWidgetTheme = {
+export const LightTheme: FeedbackFormTheme = {
   accentBackground: 'rgba(88, 74, 192, 1)',
   accentForeground: '#ffffff',
   foreground: '#2b2233',
@@ -60,7 +60,7 @@ export const LightTheme: FeedbackWidgetTheme = {
   sentryLogo: 'rgba(54, 45, 89, 1)',
 };
 
-export const DarkTheme: FeedbackWidgetTheme = {
+export const DarkTheme: FeedbackFormTheme = {
   accentBackground: 'rgba(88, 74, 192, 1)',
   accentForeground: '#ffffff',
   foreground: '#ebe6ef',
@@ -69,3 +69,6 @@ export const DarkTheme: FeedbackWidgetTheme = {
   feedbackIcon: '#ffffff',
   sentryLogo: '#ffffff',
 };
+
+/** @deprecated Use `FeedbackFormTheme` instead. */
+export type FeedbackWidgetTheme = FeedbackFormTheme;
