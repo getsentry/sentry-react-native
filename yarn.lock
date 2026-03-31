@@ -27984,23 +27984,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-launch-arguments@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "react-native-launch-arguments@npm:4.0.2"
-  peerDependencies:
-    react: ">=16.8.1"
-    react-native: ">=0.60.0-rc.0 <1.0.x"
-  checksum: 5a73cfa27c603a743939c7fbc98fef3eb790dfc1043ecfe60855d30f238c41251ba1a47775cb660b37ef86f96961b5643f6ff48480f0d60efb0235488d43ff05
-  languageName: node
-  linkType: hard
-
-"react-native-launch-arguments@npm:^4.1.0":
+"react-native-launch-arguments@npm:4.1.0":
   version: 4.1.0
   resolution: "react-native-launch-arguments@npm:4.1.0"
   peerDependencies:
     react: ">=16.8.1"
     react-native: ">=0.60.0-rc.0 <1.0.x"
   checksum: 719b6cbfb0bb77152b94f0f96c30a90847b9ade4908936435d2c2024e81d2538968a9225457d443f84513e72487565c7b31472307db37292640ffb2a77315e3e
+  languageName: node
+  linkType: hard
+
+"react-native-launch-arguments@patch:react-native-launch-arguments@npm%3A4.1.0#./.yarn/patches/react-native-launch-arguments-npm-4.1.0-b58782de29.patch::locator=sentry-react-native%40workspace%3A.":
+  version: 4.1.0
+  resolution: "react-native-launch-arguments@patch:react-native-launch-arguments@npm%3A4.1.0#./.yarn/patches/react-native-launch-arguments-npm-4.1.0-b58782de29.patch::version=4.1.0&hash=6171f1&locator=sentry-react-native%40workspace%3A."
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 3338bc9ad014a59759a69d4cd29aedccda701c54952bb487ab9468947ab7e615c205698e425a068635e0abcd8e5fce04b90aade7bb3e4030571267cadb6f14f5
   languageName: node
   linkType: hard
 
