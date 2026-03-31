@@ -37,6 +37,7 @@ import {
   getScreenshotButtonOptions,
   isShakeToReportEnabled,
 } from './integration';
+import { lazyLoadShakeToReportIntegration } from './lazy';
 import { ScreenshotButton } from './ScreenshotButton';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';
@@ -123,6 +124,7 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
     });
 
     if (isShakeToReportEnabled()) {
+      lazyLoadShakeToReportIntegration();
       this._startedShakeListener = startShakeListener(showFeedbackForm);
     }
   }
