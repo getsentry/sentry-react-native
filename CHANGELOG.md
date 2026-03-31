@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Rename `FeedbackWidget` to `FeedbackForm` and `showFeedbackWidget` to `showFeedbackForm` ([#5931](https://github.com/getsentry/sentry-react-native/pull/5931))
+  - The old names are deprecated but still work
+
 ### Fixes
 
 - Fix iOS crash (EXC_BAD_ACCESS) in time-to-initial-display when navigating between screens ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))
