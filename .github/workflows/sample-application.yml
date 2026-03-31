@@ -337,6 +337,35 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          wait_for_boot: true
+          erase_before_boot: false
+
+      - name: Wait for iOS simulator to be fully ready
+        run: |
+          xcrun simctl bootstatus booted -b
+          xcrun simctl launch booted com.apple.Preferences
+          sleep 5
+          xcrun simctl terminate booted com.apple.Preferences
+
+      - name: Warm up Maestro driver on iOS
+        continue-on-error: true
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          xcrun simctl install booted sentryreactnativesample.app
+          WARMUP=$(mktemp /tmp/maestro-warmup-XXXXXX.yml)
+          cat > "$WARMUP" << 'YML'
+          appId: io.sentry.reactnative.sample
+          ---
+          - launchApp:
+              clearState: true
+          - extendedWaitUntil:
+              visible: "Sentry React Native Sample"
+              timeout: 120000
+          - killApp
+          YML
+          sed -i '' 's/^          //' "$WARMUP"
+          maestro test "$WARMUP" || true
+          rm -f "$WARMUP"
 
       - name: Run iOS Tests
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
@@ -397,54 +426,6 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
-      - name: Boot ${{ env.IOS_DEVICE }} with iOS ${{ env.IOS_VERSION }}
-        uses: futureware-tech/simulator-action@e89aa8f93d3aec35083ff49d2854d07f7186f7f5 # pin@v5
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
-        with:
-          model: ${{ env.IOS_DEVICE }}
-          os_version: ${{ env.IOS_VERSION }}
-          wait_for_boot: true
-          erase_before_boot: false
-
-      - name: Wait for iOS simulator to be fully ready
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
-        run: |
-          xcrun simctl bootstatus booted -b
-          xcrun simctl launch booted com.apple.Preferences
-          sleep 5
-          xcrun simctl terminate booted com.apple.Preferences
-
-      - name: Warm up Maestro driver on iOS
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
-        continue-on-error: true
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: |
-          # Install the app first so Maestro can launch it
-          xcrun simctl install booted sentryreactnativesample.app
-          # The first Maestro launchApp after simulator boot can fail on
-          # Cirrus Labs Tart VMs. Run a throwaway launch cycle to warm up
-          # the IDB/XCUITest driver before real tests start.
-          WARMUP=$(mktemp /tmp/maestro-warmup-XXXXXX.yml)
-          cat > "$WARMUP" << 'YML'
-          appId: io.sentry.reactnative.sample
-          ---
-          - launchApp:
-              clearState: true
-          - extendedWaitUntil:
-              visible: "Sentry React Native Sample"
-              timeout: 120000
-          - killApp
-          YML
-          # Strip leading whitespace from heredoc (indented for readability)
-          sed -i '' 's/^          //' "$WARMUP"
-          maestro test "$WARMUP" || true
-          rm -f "$WARMUP"
-
-      - name: Run iOS Tests
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: yarn test-ios
 
       - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # pin@v2.37.0
