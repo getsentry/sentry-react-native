@@ -320,13 +320,13 @@ const ErrorsScreen = (_props: Props) => {
         <Button
           title="Feedback form"
           onPress={() => {
-            _props.navigation.navigate('FeedbackWidget');
+            _props.navigation.navigate('FeedbackForm');
           }}
         />
         <Button
           title="Feedback form (auto)"
           onPress={() => {
-            Sentry.showFeedbackWidget();
+            Sentry.showFeedbackForm();
           }}
         />
         <Button

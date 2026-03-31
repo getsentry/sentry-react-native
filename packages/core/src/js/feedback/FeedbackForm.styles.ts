@@ -1,9 +1,9 @@
 import type { ViewStyle } from 'react-native';
 
-import type { FeedbackWidgetTheme } from './FeedbackWidget.theme';
-import type { FeedbackButtonStyles, FeedbackWidgetStyles } from './FeedbackWidget.types';
+import type { FeedbackFormTheme } from './FeedbackForm.theme';
+import type { FeedbackButtonStyles, FeedbackFormStyles } from './FeedbackForm.types';
 
-const defaultStyles = (theme: FeedbackWidgetTheme): FeedbackWidgetStyles => {
+const defaultStyles = (theme: FeedbackFormTheme): FeedbackFormStyles => {
   return {
     container: {
       flex: 1,
@@ -112,7 +112,7 @@ const defaultStyles = (theme: FeedbackWidgetTheme): FeedbackWidgetStyles => {
   };
 };
 
-export const defaultButtonStyles = (theme: FeedbackWidgetTheme): FeedbackButtonStyles => {
+export const defaultButtonStyles = (theme: FeedbackFormTheme): FeedbackButtonStyles => {
   return {
     triggerButton: {
       position: 'absolute',
@@ -156,7 +156,7 @@ export const modalWrapper: ViewStyle = {
   bottom: 0,
 };
 
-export const modalSheetContainer = (theme: FeedbackWidgetTheme): ViewStyle => {
+export const modalSheetContainer = (theme: FeedbackFormTheme): ViewStyle => {
   return {
     backgroundColor: theme.background,
     borderTopLeftRadius: 16,
