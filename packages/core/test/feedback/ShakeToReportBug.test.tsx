@@ -3,8 +3,8 @@ import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
 
-import { resetFeedbackWidgetManager } from '../../src/js/feedback/FeedbackWidgetManager';
-import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
+import { resetFeedbackFormManager } from '../../src/js/feedback/FeedbackFormManager';
+import { FeedbackFormProvider } from '../../src/js/feedback/FeedbackFormProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { isShakeListenerActive, startShakeListener, stopShakeListener } from '../../src/js/feedback/ShakeToReportBug';
 import { isModalSupported } from '../../src/js/feedback/utils';
@@ -38,7 +38,7 @@ const createMockEmitter = () => {
 
 let mockEmitterFactory: ReturnType<typeof createMockEmitter>;
 
-// Also mock the module-level NativeEventEmitter used by FeedbackWidgetProvider's auto-start
+// Also mock the module-level NativeEventEmitter used by FeedbackFormProvider's auto-start
 jest.mock('../../src/js/feedback/ShakeToReportBug', () => {
   const actual = jest.requireActual('../../src/js/feedback/ShakeToReportBug');
   return {
@@ -60,7 +60,7 @@ describe('ShakeToReportBug', () => {
     const client = new TestClient(getDefaultTestClientOptions());
     setCurrentClient(client);
     client.init();
-    resetFeedbackWidgetManager();
+    resetFeedbackFormManager();
 
     // Get the actual functions (unmocked)
     const actual = jest.requireActual('../../src/js/feedback/ShakeToReportBug');
@@ -136,9 +136,9 @@ describe('ShakeToReportBug', () => {
       client.addIntegration(integration);
 
       render(
-        <FeedbackWidgetProvider>
+        <FeedbackFormProvider>
           <Text>App Components</Text>
-        </FeedbackWidgetProvider>,
+        </FeedbackFormProvider>,
       );
 
       expect(startShakeListener).toHaveBeenCalled();
@@ -157,9 +157,9 @@ describe('ShakeToReportBug', () => {
       client.addIntegration(integration);
 
       render(
-        <FeedbackWidgetProvider>
+        <FeedbackFormProvider>
           <Text>App Components</Text>
-        </FeedbackWidgetProvider>,
+        </FeedbackFormProvider>,
       );
 
       expect(startShakeListener).not.toHaveBeenCalled();
@@ -176,15 +176,15 @@ describe('ShakeToReportBug', () => {
       client.addIntegration(integration);
 
       render(
-        <FeedbackWidgetProvider>
+        <FeedbackFormProvider>
           <Text>App Components</Text>
-        </FeedbackWidgetProvider>,
+        </FeedbackFormProvider>,
       );
 
       expect(startShakeListener).not.toHaveBeenCalled();
     });
 
-    it('stops shake listener when FeedbackWidgetProvider unmounts', () => {
+    it('stops shake listener when FeedbackFormProvider unmounts', () => {
       mockedIsModalSupported.mockReturnValue(true);
 
       const integration = feedbackIntegration({
@@ -197,9 +197,9 @@ describe('ShakeToReportBug', () => {
       client.addIntegration(integration);
 
       const { unmount } = render(
-        <FeedbackWidgetProvider>
+        <FeedbackFormProvider>
           <Text>App Components</Text>
-        </FeedbackWidgetProvider>,
+        </FeedbackFormProvider>,
       );
 
       expect(startShakeListener).toHaveBeenCalled();

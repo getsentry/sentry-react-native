@@ -390,7 +390,10 @@ public class RNSentryModuleImpl {
       double startOffsetSeconds = nowSeconds - startTimestampSeconds;
       double endOffsetSeconds = nowSeconds - endTimestampSeconds;
 
-      if (startOffsetSeconds < 0 || endOffsetSeconds < 0) {
+      if (startOffsetSeconds < 0
+          || endOffsetSeconds < 0
+          || (long) (startOffsetSeconds * 1e9) > nowNanos
+          || (long) (endOffsetSeconds * 1e9) > nowNanos) {
         promise.resolve(null);
         return;
       }

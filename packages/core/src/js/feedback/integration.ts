@@ -1,27 +1,27 @@
 import { getClient, type Integration } from '@sentry/core';
 
-import type { FeedbackWidgetTheme } from './FeedbackWidget.theme';
-import type { FeedbackButtonProps, FeedbackWidgetProps, ScreenshotButtonProps } from './FeedbackWidget.types';
+import type { FeedbackFormTheme } from './FeedbackForm.theme';
+import type { FeedbackButtonProps, FeedbackFormProps, ScreenshotButtonProps } from './FeedbackForm.types';
 
 export const MOBILE_FEEDBACK_INTEGRATION_NAME = 'MobileFeedback';
 
 type FeedbackIntegration = Integration & {
-  options: Partial<FeedbackWidgetProps>;
+  options: Partial<FeedbackFormProps>;
   buttonOptions: Partial<FeedbackButtonProps>;
   screenshotButtonOptions: Partial<ScreenshotButtonProps>;
   colorScheme?: 'system' | 'light' | 'dark';
-  themeLight: Partial<FeedbackWidgetTheme>;
-  themeDark: Partial<FeedbackWidgetTheme>;
+  themeLight: Partial<FeedbackFormTheme>;
+  themeDark: Partial<FeedbackFormTheme>;
   enableShakeToReport: boolean;
 };
 
 export const feedbackIntegration = (
-  initOptions: Partial<FeedbackWidgetProps> & {
+  initOptions: Partial<FeedbackFormProps> & {
     buttonOptions?: FeedbackButtonProps;
     screenshotButtonOptions?: ScreenshotButtonProps;
     colorScheme?: 'system' | 'light' | 'dark';
-    themeLight?: Partial<FeedbackWidgetTheme>;
-    themeDark?: Partial<FeedbackWidgetTheme>;
+    themeLight?: Partial<FeedbackFormTheme>;
+    themeDark?: Partial<FeedbackFormTheme>;
     /**
      * Enable showing the feedback widget when the user shakes the device.
      *
@@ -59,7 +59,7 @@ const _getClientIntegration = (): FeedbackIntegration | undefined => {
   return getClient()?.getIntegrationByName<ReturnType<typeof feedbackIntegration>>(MOBILE_FEEDBACK_INTEGRATION_NAME);
 };
 
-export const getFeedbackOptions = (): Partial<FeedbackWidgetProps> => {
+export const getFeedbackOptions = (): Partial<FeedbackFormProps> => {
   const integration = _getClientIntegration();
   if (!integration) {
     return {};
@@ -95,7 +95,7 @@ export const getColorScheme = (): 'system' | 'light' | 'dark' => {
   return integration.colorScheme;
 };
 
-export const getFeedbackLightTheme = (): Partial<FeedbackWidgetTheme> => {
+export const getFeedbackLightTheme = (): Partial<FeedbackFormTheme> => {
   const integration = _getClientIntegration();
   if (!integration) {
     return {};
@@ -104,7 +104,7 @@ export const getFeedbackLightTheme = (): Partial<FeedbackWidgetTheme> => {
   return integration.themeLight;
 };
 
-export const getFeedbackDarkTheme = (): Partial<FeedbackWidgetTheme> => {
+export const getFeedbackDarkTheme = (): Partial<FeedbackFormTheme> => {
   const integration = _getClientIntegration();
   if (!integration) {
     return {};

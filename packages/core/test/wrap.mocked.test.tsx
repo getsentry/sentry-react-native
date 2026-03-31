@@ -28,10 +28,10 @@ jest.doMock('@sentry/react', () => {
   };
 });
 
-jest.doMock('../src/js/feedback/FeedbackWidgetProvider', () => {
+jest.doMock('../src/js/feedback/FeedbackFormProvider', () => {
   return {
-    FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
-      <div testID="feedback-widgetID">{children}</div>
+    FeedbackFormProvider: ({ children }: { children: React.ReactNode }) => (
+      <div testID="feedback-formID">{children}</div>
     ),
   };
 });
@@ -61,7 +61,7 @@ describe('Sentry.wrap', () => {
       testID="react-native-profilerID"
     >
       <div
-        testID="feedback-widgetID"
+        testID="feedback-formID"
       >
         <div>
           wrapped
@@ -86,7 +86,7 @@ describe('Sentry.wrap', () => {
       testID="react-profilerID"
     >
       <div
-        testID="feedback-widgetID"
+        testID="feedback-formID"
       >
         <div>
           wrapped
