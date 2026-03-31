@@ -5,6 +5,7 @@ import {
   lazyLoadAutoInjectFeedbackButtonIntegration,
   lazyLoadAutoInjectFeedbackIntegration,
   lazyLoadAutoInjectScreenshotButtonIntegration,
+  lazyLoadShakeToReportIntegration,
 } from './lazy';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 
@@ -146,6 +147,7 @@ let _imperativeShakeListenerStarted = false;
 
 const enableFeedbackOnShake = (): void => {
   lazyLoadAutoInjectFeedbackIntegration();
+  lazyLoadShakeToReportIntegration();
   if (!_imperativeShakeListenerStarted) {
     _imperativeShakeListenerStarted = startShakeListener(showFeedbackWidget);
   }
