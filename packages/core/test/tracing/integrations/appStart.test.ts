@@ -1,6 +1,7 @@
 import type { ErrorEvent, Event, Integration, SpanJSON, TransactionEvent } from '@sentry/core';
 
 import {
+  debug,
   getCurrentScope,
   getGlobalScope,
   getIsolationScope,
@@ -24,7 +25,9 @@ import {
   UI_LOAD,
 } from '../../../src/js/tracing';
 import {
+  _appLoaded,
   _captureAppStart,
+  _clearAppStartEndData,
   _clearRootComponentCreationTimestampMs,
   _setAppStartEndData,
   _setRootComponentCreationTimestampMs,
@@ -1021,6 +1024,134 @@ describe('App Start Integration', () => {
       const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
       expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
     });
+  });
+});
+
+describe('appLoaded() API', () => {
+  let client: TestClient;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+    mockReactNativeBundleExecutionStartTimestamp();
+    client = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(client);
+    client.init();
+  });
+
+  afterEach(() => {
+    clearReactNativeBundleExecutionStartTimestamp();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+  });
+
+  function makeIntegration(): AppStartIntegrationTest {
+    const integration = appStartIntegration({ standalone: false }) as AppStartIntegrationTest;
+    integration.setup(client);
+    integration.afterAllSetup(client);
+    return integration;
+  }
+
+  it('sets the app start end timestamp and marks it as manual', async () => {
+    const appLoadedTimeSeconds = Date.now() / 1000;
+    mockFunction(timestampInSeconds).mockReturnValue(appLoadedTimeSeconds);
+
+    await _appLoaded();
+
+    const appStartTimeMilliseconds = appLoadedTimeSeconds * 1000 - 3000;
+    mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+      type: 'cold' as const,
+      app_start_timestamp_ms: appStartTimeMilliseconds,
+      has_fetched: false,
+      spans: [],
+    });
+
+    const integration = makeIntegration();
+    integration.setFirstStartedActiveRootSpanId('test-span-id');
+
+    const event: TransactionEvent = {
+      type: 'transaction',
+      start_timestamp: Date.now() / 1000,
+      timestamp: Date.now() / 1000 + 1,
+      contexts: { trace: { span_id: 'test-span-id', trace_id: 'trace123' } },
+    };
+
+    const processed = (await integration.processEvent(event, {}, client)) as TransactionEvent;
+    const appStartSpan = processed.spans?.find(s => s.op === APP_START_COLD_OP);
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan?.timestamp).toBeCloseTo(appLoadedTimeSeconds, 1);
+    expect(appStartSpan?.origin).toBe(SPAN_ORIGIN_MANUAL_APP_START);
+  });
+
+  it('ignores subsequent calls after first invocation', async () => {
+    const warnSpy = jest.spyOn(debug, 'warn');
+
+    await _appLoaded();
+    await _appLoaded();
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('already called'));
+  });
+
+  it('overrides auto-detected timestamp when called after _captureAppStart', async () => {
+    const now = Date.now();
+    const autoTimeSeconds = now / 1000;
+    const manualTimeSeconds = now / 1000 + 0.5;
+    const appStartTimeMilliseconds = now - 3000;
+
+    mockFunction(timestampInSeconds).mockReturnValueOnce(autoTimeSeconds);
+    await _captureAppStart({ isManual: false });
+
+    mockFunction(timestampInSeconds).mockReturnValueOnce(manualTimeSeconds);
+    await _appLoaded();
+
+    mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+      type: 'cold' as const,
+      app_start_timestamp_ms: appStartTimeMilliseconds,
+      has_fetched: false,
+      spans: [],
+    });
+
+    const integration = makeIntegration();
+    integration.setFirstStartedActiveRootSpanId('span-override');
+
+    const event: TransactionEvent = {
+      type: 'transaction',
+      start_timestamp: now / 1000,
+      timestamp: now / 1000 + 2,
+      contexts: { trace: { span_id: 'span-override', trace_id: 'trace' } },
+    };
+
+    const processed = (await integration.processEvent(event, {}, client)) as TransactionEvent;
+    const appStartSpan = processed.spans?.find(s => s.op === APP_START_COLD_OP);
+    expect(appStartSpan?.timestamp).toBeCloseTo(manualTimeSeconds, 1);
+  });
+
+  it('prevents auto-capture from overriding when called before _captureAppStart', async () => {
+    await _appLoaded();
+
+    const logSpy = jest.spyOn(debug, 'log');
+    await _captureAppStart({ isManual: false });
+
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Skipping auto app start capture'));
+  });
+
+  it('warns and is a no-op when called before Sentry.init', async () => {
+    const warnSpy = jest.spyOn(debug, 'warn');
+    getCurrentScope().setClient(undefined);
+    getGlobalScope().setClient(undefined);
+    getIsolationScope().setClient(undefined);
+
+    await _appLoaded();
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('before Sentry.init'));
+
+    setCurrentClient(client);
   });
 });
 

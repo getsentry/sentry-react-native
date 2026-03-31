@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `Sentry.appLoaded()` API to explicitly signal app start end ([#5940](https://github.com/getsentry/sentry-react-native/pull/5940))
+
 ### Fixes
 
 - Fix iOS crash (EXC_BAD_ACCESS) in time-to-initial-display when navigating between screens ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))

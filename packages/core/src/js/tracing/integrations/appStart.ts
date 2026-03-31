@@ -59,6 +59,7 @@ interface AppStartEndData {
 
 let appStartEndData: AppStartEndData | undefined = undefined;
 let isRecordedAppStartEndTimestampMsManual = false;
+let isAppLoadedManuallyInvoked = false;
 
 let rootComponentCreationTimestampMs: number | undefined = undefined;
 let isRootComponentCreationTimestampMsManual = false;
@@ -72,11 +73,63 @@ export function captureAppStart(): Promise<void> {
 }
 
 /**
+ * Signals that the app has finished loading and is ready for user interaction.
+ * Called internally by `appLoaded()` from the public SDK API.
+ *
+ * @private
+ */
+export async function _appLoaded(): Promise<void> {
+  if (isAppLoadedManuallyInvoked) {
+    debug.warn('[AppStart] appLoaded() was already called. Subsequent calls are ignored.');
+    return;
+  }
+  isAppLoadedManuallyInvoked = true;
+
+  const client = getClient();
+  if (!client) {
+    debug.warn('[AppStart] appLoaded() was called before Sentry.init(). App start end will not be recorded.');
+    return;
+  }
+
+  const timestampMs = timestampInSeconds() * 1000;
+
+  // If auto-capture already ran (ReactNativeProfiler.componentDidMount), overwrite the timestamp.
+  // The transaction hasn't been sent yet in non-standalone mode so this is safe.
+  if (appStartEndData) {
+    debug.log('[AppStart] appLoaded() overwriting auto-detected app start end timestamp.');
+    appStartEndData.timestampMs = timestampMs;
+    appStartEndData.endFrames = null;
+  } else {
+    _setAppStartEndData({ timestampMs, endFrames: null });
+  }
+  isRecordedAppStartEndTimestampMsManual = true;
+
+  if (NATIVE.enableNative) {
+    try {
+      const endFrames = await NATIVE.fetchNativeFrames();
+      debug.log('[AppStart] Captured end frames for app start.', endFrames);
+      _updateAppStartEndFrames(endFrames);
+    } catch (error) {
+      debug.log('[AppStart] Failed to capture end frames for app start.', error);
+    }
+  }
+
+  await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
+}
+
+/**
  * For internal use only.
  *
  * @private
  */
 export async function _captureAppStart({ isManual }: { isManual: boolean }): Promise<void> {
+  // If appLoaded() was already called manually, skip the auto-capture to avoid
+  // overwriting the manual end timestamp (race B: appLoaded before componentDidMount).
+  if (!isManual && isAppLoadedManuallyInvoked) {
+    debug.log('[AppStart] Skipping auto app start capture because appLoaded() was already called.');
+    return;
+  }
+
   const client = getClient();
   if (!client) {
     debug.warn('[AppStart] Could not capture App Start, missing client.');
@@ -158,6 +211,17 @@ export const _updateAppStartEndFrames = (endFrames: NativeFramesResponse | null)
  */
 export function _clearRootComponentCreationTimestampMs(): void {
   rootComponentCreationTimestampMs = undefined;
+}
+
+/**
+ * For testing purposes only.
+ *
+ * @private
+ */
+export function _clearAppStartEndData(): void {
+  appStartEndData = undefined;
+  isRecordedAppStartEndTimestampMsManual = false;
+  isAppLoadedManuallyInvoked = false;
 }
 
 /**
