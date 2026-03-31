@@ -351,10 +351,15 @@ if (actions.includes('test')) {
       } catch (error) {
         const elapsed = Math.round((Date.now() - startTime) / 1000);
         const name = flow.replace('.yml', '');
-        const stderr = error.stderr?.toString().trim();
-        const detail = stderr?.split('\n').find(l => l.includes('App crashed') || l.includes('Element not found')) || '';
+        const output = (error.stdout?.toString() || '') + (error.stderr?.toString() || '');
+        const detail = output.split('\n').find(l =>
+          l.includes('App crashed') || l.includes('Element not found') || l.includes('FAILED')) || '';
         results.push({ name, passed: false, elapsed, detail });
-        console.log(`[Failed] ${name} (${elapsed}s)${detail ? ` (${detail})` : ''}`);
+        console.log(`[Failed] ${name} (${elapsed}s)${detail ? ` (${detail.trim()})` : ''}`);
+        // Dump Maestro output for failed flows to aid debugging
+        if (output) {
+          console.log(`\n--- ${name} output ---\n${output.trim()}\n--- end ${name} output ---\n`);
+        }
       }
     }
 
