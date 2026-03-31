@@ -38,6 +38,7 @@ import {
   isShakeToReportEnabled,
 } from './integration';
 import { ScreenshotButton } from './ScreenshotButton';
+import { lazyLoadShakeToReportIntegration } from './lazy';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';
 
@@ -123,6 +124,7 @@ export class FeedbackWidgetProvider extends React.Component<FeedbackWidgetProvid
     });
 
     if (isShakeToReportEnabled()) {
+      lazyLoadShakeToReportIntegration();
       this._startedShakeListener = startShakeListener(showFeedbackWidget);
     }
   }
