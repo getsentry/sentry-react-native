@@ -533,4 +533,17 @@ describe('FeedbackForm', () => {
 
     expect(getClient().getIntegrationByName(MOBILE_FEEDBACK_INTEGRATION_NAME)).toBeDefined();
   });
+
+  describe('deprecated API backward compatibility', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const index = require('../../src/js/index');
+
+    it('FeedbackWidget is the same as FeedbackForm', () => {
+      expect(index.FeedbackWidget).toBe(index.FeedbackForm);
+    });
+
+    it('showFeedbackWidget is the same as showFeedbackForm', () => {
+      expect(index.showFeedbackWidget).toBe(index.showFeedbackForm);
+    });
+  });
 });
