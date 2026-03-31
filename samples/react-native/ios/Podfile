@@ -54,7 +54,6 @@ target 'sentryreactnativesample' do
       new_contents = text.gsub('#define FOLLY_HAS_COROUTINES 1', '#define FOLLY_HAS_COROUTINES 0')
       File.open(file, "w") { |file| file.puts new_contents }
     end
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
