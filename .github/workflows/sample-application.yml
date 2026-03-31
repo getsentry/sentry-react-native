@@ -83,14 +83,6 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
-
       - name: Setup Global Xcode Tools
         run: which xcbeautify || brew install xcbeautify
 
@@ -181,7 +173,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
 
       - name: Install SDK Dependencies
         run: yarn install
@@ -257,14 +249,6 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
-
       - name: Setup Global Xcode Tools
         run: which xcbeautify || brew install xcbeautify
 
@@ -305,7 +289,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
-          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/macos/*.log
+          path: samples/react-native-macos/macos/*.log
 
   test-ios:
     name: Test ios production REV2

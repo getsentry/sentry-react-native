@@ -71,14 +71,6 @@ jobs:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
-
       - name: Setup Global Xcode Tools
         run: which xcbeautify || brew install xcbeautify
 
@@ -90,7 +82,7 @@ jobs:
 
       - name: Prebuild apps
         working-directory: samples/expo
-        run: npx expo prebuild
+        run: npx expo prebuild --platform ios
 
       - name: Install App Pods
         working-directory: samples/expo/ios
@@ -131,7 +123,7 @@ jobs:
       - name: Export Expo
         working-directory: samples/expo
         run: |
-          npx expo export
+          npx expo export -p ios
 
       - name: Upload logs
         if: ${{ always() }}
@@ -185,7 +177,7 @@ jobs:
 
       - name: Prebuild apps
         working-directory: samples/expo
-        run: npx expo prebuild
+        run: npx expo prebuild --platform android
 
       - name: Build Android App
         working-directory: samples/expo/android
@@ -200,7 +192,7 @@ jobs:
       - name: Export Expo
         working-directory: samples/expo
         run: |
-          npx expo export
+          npx expo export -p android
 
       - name: Upload logs
         if: ${{ always() }}
@@ -244,8 +236,3 @@ jobs:
         working-directory: samples/expo
         run: |
           npx expo export -p web
-
-      - name: Export Expo
-        working-directory: samples/expo
-        run: |
-          npx expo export
