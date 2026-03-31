@@ -37,8 +37,8 @@ import {
   getScreenshotButtonOptions,
   isShakeToReportEnabled,
 } from './integration';
-import { ScreenshotButton } from './ScreenshotButton';
 import { lazyLoadShakeToReportIntegration } from './lazy';
+import { ScreenshotButton } from './ScreenshotButton';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
 import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './utils';
 
