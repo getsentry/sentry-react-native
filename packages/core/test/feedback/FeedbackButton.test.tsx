@@ -1,14 +1,14 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 
-import type { FeedbackButtonProps, FeedbackButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
+import type { FeedbackButtonProps, FeedbackButtonStyles } from '../../src/js/feedback/FeedbackForm.types';
 
 import { FeedbackButton } from '../../src/js/feedback/FeedbackButton';
-import { showFeedbackWidget } from '../../src/js/feedback/FeedbackWidgetManager';
+import { showFeedbackForm } from '../../src/js/feedback/FeedbackFormManager';
 
-jest.mock('../../src/js/feedback/FeedbackWidgetManager', () => ({
-  ...jest.requireActual('../../src/js/feedback/FeedbackWidgetManager'),
-  showFeedbackWidget: jest.fn(),
+jest.mock('../../src/js/feedback/FeedbackFormManager', () => ({
+  ...jest.requireActual('../../src/js/feedback/FeedbackFormManager'),
+  showFeedbackForm: jest.fn(),
 }));
 
 const customTextProps: FeedbackButtonProps = {
@@ -51,7 +51,7 @@ describe('FeedbackButton', () => {
     fireEvent.press(getByText(customTextProps.triggerLabel));
 
     await waitFor(() => {
-      expect(showFeedbackWidget).toHaveBeenCalled();
+      expect(showFeedbackForm).toHaveBeenCalled();
     });
   });
 });

@@ -18,7 +18,7 @@ import * as React from 'react';
 import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 
 import { ReactNativeClient } from './client';
-import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetProvider';
+import { FeedbackFormProvider } from './feedback/FeedbackFormProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { getDefaultIntegrations } from './integrations/default';
 import { shouldEnableNativeNagger } from './options';
@@ -201,9 +201,9 @@ export function wrap<P extends Record<string, unknown>>(
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
         <ProfilerComponent {...profilerProps}>
-          <FeedbackWidgetProvider>
+          <FeedbackFormProvider>
             <RootComponent {...appProps} />
-          </FeedbackWidgetProvider>
+          </FeedbackFormProvider>
         </ProfilerComponent>
       </TouchEventBoundary>
     );

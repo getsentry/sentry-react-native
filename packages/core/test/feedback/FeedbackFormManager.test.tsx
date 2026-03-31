@@ -7,11 +7,11 @@ import { defaultConfiguration } from '../../src/js/feedback/defaults';
 import {
   hideFeedbackButton,
   resetFeedbackButtonManager,
-  resetFeedbackWidgetManager,
+  resetFeedbackFormManager,
   showFeedbackButton,
-  showFeedbackWidget,
-} from '../../src/js/feedback/FeedbackWidgetManager';
-import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
+  showFeedbackForm,
+} from '../../src/js/feedback/FeedbackFormManager';
+import { FeedbackFormProvider } from '../../src/js/feedback/FeedbackFormProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import {
   AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME,
@@ -33,66 +33,66 @@ beforeEach(() => {
   debug.error = jest.fn();
 });
 
-describe('FeedbackWidgetManager', () => {
+describe('FeedbackFormManager', () => {
   beforeEach(() => {
     const client = new TestClient(getDefaultTestClientOptions());
     setCurrentClient(client);
     client.init();
     consoleWarnSpy.mockReset();
-    resetFeedbackWidgetManager();
+    resetFeedbackFormManager();
   });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  it('showFeedbackWidget displays the form when FeedbackWidgetProvider is used', async () => {
+  it('showFeedbackForm displays the form when FeedbackFormProvider is used', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByText, getByTestId } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(getByTestId('feedback-form-modal')).toBeTruthy();
     expect(getByText('App Components')).toBeTruthy();
   });
 
-  it('showFeedbackWidget does not display the form when Modal is not available', async () => {
+  it('showFeedbackForm does not display the form when Modal is not available', async () => {
     mockedIsModalSupported.mockReturnValue(false);
     const { getByText, queryByTestId } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(queryByTestId('feedback-form-modal')).toBeNull();
     expect(getByText('App Components')).toBeTruthy();
     expect(debug.error).toHaveBeenLastCalledWith(
-      'FeedbackWidget Modal is not supported in React Native < 0.71 with Fabric renderer.',
+      'FeedbackForm Modal is not supported in React Native < 0.71 with Fabric renderer.',
     );
   });
 
-  it('showFeedbackWidget does not throw an error when FeedbackWidgetProvider is not used', () => {
+  it('showFeedbackForm does not throw an error when FeedbackFormProvider is not used', () => {
     expect(() => {
-      showFeedbackWidget();
+      showFeedbackForm();
     }).not.toThrow();
   });
 
-  it('showFeedbackWidget displays the form with the feedbackIntegration options', async () => {
+  it('showFeedbackForm displays the form with the feedbackIntegration options', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByPlaceholderText, getByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -102,7 +102,7 @@ describe('FeedbackWidgetManager', () => {
     getClient()?.addIntegration(integration);
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     await waitFor(() => {
@@ -111,12 +111,12 @@ describe('FeedbackWidgetManager', () => {
     expect(getByText('Custom Submit Button')).toBeTruthy();
   });
 
-  it('showFeedbackWidget displays the form with the feedbackIntegration options merged with the defaults', async () => {
+  it('showFeedbackForm displays the form with the feedbackIntegration options merged with the defaults', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByPlaceholderText, getByText, queryByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -125,7 +125,7 @@ describe('FeedbackWidgetManager', () => {
     getClient()?.addIntegration(integration);
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     await waitFor(() => {
@@ -135,36 +135,36 @@ describe('FeedbackWidgetManager', () => {
     expect(getByPlaceholderText(defaultConfiguration.messagePlaceholder)).toBeTruthy(); // default configuration value
   });
 
-  it('showFeedbackWidget warns about missing feedback provider', async () => {
+  it('showFeedbackForm warns about missing feedback provider', async () => {
     mockedIsModalSupported.mockReturnValue(true);
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(consoleWarnSpy).toHaveBeenLastCalledWith(
-      "[Sentry] FeedbackWidget requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackWidget()'.",
+      "[Sentry] FeedbackForm requires 'Sentry.wrap(RootComponent)' to be called before 'showFeedbackForm()'.",
     );
   });
 
-  it('showFeedbackWidget does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {
+  it('showFeedbackForm does not warn about missing feedback provider when FeedbackFormProvider is used', () => {
     mockedIsModalSupported.mockReturnValue(true);
 
     render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
-    showFeedbackWidget();
+    showFeedbackForm();
 
     expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 
-  it('showFeedbackWidget adds the feedbackIntegration to the client', () => {
+  it('showFeedbackForm adds the feedbackIntegration to the client', () => {
     mockedIsModalSupported.mockReturnValue(true);
 
-    showFeedbackWidget();
+    showFeedbackForm();
 
     expect(getClient().getIntegrationByName(AUTO_INJECT_FEEDBACK_INTEGRATION_NAME)).toBeDefined();
   });
@@ -190,16 +190,16 @@ describe('FeedbackButtonManager', () => {
     });
   });
 
-  it('showFeedbackButton displays the button when FeedbackWidgetProvider is used', async () => {
+  it('showFeedbackButton displays the button when FeedbackFormProvider is used', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     await waitFor(() => {
@@ -209,9 +209,9 @@ describe('FeedbackButtonManager', () => {
 
   it('hideFeedbackButton hides the button', () => {
     const { queryByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     showFeedbackButton();
@@ -220,7 +220,7 @@ describe('FeedbackButtonManager', () => {
     expect(queryByText('Report a Bug')).toBeNull();
   });
 
-  it('showFeedbackButton does not throw an error when FeedbackWidgetProvider is not used', () => {
+  it('showFeedbackButton does not throw an error when FeedbackFormProvider is not used', () => {
     expect(() => {
       showFeedbackButton();
     }).not.toThrow();
@@ -234,11 +234,11 @@ describe('FeedbackButtonManager', () => {
     );
   });
 
-  it('showFeedbackButton does not warn about missing feedback provider when FeedbackWidgetProvider is used', () => {
+  it('showFeedbackButton does not warn about missing feedback provider when FeedbackFormProvider is used', () => {
     render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     showFeedbackButton();
@@ -252,45 +252,45 @@ describe('FeedbackButtonManager', () => {
     expect(getClient().getIntegrationByName(AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME)).toBeDefined();
   });
 
-  it('the Feedback Widget matches the snapshot with default configuration and system light theme', async () => {
+  it('the Feedback Form matches the snapshot with default configuration and system light theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('the Feedback Widget matches the snapshot with default configuration and system dark theme', async () => {
+  it('the Feedback Form matches the snapshot with default configuration and system dark theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('the Feedback Widget matches the snapshot with default configuration and dynamically changed theme', async () => {
+  it('the Feedback Form matches the snapshot with default configuration and dynamically changed theme', async () => {
     const component = (
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackFormProvider>
     );
 
     mockedIsModalSupported.mockReturnValue(true);
@@ -299,7 +299,7 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
@@ -310,12 +310,12 @@ describe('FeedbackButtonManager', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('the Feedback Widget matches the snapshot with custom light theme', async () => {
+  it('the Feedback Form matches the snapshot with custom light theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -328,18 +328,18 @@ describe('FeedbackButtonManager', () => {
     getClient()?.addIntegration(integration);
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('the Feedback Widget matches the snapshot with custom dark theme', async () => {
+  it('the Feedback Form matches the snapshot with custom dark theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -352,18 +352,18 @@ describe('FeedbackButtonManager', () => {
     getClient()?.addIntegration(integration);
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('the Feedback Widget matches the snapshot with system light custom theme', async () => {
+  it('the Feedback Form matches the snapshot with system light custom theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -378,18 +378,18 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('the Feedback Widget matches the snapshot with system dark custom theme', async () => {
+  it('the Feedback Form matches the snapshot with system dark custom theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -404,7 +404,7 @@ describe('FeedbackButtonManager', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     await act(async () => {
-      showFeedbackWidget();
+      showFeedbackForm();
     });
 
     expect(toJSON()).toMatchSnapshot();
@@ -413,9 +413,9 @@ describe('FeedbackButtonManager', () => {
   it('the Feedback Button matches the snapshot with default configuration and system light theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
@@ -430,9 +430,9 @@ describe('FeedbackButtonManager', () => {
   it('the Feedback Button matches the snapshot with default configuration and system dark theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
@@ -446,9 +446,9 @@ describe('FeedbackButtonManager', () => {
 
   it('the Feedback Button matches the snapshot with default configuration and dynamically changed theme', async () => {
     const component = (
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>
+      </FeedbackFormProvider>
     );
 
     mockedIsModalSupported.mockReturnValue(true);
@@ -471,9 +471,9 @@ describe('FeedbackButtonManager', () => {
   it('the Feedback Button matches the snapshot with custom light theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -495,9 +495,9 @@ describe('FeedbackButtonManager', () => {
   it('the Feedback Button matches the snapshot with custom dark theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -519,9 +519,9 @@ describe('FeedbackButtonManager', () => {
   it('the Feedback Button matches the snapshot with system light custom theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -545,9 +545,9 @@ describe('FeedbackButtonManager', () => {
   it('the Feedback Button matches the snapshot with system dark custom theme', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { toJSON } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({

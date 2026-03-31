@@ -105,7 +105,7 @@ export default function TabOneScreen() {
           <Button
             title="Show feedback form"
             onPress={() => {
-              Sentry.showFeedbackWidget();
+              Sentry.showFeedbackForm();
             }}
           />
         </View>
