@@ -39,6 +39,19 @@ export function lazyLoadAutoInjectFeedbackButtonIntegration(): void {
   }
 }
 
+export const SHAKE_TO_REPORT_INTEGRATION_NAME = 'ShakeToReport';
+
+/**
+ * Lazy loads the shake to report integration if it is not already loaded.
+ */
+export function lazyLoadShakeToReportIntegration(): void {
+  const integration = getClient()?.getIntegrationByName(SHAKE_TO_REPORT_INTEGRATION_NAME);
+  if (!integration) {
+    // Lazy load the integration to track usage
+    getClient()?.addIntegration({ name: SHAKE_TO_REPORT_INTEGRATION_NAME });
+  }
+}
+
 export const AUTO_INJECT_SCREENSHOT_BUTTON_INTEGRATION_NAME = 'AutoInjectMobileScreenshotButton';
 
 /**
