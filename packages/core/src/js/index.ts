@@ -104,11 +104,7 @@ export { Mask, Unmask } from './replay/CustomMask';
 /** @deprecated The `FeedbackButton` component will be removed in a future major version. */
 export { FeedbackButton } from './feedback/FeedbackButton';
 export { FeedbackForm } from './feedback/FeedbackForm';
-export {
-  showFeedbackForm,
-  enableFeedbackOnShake,
-  disableFeedbackOnShake,
-} from './feedback/FeedbackFormManager';
+export { showFeedbackForm, enableFeedbackOnShake, disableFeedbackOnShake } from './feedback/FeedbackFormManager';
 /** @deprecated `showFeedbackButton` will be removed in a future major version. */
 export { showFeedbackButton } from './feedback/FeedbackFormManager';
 /** @deprecated `hideFeedbackButton` will be removed in a future major version. */
