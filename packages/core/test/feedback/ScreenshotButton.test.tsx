@@ -3,17 +3,17 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
 import { Alert, Text } from 'react-native';
 
-import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackWidget.types';
+import type { ScreenshotButtonProps, ScreenshotButtonStyles } from '../../src/js/feedback/FeedbackForm.types';
 import type { Screenshot } from '../../src/js/wrapper';
 
-import { FeedbackWidget } from '../../src/js/feedback/FeedbackWidget';
+import { FeedbackForm } from '../../src/js/feedback/FeedbackForm';
 import {
   resetFeedbackButtonManager,
-  resetFeedbackWidgetManager,
+  resetFeedbackFormManager,
   resetScreenshotButtonManager,
   showFeedbackButton,
-} from '../../src/js/feedback/FeedbackWidgetManager';
-import { FeedbackWidgetProvider } from '../../src/js/feedback/FeedbackWidgetProvider';
+} from '../../src/js/feedback/FeedbackFormManager';
+import { FeedbackFormProvider } from '../../src/js/feedback/FeedbackFormProvider';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import { getCapturedScreenshot, ScreenshotButton } from '../../src/js/feedback/ScreenshotButton';
 import { NATIVE } from '../../src/js/wrapper';
@@ -42,9 +42,9 @@ const mockEncodeToBase64 = NATIVE.encodeToBase64 as jest.Mock;
 describe('ScreenshotButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    FeedbackWidget.reset();
+    FeedbackForm.reset();
     getCapturedScreenshot(); // cleans up stored screenshot if any
-    resetFeedbackWidgetManager();
+    resetFeedbackFormManager();
     resetFeedbackButtonManager();
     resetScreenshotButtonManager();
     const client = new TestClient(getDefaultTestClientOptions());
@@ -81,9 +81,9 @@ describe('ScreenshotButton', () => {
 
   it('the take screenshot button is visible in the feedback widget when enabled', async () => {
     const { getByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -100,9 +100,9 @@ describe('ScreenshotButton', () => {
 
   it('the capture screenshot button is shown when tapping the Take a screenshot button in the feedback widget', async () => {
     const { getByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -126,9 +126,9 @@ describe('ScreenshotButton', () => {
     mockEncodeToBase64.mockResolvedValue(mockBase64Image);
 
     const { getByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -158,9 +158,9 @@ describe('ScreenshotButton', () => {
     mockEncodeToBase64.mockResolvedValue(mockBase64Image);
 
     const { getByText, queryByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({
@@ -204,9 +204,9 @@ describe('ScreenshotButton', () => {
     mockCaptureScreenshot.mockResolvedValue([]);
 
     const { getByText } = render(
-      <FeedbackWidgetProvider>
+      <FeedbackFormProvider>
         <Text>App Components</Text>
-      </FeedbackWidgetProvider>,
+      </FeedbackFormProvider>,
     );
 
     const integration = feedbackIntegration({

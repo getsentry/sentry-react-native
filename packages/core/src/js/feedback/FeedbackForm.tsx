@@ -19,19 +19,19 @@ import type { Screenshot } from '../wrapper';
 import type {
   FeedbackGeneralConfiguration,
   FeedbackTextConfiguration,
-  FeedbackWidgetProps,
-  FeedbackWidgetState,
-  FeedbackWidgetStyles,
+  FeedbackFormProps,
+  FeedbackFormState,
+  FeedbackFormStyles,
   ImagePickerConfiguration,
-} from './FeedbackWidget.types';
+} from './FeedbackForm.types';
 
 import { isExpoGo, isWeb, notWeb } from '../utils/environment';
 import { getDataFromUri, NATIVE } from '../wrapper';
 import { sentryLogo } from './branding';
 import { defaultConfiguration } from './defaults';
-import defaultStyles from './FeedbackWidget.styles';
-import { getTheme } from './FeedbackWidget.theme';
-import { hideFeedbackButton, showScreenshotButton } from './FeedbackWidgetManager';
+import defaultStyles from './FeedbackForm.styles';
+import { getTheme } from './FeedbackForm.theme';
+import { hideFeedbackButton, showScreenshotButton } from './FeedbackFormManager';
 import { lazyLoadFeedbackIntegration } from './lazy';
 import { getCapturedScreenshot } from './ScreenshotButton';
 import { base64ToUint8Array, feedbackAlertDialog, isValidEmail } from './utils';
@@ -40,10 +40,10 @@ import { base64ToUint8Array, feedbackAlertDialog, isValidEmail } from './utils';
  * @beta
  * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
  */
-export class FeedbackWidget extends React.Component<FeedbackWidgetProps, FeedbackWidgetState> {
+export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
   public static defaultProps = defaultConfiguration;
 
-  private static _savedState: Omit<FeedbackWidgetState, 'isVisible'> = {
+  private static _savedState: Omit<FeedbackFormState, 'isVisible'> = {
     name: '',
     email: '',
     description: '',
@@ -56,7 +56,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
   private _didSubmitForm: boolean = false;
 
-  public constructor(props: FeedbackWidgetProps) {
+  public constructor(props: FeedbackFormProps) {
     super(props);
 
     const currentUser = {
@@ -68,12 +68,12 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
 
     this.state = {
       isVisible: true,
-      name: FeedbackWidget._savedState.name || currentUser.useSentryUser.name,
-      email: FeedbackWidget._savedState.email || currentUser.useSentryUser.email,
-      description: FeedbackWidget._savedState.description || '',
-      filename: FeedbackWidget._savedState.filename || undefined,
-      attachment: FeedbackWidget._savedState.attachment || undefined,
-      attachmentUri: FeedbackWidget._savedState.attachmentUri || undefined,
+      name: FeedbackForm._savedState.name || currentUser.useSentryUser.name,
+      email: FeedbackForm._savedState.email || currentUser.useSentryUser.email,
+      description: FeedbackForm._savedState.description || '',
+      filename: FeedbackForm._savedState.filename || undefined,
+      attachment: FeedbackForm._savedState.attachment || undefined,
+      attachmentUri: FeedbackForm._savedState.attachmentUri || undefined,
     };
 
     lazyLoadFeedbackIntegration();
@@ -83,7 +83,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
    * For testing purposes only.
    */
   public static reset(): void {
-    FeedbackWidget._savedState = {
+    FeedbackForm._savedState = {
       name: '',
       email: '',
       description: '',
@@ -275,7 +275,7 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
     const _propStyles = this.props.styles || {};
     const autoCorrect = config.autoCorrect !== false;
     const spellCheck = config.spellCheck !== false;
-    const styles = (Object.keys(_defaultStyles) as Array<keyof FeedbackWidgetStyles>).reduce<FeedbackWidgetStyles>(
+    const styles = (Object.keys(_defaultStyles) as Array<keyof FeedbackFormStyles>).reduce<FeedbackFormStyles>(
       (merged, key) => {
         (merged as Record<string, unknown>)[key] = {
           ...(_defaultStyles[key] as object),
@@ -435,11 +435,11 @@ export class FeedbackWidget extends React.Component<FeedbackWidgetProps, Feedbac
   };
 
   private _saveFormState = (): void => {
-    FeedbackWidget._savedState = { ...this.state };
+    FeedbackForm._savedState = { ...this.state };
   };
 
   private _clearFormState = (): void => {
-    FeedbackWidget._savedState = {
+    FeedbackForm._savedState = {
       name: '',
       email: '',
       description: '',

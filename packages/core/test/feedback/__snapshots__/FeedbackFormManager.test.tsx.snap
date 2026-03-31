@@ -630,7 +630,7 @@ exports[`FeedbackButtonManager the Feedback Button matches the snapshot with sys
 ]
 `;
 
-exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with custom dark theme 1`] = `
+exports[`FeedbackButtonManager the Feedback Form matches the snapshot with custom dark theme 1`] = `
 [
   <Text>
     App Components
@@ -989,7 +989,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
 ]
 `;
 
-exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with custom light theme 1`] = `
+exports[`FeedbackButtonManager the Feedback Form matches the snapshot with custom light theme 1`] = `
 [
   <Text>
     App Components
@@ -1348,7 +1348,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with cus
 ]
 `;
 
-exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with default configuration and dynamically changed theme 1`] = `
+exports[`FeedbackButtonManager the Feedback Form matches the snapshot with default configuration and dynamically changed theme 1`] = `
 [
   <Text>
     App Components
@@ -1707,7 +1707,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
 ]
 `;
 
-exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with default configuration and system dark theme 1`] = `
+exports[`FeedbackButtonManager the Feedback Form matches the snapshot with default configuration and system dark theme 1`] = `
 [
   <Text>
     App Components
@@ -2066,7 +2066,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
 ]
 `;
 
-exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with default configuration and system light theme 1`] = `
+exports[`FeedbackButtonManager the Feedback Form matches the snapshot with default configuration and system light theme 1`] = `
 [
   <Text>
     App Components
@@ -2425,7 +2425,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with def
 ]
 `;
 
-exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with system dark custom theme 1`] = `
+exports[`FeedbackButtonManager the Feedback Form matches the snapshot with system dark custom theme 1`] = `
 [
   <Text>
     App Components
@@ -2784,7 +2784,7 @@ exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with sys
 ]
 `;
 
-exports[`FeedbackButtonManager the Feedback Widget matches the snapshot with system light custom theme 1`] = `
+exports[`FeedbackButtonManager the Feedback Form matches the snapshot with system light custom theme 1`] = `
 [
   <Text>
     App Components

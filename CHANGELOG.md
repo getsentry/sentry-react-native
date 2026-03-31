@@ -11,6 +11,9 @@
 ### Features
 
 - Add `Sentry.appLoaded()` API to explicitly signal app start end ([#5940](https://github.com/getsentry/sentry-react-native/pull/5940))
+- Rename `FeedbackWidget` to `FeedbackForm` and `showFeedbackWidget` to `showFeedbackForm` ([#5931](https://github.com/getsentry/sentry-react-native/pull/5931))
+  - The old names are deprecated but still work
+- Deprecate `FeedbackButton`, `showFeedbackButton`, and `hideFeedbackButton` ([#5933](https://github.com/getsentry/sentry-react-native/pull/5933))
 
 ### Fixes
 
@@ -24,6 +27,9 @@
 - Bump CLI from v3.3.4 to v3.3.5 ([#5925](https://github.com/getsentry/sentry-react-native/pull/5925))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#335)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.4...3.3.5)
+- Bump JavaScript SDK from v10.46.0 to v10.47.0 ([#5938](https://github.com/getsentry/sentry-react-native/pull/5938))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10470)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.46.0...10.47.0)
 
 ## 8.6.0
 

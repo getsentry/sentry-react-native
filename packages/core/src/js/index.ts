@@ -101,14 +101,18 @@ export type { TimeToDisplayProps, ExpoRouter, ExpoImage, ExpoAsset } from './tra
 
 export { Mask, Unmask } from './replay/CustomMask';
 
+/** @deprecated The `FeedbackButton` component will be removed in a future major version. */
 export { FeedbackButton } from './feedback/FeedbackButton';
-export { FeedbackWidget } from './feedback/FeedbackWidget';
-export {
-  showFeedbackWidget,
-  showFeedbackButton,
-  hideFeedbackButton,
-  enableFeedbackOnShake,
-  disableFeedbackOnShake,
-} from './feedback/FeedbackWidgetManager';
+export { FeedbackForm } from './feedback/FeedbackForm';
+export { showFeedbackForm, enableFeedbackOnShake, disableFeedbackOnShake } from './feedback/FeedbackFormManager';
+/** @deprecated `showFeedbackButton` will be removed in a future major version. */
+export { showFeedbackButton } from './feedback/FeedbackFormManager';
+/** @deprecated `hideFeedbackButton` will be removed in a future major version. */
+export { hideFeedbackButton } from './feedback/FeedbackFormManager';
+
+/** @deprecated Use `FeedbackForm` instead. */
+export { FeedbackForm as FeedbackWidget } from './feedback/FeedbackForm';
+/** @deprecated Use `showFeedbackForm` instead. */
+export { showFeedbackForm as showFeedbackWidget } from './feedback/FeedbackFormManager';
 
 export { getDataFromUri } from './wrapper';

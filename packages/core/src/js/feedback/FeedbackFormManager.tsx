@@ -69,16 +69,19 @@ abstract class FeedbackManager {
 }
 
 /**
- * Provides functionality to show and hide the feedback widget.
+ * Provides functionality to show and hide the feedback form.
  */
-export class FeedbackWidgetManager extends FeedbackManager {
+export class FeedbackFormManager extends FeedbackManager {
   /**
    * Returns the name of the feedback component.
    */
   protected static get _feedbackComponentName(): string {
-    return 'FeedbackWidget';
+    return 'FeedbackForm';
   }
 }
+
+/** @deprecated Use `FeedbackFormManager` instead. */
+export const FeedbackWidgetManager = FeedbackFormManager;
 
 /**
  * Provides functionality to show and hide the feedback button.
@@ -104,20 +107,28 @@ export class ScreenshotButtonManager extends FeedbackManager {
   }
 }
 
-const showFeedbackWidget = (): void => {
+const showFeedbackForm = (): void => {
   lazyLoadAutoInjectFeedbackIntegration();
-  FeedbackWidgetManager.show();
+  FeedbackFormManager.show();
 };
 
-const resetFeedbackWidgetManager = (): void => {
-  FeedbackWidgetManager.reset();
+const resetFeedbackFormManager = (): void => {
+  FeedbackFormManager.reset();
 };
 
+/** @deprecated Use `showFeedbackForm` instead. */
+const showFeedbackWidget = showFeedbackForm;
+
+/** @deprecated Use `resetFeedbackFormManager` instead. */
+const resetFeedbackWidgetManager = resetFeedbackFormManager;
+
+/** @deprecated `showFeedbackButton` will be removed in a future major version. */
 const showFeedbackButton = (): void => {
   lazyLoadAutoInjectFeedbackButtonIntegration();
   FeedbackButtonManager.show();
 };
 
+/** @deprecated `hideFeedbackButton` will be removed in a future major version. */
 const hideFeedbackButton = (): void => {
   FeedbackButtonManager.hide();
 };
@@ -149,7 +160,7 @@ const enableFeedbackOnShake = (): void => {
   lazyLoadAutoInjectFeedbackIntegration();
   lazyLoadShakeToReportIntegration();
   if (!_imperativeShakeListenerStarted) {
-    _imperativeShakeListenerStarted = startShakeListener(showFeedbackWidget);
+    _imperativeShakeListenerStarted = startShakeListener(showFeedbackForm);
   }
 };
 
@@ -163,12 +174,14 @@ const disableFeedbackOnShake = (): void => {
 export {
   showFeedbackButton,
   hideFeedbackButton,
+  showFeedbackForm,
   showFeedbackWidget,
   enableFeedbackOnShake,
   disableFeedbackOnShake,
   showScreenshotButton,
   hideScreenshotButton,
   resetFeedbackButtonManager,
+  resetFeedbackFormManager,
   resetFeedbackWidgetManager,
   resetScreenshotButtonManager,
 };
