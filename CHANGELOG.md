@@ -12,6 +12,7 @@
 
 - Rename `FeedbackWidget` to `FeedbackForm` and `showFeedbackWidget` to `showFeedbackForm` ([#5931](https://github.com/getsentry/sentry-react-native/pull/5931))
   - The old names are deprecated but still work
+- Deprecate `FeedbackButton`, `showFeedbackButton`, and `hideFeedbackButton` ([#5933](https://github.com/getsentry/sentry-react-native/pull/5933))
 
 ### Fixes
 
