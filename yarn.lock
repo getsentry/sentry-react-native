@@ -27759,6 +27759,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-build-config@npm:0.3.2":
+  version: 0.3.2
+  resolution: "react-native-build-config@npm:0.3.2"
+  checksum: d2095580be7e6662c968bce5d64cc6524b7f34380999756fb9d4ad24a34e3566b203f93e9bc63bd1e0213d28e1e76dae0c0f39b0b65c55528a876e96dd6c5810
+  languageName: node
+  linkType: hard
+
+"react-native-build-config@patch:react-native-build-config@npm%3A0.3.2#./.yarn/patches/react-native-build-config-npm-0.3.2-0e671629bd.patch::locator=sentry-react-native%40workspace%3A.":
+  version: 0.3.2
+  resolution: "react-native-build-config@patch:react-native-build-config@npm%3A0.3.2#./.yarn/patches/react-native-build-config-npm-0.3.2-0e671629bd.patch::version=0.3.2&hash=919c89&locator=sentry-react-native%40workspace%3A."
+  checksum: 4a486a9d2088a90e079529305abd118b13b9b53e6b782af4a917aa6ebf6413fd2b211bb7d809e50e5b5f5c5d671a78fb5b9c14b54ec07cc8548f6538afeb278f
+  languageName: node
+  linkType: hard
+
 "react-native-edge-to-edge@npm:1.6.0":
   version: 1.6.0
   resolution: "react-native-edge-to-edge@npm:1.6.0"
@@ -29970,6 +29984,7 @@ __metadata:
     patch-package: ^8.0.0
     react: 19.2.3
     react-native: 0.84.1
+    react-native-build-config: ^0.3.2
     react-native-gesture-handler: ^2.28.0
     react-native-image-picker: ^8.2.1
     react-native-launch-arguments: ^4.1.1
