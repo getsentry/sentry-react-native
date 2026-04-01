@@ -17,6 +17,7 @@
 
 ### Fixes
 
+- Fix inflated `http.client` span durations on iOS when the app backgrounds during a request ([#5944](https://github.com/getsentry/sentry-react-native/pull/5944))
 - Fix crash caused by nullish response in supabase PostgREST handler ([#5938](https://github.com/getsentry/sentry-react-native/pull/5938))
 - Fix iOS crash (EXC_BAD_ACCESS) in time-to-initial-display when navigating between screens ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))
 
