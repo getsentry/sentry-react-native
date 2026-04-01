@@ -221,7 +221,7 @@ describe('startIdleNavigationSpan', () => {
     it('ends http.client child at the time the app went inactive, not when the deferred timer fires', () => {
       const navSpan = startIdleNavigationSpan({ name: 'test' });
       const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
-      const httpStartTime = spanToJSON(httpSpan).start_timestamp!;
+      const httpStartTime = spanToJSON(httpSpan).start_timestamp;
 
       // App goes inactive at a known time (e.g. user presses home on iOS)
       mockedAppState.setState('inactive');
@@ -242,9 +242,9 @@ describe('startIdleNavigationSpan', () => {
     });
 
     it('uses fresh timestamp after inactive → active → background cycle', () => {
-      const navSpan = startIdleNavigationSpan({ name: 'test' });
+      startIdleNavigationSpan({ name: 'test' });
       const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
-      const httpStartTime = spanToJSON(httpSpan).start_timestamp!;
+      const httpStartTime = spanToJSON(httpSpan).start_timestamp;
 
       // App goes inactive briefly (e.g. Control Center)
       mockedAppState.setState('inactive');
