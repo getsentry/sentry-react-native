@@ -539,6 +539,23 @@ RCT_EXPORT_METHOD(
 #endif
 }
 
+RCT_EXPORT_METHOD(fetchNativeFramesDelay : (double)startTimestampSeconds endTimestampSeconds : (
+    double)endTimestampSeconds resolve : (RCTPromiseResolveBlock)
+        resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    if (![SentryScreenFramesWrapper canTrackFrames]) {
+        resolve(nil);
+        return;
+    }
+
+    resolve([SentryScreenFramesWrapper framesDelayForStartTimestamp:startTimestampSeconds
+                                                       endTimestamp:endTimestampSeconds]);
+#else
+    resolve(nil);
+#endif
+}
+
 RCT_EXPORT_METHOD(
     fetchNativeRelease : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
