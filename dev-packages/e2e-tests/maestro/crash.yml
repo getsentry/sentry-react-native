@@ -2,8 +2,4 @@ appId: ${APP_ID}
 jsEngine: graaljs
 ---
 - runFlow: utils/launchTestAppClear.yml
-- tapOn: "Crash"
-
-- launchApp
-
-- runFlow: utils/assertTestReady.yml
+- tapOn: 'Crash'

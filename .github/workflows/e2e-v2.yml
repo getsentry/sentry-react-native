@@ -508,12 +508,26 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          wait_for_boot: true
+          erase_before_boot: false
+
+      - name: Wait for iOS simulator to be fully ready
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+        run: |
+          # Wait for boot to complete at the system level
+          xcrun simctl bootstatus booted -b
+          # Launch and dismiss Settings.app to ensure SpringBoard and system services
+          # are fully initialized — this avoids Maestro connecting to a half-booted
+          # simulator on Cirrus Labs Tart VMs.
+          xcrun simctl launch booted com.apple.Preferences
+          sleep 5
+          xcrun simctl terminate booted com.apple.Preferences
 
       - name: Run tests on iOS
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         env:
           # Increase timeout for Maestro iOS driver startup (default is 60s, some CI runners need more time)
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000
         run: ./dev-packages/e2e-tests/cli.mjs ${{ matrix.platform }} --test
 
       - name: Upload logs

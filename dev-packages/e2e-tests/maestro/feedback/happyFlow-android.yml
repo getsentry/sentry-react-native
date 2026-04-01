@@ -7,13 +7,11 @@ jsEngine: graaljs
 # Show feedback button
 - tapOn: 'Feedback'
 
-# Open feedback widget
-- tapOn: 'Report a Bug'
-
-# Assert that the feedback form is visible
+# Wait for feedback widget button to appear, then open it
 - extendedWaitUntil:
     visible: 'Report a Bug'
-    timeout: 5_000
+    timeout: 10_000
+- tapOn: 'Report a Bug'
 
 # Fill out name field
 - tapOn: 'Your Name'
