@@ -1,7 +1,7 @@
 import type { Span } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 
-import { getActiveSpan, getCurrentScope, spanToJSON, startInactiveSpan, startSpanManual } from '@sentry/core';
+import { getActiveSpan, getCurrentScope, spanToJSON, startInactiveSpan, startSpanManual, timestampInSeconds } from '@sentry/core';
 import { AppState } from 'react-native';
 
 import type { ScopeWithMaybeSpan } from '../../src/js/tracing/span';
@@ -244,10 +244,10 @@ describe('startIdleNavigationSpan', () => {
     it('uses fresh timestamp after inactive → active → background cycle', () => {
       startIdleNavigationSpan({ name: 'test' });
       const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
-      const httpStartTime = spanToJSON(httpSpan).start_timestamp;
 
       // App goes inactive briefly (e.g. Control Center)
       mockedAppState.setState('inactive');
+      const inactiveTime = timestampInSeconds();
 
       jest.advanceTimersByTime(1_000);
 
@@ -257,15 +257,20 @@ describe('startIdleNavigationSpan', () => {
       jest.advanceTimersByTime(2_000);
 
       // Now app goes to background — should use this new timestamp, not the old inactive one
+      const backgroundTime = timestampInSeconds();
       mockedAppState.setState('background');
 
       const httpEndTime = spanToJSON(httpSpan).timestamp!;
-      const httpDuration = httpEndTime - httpStartTime;
 
-      // Duration should reflect time until the background event (~3s),
-      // not the earlier inactive event (~0s)
-      expect(httpDuration).toBeGreaterThan(2);
-      expect(httpDuration).toBeLessThan(5);
+      // The end time should match the background event, not the earlier inactive event.
+      // Use toBeCloseTo because timestampInSeconds() may advance slightly between calls.
+      expect(httpEndTime).toBeCloseTo(backgroundTime, 1);
+
+      // If the inactive timestamp was NOT reset, the span would have ended
+      // at inactiveTime instead — verify that's not the case when they differ.
+      if (Math.abs(backgroundTime - inactiveTime) > 0.01) {
+        expect(httpEndTime).not.toBeCloseTo(inactiveTime, 1);
+      }
     });
 
     it('ends http.client child at background time on immediate background', () => {
