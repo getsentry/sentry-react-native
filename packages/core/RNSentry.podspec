@@ -48,8 +48,7 @@ Pod::Spec.new do |s|
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
-    'HEADER_SEARCH_PATHS' => '$(inherited) "${PODS_ROOT}/Sentry/Sources/Sentry" "${PODS_ROOT}/Sentry/Sources/Sentry/include"',
-    'OTHER_CFLAGS' => other_cflags
+    'HEADER_SEARCH_PATHS' => '$(inherited) "${PODS_ROOT}/Sentry/Sources/Sentry" "${PODS_ROOT}/Sentry/Sources/Sentry/include"'
   }
 
   s.dependency 'Sentry', '9.8.0'
