@@ -31,6 +31,7 @@ const NATIVE: MockInterface<NativeType> = {
   fetchNativeDeviceContexts: jest.fn(),
   fetchNativeAppStart: jest.fn(),
   fetchNativeFrames: jest.fn(),
+  fetchNativeFramesDelay: jest.fn(),
   fetchNativeSdkInfo: jest.fn(),
 
   disableNativeFramesTracking: jest.fn(),
@@ -81,6 +82,7 @@ NATIVE.fetchNativeRelease.mockResolvedValue({
 NATIVE.fetchNativeDeviceContexts.mockResolvedValue({});
 NATIVE.fetchNativeAppStart.mockResolvedValue(null);
 NATIVE.fetchNativeFrames.mockResolvedValue(null);
+NATIVE.fetchNativeFramesDelay.mockResolvedValue(null);
 NATIVE.fetchNativeSdkInfo.mockResolvedValue(null);
 NATIVE.fetchModules.mockResolvedValue(null);
 NATIVE.fetchViewHierarchy.mockResolvedValue(null);

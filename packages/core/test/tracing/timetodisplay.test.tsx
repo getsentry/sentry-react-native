@@ -485,10 +485,10 @@ describe('Frame Data', () => {
         // Simulate native onDraw callback that triggers span end with frame capture
         updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
 
-        // Allow end frame capture promise chain to complete
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
+        // Allow end frame capture + frames delay fetch promise chain to complete
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
 
         activeSpan?.end();
       },
@@ -657,5 +657,91 @@ describe('Frame Data', () => {
     expect(ttidSpan!.data).not.toHaveProperty('frames.frozen');
 
     // Note: Reset happens in afterEach, not here
+  });
+
+  test('attaches frames.delay to initial display span', async () => {
+    const startFrames = { totalFrames: 100, slowFrames: 2, frozenFrames: 1 };
+    const endFrames = { totalFrames: 150, slowFrames: 5, frozenFrames: 2 };
+
+    mockWrapper.NATIVE.fetchNativeFrames.mockResolvedValueOnce(startFrames).mockResolvedValueOnce(endFrames);
+    mockWrapper.NATIVE.fetchNativeFramesDelay.mockResolvedValue(0.1234);
+
+    await startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      async (activeSpan: Span | undefined) => {
+        const ttidSpan = startTimeToInitialDisplaySpan();
+        render(<TimeToInitialDisplay record={true} />);
+
+        // Flush start frame capture
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
+
+        // Flush end frame capture + frames delay fetch
+        // The async chain is: fetchNativeFramesWithTimeout -> attachFrameDataToSpan -> fetchNativeFramesDelay
+        // Each step requires multiple microtask ticks to resolve
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttidSpan = client.event!.spans!.find((span: SpanJSON) => span.op === 'ui.load.initial_display');
+    expect(ttidSpan).toBeDefined();
+    expect(ttidSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.delay': 0.1234,
+      }),
+    );
+  });
+
+  test('does not attach frames.delay when native returns null', async () => {
+    const startFrames = { totalFrames: 100, slowFrames: 2, frozenFrames: 1 };
+    const endFrames = { totalFrames: 150, slowFrames: 5, frozenFrames: 2 };
+
+    mockWrapper.NATIVE.fetchNativeFrames.mockResolvedValueOnce(startFrames).mockResolvedValueOnce(endFrames);
+    mockWrapper.NATIVE.fetchNativeFramesDelay.mockResolvedValue(null);
+
+    await startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      async (activeSpan: Span | undefined) => {
+        const ttidSpan = startTimeToInitialDisplaySpan();
+        render(<TimeToInitialDisplay record={true} />);
+
+        // Flush start frame capture
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
+
+        // Flush end frame capture + frames delay fetch
+        for (let i = 0; i < 10; i++) {
+          await Promise.resolve();
+        }
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttidSpan = client.event!.spans!.find((span: SpanJSON) => span.op === 'ui.load.initial_display');
+    expect(ttidSpan).toBeDefined();
+    expect(ttidSpan!.data).not.toHaveProperty('frames.delay');
   });
 });
