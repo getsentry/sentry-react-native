@@ -67,6 +67,8 @@ let isRootComponentCreationTimestampMsManual = false;
 /**
  * Records the application start end.
  * Used automatically by `Sentry.wrap` and `Sentry.ReactNativeProfiler`.
+ *
+ * @deprecated Use {@link appLoaded} from the public SDK API instead (`Sentry.appLoaded()`).
  */
 export function captureAppStart(): Promise<void> {
   return _captureAppStart({ isManual: true });
@@ -83,13 +85,14 @@ export async function _appLoaded(): Promise<void> {
     debug.warn('[AppStart] appLoaded() was already called. Subsequent calls are ignored.');
     return;
   }
-  isAppLoadedManuallyInvoked = true;
 
   const client = getClient();
   if (!client) {
     debug.warn('[AppStart] appLoaded() was called before Sentry.init(). App start end will not be recorded.');
     return;
   }
+
+  isAppLoadedManuallyInvoked = true;
 
   const timestampMs = timestampInSeconds() * 1000;
 
@@ -104,16 +107,7 @@ export async function _appLoaded(): Promise<void> {
   }
   isRecordedAppStartEndTimestampMsManual = true;
 
-  if (NATIVE.enableNative) {
-    try {
-      const endFrames = await NATIVE.fetchNativeFrames();
-      debug.log('[AppStart] Captured end frames for app start.', endFrames);
-      _updateAppStartEndFrames(endFrames);
-    } catch (error) {
-      debug.log('[AppStart] Failed to capture end frames for app start.', error);
-    }
-  }
-
+  await fetchAndUpdateEndFrames();
   await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
 }
 
@@ -147,6 +141,14 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
     endFrames: null,
   });
 
+  await fetchAndUpdateEndFrames();
+  await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
+}
+
+/**
+ * Fetches native frames data and attaches it to the current app start end data.
+ */
+async function fetchAndUpdateEndFrames(): Promise<void> {
   if (NATIVE.enableNative) {
     try {
       const endFrames = await NATIVE.fetchNativeFrames();
@@ -156,8 +158,6 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
       debug.log('[AppStart] Failed to capture end frames for app start.', error);
     }
   }
-
-  await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
 }
 
 /**

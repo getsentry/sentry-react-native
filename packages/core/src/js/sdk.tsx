@@ -231,6 +231,8 @@ export function nativeCrash(): void {
  * If not called, the SDK falls back to the root component mount time (via `Sentry.wrap()`)
  * or JS bundle execution start.
  *
+ * @experimental This API is subject to change in future versions.
+ *
  * @example
  * ```ts
  * await loadRemoteConfig();

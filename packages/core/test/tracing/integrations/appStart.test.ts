@@ -1153,6 +1153,95 @@ describe('appLoaded() API', () => {
 
     setCurrentClient(client);
   });
+
+  it('does not block auto-capture when called before Sentry.init', async () => {
+    // Simulate appLoaded() called before init — should NOT set the flag
+    getCurrentScope().setClient(undefined);
+    getGlobalScope().setClient(undefined);
+    getIsolationScope().setClient(undefined);
+
+    await _appLoaded();
+
+    setCurrentClient(client);
+
+    // Auto-capture should still work because the flag was not set
+    const autoTimeSeconds = Date.now() / 1000;
+    mockFunction(timestampInSeconds).mockReturnValueOnce(autoTimeSeconds);
+    await _captureAppStart({ isManual: false });
+
+    const appStartTimeMilliseconds = autoTimeSeconds * 1000 - 3000;
+    mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+      type: 'cold' as const,
+      app_start_timestamp_ms: appStartTimeMilliseconds,
+      has_fetched: false,
+      spans: [],
+    });
+
+    const integration = makeIntegration();
+    integration.setFirstStartedActiveRootSpanId('span-after-init');
+
+    const event: TransactionEvent = {
+      type: 'transaction',
+      start_timestamp: autoTimeSeconds,
+      timestamp: autoTimeSeconds + 2,
+      contexts: { trace: { span_id: 'span-after-init', trace_id: 'trace' } },
+    };
+
+    const processed = (await integration.processEvent(event, {}, client)) as TransactionEvent;
+    const appStartSpan = processed.spans?.find(s => s.op === APP_START_COLD_OP);
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan?.timestamp).toBeCloseTo(autoTimeSeconds, 1);
+  });
+
+});
+
+describe('appLoaded() standalone mode', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+    mockReactNativeBundleExecutionStartTimestamp();
+  });
+
+  afterEach(() => {
+    clearReactNativeBundleExecutionStartTimestamp();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+  });
+
+  it('triggers standalone app start capture via appLoaded()', async () => {
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    const [, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const standaloneClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(standaloneClient);
+    integration.setup(standaloneClient);
+    standaloneClient.addIntegration(integration);
+
+    const appLoadedTimeSeconds = Date.now() / 1000 + 0.5;
+    mockFunction(timestampInSeconds).mockReturnValue(appLoadedTimeSeconds);
+
+    await _appLoaded();
+    // Flush async event processing triggered by scope.captureEvent
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    const actualEvent = standaloneClient.event;
+    expect(actualEvent).toBeDefined();
+
+    const appStartSpan = actualEvent?.spans?.find(s => s.op === APP_START_COLD_OP);
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan?.timestamp).toBeCloseTo(appLoadedTimeSeconds, 1);
+    expect(appStartSpan?.start_timestamp).toBeCloseTo(appStartTimeMilliseconds / 1000, 1);
+    expect(appStartSpan?.origin).toBe(SPAN_ORIGIN_MANUAL_APP_START);
+  });
 });
 
 describe('Frame Data Integration', () => {
