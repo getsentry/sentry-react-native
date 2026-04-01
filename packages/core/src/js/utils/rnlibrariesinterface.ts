@@ -12,7 +12,7 @@ export type { EmitterSubscription } from 'react-native/Libraries/vendor/emitter/
 
 export interface ReactNativeLibrariesInterface {
   Devtools?: {
-    parseErrorStack: (errorStack: string) => Array<ReactNative.StackFrame>;
+    parseErrorStack?: (errorStack: string) => Array<ReactNative.StackFrame>;
     symbolicateStackTrace: (
       stack: Array<ReactNative.StackFrame>,
       extraData?: Record<string, unknown>,
