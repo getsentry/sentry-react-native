@@ -29,6 +29,7 @@ export interface Spec extends TurboModule {
   fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
+  fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): Promise<number | null>;
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
   setUser(defaultUserKeys: UnsafeObject | null, otherUserKeys: UnsafeObject | null): void;
   setContext(key: string, value: UnsafeObject | null): void;
