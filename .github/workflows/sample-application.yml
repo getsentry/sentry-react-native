@@ -14,7 +14,7 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.3.0'
-  MAESTRO_DRIVER_STARTUP_TIMEOUT: 90000 # Increase timeout from default 30s to 90s for CI stability
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000 # Increase timeout from default 30s to 180s for CI stability
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -337,6 +337,35 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          wait_for_boot: true
+          erase_before_boot: false
+
+      - name: Wait for iOS simulator to be fully ready
+        run: |
+          xcrun simctl bootstatus booted -b
+          xcrun simctl launch booted com.apple.Preferences
+          sleep 5
+          xcrun simctl terminate booted com.apple.Preferences
+
+      - name: Warm up Maestro driver on iOS
+        continue-on-error: true
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          xcrun simctl install booted sentryreactnativesample.app
+          WARMUP=$(mktemp /tmp/maestro-warmup-XXXXXX.yml)
+          cat > "$WARMUP" << 'YML'
+          appId: io.sentry.reactnative.sample
+          ---
+          - launchApp:
+              clearState: true
+          - extendedWaitUntil:
+              visible: "Sentry React Native Sample"
+              timeout: 120000
+          - killApp
+          YML
+          sed -i '' 's/^          //' "$WARMUP"
+          maestro test "$WARMUP" || true
+          rm -f "$WARMUP"
 
       - name: Run iOS Tests
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}

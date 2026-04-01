@@ -54,6 +54,7 @@ jest.mock('../../../src/js/wrapper', () => {
     NATIVE: {
       fetchNativeAppStart: jest.fn(),
       fetchNativeFrames: jest.fn(() => Promise.resolve()),
+      fetchNativeFramesDelay: jest.fn(() => Promise.resolve(null)),
       disableNativeFramesTracking: jest.fn(() => Promise.resolve()),
       enableNativeFramesTracking: jest.fn(() => Promise.resolve()),
       enableNative: true,
@@ -1434,6 +1435,50 @@ describe('Frame Data Integration', () => {
     } finally {
       (NATIVE as any).enableNative = originalEnableNative;
     }
+  });
+
+  it('attaches frames.delay to app start span', async () => {
+    const mockEndFrames = {
+      totalFrames: 150,
+      slowFrames: 5,
+      frozenFrames: 2,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+    mockFunction(NATIVE.fetchNativeFramesDelay).mockResolvedValue(0.25);
+
+    mockAppStart({ cold: true });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).toEqual(
+      expect.objectContaining({
+        'frames.delay': 0.25,
+      }),
+    );
+  });
+
+  it('does not attach frames.delay when native returns null', async () => {
+    const mockEndFrames = {
+      totalFrames: 150,
+      slowFrames: 5,
+      frozenFrames: 2,
+    };
+
+    mockFunction(NATIVE.fetchNativeFrames).mockResolvedValue(mockEndFrames);
+    mockFunction(NATIVE.fetchNativeFramesDelay).mockResolvedValue(null);
+
+    mockAppStart({ cold: true });
+
+    const actualEvent = await captureStandAloneAppStart();
+
+    const appStartSpan = actualEvent!.spans!.find(({ description }) => description === 'Cold Start');
+
+    expect(appStartSpan).toBeDefined();
+    expect(appStartSpan!.data).not.toHaveProperty('frames.delay');
   });
 });
 

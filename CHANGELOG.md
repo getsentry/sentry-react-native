@@ -11,12 +11,15 @@
 ### Features
 
 - Add `Sentry.appLoaded()` API to explicitly signal app start end ([#5940](https://github.com/getsentry/sentry-react-native/pull/5940))
+- Add `frames.delay` span data from native SDKs to app start, TTID/TTFD, and JS API spans ([#5907](https://github.com/getsentry/sentry-react-native/pull/5907))
 - Rename `FeedbackWidget` to `FeedbackForm` and `showFeedbackWidget` to `showFeedbackForm` ([#5931](https://github.com/getsentry/sentry-react-native/pull/5931))
   - The old names are deprecated but still work
 - Deprecate `FeedbackButton`, `showFeedbackButton`, and `hideFeedbackButton` ([#5933](https://github.com/getsentry/sentry-react-native/pull/5933))
 
 ### Fixes
 
+- Fix inflated `http.client` span durations on iOS when the app backgrounds during a request ([#5944](https://github.com/getsentry/sentry-react-native/pull/5944))
+- Fix crash caused by nullish response in supabase PostgREST handler ([#5938](https://github.com/getsentry/sentry-react-native/pull/5938))
 - Fix iOS crash (EXC_BAD_ACCESS) in time-to-initial-display when navigating between screens ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))
 
 ### Dependencies
