@@ -57,12 +57,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
-        ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
+        rn-architecture: ['new']
+        ios-use-frameworks: ['no-frameworks']
         build-type: ['dev', 'production']
-        exclude:
-          - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic-frameworks'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -152,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
+        rn-architecture: ['new']
         build-type: ['dev', 'production']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
