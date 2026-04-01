@@ -115,10 +115,7 @@
     "minimatch@npm:10.2.4/brace-expansion": "^5.0.5",
     "@appium/base-driver@npm:10.2.2/path-to-regexp": "^8.4.0",
     "router@npm:2.2.0/path-to-regexp": "^8.4.0",
-    "yaml": "^2.8.3",
-    "react-native-build-config@^0.3.2": "patch:react-native-build-config@npm%3A0.3.2#./.yarn/patches/react-native-build-config-npm-0.3.2-0e671629bd.patch",
-    "react-native-launch-arguments@^4.0.2": "patch:react-native-launch-arguments@npm%3A4.1.0#./.yarn/patches/react-native-launch-arguments-npm-4.1.0-b58782de29.patch",
-    "react-native-launch-arguments@^4.1.0": "patch:react-native-launch-arguments@npm%3A4.1.0#./.yarn/patches/react-native-launch-arguments-npm-4.1.0-b58782de29.patch"
+    "yaml": "^2.8.3"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
