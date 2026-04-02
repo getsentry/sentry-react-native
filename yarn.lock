@@ -12121,31 +12121,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:0.8.10, @xmldom/xmldom@npm:^0.8.8":
-  version: 0.8.10
-  resolution: "@xmldom/xmldom@npm:0.8.10"
-  checksum: 4c136aec31fb3b49aaa53b6fcbfe524d02a1dc0d8e17ee35bd3bf35e9ce1344560481cd1efd086ad1a4821541482528672306d5e37cdbd187f33d7fadd3e2cf0
+"@xmldom/xmldom@npm:0.8.12, @xmldom/xmldom@npm:^0.8.12":
+  version: 0.8.12
+  resolution: "@xmldom/xmldom@npm:0.8.12"
+  checksum: 609bbcd6f31fa24023f5cc836e804d49c60e3df83ca73f744da9caff7fed516221dcf2f23de44e5289d715951781ec35fa90adf57008c3eae944a7550c39e325
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:^0.9.8":
-  version: 0.9.8
-  resolution: "@xmldom/xmldom@npm:0.9.8"
-  checksum: f8d16ad3c8083312575850fa4f2c13a2b884a37021dbb0146c6b2575bd3ddbf4c900530b49a55a7f62088ecf9809173fd7138985e7e58ddab786578970e09c59
-  languageName: node
-  linkType: hard
-
-"@xmldom/xmldom@npm:^0.x":
-  version: 0.9.0
-  resolution: "@xmldom/xmldom@npm:0.9.0"
-  checksum: a6352e40c248f052dacefd30c8c287721eb94341f7b4f50cf0378726ae4dd2247a95e858e5914a3a85355fef884711bda4615980fbca6d98eaf2843d4d8dc5a2
-  languageName: node
-  linkType: hard
-
-"@xmldom/xmldom@npm:~0.7.7":
-  version: 0.7.13
-  resolution: "@xmldom/xmldom@npm:0.7.13"
-  checksum: b4054078530e5fa8ede9677425deff0fce6d965f4c477ca73f8490d8a089e60b8498a15560425a1335f5ff99ecb851ed2c734b0a9a879299a5694302f212f37a
+"@xmldom/xmldom@npm:^0.9.9":
+  version: 0.9.9
+  resolution: "@xmldom/xmldom@npm:0.9.9"
+  checksum: 73bd69379f70b29cdef742eb834c299ef13268e9ce42ea6384a78ade1083c3e0c71c764019d3c8d860a76147c6c84b4cba5e6e5b2123ed2cd806d8621c4c9559
   languageName: node
   linkType: hard
 
