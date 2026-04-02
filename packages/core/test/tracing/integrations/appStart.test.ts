@@ -1193,7 +1193,6 @@ describe('appLoaded() API', () => {
     expect(appStartSpan).toBeDefined();
     expect(appStartSpan?.timestamp).toBeCloseTo(autoTimeSeconds, 1);
   });
-
 });
 
 describe('appLoaded() standalone mode', () => {
@@ -1242,6 +1241,96 @@ describe('appLoaded() standalone mode', () => {
     expect(appStartSpan?.timestamp).toBeCloseTo(appLoadedTimeSeconds, 1);
     expect(appStartSpan?.start_timestamp).toBeCloseTo(appStartTimeMilliseconds / 1000, 1);
     expect(appStartSpan?.origin).toBe(SPAN_ORIGIN_MANUAL_APP_START);
+  });
+
+  it('overrides already-flushed standalone transaction when appLoaded() is called after auto-capture', async () => {
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    const [, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const standaloneClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(standaloneClient);
+    integration.setup(standaloneClient);
+    standaloneClient.addIntegration(integration);
+
+    // Simulate auto-capture from ReactNativeProfiler (componentDidMount)
+    const autoTimeSeconds = Date.now() / 1000;
+    mockFunction(timestampInSeconds).mockReturnValue(autoTimeSeconds);
+    await _captureAppStart({ isManual: false });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // Auto-capture should have sent the standalone transaction
+    expect(standaloneClient.eventQueue.length).toBe(1);
+    const autoEvent = standaloneClient.eventQueue[0];
+    const autoSpan = autoEvent?.spans?.find(s => s.op === APP_START_COLD_OP);
+    expect(autoSpan?.timestamp).toBeCloseTo(autoTimeSeconds, 1);
+
+    // Now call appLoaded() with a later timestamp
+    const manualTimeSeconds = autoTimeSeconds + 2;
+    mockFunction(timestampInSeconds).mockReturnValue(manualTimeSeconds);
+    await _appLoaded();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // appLoaded() should have sent a second standalone transaction with the manual timestamp
+    expect(standaloneClient.eventQueue.length).toBe(2);
+    const manualEvent = standaloneClient.eventQueue[1];
+    const manualSpan = manualEvent?.spans?.find(s => s.op === APP_START_COLD_OP);
+    expect(manualSpan).toBeDefined();
+    expect(manualSpan?.timestamp).toBeCloseTo(manualTimeSeconds, 1);
+    expect(manualSpan?.start_timestamp).toBeCloseTo(appStartTimeMilliseconds / 1000, 1);
+    expect(manualSpan?.origin).toBe(SPAN_ORIGIN_MANUAL_APP_START);
+  });
+
+  it('allows auto-capture again after isAppLoadedManuallyInvoked is reset', async () => {
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    mockAppStart({ cold: true });
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const standaloneClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(standaloneClient);
+    integration.setup(standaloneClient);
+    standaloneClient.addIntegration(integration);
+
+    // First app start: call appLoaded()
+    const firstTimeSeconds = Date.now() / 1000;
+    mockFunction(timestampInSeconds).mockReturnValue(firstTimeSeconds);
+    await _appLoaded();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(standaloneClient.eventQueue.length).toBe(1);
+
+    // Verify auto-capture is blocked while flag is set
+    const logSpy = jest.spyOn(debug, 'log');
+    await _captureAppStart({ isManual: false });
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Skipping auto app start capture'));
+
+    // Simulate what onRunApplication does: reset flags for a new app start
+    _clearAppStartEndData();
+    mockAppStart({ cold: true });
+
+    // Now auto-capture should work again
+    logSpy.mockClear();
+    const autoTimeSeconds = Date.now() / 1000 + 1;
+    mockFunction(timestampInSeconds).mockReturnValue(autoTimeSeconds);
+    await _captureAppStart({ isManual: false });
+
+    const skippedCalls = logSpy.mock.calls.filter(
+      call => typeof call[0] === 'string' && call[0].includes('Skipping auto app start capture'),
+    );
+    expect(skippedCalls.length).toBe(0);
   });
 });
 

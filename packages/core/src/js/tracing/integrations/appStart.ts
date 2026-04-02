@@ -37,6 +37,7 @@ const INTEGRATION_NAME = 'AppStart';
 
 export type AppStartIntegration = Integration & {
   captureStandaloneAppStart: () => Promise<void>;
+  resetAppStartDataFlushed: () => void;
 };
 
 /**
@@ -108,7 +109,14 @@ export async function _appLoaded(): Promise<void> {
   isRecordedAppStartEndTimestampMsManual = true;
 
   await fetchAndUpdateEndFrames();
-  await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
+
+  const integration = client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME);
+  if (integration) {
+    // In standalone mode, auto-capture may have already flushed the transaction.
+    // Reset the flag so captureStandaloneAppStart can re-send with the manual timestamp.
+    integration.resetAppStartDataFlushed();
+    await integration.captureStandaloneAppStart();
+  }
 }
 
 /**
@@ -294,6 +302,7 @@ export const appStartIntegration = ({
         appStartDataFlushed = false;
         firstStartedActiveRootSpanId = undefined;
         firstStartedActiveRootSpan = undefined;
+        isAppLoadedManuallyInvoked = false;
       } else {
         debug.log(
           '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
@@ -604,12 +613,17 @@ export const appStartIntegration = ({
     );
   }
 
+  const resetAppStartDataFlushed = (): void => {
+    appStartDataFlushed = false;
+  };
+
   return {
     name: INTEGRATION_NAME,
     setup,
     afterAllSetup,
     processEvent,
     captureStandaloneAppStart,
+    resetAppStartDataFlushed,
     setFirstStartedActiveRootSpanId,
   } as AppStartIntegration;
 };
