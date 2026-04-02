@@ -1260,41 +1260,71 @@ describe('appLoaded() standalone mode', () => {
     integration.setup(standaloneClient);
     standaloneClient.addIntegration(integration);
 
-    // Simulate auto-capture from ReactNativeProfiler (componentDidMount)
+    // Simulate auto-capture from ReactNativeProfiler (componentDidMount).
+    // In standalone mode, auto-capture defers the send to give appLoaded() a chance.
     const autoTimeSeconds = Date.now() / 1000;
     mockFunction(timestampInSeconds).mockReturnValue(autoTimeSeconds);
     await _captureAppStart({ isManual: false });
-    await new Promise(resolve => setTimeout(resolve, 0));
 
-    // Auto-capture should have sent the standalone transaction
-    expect(standaloneClient.eventQueue.length).toBe(1);
-    const autoEvent = standaloneClient.eventQueue[0];
-    const autoSpan = autoEvent?.spans?.find(s => s.op === APP_START_COLD_OP);
-    expect(autoSpan?.timestamp).toBeCloseTo(autoTimeSeconds, 1);
+    // No transaction sent yet — the standalone send is deferred
+    expect(standaloneClient.eventQueue.length).toBe(0);
 
-    // Simulate the native layer returning has_fetched: true after the first fetch.
-    // _appLoaded() must use the cached response to avoid bailing out.
-    mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
-      type: 'cold' as const,
-      app_start_timestamp_ms: appStartTimeMilliseconds,
-      has_fetched: true,
-      spans: [],
-    });
-
-    // Now call appLoaded() with a later timestamp
+    // Now call appLoaded() with a later timestamp — this cancels the deferred
+    // auto-capture send and sends only one transaction with the manual timestamp.
     const manualTimeSeconds = autoTimeSeconds + 2;
     mockFunction(timestampInSeconds).mockReturnValue(manualTimeSeconds);
     await _appLoaded();
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    // appLoaded() should have sent a second standalone transaction with the manual timestamp
-    expect(standaloneClient.eventQueue.length).toBe(2);
-    const manualEvent = standaloneClient.eventQueue[1];
+    // Only one transaction should be sent — the manual one
+    expect(standaloneClient.eventQueue.length).toBe(1);
+    const manualEvent = standaloneClient.eventQueue[0];
     const manualSpan = manualEvent?.spans?.find(s => s.op === APP_START_COLD_OP);
     expect(manualSpan).toBeDefined();
     expect(manualSpan?.timestamp).toBeCloseTo(manualTimeSeconds, 1);
     expect(manualSpan?.start_timestamp).toBeCloseTo(appStartTimeMilliseconds / 1000, 1);
     expect(manualSpan?.origin).toBe(SPAN_ORIGIN_MANUAL_APP_START);
+  });
+
+  it('sends deferred standalone transaction when appLoaded() is not called', async () => {
+    jest.useFakeTimers();
+
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    const [, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const standaloneClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(standaloneClient);
+    integration.setup(standaloneClient);
+    standaloneClient.addIntegration(integration);
+
+    const autoTimeSeconds = Date.now() / 1000;
+    mockFunction(timestampInSeconds).mockReturnValue(autoTimeSeconds);
+    await _captureAppStart({ isManual: false });
+
+    // No transaction yet — deferred
+    expect(standaloneClient.eventQueue.length).toBe(0);
+
+    // Advance timers to fire the deferred send, then switch to real timers
+    // so the async captureStandaloneAppStart() can complete naturally.
+    jest.runAllTimers();
+    jest.useRealTimers();
+    // Flush async event processing (captureStandaloneAppStart has multiple await steps)
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    expect(standaloneClient.eventQueue.length).toBe(1);
+    const autoEvent = standaloneClient.eventQueue[0];
+    const autoSpan = autoEvent?.spans?.find(s => s.op === APP_START_COLD_OP);
+    expect(autoSpan).toBeDefined();
+    expect(autoSpan?.timestamp).toBeCloseTo(autoTimeSeconds, 1);
+    expect(autoSpan?.start_timestamp).toBeCloseTo(appStartTimeMilliseconds / 1000, 1);
   });
 
   it('allows auto-capture again after isAppLoadedManuallyInvoked is reset', async () => {

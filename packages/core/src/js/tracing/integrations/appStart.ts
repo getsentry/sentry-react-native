@@ -38,6 +38,8 @@ const INTEGRATION_NAME = 'AppStart';
 export type AppStartIntegration = Integration & {
   captureStandaloneAppStart: () => Promise<void>;
   resetAppStartDataFlushed: () => void;
+  cancelDeferredStandaloneCapture: () => void;
+  scheduleDeferredStandaloneCapture: () => void;
 };
 
 /**
@@ -112,6 +114,9 @@ export async function _appLoaded(): Promise<void> {
 
   const integration = client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME);
   if (integration) {
+    // Cancel any deferred standalone send from auto-capture — we'll send our own
+    // with the correct manual timestamp instead of sending two transactions.
+    integration.cancelDeferredStandaloneCapture();
     // In standalone mode, auto-capture may have already flushed the transaction.
     // Reset the flag so captureStandaloneAppStart can re-send with the manual timestamp.
     integration.resetAppStartDataFlushed();
@@ -150,7 +155,19 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
   });
 
   await fetchAndUpdateEndFrames();
-  await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
+
+  const integration = client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME);
+  if (integration) {
+    if (!isManual) {
+      // For auto-capture, defer the standalone send to give appLoaded() a chance
+      // to override the end timestamp before the transaction is sent.
+      // If appLoaded() is called, it cancels this deferred send and sends its own.
+      // In non-standalone mode, scheduleDeferredStandaloneCapture is a no-op.
+      integration.scheduleDeferredStandaloneCapture();
+    } else {
+      await integration.captureStandaloneAppStart();
+    }
+  }
 }
 
 /**
@@ -276,6 +293,7 @@ export const appStartIntegration = ({
   let firstStartedActiveRootSpanId: string | undefined = undefined;
   let firstStartedActiveRootSpan: Span | undefined = undefined;
   let cachedNativeAppStart: NativeAppStartResponse | null | undefined = undefined;
+  let deferredStandaloneTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -305,6 +323,10 @@ export const appStartIntegration = ({
         firstStartedActiveRootSpan = undefined;
         isAppLoadedManuallyInvoked = false;
         cachedNativeAppStart = undefined;
+        if (deferredStandaloneTimeout !== undefined) {
+          clearTimeout(deferredStandaloneTimeout);
+          deferredStandaloneTimeout = undefined;
+        }
       } else {
         debug.log(
           '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
@@ -629,6 +651,25 @@ export const appStartIntegration = ({
     appStartDataFlushed = false;
   };
 
+  const cancelDeferredStandaloneCapture = (): void => {
+    if (deferredStandaloneTimeout !== undefined) {
+      clearTimeout(deferredStandaloneTimeout);
+      deferredStandaloneTimeout = undefined;
+      debug.log('[AppStart] Cancelled deferred standalone app start capture.');
+    }
+  };
+
+  const scheduleDeferredStandaloneCapture = (): void => {
+    if (!standalone) {
+      return;
+    }
+    deferredStandaloneTimeout = setTimeout(() => {
+      deferredStandaloneTimeout = undefined;
+      // oxlint-disable-next-line typescript-eslint(no-floating-promises)
+      captureStandaloneAppStart();
+    }, 0);
+  };
+
   return {
     name: INTEGRATION_NAME,
     setup,
@@ -636,6 +677,8 @@ export const appStartIntegration = ({
     processEvent,
     captureStandaloneAppStart,
     resetAppStartDataFlushed,
+    cancelDeferredStandaloneCapture,
+    scheduleDeferredStandaloneCapture,
     setFirstStartedActiveRootSpanId,
   } as AppStartIntegration;
 };
