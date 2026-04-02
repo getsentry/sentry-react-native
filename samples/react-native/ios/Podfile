@@ -5,6 +5,10 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
+# In the monorepo, the SDK podspec resolves react-native to its own devDependency.
+# Point it to the sample app's react-native so it detects the correct version for build flags.
+ENV['REACT_NATIVE_NODE_MODULES_DIR'] ||= File.expand_path(File.join(__dir__, '..', 'node_modules', 'react-native'))
+
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
@@ -54,7 +58,6 @@ target 'sentryreactnativesample' do
       new_contents = text.gsub('#define FOLLY_HAS_COROUTINES 1', '#define FOLLY_HAS_COROUTINES 0')
       File.open(file, "w") { |file| file.puts new_contents }
     end
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],

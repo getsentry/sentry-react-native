@@ -116,6 +116,7 @@
     "@appium/base-driver@npm:10.2.2/path-to-regexp": "^8.4.0",
     "router@npm:2.2.0/path-to-regexp": "^8.4.0",
     "yaml": "^2.8.3",
+    "react-native-build-config@^0.3.2": "patch:react-native-build-config@npm%3A0.3.2#./.yarn/patches/react-native-build-config-npm-0.3.2-0e671629bd.patch",
     "minimatch@npm:5.1.9/brace-expansion": "^2.0.3",
     "minimatch@npm:8.0.7/brace-expansion": "^2.0.3",
     "minimatch@npm:9.0.9/brace-expansion": "^2.0.3",
