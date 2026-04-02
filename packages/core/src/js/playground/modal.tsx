@@ -1,9 +1,8 @@
-import { debug } from '@sentry/core';
 import * as React from 'react';
 import { Animated, Image, Modal, Platform, Pressable, Text, useColorScheme, View } from 'react-native';
 
-import { getDevServer } from '../integrations/debugsymbolicatorutils';
-import { isExpo, isExpoGo, isWeb } from '../utils/environment';
+import { openURLInBrowser } from '../metro/openUrlInBrowser';
+import { isExpoGo, isWeb } from '../utils/environment';
 import { bug as bugAnimation, hi as hiAnimation, thumbsup as thumbsupAnimation } from './animations';
 import { nativeCrashExample, tryCatchExample, uncaughtErrorExample } from './examples';
 import { bug as bugImage, hi as hiImage, thumbsup as thumbsupImage } from './images';
@@ -71,7 +70,6 @@ export const SentryPlayground = ({
     }
   };
 
-  const showOpenSentryButton = !isExpo();
   const isNativeCrashDisabled = isWeb() || isExpoGo() || __DEV__;
 
   const animationContainerYPosition = React.useRef(new Animated.Value(0)).current;
@@ -158,15 +156,13 @@ export const SentryPlayground = ({
               justifyContent: 'space-evenly', // Space between buttons
             }}
           >
-            {showOpenSentryButton && (
-              <Button
-                secondary
-                title={'Open Sentry'}
-                onPress={() => {
-                  openURLInBrowser(issuesStreamUrl);
-                }}
-              />
-            )}
+            <Button
+              secondary
+              title={'Open Sentry'}
+              onPress={() => {
+                openURLInBrowser(issuesStreamUrl);
+              }}
+            />
             <Button
               title={'Go to my App'}
               onPress={() => {
@@ -269,19 +265,3 @@ const Button = ({
     </View>
   );
 };
-
-function openURLInBrowser(url: string): void {
-  const devServer = getDevServer();
-  if (devServer?.url) {
-    // This doesn't work for Expo project with Web enabled
-    // oxlint-disable-next-line typescript-eslint(no-floating-promises)
-    fetch(`${devServer.url}open-url`, {
-      method: 'POST',
-      body: JSON.stringify({ url }),
-    }).catch(e => {
-      debug.error('Error opening URL:', e);
-    });
-  } else {
-    debug.error('Dev server URL not available');
-  }
-}
