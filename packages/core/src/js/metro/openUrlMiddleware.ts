@@ -24,7 +24,10 @@ export async function openURLMiddleware(req: IncomingMessage, res: ServerRespons
   if (!open) {
     try {
       // oxlint-disable-next-line import/no-extraneous-dependencies
-      open = require('open');
+      const imported = require('open');
+      // Handle both CJS (`module.exports = fn`) and ESM default export (`{ default: fn }`)
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
+      open = typeof imported === 'function' ? imported : imported?.default;
     } catch (e) {
       // noop
     }
@@ -56,7 +59,9 @@ export async function openURLMiddleware(req: IncomingMessage, res: ServerRespons
 
   if (!isTrustedSentryHost(url)) {
     // oxlint-disable-next-line no-console
-    console.log(`${S} Untrusted host, not opening automatically. Open manually if you trust this URL: ${url}`);
+    console.log(
+      `${S} Untrusted host, not opening automatically. Open manually if you trust this URL: ${sanitizeForLog(url)}`,
+    );
     res.writeHead(200);
     res.end();
     return;
@@ -64,7 +69,7 @@ export async function openURLMiddleware(req: IncomingMessage, res: ServerRespons
 
   if (!open) {
     // oxlint-disable-next-line no-console
-    console.log(`${S} Could not open URL automatically. Open manually: ${url}`);
+    console.log(`${S} Could not open URL automatically. Open manually: ${sanitizeForLog(url)}`);
     res.writeHead(500);
     res.end('Failed to open URL. The "open" package is not available. Install it or open the URL manually.');
     return;
@@ -74,16 +79,24 @@ export async function openURLMiddleware(req: IncomingMessage, res: ServerRespons
     await open(url);
   } catch (e) {
     // oxlint-disable-next-line no-console
-    console.log(`${S} Failed to open URL automatically. Open manually: ${url}`);
+    console.log(`${S} Failed to open URL automatically. Open manually: ${sanitizeForLog(url)}`);
     res.writeHead(500);
     res.end('Failed to open URL.');
     return;
   }
 
   // oxlint-disable-next-line no-console
-  console.log(`${S} Opened URL: ${url}`);
+  console.log(`${S} Opened URL: ${sanitizeForLog(url)}`);
   res.writeHead(200);
   res.end();
+}
+
+/**
+ * Strip control characters to prevent terminal escape sequence injection when logging URLs.
+ */
+function sanitizeForLog(value: string): string {
+  // oxlint-disable-next-line no-control-regex
+  return value.replace(/[\x00-\x1f\x7f]/g, '');
 }
 
 function isTrustedSentryHost(url: string): boolean {
