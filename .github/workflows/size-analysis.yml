@@ -23,6 +23,7 @@ env:
   SENTRY_ORG: sentry-sdks
   SENTRY_PROJECT: sentry-react-native
   REACT_NATIVE_SAMPLE_PATH: samples/react-native
+  RN_SENTRY_POD_NAME: RNSentry
 
 jobs:
   android:
