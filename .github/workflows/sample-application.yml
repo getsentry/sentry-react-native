@@ -57,12 +57,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
-        ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
+        rn-architecture: ['new']
+        ios-use-frameworks: ['no-frameworks']
         build-type: ['dev', 'production']
-        exclude:
-          - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic-frameworks'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -72,7 +69,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -152,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
+        rn-architecture: ['new']
         build-type: ['dev', 'production']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -163,7 +160,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -238,7 +235,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -325,7 +322,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -407,7 +404,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
