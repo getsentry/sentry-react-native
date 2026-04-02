@@ -77,7 +77,7 @@ describe('openURLMiddleware', () => {
     expect(res.end).toHaveBeenCalledWith(expect.stringContaining('Invalid URL scheme'));
   });
 
-  it('should open https URLs', async () => {
+  it('should open sentry.io URLs', async () => {
     const req = createRequest('POST', JSON.stringify({ url: 'https://sentry.io/issues/' }));
     const res = createResponse();
 
@@ -87,13 +87,23 @@ describe('openURLMiddleware', () => {
     expect(res.writeHead).toHaveBeenCalledWith(200);
   });
 
-  it('should open http URLs', async () => {
-    const req = createRequest('POST', JSON.stringify({ url: 'http://localhost:3000' }));
+  it('should open subdomain.sentry.io URLs', async () => {
+    const req = createRequest('POST', JSON.stringify({ url: 'https://my-org.sentry.io/issues/?project=123' }));
     const res = createResponse();
 
     await openURLMiddleware(req, res);
 
-    expect(mockOpen).toHaveBeenCalledWith('http://localhost:3000');
+    expect(mockOpen).toHaveBeenCalledWith('https://my-org.sentry.io/issues/?project=123');
+    expect(res.writeHead).toHaveBeenCalledWith(200);
+  });
+
+  it('should not auto-open non-sentry.io URLs and log to console instead', async () => {
+    const req = createRequest('POST', JSON.stringify({ url: 'https://example.com/malicious' }));
+    const res = createResponse();
+
+    await openURLMiddleware(req, res);
+
+    expect(mockOpen).not.toHaveBeenCalled();
     expect(res.writeHead).toHaveBeenCalledWith(200);
   });
 

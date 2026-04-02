@@ -54,6 +54,14 @@ export async function openURLMiddleware(req: IncomingMessage, res: ServerRespons
     return;
   }
 
+  if (!isTrustedSentryHost(url)) {
+    // oxlint-disable-next-line no-console
+    console.log(`${S} Untrusted host, not opening automatically. Open manually if you trust this URL: ${url}`);
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
   if (!open) {
     // oxlint-disable-next-line no-console
     console.log(`${S} Could not open URL automatically. Open manually: ${url}`);
@@ -76,4 +84,13 @@ export async function openURLMiddleware(req: IncomingMessage, res: ServerRespons
   console.log(`${S} Opened URL: ${url}`);
   res.writeHead(200);
   res.end();
+}
+
+function isTrustedSentryHost(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return hostname === 'sentry.io' || hostname.endsWith('.sentry.io');
+  } catch (e) {
+    return false;
+  }
 }
