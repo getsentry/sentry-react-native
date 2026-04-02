@@ -1272,6 +1272,15 @@ describe('appLoaded() standalone mode', () => {
     const autoSpan = autoEvent?.spans?.find(s => s.op === APP_START_COLD_OP);
     expect(autoSpan?.timestamp).toBeCloseTo(autoTimeSeconds, 1);
 
+    // Simulate the native layer returning has_fetched: true after the first fetch.
+    // _appLoaded() must use the cached response to avoid bailing out.
+    mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+      type: 'cold' as const,
+      app_start_timestamp_ms: appStartTimeMilliseconds,
+      has_fetched: true,
+      spans: [],
+    });
+
     // Now call appLoaded() with a later timestamp
     const manualTimeSeconds = autoTimeSeconds + 2;
     mockFunction(timestampInSeconds).mockReturnValue(manualTimeSeconds);

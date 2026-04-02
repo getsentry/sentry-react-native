@@ -275,6 +275,7 @@ export const appStartIntegration = ({
   let afterAllSetupCalled = false;
   let firstStartedActiveRootSpanId: string | undefined = undefined;
   let firstStartedActiveRootSpan: Span | undefined = undefined;
+  let cachedNativeAppStart: NativeAppStartResponse | null | undefined = undefined;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -303,6 +304,7 @@ export const appStartIntegration = ({
         firstStartedActiveRootSpanId = undefined;
         firstStartedActiveRootSpan = undefined;
         isAppLoadedManuallyInvoked = false;
+        cachedNativeAppStart = undefined;
       } else {
         debug.log(
           '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
@@ -468,13 +470,23 @@ export const appStartIntegration = ({
 
     // All failure paths below set appStartDataFlushed = true to prevent
     // wasteful retries — these conditions won't change within the same app start.
-    const appStart = await NATIVE.fetchNativeAppStart();
+    //
+    // Use cached response if available (e.g. when _appLoaded() re-triggers
+    // standalone capture after auto-capture already fetched from the native layer).
+    // The native layer sets has_fetched = true after the first fetch, so a second
+    // NATIVE.fetchNativeAppStart() call would incorrectly bail out.
+    const isCached = cachedNativeAppStart !== undefined;
+    const appStart = isCached ? cachedNativeAppStart : await NATIVE.fetchNativeAppStart();
+    cachedNativeAppStart = appStart;
     if (!appStart) {
       debug.warn('[AppStart] Failed to retrieve the app start metrics from the native layer.');
       appStartDataFlushed = true;
       return;
     }
-    if (appStart.has_fetched) {
+    // Skip the has_fetched check when using a cached response — the native layer
+    // sets has_fetched = true after the first fetch, but we intentionally re-use
+    // the data when _appLoaded() overrides the app start end timestamp.
+    if (!isCached && appStart.has_fetched) {
       debug.warn('[AppStart] Measured app start metrics were already reported from the native layer.');
       appStartDataFlushed = true;
       return;
