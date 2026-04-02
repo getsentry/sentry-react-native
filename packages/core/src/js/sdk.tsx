@@ -25,6 +25,7 @@ import { shouldEnableNativeNagger } from './options';
 import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
+import { _appLoaded } from './tracing/integrations/appStart';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
@@ -218,6 +219,31 @@ export function wrap<P extends Record<string, unknown>>(
  */
 export function nativeCrash(): void {
   NATIVE.nativeCrash();
+}
+
+/**
+ * Signals that the application has finished loading and is ready for user interaction.
+ *
+ * Call this when your app is truly ready — after async initialization, data loading,
+ * splash screen dismissal, auth session restore, etc. This marks the end of the app start span,
+ * giving you a more accurate measurement of perceived startup time.
+ *
+ * If not called, the SDK falls back to the root component mount time (via `Sentry.wrap()`)
+ * or JS bundle execution start.
+ *
+ * @experimental This API is subject to change in future versions.
+ *
+ * @example
+ * ```ts
+ * await loadRemoteConfig();
+ * await restoreSession();
+ * SplashScreen.hide();
+ * Sentry.appLoaded();
+ * ```
+ */
+export function appLoaded(): void {
+  // oxlint-disable-next-line typescript-eslint(no-floating-promises)
+  _appLoaded();
 }
 
 /**
