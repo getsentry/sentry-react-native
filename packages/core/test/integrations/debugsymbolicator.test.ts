@@ -708,6 +708,61 @@ describe('Debug Symbolicator Integration', () => {
       });
     });
 
+    it('should not wipe original frames when parseErrorStack returns empty array', async () => {
+      (parseErrorStack as jest.Mock).mockReturnValue([]);
+
+      const originalFrames = [
+        {
+          function: 'originalFoo',
+          filename: '/original/path/foo.js',
+          lineno: 10,
+          colno: 5,
+        },
+        {
+          function: 'originalBar',
+          filename: '/original/path/bar.js',
+          lineno: 20,
+          colno: 15,
+        },
+      ];
+
+      const symbolicatedEvent = await processEvent(
+        {
+          exception: {
+            values: [
+              {
+                type: 'Error',
+                value: 'Error: test',
+                stacktrace: {
+                  frames: originalFrames,
+                },
+              },
+            ],
+          },
+        },
+        {
+          originalException: {
+            stack: mockRawStack,
+          },
+        },
+      );
+
+      // Original frames should be preserved when parseErrorStack returns empty array
+      expect(symbolicatedEvent).toStrictEqual(<Event>{
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Error: test',
+              stacktrace: {
+                frames: originalFrames,
+              },
+            },
+          ],
+        },
+      });
+    });
+
     it('should symbolicate error with different amount of exception hints ', async () => {
       // Example: Sentry captures an Error with 20 Causes, but limits the captured exceptions to
       // 5 in event.exception. Meanwhile, hint.originalException contains all 20 items.
