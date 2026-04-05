@@ -19,9 +19,15 @@ const EndToEndTestsScreen = (): JSX.Element => {
 
     // WARNING: This is only for testing purposes.
     // We only do this to render the eventId onto the UI for end to end tests.
-    client.getOptions().beforeSend = (e) => {
-      setEventId(e.event_id);
-      return e;
+    // Chain with existing beforeSend (set by mobileReplayIntegration) to
+    // preserve replay_id processing.
+    const existingBeforeSend = client.getOptions().beforeSend;
+    client.getOptions().beforeSend = async (e, hint) => {
+      const result = existingBeforeSend ? await existingBeforeSend(e, hint) : e;
+      if (result) {
+        setEventId(result.event_id);
+      }
+      return result;
     };
 
     setIsReady(true);

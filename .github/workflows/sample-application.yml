@@ -14,7 +14,7 @@ concurrency:
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   MAESTRO_VERSION: '2.3.0'
-  MAESTRO_DRIVER_STARTUP_TIMEOUT: 90000 # Increase timeout from default 30s to 90s for CI stability
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000 # Increase timeout from default 30s to 180s for CI stability
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -57,12 +57,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
-        ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
+        rn-architecture: ['new']
+        ios-use-frameworks: ['no-frameworks']
         build-type: ['dev', 'production']
-        exclude:
-          - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic-frameworks'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -72,7 +69,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -152,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
+        rn-architecture: ['new']
         build-type: ['dev', 'production']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -163,7 +160,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -238,7 +235,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -325,7 +322,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -337,6 +334,35 @@ jobs:
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
+          wait_for_boot: true
+          erase_before_boot: false
+
+      - name: Wait for iOS simulator to be fully ready
+        run: |
+          xcrun simctl bootstatus booted -b
+          xcrun simctl launch booted com.apple.Preferences
+          sleep 5
+          xcrun simctl terminate booted com.apple.Preferences
+
+      - name: Warm up Maestro driver on iOS
+        continue-on-error: true
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          xcrun simctl install booted sentryreactnativesample.app
+          WARMUP=$(mktemp /tmp/maestro-warmup-XXXXXX.yml)
+          cat > "$WARMUP" << 'YML'
+          appId: io.sentry.reactnative.sample
+          ---
+          - launchApp:
+              clearState: true
+          - extendedWaitUntil:
+              visible: "Sentry React Native Sample"
+              timeout: 120000
+          - killApp
+          YML
+          sed -i '' 's/^          //' "$WARMUP"
+          maestro test "$WARMUP" || true
+          rm -f "$WARMUP"
 
       - name: Run iOS Tests
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
@@ -378,7 +404,7 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 

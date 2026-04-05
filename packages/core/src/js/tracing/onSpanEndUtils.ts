@@ -1,7 +1,7 @@
 import type { Client, Span } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 
-import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON } from '@sentry/core';
+import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON, timestampInSeconds } from '@sentry/core';
 import { AppState, Platform } from 'react-native';
 
 import { isRootSpan, isSentrySpan } from '../utils/span';
@@ -198,20 +198,44 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 export const cancelInBackground = (client: Client, span: Span): void => {
   let inactiveTimeout: ReturnType<typeof setTimeout> | undefined;
 
+  // The timestamp when the app actually left the foreground. Used to end
+  // http.client child spans at the right time instead of whenever the
+  // deferred cancellation timer fires (which can be much later if the JS
+  // thread was suspended on iOS).
+  let leftForegroundTimestamp: number | undefined;
+
   const cancelSpan = (): void => {
     if (inactiveTimeout !== undefined) {
       clearTimeout(inactiveTimeout);
       inactiveTimeout = undefined;
     }
     debug.log(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
+
+    // End still-recording http.client children at the time the app left
+    // the foreground, not when the deferred timer fires. On iOS, the JS
+    // thread can be suspended after the `inactive` event, so the 5-second
+    // timer may fire long after the app backgrounded. Using the original
+    // timestamp prevents inflated span durations.
+    const childEndTimestamp = leftForegroundTimestamp ?? timestampInSeconds();
+    const children = getSpanDescendants(span);
+    for (const child of children) {
+      if (child !== span && child.isRecording() && spanToJSON(child).op === 'http.client') {
+        child.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
+        child.end(childEndTimestamp);
+      }
+    }
+
     span.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
     span.end();
   };
 
   const subscription = AppState.addEventListener('change', (newState: AppStateStatus) => {
     if (newState === 'background') {
+      leftForegroundTimestamp = leftForegroundTimestamp ?? timestampInSeconds();
       cancelSpan();
     } else if (Platform.OS === 'ios' && newState === 'inactive') {
+      // Record when the app actually left the foreground.
+      leftForegroundTimestamp = timestampInSeconds();
       // Schedule a deferred cancellation — if the JS thread is suspended
       // before the 'background' event fires, this timer will execute when
       // the app is eventually resumed and end the span.
@@ -220,6 +244,7 @@ export const cancelInBackground = (client: Client, span: Span): void => {
       }
     } else if (newState === 'active') {
       // App returned to foreground — clear any pending inactive cancellation.
+      leftForegroundTimestamp = undefined;
       if (inactiveTimeout !== undefined) {
         clearTimeout(inactiveTimeout);
         inactiveTimeout = undefined;

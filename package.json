@@ -60,7 +60,7 @@
     "See: https://github.com/appium/appium-chromedriver/pull/424"
   ],
   "resolutions": {
-    "appium-chromedriver@npm:8.2.19/@xmldom/xmldom": "0.8.10",
+    "appium-chromedriver@npm:8.2.19/@xmldom/xmldom": "0.8.12",
     "@istanbuljs/load-nyc-config@npm:1.1.0/js-yaml": "^3.14.2",
     "@yarnpkg/parsers@npm:3.0.0-rc.46/js-yaml": "^3.14.2",
     "cosmiconfig@npm:5.2.1/js-yaml": "^3.14.2",
@@ -101,7 +101,7 @@
     "fast-xml-parser": "^5.5.7",
     "form-data": "4.0.5",
     "qs": "^6.14.2",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "tar-fs": "^3.1.1",
     "on-headers": "^1.1.0",
     "diff": "^5.2.2",
@@ -115,7 +115,18 @@
     "minimatch@npm:10.2.4/brace-expansion": "^5.0.5",
     "@appium/base-driver@npm:10.2.2/path-to-regexp": "^8.4.0",
     "router@npm:2.2.0/path-to-regexp": "^8.4.0",
-    "yaml": "^2.8.3"
+    "yaml": "^2.8.3",
+    "react-native-build-config@^0.3.2": "patch:react-native-build-config@npm%3A0.3.2#./.yarn/patches/react-native-build-config-npm-0.3.2-0e671629bd.patch",
+    "minimatch@npm:5.1.9/brace-expansion": "^2.0.3",
+    "minimatch@npm:8.0.7/brace-expansion": "^2.0.3",
+    "minimatch@npm:9.0.9/brace-expansion": "^2.0.3",
+    "@expo/plist@npm:0.1.3/@xmldom/xmldom": "^0.8.12",
+    "@expo/plist@npm:0.3.4/@xmldom/xmldom": "^0.8.12",
+    "@expo/plist@npm:0.5.2/@xmldom/xmldom": "^0.8.12",
+    "plist@npm:3.1.0/@xmldom/xmldom": "^0.8.12",
+    "@appium/support@npm:7.0.6/yauzl": "^3.2.1",
+    "appium-ios-remotexpc@npm:0.36.0/@xmldom/xmldom": "^0.9.9",
+    "appium-ios-simulator@npm:8.0.12/@xmldom/xmldom": "^0.9.9"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
