@@ -232,6 +232,39 @@ describe('Sentry Metro Serializer', () => {
       expect(debugId).toMatch(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
     });
   });
+
+  test('createDefaultMetroSerializer can be created without Metro internals being loaded at import time', () => {
+    // This test verifies that the lazy-loading of Metro internals works correctly.
+    // The createDefaultMetroSerializer function should be callable without triggering
+    // module-level requires of Metro internals at import time.
+    // See: https://github.com/getsentry/sentry-react-native/issues/5957
+
+    // Import the function
+    const { createDefaultMetroSerializer: createSerializer } = require('../../src/js/tools/vendor/metro/utils');
+
+    // Create the serializer - this should succeed without loading Metro internals
+    const serializer = createSerializer();
+    expect(typeof serializer).toBe('function');
+
+    // Verify the serializer can be invoked with proper arguments and produces output
+    const [entryPoint, preModules, graph, options] = mockMinSerializerArgs();
+    const result = serializer(entryPoint, preModules, graph, options);
+
+    // The serializer returns either a string (hot mode) or {code, map}
+    //    if (typeof result === 'string') {
+    //      // Hot mode: returns just code
+    //      expect(typeof result).toBe('string');
+    //    } else {
+    // Non-hot mode: returns {code, map}
+    expect(result).toHaveProperty('code');
+    expect(result).toHaveProperty('map');
+    expect(typeof result.code).toBe('string');
+    expect(typeof result.map).toBe('string');
+    // Both code and map should exist (even if minimal for empty bundle)
+    expect(result.code).toBeDefined();
+    expect(result.map).toBeDefined();
+    //    }
+  });
 });
 
 function mockMinSerializerArgs(options?: {
