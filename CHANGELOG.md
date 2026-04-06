@@ -12,6 +12,10 @@
 
 - Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
 
+### Fixes
+
+- Lazy-load Metro internal modules to prevent Expo 55 import errors ([#5958](https://github.com/getsentry/sentry-react-native/pull/5958))
+
 ## 8.7.0
 
 ### Features
