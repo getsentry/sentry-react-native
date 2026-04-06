@@ -69,6 +69,10 @@ async function processEvent(event: Event, hint: EventHint): Promise<Event> {
 async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promise<SentryStackFrame[] | null> {
   try {
     const parsedStack = parseErrorStack(rawStack);
+    if (parsedStack.length === 0) {
+      debug.warn('parseErrorStack returned empty array, skipping symbolication');
+      return null;
+    }
 
     const prettyStack = await symbolicateStackTrace(parsedStack);
     if (!prettyStack) {
