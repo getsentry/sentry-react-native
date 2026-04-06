@@ -250,12 +250,6 @@ describe('Sentry Metro Serializer', () => {
     const [entryPoint, preModules, graph, options] = mockMinSerializerArgs();
     const result = serializer(entryPoint, preModules, graph, options);
 
-    // The serializer returns either a string (hot mode) or {code, map}
-    //    if (typeof result === 'string') {
-    //      // Hot mode: returns just code
-    //      expect(typeof result).toBe('string');
-    //    } else {
-    // Non-hot mode: returns {code, map}
     expect(result).toHaveProperty('code');
     expect(result).toHaveProperty('map');
     expect(typeof result.code).toBe('string');
