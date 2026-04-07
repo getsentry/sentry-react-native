@@ -12,6 +12,12 @@
 
 - Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.8.0 to v9.9.0 ([#5956](https://github.com/getsentry/sentry-react-native/pull/5956))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#990)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.8.0...9.9.0)
+
 ## 8.7.0
 
 ### Features
