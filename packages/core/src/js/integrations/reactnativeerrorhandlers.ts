@@ -175,7 +175,7 @@ function setupErrorUtilsGlobalHandler(): void {
     // locations with bundle offsets. Use componentStack as a fallback so
     // eventFromException can extract frames with source locations.
     // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
-    if (error.componentStack && (!error.stack || !hasStackFrames(error.stack))) {
+    if (error && error.componentStack && (!error.stack || !hasStackFrames(error.stack))) {
       // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
       error.stack = `${error.message || 'Error'}${error.componentStack}`;
     }
