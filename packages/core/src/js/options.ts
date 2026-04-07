@@ -97,6 +97,14 @@ export interface BaseReactNativeOptions {
   attachThreads?: boolean;
 
   /**
+   * When enabled, full stack traces for all threads are attached to all captured events.
+   *
+   * @default false
+   * @platform ios
+   */
+  attachAllThreads?: boolean;
+
+  /**
    *  When enabled, certain personally identifiable information (PII) is added by active integrations.
    *
    * @default false
