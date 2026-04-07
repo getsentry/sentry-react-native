@@ -21,7 +21,10 @@ set -e
 LOCAL_NODE_BINARY=${NODE_BINARY:-node}
 
 # The project root by default is one level up from the ios directory
-RN_PROJECT_ROOT="${PROJECT_DIR}/.."
+# SENTRY_PROJECT_ROOT can be set to override this for monorepo setups
+# where the ios directory is not directly under the project root.
+# See: https://github.com/getsentry/sentry-react-native/issues/2880
+RN_PROJECT_ROOT="${SENTRY_PROJECT_ROOT:-${PROJECT_DIR}/..}"
 
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 [ -z "$SENTRY_DOTENV_PATH" ] && [ -f "$RN_PROJECT_ROOT/.env.sentry-build-plugin" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
