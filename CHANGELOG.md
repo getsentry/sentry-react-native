@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix app start transaction profile offset by using the actual profiling start timestamp instead of the adjusted app start time ([#4511](https://github.com/getsentry/sentry-react-native/issues/4511))
+
 ### Features
 
 - Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
