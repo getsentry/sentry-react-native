@@ -38,9 +38,7 @@ describe('NativeStackRecovery', () => {
 
   it('does nothing when native is disabled', () => {
     (NATIVE as any).enableNative = false;
-    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue(
-      'Error: test\n    at foo (file.js:1:1)',
-    );
+    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue('Error: test\n    at foo (file.js:1:1)');
 
     const event = executeIntegrationFor(
       {
@@ -57,9 +55,7 @@ describe('NativeStackRecovery', () => {
 
   it('does nothing on non-android platforms', () => {
     Platform.OS = 'ios';
-    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue(
-      'Error: test\n    at foo (file.js:1:1)',
-    );
+    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue('Error: test\n    at foo (file.js:1:1)');
 
     const event = executeIntegrationFor(
       {
@@ -144,9 +140,7 @@ describe('NativeStackRecovery', () => {
   });
 
   it('does nothing when cached stack cannot be parsed', () => {
-    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue(
-      'not a valid stack trace',
-    );
+    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue('not a valid stack trace');
 
     const event = executeIntegrationFor(
       {
@@ -161,9 +155,7 @@ describe('NativeStackRecovery', () => {
   });
 
   it('does nothing when event has no exception', () => {
-    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue(
-      'Error: test\n    at foo (file.js:1:1)',
-    );
+    (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue('Error: test\n    at foo (file.js:1:1)');
 
     executeIntegrationFor({}, {});
 
@@ -171,10 +163,7 @@ describe('NativeStackRecovery', () => {
   });
 
   it('does nothing when exception has empty frames array', () => {
-    const cachedStack = [
-      'Error: test',
-      '    at foo (http://localhost:8081/index.bundle:1:100)',
-    ].join('\n');
+    const cachedStack = ['Error: test', '    at foo (http://localhost:8081/index.bundle:1:100)'].join('\n');
 
     (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue(cachedStack);
 
@@ -198,10 +187,7 @@ describe('NativeStackRecovery', () => {
   });
 
   it('only patches the primary exception (values[0]) when multiple exception values exist', () => {
-    const cachedStack = [
-      'Error: test',
-      '    at foo (http://localhost:8081/index.bundle:1:100)',
-    ].join('\n');
+    const cachedStack = ['Error: test', '    at foo (http://localhost:8081/index.bundle:1:100)'].join('\n');
 
     (NATIVE.fetchCachedJavascriptExceptionStack as jest.Mock).mockReturnValue(cachedStack);
 

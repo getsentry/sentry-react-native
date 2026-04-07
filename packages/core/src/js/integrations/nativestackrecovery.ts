@@ -22,8 +22,7 @@ export const nativeStackRecoveryIntegration = (): Integration => {
     setupOnce: () => {
       /* noop */
     },
-    preprocessEvent: (event: Event, hint: EventHint, client: Client): void =>
-      preprocessEvent(event, hint, client),
+    preprocessEvent: (event: Event, hint: EventHint, client: Client): void => preprocessEvent(event, hint, client),
   };
 };
 
