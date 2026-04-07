@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Fix app start transaction profile offset by using the actual profiling start timestamp instead of the adjusted app start time ([#4511](https://github.com/getsentry/sentry-react-native/issues/4511))
+- Fix app start transaction profile offset by using the actual profiling start timestamp instead of the adjusted app start time ([#5962](https://github.com/getsentry/sentry-react-native/issues/5962))
 
 ### Features
 
