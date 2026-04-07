@@ -174,6 +174,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod(isBlockingSynchronousMethod = true)
+  public String fetchCachedJavascriptExceptionStack() {
+    return this.impl.fetchCachedJavascriptExceptionStack();
+  }
+
+  @ReactMethod(isBlockingSynchronousMethod = true)
   public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
     // Not used on Android
     return null;

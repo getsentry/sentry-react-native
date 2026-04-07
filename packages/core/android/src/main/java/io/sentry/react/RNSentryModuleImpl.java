@@ -993,6 +993,10 @@ public class RNSentryModuleImpl {
     return packageInfo.packageName;
   }
 
+  public String fetchCachedJavascriptExceptionStack() {
+    return RNSentryJavascriptExceptionCache.getAndClear();
+  }
+
   public void getDataFromUri(String uri, Promise promise) {
     try {
       Uri contentUri = Uri.parse(uri);

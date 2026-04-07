@@ -55,6 +55,7 @@ const NATIVE: MockInterface<NativeType> = {
   stopProfiling: jest.fn(),
 
   fetchNativePackageName: jest.fn(),
+  fetchCachedJavascriptExceptionStack: jest.fn(),
   fetchNativeStackFramesBy: jest.fn(),
 
   initNativeReactNavigationNewFrameTracking: jest.fn(),

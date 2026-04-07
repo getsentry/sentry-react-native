@@ -43,6 +43,24 @@ describe('Integration execution order', () => {
       expect(nativeLinkedErrors.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
       expect(rewriteFrames.processEvent!).toHaveBeenCalledBefore(debugSymbolicator.processEvent!);
     });
+
+    it('NativeStackRecovery is before RewriteFrames', async () => {
+      // NativeStackRecovery has to process event before RewriteFrames
+      // otherwise recovered stack trace frames won't be rewritten
+
+      const client = createTestClient();
+      const { integrations } = client.getOptions();
+
+      const nativeStackRecovery = spyOnIntegrationById('NativeStackRecovery', integrations);
+      const rewriteFrames = spyOnIntegrationById('RewriteFrames', integrations);
+
+      client.init();
+
+      client.captureException(new Error('test'));
+      await client.flush();
+
+      expect(nativeStackRecovery.preprocessEvent).toHaveBeenCalledBefore(rewriteFrames.processEvent!);
+    });
   });
 
   describe('web', () => {

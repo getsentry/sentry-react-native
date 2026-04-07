@@ -174,6 +174,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public String fetchCachedJavascriptExceptionStack() {
+    return this.impl.fetchCachedJavascriptExceptionStack();
+  }
+
+  @Override
   public WritableMap fetchNativeStackFramesBy(ReadableArray instructionsAddr) {
     // Not used on Android
     return null;

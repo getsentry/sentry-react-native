@@ -4,6 +4,7 @@ import android.app.Activity
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.common.JavascriptException
 import io.sentry.Breadcrumb
+import io.sentry.Hint
 import io.sentry.ILogger
 import io.sentry.SentryEvent
 import io.sentry.android.core.CurrentActivityHolder
@@ -32,6 +33,7 @@ class RNSentryStartTest {
         MockitoAnnotations.openMocks(this)
         logger = mock(ILogger::class.java)
         activity = mock(Activity::class.java)
+        RNSentryJavascriptExceptionCache.clear()
     }
 
     @Test
@@ -196,10 +198,37 @@ class RNSentryStartTest {
     }
 
     @Test
-    fun `the JavascriptException is added to the ignoredExceptionsForType list on with react defaults`() {
+    fun `the JavascriptException is not added to the ignoredExceptionsForType list`() {
         val actualOptions = SentryAndroidOptions()
         RNSentryStart.updateWithReactDefaults(actualOptions, activity)
-        assertTrue(actualOptions.ignoredExceptionsForType.contains(JavascriptException::class.java))
+        assertFalse(actualOptions.ignoredExceptionsForType.contains(JavascriptException::class.java))
+    }
+
+    @Test
+    fun `beforeSend caches JavascriptException stack and drops the event`() {
+        val options = SentryAndroidOptions()
+        RNSentryStart.updateWithReactFinals(options)
+
+        val jsStackTrace = "TypeError: Cannot read property 'content' of undefined\n    at UserMessage (index.android.bundle:1:5274251)"
+        val jsException = JavascriptException(jsStackTrace)
+        val event = SentryEvent(jsException)
+
+        val result = options.beforeSend?.execute(event, Hint())
+
+        assertNull("JavascriptException event should be dropped", result)
+        val cached = RNSentryJavascriptExceptionCache.getAndClear()
+        assertEquals(jsStackTrace, cached)
+    }
+
+    @Test
+    fun `beforeSend does not drop non-JavascriptException events`() {
+        val options = SentryAndroidOptions()
+        val event = SentryEvent().apply { sdk = SdkVersion(RNSentryVersion.ANDROID_SDK_NAME, "1.0") }
+
+        RNSentryStart.updateWithReactFinals(options)
+        val result = options.beforeSend?.execute(event, Hint())
+
+        assertNotNull("Non-JavascriptException event should not be dropped", result)
     }
 
     @Test

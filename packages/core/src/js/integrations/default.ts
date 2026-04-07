@@ -33,6 +33,7 @@ import {
   modulesLoaderIntegration,
   nativeLinkedErrorsIntegration,
   nativeReleaseIntegration,
+  nativeStackRecoveryIntegration,
   primitiveTagIntegration,
   reactNativeErrorHandlersIntegration,
   reactNativeInfoIntegration,
@@ -62,6 +63,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
       }),
     );
     integrations.push(nativeLinkedErrorsIntegration());
+    integrations.push(nativeStackRecoveryIntegration());
   } else {
     integrations.push(browserApiErrorsIntegration());
     integrations.push(browserGlobalHandlersIntegration());

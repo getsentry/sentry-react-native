@@ -124,6 +124,12 @@ interface SentryNativeWrapper {
   fetchNativePackageName(): string | null;
 
   /**
+   * Fetches and clears the cached JavascriptException stack trace from the native side.
+   * Returns null if no cached stack is available or the cache has expired.
+   */
+  fetchCachedJavascriptExceptionStack(): string | null;
+
+  /**
    * Fetches native stack frames and debug images for the instructions addresses.
    */
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null;
@@ -754,6 +760,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativePackageName() || null;
+  },
+
+  fetchCachedJavascriptExceptionStack(): string | null {
+    if (!this.enableNative) {
+      return null;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return null;
+    }
+
+    return RNSentry.fetchCachedJavascriptExceptionStack() || null;
   },
 
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | null {

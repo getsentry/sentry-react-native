@@ -297,10 +297,6 @@ final class RNSentryStart {
     options.setTracesSampleRate(null);
     options.setTracesSampler(null);
 
-    // React native internally throws a JavascriptException.
-    // we want to ignore it on the native side to avoid sending it twice.
-    options.addIgnoredExceptionForType(JavascriptException.class);
-
     setCurrentActivity(currentActivity);
   }
 
@@ -312,6 +308,15 @@ final class RNSentryStart {
     BeforeSendCallback userBeforeSend = options.getBeforeSend();
     options.setBeforeSend(
         (event, hint) -> {
+          // React Native internally throws a JavascriptException when a JS error occurs.
+          // We cache its stack trace (which may contain frames missing from the JS error)
+          // and drop the native event to avoid sending duplicates.
+          Throwable throwable = event.getThrowable();
+          if (throwable instanceof JavascriptException) {
+            RNSentryJavascriptExceptionCache.cache(throwable.getMessage());
+            return null;
+          }
+
           setEventOriginTag(event);
           // Note: In Sentry Android SDK v7, native SDK packages/integrations are already
           // included in the SDK version set during initialization, so no need to copy them here.

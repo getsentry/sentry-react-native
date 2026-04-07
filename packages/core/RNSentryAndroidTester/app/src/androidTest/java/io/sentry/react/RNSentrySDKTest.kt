@@ -176,7 +176,7 @@ class RNSentrySDKTest {
     }
 
     private fun verifyDefaults(actualOptions: SentryAndroidOptions) {
-        assertTrue(actualOptions.ignoredExceptionsForType.contains(JavascriptException::class.java))
+        assertFalse(actualOptions.ignoredExceptionsForType.contains(JavascriptException::class.java))
         assertEquals(RNSentryVersion.ANDROID_SDK_NAME, actualOptions.sdkVersion?.name)
         assertEquals(
             io.sentry.android.core.BuildConfig.VERSION_NAME,

@@ -371,6 +371,12 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchNativePackageName)
     return packageName;
 }
 
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, fetchCachedJavascriptExceptionStack)
+{
+    // Android-only feature, iOS does not need this.
+    return nil;
+}
+
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(
     NSDictionary *, fetchNativeStackFramesBy : (NSArray *)instructionsAddr)
 {
