@@ -455,6 +455,82 @@ describe('sentry-xcode.sh', () => {
     expect(result.stdout).toContain('skipping sourcemaps upload');
   });
 
+  describe('SENTRY_PROJECT_ROOT override', () => {
+    it('resolves SOURCEMAP_FILE relative to SENTRY_PROJECT_ROOT instead of PROJECT_DIR/..', () => {
+      const customRoot = path.join(tempDir, 'monorepo-package');
+      fs.mkdirSync(customRoot, { recursive: true });
+
+      const echoScript = path.join(tempDir, 'mock-sentry-cli-echo-sourcemap.js');
+      fs.writeFileSync(
+        echoScript,
+        `
+        const sourcemapFile = process.env.SOURCEMAP_FILE || 'not-set';
+        console.log('SOURCEMAP_FILE=' + sourcemapFile);
+        process.exit(0);
+        `,
+      );
+
+      const result = runScript({
+        SENTRY_PROJECT_ROOT: customRoot,
+        SENTRY_CLI_EXECUTABLE: echoScript,
+        SOURCEMAP_FILE: 'relative/path.map',
+      });
+
+      const expectedPath = path.join(customRoot, 'relative/path.map');
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain(`SOURCEMAP_FILE=${expectedPath}`);
+    });
+
+    it('resolves SOURCEMAP_FILE relative to PROJECT_DIR/.. when SENTRY_PROJECT_ROOT is not set', () => {
+      const echoScript = path.join(tempDir, 'mock-sentry-cli-echo-sourcemap.js');
+      fs.writeFileSync(
+        echoScript,
+        `
+        const sourcemapFile = process.env.SOURCEMAP_FILE || 'not-set';
+        console.log('SOURCEMAP_FILE=' + sourcemapFile);
+        process.exit(0);
+        `,
+      );
+
+      const result = runScript({
+        SENTRY_CLI_EXECUTABLE: echoScript,
+        SOURCEMAP_FILE: 'relative/path.map',
+      });
+
+      // Without SENTRY_PROJECT_ROOT, falls back to PROJECT_DIR/..
+      const projectRoot = path.dirname(tempDir);
+      const expectedPath = path.join(projectRoot, 'relative/path.map');
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain(`SOURCEMAP_FILE=${expectedPath}`);
+    });
+
+    it('finds sentry.options.json in SENTRY_PROJECT_ROOT', () => {
+      const customRoot = path.join(tempDir, 'monorepo-package');
+      fs.mkdirSync(customRoot, { recursive: true });
+
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123' });
+      fs.writeFileSync(path.join(customRoot, 'sentry.options.json'), optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_PROJECT_ROOT: customRoot,
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Copied');
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
+      expect(copied.dsn).toBe('https://key@sentry.io/123');
+    });
+  });
+
   describe('sentry.options.json SENTRY_ENVIRONMENT override', () => {
     it('copies file without modification when SENTRY_ENVIRONMENT is not set', () => {
       const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', environment: 'production' });
