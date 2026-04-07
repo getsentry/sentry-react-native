@@ -11,6 +11,7 @@
 ### Features
 
 - Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
+- Add `attachAllThreads` option to attach full stack traces for all threads to captured events on iOS ([#5959](https://github.com/getsentry/sentry-react-native/issues/5959))
 
 ### Dependencies
 
