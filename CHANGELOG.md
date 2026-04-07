@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Add `SENTRY_PROJECT_ROOT` env var to override project root in Xcode build phase scripts for monorepo setups ([#5961](https://github.com/getsentry/sentry-react-native/pull/5961))
+
 ### Features
 
 - Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
