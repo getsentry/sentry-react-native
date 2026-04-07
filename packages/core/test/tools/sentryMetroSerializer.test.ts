@@ -257,7 +257,6 @@ describe('Sentry Metro Serializer', () => {
     // Both code and map should exist (even if minimal for empty bundle)
     expect(result.code).toBeDefined();
     expect(result.map).toBeDefined();
-    //    }
   });
 });
 
