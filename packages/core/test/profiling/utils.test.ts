@@ -3,9 +3,13 @@ jest.mock('../../src/js/profiling/debugid');
 
 import type { Event } from '@sentry/core';
 
-import { getDebugMetadata } from '../../src/js/profiling/debugid';
 import type { AndroidCombinedProfileEvent, CombinedProfileEvent } from '../../src/js/profiling/types';
-import { enrichAndroidProfileWithEventContext, enrichCombinedProfileWithEventContext } from '../../src/js/profiling/utils';
+
+import { getDebugMetadata } from '../../src/js/profiling/debugid';
+import {
+  enrichAndroidProfileWithEventContext,
+  enrichCombinedProfileWithEventContext,
+} from '../../src/js/profiling/utils';
 import { getDefaultEnvironment } from '../../src/js/utils/environment';
 import { createMockMinimalValidAndroidProfile, createMockMinimalValidHermesProfileEvent } from './fixtures';
 

@@ -283,7 +283,11 @@ export function stopProfiling(
 
   if (collectedProfiles.androidProfile) {
     const durationNs = profileEndTimestampNs - profileStartTimestampNs;
-    const androidProfile = createAndroidWithHermesProfile(hermesProfileEvent, collectedProfiles.androidProfile, durationNs);
+    const androidProfile = createAndroidWithHermesProfile(
+      hermesProfileEvent,
+      collectedProfiles.androidProfile,
+      durationNs,
+    );
     androidProfile.profilingStartTimestampNs = profileStartTimestampNs;
     return androidProfile;
   } else if (collectedProfiles.nativeProfile) {
