@@ -14,6 +14,7 @@
 
 ### Fixes
 
+- Recover missing JS stack traces from native `JavascriptException` on Android ([#5964](https://github.com/getsentry/sentry-react-native/pull/5964))
 - Lazy-load Metro internal modules to prevent Expo 55 import errors ([#5958](https://github.com/getsentry/sentry-react-native/pull/5958))
 
 ### Dependencies
