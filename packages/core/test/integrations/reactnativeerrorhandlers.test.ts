@@ -162,7 +162,29 @@ describe('ReactNativeErrorHandlers', () => {
       );
     });
 
-    test('Does not override stack when error already has one', async () => {
+    test('Uses componentStack as fallback when stack has no frames', async () => {
+      const integration = reactNativeErrorHandlersIntegration();
+      integration.setupOnce!();
+
+      const error: any = {
+        message: 'Value is undefined, expected an Object',
+        stack: 'Error: Value is undefined, expected an Object',
+        componentStack:
+          '\n    at UserMessage (http://localhost:8081/index.bundle:1:5274251)' +
+          '\n    at renderItem (http://localhost:8081/index.bundle:1:5280705)',
+      };
+
+      await errorHandlerCallback!(error, true);
+      await client.flush();
+
+      expect(error.stack).toBe(
+        'Value is undefined, expected an Object' +
+          '\n    at UserMessage (http://localhost:8081/index.bundle:1:5274251)' +
+          '\n    at renderItem (http://localhost:8081/index.bundle:1:5280705)',
+      );
+    });
+
+    test('Does not override stack when error already has frames', async () => {
       const integration = reactNativeErrorHandlersIntegration();
       integration.setupOnce!();
 
