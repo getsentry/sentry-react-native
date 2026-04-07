@@ -170,6 +170,15 @@ function setupErrorUtilsGlobalHandler(): void {
       return;
     }
 
+    // React render errors may arrive without a .stack but with a .componentStack
+    // (set by ReactFiberErrorDialog). Use the componentStack as a fallback so
+    // eventFromException can extract frames with source locations.
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
+    if (!error.stack && error.componentStack) {
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
+      error.stack = `${error.message || 'Error'}${error.componentStack}`;
+    }
+
     const hint: EventHint = {
       originalException: error,
       attachments: getCurrentScope().getScopeData().attachments,

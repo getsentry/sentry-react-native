@@ -140,6 +140,40 @@ describe('ReactNativeErrorHandlers', () => {
 
       expect(hint).toEqual(expect.objectContaining({ originalException: new Error('Test Error') }));
     });
+
+    test('Uses componentStack as fallback when error has no stack', async () => {
+      const integration = reactNativeErrorHandlersIntegration();
+      integration.setupOnce!();
+
+      const error: any = {
+        message: 'Value is undefined, expected an Object',
+        componentStack:
+          '\n    at UserMessage (http://localhost:8081/index.bundle:1:5274251)' +
+          '\n    at renderItem (http://localhost:8081/index.bundle:1:5280705)',
+      };
+
+      await errorHandlerCallback!(error, true);
+      await client.flush();
+
+      expect(error.stack).toBe(
+        'Value is undefined, expected an Object' +
+          '\n    at UserMessage (http://localhost:8081/index.bundle:1:5274251)' +
+          '\n    at renderItem (http://localhost:8081/index.bundle:1:5280705)',
+      );
+    });
+
+    test('Does not override stack when error already has one', async () => {
+      const integration = reactNativeErrorHandlersIntegration();
+      integration.setupOnce!();
+
+      const error = new Error('Test Error');
+      (error as any).componentStack = '\n    at SomeComponent (http://localhost:8081/index.bundle:1:100)';
+      const originalStack = error.stack;
+
+      await errorHandlerCallback!(error, false);
+
+      expect(error.stack).toBe(originalStack);
+    });
   });
 
   describe('onUnhandledRejection', () => {
