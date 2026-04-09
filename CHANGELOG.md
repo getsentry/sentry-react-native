@@ -10,7 +10,8 @@
 
 ### Fixes
 
-- Use React `componentStack` as fallback when error has no stack trace on Android ([#5965](https://github.com/getsentry/sentry-react-native/pull/5965)
+- Fix app start transaction profile offset by using the actual profiling start timestamp instead of the adjusted app start time ([#5962](https://github.com/getsentry/sentry-react-native/issues/5962))
+- Use React `componentStack` as fallback when error has no stack trace on Android ([#5965](https://github.com/getsentry/sentry-react-native/pull/5965))
 - Add `SENTRY_PROJECT_ROOT` env var to override project root in Xcode build phase scripts for monorepo setups ([#5961](https://github.com/getsentry/sentry-react-native/pull/5961))
 
 ### Features
