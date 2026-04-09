@@ -170,6 +170,16 @@ function setupErrorUtilsGlobalHandler(): void {
       return;
     }
 
+    // React render errors may arrive without useful frames in .stack but with a
+    // .componentStack (set by ReactFiberErrorDialog) that contains component
+    // locations with bundle offsets. Use componentStack as a fallback so
+    // eventFromException can extract frames with source locations.
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
+    if (error?.componentStack && (!error.stack || !hasStackFrames(error.stack))) {
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
+      error.stack = `${error.message || 'Error'}${error.componentStack}`;
+    }
+
     const hint: EventHint = {
       originalException: error,
       attachments: getCurrentScope().getScopeData().attachments,
@@ -210,4 +220,11 @@ function setupErrorUtilsGlobalHandler(): void {
       },
     );
   });
+}
+
+/**
+ * Checks if a stack trace string contains at least one frame line.
+ */
+function hasStackFrames(stack: unknown): boolean {
+  return typeof stack === 'string' && stack.includes('\n');
 }
