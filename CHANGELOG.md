@@ -31,6 +31,9 @@
 - Bump JavaScript SDK from v10.47.0 to v10.48.0 ([#5975](https://github.com/getsentry/sentry-react-native/pull/5975))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10480)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.47.0...10.48.0)
+- Bump Android SDK from v8.37.1 to v8.38.0 ([#5971](https://github.com/getsentry/sentry-react-native/pull/5971))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.37.1...8.38.0)
 
 ## 8.7.0
 
