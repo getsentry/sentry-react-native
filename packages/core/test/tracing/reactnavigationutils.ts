@@ -11,6 +11,29 @@ const navigationAction: UnsafeAction = {
   },
 };
 
+function navigationActionWithPayload(name: string): UnsafeAction {
+  return {
+    data: {
+      action: {
+        type: 'NAVIGATE',
+        payload: { name },
+      },
+      noop: false,
+      stack: undefined,
+    },
+  };
+}
+
+const goBackAction: UnsafeAction = {
+  data: {
+    action: {
+      type: 'GO_BACK',
+    },
+    noop: false,
+    stack: undefined,
+  },
+};
+
 export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavigationIntegration>) {
   const mockedNavigationContained = mockNavigationContainer();
   const mockedNavigation = {
@@ -62,8 +85,11 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
     emitWithoutStateChange: (action: UnsafeAction) => {
       mockedNavigationContained.listeners['__unsafe_action__'](action);
     },
-    emitWithStateChange: (action: UnsafeAction) => {
+    emitWithStateChange: (action: UnsafeAction, route?: NavigationRoute) => {
       mockedNavigationContained.listeners['__unsafe_action__'](action);
+      if (route) {
+        mockedNavigationContained.currentRoute = route;
+      }
       mockedNavigationContained.listeners['state']({
         // this object is not used by the instrumentation
       });
@@ -92,6 +118,31 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
         key: 'static_screen',
         name: 'StaticScreen',
         params: { utm_source: 'email', referrer: 'homepage' },
+      };
+      mockedNavigationContained.listeners['state']({});
+    },
+    navigateToNewScreenWithPayload: () => {
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationActionWithPayload('New Screen'));
+      mockedNavigationContained.currentRoute = {
+        key: 'new_screen',
+        name: 'New Screen',
+      };
+      mockedNavigationContained.listeners['state']({});
+    },
+    navigateToScreenWithMismatchedPayload: () => {
+      // Dispatch says "ScreenA" but router resolves to "ScreenB" (e.g. nested navigation)
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationActionWithPayload('ScreenA'));
+      mockedNavigationContained.currentRoute = {
+        key: 'screen_b',
+        name: 'ScreenB',
+      };
+      mockedNavigationContained.listeners['state']({});
+    },
+    emitGoBackWithStateChange: () => {
+      mockedNavigationContained.listeners['__unsafe_action__'](goBackAction);
+      mockedNavigationContained.currentRoute = {
+        key: 'previous_screen',
+        name: 'Previous Screen',
       };
       mockedNavigationContained.listeners['state']({});
     },
