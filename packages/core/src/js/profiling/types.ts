@@ -15,6 +15,7 @@ export type HermesProfileEvent = {
   transaction: {
     active_thread_id: string;
   };
+  profilingStartTimestampNs?: number;
 };
 
 /*
@@ -31,6 +32,7 @@ export type AndroidCombinedProfileEvent = {
   android_api_level: number;
   duration_ns: string;
   active_thread_id: string;
+  profilingStartTimestampNs?: number;
 };
 
 /*

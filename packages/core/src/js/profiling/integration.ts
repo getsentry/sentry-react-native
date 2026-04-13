@@ -279,9 +279,17 @@ export function stopProfiling(
     return null;
   }
 
+  hermesProfileEvent.profilingStartTimestampNs = profileStartTimestampNs;
+
   if (collectedProfiles.androidProfile) {
     const durationNs = profileEndTimestampNs - profileStartTimestampNs;
-    return createAndroidWithHermesProfile(hermesProfileEvent, collectedProfiles.androidProfile, durationNs);
+    const androidProfile = createAndroidWithHermesProfile(
+      hermesProfileEvent,
+      collectedProfiles.androidProfile,
+      durationNs,
+    );
+    androidProfile.profilingStartTimestampNs = profileStartTimestampNs;
+    return androidProfile;
   } else if (collectedProfiles.nativeProfile) {
     return addNativeProfileToHermesProfile(hermesProfileEvent, collectedProfiles.nativeProfile);
   }

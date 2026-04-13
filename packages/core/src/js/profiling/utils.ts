@@ -88,14 +88,20 @@ export function enrichCombinedProfileWithEventContext(
     }
   }
 
+  const { profilingStartTimestampNs, ...profileWithoutInternalFields } = profile;
+
   return {
-    ...profile,
+    ...profileWithoutInternalFields,
     event_id: profile_id,
     runtime: {
       name: 'hermes',
       version: '', // TODO: get hermes version
     },
-    timestamp: event.start_timestamp ? new Date(event.start_timestamp * 1000).toISOString() : new Date().toISOString(),
+    timestamp: profilingStartTimestampNs
+      ? new Date(profilingStartTimestampNs / 1e6).toISOString()
+      : event.start_timestamp
+        ? new Date(event.start_timestamp * 1000).toISOString()
+        : new Date().toISOString(),
     release: event.release || '',
     environment: event.environment || getDefaultEnvironment(),
     os: {
@@ -130,8 +136,10 @@ export function enrichAndroidProfileWithEventContext(
   profile: AndroidCombinedProfileEvent,
   event: Event,
 ): AndroidProfileEvent | null {
+  const { profilingStartTimestampNs, ...profileWithoutInternalFields } = profile;
+
   return {
-    ...profile,
+    ...profileWithoutInternalFields,
     debug_meta: {
       images: getDebugMetadata(),
     },
@@ -152,7 +160,11 @@ export function enrichAndroidProfileWithEventContext(
 
     profile_id,
 
-    timestamp: event.start_timestamp ? new Date(event.start_timestamp * 1000).toISOString() : new Date().toISOString(),
+    timestamp: profilingStartTimestampNs
+      ? new Date(profilingStartTimestampNs / 1e6).toISOString()
+      : event.start_timestamp
+        ? new Date(event.start_timestamp * 1000).toISOString()
+        : new Date().toISOString(),
 
     release: event.release || '',
     dist: event.dist || '',
