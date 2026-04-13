@@ -1,4 +1,5 @@
 import { continueTrace, getCurrentScope, setCurrentClient } from '@sentry/core';
+
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 
 describe('strictTraceContinuation', () => {
