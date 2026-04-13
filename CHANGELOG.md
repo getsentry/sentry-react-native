@@ -28,6 +28,9 @@
 - Bump Bundler Plugins from v5.1.1 to v5.2.0 ([#5968](https://github.com/getsentry/sentry-react-native/pull/5968))
   - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#520)
   - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/5.1.1...5.2.0)
+- Bump JavaScript SDK from v10.47.0 to v10.48.0 ([#5975](https://github.com/getsentry/sentry-react-native/pull/5975))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10480)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.47.0...10.48.0)
 
 ## 8.7.0
 
