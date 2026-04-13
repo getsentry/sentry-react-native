@@ -378,7 +378,7 @@ export const reactNavigationIntegration = ({
     }
 
     // Extract route name from dispatch action payload when available
-    const dispatchedRouteName = getRouteNameFromAction(event);
+    const dispatchedRouteName = useDispatchedActionData ? getRouteNameFromAction(event) : undefined;
     if (useDispatchedActionData && !dispatchedRouteName && !isAppRestart) {
       debug.log(`${INTEGRATION_NAME} Navigation action has no route name in payload, not starting navigation span.`);
       return;
