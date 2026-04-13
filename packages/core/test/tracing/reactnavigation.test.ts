@@ -1058,6 +1058,52 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(client.event?.transaction).toBe('TabScreen');
     });
+
+    test('cancelled navigation with dispatched route name is discarded', async () => {
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: {
+            type: 'NAVIGATE',
+            payload: { name: 'OrphanedScreen' },
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      jest.runOnlyPendingTimers(); // Trigger the timeout
+
+      await client.flush();
+
+      expect(client.event).toBeUndefined();
+    });
+
+    test('initial navigation span is created during setup', async () => {
+      // Reset and create fresh client to test initial span
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        useDispatchedActionData: true,
+      });
+      const freshMockNavigation = createMockNavigationAndAttachTo(rNavigation);
+
+      const rnTracing = reactNativeTracingIntegration();
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, rnTracing],
+        enableAppStartTracking: false,
+      });
+      const freshClient = new TestClient(options);
+      setCurrentClient(freshClient);
+      freshClient.init();
+
+      jest.runOnlyPendingTimers(); // Flush the initial navigation span
+
+      await freshClient.flush();
+
+      // Initial span should be created with 'Initial Screen' from the mock container
+      expect(freshClient.event?.transaction).toBe('Initial Screen');
+    });
   });
 
   describe('useDispatchedActionData disabled (default) still uses generic span name', () => {

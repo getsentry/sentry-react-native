@@ -379,7 +379,7 @@ export const reactNavigationIntegration = ({
 
     // Extract route name from dispatch action payload when available
     const dispatchedRouteName = useDispatchedActionData ? getRouteNameFromAction(event) : undefined;
-    if (useDispatchedActionData && !dispatchedRouteName && !isAppRestart) {
+    if (useDispatchedActionData && event && !dispatchedRouteName && !isAppRestart) {
       debug.log(`${INTEGRATION_NAME} Navigation action has no route name in payload, not starting navigation span.`);
       return;
     }
@@ -409,12 +409,8 @@ export const reactNavigationIntegration = ({
     }
     // Always discard transactions that never receive route information
     const spanToCheck = latestNavigationSpan;
-    ignoreEmptyRouteChangeTransactions(
-      getClient(),
-      spanToCheck,
-      DEFAULT_NAVIGATION_SPAN_NAME,
-      () => latestNavigationSpan === spanToCheck,
-    );
+    const spanName = finalSpanOptions.name ?? DEFAULT_NAVIGATION_SPAN_NAME;
+    ignoreEmptyRouteChangeTransactions(getClient(), spanToCheck, spanName, () => latestNavigationSpan === spanToCheck);
 
     if (enableTimeToInitialDisplay && latestNavigationSpan) {
       NATIVE.setActiveSpanId(latestNavigationSpan.spanContext().spanId);
