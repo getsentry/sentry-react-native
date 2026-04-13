@@ -10,6 +10,7 @@ import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 import { enableLogger } from './enableLogger';
 import { withSentryMiddleware } from './metroMiddleware';
+import { checkSentryExpoNativeProject } from './sentryExpoNativeCheck';
 import {
   setSentryBabelTransformerOptions,
   setSentryDefaultBabelTransformerPathEnv,
@@ -113,6 +114,8 @@ export function getSentryExpoConfig(
   options: DefaultConfigOptions & SentryExpoConfigOptions & SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
+
+  checkSentryExpoNativeProject(projectRoot);
 
   const getDefaultConfig = options.getDefaultConfig || loadExpoMetroConfigModule().getDefaultConfig;
   const config = getDefaultConfig(projectRoot, {
