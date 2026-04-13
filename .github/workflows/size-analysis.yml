@@ -9,6 +9,7 @@ on:
       - 'samples/react-native/**'
       - '.github/workflows/size-analysis.yml'
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - 'packages/**'
       - 'samples/react-native/**'
