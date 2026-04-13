@@ -198,6 +198,7 @@ export const reactNavigationIntegration = ({
   let latestRoute: NavigationRoute | undefined;
 
   let latestNavigationSpan: Span | undefined;
+  let latestNavigationSpanNameCustomized: boolean = false;
   let navigationProcessingSpan: Span | undefined;
 
   let initialStateHandled: boolean = false;
@@ -376,18 +377,31 @@ export const reactNavigationIntegration = ({
       return;
     }
 
+    // Extract route name from dispatch action payload when available
+    const dispatchedRouteName = getRouteNameFromAction(event);
+    if (useDispatchedActionData && !dispatchedRouteName && !isAppRestart) {
+      debug.log(`${INTEGRATION_NAME} Navigation action has no route name in payload, not starting navigation span.`);
+      return;
+    }
+
     if (latestNavigationSpan) {
       debug.log(`${INTEGRATION_NAME} A transaction was detected that turned out to be a noop, discarding.`);
       _discardLatestTransaction();
       clearStateChangeTimeout();
     }
 
-    latestNavigationSpan = startGenericIdleNavigationSpan(
-      tracing?.options.beforeStartSpan
-        ? tracing.options.beforeStartSpan(getDefaultIdleNavigationSpanOptions())
-        : getDefaultIdleNavigationSpanOptions(),
-      { ...idleSpanOptions, isAppRestart },
-    );
+    const spanOptions = getDefaultIdleNavigationSpanOptions();
+    if (dispatchedRouteName) {
+      spanOptions.name = dispatchedRouteName;
+    }
+
+    const originalName = spanOptions.name;
+    const finalSpanOptions = tracing?.options.beforeStartSpan
+      ? tracing.options.beforeStartSpan(spanOptions)
+      : spanOptions;
+    latestNavigationSpanNameCustomized = finalSpanOptions.name !== originalName;
+
+    latestNavigationSpan = startGenericIdleNavigationSpan(finalSpanOptions, { ...idleSpanOptions, isAppRestart });
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, navigationActionType);
     if (ignoreEmptyBackNavigationTransactions) {
@@ -472,7 +486,7 @@ export const reactNavigationIntegration = ({
     navigationProcessingSpan?.end(stateChangedTimestamp);
     navigationProcessingSpan = undefined;
 
-    if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
+    if (!latestNavigationSpanNameCustomized) {
       latestNavigationSpan.updateName(routeName);
     }
     const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
@@ -576,6 +590,20 @@ interface NavigationContainer {
   addListener: (type: string, listener: (event?: unknown) => void) => void;
   getCurrentRoute: () => NavigationRoute;
   getState: () => NavigationState | undefined;
+}
+
+/**
+ * Extracts the route name from a React Navigation dispatch action payload.
+ *
+ * Actions like NAVIGATE, PUSH, REPLACE, JUMP_TO carry the target route name
+ * in `action.payload.name`. Actions like GO_BACK, POP, POP_TO_TOP do not.
+ */
+function getRouteNameFromAction(event: UnsafeAction | undefined): string | undefined {
+  const payload = event?.data?.action?.payload;
+  if (payload && typeof payload === 'object' && 'name' in payload && typeof payload.name === 'string') {
+    return payload.name;
+  }
+  return undefined;
 }
 
 /**
