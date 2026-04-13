@@ -146,9 +146,6 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
       };
       mockedNavigationContained.listeners['state']({});
     },
-    emitGoBackWithoutStateChange: () => {
-      mockedNavigationContained.listeners['__unsafe_action__'](goBackAction);
-    },
     emitNavigationWithUndefinedRoute: () => {
       mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
       mockedNavigationContained.currentRoute = undefined as any;
