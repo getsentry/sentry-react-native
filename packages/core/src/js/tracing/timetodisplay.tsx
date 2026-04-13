@@ -1,9 +1,22 @@
-/* eslint-disable max-lines */
+/* oxlint-disable eslint(max-lines) */
 import type { Span, StartSpanOptions } from '@sentry/core';
-import { debug, fill, getActiveSpan, getSpanDescendants, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_STATUS_ERROR, SPAN_STATUS_OK, spanToJSON, startInactiveSpan } from '@sentry/core';
+
+import {
+  debug,
+  fill,
+  getActiveSpan,
+  getSpanDescendants,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
+  spanToJSON,
+  startInactiveSpan,
+} from '@sentry/core';
 import * as React from 'react';
 import { useState } from 'react';
+
 import type { NativeFramesResponse } from '../NativeRNSentry';
+
 import { NATIVE } from '../wrapper';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
 import { getRNSentryOnDrawReporter } from './timetodisplaynative';
@@ -63,7 +76,11 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
   }
 
   const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
-  return <TimeToDisplay initialDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
+  return (
+    <TimeToDisplay initialDisplay={props.record} parentSpanId={parentSpanId}>
+      {props.children}
+    </TimeToDisplay>
+  );
 }
 
 /**
@@ -76,7 +93,11 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
   const activeSpan = getActiveSpan();
   const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
-  return <TimeToDisplay fullDisplay={props.record} parentSpanId={parentSpanId}>{props.children}</TimeToDisplay>;
+  return (
+    <TimeToDisplay fullDisplay={props.record} parentSpanId={parentSpanId}>
+      {props.children}
+    </TimeToDisplay>
+  );
 }
 
 function TimeToDisplay(props: {
@@ -91,7 +112,8 @@ function TimeToDisplay(props: {
       <RNSentryOnDrawReporter
         initialDisplay={props.initialDisplay}
         fullDisplay={props.fullDisplay}
-        parentSpanId={props.parentSpanId} />
+        parentSpanId={props.parentSpanId}
+      />
       {props.children}
     </>
   );
@@ -107,7 +129,7 @@ function TimeToDisplay(props: {
 export function startTimeToInitialDisplaySpan(
   options?: Omit<StartSpanOptions, 'op' | 'name'> & {
     name?: string;
-    isAutoInstrumented?: boolean
+    isAutoInstrumented?: boolean;
   },
 ): Span | undefined {
   const activeSpan = getActiveSpan();
@@ -116,10 +138,10 @@ export function startTimeToInitialDisplaySpan(
     return undefined;
   }
 
-  const existingSpan = getSpanDescendants(activeSpan).find((span) => spanToJSON(span).op === 'ui.load.initial_display');
+  const existingSpan = getSpanDescendants(activeSpan).find(span => spanToJSON(span).op === 'ui.load.initial_display');
   if (existingSpan) {
     debug.log('[TimeToDisplay] Found existing ui.load.initial_display span.');
-    return existingSpan
+    return existingSpan;
   }
 
   const initialDisplaySpan = startInactiveSpan({
@@ -133,8 +155,11 @@ export function startTimeToInitialDisplaySpan(
     return undefined;
   }
 
-  captureStartFramesForSpan(initialDisplaySpan.spanContext().spanId).catch((error) => {
-    debug.log(`[TimeToDisplay] Failed to capture start frames for initial display span (${initialDisplaySpan.spanContext().spanId}).`, error);
+  captureStartFramesForSpan(initialDisplaySpan.spanContext().spanId).catch(error => {
+    debug.log(
+      `[TimeToDisplay] Failed to capture start frames for initial display span (${initialDisplaySpan.spanContext().spanId}).`,
+      error,
+    );
   });
 
   if (options?.isAutoInstrumented) {
@@ -156,9 +181,9 @@ export function startTimeToInitialDisplaySpan(
  */
 export function startTimeToFullDisplaySpan(
   options: Omit<StartSpanOptions, 'op' | 'name'> & {
-    name?: string,
-    timeoutMs?: number,
-    isAutoInstrumented?: boolean
+    name?: string;
+    timeoutMs?: number;
+    isAutoInstrumented?: boolean;
   } = {
     timeoutMs: 30_000,
   },
@@ -171,13 +196,13 @@ export function startTimeToFullDisplaySpan(
 
   const descendantSpans = getSpanDescendants(activeSpan);
 
-  const initialDisplaySpan = descendantSpans.find((span) => spanToJSON(span).op === 'ui.load.initial_display');
+  const initialDisplaySpan = descendantSpans.find(span => spanToJSON(span).op === 'ui.load.initial_display');
   if (!initialDisplaySpan) {
     debug.warn('[TimeToDisplay] No initial display span found to attach ui.load.full_display to.');
     return undefined;
   }
 
-  const existingSpan = descendantSpans.find((span) => spanToJSON(span).op === 'ui.load.full_display');
+  const existingSpan = descendantSpans.find(span => spanToJSON(span).op === 'ui.load.full_display');
   if (existingSpan) {
     debug.log('[TimeToDisplay] Found existing ui.load.full_display span.');
     return existingSpan;
@@ -193,8 +218,11 @@ export function startTimeToFullDisplaySpan(
     return undefined;
   }
 
-  captureStartFramesForSpan(fullDisplaySpan.spanContext().spanId).catch((error) => {
-    debug.log(`[TimeToDisplay] Failed to capture start frames for full display span (${fullDisplaySpan.spanContext().spanId}).`, error);
+  captureStartFramesForSpan(fullDisplaySpan.spanContext().spanId).catch(error => {
+    debug.log(
+      `[TimeToDisplay] Failed to capture start frames for full display span (${fullDisplaySpan.spanContext().spanId}).`,
+      error,
+    );
   });
 
   const timeout = setTimeout(() => {
@@ -203,15 +231,20 @@ export function startTimeToFullDisplaySpan(
     }
     fullDisplaySpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
 
-    captureEndFramesAndAttachToSpan(fullDisplaySpan).then(() => {
-      debug.log(`[TimeToDisplay] span ${fullDisplaySpan.spanContext().spanId} updated with frame data.`);
-      fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
-      setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
-    }).catch(() => {
-      debug.warn(`[TimeToDisplay] Failed to capture end frames for full display span (${fullDisplaySpan.spanContext().spanId}).`);
-      fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
-      setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
-    });
+    const fullDisplayEndTimestamp = spanToJSON(initialDisplaySpan).timestamp;
+    captureEndFramesAndAttachToSpan(fullDisplaySpan, fullDisplayEndTimestamp)
+      .then(() => {
+        debug.log(`[TimeToDisplay] span ${fullDisplaySpan.spanContext().spanId} updated with frame data.`);
+        fullDisplaySpan.end(fullDisplayEndTimestamp);
+        setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
+      })
+      .catch(() => {
+        debug.warn(
+          `[TimeToDisplay] Failed to capture end frames for full display span (${fullDisplaySpan.spanContext().spanId}).`,
+        );
+        fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
+        setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
+      });
 
     debug.warn('[TimeToDisplay] Full display span deadline_exceeded.');
   }, options.timeoutMs);
@@ -244,7 +277,8 @@ export function updateInitialDisplaySpan(
      * Time to initial display span to update.
      */
     span?: Span;
-  } = {}): void {
+  } = {},
+): void {
   if (!span) {
     debug.warn('[TimeToDisplay] No span found or created, possibly performance is disabled.');
     return;
@@ -265,31 +299,33 @@ export function updateInitialDisplaySpan(
     return;
   }
 
-  captureEndFramesAndAttachToSpan(span).then(() => {
-    span.end(frameTimestampSeconds);
-    span.setStatus({ code: SPAN_STATUS_OK });
-    debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp and frame data.`);
+  captureEndFramesAndAttachToSpan(span, frameTimestampSeconds)
+    .then(() => {
+      span.end(frameTimestampSeconds);
+      span.setStatus({ code: SPAN_STATUS_OK });
+      debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp and frame data.`);
 
-    if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
-      fullDisplayBeforeInitialDisplay.delete(activeSpan);
-      debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
-      updateFullDisplaySpan(frameTimestampSeconds, span);
-    }
+      if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
+        fullDisplayBeforeInitialDisplay.delete(activeSpan);
+        debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
+        updateFullDisplaySpan(frameTimestampSeconds, span);
+      }
 
-    setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
-  }).catch((error) => {
-    debug.log('[TimeToDisplay] Failed to capture frame data for initial display span.', error);
-    span.end(frameTimestampSeconds);
-    span.setStatus({ code: SPAN_STATUS_OK });
+      setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
+    })
+    .catch(error => {
+      debug.log('[TimeToDisplay] Failed to capture frame data for initial display span.', error);
+      span.end(frameTimestampSeconds);
+      span.setStatus({ code: SPAN_STATUS_OK });
 
-    if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
-      fullDisplayBeforeInitialDisplay.delete(activeSpan);
-      debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
-      updateFullDisplaySpan(frameTimestampSeconds, span);
-    }
+      if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
+        fullDisplayBeforeInitialDisplay.delete(activeSpan);
+        debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
+        updateFullDisplaySpan(frameTimestampSeconds, span);
+      }
 
-    setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
-  });
+      setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
+    });
 }
 
 function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
@@ -299,12 +335,15 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  const existingInitialDisplaySpan = passedInitialDisplaySpan
-    || getSpanDescendants(activeSpan).find((span) => spanToJSON(span).op === 'ui.load.initial_display');
+  const existingInitialDisplaySpan =
+    passedInitialDisplaySpan ||
+    getSpanDescendants(activeSpan).find(span => spanToJSON(span).op === 'ui.load.initial_display');
   const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToJSON(existingInitialDisplaySpan).timestamp;
   if (!initialDisplayEndTimestamp) {
     fullDisplayBeforeInitialDisplay.set(activeSpan, true);
-    debug.warn(`[TimeToDisplay] Full display called before initial display for active span (${activeSpan.spanContext().spanId}).`);
+    debug.warn(
+      `[TimeToDisplay] Full display called before initial display for active span (${activeSpan.spanContext().spanId}).`,
+    );
     return;
   }
 
@@ -322,26 +361,33 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  captureEndFramesAndAttachToSpan(span).then(() => {
-    const endTimestamp = initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
+  const endTimestamp =
+    initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
+  captureEndFramesAndAttachToSpan(span, endTimestamp)
+    .then(() => {
+      if (initialDisplayEndTimestamp > frameTimestampSeconds) {
+        debug.warn(
+          '[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.',
+        );
+      }
 
-    if (initialDisplayEndTimestamp > frameTimestampSeconds) {
-      debug.warn('[TimeToDisplay] Using initial display end. Full display end frame timestamp is before initial display end.');
-    }
+      span.end(endTimestamp);
+      span.setStatus({ code: SPAN_STATUS_OK });
+      debug.log(
+        `[TimeToDisplay] span ${spanJSON.description} (${spanJSON.span_id}) updated with end timestamp and frame data.`,
+      );
 
-    span.end(endTimestamp);
-    span.setStatus({ code: SPAN_STATUS_OK });
-    debug.log(`[TimeToDisplay] span ${spanJSON.description} (${spanJSON.span_id}) updated with end timestamp and frame data.`);
+      setSpanDurationAsMeasurement('time_to_full_display', span);
+    })
+    .catch(error => {
+      debug.log('[TimeToDisplay] Failed to capture frame data for full display span.', error);
+      const endTimestamp =
+        initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
 
-    setSpanDurationAsMeasurement('time_to_full_display', span);
-  }).catch((error) => {
-    debug.log('[TimeToDisplay] Failed to capture frame data for full display span.', error);
-    const endTimestamp = initialDisplayEndTimestamp > frameTimestampSeconds ? initialDisplayEndTimestamp : frameTimestampSeconds;
-
-    span.end(endTimestamp);
-    span.setStatus({ code: SPAN_STATUS_OK });
-    setSpanDurationAsMeasurement('time_to_full_display', span);
-  });
+      span.end(endTimestamp);
+      span.setStatus({ code: SPAN_STATUS_OK });
+      setSpanDurationAsMeasurement('time_to_full_display', span);
+    });
 }
 
 /**
@@ -353,7 +399,7 @@ export function createTimeToFullDisplay({
   /**
    * `@react-navigation/native` useFocusEffect hook.
    */
-  useFocusEffect: (callback: () => void) => void
+  useFocusEffect: (callback: () => void) => void;
 }): React.ComponentType<TimeToDisplayProps> {
   return createTimeToDisplay({ useFocusEffect, Component: TimeToFullDisplay });
 }
@@ -364,7 +410,7 @@ export function createTimeToFullDisplay({
 export function createTimeToInitialDisplay({
   useFocusEffect,
 }: {
-  useFocusEffect: (callback: () => void) => void
+  useFocusEffect: (callback: () => void) => void;
 }): React.ComponentType<TimeToDisplayProps> {
   return createTimeToDisplay({ useFocusEffect, Component: TimeToInitialDisplay });
 }
@@ -383,10 +429,10 @@ function createTimeToDisplay({
     const [focused, setFocused] = useState(false);
 
     useFocusEffect(() => {
-        setFocused(true);
-        return () => {
-          setFocused(false);
-        };
+      setFocused(true);
+      return () => {
+        setFocused(false);
+      };
     });
 
     return <Component {...props} record={focused && props.record} />;
@@ -405,7 +451,9 @@ function attachFrameDataToSpan(span: Span, startFrames: NativeFramesResponse, en
   const frozenFrames = endFrames.frozenFrames - startFrames.frozenFrames;
 
   if (totalFrames <= 0 && slowFrames <= 0 && frozenFrames <= 0) {
-    debug.warn(`[TimeToDisplay] Detected zero slow or frozen frames. Not adding measurements to span (${span.spanContext().spanId}).`);
+    debug.warn(
+      `[TimeToDisplay] Detected zero slow or frozen frames. Not adding measurements to span (${span.spanContext().spanId}).`,
+    );
     return;
   }
   span.setAttribute('frames.total', totalFrames);
@@ -466,7 +514,7 @@ async function captureStartFramesForSpan(spanId: string): Promise<void> {
 /**
  * Captures end frames and attaches frame data to span
  */
-async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
+async function captureEndFramesAndAttachToSpan(span: Span, spanEndTimestampSeconds?: number): Promise<void> {
   if (!NATIVE.enableNative) {
     return;
   }
@@ -484,6 +532,22 @@ async function captureEndFramesAndAttachToSpan(span: Span): Promise<void> {
     frameData.endFrames = endFrames;
 
     attachFrameDataToSpan(span, frameData.startFrames, endFrames);
+
+    const spanStartTimestamp = spanToJSON(span).start_timestamp;
+    if (spanStartTimestamp) {
+      try {
+        const endTimestamp = spanEndTimestampSeconds || spanToJSON(span).timestamp || Date.now() / 1000;
+        const framesDelay = await Promise.race([
+          NATIVE.fetchNativeFramesDelay(spanStartTimestamp, endTimestamp),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), FETCH_FRAMES_TIMEOUT_MS)),
+        ]);
+        if (framesDelay != null) {
+          span.setAttribute('frames.delay', framesDelay);
+        }
+      } catch (delayError) {
+        debug.log(`[TimeToDisplay] Failed to fetch frames delay for span ${spanId}.`, delayError);
+      }
+    }
 
     debug.log(`[TimeToDisplay] Captured and attached end frames for span ${spanId}.`, endFrames);
   } catch (error) {

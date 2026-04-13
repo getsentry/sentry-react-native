@@ -255,7 +255,6 @@ function RotatingBox() {
       }),
       -1,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

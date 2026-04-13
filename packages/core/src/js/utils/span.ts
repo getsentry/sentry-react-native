@@ -1,4 +1,5 @@
 import type { Span, TransactionEvent } from '@sentry/core';
+
 import { getRootSpan, SentrySpan } from '@sentry/core';
 
 /**

@@ -1,13 +1,15 @@
 import type { Event, EventHint, Exception, Integration, StackFrame as SentryStackFrame } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import type { ExtendedError } from '../utils/error';
-import { getFramesToPop, isErrorLike } from '../utils/error';
 import type * as ReactNative from '../vendor/react-native';
+
+import { getFramesToPop, isErrorLike } from '../utils/error';
 import { fetchSourceContext, parseErrorStack, symbolicateStackTrace } from './debugsymbolicatorutils';
 
 const INTEGRATION_NAME = 'DebugSymbolicator';
 
-// eslint-disable-next-line @sentry-internal/sdk/no-regexp-constructor
 const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
 
 /**
@@ -67,6 +69,10 @@ async function processEvent(event: Event, hint: EventHint): Promise<Event> {
 async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promise<SentryStackFrame[] | null> {
   try {
     const parsedStack = parseErrorStack(rawStack);
+    if (parsedStack.length === 0) {
+      debug.warn('parseErrorStack returned empty array, skipping symbolication');
+      return null;
+    }
 
     const prettyStack = await symbolicateStackTrace(parsedStack);
     if (!prettyStack) {
@@ -85,6 +91,7 @@ async function symbolicate(rawStack: string, skipFirstFrames: number = 0): Promi
       : newStack;
 
     const stackWithoutInternalCallsites = stackWithoutPoppedFrames.filter(
+      // oxlint-disable-next-line typescript-eslint(prefer-optional-chain)
       (frame: { file?: string }) => frame.file && frame.file.match(INTERNAL_CALLSITES_REGEX) === null,
     );
 

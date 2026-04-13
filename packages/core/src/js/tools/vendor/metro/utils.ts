@@ -1,3 +1,4 @@
+/* oxlint-disable typescript-eslint(no-unsafe-member-access) */
 // Vendored / modified from @facebook/metro
 
 // https://github.com/facebook/metro/commit/9b85f83c9cc837d8cd897aa7723be7da5b296067
@@ -24,56 +25,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type * as baseJSBundleType from 'metro/private/DeltaBundler/Serializers/baseJSBundle';
 import type * as sourceMapStringType from 'metro/private/DeltaBundler/Serializers/sourceMapString';
 import type * as bundleToStringType from 'metro/private/lib/bundleToString';
+
 import type { MetroSerializer } from '../../utils';
-
-let baseJSBundleModule: any;
-try {
-  baseJSBundleModule = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
-} catch {
-  baseJSBundleModule = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
-}
-
-const baseJSBundle: typeof baseJSBundleType =
-  typeof baseJSBundleModule === 'function'
-    ? baseJSBundleModule
-    : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      baseJSBundleModule?.baseJSBundle ?? baseJSBundleModule?.default;
-
-let sourceMapString: typeof sourceMapStringType;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const sourceMapStringModule = require('metro/private/DeltaBundler/Serializers/sourceMapString');
-  sourceMapString = (sourceMapStringModule as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
-} catch (e) {
-  sourceMapString = require('metro/src/DeltaBundler/Serializers/sourceMapString');
-  if ('sourceMapString' in sourceMapString) {
-    // Changed to named export in https://github.com/facebook/metro/commit/34148e61200a508923315fbe387b26d1da27bf4b
-    // Metro 0.81.0 and 0.80.10 patch
-    sourceMapString = (sourceMapString as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
-  }
-}
-
-let bundleToStringModule: any;
-try {
-  bundleToStringModule = require('metro/private/lib/bundleToString');
-} catch {
-  bundleToStringModule = require('metro/src/lib/bundleToString');
-}
-
-const bundleToString: typeof bundleToStringType =
-  typeof bundleToStringModule === 'function'
-    ? bundleToStringModule
-    : // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      bundleToStringModule?.bundleToString ?? bundleToStringModule?.default;
 
 type NewSourceMapStringExport = {
   // Since Metro v0.80.10 https://github.com/facebook/metro/compare/v0.80.9...v0.80.10#diff-1b836d1729e527a725305eef0cec22e44605af2700fa413f4c2489ea1a03aebcL28
-  sourceMapString: typeof sourceMapString;
+  sourceMapString: typeof sourceMapStringType;
 };
 
 /**
@@ -108,6 +69,49 @@ export const getSortedModules = (
  * https://github.com/facebook/metro/blob/9b85f83c9cc837d8cd897aa7723be7da5b296067/packages/metro/src/Server.js#L244-L277
  */
 export const createDefaultMetroSerializer = (): MetroSerializer => {
+  // Lazy-load Metro internals only when serializer is created
+  // This defers requiring Metro modules until they're actually needed (during build),
+  // avoiding import-time failures when Metro is only a transitive dependency
+
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
+  let baseJSBundleModule: any;
+  try {
+    baseJSBundleModule = require('metro/private/DeltaBundler/Serializers/baseJSBundle');
+  } catch {
+    baseJSBundleModule = require('metro/src/DeltaBundler/Serializers/baseJSBundle');
+  }
+
+  const baseJSBundle: typeof baseJSBundleType =
+    typeof baseJSBundleModule === 'function'
+      ? baseJSBundleModule
+      : (baseJSBundleModule?.baseJSBundle ?? baseJSBundleModule?.default);
+
+  let sourceMapString: typeof sourceMapStringType;
+  try {
+    const sourceMapStringModule = require('metro/private/DeltaBundler/Serializers/sourceMapString');
+    sourceMapString = (sourceMapStringModule as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
+  } catch (e) {
+    sourceMapString = require('metro/src/DeltaBundler/Serializers/sourceMapString');
+    if ('sourceMapString' in sourceMapString) {
+      // Changed to named export in https://github.com/facebook/metro/commit/34148e61200a508923315fbe387b26d1da27bf4b
+      // Metro 0.81.0 and 0.80.10 patch
+      sourceMapString = (sourceMapString as { sourceMapString: typeof sourceMapStringType }).sourceMapString;
+    }
+  }
+
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
+  let bundleToStringModule: any;
+  try {
+    bundleToStringModule = require('metro/private/lib/bundleToString');
+  } catch {
+    bundleToStringModule = require('metro/src/lib/bundleToString');
+  }
+
+  const bundleToString: typeof bundleToStringType =
+    typeof bundleToStringModule === 'function'
+      ? bundleToStringModule
+      : (bundleToStringModule?.bundleToString ?? bundleToStringModule?.default);
+
   return (entryPoint, preModules, graph, options) => {
     // baseJSBundle assigns IDs to modules in a consistent order
     let bundle = baseJSBundle(entryPoint, preModules, graph, options);

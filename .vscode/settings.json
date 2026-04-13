@@ -1,4 +1,5 @@
 {
+  "prettier.enable": false,
   "editor.formatOnType": true,
   "editor.formatOnPaste": false,
   "editor.formatOnSave": true,

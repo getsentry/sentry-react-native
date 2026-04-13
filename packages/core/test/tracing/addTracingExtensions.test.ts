@@ -1,5 +1,7 @@
 import type { Span } from '@sentry/core';
+
 import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
+
 import { reactNativeTracingIntegration } from '../../src/js';
 import { setupTestClient, type TestClient } from '../mocks/client';
 

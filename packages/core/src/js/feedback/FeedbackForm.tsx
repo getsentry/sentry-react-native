@@ -1,0 +1,478 @@
+/* oxlint-disable eslint(max-lines) */
+import type { SendFeedbackParams, User } from '@sentry/core';
+import type { KeyboardTypeOptions, NativeEventSubscription } from 'react-native';
+
+import { captureFeedback, debug, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId } from '@sentry/core';
+import * as React from 'react';
+import {
+  Appearance,
+  Image,
+  Keyboard,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+
+import type { Screenshot } from '../wrapper';
+import type {
+  FeedbackGeneralConfiguration,
+  FeedbackTextConfiguration,
+  FeedbackFormProps,
+  FeedbackFormState,
+  FeedbackFormStyles,
+  ImagePickerConfiguration,
+} from './FeedbackForm.types';
+
+import { isExpoGo, isWeb, notWeb } from '../utils/environment';
+import { getDataFromUri, NATIVE } from '../wrapper';
+import { sentryLogo } from './branding';
+import { defaultConfiguration } from './defaults';
+import defaultStyles from './FeedbackForm.styles';
+import { getTheme } from './FeedbackForm.theme';
+import { hideFeedbackButton, showScreenshotButton } from './FeedbackFormManager';
+import { lazyLoadFeedbackIntegration } from './lazy';
+import { getCapturedScreenshot } from './ScreenshotButton';
+import { base64ToUint8Array, feedbackAlertDialog, isValidEmail } from './utils';
+
+/**
+ * @beta
+ * Implements a feedback form screen that sends feedback to Sentry using Sentry.captureFeedback.
+ */
+export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
+  public static defaultProps = defaultConfiguration;
+
+  private static _savedState: Omit<FeedbackFormState, 'isVisible'> = {
+    name: '',
+    email: '',
+    description: '',
+    filename: undefined,
+    attachment: undefined,
+    attachmentUri: undefined,
+  };
+
+  private _themeListener: NativeEventSubscription | undefined;
+
+  private _didSubmitForm: boolean = false;
+
+  public constructor(props: FeedbackFormProps) {
+    super(props);
+
+    const currentUser = {
+      useSentryUser: {
+        email: this.props?.useSentryUser?.email || this._getUser()?.email || '',
+        name: this.props?.useSentryUser?.name || this._getUser()?.name || '',
+      },
+    };
+
+    this.state = {
+      isVisible: true,
+      name: FeedbackForm._savedState.name || currentUser.useSentryUser.name,
+      email: FeedbackForm._savedState.email || currentUser.useSentryUser.email,
+      description: FeedbackForm._savedState.description || '',
+      filename: FeedbackForm._savedState.filename || undefined,
+      attachment: FeedbackForm._savedState.attachment || undefined,
+      attachmentUri: FeedbackForm._savedState.attachmentUri || undefined,
+    };
+
+    lazyLoadFeedbackIntegration();
+  }
+
+  /**
+   * For testing purposes only.
+   */
+  public static reset(): void {
+    FeedbackForm._savedState = {
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+      attachmentUri: undefined,
+    };
+  }
+
+  public handleFeedbackSubmit: () => void = () => {
+    const { name, email, description } = this.state;
+    const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
+    const text = this.props;
+
+    const trimmedName = name?.trim();
+    const trimmedEmail = email?.trim();
+    const trimmedDescription = description?.trim();
+
+    if (
+      (this.props.isNameRequired && !trimmedName) ||
+      (this.props.isEmailRequired && !trimmedEmail) ||
+      !trimmedDescription
+    ) {
+      feedbackAlertDialog(text.errorTitle, text.formError);
+      return;
+    }
+
+    if (
+      this.props.shouldValidateEmail &&
+      (this.props.isEmailRequired || trimmedEmail.length > 0) &&
+      !isValidEmail(trimmedEmail)
+    ) {
+      feedbackAlertDialog(text.errorTitle, text.emailError);
+      return;
+    }
+
+    const attachments =
+      this.state.filename && this.state.attachment
+        ? [
+            {
+              filename: this.state.filename,
+              data: this.state.attachment,
+            },
+          ]
+        : undefined;
+
+    const eventId = lastEventId();
+    const userFeedback: SendFeedbackParams = {
+      message: trimmedDescription,
+      name: trimmedName,
+      email: trimmedEmail,
+      associatedEventId: eventId,
+    };
+
+    try {
+      if (!onFormSubmitted) {
+        this.setState({ isVisible: false });
+      }
+      captureFeedback(userFeedback, attachments ? { attachments } : undefined);
+      onSubmitSuccess({
+        name: trimmedName,
+        email: trimmedEmail,
+        message: trimmedDescription,
+        attachments: attachments,
+      });
+      feedbackAlertDialog(text.successMessageText, '');
+      onFormSubmitted();
+      this._didSubmitForm = true;
+    } catch (error) {
+      const errorString = `Feedback form submission failed: ${error}`;
+      onSubmitError(new Error(errorString));
+      feedbackAlertDialog(text.errorTitle, text.genericError);
+      debug.error(`Feedback form submission failed: ${error}`);
+    }
+  };
+
+  public onScreenshotButtonPress: () => void = async () => {
+    if (!this._hasScreenshot()) {
+      const { imagePicker } = this.props;
+      if (imagePicker) {
+        const launchImageLibrary = imagePicker.launchImageLibraryAsync
+          ? // expo-image-picker library is available
+            () => imagePicker.launchImageLibraryAsync?.({ mediaTypes: ['images'], base64: isWeb() })
+          : // react-native-image-picker library is available
+            imagePicker.launchImageLibrary
+            ? () => imagePicker.launchImageLibrary?.({ mediaType: 'photo', includeBase64: isWeb() })
+            : null;
+        if (!launchImageLibrary) {
+          debug.warn('No compatible image picker library found. Please provide a valid image picker library.');
+          if (__DEV__) {
+            feedbackAlertDialog(
+              'Development note',
+              'No compatible image picker library found. Please provide a compatible version of `expo-image-picker` or `react-native-image-picker`.',
+            );
+          }
+          return;
+        }
+
+        const result = await launchImageLibrary();
+        if (result?.assets && result.assets.length > 0) {
+          if (isWeb()) {
+            const filename = result.assets[0]?.fileName;
+            const imageUri = result.assets[0]?.uri;
+            const base64 = result.assets[0]?.base64;
+            const data = base64 ? base64ToUint8Array(base64) : undefined;
+            if (data) {
+              this.setState({ filename, attachment: data, attachmentUri: imageUri });
+            } else {
+              debug.error('Failed to read image data on the web');
+            }
+          } else {
+            const filename = result.assets[0]?.fileName;
+            const imageUri = result.assets[0]?.uri;
+            imageUri &&
+              getDataFromUri(imageUri)
+                .then(data => {
+                  if (data != null) {
+                    this.setState({ filename, attachment: data, attachmentUri: imageUri });
+                  } else {
+                    this._showImageRetrievalDevelopmentNote();
+                    debug.error('Failed to read image data from uri:', imageUri);
+                  }
+                })
+                .catch(error => {
+                  this._showImageRetrievalDevelopmentNote();
+                  debug.error('Failed to read image data from uri:', imageUri, 'error: ', error);
+                });
+          }
+        }
+      } else {
+        // Defaulting to the onAddScreenshot callback
+        const { onAddScreenshot } = { ...defaultConfiguration, ...this.props };
+        onAddScreenshot((uri: string) => {
+          getDataFromUri(uri)
+            .then(data => {
+              if (data != null) {
+                this.setState({ filename: 'feedback_screenshot', attachment: data, attachmentUri: uri });
+              } else {
+                this._showImageRetrievalDevelopmentNote();
+                debug.error('Failed to read image data from uri:', uri);
+              }
+            })
+            .catch(error => {
+              this._showImageRetrievalDevelopmentNote();
+              debug.error('Failed to read image data from uri:', uri, 'error: ', error);
+            });
+        });
+      }
+    } else {
+      this.setState({ filename: undefined, attachment: undefined, attachmentUri: undefined });
+    }
+  };
+
+  /**
+   * Add a listener to the theme change event.
+   */
+  public componentDidMount(): void {
+    this._themeListener = Appearance.addChangeListener(() => {
+      this.forceUpdate();
+    });
+  }
+
+  /**
+   * Save the state before unmounting the component and remove the theme listener.
+   */
+  public componentWillUnmount(): void {
+    if (this._didSubmitForm) {
+      this._clearFormState();
+      this._didSubmitForm = false;
+    } else {
+      this._saveFormState();
+    }
+    if (this._themeListener) {
+      this._themeListener.remove();
+    }
+  }
+
+  /**
+   * Renders the feedback form screen.
+   */
+  public render(): React.ReactNode {
+    const theme = getTheme();
+    const { name, email, description } = this.state;
+    const { onFormClose } = this.props;
+    const config: FeedbackGeneralConfiguration = this.props;
+    const imagePickerConfiguration: ImagePickerConfiguration = this.props;
+    const text: FeedbackTextConfiguration = this.props;
+    const _defaultStyles = defaultStyles(theme);
+    const _propStyles = this.props.styles || {};
+    const autoCorrect = config.autoCorrect !== false;
+    const spellCheck = config.spellCheck !== false;
+    const styles = (Object.keys(_defaultStyles) as Array<keyof FeedbackFormStyles>).reduce<FeedbackFormStyles>(
+      (merged, key) => {
+        (merged as Record<string, unknown>)[key] = {
+          ...(_defaultStyles[key] as object),
+          ...(_propStyles[key] as object),
+        };
+        return merged;
+      },
+      {},
+    );
+    const onCancel = (): void => {
+      if (onFormClose) {
+        onFormClose();
+      } else {
+        this.setState({ isVisible: false });
+      }
+    };
+
+    if (!this.state.isVisible) {
+      return null;
+    }
+
+    const screenshot = getCapturedScreenshot();
+    if (screenshot === 'ErrorCapturingScreenshot') {
+      setTimeout(async () => {
+        feedbackAlertDialog(text.errorTitle, text.captureScreenshotError);
+      }, 100);
+    } else if (screenshot) {
+      this._setCapturedScreenshot(screenshot);
+    }
+
+    return (
+      <TouchableWithoutFeedback
+        onPress={notWeb() ? Keyboard.dismiss : undefined}
+        accessible={false}
+        accessibilityElementsHidden={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title} testID="sentry-feedback-form-title">
+              {text.formTitle}
+            </Text>
+            {config.showBranding && (
+              <Image source={{ uri: sentryLogo }} style={styles.sentryLogo} testID="sentry-logo" />
+            )}
+          </View>
+
+          {config.showName && (
+            <>
+              <Text style={styles.label}>
+                {text.nameLabel}
+                {config.isNameRequired && ` ${text.isRequiredLabel}`}
+              </Text>
+              <TextInput
+                style={styles.input}
+                testID="sentry-feedback-name-input"
+                placeholder={text.namePlaceholder}
+                value={name}
+                onChangeText={value => this.setState({ name: value })}
+                autoCorrect={false}
+                spellCheck={false}
+              />
+            </>
+          )}
+
+          {config.showEmail && (
+            <>
+              <Text style={styles.label}>
+                {text.emailLabel}
+                {config.isEmailRequired && ` ${text.isRequiredLabel}`}
+              </Text>
+              <TextInput
+                style={styles.input}
+                testID="sentry-feedback-email-input"
+                placeholder={text.emailPlaceholder}
+                keyboardType={'email-address' as KeyboardTypeOptions}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
+                value={email}
+                onChangeText={value => this.setState({ email: value })}
+              />
+            </>
+          )}
+
+          <Text style={styles.label}>
+            {text.messageLabel}
+            {` ${text.isRequiredLabel}`}
+          </Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            testID="sentry-feedback-message-input"
+            placeholder={text.messagePlaceholder}
+            value={description}
+            onChangeText={value => this.setState({ description: value })}
+            multiline
+            autoCorrect={autoCorrect}
+            spellCheck={spellCheck}
+          />
+          {(config.enableScreenshot || imagePickerConfiguration.imagePicker || this._hasScreenshot()) && (
+            <View style={styles.screenshotContainer}>
+              {this.state.attachmentUri && (
+                <Image source={{ uri: this.state.attachmentUri }} style={styles.screenshotThumbnail} />
+              )}
+              <TouchableOpacity style={styles.screenshotButton} onPress={this.onScreenshotButtonPress}>
+                <Text style={styles.screenshotText}>
+                  {!this._hasScreenshot() ? text.addScreenshotButtonLabel : text.removeScreenshotButtonLabel}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {notWeb() && config.enableTakeScreenshot && !this.state.attachmentUri && (
+            <TouchableOpacity
+              style={styles.takeScreenshotButton}
+              onPress={() => {
+                hideFeedbackButton();
+                onCancel();
+                showScreenshotButton();
+              }}
+            >
+              <Text style={styles.takeScreenshotText} testID="sentry-feedback-take-screenshot-button">
+                {text.captureScreenshotButtonLabel}
+              </Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
+            <Text style={styles.submitText} testID="sentry-feedback-submit-button">
+              {text.submitButtonLabel}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+            <Text style={styles.cancelText}>{text.cancelButtonLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
+    );
+  }
+
+  private _setCapturedScreenshot = (screenshot: Screenshot): void => {
+    if (screenshot.data != null) {
+      debug.log('Setting captured screenshot:', screenshot.filename);
+      NATIVE.encodeToBase64(screenshot.data)
+        .then(base64String => {
+          if (base64String != null) {
+            const dataUri = `data:${screenshot.contentType};base64,${base64String}`;
+            this.setState({ filename: screenshot.filename, attachment: screenshot.data, attachmentUri: dataUri });
+          } else {
+            debug.error('Failed to read image data from:', screenshot.filename);
+          }
+        })
+        .catch(error => {
+          debug.error('Failed to read image data from:', screenshot.filename, 'error: ', error);
+        });
+    } else {
+      debug.error('Failed to read image data from:', screenshot.filename);
+    }
+  };
+
+  private _saveFormState = (): void => {
+    FeedbackForm._savedState = { ...this.state };
+  };
+
+  private _clearFormState = (): void => {
+    FeedbackForm._savedState = {
+      name: '',
+      email: '',
+      description: '',
+      filename: undefined,
+      attachment: undefined,
+      attachmentUri: undefined,
+    };
+  };
+
+  private _hasScreenshot = (): boolean => {
+    return (
+      this.state.filename !== undefined && this.state.attachment !== undefined && this.state.attachmentUri !== undefined
+    );
+  };
+
+  private _getUser = (): User | undefined => {
+    const currentUser = getCurrentScope().getUser();
+    if (currentUser) {
+      return currentUser;
+    }
+    const isolationUser = getIsolationScope().getUser();
+    if (isolationUser) {
+      return isolationUser;
+    }
+    return getGlobalScope().getUser();
+  };
+
+  private _showImageRetrievalDevelopmentNote = (): void => {
+    if (isExpoGo()) {
+      feedbackAlertDialog(
+        'Development note',
+        'The feedback widget cannot retrieve image data in Expo Go. Please build your app to test this functionality.',
+      );
+    }
+  };
+}

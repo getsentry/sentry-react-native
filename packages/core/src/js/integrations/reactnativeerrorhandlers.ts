@@ -1,4 +1,5 @@
 import type { EventHint, Integration, SeverityLevel } from '@sentry/core';
+
 import {
   addExceptionMechanism,
   addGlobalUnhandledRejectionInstrumentationHandler,
@@ -7,7 +8,9 @@ import {
   getClient,
   getCurrentScope,
 } from '@sentry/core';
+
 import type { ReactNativeClientOptions } from '../options';
+
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
@@ -141,9 +144,10 @@ function setupErrorUtilsGlobalHandler(): void {
     return;
   }
 
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
   const defaultHandler = errorUtils.getGlobalHandler?.();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any), typescript-eslint(no-unsafe-member-access)
   errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
     // We want to handle fatals, but only in production mode.
     const shouldHandleFatal = isFatal && !__DEV__;
@@ -164,6 +168,16 @@ function setupErrorUtilsGlobalHandler(): void {
       defaultHandler(error, isFatal);
 
       return;
+    }
+
+    // React render errors may arrive without useful frames in .stack but with a
+    // .componentStack (set by ReactFiberErrorDialog) that contains component
+    // locations with bundle offsets. Use componentStack as a fallback so
+    // eventFromException can extract frames with source locations.
+    // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
+    if (error?.componentStack && (!error.stack || !hasStackFrames(error.stack))) {
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
+      error.stack = `${error.message || 'Error'}${error.componentStack}`;
     }
 
     const hint: EventHint = {
@@ -206,4 +220,11 @@ function setupErrorUtilsGlobalHandler(): void {
       },
     );
   });
+}
+
+/**
+ * Checks if a stack trace string contains at least one frame line.
+ */
+function hasStackFrames(stack: unknown): boolean {
+  return typeof stack === 'string' && stack.includes('\n');
 }

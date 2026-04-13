@@ -1,4 +1,5 @@
 import type { Client } from '@sentry/core';
+
 import { primitiveTagIntegration } from '../../src/js/integrations/primitiveTagIntegration';
 import { NATIVE } from '../../src/js/wrapper';
 import { setupTestClient } from '../mocks/client';

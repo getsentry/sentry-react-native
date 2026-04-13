@@ -37,3 +37,4 @@
 !/expo.d.ts
 !/app.plugin.js
 !/plugin/build/**/*
+!/expo-module.config.json

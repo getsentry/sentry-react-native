@@ -1,10 +1,13 @@
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
+
 import { debug, initAndBind } from '@sentry/core';
 import { makeFetchTransport } from '@sentry/react';
-import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
+
 import type { ReactNativeClientOptions } from '../src/js/options';
-import { init, withScope } from '../src/js/sdk';
 import type { ReactNativeTracingIntegration } from '../src/js/tracing';
+
+import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
+import { init, withScope } from '../src/js/sdk';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
@@ -135,10 +138,34 @@ describe('Tests the SDK functionality', () => {
         expect(usedOptions()?.dsn).toBe('https://key@example.io/code');
       });
 
-      it('initializing with __SENTRY_OPTIONS__ disabled native auto initialization', () => {
-        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
-        init({});
-        expect(usedOptions()?.autoInitializeNativeSdk).toBe(false);
+      it('does not disable native auto initialization in dev builds even with __SENTRY_OPTIONS__', () => {
+        // @ts-expect-error __DEV__ is a global
+        const originalDev = globalThis.__DEV__;
+        // @ts-expect-error __DEV__ is a global
+        globalThis.__DEV__ = true;
+        try {
+          RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
+          init({});
+          expect(usedOptions()?.autoInitializeNativeSdk).toBe(true);
+        } finally {
+          // @ts-expect-error __DEV__ is a global
+          globalThis.__DEV__ = originalDev;
+        }
+      });
+
+      it('disables native auto initialization in release builds with __SENTRY_OPTIONS__', () => {
+        // @ts-expect-error __DEV__ is a global
+        const originalDev = globalThis.__DEV__;
+        // @ts-expect-error __DEV__ is a global
+        globalThis.__DEV__ = false;
+        try {
+          RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
+          init({});
+          expect(usedOptions()?.autoInitializeNativeSdk).toBe(false);
+        } finally {
+          // @ts-expect-error __DEV__ is a global
+          globalThis.__DEV__ = originalDev;
+        }
       });
 
       it('initializing without __SENTRY_OPTIONS__ enables native auto initialization', () => {
@@ -155,7 +182,7 @@ describe('Tests the SDK functionality', () => {
         expect(usedOptions()?.autoInitializeNativeSdk).toBe(true);
       });
 
-      it('initializing with __SENTRY_OPTIONS__ keeps native auto initialization false if set', () => {
+      it('respects explicit autoInitializeNativeSdk false even with __SENTRY_OPTIONS__', () => {
         RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
         init({
           autoInitializeNativeSdk: false,

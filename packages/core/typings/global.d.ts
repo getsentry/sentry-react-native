@@ -17,7 +17,6 @@ declare global {
   interface ObjectConstructor {
     freeze<T>(o: T): Readonly<T>;
 
-    // eslint-disable-next-line @typescript-eslint/ban-types -- Matching TypeScript's official Object.freeze signature from lib.es5.d.ts
     freeze<T extends Function>(f: T): T;
 
     freeze<T extends {[idx: string]: U | null | undefined | object}, U extends string | bigint | number | boolean | symbol>(o: T): Readonly<T>;

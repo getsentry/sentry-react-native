@@ -2,8 +2,11 @@ import type { makeFetchTransport } from '@sentry/browser';
 import type { CaptureContext, ClientOptions, Event, EventHint, Options } from '@sentry/core';
 import type { BrowserOptions, Profiler } from '@sentry/react';
 import type * as React from 'react';
+
 import { Platform } from 'react-native';
+
 import type { TouchEventBoundaryProps } from './touchevents';
+
 import { isExpoGo } from './utils/environment';
 
 type ProfilerProps = React.ComponentProps<typeof Profiler>;
@@ -74,11 +77,32 @@ export interface BaseReactNativeOptions {
   enableNdkScopeSync?: boolean;
 
   /**
+   * When enabled, ANR events whose stacktraces contain only system frames
+   * (e.g. `java.lang`, `android.os`) are assigned a static fingerprint and
+   * grouped into a single issue instead of creating many separate issues.
+   *
+   * Enabled by default in the Android SDK since v8.35.0.
+   * Set to `false` to restore per-stacktrace ANR grouping.
+   *
+   * @default true
+   * @platform android
+   */
+  enableAnrFingerprinting?: boolean;
+
+  /**
    * When enabled, all the threads are automatically attached to all logged events on Android
    *
    * @platform android
    */
   attachThreads?: boolean;
+
+  /**
+   * When enabled, full stack traces for all threads are attached to all captured events.
+   *
+   * @default false
+   * @platform ios
+   */
+  attachAllThreads?: boolean;
 
   /**
    *  When enabled, certain personally identifiable information (PII) is added by active integrations.
@@ -112,7 +136,7 @@ export interface BaseReactNativeOptions {
 
   /**
    * Set data to the inital scope
-   * @deprecated Use `Sentry.configureScope(...)`
+   * @deprecated Use `Sentry.getGlobalScope().setTag(...)`, `Sentry.getGlobalScope().setUser(...)`, etc. instead.
    */
   initialScope?: CaptureContext;
 
@@ -446,12 +470,10 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  */
 
 export interface ReactNativeOptions
-  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>,
-    BaseReactNativeOptions {}
+  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>, BaseReactNativeOptions {}
 
 export interface ReactNativeClientOptions
-  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>,
-    BaseReactNativeOptions {}
+  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>, BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */

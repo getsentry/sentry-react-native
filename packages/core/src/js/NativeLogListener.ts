@@ -1,6 +1,8 @@
 import { debug } from '@sentry/core';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+
 import type { NativeLogEntry } from './options';
+
 import { isExpoGo } from './utils/environment';
 
 const NATIVE_LOG_EVENT_NAME = 'SentryNativeLog';

@@ -60,6 +60,7 @@ static bool hasFetchedAppStart;
 
 @implementation RNSentry {
     bool hasListeners;
+    bool _shakeDetectionEnabled;
     RNSentryTimeToDisplay *_timeToDisplay;
     NSArray<NSString *> *_ignoreErrorPatternsStr;
     NSArray<NSRegularExpression *> *_ignoreErrorPatternsRegex;
@@ -295,9 +296,54 @@ RCT_EXPORT_METHOD(initNativeReactNavigationNewFrameTracking : (
     [[RNSentryNativeLogsForwarder shared] stopForwarding];
 }
 
+- (void)handleShakeDetected
+{
+    if (_shakeDetectionEnabled) {
+        [self sendEventWithName:RNSentryOnShakeEvent body:@{ }];
+    }
+}
+
+// SentryShakeDetector is a Swift class; its notification name and methods are accessed
+// via the raw string / NSClassFromString to avoid requiring @import Sentry in this .mm file.
+static NSNotificationName const RNSentryShakeNotification = @"SentryShakeDetected";
+
+RCT_EXPORT_METHOD(enableShakeDetection)
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:RNSentryShakeNotification
+                                                  object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleShakeDetected)
+                                                 name:RNSentryShakeNotification
+                                               object:nil];
+    Class shakeDetector = NSClassFromString(@"SentryShakeDetector");
+    if (shakeDetector) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [shakeDetector performSelector:@selector(enable)];
+#pragma clang diagnostic pop
+    }
+    _shakeDetectionEnabled = YES;
+}
+
+RCT_EXPORT_METHOD(disableShakeDetection)
+{
+    _shakeDetectionEnabled = NO;
+    Class shakeDetector = NSClassFromString(@"SentryShakeDetector");
+    if (shakeDetector) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [shakeDetector performSelector:@selector(disable)];
+#pragma clang diagnostic pop
+    }
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:RNSentryShakeNotification
+                                                  object:nil];
+}
+
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[ RNSentryNewFrameEvent, RNSentryNativeLogEvent ];
+    return @[ RNSentryNewFrameEvent, RNSentryNativeLogEvent, RNSentryOnShakeEvent ];
 }
 
 RCT_EXPORT_METHOD(
@@ -488,6 +534,23 @@ RCT_EXPORT_METHOD(
     } else {
         resolve(nil);
     }
+#else
+    resolve(nil);
+#endif
+}
+
+RCT_EXPORT_METHOD(fetchNativeFramesDelay : (double)startTimestampSeconds endTimestampSeconds : (
+    double)endTimestampSeconds resolve : (RCTPromiseResolveBlock)
+        resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+    if (![SentryScreenFramesWrapper canTrackFrames]) {
+        resolve(nil);
+        return;
+    }
+
+    resolve([SentryScreenFramesWrapper framesDelayForStartTimestamp:startTimestampSeconds
+                                                       endTimestamp:endTimestampSeconds]);
 #else
     resolve(nil);
 #endif

@@ -1,5 +1,6 @@
-import { supabaseIntegration as browserSupabaseIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
+
+import { supabaseIntegration as browserSupabaseIntegration } from '@sentry/browser';
 
 type SupabaseReactNativeIntegrationOptions = {
   supabaseClient: unknown;

@@ -1,5 +1,7 @@
 import type { Attachment, Event, EventHint, Integration } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import { NATIVE } from '../wrapper';
 
 const filename: string = 'view-hierarchy.json';

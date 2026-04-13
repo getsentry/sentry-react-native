@@ -1,4 +1,4 @@
-/* eslint-disable max-lines */
+/* oxlint-disable eslint(max-lines) */
 import type {
   BaseEnvelopeItemHeaders,
   Breadcrumb,
@@ -10,9 +10,10 @@ import type {
   SeverityLevel,
   User,
 } from '@sentry/core';
+
 import { debug, normalize, SentryError } from '@sentry/core';
 import { NativeModules, Platform } from 'react-native';
-import { isHardCrash } from './misc';
+
 import type {
   NativeAppStartResponse,
   NativeDeviceContextsResponse,
@@ -27,6 +28,8 @@ import type * as Hermes from './profiling/hermes';
 import type { NativeAndroidProfileEvent, NativeProfileEvent } from './profiling/nativeTypes';
 import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
+
+import { isHardCrash } from './misc';
 import { encodeUTF8 } from './utils/encode';
 import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
@@ -38,7 +41,7 @@ import { base64StringFromByteArray } from './vendor';
  */
 export function getRNSentryModule(): Spec | undefined {
   return isTurboModuleEnabled()
-    ? ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry')
+    ? (ReactNativeLibraries.TurboModuleRegistry?.get<Spec>('RNSentry') ?? undefined)
     : NativeModules.RNSentry;
 }
 
@@ -90,13 +93,14 @@ interface SentryNativeWrapper {
   fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): PromiseLike<NativeAppStartResponse | null>;
   fetchNativeFrames(): PromiseLike<NativeFramesResponse | null>;
+  fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): PromiseLike<number | null>;
   fetchNativeSdkInfo(): PromiseLike<Package | null>;
 
   disableNativeFramesTracking(): void;
   enableNativeFramesTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   setContext(key: string, context: { [key: string]: any } | null): void;
   clearBreadcrumbs(): void;
   setExtra(key: string, extra: unknown): void;
@@ -268,11 +272,10 @@ export const NATIVE: SentryNativeWrapper = {
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
-    const ignoreErrorsStr = options.ignoreErrors?.filter(item => typeof item === 'string') as string[] | undefined;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const ignoreErrorsStr = options.ignoreErrors?.filter((item): item is string => typeof item === 'string');
     const ignoreErrorsRegex = options.ignoreErrors
-      ?.filter(item => item instanceof RegExp)
-      .map(item => (item as RegExp).source) as string[] | undefined;
+      ?.filter((item): item is RegExp => item instanceof RegExp)
+      .map(item => item.source);
 
     if (ignoreErrorsStr && ignoreErrorsStr.length > 0) {
       options.ignoreErrorsStr = ignoreErrorsStr;
@@ -282,7 +285,7 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     // filter out all the options that would crash native.
-    /* eslint-disable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
+    /* oxlint-disable typescript-eslint(no-unused-vars) */
     const {
       beforeSend,
       beforeBreadcrumb,
@@ -296,7 +299,7 @@ export const NATIVE: SentryNativeWrapper = {
       onNativeLog,
       ...filteredOptions
     } = options;
-    /* eslint-enable @typescript-eslint/unbound-method,@typescript-eslint/no-unused-vars */
+    /* oxlint-enable typescript-eslint(no-unused-vars) */
 
     // Move profilingOptions into _experiments
     // Support deprecated androidProfilingOptions for backwards compatibility
@@ -393,6 +396,17 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.fetchNativeFrames();
+  },
+
+  async fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): Promise<number | null> {
+    if (!this.enableNative) {
+      throw this._DisabledNativeError;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    return RNSentry.fetchNativeFramesDelay(startTimestampSeconds, endTimestampSeconds);
   },
 
   /**
@@ -532,7 +546,7 @@ export const NATIVE: SentryNativeWrapper = {
    * @param key string
    * @param context key-value map
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   setContext(key: string, context: { [key: string]: any } | null): void {
     if (!this.enableNative) {
       return;
@@ -945,6 +959,7 @@ export const NATIVE: SentryNativeWrapper = {
     return !!module;
   },
 
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   _setPrimitiveProcessor: function (processor: (value: Primitive) => any): void {
     this.primitiveProcessor = processor;
   },

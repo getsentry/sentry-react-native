@@ -1,5 +1,7 @@
 import type { Event, Integration, Package, SdkInfo as SdkInfoType } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import { isExpoGo, notWeb } from '../utils/environment';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../version';
 import { NATIVE } from '../wrapper';

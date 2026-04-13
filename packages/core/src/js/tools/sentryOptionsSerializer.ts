@@ -1,10 +1,12 @@
+import type { MetroConfig, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
+
 import { logger } from '@sentry/core';
 import * as fs from 'fs';
-import type { MetroConfig, Module, ReadOnlyGraph, SerializerOptions } from 'metro';
 import * as path from 'path';
+
 import type { MetroCustomSerializer, VirtualJSOutput } from './utils';
+
 import { createSet } from './utils';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import countLines from './vendor/metro/countLines';
 
 const DEFAULT_OPTIONS_FILE_NAME = 'sentry.options.json';
@@ -19,7 +21,7 @@ export function withSentryOptionsFromFile(config: MetroConfig, optionsFile: stri
 
   const { projectRoot } = config;
   if (!projectRoot) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.error('[@sentry/react-native/metro] Project root is required to load Sentry options from a file');
     return config;
   }
@@ -35,7 +37,7 @@ export function withSentryOptionsFromFile(config: MetroConfig, optionsFile: stri
   if (!originalSerializer) {
     // It's okay to bail here because we don't expose this for direct usage, but as part of `withSentryConfig`
     // If used directly in RN, the user is responsible for providing a custom serializer first, Expo provides serializer in default config
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.error(
       '[@sentry/react-native/metro] `config.serializer.customSerializer` is required to load Sentry options from a file',
     );

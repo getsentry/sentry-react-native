@@ -13,8 +13,8 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.3.0'
-  MAESTRO_DRIVER_STARTUP_TIMEOUT: 90000 # Increase timeout from default 30s to 90s for CI stability
+  MAESTRO_VERSION: '2.4.0'
+  MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000 # Increase timeout from default 30s to 180s for CI stability
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
@@ -35,73 +35,52 @@ jobs:
     needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
 
-  build:
-    name: Build ${{ matrix.rn-architecture }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks}}
-    runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+  detect-changes:
+    needs: [ready-to-merge-gate]
+    uses: ./.github/workflows/detect-changes.yml
+    with:
+      caller_event_name: ${{ github.event_name }}
+      caller_ref: ${{ github.ref }}
+
+  build-ios:
+    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    needs: [diff_check, detect-changes]
+    if: >-
+      ${{
+        needs.diff_check.outputs.skip_ci != 'true'
+        && needs.detect-changes.outputs.needs_sample_react_native == 'true'
+        && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
+      }}
     env:
       SENTRY_DISABLE_AUTO_UPLOAD: 'true'
     strategy:
-      # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       matrix:
-        rn-architecture: ['legacy', 'new']
-        ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
-        platform: ['android', 'ios', 'macos']
+        rn-architecture: ['new']
+        ios-use-frameworks: ['no-frameworks']
         build-type: ['dev', 'production']
-        include:
-          - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
-          - platform: macos
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
-          - platform: android
-            runs-on: ubuntu-latest
-        exclude:
-          - platform: 'android'
-            ios-use-frameworks: 'dynamic-frameworks'
-          - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic-frameworks'
-          - rn-architecture: 'new'
-            platform: 'macos'
-          - ios-use-frameworks: 'dynamic-frameworks'
-            platform: 'macos'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Enable Corepack (NPM)
-        if: ${{ matrix.platform == 'android' }}
-        run: npm i -g corepack
-
       - name: Enable Corepack
-        if: ${{ matrix.platform != 'android' }}
         run: corepack enable
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
       - uses: ruby/setup-ruby@v1
-        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         with:
-          working-directory: ${{ matrix.platform == 'ios' && env.REACT_NATIVE_SAMPLE_PATH || 'samples/react-native-macos' }}
+          working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
           ruby-version: '3.3.0' # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
-
       - name: Setup Global Xcode Tools
-        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
         run: which xcbeautify || brew install xcbeautify
 
       - name: Install SDK Dependencies
@@ -111,30 +90,15 @@ jobs:
         run: yarn build
 
       - name: Install App Pods
-        if: ${{ matrix.platform == 'ios' || matrix.platform == 'macos' }}
-        working-directory: samples
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
-          [[ "${{ matrix.platform }}" == "ios" ]] && cd react-native
-          [[ "${{ matrix.platform }}" == "macos" ]] && cd react-native-macos
-
           [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && export ENABLE_NEW_ARCH=1 || export ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
 
           ./scripts/pod-install.sh
 
-      - name: Build Android App
-        if: ${{ matrix.platform == 'android' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: |
-          export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
-          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
-
-          ./scripts/set-dsn-aos.mjs
-          ./scripts/build-android.sh -PreactNativeArchitectures=x86
-
       - name: Build iOS App
-        if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         env:
           # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
@@ -147,8 +111,159 @@ jobs:
           ./scripts/set-dsn-ios.mjs
           ./scripts/build-ios.sh
 
+      - name: Archive iOS App
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          zip -r \
+            ${{ github.workspace }}/${{ env.IOS_APP_ARCHIVE_PATH }} \
+            sentryreactnativesample.app
+
+      - name: Upload iOS APP
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios
+          path: ${{ env.IOS_APP_ARCHIVE_PATH }}
+          retention-days: 1
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
+          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
+
+  build-android:
+    name: Build ${{ matrix.rn-architecture }} android ${{ matrix.build-type }}
+    runs-on: ubuntu-latest
+    needs: [diff_check, detect-changes]
+    if: >-
+      ${{
+        needs.diff_check.outputs.skip_ci != 'true'
+        && needs.detect-changes.outputs.needs_sample_react_native == 'true'
+        && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_android == 'true')
+      }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        rn-architecture: ['new']
+        build-type: ['dev', 'production']
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Enable Corepack (NPM)
+        run: npm i -g corepack
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Build Android App
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          export RN_ARCHITECTURE="${{ matrix.rn-architecture }}"
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
+
+          ./scripts/set-dsn-aos.mjs
+          ./scripts/build-android.sh -PreactNativeArchitectures=x86
+
+      - name: Archive Android App
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
+        run: |
+          zip -j \
+            ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk \
+            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app-androidTest.apk
+
+      - name: Upload Android APK
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-android
+          path: ${{ env.ANDROID_APP_ARCHIVE_PATH }}
+          retention-days: 1
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-sample-${{ matrix.rn-architecture }}-android-${{ matrix.build-type }}-no-frameworks-logs
+          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/*.log
+
+  build-macos:
+    name: Build legacy macos ${{ matrix.build-type }}
+    runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
+    needs: [diff_check, detect-changes]
+    if: >-
+      ${{
+        needs.diff_check.outputs.skip_ci != 'true'
+        && needs.detect-changes.outputs.needs_sample_react_native == 'true'
+        && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
+      }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: ['dev', 'production']
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: samples/react-native-macos
+          ruby-version: '3.3.0' # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
+
+      - name: Setup Global Xcode Tools
+        run: which xcbeautify || brew install xcbeautify
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Install App Pods
+        working-directory: samples/react-native-macos
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
+          export ENABLE_NEW_ARCH=0
+
+          ./scripts/pod-install.sh
+
       - name: Build macOS App
-        if: ${{ matrix.platform == 'macos' }}
         working-directory: samples/react-native-macos/macos
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
@@ -166,66 +281,23 @@ jobs:
             | tee xcodebuild.log \
             | xcbeautify --quieter --is-ci --disable-colored-output
 
-      - name: Archive iOS App
-        if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: |
-          zip -r \
-            ${{ github.workspace }}/${{ env.IOS_APP_ARCHIVE_PATH }} \
-            sentryreactnativesample.app
-
-      - name: Archive Android App
-        if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
-        run: |
-          zip -j \
-            ${{ env.ANDROID_APP_ARCHIVE_PATH }} \
-            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk \
-            ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app-androidTest.apk
-
-      - name: Upload iOS APP
-        if: ${{ matrix.platform == 'ios' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.platform }}
-          path: ${{ env.IOS_APP_ARCHIVE_PATH }}
-          retention-days: 1
-
-      - name: Upload Android APK
-        if: ${{ matrix.platform == 'android' && matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
-          path: ${{ env.ANDROID_APP_ARCHIVE_PATH }}
-          retention-days: 1
-
       - name: Upload logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: build-sample-${{ matrix.rn-architecture }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
-          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/${{ matrix.platform }}/*.log
+          name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
+          path: samples/react-native-macos/macos/*.log
 
-  test:
-    name: Test ${{ matrix.platform }} ${{ matrix.build-type }} REV2
-    runs-on: ${{ matrix.runs-on }}
-    needs: [diff_check, build]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
-    strategy:
-      # we want that the matrix keeps running, default is to cancel them if it fails.
-      fail-fast: false
-      matrix:
-        include:
-          - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
-            rn-architecture: 'new'
-            ios-use-frameworks: 'no-frameworks'
-            build-type: 'production'
-
-          - platform: android
-            runs-on: ubuntu-latest
-            rn-architecture: 'new'
-            build-type: 'production'
-
+  test-ios:
+    name: Test ios production REV2
+    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    needs: [diff_check, detect-changes, build-ios]
+    if: >-
+      ${{
+        needs.diff_check.outputs.skip_ci != 'true'
+        && needs.detect-changes.outputs.needs_sample_react_native == 'true'
+        && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
+      }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -235,43 +307,104 @@ jobs:
           version: ${{env.MAESTRO_VERSION}}
 
       - name: Download iOS App Archive
-        if: ${{ matrix.platform == 'ios' }}
         uses: actions/download-artifact@v8
         with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.platform }}
-          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-
-      - name: Download Android APK
-        if: ${{ matrix.platform == 'android' }}
-        uses: actions/download-artifact@v8
-        with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.platform }}
+          name: sample-rn-new-production-no-frameworks-ios
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Unzip iOS App Archive
-        if: ${{ matrix.platform == 'ios' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: unzip ${{ env.IOS_APP_ARCHIVE_PATH }}
 
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install JS Dependencies
+        run: yarn install
+
+      - name: Boot ${{ env.IOS_DEVICE }} with iOS ${{ env.IOS_VERSION }}
+        uses: futureware-tech/simulator-action@e89aa8f93d3aec35083ff49d2854d07f7186f7f5 # pin@v5
+        with:
+          model: ${{ env.IOS_DEVICE }}
+          os_version: ${{ env.IOS_VERSION }}
+          wait_for_boot: true
+          erase_before_boot: false
+
+      - name: Wait for iOS simulator to be fully ready
+        run: |
+          xcrun simctl bootstatus booted -b
+          xcrun simctl launch booted com.apple.Preferences
+          sleep 5
+          xcrun simctl terminate booted com.apple.Preferences
+
+      - name: Warm up Maestro driver on iOS
+        continue-on-error: true
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          xcrun simctl install booted sentryreactnativesample.app
+          WARMUP=$(mktemp /tmp/maestro-warmup-XXXXXX.yml)
+          cat > "$WARMUP" << 'YML'
+          appId: io.sentry.reactnative.sample
+          ---
+          - launchApp:
+              clearState: true
+          - extendedWaitUntil:
+              visible: "Sentry React Native Sample"
+              timeout: 120000
+          - killApp
+          YML
+          sed -i '' 's/^          //' "$WARMUP"
+          maestro test "$WARMUP" || true
+          rm -f "$WARMUP"
+
+      - name: Run iOS Tests
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: yarn test-ios
+
+  test-android:
+    name: Test android production REV2
+    runs-on: ubuntu-latest
+    needs: [diff_check, detect-changes, build-android]
+    if: >-
+      ${{
+        needs.diff_check.outputs.skip_ci != 'true'
+        && needs.detect-changes.outputs.needs_sample_react_native == 'true'
+        && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_android == 'true')
+      }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Maestro
+        uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
+        with:
+          version: ${{env.MAESTRO_VERSION}}
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v8
+        with:
+          name: sample-rn-new-production-android
+          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+
       - name: Unzip Android APK
-        if: ${{ matrix.platform == 'android' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           unzip ${{ env.ANDROID_APP_ARCHIVE_PATH }}
           rm app-androidTest.apk
 
       - name: Enable Corepack (NPM)
-        if: ${{ matrix.platform == 'android' }}
         run: npm i -g corepack
-
-      - name: Enable Corepack
-        if: ${{ matrix.platform != 'android' }}
-        run: corepack enable
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           package-manager-cache: false
-          node-version: 18
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
@@ -279,10 +412,8 @@ jobs:
         run: yarn install
 
       - uses: ./.github/actions/disk-cleanup
-        if: ${{ matrix.platform == 'android' }}
 
       - name: Setup KVM
-        if: ${{ matrix.platform == 'android' }}
         shell: bash
         run: |
           # check if virtualization is supported...
@@ -293,20 +424,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Boot ${{ env.IOS_DEVICE }} with iOS ${{ env.IOS_VERSION }}
-        uses: futureware-tech/simulator-action@e89aa8f93d3aec35083ff49d2854d07f7186f7f5 # pin@v5
-        if: ${{ matrix.platform == 'ios' }}
-        with:
-          model: ${{ env.IOS_DEVICE }}
-          os_version: ${{ env.IOS_VERSION }}
-
-      - name: Run iOS Tests
-        if: ${{ matrix.platform == 'ios' }}
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: yarn test-ios
-
       - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
-        if: ${{ matrix.platform == 'android' }}
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # pin@v2.37.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}

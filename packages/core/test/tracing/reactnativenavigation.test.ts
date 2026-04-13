@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import type { Event, StartSpanOptions } from '@sentry/core';
+import type { EmitterSubscription } from 'react-native';
+
 import {
   getActiveSpan,
   getCurrentScope,
@@ -8,14 +9,15 @@ import {
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';
-import type { EmitterSubscription } from 'react-native';
-import { reactNativeTracingIntegration } from '../../src/js';
-import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from '../../src/js/tracing/origin';
+
 import type {
   BottomTabPressedEvent,
   ComponentWillAppearEvent,
   EventsRegistry,
 } from '../../src/js/tracing/reactnativenavigation';
+
+import { reactNativeTracingIntegration } from '../../src/js';
+import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from '../../src/js/tracing/origin';
 import { reactNativeNavigationIntegration } from '../../src/js/tracing/reactnativenavigation';
 import {
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_ID,
@@ -405,21 +407,18 @@ describe('React Native Navigation Instrumentation', () => {
       registerComponentWillAppearListener(callback: (event: ComponentWillAppearEvent) => void) {
         this.componentWillAppearListener = callback;
         return {
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
           remove() {},
         } as EmitterSubscription;
       },
       registerCommandListener(callback: (name: string, params: unknown) => void) {
         this.commandListener = callback;
         return {
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
           remove() {},
         };
       },
       registerBottomTabPressedListener(callback: (event: BottomTabPressedEvent) => void) {
         this.bottomTabPressedListener = callback;
         return {
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
           remove() {},
         } as EmitterSubscription;
       },

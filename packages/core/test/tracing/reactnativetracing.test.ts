@@ -1,5 +1,6 @@
-import * as SentryBrowser from '@sentry/browser';
 import type { Event } from '@sentry/core';
+
+import * as SentryBrowser from '@sentry/browser';
 
 jest.mock('../../src/js/wrapper', () => {
   return {
@@ -13,9 +14,10 @@ jest.mock('../../src/js/wrapper', () => {
   };
 });
 
+import type { TestClient } from '../mocks/client';
+
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 import { isWeb } from '../../src/js/utils/environment';
-import type { TestClient } from '../mocks/client';
 import { setupTestClient } from '../mocks/client';
 
 jest.mock('../../src/js/tracing/utils', () => {

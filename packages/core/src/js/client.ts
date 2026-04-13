@@ -1,4 +1,3 @@
-import { eventFromException, eventFromMessage } from '@sentry/browser';
 import type {
   ClientReportEnvelope,
   ClientReportItem,
@@ -10,6 +9,8 @@ import type {
   TransportMakeRequestResponse,
   UserFeedback,
 } from '@sentry/core';
+
+import { eventFromException, eventFromMessage } from '@sentry/browser';
 import {
   _INTERNAL_flushLogsBuffer,
   addAutoIpAddressToSession,
@@ -19,12 +20,14 @@ import {
   SentryError,
 } from '@sentry/core';
 import { Alert } from 'react-native';
+
+import type { ReactNativeClientOptions } from './options';
+import type { mobileReplayIntegration } from './replay/mobilereplay';
+
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
 import { defaultNativeLogHandler, setupNativeLogListener } from './NativeLogListener';
-import type { ReactNativeClientOptions } from './options';
-import type { mobileReplayIntegration } from './replay/mobilereplay';
 import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
@@ -151,7 +154,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
       dsn: this.getDsn(),
       tunnel: undefined,
     });
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    // oxlint-disable-next-line typescript-eslint(no-floating-promises)
     this.sendEnvelope(envelope);
   }
 

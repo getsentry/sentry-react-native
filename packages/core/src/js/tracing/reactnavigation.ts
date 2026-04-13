@@ -1,5 +1,6 @@
-/* eslint-disable max-lines */
+/* oxlint-disable eslint(max-lines) */
 import type { Client, Integration, Span } from '@sentry/core';
+
 import {
   addBreadcrumb,
   debug,
@@ -12,14 +13,16 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
+
+import type { UnsafeAction } from '../vendor/react-navigation/types';
+import type { ReactNativeTracingIntegration } from './reactnativetracing';
+
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
-import type { UnsafeAction } from '../vendor/react-navigation/types';
 import { NATIVE } from '../wrapper';
 import { ignoreEmptyBackNavigation, ignoreEmptyRouteChangeTransactions } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
-import type { ReactNativeTracingIntegration } from './reactnativetracing';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import {
@@ -116,6 +119,9 @@ interface ReactNavigationIntegrationOptions {
   /**
    * Time to initial display measures the time it takes from
    * navigation dispatch to the render of the first frame of the new screen.
+   *
+   * Note: Enabling this adds native bridge calls on every navigation
+   * which may cause noticeable overhead on low-end devices.
    *
    * @default false
    */
@@ -308,6 +314,7 @@ export const reactNavigationIntegration = ({
    * @param unknownEvent - The event object that contains navigation action data
    * @param isAppRestart - Whether this span is being started due to an app restart rather than a normal navigation action
    */
+  // oxlint-disable-next-line eslint(complexity)
   const startIdleNavigationSpan = (unknownEvent?: unknown, isAppRestart = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
     if (useDispatchedActionData && event?.data.noop) {
@@ -414,6 +421,7 @@ export const reactNavigationIntegration = ({
   /**
    * To be called AFTER the state has been changed to populate the transaction with the current route.
    */
+  // oxlint-disable-next-line eslint(complexity)
   const updateLatestNavigationSpanWithCurrentRoute = (): void => {
     const stateChangedTimestamp = timestampInSeconds();
     const previousRoute = latestRoute;
@@ -436,9 +444,11 @@ export const reactNavigationIntegration = ({
       return undefined;
     }
 
-    addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
+    if (enableTimeToInitialDisplay) {
+      addTimeToInitialDisplayFallback(latestNavigationSpan.spanContext().spanId, NATIVE.getNewScreenTimeToDisplay());
+    }
 
-    if (previousRoute && previousRoute.key === route.key) {
+    if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
       pushRecentRouteKey(route.key);
       latestRoute = route;
@@ -552,7 +562,7 @@ export const reactNavigationIntegration = ({
 export interface NavigationRoute {
   name: string;
   key: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   params?: Record<string, any>;
   state?: NavigationState;
 }

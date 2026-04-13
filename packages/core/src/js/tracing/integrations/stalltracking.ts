@@ -1,8 +1,9 @@
-/* eslint-disable max-lines */
 import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
-import { debug, getRootSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
+
+import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
 import { AppState } from 'react-native';
+
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../../measurements';
 import { isRootSpan } from '../../utils/span';
 import { getLatestChildSpanEndTimestamp, isNearToNow, setSpanMeasurement } from '../utils';
@@ -120,6 +121,10 @@ export const stallTrackingIntegration = ({
 
   const _onSpanStart = (rootSpan: Span): void => {
     if (!isRootSpan(rootSpan)) {
+      return;
+    }
+
+    if (!spanIsSampled(rootSpan)) {
       return;
     }
 
@@ -340,7 +345,6 @@ export const stallTrackingIntegration = ({
 
   // Avoids throwing any error if using React Native on a environment that doesn't implement AppState.
   if (AppState?.isAvailable) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     AppState.addEventListener('change', state.backgroundEventListener);
   }
 

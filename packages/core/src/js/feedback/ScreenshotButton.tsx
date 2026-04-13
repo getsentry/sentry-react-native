@@ -1,13 +1,20 @@
+import type { NativeEventSubscription } from 'react-native';
+
 import * as React from 'react';
-import type { NativeEventSubscription} from 'react-native';
 import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
+
 import type { Screenshot } from '../wrapper';
+import type {
+  ScreenshotButtonProps,
+  ScreenshotButtonStyles,
+  ScreenshotButtonTextConfiguration,
+} from './FeedbackForm.types';
+
 import { NATIVE } from '../wrapper';
 import { defaultScreenshotButtonConfiguration } from './defaults';
-import { defaultScreenshotButtonStyles } from './FeedbackWidget.styles';
-import { getTheme } from './FeedbackWidget.theme';
-import type { ScreenshotButtonProps, ScreenshotButtonStyles, ScreenshotButtonTextConfiguration } from './FeedbackWidget.types';
-import { hideScreenshotButton, showFeedbackWidget } from './FeedbackWidgetManager';
+import { defaultScreenshotButtonStyles } from './FeedbackForm.styles';
+import { getTheme } from './FeedbackForm.theme';
+import { hideScreenshotButton, showFeedbackForm } from './FeedbackFormManager';
 import { screenshotIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
@@ -15,14 +22,15 @@ let capturedScreenshot: Screenshot | 'ErrorCapturingScreenshot' | undefined;
 
 const takeScreenshot = async (): Promise<void> => {
   hideScreenshotButton();
-  setTimeout(async () => { // Delay capture to allow the button to hide
+  setTimeout(async () => {
+    // Delay capture to allow the button to hide
     const screenshots: Screenshot[] | null = await NATIVE.captureScreenshot();
     if (screenshots && screenshots.length > 0) {
       capturedScreenshot = screenshots[0];
     } else {
       capturedScreenshot = 'ErrorCapturingScreenshot';
     }
-    showFeedbackWidget();
+    showFeedbackForm();
   }, 100);
 };
 
@@ -30,7 +38,7 @@ export const getCapturedScreenshot = (): Screenshot | 'ErrorCapturingScreenshot'
   const screenshot = capturedScreenshot;
   capturedScreenshot = undefined;
   return screenshot;
-}
+};
 
 /**
  * @beta
@@ -80,8 +88,10 @@ export class ScreenshotButton extends React.Component<ScreenshotButtonProps> {
         onPress={takeScreenshot}
         accessibilityLabel={text.triggerAriaLabel}
       >
-        <Image source={{ uri: screenshotIcon }} style={styles.triggerIcon}/>
-        <Text style={styles.triggerText} testID='sentry-feedback-screenshot-button'>{text.triggerLabel}</Text>
+        <Image source={{ uri: screenshotIcon }} style={styles.triggerIcon} />
+        <Text style={styles.triggerText} testID="sentry-feedback-screenshot-button">
+          {text.triggerLabel}
+        </Text>
       </TouchableOpacity>
     );
   }

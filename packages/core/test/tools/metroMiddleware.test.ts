@@ -1,6 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { StackFrame } from '@sentry/core';
+
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as fs from 'fs';
+
+import * as openUrlMiddlewareModule from '../../src/js/metro/openUrlMiddleware';
 import * as metroMiddleware from '../../src/js/tools/metroMiddleware';
 
 const { withSentryMiddleware, createSentryMetroMiddleware, stackFramesContextMiddleware } = metroMiddleware;
@@ -79,6 +82,24 @@ describe('metroMiddleware', () => {
       testedMiddleware(sentryRequest, response, next);
       expect(defaultMiddleware).not.toHaveBeenCalled();
       expect(spiedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response, next);
+    });
+
+    it('should call openURLMiddleware for sentry open-url requests', () => {
+      const spiedOpenURLMiddleware = jest
+        .spyOn(openUrlMiddlewareModule, 'openURLMiddleware')
+        .mockReturnValue(undefined as any);
+
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware);
+
+      const openUrlRequest = {
+        url: '/__sentry/open-url',
+      } as any;
+      testedMiddleware(openUrlRequest, response, next);
+      expect(defaultMiddleware).not.toHaveBeenCalled();
+      expect(spiedStackFramesContextMiddleware).not.toHaveBeenCalled();
+      expect(spiedOpenURLMiddleware).toHaveBeenCalledWith(openUrlRequest, response);
+
+      spiedOpenURLMiddleware.mockRestore();
     });
 
     it('should call default middleware for non-sentry requests', () => {

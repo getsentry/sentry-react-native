@@ -1,8 +1,18 @@
 import type { Span } from '@sentry/core';
-import { getActiveSpan, getCurrentScope, spanToJSON, startInactiveSpan, startSpanManual } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
+
+import {
+  getActiveSpan,
+  getCurrentScope,
+  spanToJSON,
+  startInactiveSpan,
+  startSpanManual,
+  timestampInSeconds,
+} from '@sentry/core';
 import { AppState } from 'react-native';
+
 import type { ScopeWithMaybeSpan } from '../../src/js/tracing/span';
+
 import { SCOPE_SPAN_FIELD, startIdleNavigationSpan } from '../../src/js/tracing/span';
 import { NATIVE } from '../../src/js/wrapper';
 import { setupTestClient } from '../mocks/client';
@@ -37,7 +47,7 @@ const mockedAppState = AppState as jest.Mocked<typeof AppState & MockAppState>;
 
 describe('startIdleNavigationSpan', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    jest.useFakeTimers({ doNotFake: ['performance'] });
     NATIVE.enableNative = true;
     mockedAppState.isAvailable = true;
     mockedAppState.currentState = 'active';
@@ -211,6 +221,110 @@ describe('startIdleNavigationSpan', () => {
       expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
       // Span should not have the cancelled status since it ended normally
       expect(spanToJSON(routeTransaction!).status).not.toBe('cancelled');
+    });
+  });
+
+  describe('http.client child spans during background cancellation', () => {
+    it('ends http.client child at the time the app went inactive, not when the deferred timer fires', () => {
+      const navSpan = startIdleNavigationSpan({ name: 'test' });
+      const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
+      const httpStartTime = spanToJSON(httpSpan).start_timestamp;
+
+      // App goes inactive at a known time (e.g. user presses home on iOS)
+      mockedAppState.setState('inactive');
+
+      // Simulate JS thread suspension + resume: advance well past the 5s timer.
+      // In production this delay is caused by the JS thread being suspended
+      // while the app is in the background, then resumed much later.
+      jest.advanceTimersByTime(30_000);
+
+      expect(spanToJSON(navSpan!).status).toBe('cancelled');
+
+      // The http.client span should be ended at approximately when the app
+      // went inactive, NOT 30 seconds later when the timer fired.
+      const httpEndTime = spanToJSON(httpSpan).timestamp!;
+      const httpDuration = httpEndTime - httpStartTime;
+      expect(httpDuration).toBeLessThan(1);
+      expect(spanToJSON(httpSpan).status).toBe('cancelled');
+    });
+
+    it('uses fresh timestamp after inactive → active → background cycle', () => {
+      startIdleNavigationSpan({ name: 'test' });
+      const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
+
+      // App goes inactive briefly (e.g. Control Center)
+      mockedAppState.setState('inactive');
+      const inactiveTime = timestampInSeconds();
+
+      jest.advanceTimersByTime(1_000);
+
+      // App returns to active — the inactive timestamp should be reset
+      mockedAppState.setState('active');
+
+      jest.advanceTimersByTime(2_000);
+
+      // Now app goes to background — should use this new timestamp, not the old inactive one
+      const backgroundTime = timestampInSeconds();
+      mockedAppState.setState('background');
+
+      const httpEndTime = spanToJSON(httpSpan).timestamp!;
+
+      // The end time should match the background event, not the earlier inactive event.
+      // Use toBeCloseTo because timestampInSeconds() may advance slightly between calls.
+      expect(httpEndTime).toBeCloseTo(backgroundTime, 1);
+
+      // If the inactive timestamp was NOT reset, the span would have ended
+      // at inactiveTime instead — verify that's not the case when they differ.
+      if (Math.abs(backgroundTime - inactiveTime) > 0.01) {
+        expect(httpEndTime).not.toBeCloseTo(inactiveTime, 1);
+      }
+    });
+
+    it('ends http.client child at background time on immediate background', () => {
+      const navSpan = startIdleNavigationSpan({ name: 'test' });
+      const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
+
+      // App goes directly to background (Android, or iOS without inactive)
+      mockedAppState.setState('background');
+
+      expect(spanToJSON(navSpan!).status).toBe('cancelled');
+      expect(spanToJSON(httpSpan).timestamp).toBeDefined();
+      expect(spanToJSON(httpSpan).status).toBe('cancelled');
+    });
+
+    it('preserves already-ended http.client spans when app backgrounds', () => {
+      const navSpan = startIdleNavigationSpan({ name: 'test' });
+
+      // HTTP request that completed before backgrounding
+      const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
+      httpSpan.setStatus({ code: 1 }); // OK
+      httpSpan.end();
+
+      const httpEndTimeBefore = spanToJSON(httpSpan).timestamp;
+
+      // App goes to background
+      mockedAppState.setState('background');
+
+      expect(spanToJSON(navSpan!).status).toBe('cancelled');
+
+      // The already-ended http.client span should be untouched
+      expect(spanToJSON(httpSpan).status).toBe('ok');
+      expect(spanToJSON(httpSpan).timestamp).toBe(httpEndTimeBefore);
+    });
+
+    it('still cancels non-http.client children when app backgrounds', () => {
+      const navSpan = startIdleNavigationSpan({ name: 'test' });
+
+      // A non-http span (e.g. a UI rendering span)
+      const uiSpan = startInactiveSpan({ name: 'ui.render', op: 'ui.load' });
+
+      mockedAppState.setState('background');
+
+      expect(spanToJSON(navSpan!).status).toBe('cancelled');
+
+      // Non-http.client children should still be cancelled by idle span logic
+      expect(spanToJSON(uiSpan).timestamp).toBeDefined();
+      expect(spanToJSON(uiSpan).status).toBe('cancelled');
     });
   });
 

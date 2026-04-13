@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "8.4.0",
+  "version": "8.7.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -10,8 +10,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "ts:check": "tsc",
-    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
-    "fix": "npx eslint . --ext .js,.jsx,.ts,.tsx --fix && prettier --write \"**/*.{js,jsx,ts,tsx,json}\"",
+    "lint": "npx oxlint",
+    "fix": "npx oxlint --fix && npx oxfmt \"**/*.{js,jsx,ts,tsx}\"",
     "export": "expo export --source-maps --clear --platform all",
     "export:web": "expo export --source-maps --clear --platform web",
     "prebuild": "expo prebuild --clean --no-install",
@@ -23,8 +23,8 @@
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
-    "@sentry/core": "10.43.0",
-    "@sentry/react-native": "8.4.0",
+    "@sentry/core": "10.48.0",
+    "@sentry/react-native": "8.7.0",
     "@types/react": "~19.2.10",
     "expo": "^55.0.0",
     "expo-constants": "~55.0.7",
@@ -47,17 +47,8 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
-    "@react-native/eslint-config": "0.83.2",
-    "@sentry/babel-plugin-component-annotate": "5.1.1",
+    "@sentry/babel-plugin-component-annotate": "5.2.0",
     "@types/node": "20.10.4",
-    "@typescript-eslint/eslint-plugin": "^8.50.0",
-    "@typescript-eslint/parser": "^8.50.0",
-    "eslint": "^8.57.0",
-    "eslint-config-expo": "~55.0.0",
-    "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-jest": "^29.5.0",
-    "prettier": "2.8.8",
     "sentry-react-native-samples-utils": "workspace:^"
   },
   "overrides": {

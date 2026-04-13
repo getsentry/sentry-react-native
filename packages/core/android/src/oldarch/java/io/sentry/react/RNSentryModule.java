@@ -68,6 +68,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void fetchNativeFramesDelay(
+      double startTimestampSeconds, double endTimestampSeconds, Promise promise) {
+    this.impl.fetchNativeFramesDelay(startTimestampSeconds, endTimestampSeconds, promise);
+  }
+
+  @ReactMethod
   public void captureEnvelope(String rawBytes, ReadableMap options, Promise promise) {
     this.impl.captureEnvelope(rawBytes, options, promise);
   }
@@ -211,5 +217,15 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public boolean setActiveSpanId(String spanId) {
     return this.impl.setActiveSpanId(spanId);
+  }
+
+  @ReactMethod
+  public void enableShakeDetection() {
+    this.impl.enableShakeDetection();
+  }
+
+  @ReactMethod
+  public void disableShakeDetection() {
+    this.impl.disableShakeDetection();
   }
 }

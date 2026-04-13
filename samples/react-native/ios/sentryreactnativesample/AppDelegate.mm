@@ -47,7 +47,7 @@
 
     [self.reactNativeFactory startReactNativeWithModuleName:@"sentry-react-native-sample"
                                                    inWindow:self.window
-                                          initialProperties:@{}
+                                          initialProperties:@{ }
                                               launchOptions:launchOptions];
 
     [[UNUserNotificationCenter currentNotificationCenter] setDelegate:self];

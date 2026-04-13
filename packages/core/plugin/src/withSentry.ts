@@ -1,11 +1,14 @@
 import type { ExpoConfig } from '@expo/config-types';
 import type { ConfigPlugin } from 'expo/config-plugins';
+
 import { createRunOncePlugin, withDangerousMod } from 'expo/config-plugins';
+
+import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
+
 import { bold, warnOnce } from './logger';
 import { writeSentryOptions } from './utils';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './version';
 import { withSentryAndroid } from './withSentryAndroid';
-import type { SentryAndroidGradlePluginOptions } from './withSentryAndroidGradlePlugin';
 import { withSentryAndroidGradlePlugin } from './withSentryAndroidGradlePlugin';
 import { withSentryIOS } from './withSentryIOS';
 
@@ -29,6 +32,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
 
   let cfg = config;
   const pluginOptions = props?.options ? { ...props.options } : {};
+  // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
   const environment = process.env.SENTRY_ENVIRONMENT;
   if (environment) {
     pluginOptions.environment = environment;
@@ -43,7 +47,7 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
       warnOnce(`There was a problem with configuring your native Android project: ${e}`);
     }
     // if `enableAndroidGradlePlugin` is provided configure the Sentry Android Gradle Plugin
-    if (props?.experimental_android && props?.experimental_android?.enableAndroidGradlePlugin) {
+    if (props?.experimental_android?.enableAndroidGradlePlugin) {
       try {
         cfg = withSentryAndroidGradlePlugin(cfg, props.experimental_android);
       } catch (e) {
@@ -68,7 +72,6 @@ const missingAuthTokenMessage = '# Using SENTRY_AUTH_TOKEN environment variable'
 
 export function getSentryProperties(props: PluginProps | void): string | null {
   const { organization, project, authToken, url = 'https://sentry.io/' } = props ?? {};
-  // eslint-disable-next-line no-prototype-builtins
   const missingProperties = ['organization', 'project'].filter(each => !props?.hasOwnProperty(each));
 
   if (missingProperties.length) {
@@ -111,7 +114,6 @@ function withSentryOptionsFile(config: ExpoConfig, pluginOptions: Record<string,
   return cfg;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const withSentry = createRunOncePlugin(withSentryPlugin, PLUGIN_NAME, PLUGIN_VERSION);
 
 export { withSentry };

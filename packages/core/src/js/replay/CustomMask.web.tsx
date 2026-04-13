@@ -1,5 +1,6 @@
-import * as React from 'react';
 import type { ViewProps } from 'react-native';
+
+import * as React from 'react';
 import { View } from 'react-native';
 
 // Wrapping children in a View and div can cause styling issues
@@ -16,9 +17,7 @@ import { View } from 'react-native';
 const Mask = (props: ViewProps): React.ReactElement => {
   return (
     <View {...props}>
-      <div className='sentry-react-native-mask'>
-        {props.children}
-      </div>
+      <div className="sentry-react-native-mask">{props.children}</div>
     </View>
   );
 };
@@ -26,9 +25,7 @@ const Mask = (props: ViewProps): React.ReactElement => {
 const Unmask = (props: ViewProps): React.ReactElement => {
   return (
     <View {...props}>
-      <div className='sentry-react-native-unmask'>
-        {props.children}
-      </div>
+      <div className="sentry-react-native-unmask">{props.children}</div>
     </View>
   );
 };

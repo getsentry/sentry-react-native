@@ -1,11 +1,13 @@
 import type { Client, Event } from '@sentry/core';
+
+import type { ExpoConstants } from '../../src/js/utils/expoglobalobject';
+
 import {
   EXPO_CONSTANTS_CONTEXT_KEY,
   expoConstantsIntegration,
   getExpoConstantsContext,
 } from '../../src/js/integrations/expoconstants';
 import * as environment from '../../src/js/utils/environment';
-import type { ExpoConstants } from '../../src/js/utils/expoglobalobject';
 import * as expoModules from '../../src/js/utils/expomodules';
 
 jest.mock('../../src/js/utils/expomodules');

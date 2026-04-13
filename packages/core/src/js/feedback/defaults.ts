@@ -1,4 +1,5 @@
-import type { FeedbackButtonProps, FeedbackWidgetProps, ScreenshotButtonProps } from './FeedbackWidget.types';
+import type { FeedbackButtonProps, FeedbackFormProps, ScreenshotButtonProps } from './FeedbackForm.types';
+
 import { feedbackAlertDialog } from './utils';
 
 const FORM_TITLE = 'Report a Bug';
@@ -23,7 +24,7 @@ const CAPTURE_SCREENSHOT_LABEL = 'Take a screenshot';
 const REMOVE_SCREENSHOT_LABEL = 'Remove screenshot';
 const GENERIC_ERROR_TEXT = 'Unable to send feedback due to an unexpected error.';
 
-export const defaultConfiguration: FeedbackWidgetProps = {
+export const defaultConfiguration: FeedbackFormProps = {
   // FeedbackCallbacks
   onFormOpen: () => {
     // Does nothing by default

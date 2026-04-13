@@ -1,5 +1,6 @@
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeClientOptions } from '../src/js/options';
+
 import { NATIVE } from '../src/js/wrapper';
 
 jest.mock('react-native', () => {

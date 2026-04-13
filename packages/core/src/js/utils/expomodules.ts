@@ -1,4 +1,5 @@
 import type { ExpoConstants, ExpoDevice, ExpoGo, ExpoUpdates } from './expoglobalobject';
+
 import { RN_GLOBAL_OBJ } from './worldwide';
 
 /**

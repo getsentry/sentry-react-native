@@ -1,5 +1,6 @@
-import { graphqlClientIntegration as browserGraphqlClientIntegration } from '@sentry/browser';
 import type { Integration } from '@sentry/core';
+
+import { graphqlClientIntegration as browserGraphqlClientIntegration } from '@sentry/browser';
 
 interface GraphQLReactNativeIntegrationOptions {
   endpoints: Array<string | RegExp>;

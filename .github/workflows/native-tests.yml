@@ -24,11 +24,18 @@ jobs:
     needs: [ready-to-merge-gate]
     uses: ./.github/workflows/skip-ci.yml
 
+  detect-changes:
+    needs: [ready-to-merge-gate]
+    uses: ./.github/workflows/detect-changes.yml
+    with:
+      caller_event_name: ${{ github.event_name }}
+      caller_ref: ${{ github.ref }}
+
   test-ios:
     name: ios
     runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    needs: [diff_check, detect-changes]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_ios == 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -98,8 +105,8 @@ jobs:
   test-android:
     name: android
     runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
-    needs: [diff_check]
-    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    needs: [diff_check, detect-changes]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_android == 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 

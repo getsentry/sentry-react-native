@@ -1,6 +1,8 @@
 import type { Breadcrumb, Scope } from '@sentry/core';
+
 import { debug } from '@sentry/core';
 import { logger } from '@sentry/react';
+
 import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { fillTyped } from './utils/fill';
 import { convertToNormalizedObject } from './utils/normalize';
@@ -75,7 +77,7 @@ export function enableSyncToNative(scope: Scope): void {
     return original.call(scope);
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line typescript-eslint(no-explicit-any)
   fillTyped(scope, 'setContext', original => (key: string, context: { [key: string]: any } | null): Scope => {
     NATIVE.setContext(key, context);
     return original.call(scope, key, context);

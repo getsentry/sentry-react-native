@@ -1,4 +1,5 @@
 import type { MeasurementUnit, Span, SpanJSON, StartSpanOptions, TransactionSource } from '@sentry/core';
+
 import {
   debug,
   dropUndefinedKeys,
@@ -15,6 +16,7 @@ import {
   timestampInSeconds,
   uuid4,
 } from '@sentry/core';
+
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 export const defaultTransactionSource: TransactionSource = 'component';

@@ -10,12 +10,107 @@
 
 ### Features
 
-- Support `SENTRY_ENVIRONMENT` in bare React Native builds ([#5823](https://github.com/getsentry/sentry-react-native/pull/5823))
+- Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
+- Add `attachAllThreads` option to attach full stack traces for all threads to captured events on iOS ([#5960](https://github.com/getsentry/sentry-react-native/issues/5960))
 - Add `strictTraceContinuation` and `orgId` options for trace continuation validation ([#5829](https://github.com/getsentry/sentry-react-native/pull/5829))
 
 ### Fixes
 
+- Lazy-load Metro internal modules to prevent Expo 55 import errors ([#5958](https://github.com/getsentry/sentry-react-native/pull/5958))
+- Fix app start transaction profile offset by using the actual profiling start timestamp instead of the adjusted app start time ([#5962](https://github.com/getsentry/sentry-react-native/issues/5962))
+- Use React `componentStack` as fallback when error has no stack trace on Android ([#5965](https://github.com/getsentry/sentry-react-native/pull/5965))
+- Add `SENTRY_PROJECT_ROOT` env var to override project root in Xcode build phase scripts for monorepo setups ([#5961](https://github.com/getsentry/sentry-react-native/pull/5961))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.8.0 to v9.10.0 ([#5956](https://github.com/getsentry/sentry-react-native/pull/5956), [#5972](https://github.com/getsentry/sentry-react-native/pull/5972))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9100)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.8.0...9.10.0)
+- Bump Bundler Plugins from v5.1.1 to v5.2.0 ([#5968](https://github.com/getsentry/sentry-react-native/pull/5968))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#520)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/5.1.1...5.2.0)
+- Bump JavaScript SDK from v10.47.0 to v10.48.0 ([#5975](https://github.com/getsentry/sentry-react-native/pull/5975))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10480)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.47.0...10.48.0)
+- Bump Android SDK from v8.37.1 to v8.38.0 ([#5971](https://github.com/getsentry/sentry-react-native/pull/5971))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8380)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.37.1...8.38.0)
+
+## 8.7.0
+
+### Features
+
+- Add `Sentry.appLoaded()` API to explicitly signal app start end ([#5940](https://github.com/getsentry/sentry-react-native/pull/5940))
+- Add `frames.delay` span data from native SDKs to app start, TTID/TTFD, and JS API spans ([#5907](https://github.com/getsentry/sentry-react-native/pull/5907))
+- Rename `FeedbackWidget` to `FeedbackForm` and `showFeedbackWidget` to `showFeedbackForm` ([#5931](https://github.com/getsentry/sentry-react-native/pull/5931))
+  - The old names are deprecated but still work
+- Deprecate `FeedbackButton`, `showFeedbackButton`, and `hideFeedbackButton` ([#5933](https://github.com/getsentry/sentry-react-native/pull/5933))
+
+### Fixes
+
+- Fix inflated `http.client` span durations on iOS when the app backgrounds during a request ([#5944](https://github.com/getsentry/sentry-react-native/pull/5944))
+- Fix crash caused by nullish response in supabase PostgREST handler ([#5938](https://github.com/getsentry/sentry-react-native/pull/5938))
+- Fix iOS crash (EXC_BAD_ACCESS) in time-to-initial-display when navigating between screens ([#5887](https://github.com/getsentry/sentry-react-native/pull/5887))
+
+### Dependencies
+
+- Bump Android SDK from v8.36.0 to v8.37.1 ([#5884](https://github.com/getsentry/sentry-react-native/pull/5884))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8371)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.36.0...8.37.1)
+- Bump CLI from v3.3.4 to v3.3.5 ([#5925](https://github.com/getsentry/sentry-react-native/pull/5925))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#335)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.4...3.3.5)
+- Bump JavaScript SDK from v10.46.0 to v10.47.0 ([#5938](https://github.com/getsentry/sentry-react-native/pull/5938))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10470)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.46.0...10.47.0)
+
+## 8.6.0
+
+### Fixes
+
+- Session replay will no longer start recording when an event was ignored or dropped. ([#5885](https://github.com/getsentry/sentry-react-native/pull/5885))
+- Capture native exceptions consumed by Expo's bridgeless error handling on Android ([#5871](https://github.com/getsentry/sentry-react-native/pull/5871))
+- Fix SIGABRT crash on launch when `mobileReplayIntegration` is not configured and iOS deployment target >= 16.0 ([#5858](https://github.com/getsentry/sentry-react-native/pull/5858))
+- Reduce `reactNavigationIntegration` performance overhead ([#5840](https://github.com/getsentry/sentry-react-native/pull/5840), [#5842](https://github.com/getsentry/sentry-react-native/pull/5842), [#5849](https://github.com/getsentry/sentry-react-native/pull/5849))
+- Fix duplicated breadcrumbs on Android ([#5841](https://github.com/getsentry/sentry-react-native/pull/5841))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.7.0 to v9.8.0 ([#5847](https://github.com/getsentry/sentry-react-native/pull/5847))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#980)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.7.0...9.8.0)
+- Bump JavaScript SDK from v10.44.0 to v10.46.0 ([#5848](https://github.com/getsentry/sentry-react-native/pull/5848), [#5890](https://github.com/getsentry/sentry-react-native/pull/5890))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10460)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.44.0...10.46.0)
+- Bump CLI from v3.3.3 to v3.3.4 ([#5891](https://github.com/getsentry/sentry-react-native/pull/5891))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#334)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.3...3.3.4)
+
+## 8.5.0
+
+### Features
+
+- Support `SENTRY_ENVIRONMENT` in bare React Native builds ([#5823](https://github.com/getsentry/sentry-react-native/pull/5823))
+- Add `expoUpdatesListenerIntegration` that records breadcrumbs for Expo Updates lifecycle events ([#5795](https://github.com/getsentry/sentry-react-native/pull/5795))
+  - Tracks update checks, downloads, errors, rollbacks, and restarts as `expo.updates` breadcrumbs
+  - Enabled by default in Expo apps (requires `expo-updates` to be installed)
+- feat(android): Expose `enableAnrFingerprinting` option ([#5838](https://github.com/getsentry/sentry-react-native/issues/5838))
+- Show feedback widget on device shake ([#5754](https://github.com/getsentry/sentry-react-native/pull/5754))
+  - Use `Sentry.enableFeedbackOnShake()` / `Sentry.disableFeedbackOnShake()` or set `feedbackIntegration({ enableShakeToReport: true })`
+
+### Fixes
+
 - Fix native frames measurements being dropped due to race condition ([#5813](https://github.com/getsentry/sentry-react-native/pull/5813))
+- Fix app start data lost when first navigation transaction is discarded ([#5833](https://github.com/getsentry/sentry-react-native/pull/5833))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.43.0 to v10.44.0 ([#5832](https://github.com/getsentry/sentry-react-native/pull/5832))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10440)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.43.0...10.44.0)
+- Bump Android SDK from v8.33.0 to v8.36.0 ([#5812](https://github.com/getsentry/sentry-react-native/pull/5812))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8360)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.33.0...8.36.0)
 
 ## 8.4.0
 

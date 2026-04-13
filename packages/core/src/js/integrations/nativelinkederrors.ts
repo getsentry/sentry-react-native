@@ -1,4 +1,3 @@
-import { exceptionFromError } from '@sentry/browser';
 import type {
   Client,
   DebugImage,
@@ -10,8 +9,12 @@ import type {
   StackFrame,
   StackParser,
 } from '@sentry/core';
+
+import { exceptionFromError } from '@sentry/browser';
 import { isInstanceOf, isPlainObject, isString } from '@sentry/core';
+
 import type { NativeStackFrames } from '../NativeRNSentry';
+
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'NativeLinkedErrors';
@@ -101,6 +104,7 @@ function walkErrorTree(
   } else if (isInstanceOf(linkedError, Error)) {
     exception = exceptionFromError(parser, error[key]);
   } else if (isPlainObject(linkedError)) {
+    // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
     const plainError = linkedError as Record<string, unknown>;
     exception = {
       type: typeof plainError.name === 'string' ? plainError.name : undefined,

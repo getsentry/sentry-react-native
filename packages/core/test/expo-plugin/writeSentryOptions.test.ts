@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+
 import { writeSentryOptions } from '../../plugin/src/utils';
 
 jest.mock('../../plugin/src/logger');

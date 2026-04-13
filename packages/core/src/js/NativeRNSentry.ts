@@ -1,6 +1,8 @@
 import type { Package } from '@sentry/core';
 import type { TurboModule } from 'react-native';
+
 import { TurboModuleRegistry } from 'react-native';
+
 import type { UnsafeObject } from './utils/rnlibrariesinterface';
 
 // There has to be only one interface and it has to be named `Spec`
@@ -27,6 +29,7 @@ export interface Spec extends TurboModule {
   fetchNativeLogAttributes(): Promise<NativeDeviceContextsResponse | null>;
   fetchNativeAppStart(): Promise<NativeAppStartResponse | null>;
   fetchNativeFrames(): Promise<NativeFramesResponse | null>;
+  fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): Promise<number | null>;
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
   setUser(defaultUserKeys: UnsafeObject | null, otherUserKeys: UnsafeObject | null): void;
   setContext(key: string, value: UnsafeObject | null): void;
@@ -54,6 +57,8 @@ export interface Spec extends TurboModule {
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
   setActiveSpanId(spanId: string): boolean;
   encodeToBase64(data: number[]): Promise<string | undefined | null>;
+  enableShakeDetection(): void;
+  disableShakeDetection(): void;
 }
 
 export type NativeStackFrame = {

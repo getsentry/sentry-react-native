@@ -1,4 +1,5 @@
 import type { AppStateStatus } from 'react-native';
+
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 
 type StallTrackingWithTestProperties = ReturnType<typeof stallTrackingIntegration> & {

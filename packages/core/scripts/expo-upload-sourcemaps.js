@@ -81,7 +81,6 @@ function getAssetPathsSync(directory) {
   for (const item of items) {
     const fullPath = path.join(directory, item.name);
     if (item.isDirectory()) {
-      // eslint-disable-next-line no-unused-vars
       files.push(...getAssetPathsSync(fullPath));
     } else if (item.isFile() && isAsset(item.name)) {
       files.push(fullPath);

@@ -1,8 +1,8 @@
-/* eslint-disable complexity */
+/* oxlint-disable eslint(complexity) */
 import type { Envelope, Event, ThreadCpuProfile } from '@sentry/core';
+
 import { debug, forEachEnvelopeItem } from '@sentry/core';
-import { getDefaultEnvironment } from '../utils/environment';
-import { getDebugMetadata } from './debugid';
+
 import type {
   AndroidCombinedProfileEvent,
   AndroidProfileEvent,
@@ -11,6 +11,9 @@ import type {
   ProfileEvent,
   RawThreadCpuProfile,
 } from './types';
+
+import { getDefaultEnvironment } from '../utils/environment';
+import { getDebugMetadata } from './debugid';
 
 /**
  *
@@ -46,7 +49,7 @@ export function findProfiledTransactionsFromEnvelope(envelope: Envelope): Event[
       const event = item[j];
 
       // @ts-expect-error accessing private property
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      // oxlint-disable-next-line typescript-eslint(no-unsafe-member-access)
       if (event.contexts?.trace?.data?.profile_id) {
         events.push(item[j] as Event);
       }
@@ -85,14 +88,20 @@ export function enrichCombinedProfileWithEventContext(
     }
   }
 
+  const { profilingStartTimestampNs, ...profileWithoutInternalFields } = profile;
+
   return {
-    ...profile,
+    ...profileWithoutInternalFields,
     event_id: profile_id,
     runtime: {
       name: 'hermes',
       version: '', // TODO: get hermes version
     },
-    timestamp: event.start_timestamp ? new Date(event.start_timestamp * 1000).toISOString() : new Date().toISOString(),
+    timestamp: profilingStartTimestampNs
+      ? new Date(profilingStartTimestampNs / 1e6).toISOString()
+      : event.start_timestamp
+        ? new Date(event.start_timestamp * 1000).toISOString()
+        : new Date().toISOString(),
     release: event.release || '',
     environment: event.environment || getDefaultEnvironment(),
     os: {
@@ -127,8 +136,10 @@ export function enrichAndroidProfileWithEventContext(
   profile: AndroidCombinedProfileEvent,
   event: Event,
 ): AndroidProfileEvent | null {
+  const { profilingStartTimestampNs, ...profileWithoutInternalFields } = profile;
+
   return {
-    ...profile,
+    ...profileWithoutInternalFields,
     debug_meta: {
       images: getDebugMetadata(),
     },
@@ -149,7 +160,11 @@ export function enrichAndroidProfileWithEventContext(
 
     profile_id,
 
-    timestamp: event.start_timestamp ? new Date(event.start_timestamp * 1000).toISOString() : new Date().toISOString(),
+    timestamp: profilingStartTimestampNs
+      ? new Date(profilingStartTimestampNs / 1e6).toISOString()
+      : event.start_timestamp
+        ? new Date(event.start_timestamp * 1000).toISOString()
+        : new Date().toISOString(),
 
     release: event.release || '',
     dist: event.dist || '',

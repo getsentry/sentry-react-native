@@ -1,5 +1,6 @@
-/* eslint-disable complexity */
+/* oxlint-disable eslint(complexity) */
 import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
+
 import {
   debug,
   getClient,
@@ -13,15 +14,18 @@ import {
 } from '@sentry/core';
 import { defaultStackParser, makeFetchTransport, Profiler } from '@sentry/react';
 import * as React from 'react';
+
+import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
+
 import { ReactNativeClient } from './client';
-import { FeedbackWidgetProvider } from './feedback/FeedbackWidgetProvider';
+import { FeedbackFormProvider } from './feedback/FeedbackFormProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { getDefaultIntegrations } from './integrations/default';
-import type { ReactNativeClientOptions, ReactNativeOptions, ReactNativeWrapperOptions } from './options';
 import { shouldEnableNativeNagger } from './options';
 import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
+import { _appLoaded } from './tracing/integrations/appStart';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
@@ -62,14 +66,11 @@ export function init(passedOptions: ReactNativeOptions): void {
     ...passedOptions,
   };
 
-  const maxQueueSize = userOptions.maxQueueSize
-    // eslint-disable-next-line deprecation/deprecation
-    ?? userOptions.transportOptions?.bufferSize
-    ?? DEFAULT_OPTIONS.maxQueueSize;
+  const maxQueueSize =
+    userOptions.maxQueueSize ?? userOptions.transportOptions?.bufferSize ?? DEFAULT_OPTIONS.maxQueueSize;
 
-  const enableNative = userOptions.enableNative === undefined || userOptions.enableNative
-    ? NATIVE.isNativeAvailable()
-    : false;
+  const enableNative =
+    userOptions.enableNative === undefined || userOptions.enableNative ? NATIVE.isNativeAvailable() : false;
 
   useEncodePolyfill();
   if (enableNative) {
@@ -90,7 +91,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     return `${dsnComponents.protocol}://${dsnComponents.host}${port}`;
   };
 
-  const userBeforeBreadcrumb = safeFactory(userOptions.beforeBreadcrumb, { loggerMessage: 'The beforeBreadcrumb threw an error' });
+  const userBeforeBreadcrumb = safeFactory(userOptions.beforeBreadcrumb, {
+    loggerMessage: 'The beforeBreadcrumb threw an error',
+  });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
   const devServerUrl = getDevServer()?.url;
@@ -123,11 +126,12 @@ export function init(passedOptions: ReactNativeOptions): void {
     enableNative,
     enableNativeNagger: shouldEnableNativeNagger(userOptions.enableNativeNagger),
     // If custom transport factory fails the SDK won't initialize
-    transport: userOptions.transport
-      || makeNativeTransportFactory({
+    transport:
+      userOptions.transport ||
+      makeNativeTransportFactory({
         enableNative,
-      })
-      || makeFetchTransport,
+      }) ||
+      makeFetchTransport,
     transportOptions: {
       ...DEFAULT_OPTIONS.transportOptions,
       ...(userOptions.transportOptions ?? {}),
@@ -140,11 +144,15 @@ export function init(passedOptions: ReactNativeOptions): void {
     initialScope: safeFactory(userOptions.initialScope, { loggerMessage: 'The initialScope threw an error' }),
   };
 
-  if (!('autoInitializeNativeSdk' in userOptions) && RN_GLOBAL_OBJ.__SENTRY_OPTIONS__) {
-    // Options file is present, native SDK is expected to be initialized
+  if (!('autoInitializeNativeSdk' in userOptions) && RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ && !__DEV__) {
+    // Options file is present in a release build, native SDK is expected to be initialized
     // before JS from the native app entry point (e.g. AppDelegate, MainApplication).
-    // eslint-disable-next-line no-console
-    console.info('[Sentry] Using options file. Native SDK is expected to be initialized before JS, skipping automatic native initialization from JS.');
+    // In dev builds, we always re-initialize from JS to set up the native log bridge
+    // and provide runtime values (devServerUrl, defaultSidecarUrl, etc.).
+    // oxlint-disable-next-line eslint(no-console)
+    console.info(
+      '[Sentry] Using options file. Native SDK is expected to be initialized before JS, skipping automatic native initialization from JS.',
+    );
     options.autoInitializeNativeSdk = false;
   }
 
@@ -156,9 +164,8 @@ export function init(passedOptions: ReactNativeOptions): void {
     options.environment = getDefaultEnvironment();
   }
 
-  const defaultIntegrations: false | Integration[] = userOptions.defaultIntegrations === undefined
-    ? getDefaultIntegrations(options)
-    : userOptions.defaultIntegrations;
+  const defaultIntegrations: false | Integration[] =
+    userOptions.defaultIntegrations === undefined ? getDefaultIntegrations(options) : userOptions.defaultIntegrations;
 
   options.integrations = getIntegrationsToSetup({
     integrations: safeFactory(userOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
@@ -181,12 +188,12 @@ export function init(passedOptions: ReactNativeOptions): void {
  */
 export function wrap<P extends Record<string, unknown>>(
   RootComponent: React.ComponentType<P>,
-  options?: ReactNativeWrapperOptions
+  options?: ReactNativeWrapperOptions,
 ): React.ComponentType<P> {
   const profilerProps = {
-    ...(options?.profilerProps),
+    ...options?.profilerProps,
     name: RootComponent.displayName ?? 'Root',
-    updateProps: {}
+    updateProps: {},
   };
 
   const ProfilerComponent = isWeb() ? Profiler : ReactNativeProfiler;
@@ -195,9 +202,9 @@ export function wrap<P extends Record<string, unknown>>(
     return (
       <TouchEventBoundary {...(options?.touchEventBoundaryProps ?? {})}>
         <ProfilerComponent {...profilerProps}>
-          <FeedbackWidgetProvider>
+          <FeedbackFormProvider>
             <RootComponent {...appProps} />
-          </FeedbackWidgetProvider>
+          </FeedbackFormProvider>
         </ProfilerComponent>
       </TouchEventBoundary>
     );
@@ -215,6 +222,31 @@ export function nativeCrash(): void {
 }
 
 /**
+ * Signals that the application has finished loading and is ready for user interaction.
+ *
+ * Call this when your app is truly ready — after async initialization, data loading,
+ * splash screen dismissal, auth session restore, etc. This marks the end of the app start span,
+ * giving you a more accurate measurement of perceived startup time.
+ *
+ * If not called, the SDK falls back to the root component mount time (via `Sentry.wrap()`)
+ * or JS bundle execution start.
+ *
+ * @experimental This API is subject to change in future versions.
+ *
+ * @example
+ * ```ts
+ * await loadRemoteConfig();
+ * await restoreSession();
+ * SplashScreen.hide();
+ * Sentry.appLoaded();
+ * ```
+ */
+export function appLoaded(): void {
+  // oxlint-disable-next-line typescript-eslint(no-floating-promises)
+  _appLoaded();
+}
+
+/**
  * Flushes all pending events in the queue to disk.
  * Use this before applying any realtime updates such as code-push or expo updates.
  */
@@ -227,8 +259,7 @@ export async function flush(): Promise<boolean> {
 
       return result;
     }
-    // eslint-disable-next-line no-empty
-  } catch (_) { }
+  } catch (_) {}
 
   debug.error('Failed to flush the event queue.');
 

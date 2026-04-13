@@ -290,35 +290,108 @@ if (actions.includes('test')) {
   if (!sentryAuthToken) {
     console.log('Skipping maestro test due to unavailable or empty SENTRY_AUTH_TOKEN');
   } else {
-    try {
-      execSync(
-        `maestro test maestro \
-          --env=APP_ID="${appId}" \
-          --env=SENTRY_AUTH_TOKEN="${sentryAuthToken}" \
-          --debug-output maestro-logs \
-          --flatten-debug-output`,
-        {
-          stdio: 'inherit',
-          cwd: e2eDir,
-        },
-      );
-    } finally {
-      // Always redact sensitive data, even if the test fails
-      const redactScript = `
-        if [[ "$(uname)" == "Darwin" ]]; then
-          find ./maestro-logs -type f -exec sed -i '' "s/${sentryAuthToken}/[REDACTED]/g" {} +
-          echo 'Redacted sensitive data from logs on MacOS'
-        else
-          find ./maestro-logs -type f -exec sed -i "s/${sentryAuthToken}/[REDACTED]/g" {} +
-          echo 'Redacted sensitive data from logs on Ubuntu'
-        fi
-      `;
+    const maestroDir = path.join(e2eDir, 'maestro');
+    const flowFiles = fs.readdirSync(maestroDir)
+      .filter(f => f.endsWith('.yml') && !f.startsWith('utils'))
+      .sort((a, b) => {
+        // Run crash.yml last — it kills the app via nativeCrash(), and
+        // post-crash simulator state can be flaky on Cirrus Labs Tart VMs.
+        if (a === 'crash.yml') return 1;
+        if (b === 'crash.yml') return -1;
+        return a.localeCompare(b);
+      });
 
+    console.log(`Discovered ${flowFiles.length} Maestro flows: ${flowFiles.join(', ')}`);
+
+    // Warm up Maestro's driver connection before running test flows.
+    // The first Maestro launchApp after simulator boot can fail on Cirrus
+    // Labs Tart VMs because the IDB/XCUITest driver isn't fully connected.
+    // Running a lightweight warmup flow ensures the driver is ready.
+    const warmupFlow = path.join('maestro', 'utils', 'warmup.yml');
+    console.log('Warming up Maestro driver...');
+    try {
+      execFileSync('maestro', [
+        'test',
+        warmupFlow,
+        '--env', `APP_ID=${appId}`,
+        '--env', `SENTRY_AUTH_TOKEN=${sentryAuthToken}`,
+      ], {
+        stdio: 'pipe',
+        cwd: e2eDir,
+      });
+    } catch (error) {
+      console.warn('Maestro driver warm-up failed (non-fatal, continuing with tests)');
+    }
+
+    const results = [];
+
+    // Run each flow in its own process to prevent crash cascade —
+    // when crash.yml kills the app, a shared Maestro session would fail
+    // all subsequent flows.
+    console.log('Waiting for flows to complete...');
+    for (const flow of flowFiles) {
+      const flowPath = path.join('maestro', flow);
+      const startTime = Date.now();
       try {
-        execSync(redactScript, { stdio: 'inherit', cwd: e2eDir, shell: '/bin/bash' });
+        execFileSync('maestro', [
+          'test',
+          flowPath,
+          '--env', `APP_ID=${appId}`,
+          '--env', `SENTRY_AUTH_TOKEN=${sentryAuthToken}`,
+          '--debug-output', 'maestro-logs',
+          '--flatten-debug-output',
+        ], {
+          stdio: 'pipe',
+          cwd: e2eDir,
+        });
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        const name = flow.replace('.yml', '');
+        results.push({ name, passed: true, elapsed });
+        console.log(`[Passed] ${name} (${elapsed}s)`);
       } catch (error) {
-        console.warn('Failed to redact sensitive data from logs:', error.message);
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        const name = flow.replace('.yml', '');
+        const output = (error.stdout?.toString() || '') + (error.stderr?.toString() || '');
+        const detail = output.split('\n').find(l =>
+          l.includes('App crashed') || l.includes('Element not found') || l.includes('FAILED')) || '';
+        results.push({ name, passed: false, elapsed, detail });
+        console.log(`[Failed] ${name} (${elapsed}s)${detail ? ` (${detail.trim()})` : ''}`);
+        // Dump Maestro output for failed flows to aid debugging
+        if (output) {
+          console.log(`\n--- ${name} output ---\n${output.trim()}\n--- end ${name} output ---\n`);
+        }
       }
+    }
+
+    const failedFlows = results.filter(r => !r.passed).map(r => r.name);
+
+    // Always redact sensitive data, even if some tests failed
+    try {
+      const logDir = path.join(e2eDir, 'maestro-logs');
+      if (fs.existsSync(logDir)) {
+        const redactFiles = (dir) => {
+          for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+              redactFiles(fullPath);
+            } else {
+              const content = fs.readFileSync(fullPath, 'utf8');
+              if (content.includes(sentryAuthToken)) {
+                fs.writeFileSync(fullPath, content.replaceAll(sentryAuthToken, '[REDACTED]'));
+              }
+            }
+          }
+        };
+        redactFiles(logDir);
+        console.log('Redacted sensitive data from logs');
+      }
+    } catch (error) {
+      console.warn('Failed to redact sensitive data from logs:', error.message);
+    }
+
+    if (failedFlows.length > 0) {
+      console.error(`\nFailed flows: ${failedFlows.join(', ')}`);
+      process.exit(1);
     }
   }
 }

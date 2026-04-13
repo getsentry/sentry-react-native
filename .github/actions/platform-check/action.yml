@@ -1,0 +1,65 @@
+name: 'Platform Check'
+description: 'Decides whether to skip a build/test based on detect-changes outputs'
+
+inputs:
+  platform:
+    description: 'Target platform (ios, macos, android, web)'
+    required: true
+  sample_changed:
+    description: 'Whether the sample app itself changed (true/false)'
+    required: true
+  needs_ios:
+    description: 'detect-changes needs_ios output'
+    required: false
+    default: 'false'
+  needs_android:
+    description: 'detect-changes needs_android output'
+    required: false
+    default: 'false'
+  needs_web:
+    description: 'detect-changes needs_web output'
+    required: false
+    default: 'false'
+
+outputs:
+  skip:
+    description: 'Whether to skip this platform (true/false)'
+    value: ${{ steps.check.outputs.skip }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check if platform is needed
+      id: check
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        SAMPLE_CHANGED: ${{ inputs.sample_changed }}
+        NEEDS_IOS: ${{ inputs.needs_ios }}
+        NEEDS_ANDROID: ${{ inputs.needs_android }}
+        NEEDS_WEB: ${{ inputs.needs_web }}
+      run: |
+        if [[ "$SAMPLE_CHANGED" == "true" ]]; then
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "Sample app changed — building/testing $PLATFORM."
+          exit 0
+        fi
+
+        # macOS uses the iOS change-detection flag
+        case "$PLATFORM" in
+          ios|macos) NEEDS="$NEEDS_IOS" ;;
+          android)   NEEDS="$NEEDS_ANDROID" ;;
+          web)       NEEDS="$NEEDS_WEB" ;;
+          *)
+            echo "::warning::Unknown platform '$PLATFORM' — not skipping."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+            ;;
+        esac
+
+        if [[ "$NEEDS" != "true" ]]; then
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+          echo "Skipping $PLATFORM — no relevant changes detected."
+        else
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+        fi

@@ -1,6 +1,8 @@
 import type { Client, Event, EventHint } from '@sentry/core';
+
 import type { ReactNativeError } from '../../src/js/integrations/debugsymbolicator';
 import type { ReactNativeContext } from '../../src/js/integrations/reactnativeinfo';
+
 import { reactNativeInfoIntegration } from '../../src/js/integrations/reactnativeinfo';
 
 let mockedIsHermesEnabled: jest.Mock<boolean, []>;

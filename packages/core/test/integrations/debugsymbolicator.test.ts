@@ -1,4 +1,7 @@
 import type { Client, Event, EventHint, StackFrame } from '@sentry/core';
+
+import type * as ReactNative from '../../src/js/vendor/react-native';
+
 import { debugSymbolicatorIntegration } from '../../src/js/integrations/debugsymbolicator';
 import {
   fetchSourceContext,
@@ -6,7 +9,6 @@ import {
   parseErrorStack,
   symbolicateStackTrace,
 } from '../../src/js/integrations/debugsymbolicatorutils';
-import type * as ReactNative from '../../src/js/vendor/react-native';
 
 jest.mock('../../src/js/integrations/debugsymbolicatorutils');
 
@@ -699,6 +701,61 @@ describe('Debug Symbolicator Integration', () => {
                     in_app: true,
                   },
                 ],
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    it('should not wipe original frames when parseErrorStack returns empty array', async () => {
+      (parseErrorStack as jest.Mock).mockReturnValue([]);
+
+      const originalFrames = [
+        {
+          function: 'originalFoo',
+          filename: '/original/path/foo.js',
+          lineno: 10,
+          colno: 5,
+        },
+        {
+          function: 'originalBar',
+          filename: '/original/path/bar.js',
+          lineno: 20,
+          colno: 15,
+        },
+      ];
+
+      const symbolicatedEvent = await processEvent(
+        {
+          exception: {
+            values: [
+              {
+                type: 'Error',
+                value: 'Error: test',
+                stacktrace: {
+                  frames: originalFrames,
+                },
+              },
+            ],
+          },
+        },
+        {
+          originalException: {
+            stack: mockRawStack,
+          },
+        },
+      );
+
+      // Original frames should be preserved when parseErrorStack returns empty array
+      expect(symbolicatedEvent).toStrictEqual(<Event>{
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Error: test',
+              stacktrace: {
+                frames: originalFrames,
               },
             },
           ],

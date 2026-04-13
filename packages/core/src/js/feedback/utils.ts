@@ -1,4 +1,5 @@
 import { Alert } from 'react-native';
+
 import { isFabricEnabled, isWeb } from '../utils/environment';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { ReactNativeLibraries } from './../utils/rnlibraries';
@@ -42,6 +43,7 @@ export const base64ToUint8Array = (base64: string): Uint8Array => {
   }
 
   const binaryString = atob(base64);
+  // oxlint-disable-next-line typescript-eslint(no-misused-spread)
   return new Uint8Array([...binaryString].map(char => char.charCodeAt(0)));
 };
 

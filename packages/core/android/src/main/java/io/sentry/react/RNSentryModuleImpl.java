@@ -28,7 +28,6 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
-import io.sentry.Breadcrumb;
 import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
@@ -45,6 +44,7 @@ import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
+import io.sentry.android.core.SentryShakeDetector;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
@@ -72,7 +72,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -95,6 +94,7 @@ public class RNSentryModuleImpl {
   private final ReactApplicationContext reactApplicationContext;
   private final PackageInfo packageInfo;
   private FrameMetricsAggregator frameMetricsAggregator = null;
+  private final RNSentryFrameDelayCollector frameDelayCollector = new RNSentryFrameDelayCollector();
   private boolean androidXAvailable;
 
   @VisibleForTesting static long lastStartTimestampMs = -1;
@@ -121,6 +121,9 @@ public class RNSentryModuleImpl {
   private ISentryExecutorService executorService = null;
 
   private final @NotNull Runnable emitNewFrameEvent;
+
+  private static final String ON_SHAKE_EVENT = "rn_sentry_on_shake";
+  private @Nullable SentryShakeDetector shakeDetector;
 
   /** Max trace file size in bytes. */
   private long maxTraceFileSize = 5 * 1024 * 1024;
@@ -208,10 +211,58 @@ public class RNSentryModuleImpl {
   }
 
   public void removeListeners(double id) {
-    // Is must be defined otherwise the generated interface from TS won't be
-    // fulfilled
-    logger.log(
-        SentryLevel.ERROR, "removeListeners of NativeEventEmitter can't be used on Android!");
+    // removeListeners does not carry event-type information, so it cannot be used
+    // to track shake listeners selectively. Shake detection is managed exclusively
+    // via enableShakeDetection / disableShakeDetection.
+  }
+
+  private void startShakeDetection() {
+    if (shakeDetector != null) {
+      return;
+    }
+
+    try { // NOPMD - We don't want to crash in any case
+      final ReactApplicationContext context = getReactApplicationContext();
+      shakeDetector = new SentryShakeDetector(logger);
+      shakeDetector.start(
+          context,
+          () -> {
+            try { // NOPMD - We don't want to crash in any case
+              final ReactApplicationContext ctx = getReactApplicationContext();
+              if (ctx.hasActiveReactInstance()) {
+                ctx.getJSModule(
+                        com.facebook.react.modules.core.DeviceEventManagerModule
+                            .RCTDeviceEventEmitter.class)
+                    .emit(ON_SHAKE_EVENT, null);
+              }
+            } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+              logger.log(SentryLevel.WARNING, "Failed to emit shake event.", e);
+            }
+          });
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Failed to start shake detection.", e);
+      shakeDetector = null;
+    }
+  }
+
+  private void stopShakeDetection() {
+    try { // NOPMD - We don't want to crash in any case
+      if (shakeDetector != null) {
+        shakeDetector.stop();
+        shakeDetector = null;
+      }
+    } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Failed to stop shake detection.", e);
+      shakeDetector = null;
+    }
+  }
+
+  public void enableShakeDetection() {
+    startShakeDetection();
+  }
+
+  public void disableShakeDetection() {
+    stopShakeDetection();
   }
 
   public void fetchModules(Promise promise) {
@@ -326,6 +377,39 @@ public class RNSentryModuleImpl {
         logger.log(SentryLevel.WARNING, "Error fetching native frames.");
         promise.resolve(null);
       }
+    }
+  }
+
+  public void fetchNativeFramesDelay(
+      double startTimestampSeconds, double endTimestampSeconds, Promise promise) {
+    try {
+      // Convert wall-clock seconds to System.nanoTime() based nanos
+      long nowNanos = System.nanoTime();
+      double nowSeconds = System.currentTimeMillis() / 1e3;
+
+      double startOffsetSeconds = nowSeconds - startTimestampSeconds;
+      double endOffsetSeconds = nowSeconds - endTimestampSeconds;
+
+      if (startOffsetSeconds < 0
+          || endOffsetSeconds < 0
+          || (long) (startOffsetSeconds * 1e9) > nowNanos
+          || (long) (endOffsetSeconds * 1e9) > nowNanos) {
+        promise.resolve(null);
+        return;
+      }
+
+      long startNanos = nowNanos - (long) (startOffsetSeconds * 1e9);
+      long endNanos = nowNanos - (long) (endOffsetSeconds * 1e9);
+
+      double delaySeconds = frameDelayCollector.getFramesDelay(startNanos, endNanos);
+      if (delaySeconds >= 0) {
+        promise.resolve(delaySeconds);
+      } else {
+        promise.resolve(null);
+      }
+    } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Error fetching native frames delay.");
+      promise.resolve(null);
     }
   }
 
@@ -643,6 +727,19 @@ public class RNSentryModuleImpl {
     } else {
       logger.log(SentryLevel.WARNING, "androidx.core' isn't available as a dependency.");
     }
+
+    try {
+      final SentryOptions options = Sentry.getCurrentScopes().getOptions();
+      if (options instanceof SentryAndroidOptions) {
+        final SentryFrameMetricsCollector collector =
+            ((SentryAndroidOptions) options).getFrameMetricsCollector();
+        if (frameDelayCollector.start(collector)) {
+          logger.log(SentryLevel.INFO, "RNSentryFrameDelayCollector installed.");
+        }
+      }
+    } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
+      logger.log(SentryLevel.WARNING, "Error starting RNSentryFrameDelayCollector.");
+    }
   }
 
   public void disableNativeFramesTracking() {
@@ -650,6 +747,7 @@ public class RNSentryModuleImpl {
       frameMetricsAggregator.stop();
       frameMetricsAggregator = null;
     }
+    frameDelayCollector.stop();
   }
 
   public void getNewScreenTimeToDisplay(Promise promise) {
@@ -814,19 +912,25 @@ public class RNSentryModuleImpl {
       promise.resolve(null);
       return;
     }
-    if (currentScope != null) {
-      // Remove react-native breadcrumbs
-      Iterator<Breadcrumb> breadcrumbsIterator = currentScope.getBreadcrumbs().iterator();
-      while (breadcrumbsIterator.hasNext()) {
-        Breadcrumb breadcrumb = breadcrumbsIterator.next();
-        if ("react-native".equals(breadcrumb.getOrigin())) {
-          breadcrumbsIterator.remove();
-        }
-      }
-    }
 
     final @NotNull Map<String, Object> serialized =
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
+
+    final @Nullable Object serializedBreadcrumbs = serialized.get("breadcrumbs");
+    if (serializedBreadcrumbs instanceof List) {
+      final List<?> breadcrumbs = (List<?>) serializedBreadcrumbs;
+      List<Map<?, ?>> filtered = new ArrayList<>();
+      for (Object o : breadcrumbs) {
+        if (o instanceof Map) {
+          final Map<?, ?> breadcrumb = (Map<?, ?>) o;
+          if (!"react-native".equals(breadcrumb.get("origin"))) {
+            filtered.add(breadcrumb);
+          }
+        }
+      }
+      serialized.put("breadcrumbs", filtered);
+    }
+
     final @Nullable Object deviceContext = RNSentryMapConverter.convertToWritable(serialized);
     promise.resolve(deviceContext);
   }

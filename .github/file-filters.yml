@@ -16,4 +16,62 @@ high_risk_code: &high_risk_code
   - 'scripts/sentry-xcode.sh'
   - 'scripts/sentry-xcode-debug-files.sh'
   - 'sentry.gradle'
-  
+
+# --- Platform-specific filters for CI optimization ---
+# Used by detect-changes.yml to skip platform-irrelevant CI jobs.
+
+# Changes to the SDK's iOS native code only (packages/core).
+# Does NOT include sample apps — sample changes have their own filters below.
+ios_native:
+  - 'packages/core/ios/**'
+  - 'packages/core/RNSentryCocoaTester/**'
+  - 'packages/core/RNSentry.podspec'
+
+# Changes to the SDK's Android native code only (packages/core).
+# Does NOT include sample apps — sample changes have their own filters below.
+android_native:
+  - 'packages/core/android/**'
+  - 'packages/core/RNSentryAndroidTester/**'
+  - 'packages/core/sentry.gradle'
+
+# Changes to JS/TS source code (affects ALL platforms)
+js_source:
+  - 'packages/core/src/**'
+  - 'packages/core/plugin/**'
+  - 'packages/core/scripts/**'
+  - 'packages/core/package.json'
+  - 'packages/core/tsconfig.json'
+  - 'yarn.lock'
+  - 'package.json'
+  - '.yarnrc.yml'
+
+# Changes to JS/TS test files only
+js_test:
+  - 'packages/core/test/**'
+
+# Changes to the React Native sample app.
+# Triggers: sample-application.yml, buildandtest.yml (job_bundle).
+# Does NOT trigger: native-tests.yml, e2e-v2.yml, sample-application-expo.yml.
+sample_react_native:
+  - 'samples/react-native/**'
+  - 'samples/react-native-macos/**'
+
+# Changes to the Expo sample app.
+# Triggers: sample-application-expo.yml only.
+# Does NOT trigger: native-tests.yml, e2e-v2.yml, sample-application.yml.
+sample_expo:
+  - 'samples/expo/**'
+
+# Changes to E2E test infrastructure
+e2e_tests:
+  - 'dev-packages/e2e-tests/**'
+
+# Changes to performance test infrastructure
+perf_tests:
+  - 'performance-tests/**'
+
+# CI workflow or infrastructure changes (should trigger everything)
+ci:
+  - '.github/workflows/**'
+  - '.github/actions/**'
+  - '.github/file-filters.yml'

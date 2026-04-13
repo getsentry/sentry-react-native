@@ -1,19 +1,16 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import { useFonts } from 'expo-font';
+import * as ImagePicker from 'expo-image-picker';
 import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { useEffect } from 'react';
+import { LogBox } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
+
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
-import * as Sentry from '@sentry/react-native';
-import { LogBox } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 
 export {
   // Catch any errors thrown by the Layout component.

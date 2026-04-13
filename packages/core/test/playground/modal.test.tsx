@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
+
 import { SentryPlayground } from '../../src/js/playground/modal';
 
 describe('PlaygroundComponent', () => {

@@ -1,7 +1,10 @@
 import type { getDefaultConfig } from 'expo/metro-config';
 import type { MetroConfig } from 'metro';
+
 import * as process from 'process';
+
 import type { SentryExpoConfigOptions } from '../../src/js/tools/metroconfig';
+
 import {
   getSentryExpoConfig,
   withSentryBabelTransformer,
@@ -20,9 +23,9 @@ describe('metroconfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
     delete process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS];
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
     delete process.env[SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH];
   });
 
@@ -344,9 +347,7 @@ describe('metroconfig', () => {
           context.resolveRequest = resolver;
           return resolver(context, `real${moduleName}`, platform, moduleName);
         }
-        return (
-          metroConfig.resolver?.resolveRequest && metroConfig.resolver.resolveRequest(context, moduleName, platform)
-        );
+        return metroConfig.resolver?.resolveRequest?.(context, moduleName, platform);
       }
 
       function ExpectToBeCalledWithMetroParameters(

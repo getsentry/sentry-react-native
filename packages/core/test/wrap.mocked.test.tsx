@@ -1,13 +1,14 @@
+import type { ReactNativeWrapperOptions } from 'src/js/options';
+
 // We can't test wrap with mock and non mocked components, otherwise it will break the RN testing library.
 import { render } from '@testing-library/react-native';
 import * as React from 'react';
-import type { ReactNativeWrapperOptions } from 'src/js/options';
+
 import * as environment from '../src/js/utils/environment';
 
 jest.doMock('../src/js/touchevents', () => {
   return {
     TouchEventBoundary: ({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
       <div testID="touch-boundaryID">{children}</div>
     ),
   };
@@ -16,7 +17,6 @@ jest.doMock('../src/js/touchevents', () => {
 jest.doMock('../src/js/tracing', () => {
   return {
     ReactNativeProfiler: jest.fn(({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
       <div testID="react-native-profilerID">{children}</div>
     )),
   };
@@ -24,18 +24,14 @@ jest.doMock('../src/js/tracing', () => {
 
 jest.doMock('@sentry/react', () => {
   return {
-    Profiler: jest.fn(({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
-      <div testID="react-profilerID">{children}</div>
-    )),
+    Profiler: jest.fn(({ children }: { children: React.ReactNode }) => <div testID="react-profilerID">{children}</div>),
   };
 });
 
-jest.doMock('../src/js/feedback/FeedbackWidgetProvider', () => {
+jest.doMock('../src/js/feedback/FeedbackFormProvider', () => {
   return {
-    FeedbackWidgetProvider: ({ children }: { children: React.ReactNode }) => (
-      // eslint-disable-next-line react/no-unknown-property
-      <div testID="feedback-widgetID">{children}</div>
+    FeedbackFormProvider: ({ children }: { children: React.ReactNode }) => (
+      <div testID="feedback-formID">{children}</div>
     ),
   };
 });
@@ -65,7 +61,7 @@ describe('Sentry.wrap', () => {
       testID="react-native-profilerID"
     >
       <div
-        testID="feedback-widgetID"
+        testID="feedback-formID"
       >
         <div>
           wrapped
@@ -90,7 +86,7 @@ describe('Sentry.wrap', () => {
       testID="react-profilerID"
     >
       <div
-        testID="feedback-widgetID"
+        testID="feedback-formID"
       >
         <div>
           wrapped
@@ -116,7 +112,7 @@ describe('Sentry.wrap', () => {
           includeRender: true,
           includeUpdates: true,
         }),
-        expect.toBeNil()
+        expect.toBeNil(),
       );
 
       expect(ReactNativeProfiler).not.toHaveBeenCalledWith(

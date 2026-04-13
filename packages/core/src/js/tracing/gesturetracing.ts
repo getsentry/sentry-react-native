@@ -1,5 +1,7 @@
 import type { Breadcrumb } from '@sentry/core';
+
 import { addBreadcrumb, debug, SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN } from '@sentry/core';
+
 import { startUserInteractionSpan } from './integrations/userInteraction';
 import { UI_ACTION } from './ops';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './origin';

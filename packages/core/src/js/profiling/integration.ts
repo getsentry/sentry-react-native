@@ -1,16 +1,18 @@
-/* eslint-disable complexity */
 import type { Envelope, Event, Integration, Span, ThreadCpuProfile } from '@sentry/core';
+
 import { debug, getActiveSpan, getClient, spanIsSampled, uuid4 } from '@sentry/core';
 import { Platform } from 'react-native';
+
 import type { ReactNativeClient } from '../client';
+import type { NativeAndroidProfileEvent, NativeProfileEvent } from './nativeTypes';
+import type { AndroidCombinedProfileEvent, CombinedProfileEvent, HermesProfileEvent, ProfileEvent } from './types';
+
 import { isHermesEnabled } from '../utils/environment';
 import { isRootSpan } from '../utils/span';
 import { NATIVE } from '../wrapper';
 import { PROFILE_QUEUE } from './cache';
 import { MAX_PROFILE_DURATION_MS } from './constants';
 import { convertToSentryProfile } from './convertHermesProfile';
-import type { NativeAndroidProfileEvent, NativeProfileEvent } from './nativeTypes';
-import type { AndroidCombinedProfileEvent, CombinedProfileEvent, HermesProfileEvent, ProfileEvent } from './types';
 import {
   addProfilesToEnvelope,
   createHermesProfilingEvent,
@@ -277,9 +279,17 @@ export function stopProfiling(
     return null;
   }
 
+  hermesProfileEvent.profilingStartTimestampNs = profileStartTimestampNs;
+
   if (collectedProfiles.androidProfile) {
     const durationNs = profileEndTimestampNs - profileStartTimestampNs;
-    return createAndroidWithHermesProfile(hermesProfileEvent, collectedProfiles.androidProfile, durationNs);
+    const androidProfile = createAndroidWithHermesProfile(
+      hermesProfileEvent,
+      collectedProfiles.androidProfile,
+      durationNs,
+    );
+    androidProfile.profilingStartTimestampNs = profileStartTimestampNs;
+    return androidProfile;
   } else if (collectedProfiles.nativeProfile) {
     return addNativeProfileToHermesProfile(hermesProfileEvent, collectedProfiles.nativeProfile);
   }

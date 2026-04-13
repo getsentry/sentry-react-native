@@ -1,5 +1,6 @@
-/* eslint-disable complexity, max-lines */
+/* oxlint-disable eslint(complexity), eslint(max-lines) */
 import type { Client, Event, Integration, Span, SpanJSON, TransactionEvent } from '@sentry/core';
+
 import {
   debug,
   getCapturedScopesOnSpan,
@@ -11,13 +12,15 @@ import {
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
+
+import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
+import type { ReactNativeClientOptions } from '../../options';
+
 import { getAppRegistryIntegration } from '../../integrations/appRegistry';
 import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
-import type { NativeAppStartResponse, NativeFramesResponse } from '../../NativeRNSentry';
-import type { ReactNativeClientOptions } from '../../options';
 import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
 import {
@@ -34,6 +37,9 @@ const INTEGRATION_NAME = 'AppStart';
 
 export type AppStartIntegration = Integration & {
   captureStandaloneAppStart: () => Promise<void>;
+  resetAppStartDataFlushed: () => void;
+  cancelDeferredStandaloneCapture: () => void;
+  scheduleDeferredStandaloneCapture: () => void;
 };
 
 /**
@@ -56,6 +62,7 @@ interface AppStartEndData {
 
 let appStartEndData: AppStartEndData | undefined = undefined;
 let isRecordedAppStartEndTimestampMsManual = false;
+let isAppLoadedManuallyInvoked = false;
 
 let rootComponentCreationTimestampMs: number | undefined = undefined;
 let isRootComponentCreationTimestampMsManual = false;
@@ -63,9 +70,58 @@ let isRootComponentCreationTimestampMsManual = false;
 /**
  * Records the application start end.
  * Used automatically by `Sentry.wrap` and `Sentry.ReactNativeProfiler`.
+ *
+ * @deprecated Use {@link appLoaded} from the public SDK API instead (`Sentry.appLoaded()`).
  */
 export function captureAppStart(): Promise<void> {
   return _captureAppStart({ isManual: true });
+}
+
+/**
+ * Signals that the app has finished loading and is ready for user interaction.
+ * Called internally by `appLoaded()` from the public SDK API.
+ *
+ * @private
+ */
+export async function _appLoaded(): Promise<void> {
+  if (isAppLoadedManuallyInvoked) {
+    debug.warn('[AppStart] appLoaded() was already called. Subsequent calls are ignored.');
+    return;
+  }
+
+  const client = getClient();
+  if (!client) {
+    debug.warn('[AppStart] appLoaded() was called before Sentry.init(). App start end will not be recorded.');
+    return;
+  }
+
+  isAppLoadedManuallyInvoked = true;
+
+  const timestampMs = timestampInSeconds() * 1000;
+
+  // If auto-capture already ran (ReactNativeProfiler.componentDidMount), overwrite the timestamp.
+  // The transaction hasn't been sent yet in non-standalone mode so this is safe.
+  if (appStartEndData) {
+    debug.log('[AppStart] appLoaded() overwriting auto-detected app start end timestamp.');
+    appStartEndData.timestampMs = timestampMs;
+    appStartEndData.endFrames = null;
+  } else {
+    _setAppStartEndData({ timestampMs, endFrames: null });
+  }
+  isRecordedAppStartEndTimestampMsManual = true;
+
+  await fetchAndUpdateEndFrames();
+
+  const integration = client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME);
+  if (integration) {
+    // Cancel any deferred standalone send from auto-capture — we'll send our own
+    // with the correct manual timestamp instead of sending two transactions.
+    integration.cancelDeferredStandaloneCapture();
+    // In standalone mode, auto-capture may have already flushed the transaction.
+    // Reset the flag so captureStandaloneAppStart can re-send with the manual timestamp.
+    integration.resetAppStartDataFlushed();
+    await integration.captureStandaloneAppStart();
+  }
 }
 
 /**
@@ -74,6 +130,13 @@ export function captureAppStart(): Promise<void> {
  * @private
  */
 export async function _captureAppStart({ isManual }: { isManual: boolean }): Promise<void> {
+  // If appLoaded() was already called manually, skip the auto-capture to avoid
+  // overwriting the manual end timestamp (race B: appLoaded before componentDidMount).
+  if (!isManual && isAppLoadedManuallyInvoked) {
+    debug.log('[AppStart] Skipping auto app start capture because appLoaded() was already called.');
+    return;
+  }
+
   const client = getClient();
   if (!client) {
     debug.warn('[AppStart] Could not capture App Start, missing client.');
@@ -83,23 +146,43 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
   isRecordedAppStartEndTimestampMsManual = isManual;
 
   const timestampMs = timestampInSeconds() * 1000;
-  let endFrames: NativeFramesResponse | null = null;
 
+  // Set end timestamp immediately to avoid race with processEvent
+  // Frames data will be updated after the async fetch
+  _setAppStartEndData({
+    timestampMs,
+    endFrames: null,
+  });
+
+  await fetchAndUpdateEndFrames();
+
+  const integration = client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME);
+  if (integration) {
+    if (!isManual) {
+      // For auto-capture, defer the standalone send to give appLoaded() a chance
+      // to override the end timestamp before the transaction is sent.
+      // If appLoaded() is called, it cancels this deferred send and sends its own.
+      // In non-standalone mode, scheduleDeferredStandaloneCapture is a no-op.
+      integration.scheduleDeferredStandaloneCapture();
+    } else {
+      await integration.captureStandaloneAppStart();
+    }
+  }
+}
+
+/**
+ * Fetches native frames data and attaches it to the current app start end data.
+ */
+async function fetchAndUpdateEndFrames(): Promise<void> {
   if (NATIVE.enableNative) {
     try {
-      endFrames = await NATIVE.fetchNativeFrames();
+      const endFrames = await NATIVE.fetchNativeFrames();
       debug.log('[AppStart] Captured end frames for app start.', endFrames);
+      _updateAppStartEndFrames(endFrames);
     } catch (error) {
       debug.log('[AppStart] Failed to capture end frames for app start.', error);
     }
   }
-
-  _setAppStartEndData({
-    timestampMs,
-    endFrames,
-  });
-
-  await client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.captureStandaloneAppStart();
 }
 
 /**
@@ -134,6 +217,19 @@ export const _setAppStartEndData = (data: AppStartEndData): void => {
 };
 
 /**
+ * Updates only the endFrames on existing appStartEndData.
+ * Used after the async fetchNativeFrames completes to attach frame data
+ * without triggering the overwrite warning from _setAppStartEndData.
+ *
+ * @private
+ */
+export const _updateAppStartEndFrames = (endFrames: NativeFramesResponse | null): void => {
+  if (appStartEndData) {
+    appStartEndData.endFrames = endFrames;
+  }
+};
+
+/**
  * For testing purposes only.
  *
  * @private
@@ -143,10 +239,21 @@ export function _clearRootComponentCreationTimestampMs(): void {
 }
 
 /**
+ * For testing purposes only.
+ *
+ * @private
+ */
+export function _clearAppStartEndData(): void {
+  appStartEndData = undefined;
+  isRecordedAppStartEndTimestampMsManual = false;
+  isAppLoadedManuallyInvoked = false;
+}
+
+/**
  * Attaches frame data to a span's data object.
  */
 function attachFrameDataToSpan(span: SpanJSON, frames: NativeFramesResponse): void {
-  if (frames.totalFrames <= 0 && frames.slowFrames <= 0 && frames.totalFrames <= 0) {
+  if (frames.totalFrames <= 0 && frames.slowFrames <= 0 && frames.frozenFrames <= 0) {
     debug.warn(`[AppStart] Detected zero slow or frozen frames. Not adding measurements to spanId (${span.span_id}).`);
     return;
   }
@@ -184,6 +291,9 @@ export const appStartIntegration = ({
   let appStartDataFlushed = false;
   let afterAllSetupCalled = false;
   let firstStartedActiveRootSpanId: string | undefined = undefined;
+  let firstStartedActiveRootSpan: Span | undefined = undefined;
+  let cachedNativeAppStart: NativeAppStartResponse | null | undefined = undefined;
+  let deferredStandaloneTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -210,6 +320,13 @@ export const appStartIntegration = ({
         debug.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
         appStartDataFlushed = false;
         firstStartedActiveRootSpanId = undefined;
+        firstStartedActiveRootSpan = undefined;
+        isAppLoadedManuallyInvoked = false;
+        cachedNativeAppStart = undefined;
+        if (deferredStandaloneTimeout !== undefined) {
+          clearTimeout(deferredStandaloneTimeout);
+          deferredStandaloneTimeout = undefined;
+        }
       } else {
         debug.log(
           '[AppStartIntegration] Waiting for initial app start was flush, before updating based on runApplication call.',
@@ -235,7 +352,21 @@ export const appStartIntegration = ({
 
   const recordFirstStartedActiveRootSpanId = (rootSpan: Span): void => {
     if (firstStartedActiveRootSpanId) {
-      return;
+      // Check if the previously locked span was dropped after it ended (e.g., by
+      // ignoreEmptyRouteChangeTransactions or ignoreEmptyBackNavigation setting
+      // _sampled = false during spanEnd). If so, reset and allow this new span.
+      // We check here (at the next spanStart) rather than at spanEnd because
+      // the discard listeners run after the app start listener in registration order,
+      // so _sampled is not yet false when our own spanEnd listener would fire.
+      if (firstStartedActiveRootSpan && !spanIsSampled(firstStartedActiveRootSpan)) {
+        debug.log(
+          '[AppStart] Previously locked root span was unsampled after ending. Resetting to allow next transaction.',
+        );
+        resetFirstStartedActiveRootSpanId();
+        // Fall through to lock to this new span
+      } else {
+        return;
+      }
     }
 
     if (!isRootSpan(rootSpan)) {
@@ -246,7 +377,18 @@ export const appStartIntegration = ({
       return;
     }
 
+    firstStartedActiveRootSpan = rootSpan;
     setFirstStartedActiveRootSpanId(rootSpan.spanContext().spanId);
+  };
+
+  /**
+   * Resets the first started active root span id and span reference to allow
+   * the next root span's transaction to attempt app start attachment.
+   */
+  const resetFirstStartedActiveRootSpanId = (): void => {
+    debug.log('[AppStart] Resetting first started active root span id to allow retry on next transaction.');
+    firstStartedActiveRootSpanId = undefined;
+    firstStartedActiveRootSpan = undefined;
   };
 
   /**
@@ -261,7 +403,7 @@ export const appStartIntegration = ({
   async function captureStandaloneAppStart(): Promise<void> {
     if (!_client) {
       // If client is not set, SDK was not initialized, logger is thus disabled
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.warn('[AppStart] Could not capture App Start, missing client, call `Sentry.init` first.');
       return;
     }
@@ -322,6 +464,7 @@ export const appStartIntegration = ({
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
     if (appStartDataFlushed) {
       // App start data is only relevant for the first transaction of the app run
+      debug.log('[AppStart] App start data already flushed. Skipping.');
       return;
     }
 
@@ -347,19 +490,34 @@ export const appStartIntegration = ({
       }
     }
 
-    const appStart = await NATIVE.fetchNativeAppStart();
+    // All failure paths below set appStartDataFlushed = true to prevent
+    // wasteful retries — these conditions won't change within the same app start.
+    //
+    // Use cached response if available (e.g. when _appLoaded() re-triggers
+    // standalone capture after auto-capture already fetched from the native layer).
+    // The native layer sets has_fetched = true after the first fetch, so a second
+    // NATIVE.fetchNativeAppStart() call would incorrectly bail out.
+    const isCached = cachedNativeAppStart !== undefined;
+    const appStart = isCached ? cachedNativeAppStart : await NATIVE.fetchNativeAppStart();
+    cachedNativeAppStart = appStart;
     if (!appStart) {
       debug.warn('[AppStart] Failed to retrieve the app start metrics from the native layer.');
+      appStartDataFlushed = true;
       return;
     }
-    if (appStart.has_fetched) {
+    // Skip the has_fetched check when using a cached response — the native layer
+    // sets has_fetched = true after the first fetch, but we intentionally re-use
+    // the data when _appLoaded() overrides the app start end timestamp.
+    if (!isCached && appStart.has_fetched) {
       debug.warn('[AppStart] Measured app start metrics were already reported from the native layer.');
+      appStartDataFlushed = true;
       return;
     }
 
     const appStartTimestampMs = appStart.app_start_timestamp_ms;
     if (!appStartTimestampMs) {
       debug.warn('[AppStart] App start timestamp could not be loaded from the native layer.');
+      appStartDataFlushed = true;
       return;
     }
 
@@ -368,6 +526,7 @@ export const appStartIntegration = ({
       debug.warn(
         '[AppStart] Javascript failed to record app start end. `_setAppStartEndData` was not called nor could the bundle start be found.',
       );
+      appStartDataFlushed = true;
       return;
     }
 
@@ -375,6 +534,7 @@ export const appStartIntegration = ({
       !!event.start_timestamp && appStartTimestampMs >= event.start_timestamp * 1_000 - MAX_APP_START_AGE_MS;
     if (!__DEV__ && !isAppStartWithinBounds) {
       debug.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
+      appStartDataFlushed = true;
       return;
     }
 
@@ -382,6 +542,7 @@ export const appStartIntegration = ({
     if (!__DEV__ && appStartDurationMs >= MAX_APP_START_DURATION_MS) {
       // Dev builds can have long app start waiting over minute for the first bundle to be produced
       debug.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
+      appStartDataFlushed = true;
       return;
     }
 
@@ -393,6 +554,7 @@ export const appStartIntegration = ({
         '[AppStart] Last recorded app start end timestamp is before the app start timestamp.',
         'This is usually caused by missing `Sentry.wrap(RootComponent)` call.',
       );
+      appStartDataFlushed = true;
       return;
     }
 
@@ -446,6 +608,19 @@ export const appStartIntegration = ({
 
     if (appStartEndData?.endFrames) {
       attachFrameDataToSpan(appStartSpanJSON, appStartEndData.endFrames);
+
+      try {
+        const framesDelay = await Promise.race([
+          NATIVE.fetchNativeFramesDelay(appStartTimestampSeconds, appStartEndTimestampSeconds),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 2_000)),
+        ]);
+        if (framesDelay != null) {
+          appStartSpanJSON.data = appStartSpanJSON.data || {};
+          appStartSpanJSON.data['frames.delay'] = framesDelay;
+        }
+      } catch (error) {
+        debug.log('[AppStart] Error while fetching frames delay for app start span.', error);
+      }
     }
 
     const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
@@ -472,12 +647,38 @@ export const appStartIntegration = ({
     );
   }
 
+  const resetAppStartDataFlushed = (): void => {
+    appStartDataFlushed = false;
+  };
+
+  const cancelDeferredStandaloneCapture = (): void => {
+    if (deferredStandaloneTimeout !== undefined) {
+      clearTimeout(deferredStandaloneTimeout);
+      deferredStandaloneTimeout = undefined;
+      debug.log('[AppStart] Cancelled deferred standalone app start capture.');
+    }
+  };
+
+  const scheduleDeferredStandaloneCapture = (): void => {
+    if (!standalone) {
+      return;
+    }
+    deferredStandaloneTimeout = setTimeout(() => {
+      deferredStandaloneTimeout = undefined;
+      // oxlint-disable-next-line typescript-eslint(no-floating-promises)
+      captureStandaloneAppStart();
+    }, 0);
+  };
+
   return {
     name: INTEGRATION_NAME,
     setup,
     afterAllSetup,
     processEvent,
     captureStandaloneAppStart,
+    resetAppStartDataFlushed,
+    cancelDeferredStandaloneCapture,
+    scheduleDeferredStandaloneCapture,
     setFirstStartedActiveRootSpanId,
   } as AppStartIntegration;
 };

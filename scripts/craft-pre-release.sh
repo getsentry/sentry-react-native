@@ -17,6 +17,6 @@ yarn install
 # --yes - skip all confirmation prompts
 yarn lerna version --force-publish --exact --no-git-tag-version --no-push --include-merged-tags --yes "${NEW_VERSION}"
 yarn set-version-samples
-node scripts/version-bump.js
+node scripts/bump-version.js
 # Update SDK versions table with the new release
 bash scripts/update-sdk-versions-table.sh

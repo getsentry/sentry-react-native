@@ -1,9 +1,12 @@
-import * as React from 'react';
 import type { HostComponent } from 'react-native';
+
+import * as React from 'react';
 import { UIManager, View } from 'react-native';
+
+import type { RNSentryOnDrawReporterProps } from './timetodisplaynative.types';
+
 import { isExpoGo } from '../utils/environment';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
-import type { RNSentryOnDrawReporterProps } from './timetodisplaynative.types';
 
 const RNSentryOnDrawReporterClass = 'RNSentryOnDrawReporter';
 
@@ -16,9 +19,7 @@ export const nativeComponentExists = UIManager.hasViewManagerConfig
  */
 class RNSentryOnDrawReporterNoop extends React.Component<RNSentryOnDrawReporterProps> {
   public render(): React.ReactNode {
-    return (
-      <View {...this.props} />
-    );
+    return <View {...this.props} />;
   }
 }
 
@@ -29,9 +30,10 @@ let RNSentryOnDrawReporter: HostComponent<RNSentryOnDrawReporterProps> | typeof 
  */
 export const getRNSentryOnDrawReporter = (): typeof RNSentryOnDrawReporter => {
   if (!RNSentryOnDrawReporter) {
-    RNSentryOnDrawReporter = !isExpoGo() && nativeComponentExists && ReactNativeLibraries.ReactNative?.requireNativeComponent
-      ? ReactNativeLibraries.ReactNative.requireNativeComponent(RNSentryOnDrawReporterClass)
-      : RNSentryOnDrawReporterNoop;
+    RNSentryOnDrawReporter =
+      !isExpoGo() && nativeComponentExists && ReactNativeLibraries.ReactNative?.requireNativeComponent
+        ? ReactNativeLibraries.ReactNative.requireNativeComponent(RNSentryOnDrawReporterClass)
+        : RNSentryOnDrawReporterNoop;
   }
   return RNSentryOnDrawReporter;
-}
+};

@@ -62,8 +62,16 @@ switch (fetch) {
     break;
   }
   case 'replay': {
+    // The replay_id is set by the SDK on the event before sending (in
+    // contexts.replay.replay_id or _dsc.replay_id). It should be present
+    // when the event is fetched from the API.
     const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
-    const replayId = event._dsc.replay_id.replace(/\-/g, '');
+    const rawReplayId = (event.contexts && event.contexts.replay && event.contexts.replay.replay_id)
+      || (event._dsc && event._dsc.replay_id);
+    if (!rawReplayId) {
+      throw new Error('replay_id not available on the event');
+    }
+    const replayId = rawReplayId.replace(/\-/g, '');
     const replay = json(fetchFromSentry(`${baseUrl}/replays/${replayId}/`));
     const segment = fetchFromSentry(`${baseUrl}/replays/${replayId}/videos/0/`);
 

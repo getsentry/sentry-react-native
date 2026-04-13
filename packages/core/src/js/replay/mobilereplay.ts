@@ -1,5 +1,7 @@
-import type { Client, DynamicSamplingContext, Event, EventHint, Integration, Metric } from '@sentry/core';
+import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint, Integration, Metric } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
@@ -213,7 +215,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     return nativeReplayId;
   }
 
-  async function processEvent(event: Event, hint: EventHint): Promise<Event> {
+  async function processEvent(event: ErrorEvent, hint: EventHint): Promise<ErrorEvent> {
     const hasException = event.exception?.values && event.exception.values.length > 0;
     if (!hasException) {
       // Event is not an error, will not capture replay
@@ -303,6 +305,26 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     });
 
     client.on('beforeAddBreadcrumb', enrichXhrBreadcrumbsForMobileReplay);
+
+    // Wrap beforeSend to run processEvent after user's beforeSend
+    const clientOptions = client.getOptions();
+    const originalBeforeSend = clientOptions.beforeSend;
+    clientOptions.beforeSend = async (event: ErrorEvent, hint: EventHint): Promise<ErrorEvent | null> => {
+      let result: ErrorEvent | null = event;
+      if (originalBeforeSend) {
+        result = await originalBeforeSend(event, hint);
+        if (result === null) {
+          // Event was dropped by user's beforeSend, don't capture replay
+          return null;
+        }
+      }
+      try {
+        return await processEvent(result, hint);
+      } catch (error) {
+        debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to process event for replay`, error);
+        return result;
+      }
+    };
   }
 
   function getReplayId(): string | null {
@@ -314,7 +336,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     setup,
-    processEvent,
     options: options,
     getReplayId: getReplayId,
   };

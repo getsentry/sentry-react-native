@@ -1,5 +1,7 @@
 import type { Event, Integration, SpanJSON } from '@sentry/core';
+
 import { debug } from '@sentry/core';
+
 import { NATIVE } from '../../wrapper';
 import { UI_LOAD_FULL_DISPLAY, UI_LOAD_INITIAL_DISPLAY } from '../ops';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../origin';
@@ -23,6 +25,7 @@ export const timeToDisplayIntegration = (): Integration => {
       enableTimeToInitialDisplayForPreloadedRoutes =
         getReactNavigationIntegration(client)?.options.enableTimeToInitialDisplayForPreloadedRoutes ?? false;
     },
+    // oxlint-disable-next-line eslint(complexity)
     processEvent: async event => {
       if (event.type !== 'transaction') {
         // TimeToDisplay data is only relevant for transactions

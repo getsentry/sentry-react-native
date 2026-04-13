@@ -1,5 +1,6 @@
 import { debug, timestampInSeconds } from '@sentry/core';
 import { getClient, Profiler } from '@sentry/react';
+
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { createIntegration } from '../integrations/factory';
 import { _captureAppStart, _setRootComponentCreationTimestampMs } from '../tracing/integrations/appStart';
@@ -43,7 +44,7 @@ export class ReactNativeProfiler extends Profiler {
 
     if (!client) {
       // We can't use logger here because this will be logged before the `Sentry.init`.
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       __DEV__ && console.warn('App Start Span could not be finished. `Sentry.wrap` was called before `Sentry.init`.');
       return;
     }
@@ -57,7 +58,7 @@ export class ReactNativeProfiler extends Profiler {
       debug.warn('AppRegistryIntegration.onRunApplication not found or invalid.');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    // oxlint-disable-next-line typescript-eslint(no-floating-promises)
     _captureAppStart({ isManual: false });
   }
 }

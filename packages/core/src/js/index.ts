@@ -73,7 +73,7 @@ export { SDK_NAME, SDK_VERSION } from './version';
 export type { ReactNativeOptions, NativeLogEntry } from './options';
 export { ReactNativeClient } from './client';
 
-export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun } from './sdk';
+export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun, appLoaded } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 
 export {
@@ -101,8 +101,18 @@ export type { TimeToDisplayProps, ExpoRouter, ExpoImage, ExpoAsset } from './tra
 
 export { Mask, Unmask } from './replay/CustomMask';
 
+/** @deprecated The `FeedbackButton` component will be removed in a future major version. */
 export { FeedbackButton } from './feedback/FeedbackButton';
-export { FeedbackWidget } from './feedback/FeedbackWidget';
-export { showFeedbackWidget, showFeedbackButton, hideFeedbackButton } from './feedback/FeedbackWidgetManager';
+export { FeedbackForm } from './feedback/FeedbackForm';
+export { showFeedbackForm, enableFeedbackOnShake, disableFeedbackOnShake } from './feedback/FeedbackFormManager';
+/** @deprecated `showFeedbackButton` will be removed in a future major version. */
+export { showFeedbackButton } from './feedback/FeedbackFormManager';
+/** @deprecated `hideFeedbackButton` will be removed in a future major version. */
+export { hideFeedbackButton } from './feedback/FeedbackFormManager';
+
+/** @deprecated Use `FeedbackForm` instead. */
+export { FeedbackForm as FeedbackWidget } from './feedback/FeedbackForm';
+/** @deprecated Use `showFeedbackForm` instead. */
+export { showFeedbackForm as showFeedbackWidget } from './feedback/FeedbackFormManager';
 
 export { getDataFromUri } from './wrapper';

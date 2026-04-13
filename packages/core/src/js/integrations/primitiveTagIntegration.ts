@@ -1,4 +1,5 @@
 import type { Integration, Primitive } from '@sentry/core';
+
 import { PrimitiveToString } from '../utils/primitiveConverter';
 import { NATIVE } from '../wrapper';
 

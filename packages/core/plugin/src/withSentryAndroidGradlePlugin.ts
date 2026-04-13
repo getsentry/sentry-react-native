@@ -1,5 +1,7 @@
-import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
 import type { ExpoConfig } from '@expo/config-types';
+
+import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
+
 import { warnOnce } from './logger';
 
 export interface SentryAndroidGradlePluginOptions {
@@ -13,7 +15,7 @@ export interface SentryAndroidGradlePluginOptions {
   includeSourceContext?: boolean;
 }
 
-export const sentryAndroidGradlePluginVersion = '6.1.0';
+export const sentryAndroidGradlePluginVersion = '6.4.0';
 
 /**
  * Adds the Sentry Android Gradle Plugin to the project.

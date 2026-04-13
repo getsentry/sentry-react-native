@@ -1,4 +1,5 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK } from '@sentry/core';
+
 import { type ExpoAsset, wrapExpoAsset } from '../../src/js/tracing';
 import { SPAN_ORIGIN_AUTO_RESOURCE_EXPO_ASSET } from '../../src/js/tracing/origin';
 

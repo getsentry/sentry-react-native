@@ -1,0 +1,175 @@
+name: Size Analysis
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/**'
+      - 'samples/react-native/**'
+      - '.github/workflows/size-analysis.yml'
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    paths:
+      - 'packages/**'
+      - 'samples/react-native/**'
+      - '.github/workflows/size-analysis.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  SENTRY_ORG: sentry-sdks
+  SENTRY_PROJECT: sentry-react-native
+  REACT_NATIVE_SAMPLE_PATH: samples/react-native
+  RN_SENTRY_POD_NAME: RNSentry
+
+jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
+  android:
+    needs: [ready-to-merge-gate]
+    name: Android Size Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Enable Corepack (NPM)
+        run: npm i -g corepack
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Build Android App Bundle (Release)
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+          RN_ARCHITECTURE: 'new'
+        run: |
+          perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
+          ./gradlew :app:bundleRelease -PreactNativeArchitectures=arm64-v8a
+
+      - name: Install Sentry CLI
+        if: env.SENTRY_AUTH_TOKEN != ''
+        run: curl -sL https://sentry.io/get-cli/ | sh
+
+      - name: Upload Android Bundle to Sentry Size Analysis
+        if: env.SENTRY_AUTH_TOKEN != ''
+        run: |
+          sentry-cli build upload \
+            "${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/app/build/outputs/bundle/release/app-release.aab" \
+            --org "${{ env.SENTRY_ORG }}" \
+            --project "${{ env.SENTRY_PROJECT }}" \
+            --build-configuration "Release"
+
+  ios:
+    needs: [ready-to-merge-gate]
+    name: iOS Size Analysis
+    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+          ruby-version: '3.3.0'
+          bundler-cache: true
+          cache-version: 1
+
+      - name: Setup Global Xcode Tools
+        run: which xcbeautify || brew install xcbeautify
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Install App Pods
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          export ENABLE_PROD=1
+          export ENABLE_NEW_ARCH=1
+          ./scripts/pod-install.sh
+
+      - name: Build iOS XCArchive
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+          # Fix for Xcode 26+ with MetalToolchain
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+        run: |
+          mkdir -p "DerivedData"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          set -o pipefail && xcodebuild \
+            -workspace sentryreactnativesample.xcworkspace \
+            -configuration Release \
+            -scheme sentryreactnativesample \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$derivedData/sentryreactnativesample.xcarchive" \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            archive \
+            | tee xcodebuild-size-analysis.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
+      - name: Install Sentry CLI
+        if: env.SENTRY_AUTH_TOKEN != ''
+        run: curl -sL https://sentry.io/get-cli/ | sh
+
+      - name: Upload iOS XCArchive to Sentry Size Analysis
+        if: env.SENTRY_AUTH_TOKEN != ''
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios
+        run: |
+          sentry-cli build upload \
+            "DerivedData/sentryreactnativesample.xcarchive" \
+            --org "${{ env.SENTRY_ORG }}" \
+            --project "${{ env.SENTRY_PROJECT }}" \
+            --build-configuration "Release"
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: size-analysis-ios-logs
+          path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/xcodebuild-size-analysis.log

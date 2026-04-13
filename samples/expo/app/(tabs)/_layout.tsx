@@ -1,18 +1,14 @@
-import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, Tabs } from 'expo-router';
+import React from 'react';
 import { Pressable } from 'react-native';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  // eslint-disable-next-line react-native/no-inline-styles
+function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['name']; color: string }) {
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
@@ -29,7 +25,6 @@ function InfoButton({ colorScheme }: { colorScheme: 'light' | 'dark' | null }) {
             name="info-circle"
             size={25}
             color={Colors[colorScheme ?? 'light'].text}
-            // eslint-disable-next-line react-native/no-inline-styles
             style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
           />
         )}
@@ -41,10 +36,7 @@ function InfoButton({ colorScheme }: { colorScheme: 'light' | 'dark' | null }) {
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
-  const renderInfoButton = React.useCallback(
-    () => <InfoButton colorScheme={colorScheme} />,
-    [colorScheme],
-  );
+  const renderInfoButton = React.useCallback(() => <InfoButton colorScheme={colorScheme} />, [colorScheme]);
 
   return (
     <Tabs
@@ -53,7 +45,8 @@ export default function TabLayout() {
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

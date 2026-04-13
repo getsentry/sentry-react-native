@@ -1,4 +1,5 @@
 import { supabaseIntegration as browserSupabaseIntegration } from '@sentry/browser';
+
 import { supabaseIntegration } from '../../src/js';
 
 jest.mock('@sentry/browser', () => ({

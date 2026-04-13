@@ -1,16 +1,20 @@
+import type { NativeEventSubscription } from 'react-native';
+
 import * as React from 'react';
-import type { NativeEventSubscription} from 'react-native';
 import { Appearance, Image, Text, TouchableOpacity } from 'react-native';
+
+import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackForm.types';
+
 import { defaultButtonConfiguration } from './defaults';
-import { defaultButtonStyles } from './FeedbackWidget.styles';
-import { getTheme } from './FeedbackWidget.theme';
-import type { FeedbackButtonProps, FeedbackButtonStyles, FeedbackButtonTextConfiguration } from './FeedbackWidget.types';
-import { showFeedbackWidget } from './FeedbackWidgetManager';
+import { defaultButtonStyles } from './FeedbackForm.styles';
+import { getTheme } from './FeedbackForm.theme';
+import { showFeedbackForm } from './FeedbackFormManager';
 import { feedbackIcon } from './icons';
 import { lazyLoadFeedbackIntegration } from './lazy';
 
 /**
  * @beta
+ * @deprecated The `FeedbackButton` component will be removed in a future major version.
  * Implements a feedback button that opens the FeedbackForm.
  */
 export class FeedbackButton extends React.Component<FeedbackButtonProps> {
@@ -54,7 +58,7 @@ export class FeedbackButton extends React.Component<FeedbackButtonProps> {
     return (
       <TouchableOpacity
         style={styles.triggerButton}
-        onPress={showFeedbackWidget}
+        onPress={showFeedbackForm}
         accessibilityLabel={text.triggerAriaLabel}
       >
         <Image source={{ uri: feedbackIcon }} style={styles.triggerIcon} />

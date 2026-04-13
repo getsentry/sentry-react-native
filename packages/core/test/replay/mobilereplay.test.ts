@@ -1,5 +1,7 @@
+import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint } from '@sentry/core';
+
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import type { Client, DynamicSamplingContext, Event, EventHint } from '@sentry/core';
+
 import { mobileReplayIntegration } from '../../src/js/replay/mobilereplay';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
@@ -9,6 +11,11 @@ jest.mock('../../src/js/wrapper');
 describe('Mobile Replay Integration', () => {
   let mockCaptureReplay: jest.MockedFunction<typeof NATIVE.captureReplay>;
   let mockGetCurrentReplayId: jest.MockedFunction<typeof NATIVE.getCurrentReplayId>;
+  let mockClient: jest.Mocked<Client>;
+  let mockOn: jest.Mock;
+  let clientOptions: {
+    beforeSend?: (event: ErrorEvent, hint: EventHint) => Promise<ErrorEvent | null> | ErrorEvent | null;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -18,29 +25,189 @@ describe('Mobile Replay Integration', () => {
     mockGetCurrentReplayId = NATIVE.getCurrentReplayId as jest.MockedFunction<typeof NATIVE.getCurrentReplayId>;
     mockCaptureReplay.mockResolvedValue('test-replay-id');
     mockGetCurrentReplayId.mockReturnValue('test-replay-id');
+
+    // Set up mock client with hooks
+    mockOn = jest.fn();
+    clientOptions = {};
+    mockClient = {
+      on: mockOn,
+      getOptions: jest.fn(() => clientOptions),
+    } as unknown as jest.Mocked<Client>;
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  describe('beforeErrorSampling', () => {
-    it('should capture replay when beforeErrorSampling returns true', async () => {
-      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(true);
-      const integration = mobileReplayIntegration({ beforeErrorSampling });
+  describe('beforeSend wrapping', () => {
+    it('should capture replay after beforeSend processes the event', async () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
 
+      expect(result).toBeDefined();
+      expect(mockCaptureReplay).toHaveBeenCalled();
+      expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
+    });
+
+    it('should not capture replay when beforeSend returns null', async () => {
+      const userBeforeSend = jest.fn<(event: ErrorEvent, hint: EventHint) => null>().mockReturnValue(null);
+      clientOptions.beforeSend = userBeforeSend;
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeNull();
+      expect(userBeforeSend).toHaveBeenCalledWith(event, hint);
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
+    });
+
+    it('should capture replay with modified event from beforeSend', async () => {
+      const userBeforeSend = jest
+        .fn<(event: ErrorEvent, hint: EventHint) => ErrorEvent>()
+        .mockImplementation(event => ({
+          ...event,
+          tags: { modified: 'true' },
+        }));
+      clientOptions.beforeSend = userBeforeSend;
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(userBeforeSend).toHaveBeenCalledWith(event, hint);
+      expect(mockCaptureReplay).toHaveBeenCalled();
+      expect(result?.tags).toEqual({ modified: 'true' });
+      expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
+    });
+
+    it('should work when no user beforeSend is provided', async () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(mockCaptureReplay).toHaveBeenCalled();
+      expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
+    });
+
+    it('should not process non-error events', async () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        message: 'Test message without exception',
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
+      expect(result?.contexts?.replay).toBeUndefined();
+    });
+
+    it('should handle errors in processEvent and return original event', async () => {
+      // Mock captureReplay to throw an error BEFORE setting up integration
+      mockCaptureReplay.mockRejectedValue(new Error('Native bridge error'));
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      // Should return the original event even when processEvent fails
+      expect(result).toBeDefined();
+      expect(result?.event_id).toBe('test-event-id');
+      expect(mockCaptureReplay).toHaveBeenCalled();
+    });
+
+    it('should not crash the event pipeline when processEvent throws', async () => {
+      // Mock captureReplay to throw a synchronous error BEFORE setting up integration
+      mockCaptureReplay.mockImplementation(() => {
+        throw new TypeError('Synchronous native error');
+      });
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      // Should not throw and should return the event
+      await expect(clientOptions.beforeSend?.(event, hint)).resolves.toBeDefined();
+    });
+  });
+
+  describe('beforeErrorSampling', () => {
+    it('should capture replay when beforeErrorSampling returns true', async () => {
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(true);
+      const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error' }],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
@@ -48,21 +215,22 @@ describe('Mobile Replay Integration', () => {
     it('should not capture replay when beforeErrorSampling returns false', async () => {
       const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(false);
       const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
 
+      expect(result).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
       expect(mockCaptureReplay).not.toHaveBeenCalled();
+      expect(result?.contexts?.replay).toBeUndefined();
     });
 
     it('should capture replay when beforeErrorSampling returns undefined', async () => {
@@ -70,38 +238,38 @@ describe('Mobile Replay Integration', () => {
         .fn<(event: Event, hint: EventHint) => boolean>()
         .mockReturnValue(undefined as unknown as boolean);
       const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
 
+      expect(result).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
     it('should capture replay when beforeErrorSampling is not provided', async () => {
       const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
 
+      expect(result).toBeDefined();
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
@@ -112,9 +280,10 @@ describe('Mobile Replay Integration', () => {
         return !isHandled;
       });
       const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
 
       // Test with handled error
-      const handledEvent: Event = {
+      const handledEvent = {
         event_id: 'handled-event-id',
         exception: {
           values: [
@@ -125,20 +294,19 @@ describe('Mobile Replay Integration', () => {
             },
           ],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(handledEvent, hint);
-      }
+      const result1 = await clientOptions.beforeSend?.(handledEvent, hint);
 
+      expect(result1).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(handledEvent, hint);
       expect(mockCaptureReplay).not.toHaveBeenCalled();
 
       jest.clearAllMocks();
 
       // Test with unhandled error
-      const unhandledEvent: Event = {
+      const unhandledEvent = {
         event_id: 'unhandled-event-id',
         exception: {
           values: [
@@ -149,12 +317,11 @@ describe('Mobile Replay Integration', () => {
             },
           ],
         },
-      };
+      } as ErrorEvent;
 
-      if (integration.processEvent) {
-        await integration.processEvent(unhandledEvent, hint);
-      }
+      const result2 = await clientOptions.beforeSend?.(unhandledEvent, hint);
 
+      expect(result2).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(unhandledEvent, hint);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
@@ -162,17 +329,17 @@ describe('Mobile Replay Integration', () => {
     it('should not call beforeErrorSampling for non-error events', async () => {
       const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(false);
       const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         message: 'Test message without exception',
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
 
+      expect(result).toBeDefined();
       expect(beforeErrorSampling).not.toHaveBeenCalled();
       expect(mockCaptureReplay).not.toHaveBeenCalled();
     });
@@ -182,19 +349,19 @@ describe('Mobile Replay Integration', () => {
         throw new Error('Callback error');
       });
       const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
 
+      expect(result).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
       // Should proceed with replay capture despite callback error
       expect(mockCaptureReplay).toHaveBeenCalled();
@@ -205,77 +372,77 @@ describe('Mobile Replay Integration', () => {
         throw new TypeError('Unexpected callback error');
       });
       const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
       // Should not throw
-      if (integration.processEvent) {
-        await expect(integration.processEvent(event, hint)).resolves.toBeDefined();
-      }
+      await expect(clientOptions.beforeSend?.(event, hint)).resolves.toBeDefined();
 
       expect(beforeErrorSampling).toHaveBeenCalled();
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
-  });
 
-  describe('processEvent', () => {
-    it('should not process events without exceptions', async () => {
-      const integration = mobileReplayIntegration();
+    it('should work with both user beforeSend and beforeErrorSampling', async () => {
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(true);
+      const userBeforeSend = jest
+        .fn<(event: ErrorEvent, hint: EventHint) => ErrorEvent>()
+        .mockImplementation(event => ({
+          ...event,
+          tags: { modified: 'true' },
+        }));
+      clientOptions.beforeSend = userBeforeSend;
 
-      const event: Event = {
-        event_id: 'test-event-id',
-        message: 'Test message',
-      };
-      const hint: EventHint = {};
+      const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
-
-      expect(mockCaptureReplay).not.toHaveBeenCalled();
-    });
-
-    it('should process events with exceptions', async () => {
-      const integration = mobileReplayIntegration();
-
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
 
+      expect(result).toBeDefined();
+      expect(userBeforeSend).toHaveBeenCalledWith(event, hint);
+      expect(beforeErrorSampling).toHaveBeenCalled();
       expect(mockCaptureReplay).toHaveBeenCalled();
+      expect(result?.tags).toEqual({ modified: 'true' });
+      expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
     });
 
-    it('should add replay context to error events when replay is captured', async () => {
-      const integration = mobileReplayIntegration();
-      const replayId = 'test-replay-id';
-      mockCaptureReplay.mockResolvedValue(replayId);
+    it('should not capture replay when user beforeSend drops event even if beforeErrorSampling returns true', async () => {
+      const beforeErrorSampling = jest.fn<(event: Event, hint: EventHint) => boolean>().mockReturnValue(true);
+      const userBeforeSend = jest.fn<(event: ErrorEvent, hint: EventHint) => null>().mockReturnValue(null);
+      clientOptions.beforeSend = userBeforeSend;
 
-      const event: Event = {
+      const integration = mobileReplayIntegration({ beforeErrorSampling });
+      integration.setup?.(mockClient);
+
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        const processedEvent = await integration.processEvent(event, hint);
-        expect(processedEvent.contexts?.replay?.replay_id).toBe(replayId);
-      }
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeNull();
+      expect(userBeforeSend).toHaveBeenCalledWith(event, hint);
+      // beforeErrorSampling should never be called because beforeSend dropped the event
+      expect(beforeErrorSampling).not.toHaveBeenCalled();
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
     });
   });
 
@@ -286,7 +453,8 @@ describe('Mobile Replay Integration', () => {
       const integration = mobileReplayIntegration();
 
       expect(integration.name).toBe('MobileReplay');
-      expect(integration.processEvent).toBeUndefined();
+      expect(integration.setup).toBeUndefined();
+      expect(integration.getReplayId()).toBeNull();
     });
 
     it('should return noop integration on non-mobile platforms', () => {
@@ -295,21 +463,22 @@ describe('Mobile Replay Integration', () => {
       const integration = mobileReplayIntegration();
 
       expect(integration.name).toBe('MobileReplay');
-      expect(integration.processEvent).toBeUndefined();
+      expect(integration.setup).toBeUndefined();
+      expect(integration.getReplayId()).toBeNull();
     });
   });
 
   describe('replay ID caching', () => {
-    let mockClient: jest.Mocked<Client>;
-    let mockOn: jest.Mock;
-
     beforeEach(() => {
+      // Reset mocks for each test
+      jest.clearAllMocks();
+      // Reset client options
+      clientOptions = {};
       mockOn = jest.fn();
       mockClient = {
         on: mockOn,
+        getOptions: jest.fn(() => clientOptions),
       } as unknown as jest.Mocked<Client>;
-      // Reset mocks for each test
-      jest.clearAllMocks();
     });
 
     it('should initialize cache with native replay ID on setup', () => {
@@ -386,21 +555,17 @@ describe('Mobile Replay Integration', () => {
       mockCaptureReplay.mockResolvedValue(newReplayId);
 
       const integration = mobileReplayIntegration();
-      if (integration.setup) {
-        integration.setup(mockClient);
-      }
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      await clientOptions.beforeSend?.(event, hint);
 
       // Verify cache was updated by checking getReplayId
       expect(integration.getReplayId()).toBe(newReplayId);
@@ -429,21 +594,17 @@ describe('Mobile Replay Integration', () => {
       mockGetCurrentReplayId.mockReturnValueOnce(initialReplayId).mockReturnValue(ongoingReplayId);
 
       const integration = mobileReplayIntegration();
-      if (integration.setup) {
-        integration.setup(mockClient);
-      }
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      await clientOptions.beforeSend?.(event, hint);
 
       // Verify cache was updated with ongoing recording ID
       expect(integration.getReplayId()).toBe(ongoingReplayId);
@@ -457,21 +618,17 @@ describe('Mobile Replay Integration', () => {
       mockGetCurrentReplayId.mockReturnValueOnce(initialReplayId).mockReturnValue(null);
 
       const integration = mobileReplayIntegration();
-      if (integration.setup) {
-        integration.setup(mockClient);
-      }
+      integration.setup?.(mockClient);
 
-      const event: Event = {
+      const event = {
         event_id: 'test-event-id',
         exception: {
           values: [{ type: 'Error', value: 'Test error' }],
         },
-      };
+      } as ErrorEvent;
       const hint: EventHint = {};
 
-      if (integration.processEvent) {
-        await integration.processEvent(event, hint);
-      }
+      await clientOptions.beforeSend?.(event, hint);
 
       // Verify cache was cleared
       expect(integration.getReplayId()).toBeNull();

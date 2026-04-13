@@ -1,5 +1,6 @@
-import { ReactNativeClient } from '../src/js';
 import type { ReactNativeClientOptions } from '../src/js/options';
+
+import { ReactNativeClient } from '../src/js';
 import { NATIVE } from './mockWrapper';
 
 jest.useFakeTimers({ advanceTimers: true });

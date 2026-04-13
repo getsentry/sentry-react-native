@@ -19,8 +19,6 @@
  * @see https://docs.sentry.io/platforms/react-native/
  */
 
-/* eslint-disable no-console */
-
 const path = require('path');
 const fs = require('fs');
 

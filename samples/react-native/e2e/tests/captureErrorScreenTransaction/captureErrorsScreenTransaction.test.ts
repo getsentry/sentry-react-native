@@ -31,15 +31,23 @@ describe('Capture Errors Screen Transaction', () => {
   });
 
   it('envelope contains transaction context', async () => {
-    const envelope = getErrorsEnvelope();
+    // The app start transaction may arrive in a separate envelope on slow CI VMs,
+    // so search all matching envelopes instead of just the first one.
+    const allEnvelopes = sentryServer.getAllEnvelopes(
+      containingTransactionWithName('ErrorsScreen'),
+    );
 
-    const items = envelope[1];
-    const transactions = items.filter(([header]) => header.type === 'transaction');
-    const appStartTransaction = transactions.find(([_header, payload]) => {
-      const event = payload as any;
-      return event.transaction === 'ErrorsScreen' &&
-            event.contexts?.trace?.origin === 'auto.app.start';
-    });
+    let appStartTransaction: EventItem | undefined;
+    for (const envelope of allEnvelopes) {
+      const items = envelope[1];
+      const transactions = items.filter(([header]) => header.type === 'transaction') as EventItem[];
+      appStartTransaction = transactions.find(([_header, payload]) => {
+        const event = payload as any;
+        return event.transaction === 'ErrorsScreen' &&
+              event.contexts?.trace?.origin === 'auto.app.start';
+      });
+      if (appStartTransaction) break;
+    }
 
     expect(appStartTransaction).toBeDefined();
 

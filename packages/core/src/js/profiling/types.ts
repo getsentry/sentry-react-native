@@ -1,4 +1,5 @@
 import type { DebugImage, MeasurementUnit, Profile, ThreadCpuFrame, ThreadCpuProfile } from '@sentry/core';
+
 import type { NativeProfileEvent } from './nativeTypes';
 
 export interface RawThreadCpuProfile extends ThreadCpuProfile {
@@ -14,6 +15,7 @@ export type HermesProfileEvent = {
   transaction: {
     active_thread_id: string;
   };
+  profilingStartTimestampNs?: number;
 };
 
 /*
@@ -30,6 +32,7 @@ export type AndroidCombinedProfileEvent = {
   android_api_level: number;
   duration_ns: string;
   active_thread_id: string;
+  profilingStartTimestampNs?: number;
 };
 
 /*

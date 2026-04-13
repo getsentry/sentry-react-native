@@ -1,5 +1,7 @@
 import type { Event, Measurements } from '@sentry/core';
+
 import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpan } from '@sentry/core';
+
 import { nativeFramesIntegration } from '../../../src/js';
 import { NATIVE } from '../../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
@@ -9,6 +11,7 @@ jest.mock('../../../src/js/wrapper', () => {
   return {
     NATIVE: {
       fetchNativeFrames: jest.fn(),
+      fetchNativeFramesDelay: jest.fn().mockResolvedValue(null),
       disableNativeFramesTracking: jest.fn(),
       enableNative: true,
       enableNativeFramesTracking: jest.fn(),
@@ -519,5 +522,96 @@ describe('NativeFramesInstrumentation', () => {
         frames_frozen: { value: 3, unit: 'none' }, // 8 - 5
       }),
     );
+  });
+
+  describe('unsampled spans', () => {
+    beforeEach(() => {
+      global.Date.now = jest.fn(() => mockDate.getTime());
+
+      getCurrentScope().clear();
+      getIsolationScope().clear();
+      getGlobalScope().clear();
+
+      const options = getDefaultTestClientOptions({
+        tracesSampleRate: 0,
+        enableNativeFramesTracking: true,
+        integrations: [nativeFramesIntegration()],
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+    });
+
+    it('does not fetch native frames for unsampled spans', () => {
+      startSpan({ name: 'unsampled transaction', forceTransaction: true }, () => {
+        // span starts and ends — no work expected
+      });
+
+      expect(NATIVE.fetchNativeFrames).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('frames.delay', () => {
+    it('attaches frames.delay to child spans', async () => {
+      const rootStartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
+      const childStartFrames = { totalFrames: 110, slowFrames: 11, frozenFrames: 6 };
+      const childEndFrames = { totalFrames: 160, slowFrames: 16, frozenFrames: 8 };
+      const rootEndFrames = { totalFrames: 200, slowFrames: 20, frozenFrames: 10 };
+
+      mockFunction(NATIVE.fetchNativeFrames)
+        .mockResolvedValueOnce(rootStartFrames)
+        .mockResolvedValueOnce(childStartFrames)
+        .mockResolvedValueOnce(childEndFrames)
+        .mockResolvedValueOnce(rootEndFrames);
+
+      mockFunction(NATIVE.fetchNativeFramesDelay).mockResolvedValue(0.131674);
+
+      await startSpan({ name: 'test' }, async () => {
+        startSpan({ name: 'child-span' }, () => {});
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      await client.flush();
+
+      expect(client.event).toBeDefined();
+      const childSpan = client.event!.spans!.find(s => s.description === 'child-span');
+      expect(childSpan).toBeDefined();
+      expect(childSpan!.data).toEqual(
+        expect.objectContaining({
+          'frames.delay': 0.131674,
+        }),
+      );
+    });
+
+    it('does not attach frames.delay when native returns null', async () => {
+      const rootStartFrames = { totalFrames: 100, slowFrames: 10, frozenFrames: 5 };
+      const childStartFrames = { totalFrames: 110, slowFrames: 11, frozenFrames: 6 };
+      const childEndFrames = { totalFrames: 160, slowFrames: 16, frozenFrames: 8 };
+      const rootEndFrames = { totalFrames: 200, slowFrames: 20, frozenFrames: 10 };
+
+      mockFunction(NATIVE.fetchNativeFrames)
+        .mockResolvedValueOnce(rootStartFrames)
+        .mockResolvedValueOnce(childStartFrames)
+        .mockResolvedValueOnce(childEndFrames)
+        .mockResolvedValueOnce(rootEndFrames);
+
+      mockFunction(NATIVE.fetchNativeFramesDelay).mockResolvedValue(null);
+
+      await startSpan({ name: 'test' }, async () => {
+        startSpan({ name: 'child-span' }, () => {});
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      await client.flush();
+
+      expect(client.event).toBeDefined();
+      const childSpan = client.event!.spans!.find(s => s.description === 'child-span');
+      expect(childSpan).toBeDefined();
+      expect(childSpan!.data).not.toHaveProperty('frames.delay');
+    });
   });
 });

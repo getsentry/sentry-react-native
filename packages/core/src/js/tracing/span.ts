@@ -1,4 +1,5 @@
 import type { Client, Scope, Span, SpanJSON, StartSpanOptions } from '@sentry/core';
+
 import {
   debug,
   generateTraceId,
@@ -13,6 +14,7 @@ import {
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
 import { AppState, Platform } from 'react-native';
+
 import { isRootSpan } from '../utils/span';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import {
@@ -161,7 +163,7 @@ export type ScopeWithMaybeSpan = Scope & {
  * Removes the active span from the scope.
  */
 export function clearActiveSpanFromScope(scope: ScopeWithMaybeSpan): void {
-  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
   delete scope[SCOPE_SPAN_FIELD];
 }
 

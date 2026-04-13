@@ -6,8 +6,8 @@ GEM
       nkf
       rexml
     abbrev (0.1.2)
-    addressable (2.8.7)
-      public_suffix (>= 2.0.2, < 7.0)
+    addressable (2.9.0)
+      public_suffix (>= 2.0.2, < 8.0)
     artifactory (3.0.17)
     atomos (0.1.3)
     aws-eventstream (1.4.0)
@@ -162,7 +162,7 @@ GEM
     httpclient (2.9.0)
       mutex_m
     jmespath (1.6.2)
-    json (2.16.0)
+    json (2.17.1.2)
     jwt (2.10.2)
       base64
     logger (1.7.0)
@@ -178,7 +178,7 @@ GEM
     os (1.1.4)
     ostruct (0.6.3)
     plist (3.7.2)
-    public_suffix (5.1.1)
+    public_suffix (7.0.5)
     rake (13.3.1)
     representable (3.2.0)
       declarative (< 0.1.0)

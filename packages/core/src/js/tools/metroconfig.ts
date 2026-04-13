@@ -1,8 +1,13 @@
-import { debug } from '@sentry/core';
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
+
+import { debug } from '@sentry/core';
 import * as process from 'process';
 import { env } from 'process';
+
+import type { MetroCustomSerializer } from './utils';
+import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
+
 import { enableLogger } from './enableLogger';
 import { withSentryMiddleware } from './metroMiddleware';
 import {
@@ -12,8 +17,6 @@ import {
 import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
-import type { MetroCustomSerializer } from './utils';
-import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 export * from './sentryMetroSerializer';
 
@@ -116,7 +119,7 @@ export function getSentryExpoConfig(
     ...options,
     unstable_beforeAssetSerializationPlugins: [
       ...(options.unstable_beforeAssetSerializationPlugins || []),
-      ...(options.injectReleaseForWeb ?? true ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
+      ...((options.injectReleaseForWeb ?? true) ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
       unstableBeforeAssetSerializationDebugIdPlugin,
     ],
   });
@@ -155,7 +158,6 @@ function loadExpoMetroConfigModule(): {
   ) => MetroConfig;
 } {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require('expo/metro-config');
   } catch (e) {
     throw new Error('Unable to load `expo/metro-config`. Make sure you have Expo installed.');
@@ -174,9 +176,9 @@ export function withSentryBabelTransformer(
 
   if (!defaultBabelTransformerPath) {
     // This has to be console.warn because the options is enabled but won't be used
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.warn('`transformer.babelTransformerPath` is undefined.');
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line eslint(no-console)
     console.warn('Sentry Babel transformer cannot be used. Not adding it...');
     return config;
   }
@@ -251,7 +253,7 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
 
     // Prior 0.68, resolve context.resolveRequest is sentryResolver itself, where on later version it is the default resolver.
     if (context.resolveRequest === sentryResolverRequest) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.error(
         `Error: [@sentry/react-native/metro] Can not resolve the defaultResolver on Metro older than 0.68.
 Please follow one of the following options:
@@ -317,7 +319,7 @@ export function withSentryExcludeServerOnlyResolver(config: MetroConfig): MetroC
 
     // Prior 0.68, context.resolveRequest is sentryServerOnlyResolverRequest itself, which would cause infinite recursion.
     if (context.resolveRequest === sentryServerOnlyResolverRequest) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line eslint(no-console)
       console.error(
         `Error: [@sentry/react-native/metro] Can not resolve the defaultResolver on Metro older than 0.68.
 Please include your resolverRequest on your metroconfig or update your Metro version to 0.68 or higher.

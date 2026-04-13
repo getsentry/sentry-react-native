@@ -1,6 +1,9 @@
 import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
-import { debug, getRootSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
+
+import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
+
 import type { NativeFramesResponse } from '../../NativeRNSentry';
+
 import { AsyncExpiringMap } from '../../utils/AsyncExpiringMap';
 import { isRootSpan } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
@@ -86,6 +89,10 @@ export const nativeFramesIntegration = (): Integration => {
   };
 
   const fetchStartFramesForSpan = (span: Span): void => {
+    if (!spanIsSampled(span)) {
+      return;
+    }
+
     const spanId = span.spanContext().spanId;
     const spanType = isRootSpan(span) ? 'root' : 'child';
     debug.log(`[${INTEGRATION_NAME}] Fetching frames for ${spanType} span start (${spanId}).`);
@@ -187,6 +194,18 @@ export const nativeFramesIntegration = (): Integration => {
         debug.log(
           `[${INTEGRATION_NAME}] Attached frame data to span ${spanId}: total=${totalFrames}, slow=${slowFrames}, frozen=${frozenFrames}`,
         );
+
+        const spanJson = spanToJSON(span);
+        if (spanJson.start_timestamp && spanJson.timestamp) {
+          try {
+            const delay = await fetchNativeFramesDelay(spanJson.start_timestamp, spanJson.timestamp);
+            if (delay != null) {
+              span.setAttribute('frames.delay', delay);
+            }
+          } catch (delayError) {
+            debug.log(`[${INTEGRATION_NAME}] Error while fetching frames delay for span ${spanId}.`, delayError);
+          }
+        }
       }
     } catch (error) {
       debug.log(`[${INTEGRATION_NAME}] Error while capturing end frames for span ${spanId}.`, error);
@@ -197,8 +216,7 @@ export const nativeFramesIntegration = (): Integration => {
     if (
       event.type !== 'transaction' ||
       !event.transaction ||
-      !event.contexts ||
-      !event.contexts.trace ||
+      !event.contexts?.trace ||
       !event.timestamp ||
       !event.contexts.trace.span_id
     ) {
@@ -282,6 +300,37 @@ export const nativeFramesIntegration = (): Integration => {
   };
 };
 
+function withNativeBridgeTimeout<T>(promise: PromiseLike<T>, timeoutMessage: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject(timeoutMessage);
+      }
+    }, FETCH_FRAMES_TIMEOUT_MS);
+
+    promise
+      .then(value => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+        resolve(value);
+      })
+      .then(undefined, error => {
+        if (settled) {
+          return;
+        }
+        clearTimeout(timeoutId);
+        settled = true;
+        reject(error);
+      });
+  });
+}
+
 function fetchNativeFrames(): Promise<NativeFramesResponse> {
   return new Promise<NativeFramesResponse>((resolve, reject) => {
     let settled = false;
@@ -316,6 +365,13 @@ function fetchNativeFrames(): Promise<NativeFramesResponse> {
         reject(error);
       });
   });
+}
+
+function fetchNativeFramesDelay(startTimestampSeconds: number, endTimestampSeconds: number): Promise<number | null> {
+  return withNativeBridgeTimeout(
+    NATIVE.fetchNativeFramesDelay(startTimestampSeconds, endTimestampSeconds),
+    'Fetching native frames delay took too long.',
+  );
 }
 
 function isClose(t1: number, t2: number): boolean {

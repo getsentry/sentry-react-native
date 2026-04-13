@@ -1,14 +1,15 @@
-import { Button, ScrollView, StyleSheet } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { reloadAppAsync, isRunningInExpoGo } from 'expo';
 import * as DevClient from 'expo-dev-client';
 import { useRouter } from 'expo-router';
+import { useUpdates } from 'expo-updates';
+import * as WebBrowser from 'expo-web-browser';
+import React from 'react';
+import { Button, ScrollView, StyleSheet } from 'react-native';
 
 import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
-import React from 'react';
-import * as WebBrowser from 'expo-web-browser';
-import { useUpdates } from 'expo-updates';
+
 import { isWeb } from '../../utils/isWeb';
 
 export default function TabOneScreen() {
@@ -93,9 +94,7 @@ export default function TabOneScreen() {
             title="Native Crash"
             onPress={() => {
               if (isRunningInExpoGo()) {
-                console.warn(
-                  'Not supported in Expo Go. Build the application to test this feature.',
-                );
+                console.warn('Not supported in Expo Go. Build the application to test this feature.');
                 return;
               }
               Sentry.nativeCrash();
@@ -106,7 +105,7 @@ export default function TabOneScreen() {
           <Button
             title="Show feedback form"
             onPress={() => {
-              Sentry.showFeedbackWidget();
+              Sentry.showFeedbackForm();
             }}
           />
         </View>
@@ -202,9 +201,7 @@ export default function TabOneScreen() {
                 string: 'string',
                 bigint: BigInt(123),
               });
-              Sentry.captureMessage(
-                'Message with different types of tags globally',
-              );
+              Sentry.captureMessage('Message with different types of tags globally');
               Sentry.setTags({
                 number: undefined,
                 boolean: undefined,

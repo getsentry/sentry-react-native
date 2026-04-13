@@ -1,4 +1,5 @@
 import { debug } from '@sentry/core';
+
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
@@ -20,9 +21,7 @@ export function polyfillPromise(): void {
   const Promise = getPromisePolyfill();
 
   // As of RN 0.67 only done and finally are used
-  // eslint-disable-next-line import/no-extraneous-dependencies
   require('promise/setimmediate/done');
-  // eslint-disable-next-line import/no-extraneous-dependencies
   require('promise/setimmediate/finally');
 
   ReactNativeLibraries.Utilities.polyfillGlobal('Promise', () => Promise);
@@ -33,7 +32,6 @@ export function polyfillPromise(): void {
  * This is important for verifying that the rejected promise tracing will work as expected.
  */
 export function getPromisePolyfill(): unknown {
-  /* eslint-disable import/no-extraneous-dependencies,@typescript-eslint/no-var-requires */
   // Below, we follow the exact way React Native initializes its promise library, and we globally replace it.
   return require('promise/setimmediate/es6-extensions');
 }
@@ -45,7 +43,6 @@ export function requireRejectionTracking(): {
   disable: () => void;
   enable: (arg: unknown) => void;
 } {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
   return require('promise/setimmediate/rejection-tracking');
 }
 
@@ -60,7 +57,6 @@ export function checkPromiseAndWarn(): void {
     // We have to check if the React Native Promise and the `promise` package Promise are using the same reference.
     // If they are not, likely there are multiple versions of the `promise` package installed.
     const ReactNativePromise = ReactNativeLibraries.Promise;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
     const PromisePackagePromise = require('promise/setimmediate/es6-extensions');
     const UsedPromisePolyfill = getPromisePolyfill();
 

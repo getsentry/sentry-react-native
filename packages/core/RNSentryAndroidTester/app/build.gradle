@@ -37,9 +37,12 @@ android {
     }
 }
 
+android.sourceSets.main.java.srcDirs += ['../../android/expo-handler/src/main/java']
+
 dependencies {
     implementation project(':RNSentry')
     implementation 'com.facebook.react:react-android:0.72.0'
+    implementation files('../../android/libs/expo-stubs.jar')
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'

@@ -1,6 +1,8 @@
 import { debug, timestampInSeconds } from '@sentry/core';
-import { NATIVE } from '../wrapper';
+
 import type { NewFrameEvent, SentryEventEmitter } from './sentryeventemitter';
+
+import { NATIVE } from '../wrapper';
 import { createSentryEventEmitter, NewFrameEventName } from './sentryeventemitter';
 
 export const FALLBACK_TIMEOUT_MS = 10_000;

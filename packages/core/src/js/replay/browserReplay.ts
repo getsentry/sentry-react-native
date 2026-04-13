@@ -1,6 +1,8 @@
 import { replayIntegration } from '@sentry/react';
-import { notWeb } from '../utils/environment';
+
 import type { Replay } from './replayInterface';
+
+import { notWeb } from '../utils/environment';
 
 /**
  * ReplayConfiguration for browser replay integration.
@@ -34,9 +36,7 @@ const browserReplayIntegration = (options: ReplayConfiguration = {}): Replay => 
 const browserReplayIntegrationNoop = (): Replay => {
   return {
     name: INTEGRATION_NAME,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     start: () => {},
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     startBuffering: () => {},
     stop: () => Promise.resolve(),
     flush: () => Promise.resolve(),

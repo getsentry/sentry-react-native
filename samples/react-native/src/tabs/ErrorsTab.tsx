@@ -28,10 +28,10 @@ export default function getErrorsTab(Navigator: TypedNavigator<any, any>) {
                 options={{ title: 'Errors' }}
               />
               <Navigator.Screen
-                name="FeedbackWidget"
+                name="FeedbackForm"
                 options={{ presentation: 'modal', headerShown: false }}>
                 {props => (
-                  <Sentry.FeedbackWidget
+                  <Sentry.FeedbackForm
                     {...props}
                     enableScreenshot={true}
                     onFormClose={props.navigation.goBack}

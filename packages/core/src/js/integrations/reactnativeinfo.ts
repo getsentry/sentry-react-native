@@ -1,4 +1,7 @@
 import type { Context, Event, EventHint, Integration } from '@sentry/core';
+
+import type { ReactNativeError } from './debugsymbolicator';
+
 import {
   getExpoGoVersion,
   getExpoSdkVersion,
@@ -9,7 +12,6 @@ import {
   isHermesEnabled,
   isTurboModuleEnabled,
 } from '../utils/environment';
-import type { ReactNativeError } from './debugsymbolicator';
 
 const INTEGRATION_NAME = 'ReactNativeInfo';
 

@@ -23,7 +23,7 @@
     }
 
     NSLog(@"Setting up session replay");
-    NSDictionary *replayOptions = options[@"mobileReplayOptions"] ?: @{};
+    NSDictionary *replayOptions = options[@"mobileReplayOptions"] ?: @{ };
 
     NSString *qualityString = options[@"replaysSessionQuality"];
 

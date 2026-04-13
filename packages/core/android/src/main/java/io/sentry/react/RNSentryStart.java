@@ -161,6 +161,9 @@ final class RNSentryStart {
     if (rnOptions.hasKey("enableTombstone")) {
       options.setTombstoneEnabled(rnOptions.getBoolean("enableTombstone"));
     }
+    if (rnOptions.hasKey("enableAnrFingerprinting")) {
+      options.setEnableAnrFingerprinting(rnOptions.getBoolean("enableAnrFingerprinting"));
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));

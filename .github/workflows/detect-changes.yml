@@ -1,0 +1,188 @@
+name: Detect Changes
+on:
+  workflow_call:
+    inputs:
+      # Pass the caller's event name and ref so we can detect push-to-main/release.
+      # Inside a reusable workflow github.event_name is always 'workflow_call',
+      # so the caller must forward the real values explicitly.
+      caller_event_name:
+        description: 'The triggering event name from the caller (github.event_name)'
+        required: true
+        type: string
+      caller_ref:
+        description: 'The triggering ref from the caller (github.ref)'
+        required: true
+        type: string
+    outputs:
+      # Raw filter outputs — exposed for fine-grained use by callers
+      ios_native:
+        description: 'Whether SDK iOS native files changed'
+        value: ${{ jobs.changes.outputs.ios_native }}
+      android_native:
+        description: 'Whether SDK Android native files changed'
+        value: ${{ jobs.changes.outputs.android_native }}
+      js_source:
+        description: 'Whether JS/TS source files changed'
+        value: ${{ jobs.changes.outputs.js_source }}
+      js_test:
+        description: 'Whether JS/TS test files changed'
+        value: ${{ jobs.changes.outputs.js_test }}
+      sample_react_native:
+        description: 'Whether the React Native sample app changed'
+        value: ${{ jobs.changes.outputs.sample_react_native }}
+      sample_expo:
+        description: 'Whether the Expo sample app changed'
+        value: ${{ jobs.changes.outputs.sample_expo }}
+      e2e_tests:
+        description: 'Whether E2E test infrastructure changed'
+        value: ${{ jobs.changes.outputs.e2e_tests }}
+      perf_tests:
+        description: 'Whether performance test infrastructure changed'
+        value: ${{ jobs.changes.outputs.perf_tests }}
+      ci:
+        description: 'Whether CI workflow/action files changed'
+        value: ${{ jobs.changes.outputs.ci }}
+      # Convenience outputs consumed by individual workflows
+      needs_ios:
+        description: 'Whether iOS jobs should run (native tests, E2E, sample builds)'
+        value: ${{ jobs.changes.outputs.needs_ios }}
+      needs_android:
+        description: 'Whether Android jobs should run (native tests, E2E, sample builds)'
+        value: ${{ jobs.changes.outputs.needs_android }}
+      needs_sample_react_native:
+        description: 'Whether the React Native sample app workflow should run'
+        value: ${{ jobs.changes.outputs.needs_sample_react_native }}
+      needs_sample_expo:
+        description: 'Whether the Expo sample app workflow should run'
+        value: ${{ jobs.changes.outputs.needs_sample_expo }}
+      needs_web:
+        description: 'Whether web jobs should run (sample builds)'
+        value: ${{ jobs.changes.outputs.needs_web }}
+
+jobs:
+  changes:
+    name: Detect file changes
+    runs-on: ubuntu-latest
+    outputs:
+      ios_native: ${{ steps.filter.outputs.ios_native }}
+      android_native: ${{ steps.filter.outputs.android_native }}
+      js_source: ${{ steps.filter.outputs.js_source }}
+      js_test: ${{ steps.filter.outputs.js_test }}
+      sample_react_native: ${{ steps.filter.outputs.sample_react_native }}
+      sample_expo: ${{ steps.filter.outputs.sample_expo }}
+      e2e_tests: ${{ steps.filter.outputs.e2e_tests }}
+      perf_tests: ${{ steps.filter.outputs.perf_tests }}
+      ci: ${{ steps.filter.outputs.ci }}
+      needs_ios: ${{ steps.evaluate.outputs.needs_ios }}
+      needs_android: ${{ steps.evaluate.outputs.needs_android }}
+      needs_sample_react_native: ${{ steps.evaluate.outputs.needs_sample_react_native }}
+      needs_sample_expo: ${{ steps.evaluate.outputs.needs_sample_expo }}
+      needs_web: ${{ steps.evaluate.outputs.needs_web }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: filter
+        with:
+          filters: .github/file-filters.yml
+
+      - name: Evaluate what needs to run
+        id: evaluate
+        env:
+          IOS_NATIVE: ${{ steps.filter.outputs.ios_native }}
+          ANDROID_NATIVE: ${{ steps.filter.outputs.android_native }}
+          JS_SOURCE: ${{ steps.filter.outputs.js_source }}
+          SAMPLE_RN: ${{ steps.filter.outputs.sample_react_native }}
+          SAMPLE_EXPO: ${{ steps.filter.outputs.sample_expo }}
+          CI_CHANGED: ${{ steps.filter.outputs.ci }}
+          E2E_TESTS: ${{ steps.filter.outputs.e2e_tests }}
+          IS_MAIN_OR_RELEASE: ${{ inputs.caller_event_name == 'push' && (inputs.caller_ref == 'refs/heads/main' || startsWith(inputs.caller_ref, 'refs/heads/release/')) }}
+        run: |
+          echo "--- Change Detection Summary ---"
+          echo "ios_native=$IOS_NATIVE"
+          echo "android_native=$ANDROID_NATIVE"
+          echo "js_source=$JS_SOURCE"
+          echo "sample_react_native=$SAMPLE_RN"
+          echo "sample_expo=$SAMPLE_EXPO"
+          echo "ci=$CI_CHANGED"
+          echo "e2e_tests=$E2E_TESTS"
+          echo "is_main_or_release=$IS_MAIN_OR_RELEASE"
+
+          # iOS/Android native test suites and E2E builds run when:
+          # - The SDK's own native code changed (packages/core/ios or android)
+          # - JS source changed (may affect native bridges)
+          # - CI config changed (need to validate workflows themselves)
+          # - E2E test infra changed (they test both platforms end-to-end)
+          # - Push to main or release branch (always run everything)
+          # Sample app changes do NOT trigger the full native test suite —
+          # they only trigger their own sample-application workflows.
+          # Performance test changes do NOT trigger native tests either —
+          # they only trigger the metrics job in e2e-v2.yml.
+          if [[ "$IOS_NATIVE" == "true" \
+             || "$JS_SOURCE" == "true" \
+             || "$CI_CHANGED" == "true" \
+             || "$E2E_TESTS" == "true" \
+             || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
+            echo "needs_ios=true" >> "$GITHUB_OUTPUT"
+            echo "=> needs_ios=true"
+          else
+            echo "needs_ios=false" >> "$GITHUB_OUTPUT"
+            echo "=> needs_ios=false"
+          fi
+
+          if [[ "$ANDROID_NATIVE" == "true" \
+             || "$JS_SOURCE" == "true" \
+             || "$CI_CHANGED" == "true" \
+             || "$E2E_TESTS" == "true" \
+             || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
+            echo "needs_android=true" >> "$GITHUB_OUTPUT"
+            echo "=> needs_android=true"
+          else
+            echo "needs_android=false" >> "$GITHUB_OUTPUT"
+            echo "=> needs_android=false"
+          fi
+
+          # React Native sample workflow runs when the RN sample itself changed,
+          # or when anything that the sample depends on changed (SDK source, CI).
+          if [[ "$SAMPLE_RN" == "true" \
+             || "$JS_SOURCE" == "true" \
+             || "$IOS_NATIVE" == "true" \
+             || "$ANDROID_NATIVE" == "true" \
+             || "$CI_CHANGED" == "true" \
+             || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
+            echo "needs_sample_react_native=true" >> "$GITHUB_OUTPUT"
+            echo "=> needs_sample_react_native=true"
+          else
+            echo "needs_sample_react_native=false" >> "$GITHUB_OUTPUT"
+            echo "=> needs_sample_react_native=false"
+          fi
+
+          # Expo sample workflow runs when the Expo sample itself changed,
+          # or when anything that the sample depends on changed (SDK source, CI).
+          if [[ "$SAMPLE_EXPO" == "true" \
+             || "$JS_SOURCE" == "true" \
+             || "$IOS_NATIVE" == "true" \
+             || "$ANDROID_NATIVE" == "true" \
+             || "$CI_CHANGED" == "true" \
+             || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
+            echo "needs_sample_expo=true" >> "$GITHUB_OUTPUT"
+            echo "=> needs_sample_expo=true"
+          else
+            echo "needs_sample_expo=false" >> "$GITHUB_OUTPUT"
+            echo "=> needs_sample_expo=false"
+          fi
+
+          # Web builds run when:
+          # - JS source changed (the web bundle depends on it)
+          # - CI config changed (need to validate workflows themselves)
+          # - Push to main or release branch (always run everything)
+          if [[ "$JS_SOURCE" == "true" \
+             || "$CI_CHANGED" == "true" \
+             || "$IS_MAIN_OR_RELEASE" == "true" ]]; then
+            echo "needs_web=true" >> "$GITHUB_OUTPUT"
+            echo "=> needs_web=true"
+          else
+            echo "needs_web=false" >> "$GITHUB_OUTPUT"
+            echo "=> needs_web=false"
+          fi

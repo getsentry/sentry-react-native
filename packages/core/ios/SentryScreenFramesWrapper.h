@@ -8,6 +8,8 @@
 + (NSNumber *)totalFrames;
 + (NSNumber *)frozenFrames;
 + (NSNumber *)slowFrames;
++ (NSNumber *)framesDelayForStartTimestamp:(double)startTimestampSeconds
+                              endTimestamp:(double)endTimestampSeconds;
 
 @end
 

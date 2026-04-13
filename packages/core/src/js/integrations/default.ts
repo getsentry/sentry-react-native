@@ -1,7 +1,10 @@
-/* eslint-disable complexity */
-import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/browser';
+/* oxlint-disable eslint(complexity) */
 import type { Integration } from '@sentry/core';
+
+import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/browser';
+
 import type { ReactNativeClientOptions } from '../options';
+
 import { reactNativeTracingIntegration } from '../tracing';
 import { notWeb } from '../utils/environment';
 import {
@@ -19,6 +22,7 @@ import {
   eventOriginIntegration,
   expoConstantsIntegration,
   expoContextIntegration,
+  expoUpdatesListenerIntegration,
   functionToStringIntegration,
   hermesProfilingIntegration,
   httpClientIntegration,
@@ -133,6 +137,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
 
   integrations.push(expoContextIntegration());
   integrations.push(expoConstantsIntegration());
+  integrations.push(expoUpdatesListenerIntegration());
 
   if (options.spotlight && __DEV__) {
     const sidecarUrl = typeof options.spotlight === 'string' ? options.spotlight : undefined;
@@ -146,7 +151,7 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     (options._experiments && typeof options._experiments.replaysSessionSampleRate === 'number');
 
   if (!hasReplayOptions && hasExperimentsReplayOptions) {
-    // Remove in the next major version (v7)
+    // Remove in the next major version (v9)
     options.replaysOnErrorSampleRate = options._experiments?.replaysOnErrorSampleRate;
     options.replaysSessionSampleRate = options._experiments?.replaysSessionSampleRate;
   }

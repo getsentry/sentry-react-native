@@ -1,6 +1,8 @@
-import { debug } from '@sentry/core';
 import type { EmitterSubscription, NativeModule } from 'react-native';
+
+import { debug } from '@sentry/core';
 import { NativeEventEmitter } from 'react-native';
+
 import { getRNSentryModule } from '../wrapper';
 
 export const NewFrameEventName = 'rn_sentry_new_frame';

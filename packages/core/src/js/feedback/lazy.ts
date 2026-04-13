@@ -1,4 +1,5 @@
 import { getClient } from '@sentry/core';
+
 import { feedbackIntegration, MOBILE_FEEDBACK_INTEGRATION_NAME } from './integration';
 
 /**
@@ -35,6 +36,19 @@ export function lazyLoadAutoInjectFeedbackButtonIntegration(): void {
   if (!integration) {
     // Lazy load the integration to track usage
     getClient()?.addIntegration({ name: AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME });
+  }
+}
+
+export const SHAKE_TO_REPORT_INTEGRATION_NAME = 'ShakeToReport';
+
+/**
+ * Lazy loads the shake to report integration if it is not already loaded.
+ */
+export function lazyLoadShakeToReportIntegration(): void {
+  const integration = getClient()?.getIntegrationByName(SHAKE_TO_REPORT_INTEGRATION_NAME);
+  if (!integration) {
+    // Lazy load the integration to track usage
+    getClient()?.addIntegration({ name: SHAKE_TO_REPORT_INTEGRATION_NAME });
   }
 }
 

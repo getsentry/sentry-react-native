@@ -1,9 +1,8 @@
 import { debug } from '@sentry/core';
+
 import type { ReactNativeOptions } from '../options';
 
-type DangerTypesWithoutCallSignature =
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  Object | null | undefined;
+type DangerTypesWithoutCallSignature = object | null | undefined;
 
 /**
  * Returns callback factory wrapped with try/catch

@@ -1,7 +1,9 @@
-/* eslint-disable complexity */
 import type { Integration, Log } from '@sentry/core';
+
 import { debug, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
+
 import type { ReactNativeClient } from '../client';
+
 import { NATIVE } from '../wrapper';
 
 const INTEGRATION_NAME = 'LogEnricher';

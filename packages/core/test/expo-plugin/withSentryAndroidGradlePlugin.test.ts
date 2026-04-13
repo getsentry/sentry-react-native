@@ -1,6 +1,8 @@
 import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
-import { warnOnce } from '../../plugin/src/logger';
+
 import type { SentryAndroidGradlePluginOptions } from '../../plugin/src/withSentryAndroidGradlePlugin';
+
+import { warnOnce } from '../../plugin/src/logger';
 import {
   sentryAndroidGradlePluginVersion,
   withSentryAndroidGradlePlugin,

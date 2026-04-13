@@ -1,4 +1,5 @@
 import { SDK_VERSION } from '@sentry/core';
+
 import { encodePolyfill, useEncodePolyfill } from '../../src/js/transports/encodePolyfill';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 

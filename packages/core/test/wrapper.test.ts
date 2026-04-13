@@ -8,10 +8,13 @@ import type {
   MetricType,
   SeverityLevel,
 } from '@sentry/core';
+
 import { createEnvelope, debug } from '@sentry/core';
 import * as RN from 'react-native';
+
 import type { Spec } from '../src/js/NativeRNSentry';
 import type { ReactNativeOptions } from '../src/js/options';
+
 import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
@@ -219,6 +222,23 @@ describe('Tests Native Wrapper', () => {
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('beforeSendMetric');
       expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('passes attachAllThreads to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        attachAllThreads: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).toHaveProperty('attachAllThreads', true);
     });
 
     test('filter integrations when initializing Native SDK', async () => {
