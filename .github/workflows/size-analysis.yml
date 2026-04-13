@@ -9,6 +9,7 @@ on:
       - 'samples/react-native/**'
       - '.github/workflows/size-analysis.yml'
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - 'packages/**'
       - 'samples/react-native/**'
@@ -26,7 +27,15 @@ env:
   RN_SENTRY_POD_NAME: RNSentry
 
 jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
   android:
+    needs: [ready-to-merge-gate]
     name: Android Size Analysis
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -81,6 +90,7 @@ jobs:
             --build-configuration "Release"
 
   ios:
+    needs: [ready-to-merge-gate]
     name: iOS Size Analysis
     runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
     timeout-minutes: 45
