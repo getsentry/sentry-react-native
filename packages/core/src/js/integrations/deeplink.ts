@@ -1,17 +1,9 @@
 import type { IntegrationFn } from '@sentry/core';
 import { addBreadcrumb, defineIntegration, getClient } from '@sentry/core';
 
-export const INTEGRATION_NAME = 'DeepLink';
+import { sanitizeUrl } from '../tracing/utils';
 
-/**
- * Strips the query string and fragment from a URL.
- */
-function stripQueryAndFragment(url: string): string {
-  const hashIndex = url.indexOf('#');
-  const withoutFragment = hashIndex !== -1 ? url.slice(0, hashIndex) : url;
-  const queryIndex = withoutFragment.indexOf('?');
-  return queryIndex !== -1 ? withoutFragment.slice(0, queryIndex) : withoutFragment;
-}
+export const INTEGRATION_NAME = 'DeepLink';
 
 /**
  * Replaces dynamic path segments (UUID-like or numeric values) with a placeholder
@@ -19,14 +11,14 @@ function stripQueryAndFragment(url: string): string {
  *
  * Only replaces segments that look like identifiers (all digits, UUIDs, or hex strings).
  */
-function sanitizeUrl(url: string): string {
-  const withoutQuery = stripQueryAndFragment(url);
+function sanitizeDeepLinkUrl(url: string): string {
+  const stripped = sanitizeUrl(url);
 
   // Replace path segments that look like dynamic IDs:
   // - Numeric segments (e.g. /123)
   // - UUID-formatted segments (e.g. /a1b2c3d4-e5f6-7890-abcd-ef1234567890)
   // - Hex strings ≥8 chars (e.g. /deadbeef1234)
-  return withoutQuery.replace(
+  return stripped.replace(
     /\/([0-9]+|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-f0-9]{8,})(?=\/|$)/gi,
     '/<id>',
   );
@@ -38,7 +30,7 @@ function sanitizeUrl(url: string): string {
  */
 function getBreadcrumbUrl(url: string): string {
   const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
-  return sendDefaultPii ? url : sanitizeUrl(url);
+  return sendDefaultPii ? url : sanitizeDeepLinkUrl(url);
 }
 
 function addDeepLinkBreadcrumb(url: string): void {
