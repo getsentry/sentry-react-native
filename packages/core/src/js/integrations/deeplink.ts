@@ -83,7 +83,8 @@ const _deeplinkIntegration: IntegrationFn = () => {
       subscription?.remove();
 
       // Cold start: app opened via deep link
-      linking.getInitialURL()
+      linking
+        .getInitialURL()
         .then((url: string | null) => {
           if (url) {
             addDeepLinkBreadcrumb(url);
@@ -115,8 +116,8 @@ const _deeplinkIntegration: IntegrationFn = () => {
 function tryGetLinking(): RNLinking | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Linking } = require('react-native') as { Linking: RNLinking };
-    return Linking ?? null;
+    const { Linking: rnLinking } = require('react-native') as { Linking: RNLinking };
+    return rnLinking ?? null;
   } catch {
     return null;
   }
