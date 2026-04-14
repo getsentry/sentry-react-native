@@ -25,7 +25,9 @@ const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 const mockGetClient = getClient as jest.Mock;
 
 describe('deeplinkIntegration', () => {
-  const mockClient = { on: jest.fn() } as unknown as Parameters<NonNullable<ReturnType<typeof deeplinkIntegration>['setup']>>[0];
+  const mockClient = { on: jest.fn() } as unknown as Parameters<
+    NonNullable<ReturnType<typeof deeplinkIntegration>['setup']>
+  >[0];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -103,9 +105,7 @@ describe('deeplinkIntegration', () => {
       mockGetInitialURL.mockRejectedValue(new Error('Linking error'));
 
       const integration = deeplinkIntegration();
-      expect(() =>
-        integration.setup?.(mockClient),
-      ).not.toThrow();
+      expect(() => integration.setup?.(mockClient)).not.toThrow();
 
       await new Promise(resolve => setTimeout(resolve, 0));
       expect(mockAddBreadcrumb).not.toHaveBeenCalled();

@@ -1,4 +1,5 @@
 import type { IntegrationFn } from '@sentry/core';
+
 import { addBreadcrumb, defineIntegration, getClient } from '@sentry/core';
 
 import { sanitizeUrl } from '../tracing/utils';
