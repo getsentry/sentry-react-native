@@ -14,14 +14,26 @@ export const INTEGRATION_NAME = 'DeepLink';
 function sanitizeDeepLinkUrl(url: string): string {
   const stripped = sanitizeUrl(url);
 
+  // Split off the scheme+authority (e.g. "myapp://host") so the regex
+  // only operates on the path and cannot corrupt the hostname.
+  const authorityEnd = stripped.indexOf('/', stripped.indexOf('//') + 2);
+  if (authorityEnd === -1) {
+    return stripped;
+  }
+
+  const authority = stripped.slice(0, authorityEnd);
+  const path = stripped.slice(authorityEnd);
+
   // Replace path segments that look like dynamic IDs:
   // - Numeric segments (e.g. /123)
   // - UUID-formatted segments (e.g. /a1b2c3d4-e5f6-7890-abcd-ef1234567890)
   // - Hex strings ≥8 chars (e.g. /deadbeef1234)
-  return stripped.replace(
+  const sanitizedPath = path.replace(
     /\/([0-9]+|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-f0-9]{8,})(?=\/|$)/gi,
     '/<id>',
   );
+
+  return authority + sanitizedPath;
 }
 
 /**
@@ -46,6 +58,8 @@ function addDeepLinkBreadcrumb(url: string): void {
 }
 
 const _deeplinkIntegration: IntegrationFn = () => {
+  let subscription: LinkingSubscription | undefined;
+
   return {
     name: INTEGRATION_NAME,
     setup(client) {
@@ -54,6 +68,9 @@ const _deeplinkIntegration: IntegrationFn = () => {
       if (!Linking) {
         return;
       }
+
+      // Remove previous subscription if setup is called again (e.g. repeated Sentry.init)
+      subscription?.remove();
 
       // Cold start: app opened via deep link
       Linking.getInitialURL()
@@ -67,7 +84,7 @@ const _deeplinkIntegration: IntegrationFn = () => {
         });
 
       // Warm open: deep link received while app is running
-      const subscription = Linking.addEventListener('url', (event: { url: string }) => {
+      subscription = Linking.addEventListener('url', (event: { url: string }) => {
         if (event?.url) {
           addDeepLinkBreadcrumb(event.url);
         }
@@ -75,6 +92,7 @@ const _deeplinkIntegration: IntegrationFn = () => {
 
       client.on('close', () => {
         subscription?.remove();
+        subscription = undefined;
       });
     },
   };

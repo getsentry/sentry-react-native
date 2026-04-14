@@ -195,6 +195,34 @@ describe('deeplinkIntegration', () => {
     });
   });
 
+  describe('repeated setup', () => {
+    it('removes previous subscription when setup is called again', () => {
+      const mockRemove1 = jest.fn();
+      const mockRemove2 = jest.fn();
+      mockAddEventListener.mockReturnValueOnce({ remove: mockRemove1 }).mockReturnValueOnce({ remove: mockRemove2 });
+
+      const closeHandlers: (() => void)[] = [];
+      const client = {
+        on: (event: string, handler: () => void) => {
+          if (event === 'close') {
+            closeHandlers.push(handler);
+          }
+        },
+      } as unknown as Parameters<NonNullable<ReturnType<typeof deeplinkIntegration>['setup']>>[0];
+
+      const integration = deeplinkIntegration();
+
+      // First setup
+      integration.setup?.(client);
+      expect(mockRemove1).not.toHaveBeenCalled();
+
+      // Second setup — should remove previous subscription
+      integration.setup?.(client);
+      expect(mockRemove1).toHaveBeenCalledTimes(1);
+      expect(mockRemove2).not.toHaveBeenCalled();
+    });
+  });
+
   describe('URL sanitization', () => {
     it('does not alter non-ID path segments', async () => {
       mockGetInitialURL.mockResolvedValue('myapp://settings/profile');
@@ -239,6 +267,22 @@ describe('deeplinkIntegration', () => {
         expect.objectContaining({
           message: 'myapp://page/<id>',
           data: { url: 'myapp://page/<id>' },
+        }),
+      );
+    });
+
+    it('does not replace hostname that resembles a hex string', async () => {
+      mockGetInitialURL.mockResolvedValue('myapp://deadbeef/profile');
+
+      const integration = deeplinkIntegration();
+      integration.setup?.(mockClient);
+
+      await Promise.resolve();
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'myapp://deadbeef/profile',
+          data: { url: 'myapp://deadbeef/profile' },
         }),
       );
     });
