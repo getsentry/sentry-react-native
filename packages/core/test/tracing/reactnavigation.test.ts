@@ -943,6 +943,186 @@ describe('ReactNavigationInstrumentation', () => {
     },
   );
 
+  describe('useDispatchedActionData names spans from action payload', () => {
+    beforeEach(async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers(); // Flush the initial navigation span
+      client.event = undefined;
+    });
+
+    test('NAVIGATE action with payload.name sets the span name', async () => {
+      mockNavigation.navigateToNewScreenWithPayload();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('New Screen');
+    });
+
+    test('span name is updated with final route from state change when it differs from payload', async () => {
+      mockNavigation.navigateToScreenWithMismatchedPayload();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('ScreenB');
+    });
+
+    test('GO_BACK action (no payload.name) does not create a navigation span', async () => {
+      mockNavigation.emitGoBackWithStateChange();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event).toBeUndefined();
+    });
+
+    test.each(['GO_BACK', 'POP', 'POP_TO_TOP', 'RESET'])(
+      '%s action does not create a navigation span',
+      async actionType => {
+        mockNavigation.emitWithStateChange({
+          data: {
+            action: {
+              type: actionType,
+            },
+            noop: false,
+            stack: undefined,
+          },
+        });
+        await jest.runOnlyPendingTimersAsync();
+        await client.flush();
+
+        expect(client.event).toBeUndefined();
+      },
+    );
+
+    test('PUSH action with payload.name creates a named span', async () => {
+      mockNavigation.emitWithStateChange(
+        {
+          data: {
+            action: {
+              type: 'PUSH',
+              payload: { name: 'PushedScreen' },
+            },
+            noop: false,
+            stack: undefined,
+          },
+        },
+        { key: 'pushed_screen', name: 'PushedScreen' },
+      );
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('PushedScreen');
+    });
+
+    test('REPLACE action with payload.name creates a named span', async () => {
+      mockNavigation.emitWithStateChange(
+        {
+          data: {
+            action: {
+              type: 'REPLACE',
+              payload: { name: 'ReplacedScreen' },
+            },
+            noop: false,
+            stack: undefined,
+          },
+        },
+        { key: 'replaced_screen', name: 'ReplacedScreen' },
+      );
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('ReplacedScreen');
+    });
+
+    test('JUMP_TO action with payload.name creates a named span', async () => {
+      mockNavigation.emitWithStateChange(
+        {
+          data: {
+            action: {
+              type: 'JUMP_TO',
+              payload: { name: 'TabScreen' },
+            },
+            noop: false,
+            stack: undefined,
+          },
+        },
+        { key: 'tab_screen', name: 'TabScreen' },
+      );
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('TabScreen');
+    });
+
+    test('cancelled navigation with dispatched route name is discarded', async () => {
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: {
+            type: 'NAVIGATE',
+            payload: { name: 'OrphanedScreen' },
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      jest.runOnlyPendingTimers(); // Trigger the timeout
+
+      await client.flush();
+
+      expect(client.event).toBeUndefined();
+    });
+
+    test('initial navigation span is created during setup', async () => {
+      // Reset and create fresh client to test initial span
+      const rNavigation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        useDispatchedActionData: true,
+      });
+      createMockNavigationAndAttachTo(rNavigation);
+
+      const rnTracing = reactNativeTracingIntegration();
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, rnTracing],
+        enableAppStartTracking: false,
+      });
+      const freshClient = new TestClient(options);
+      setCurrentClient(freshClient);
+      freshClient.init();
+
+      jest.runOnlyPendingTimers(); // Flush the initial navigation span
+
+      await freshClient.flush();
+
+      // Initial span should be created with 'Initial Screen' from the mock container
+      expect(freshClient.event?.transaction).toBe('Initial Screen');
+    });
+  });
+
+  describe('useDispatchedActionData disabled (default) still uses generic span name', () => {
+    beforeEach(async () => {
+      setupTestClient({ useDispatchedActionData: false });
+      await jest.runOnlyPendingTimers(); // Flush the initial navigation span
+      client.event = undefined;
+    });
+
+    test('GO_BACK action still creates a navigation span', async () => {
+      mockNavigation.emitGoBackWithStateChange();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('Previous Screen');
+    });
+  });
+
   describe('setCurrentRoute', () => {
     let mockSetCurrentRoute: jest.Mock;
 

@@ -13,9 +13,11 @@
 - Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
 - Add `attachAllThreads` option to attach full stack traces for all threads to captured events on iOS ([#5960](https://github.com/getsentry/sentry-react-native/issues/5960))
 - Add `deeplinkIntegration` for automatic deep link breadcrumbs ([#5983](https://github.com/getsentry/sentry-react-native/pull/5983))
+- Name navigation spans using dispatched action payload when `useDispatchedActionData` is enabled ([#5982](https://github.com/getsentry/sentry-react-native/pull/5982))
 
 ### Fixes
 
+- Retry native module resolution to prevent silent event drops in production Hermes builds ([#5981](https://github.com/getsentry/sentry-react-native/pull/5981))
 - Lazy-load Metro internal modules to prevent Expo 55 import errors ([#5958](https://github.com/getsentry/sentry-react-native/pull/5958))
 - Fix app start transaction profile offset by using the actual profiling start timestamp instead of the adjusted app start time ([#5962](https://github.com/getsentry/sentry-react-native/issues/5962))
 - Use React `componentStack` as fallback when error has no stack trace on Android ([#5965](https://github.com/getsentry/sentry-react-native/pull/5965))
