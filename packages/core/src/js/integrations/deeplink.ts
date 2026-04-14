@@ -73,9 +73,9 @@ const _deeplinkIntegration: IntegrationFn = () => {
   return {
     name: INTEGRATION_NAME,
     setup(client) {
-      const Linking = tryGetLinking();
+      const linking = tryGetLinking();
 
-      if (!Linking) {
+      if (!linking) {
         return;
       }
 
@@ -83,7 +83,7 @@ const _deeplinkIntegration: IntegrationFn = () => {
       subscription?.remove();
 
       // Cold start: app opened via deep link
-      Linking.getInitialURL()
+      linking.getInitialURL()
         .then((url: string | null) => {
           if (url) {
             addDeepLinkBreadcrumb(url);
@@ -94,7 +94,7 @@ const _deeplinkIntegration: IntegrationFn = () => {
         });
 
       // Warm open: deep link received while app is running
-      subscription = Linking.addEventListener('url', (event: { url: string }) => {
+      subscription = linking.addEventListener('url', (event: { url: string }) => {
         if (event?.url) {
           addDeepLinkBreadcrumb(event.url);
         }
