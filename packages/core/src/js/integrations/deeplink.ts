@@ -6,6 +6,15 @@ import { sanitizeUrl } from '../tracing/utils';
 
 export const INTEGRATION_NAME = 'DeepLink';
 
+interface LinkingSubscription {
+  remove: () => void;
+}
+
+interface RNLinking {
+  getInitialURL: () => Promise<string | null>;
+  addEventListener: (event: string, handler: (event: { url: string }) => void) => LinkingSubscription;
+}
+
 /**
  * Replaces dynamic path segments (UUID-like or numeric values) with a placeholder
  * to avoid capturing PII in path segments when `sendDefaultPii` is off.
@@ -103,15 +112,6 @@ const _deeplinkIntegration: IntegrationFn = () => {
  * Attempts to import React Native's Linking module without a hard dependency.
  * Returns null if not available (e.g. in web environments).
  */
-interface LinkingSubscription {
-  remove: () => void;
-}
-
-interface RNLinking {
-  getInitialURL: () => Promise<string | null>;
-  addEventListener: (event: string, handler: (event: { url: string }) => void) => LinkingSubscription;
-}
-
 function tryGetLinking(): RNLinking | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
