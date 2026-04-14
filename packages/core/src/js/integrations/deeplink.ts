@@ -116,8 +116,7 @@ const _deeplinkIntegration: IntegrationFn = () => {
 function tryGetLinking(): RNLinking | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Linking: rnLinking } = require('react-native') as { Linking: RNLinking };
-    return rnLinking ?? null;
+    return (require('react-native') as { Linking: RNLinking }).Linking ?? null;
   } catch {
     return null;
   }
