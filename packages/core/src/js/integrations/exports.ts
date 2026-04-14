@@ -29,6 +29,7 @@ export { primitiveTagIntegration } from './primitiveTagIntegration';
 export { logEnricherIntegration } from './logEnricherIntegration';
 export { graphqlIntegration } from './graphql';
 export { supabaseIntegration } from './supabase';
+export { deeplinkIntegration } from './deeplink';
 
 export {
   browserApiErrorsIntegration,
