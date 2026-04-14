@@ -35,6 +35,10 @@
         return [self convertTouch:breadcrumb];
     }
 
+    if ([breadcrumb.category isEqualToString:@"ui.frustration"]) {
+        return [self convertFrustration:breadcrumb];
+    }
+
     if ([breadcrumb.category isEqualToString:@"navigation"]) {
         return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                                   category:breadcrumb.category
@@ -70,6 +74,22 @@
 
     return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                               category:@"ui.tap"
+                                                               message:message
+                                                                 level:breadcrumb.level
+                                                                  data:breadcrumb.data];
+}
+
+- (id<SentryRRWebEvent> _Nullable)convertFrustration:(SentryBreadcrumb *_Nonnull)breadcrumb
+{
+    if (breadcrumb.data == nil) {
+        return nil;
+    }
+
+    NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
+    NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
+
+    return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
+                                                              category:@"ui.frustration"
                                                                message:message
                                                                  level:breadcrumb.level
                                                                   data:breadcrumb.data];
