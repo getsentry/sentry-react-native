@@ -1208,4 +1208,38 @@ describe('Tests Native Wrapper', () => {
       });
     });
   });
+
+  describe('isNativeAvailable', () => {
+    test('retries module resolution if initially undefined', () => {
+      // Simulate the race condition: RNSentry was undefined at module load time
+      // but becomes available when isNativeAvailable() is called during init()
+      let mockModule: Spec | undefined = undefined;
+
+      jest.resetModules();
+      jest.doMock('react-native', () => ({
+        NativeModules: {
+          get RNSentry() {
+            return mockModule;
+          },
+        },
+        Platform: { OS: 'ios' },
+      }));
+      // Ensure TurboModules path is not used so NativeModules.RNSentry is checked
+      jest.doMock('../src/js/utils/environment', () => ({
+        isTurboModuleEnabled: () => false,
+      }));
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { NATIVE: isolatedNATIVE } = require('../src/js/wrapper');
+
+      // Initially unavailable (simulates race condition)
+      expect(isolatedNATIVE.isNativeAvailable()).toBe(false);
+
+      // Native module becomes available (TurboModule registered)
+      mockModule = RNSentry;
+
+      // isNativeAvailable retries and finds it
+      expect(isolatedNATIVE.isNativeAvailable()).toBe(true);
+    });
+  });
 });
