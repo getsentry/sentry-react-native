@@ -25,6 +25,8 @@ const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 const mockGetClient = getClient as jest.Mock;
 
 describe('deeplinkIntegration', () => {
+  const mockClient = { on: jest.fn() } as unknown as Parameters<NonNullable<ReturnType<typeof deeplinkIntegration>['setup']>>[0];
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetInitialURL.mockResolvedValue(null);
@@ -39,7 +41,7 @@ describe('deeplinkIntegration', () => {
       mockGetInitialURL.mockResolvedValue('myapp://profile/123?token=secret');
 
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       await Promise.resolve(); // flush microtasks
 
@@ -55,7 +57,7 @@ describe('deeplinkIntegration', () => {
       mockGetInitialURL.mockResolvedValue('myapp://profile/123?token=secret');
 
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       await Promise.resolve();
 
@@ -74,7 +76,7 @@ describe('deeplinkIntegration', () => {
       mockGetInitialURL.mockResolvedValue('myapp://profile/123?token=secret');
 
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       await Promise.resolve();
 
@@ -90,7 +92,7 @@ describe('deeplinkIntegration', () => {
       mockGetInitialURL.mockResolvedValue(null);
 
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       await Promise.resolve();
 
@@ -102,7 +104,7 @@ describe('deeplinkIntegration', () => {
 
       const integration = deeplinkIntegration();
       expect(() =>
-        integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]),
+        integration.setup?.(mockClient),
       ).not.toThrow();
 
       await new Promise(resolve => setTimeout(resolve, 0));
@@ -113,7 +115,7 @@ describe('deeplinkIntegration', () => {
   describe('warm open (url event)', () => {
     it('adds a breadcrumb when a url event is received', () => {
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       const handler = mockAddEventListener.mock.calls[0]?.[1];
       handler?.({ url: 'myapp://notifications/456' });
@@ -128,7 +130,7 @@ describe('deeplinkIntegration', () => {
 
     it('strips query params and ID segments on url event when sendDefaultPii is false', () => {
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       const handler = mockAddEventListener.mock.calls[0]?.[1];
       handler?.({ url: 'myapp://notifications/456?ref=push' });
@@ -147,7 +149,7 @@ describe('deeplinkIntegration', () => {
       });
 
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       const handler = mockAddEventListener.mock.calls[0]?.[1];
       handler?.({ url: 'myapp://notifications/456?ref=push' });
@@ -162,9 +164,34 @@ describe('deeplinkIntegration', () => {
 
     it('registers the url event listener on setup', () => {
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       expect(mockAddEventListener).toHaveBeenCalledWith('url', expect.any(Function));
+    });
+  });
+
+  describe('subscription cleanup', () => {
+    it('removes the url event listener when the client closes', () => {
+      const mockRemove = jest.fn();
+      mockAddEventListener.mockReturnValue({ remove: mockRemove });
+
+      const closeHandlers: (() => void)[] = [];
+      const mockClient = {
+        on: (event: string, handler: () => void) => {
+          if (event === 'close') {
+            closeHandlers.push(handler);
+          }
+        },
+      };
+
+      const integration = deeplinkIntegration();
+      integration.setup?.(mockClient as Parameters<NonNullable<typeof integration.setup>>[0]);
+
+      expect(mockRemove).not.toHaveBeenCalled();
+
+      closeHandlers.forEach(h => h());
+
+      expect(mockRemove).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -173,7 +200,7 @@ describe('deeplinkIntegration', () => {
       mockGetInitialURL.mockResolvedValue('myapp://settings/profile');
 
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       await Promise.resolve();
 
@@ -184,11 +211,43 @@ describe('deeplinkIntegration', () => {
       );
     });
 
+    it('strips URL fragments when sendDefaultPii is false', async () => {
+      mockGetInitialURL.mockResolvedValue('myapp://page#user=john');
+
+      const integration = deeplinkIntegration();
+      integration.setup?.(mockClient);
+
+      await Promise.resolve();
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'myapp://page',
+          data: { url: 'myapp://page' },
+        }),
+      );
+    });
+
+    it('strips both query string and fragment when sendDefaultPii is false', async () => {
+      mockGetInitialURL.mockResolvedValue('myapp://page/123?token=secret#section');
+
+      const integration = deeplinkIntegration();
+      integration.setup?.(mockClient);
+
+      await Promise.resolve();
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'myapp://page/<id>',
+          data: { url: 'myapp://page/<id>' },
+        }),
+      );
+    });
+
     it('replaces UUID-like segments', async () => {
       mockGetInitialURL.mockResolvedValue('myapp://order/a1b2c3d4-e5f6-7890-abcd-ef1234567890');
 
       const integration = deeplinkIntegration();
-      integration.setup?.({} as Parameters<NonNullable<typeof integration.setup>>[0]);
+      integration.setup?.(mockClient);
 
       await Promise.resolve();
 

@@ -4,11 +4,13 @@ import { addBreadcrumb, defineIntegration, getClient } from '@sentry/core';
 export const INTEGRATION_NAME = 'DeepLink';
 
 /**
- * Strips the query string from a URL.
+ * Strips the query string and fragment from a URL.
  */
-function stripQueryString(url: string): string {
-  const queryIndex = url.indexOf('?');
-  return queryIndex !== -1 ? url.slice(0, queryIndex) : url;
+function stripQueryAndFragment(url: string): string {
+  const hashIndex = url.indexOf('#');
+  const withoutFragment = hashIndex !== -1 ? url.slice(0, hashIndex) : url;
+  const queryIndex = withoutFragment.indexOf('?');
+  return queryIndex !== -1 ? withoutFragment.slice(0, queryIndex) : withoutFragment;
 }
 
 /**
@@ -18,7 +20,7 @@ function stripQueryString(url: string): string {
  * Only replaces segments that look like identifiers (all digits, UUIDs, or hex strings).
  */
 function sanitizeUrl(url: string): string {
-  const withoutQuery = stripQueryString(url);
+  const withoutQuery = stripQueryAndFragment(url);
 
   // Replace path segments that look like dynamic IDs:
   // - Numeric segments (e.g. /123)
@@ -40,12 +42,13 @@ function getBreadcrumbUrl(url: string): string {
 }
 
 function addDeepLinkBreadcrumb(url: string): void {
+  const breadcrumbUrl = getBreadcrumbUrl(url);
   addBreadcrumb({
     category: 'deeplink',
     type: 'navigation',
-    message: getBreadcrumbUrl(url),
+    message: breadcrumbUrl,
     data: {
-      url: getBreadcrumbUrl(url),
+      url: breadcrumbUrl,
     },
   });
 }
@@ -53,7 +56,7 @@ function addDeepLinkBreadcrumb(url: string): void {
 const _deeplinkIntegration: IntegrationFn = () => {
   return {
     name: INTEGRATION_NAME,
-    setup(_client) {
+    setup(client) {
       const Linking = tryGetLinking();
 
       if (!Linking) {
@@ -72,10 +75,14 @@ const _deeplinkIntegration: IntegrationFn = () => {
         });
 
       // Warm open: deep link received while app is running
-      Linking.addEventListener('url', (event: { url: string }) => {
+      const subscription = Linking.addEventListener('url', (event: { url: string }) => {
         if (event?.url) {
           addDeepLinkBreadcrumb(event.url);
         }
+      });
+
+      client.on('close', () => {
+        subscription?.remove();
       });
     },
   };
@@ -85,10 +92,19 @@ const _deeplinkIntegration: IntegrationFn = () => {
  * Attempts to import React Native's Linking module without a hard dependency.
  * Returns null if not available (e.g. in web environments).
  */
-function tryGetLinking(): { getInitialURL: () => Promise<string | null>; addEventListener: (event: string, handler: (event: { url: string }) => void) => void } | null {
+interface LinkingSubscription {
+  remove: () => void;
+}
+
+interface RNLinking {
+  getInitialURL: () => Promise<string | null>;
+  addEventListener: (event: string, handler: (event: { url: string }) => void) => LinkingSubscription;
+}
+
+function tryGetLinking(): RNLinking | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Linking } = require('react-native') as { Linking: { getInitialURL: () => Promise<string | null>; addEventListener: (event: string, handler: (event: { url: string }) => void) => void } };
+    const { Linking } = require('react-native') as { Linking: RNLinking };
     return Linking ?? null;
   } catch {
     return null;
