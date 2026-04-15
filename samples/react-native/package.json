@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@react-native-vector-icons/ionicons": "^12.3.0",
-    "@react-native/new-app-screen": "0.84.1",
+    "@react-native/new-app-screen": "0.85.1",
     "@react-navigation/bottom-tabs": "^7.4.5",
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/native-stack": "^7.3.24",
@@ -53,7 +53,7 @@
     "@shopify/flash-list": "^2.0.2",
     "delay": "^6.0.0",
     "react": "19.2.3",
-    "react-native": "0.84.1",
+    "react-native": "0.85.1",
     "react-native-build-config": "^0.3.2",
     "react-native-gesture-handler": "^2.28.0",
     "react-native-image-picker": "^8.2.1",
@@ -61,7 +61,7 @@
     "react-native-reanimated": "4.3.0",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.13.1",
-    "react-native-svg": "^15.12.1",
+    "react-native-svg": "^15.15.4",
     "react-native-webview": "^13.15.0",
     "react-native-worklets": "0.8.1",
     "react-redux": "^9.2.0",
@@ -74,9 +74,10 @@
     "@react-native-community/cli": "20.1.0",
     "@react-native-community/cli-platform-android": "20.1.0",
     "@react-native-community/cli-platform-ios": "20.1.0",
-    "@react-native/babel-preset": "0.84.1",
-    "@react-native/metro-config": "0.84.1",
-    "@react-native/typescript-config": "0.84.1",
+    "@react-native/babel-preset": "0.85.1",
+    "@react-native/jest-preset": "0.85.1",
+    "@react-native/metro-config": "0.85.1",
+    "@react-native/typescript-config": "0.85.1",
     "@sentry/babel-plugin-component-annotate": "5.2.0",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.14",
@@ -91,7 +92,7 @@
     "react-test-renderer": "19.2.3",
     "sentry-react-native-samples-utils": "workspace:^",
     "ts-jest": "^29.3.1",
-    "typescript": "5.0.4"
+    "typescript": "5.8.3"
   },
   "engines": {
     "node": ">=22.11.0"
