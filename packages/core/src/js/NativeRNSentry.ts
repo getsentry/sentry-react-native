@@ -37,6 +37,7 @@ export interface Spec extends TurboModule {
   setTag(key: string, value: string): void;
   setAttribute(key: string, value: string): void;
   setAttributes(attributes: UnsafeObject): void;
+  removeAttribute(key: string): void;
   enableNativeFramesTracking(): void;
   fetchModules(): Promise<string | undefined | null>;
   fetchViewHierarchy(): Promise<number[] | undefined | null>;
