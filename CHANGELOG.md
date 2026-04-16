@@ -6,18 +6,6 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 8.8.0
-
-### Features
-
-- Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
-- Add `attachAllThreads` option to attach full stack traces for all threads to captured events on iOS ([#5960](https://github.com/getsentry/sentry-react-native/issues/5960))
-- Add `strictTraceContinuation` and `orgId` options for trace continuation validation ([#5829](https://github.com/getsentry/sentry-react-native/pull/5829))
-- Add `deeplinkIntegration` for automatic deep link breadcrumbs ([#5983](https://github.com/getsentry/sentry-react-native/pull/5983))
-- Name navigation spans using dispatched action payload when `useDispatchedActionData` is enabled ([#5982](https://github.com/getsentry/sentry-react-native/pull/5982))
-
-### Fixes
-
 ## Unreleased
 
 ### Fixes
