@@ -10,7 +10,7 @@
 
 ### Features
 
-- Expose scope-level attributes API (`setAttribute`, `setAttributes`, `removeAttribute`) bridging to native SDKs ([#5764](https://github.com/getsentry/sentry-react-native/issues/5764))
+- Expose scope-level attributes API (`setAttribute`, `setAttributes`, `removeAttribute`) bridging to native SDKs ([#6009](https://github.com/getsentry/sentry-react-native/pull/6009))
 
 ## 8.8.0
 
