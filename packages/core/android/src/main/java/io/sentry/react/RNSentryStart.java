@@ -2,6 +2,7 @@ package io.sentry.react;
 
 import android.app.Activity;
 import android.content.Context;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.JavascriptException;
@@ -144,6 +145,24 @@ final class RNSentryStart {
         }
         if (screenshotOptions.hasKey("maskAllImages")) {
           options.getScreenshot().setMaskAllImages(screenshotOptions.getBoolean("maskAllImages"));
+        }
+        if (screenshotOptions.hasKey("maskedViewClasses")) {
+          @Nullable
+          final ReadableArray maskedClasses = screenshotOptions.getArray("maskedViewClasses");
+          if (maskedClasses != null) {
+            for (int i = 0; i < maskedClasses.size(); i++) {
+              options.getScreenshot().addMaskViewClass(maskedClasses.getString(i));
+            }
+          }
+        }
+        if (screenshotOptions.hasKey("unmaskedViewClasses")) {
+          @Nullable
+          final ReadableArray unmaskedClasses = screenshotOptions.getArray("unmaskedViewClasses");
+          if (unmaskedClasses != null) {
+            for (int i = 0; i < unmaskedClasses.size(); i++) {
+              options.getScreenshot().addUnmaskViewClass(unmaskedClasses.getString(i));
+            }
+          }
         }
       }
     }

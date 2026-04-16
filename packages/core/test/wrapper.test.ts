@@ -422,6 +422,8 @@ describe('Tests Native Wrapper', () => {
         screenshot: {
           maskAllText: false,
           maskAllImages: true,
+          maskedViewClasses: ['com.example.MyView'],
+          unmaskedViewClasses: ['com.example.SafeView'],
         },
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
@@ -433,6 +435,8 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.screenshot).toEqual({
         maskAllText: false,
         maskAllImages: true,
+        maskedViewClasses: ['com.example.MyView'],
+        unmaskedViewClasses: ['com.example.SafeView'],
       });
     });
 

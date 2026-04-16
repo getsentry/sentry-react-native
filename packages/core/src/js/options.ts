@@ -211,6 +211,18 @@ export interface BaseReactNativeOptions {
      * @default true
      */
     maskAllImages?: boolean;
+    /**
+     * A list of native view class names to mask in error screenshots.
+     * Useful for masking views from third-party native libraries (e.g., map views, payment forms).
+     *
+     * @example ['com.example.MyCustomView'] // Android
+     * @example ['MKMapView'] // iOS
+     */
+    maskedViewClasses?: string[];
+    /**
+     * A list of native view class names to exclude from masking in error screenshots.
+     */
+    unmaskedViewClasses?: string[];
   };
 
   /**
