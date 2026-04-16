@@ -55,7 +55,7 @@
         return nil;
     }
 
-#if SENTRY_TARGET_REPLAY_SUPPORTED
+#if SENTRY_HAS_UIKIT
     NSDictionary *screenshotDict = mutableOptions[@"screenshot"];
     if ([screenshotDict isKindOfClass:[NSDictionary class]]) {
         sentryOptions.screenshot =
