@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
+
 ## 8.8.0
 
 ### Features
@@ -15,7 +21,6 @@
 - Add `strictTraceContinuation` and `orgId` options for trace continuation validation ([#5829](https://github.com/getsentry/sentry-react-native/pull/5829))
 - Add `deeplinkIntegration` for automatic deep link breadcrumbs ([#5983](https://github.com/getsentry/sentry-react-native/pull/5983))
 - Name navigation spans using dispatched action payload when `useDispatchedActionData` is enabled ([#5982](https://github.com/getsentry/sentry-react-native/pull/5982))
-- Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
 
 ### Fixes
 
