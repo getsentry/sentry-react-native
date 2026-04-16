@@ -21,11 +21,7 @@ function getSentryPluginPropertiesFromExpoConfig() {
       throw result.error || new Error(`expo config exited with status ${result.status}`);
     }
     const config = JSON.parse(result.stdout);
-    const plugins = config.plugins;
-    if (!plugins) {
-      return null;
-    }
-
+    const plugins = config.plugins || [];
     const sentryPlugin = plugins.find(plugin => {
       if (!Array.isArray(plugin) || plugin.length < 2) {
         return false;

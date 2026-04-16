@@ -509,6 +509,31 @@ process.exit(1);
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('SENTRY_ORG resolved to plugin-org');
     });
+
+    it('reads _internal.sentryBuildProperties even when plugins array is missing', () => {
+      createAssets(['bundle.js', 'bundle.js.map']);
+
+      const result = runScriptWithMockExpoConfig(
+        {
+          _internal: {
+            sentryBuildProperties: {
+              organization: 'no-plugins-org',
+              project: 'no-plugins-project',
+              url: 'https://sentry.io/',
+            },
+          },
+        },
+        {
+          SENTRY_ORG: undefined,
+          SENTRY_PROJECT: undefined,
+          SENTRY_URL: undefined,
+          MOCK_CLI_EXIT_CODE: '0',
+        },
+      );
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Uploaded bundles and sourcemaps to Sentry successfully');
+    });
   });
 
   describe('sourcemap processing', () => {
