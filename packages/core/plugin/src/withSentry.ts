@@ -22,6 +22,29 @@ interface PluginProps {
   experimental_android?: SentryAndroidGradlePluginOptions;
 }
 
+/**
+ * Store build-time properties in config._internal so they're discoverable
+ * by the sourcemap upload script via `expo config --json`, even when
+ * withSentry is used programmatically in app.config.ts.
+ *
+ * We use _internal instead of extra because _internal is stripped from the
+ * public config (app manifest) and not shipped in the production app, while
+ * extra would leak org/project metadata into the app binary.
+ */
+function storeBuildPropertiesInConfig(config: ExpoConfig, props: PluginProps | void): void {
+  if (props?.organization || props?.project) {
+    // ExpoConfig types don't include _internal, but it's a standard Expo field
+    // used by config plugins infrastructure (e.g. pluginHistory).
+    const configWithInternal = config as ExpoConfig & { _internal?: Record<string, unknown> };
+    configWithInternal._internal = configWithInternal._internal || {};
+    configWithInternal._internal.sentryBuildProperties = {
+      organization: props?.organization,
+      project: props?.project,
+      url: props?.url || 'https://sentry.io/',
+    };
+  }
+}
+
 const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
   const sentryProperties = getSentryProperties(props);
 
@@ -29,6 +52,8 @@ const withSentryPlugin: ConfigPlugin<PluginProps | void> = (config, props) => {
     // If not removed, the plugin config with the authToken will be written to the application package
     delete props.authToken;
   }
+
+  storeBuildPropertiesInConfig(config, props);
 
   let cfg = config;
   const pluginOptions = props?.options ? { ...props.options } : {};

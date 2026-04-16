@@ -21,11 +21,7 @@ function getSentryPluginPropertiesFromExpoConfig() {
       throw result.error || new Error(`expo config exited with status ${result.status}`);
     }
     const config = JSON.parse(result.stdout);
-    const plugins = config.plugins;
-    if (!plugins) {
-      return null;
-    }
-
+    const plugins = config.plugins || [];
     const sentryPlugin = plugins.find(plugin => {
       if (!Array.isArray(plugin) || plugin.length < 2) {
         return false;
@@ -34,15 +30,65 @@ function getSentryPluginPropertiesFromExpoConfig() {
       return pluginName === '@sentry/react-native/expo';
     });
 
-    if (!sentryPlugin) {
-      return null;
+    if (sentryPlugin) {
+      const [, pluginConfig] = sentryPlugin;
+      return pluginConfig;
     }
-    const [, pluginConfig] = sentryPlugin;
-    return pluginConfig;
+
+    // When withSentry is used programmatically in app.config.ts, the plugin
+    // doesn't appear in the plugins array. Check config._internal where the
+    // plugin stashes build-time properties as a fallback.
+    if (config._internal?.sentryBuildProperties) {
+      return config._internal.sentryBuildProperties;
+    }
+
+    return null;
   } catch (error) {
     console.error('Error fetching expo config:', error);
     return null;
   }
+}
+
+function getSentryPropertiesFromFile() {
+  const candidates = [
+    path.join(projectRoot, 'android', 'sentry.properties'),
+    path.join(projectRoot, 'ios', 'sentry.properties'),
+  ];
+  for (const candidate of candidates) {
+    if (!fs.existsSync(candidate)) {
+      continue;
+    }
+    try {
+      const content = fs.readFileSync(candidate, 'utf8');
+      const props = {};
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) {
+          continue;
+        }
+        const eqIndex = trimmed.indexOf('=');
+        if (eqIndex === -1) {
+          continue;
+        }
+        const key = trimmed.substring(0, eqIndex).trim();
+        const value = trimmed.substring(eqIndex + 1).trim();
+        if (key === 'defaults.org') {
+          props.organization = value;
+        } else if (key === 'defaults.project') {
+          props.project = value;
+        } else if (key === 'defaults.url') {
+          props.url = value;
+        }
+      }
+      if (props.organization || props.project) {
+        console.log(`Found sentry properties in ${candidate}`);
+        return props;
+      }
+    } catch (_e) {
+      // continue to next candidate
+    }
+  }
+  return null;
 }
 
 function readAndPrintJSONFile(filePath) {
@@ -144,9 +190,16 @@ const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentr
 
 if (!sentryOrg || !sentryProject || !sentryUrl) {
   console.log('🐕 Fetching from expo config...');
-  const pluginConfig = getSentryPluginPropertiesFromExpoConfig();
+  let pluginConfig = getSentryPluginPropertiesFromExpoConfig();
   if (!pluginConfig) {
-    console.error("Could not fetch '@sentry/react-native' plugin properties from expo config.");
+    console.log('Could not fetch from expo config, trying sentry.properties files...');
+    pluginConfig = getSentryPropertiesFromFile();
+  }
+  if (!pluginConfig) {
+    console.error(
+      "Could not resolve Sentry configuration. Set SENTRY_ORG, SENTRY_PROJECT, and SENTRY_URL environment variables, " +
+      "or ensure '@sentry/react-native/expo' is in your plugins array in app.json/app.config.ts."
+    );
     process.exit(1);
   }
 

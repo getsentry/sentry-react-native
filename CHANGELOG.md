@@ -18,6 +18,7 @@
 
 ### Fixes
 
+- Fix sourcemap upload script failing when `withSentry` is used programmatically in `app.config.ts` ([#6006](https://github.com/getsentry/sentry-react-native/pull/6006))
 - Retry native module resolution to prevent silent event drops in production Hermes builds ([#5981](https://github.com/getsentry/sentry-react-native/pull/5981))
 - Lazy-load Metro internal modules to prevent Expo 55 import errors ([#5958](https://github.com/getsentry/sentry-react-native/pull/5958))
 - Fix app start transaction profile offset by using the actual profiling start timestamp instead of the adjusted app start time ([#5962](https://github.com/getsentry/sentry-react-native/issues/5962))
