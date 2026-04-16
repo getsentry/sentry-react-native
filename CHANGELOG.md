@@ -10,6 +10,7 @@
 
 ### Features
 
+- Expose Android screenshot masking options (`screenshot.maskAllText`, `screenshot.maskAllImages`) for error screenshots ([#5763](https://github.com/getsentry/sentry-react-native/issues/5763))
 - Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
 - Add `attachAllThreads` option to attach full stack traces for all threads to captured events on iOS ([#5960](https://github.com/getsentry/sentry-react-native/issues/5960))
 - Add `strictTraceContinuation` and `orgId` options for trace continuation validation ([#5829](https://github.com/getsentry/sentry-react-native/pull/5829))

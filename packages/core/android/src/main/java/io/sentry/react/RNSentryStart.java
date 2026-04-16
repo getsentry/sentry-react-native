@@ -136,6 +136,17 @@ final class RNSentryStart {
     if (rnOptions.hasKey("attachScreenshot")) {
       options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
     }
+    if (rnOptions.hasKey("screenshot")) {
+      @Nullable final ReadableMap screenshotOptions = rnOptions.getMap("screenshot");
+      if (screenshotOptions != null) {
+        if (screenshotOptions.hasKey("maskAllText")) {
+          options.getScreenshot().setMaskAllText(screenshotOptions.getBoolean("maskAllText"));
+        }
+        if (screenshotOptions.hasKey("maskAllImages")) {
+          options.getScreenshot().setMaskAllImages(screenshotOptions.getBoolean("maskAllImages"));
+        }
+      }
+    }
     if (rnOptions.hasKey("attachViewHierarchy")) {
       options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
     }

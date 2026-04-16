@@ -152,6 +152,11 @@ Sentry.init({
   attachStacktrace: true,
   // Attach screenshots to events.
   attachScreenshot: true,
+  // Screenshot masking options (Android only).
+  screenshot: {
+    maskAllText: true,
+    maskAllImages: true,
+  },
   // Attach view hierarchy to events.
   attachViewHierarchy: true,
   // Enables capture failed requests in JS and native.
