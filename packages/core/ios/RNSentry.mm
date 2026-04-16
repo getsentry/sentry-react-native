@@ -803,27 +803,36 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
  * This prevents returning a stale buffer-mode replay ID when the
  * capture actually failed (e.g., replay not running).
  *
+ * Falls back to the old void captureReplay if the integration
+ * cannot be accessed directly (e.g., future Cocoa SDK changes).
+ *
  * See https://github.com/getsentry/sentry-react-native/issues/5074
  */
 + (BOOL)captureReplayWithReturnValue
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     @try {
+        if ([PrivateSentrySDKOnly respondsToSelector:@selector(getReplayIntegration)]) {
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-        id replayIntegration =
-            [PrivateSentrySDKOnly performSelector:@selector(getReplayIntegration)];
+            id replayIntegration =
+                [PrivateSentrySDKOnly performSelector:@selector(getReplayIntegration)];
 #    pragma clang diagnostic pop
-        if (replayIntegration && [replayIntegration respondsToSelector:@selector(captureReplay)]) {
-            typedef BOOL (*CaptureReplayIMP)(id, SEL);
-            CaptureReplayIMP captureFunc
-                = (CaptureReplayIMP)[replayIntegration methodForSelector:@selector(captureReplay)];
-            return captureFunc(replayIntegration, @selector(captureReplay));
+            if (replayIntegration &&
+                [replayIntegration respondsToSelector:@selector(captureReplay)]) {
+                typedef BOOL (*CaptureReplayIMP)(id, SEL);
+                CaptureReplayIMP captureFunc = (CaptureReplayIMP)
+                    [replayIntegration methodForSelector:@selector(captureReplay)];
+                return captureFunc(replayIntegration, @selector(captureReplay));
+            }
         }
     } @catch (NSException *exception) {
         NSLog(@"[RNSentry] Failed to call captureReplay on integration: %@", exception);
     }
-    return NO;
+    // Fallback: call the void method and assume success if a replay ID exists.
+    // This preserves the old behavior when the integration isn't directly accessible.
+    [PrivateSentrySDKOnly captureReplay];
+    return [PrivateSentrySDKOnly getReplayId] != nil;
 #else
     return NO;
 #endif
