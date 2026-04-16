@@ -91,6 +91,34 @@ class RNSentryReplayBreadcrumbConverterTest {
     }
 
     @Test
+    fun convertFrustrationBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.level = SentryLevel.WARNING
+        testBreadcrumb.type = "user"
+        testBreadcrumb.category = "ui.frustration"
+        testBreadcrumb.message = "Rage tap detected on: Submit"
+        testBreadcrumb.setData(
+            "path",
+            arrayListOf(
+                mapOf(
+                    "name" to "SubmitButton",
+                    "label" to "Submit",
+                    "file" to "form.tsx",
+                ),
+            ),
+        )
+        testBreadcrumb.setData("type", "rage_tap")
+        testBreadcrumb.setData("tapCount", 3.0)
+        val actual = converter.convert(testBreadcrumb) as RRWebBreadcrumbEvent
+
+        assertRRWebBreadcrumbDefaults(actual)
+        assertEquals(SentryLevel.WARNING, actual.level)
+        assertEquals("ui.frustration", actual.category)
+        assertEquals("Submit(form.tsx)", actual.message)
+    }
+
+    @Test
     fun convertTouchBreadcrumb() {
         val converter = RNSentryReplayBreadcrumbConverter()
         val testBreadcrumb = Breadcrumb()
