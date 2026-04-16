@@ -794,12 +794,51 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
+/**
+ * Calls captureReplay on the native replay integration and returns
+ * the BOOL result indicating whether the capture succeeded.
+ *
+ * PrivateSentrySDKOnly.captureReplay is void and discards the result,
+ * so we call the integration directly to get the success status.
+ * This prevents returning a stale buffer-mode replay ID when the
+ * capture actually failed (e.g., replay not running).
+ *
+ * See https://github.com/getsentry/sentry-react-native/issues/5074
+ */
++ (BOOL)captureReplayWithReturnValue
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    @try {
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        id replayIntegration =
+            [PrivateSentrySDKOnly performSelector:@selector(getReplayIntegration)];
+#    pragma clang diagnostic pop
+        if (replayIntegration && [replayIntegration respondsToSelector:@selector(captureReplay)]) {
+            typedef BOOL (*CaptureReplayIMP)(id, SEL);
+            CaptureReplayIMP captureFunc
+                = (CaptureReplayIMP)[replayIntegration methodForSelector:@selector(captureReplay)];
+            return captureFunc(replayIntegration, @selector(captureReplay));
+        }
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call captureReplay on integration: %@", exception);
+    }
+    return NO;
+#else
+    return NO;
+#endif
+}
+
 RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [PrivateSentrySDKOnly captureReplay];
-    resolve([PrivateSentrySDKOnly getReplayId]);
+    BOOL captured = [RNSentry captureReplayWithReturnValue];
+    if (captured) {
+        resolve([PrivateSentrySDKOnly getReplayId]);
+    } else {
+        resolve(nil);
+    }
 #else
     resolve(nil);
 #endif

@@ -1402,4 +1402,28 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertEqual(testEvent.tags[@"event.environment"], @"native");
 }
 
+#pragma mark - captureReplayWithReturnValue Tests
+
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+- (void)testCaptureReplayWithReturnValueReturnsFalseWhenReplayNotRunning
+{
+    // Without starting the SDK with replay enabled,
+    // the replay integration should not be available
+    // and captureReplayWithReturnValue should return NO
+    BOOL result = [RNSentry captureReplayWithReturnValue];
+    XCTAssertFalse(result,
+        @"captureReplayWithReturnValue should return NO when replay integration is not available");
+}
+
+- (void)testCaptureReplayWithReturnValueReturnsFalseWithoutInit
+{
+    // When the SDK is not initialized at all, there should be no replay integration
+    // and captureReplayWithReturnValue should return NO without crashing
+    BOOL result = [RNSentry captureReplayWithReturnValue];
+    XCTAssertFalse(result,
+        @"captureReplayWithReturnValue should return NO without crashing when SDK is not "
+        @"initialized");
+}
+#endif
+
 @end
