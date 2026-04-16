@@ -152,7 +152,7 @@ Sentry.init({
   attachStacktrace: true,
   // Attach screenshots to events.
   attachScreenshot: true,
-  // Screenshot masking options (Android only).
+  // Screenshot masking options.
   screenshot: {
     maskAllText: true,
     maskAllImages: true,

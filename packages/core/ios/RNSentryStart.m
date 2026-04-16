@@ -55,6 +55,14 @@
         return nil;
     }
 
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    NSDictionary *screenshotDict = mutableOptions[@"screenshot"];
+    if ([screenshotDict isKindOfClass:[NSDictionary class]]) {
+        sentryOptions.screenshot =
+            [[SentryViewScreenshotOptions alloc] initWithDictionary:screenshotDict];
+    }
+#endif
+
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
     // TODO: For Auto Init from JS dev server is resolved automatically, for init from options file
