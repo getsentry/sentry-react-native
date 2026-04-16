@@ -142,6 +142,16 @@ final class RNSentryStart {
     if (rnOptions.hasKey("sendDefaultPii")) {
       options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
     }
+    if (rnOptions.hasKey("strictTraceContinuation")) {
+      options.setStrictTraceContinuation(rnOptions.getBoolean("strictTraceContinuation"));
+    }
+    if (rnOptions.hasKey("orgId")) {
+      if (rnOptions.getType("orgId") == ReadableType.String) {
+        options.setOrgId(rnOptions.getString("orgId"));
+      } else if (rnOptions.getType("orgId") == ReadableType.Number) {
+        options.setOrgId(String.valueOf((long) rnOptions.getDouble("orgId")));
+      }
+    }
     if (rnOptions.hasKey("maxQueueSize")) {
       options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));
     }

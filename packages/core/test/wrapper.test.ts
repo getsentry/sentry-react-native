@@ -397,6 +397,38 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.enableLogs).toBe(expectedEnableLogs);
       expect(initParameter.logsOrigin).toBeUndefined();
     });
+
+    test('passes strictTraceContinuation option to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        strictTraceContinuation: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.strictTraceContinuation).toBe(true);
+    });
+
+    test('passes orgId option to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        orgId: '12345',
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.orgId).toBe('12345');
+    });
   });
 
   describe('sendEnvelope', () => {

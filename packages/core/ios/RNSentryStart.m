@@ -100,6 +100,20 @@
         }
     }
 
+    // Set strict trace continuation options
+    if ([mutableOptions valueForKey:@"strictTraceContinuation"] != nil) {
+        sentryOptions.strictTraceContinuation =
+            [mutableOptions[@"strictTraceContinuation"] boolValue];
+    }
+    if ([mutableOptions valueForKey:@"orgId"] != nil) {
+        id orgIdValue = [mutableOptions valueForKey:@"orgId"];
+        if ([orgIdValue isKindOfClass:[NSString class]]) {
+            sentryOptions.orgId = orgIdValue;
+        } else if ([orgIdValue isKindOfClass:[NSNumber class]]) {
+            sentryOptions.orgId = [orgIdValue stringValue];
+        }
+    }
+
     if (isSessionReplayEnabled) {
         [RNSentryExperimentalOptions setEnableSessionReplayInUnreliableEnvironment:YES
                                                                      sentryOptions:sentryOptions];
