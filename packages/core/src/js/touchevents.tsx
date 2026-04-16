@@ -6,6 +6,7 @@ import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createIntegration } from './integrations/factory';
+import type { TouchedComponentInfo } from './ragetap';
 import { RageTapDetector } from './ragetap';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
@@ -95,13 +96,6 @@ interface ElementInstance {
   return?: ElementInstance;
 }
 
-interface TouchedComponentInfo {
-  name?: string;
-  label?: string;
-  element?: string;
-  file?: string;
-}
-
 interface PrivateGestureResponderEvent extends GestureResponderEvent {
   _targetInst?: ElementInstance;
 }
@@ -123,16 +117,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
   public readonly name: string = 'TouchEventBoundary';
 
-  private _rageTapDetector: RageTapDetector;
-
-  public constructor(props: TouchEventBoundaryProps) {
-    super(props);
-    this._rageTapDetector = new RageTapDetector({
-      enabled: props.enableRageTapDetection,
-      threshold: props.rageTapThreshold,
-      timeWindow: props.rageTapTimeWindow,
-    });
-  }
+  private _rageTapDetector: RageTapDetector = new RageTapDetector();
 
   /**
    * Registers the TouchEventBoundary as a Sentry Integration.
@@ -237,6 +222,11 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     const label = touchPath.find(info => info.label)?.label;
     if (touchPath.length > 0) {
       this._logTouchEvent(touchPath, label);
+      this._rageTapDetector.updateOptions({
+        enabled: this.props.enableRageTapDetection,
+        threshold: this.props.rageTapThreshold,
+        timeWindow: this.props.rageTapTimeWindow,
+      });
       this._rageTapDetector.check(touchPath, label);
     }
 

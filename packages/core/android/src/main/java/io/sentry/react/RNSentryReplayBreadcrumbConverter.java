@@ -76,7 +76,11 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
   }
 
   @TestOnly
-  public @NotNull RRWebEvent convertFrustrationBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+  public @Nullable RRWebEvent convertFrustrationBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+    if (breadcrumb.getData("path") == null) {
+      return null;
+    }
+
     final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
 
     rrWebBreadcrumb.setCategory("ui.frustration");

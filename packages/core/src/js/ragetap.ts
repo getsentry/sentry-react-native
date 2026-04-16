@@ -3,12 +3,6 @@ import { addBreadcrumb, debug } from '@sentry/core';
 
 const DEFAULT_RAGE_TAP_THRESHOLD = 3;
 const DEFAULT_RAGE_TAP_TIME_WINDOW = 1000;
-const MAX_RECENT_TAPS = 10;
-
-interface RecentTap {
-  identity: string;
-  timestamp: number;
-}
 
 export interface TouchedComponentInfo {
   name?: string;
@@ -21,6 +15,11 @@ export interface RageTapDetectorOptions {
   enabled: boolean;
   threshold: number;
   timeWindow: number;
+}
+
+interface RecentTap {
+  identity: string;
+  timestamp: number;
 }
 
 /**
@@ -37,6 +36,21 @@ export class RageTapDetector {
     this._enabled = options?.enabled ?? true;
     this._threshold = options?.threshold ?? DEFAULT_RAGE_TAP_THRESHOLD;
     this._timeWindow = options?.timeWindow ?? DEFAULT_RAGE_TAP_TIME_WINDOW;
+  }
+
+  /**
+   * Update options at runtime (e.g. when React props change).
+   */
+  public updateOptions(options: Partial<RageTapDetectorOptions>): void {
+    if (options.enabled !== undefined) {
+      this._enabled = options.enabled;
+    }
+    if (options.threshold !== undefined) {
+      this._threshold = options.threshold;
+    }
+    if (options.timeWindow !== undefined) {
+      this._timeWindow = options.timeWindow;
+    }
   }
 
   /**
@@ -80,28 +94,22 @@ export class RageTapDetector {
    * Returns the tap count if rage tap is detected, 0 otherwise.
    */
   private _detect(identity: string, now: number): number {
-    this._recentTaps.push({ identity, timestamp: now });
-
-    // Keep buffer bounded
-    if (this._recentTaps.length > MAX_RECENT_TAPS) {
-      this._recentTaps = this._recentTaps.slice(-MAX_RECENT_TAPS);
+    // If the target changed, reset the buffer — only truly consecutive
+    // taps on the same target count. This prevents false positives where
+    // time-window pruning removes interleaved taps on other targets.
+    const lastTap = this._recentTaps[this._recentTaps.length - 1];
+    if (lastTap && lastTap.identity !== identity) {
+      this._recentTaps = [];
     }
+
+    this._recentTaps.push({ identity, timestamp: now });
 
     // Prune taps outside the time window
     const cutoff = now - this._timeWindow;
     this._recentTaps = this._recentTaps.filter(tap => tap.timestamp >= cutoff);
 
-    // Count consecutive taps on the same target (from the end)
-    let count = 0;
-    for (let i = this._recentTaps.length - 1; i >= 0; i--) {
-      if (this._recentTaps[i]?.identity === identity) {
-        count++;
-      } else {
-        break;
-      }
-    }
-
-    if (count >= this._threshold) {
+    if (this._recentTaps.length >= this._threshold) {
+      const count = this._recentTaps.length;
       this._recentTaps = [];
       return count;
     }
