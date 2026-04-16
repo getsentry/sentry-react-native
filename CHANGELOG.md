@@ -18,7 +18,24 @@
 
 ### Fixes
 
+## Unreleased
+
+### Fixes
+
 - Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))
+
+## 8.8.0
+
+### Features
+
+- Enable "Open Sentry" button in Playground for Expo apps ([#5947](https://github.com/getsentry/sentry-react-native/pull/5947))
+- Add `attachAllThreads` option to attach full stack traces for all threads to captured events on iOS ([#5960](https://github.com/getsentry/sentry-react-native/issues/5960))
+- Add `strictTraceContinuation` and `orgId` options for trace continuation validation ([#5829](https://github.com/getsentry/sentry-react-native/pull/5829))
+- Add `deeplinkIntegration` for automatic deep link breadcrumbs ([#5983](https://github.com/getsentry/sentry-react-native/pull/5983))
+- Name navigation spans using dispatched action payload when `useDispatchedActionData` is enabled ([#5982](https://github.com/getsentry/sentry-react-native/pull/5982))
+
+### Fixes
+
 - Fix sourcemap upload script failing when `withSentry` is used programmatically in `app.config.ts` ([#6006](https://github.com/getsentry/sentry-react-native/pull/6006))
 - Retry native module resolution to prevent silent event drops in production Hermes builds ([#5981](https://github.com/getsentry/sentry-react-native/pull/5981))
 - Lazy-load Metro internal modules to prevent Expo 55 import errors ([#5958](https://github.com/getsentry/sentry-react-native/pull/5958))
