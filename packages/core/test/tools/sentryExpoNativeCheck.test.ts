@@ -46,6 +46,13 @@ android {
 }
 `;
 
+const BUILD_GRADLE_WITH_ANDROID_GRADLE_PLUGIN = `
+apply plugin: "io.sentry.android.gradle"
+
+android {
+}
+`;
+
 const BUILD_GRADLE_WITHOUT_SENTRY = `
 android {
 }
@@ -124,6 +131,17 @@ describe('checkSentryExpoNativeProject', () => {
       mockFilesystem({
         '/project/package.json': PACKAGE_JSON_WITH_EXPO,
         '/project/android/app/build.gradle': BUILD_GRADLE_WITH_SENTRY,
+      });
+
+      checkSentryExpoNativeProject('/project');
+
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    test('Android with io.sentry.android.gradle plugin in build.gradle', () => {
+      mockFilesystem({
+        '/project/package.json': PACKAGE_JSON_WITH_EXPO,
+        '/project/android/app/build.gradle': BUILD_GRADLE_WITH_ANDROID_GRADLE_PLUGIN,
       });
 
       checkSentryExpoNativeProject('/project');

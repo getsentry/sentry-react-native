@@ -72,7 +72,7 @@ function isAndroidProjectMissingSentry(projectRoot: string): boolean {
   }
 
   const buildGradleContents = fs.readFileSync(buildGradlePath, 'utf8');
-  return !buildGradleContents.includes('sentry.gradle');
+  return !buildGradleContents.includes('sentry.gradle') && !buildGradleContents.includes('io.sentry.android.gradle');
 }
 
 function findPbxprojFile(iosDir: string): string | null {
