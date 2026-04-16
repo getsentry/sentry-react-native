@@ -45,7 +45,7 @@ export function getRNSentryModule(): Spec | undefined {
     : NativeModules.RNSentry;
 }
 
-const RNSentry: Spec | undefined = getRNSentryModule();
+let RNSentry: Spec | undefined = getRNSentryModule();
 
 export interface Screenshot {
   data: Uint8Array;
@@ -649,6 +649,9 @@ export const NATIVE: SentryNativeWrapper = {
   },
 
   isNativeAvailable(): boolean {
+    if (!RNSentry) {
+      RNSentry = getRNSentryModule();
+    }
     return this._isModuleLoaded(RNSentry);
   },
 

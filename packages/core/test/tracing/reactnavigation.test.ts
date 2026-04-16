@@ -1083,7 +1083,7 @@ describe('ReactNavigationInstrumentation', () => {
         routeChangeTimeoutMs: 200,
         useDispatchedActionData: true,
       });
-      const freshMockNavigation = createMockNavigationAndAttachTo(rNavigation);
+      createMockNavigationAndAttachTo(rNavigation);
 
       const rnTracing = reactNativeTracingIntegration();
       const options = getDefaultTestClientOptions({
