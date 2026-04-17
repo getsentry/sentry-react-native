@@ -12,6 +12,10 @@
 
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
 
+### Fixes
+
+- fix(profiling): iOS UI profiling on v8
+
 ## 8.8.0
 
 ### Features

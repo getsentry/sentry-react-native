@@ -100,6 +100,16 @@
         }
     }
 
+    // Configure iOS UI Profiling from _experiments.profilingOptions
+    NSDictionary *experiments = mutableOptions[@"_experiments"];
+    if (experiments != nil && [experiments isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *profilingOptions = experiments[@"profilingOptions"];
+        if (profilingOptions != nil && [profilingOptions isKindOfClass:[NSDictionary class]]) {
+            [RNSentryExperimentalOptions configureProfilingWithOptions:profilingOptions
+                                                         sentryOptions:sentryOptions];
+        }
+    }
+
     // Set strict trace continuation options
     if ([mutableOptions valueForKey:@"strictTraceContinuation"] != nil) {
         sentryOptions.strictTraceContinuation =
