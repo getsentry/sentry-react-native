@@ -15,6 +15,7 @@
 ### Fixes
 
 - Fix iOS UI profiling options being silently ignored since v8.0.0 ([#6012](https://github.com/getsentry/sentry-react-native/pull/6012))
+- Fix `_experiments.enableUnhandledCPPExceptionsV2` being silently ignored on iOS since v8.0.0
 
 ## 8.8.0
 
