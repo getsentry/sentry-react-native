@@ -3,3 +3,7 @@ agents = ["claude", "cursor"]
 
 [trust]
 github_orgs = ["getsentry"]
+
+[[skills]]
+name = "warden"
+source = "getsentry/warden"
