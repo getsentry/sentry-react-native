@@ -16,5 +16,5 @@ android {
 
 dependencies {
     compileOnly project(':expo-modules-core')
-    compileOnly 'io.sentry:sentry-android:8.38.0'
+    compileOnly 'io.sentry:sentry-android:8.39.1'
 }
