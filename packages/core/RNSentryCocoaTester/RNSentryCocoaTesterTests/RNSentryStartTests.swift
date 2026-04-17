@@ -203,7 +203,7 @@ final class RNSentryStartTests: XCTestCase {
             "attachScreenshot": true,
             "screenshot": [
                 "maskAllText": false,
-                "maskAllImages": true,
+                "maskAllImages": true
             ]
         ])
 
@@ -216,7 +216,7 @@ final class RNSentryStartTests: XCTestCase {
     func testScreenshotMaskingOptionsDefaults() throws {
         try startFromRN(options: [
             "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
-            "attachScreenshot": true,
+            "attachScreenshot": true
         ])
 
         let actualOptions = PrivateSentrySDKOnly.options
