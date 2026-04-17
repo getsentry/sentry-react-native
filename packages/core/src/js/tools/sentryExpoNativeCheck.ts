@@ -46,7 +46,10 @@ function isExpoProject(projectRoot: string): boolean {
     return false;
   }
 
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as {
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  };
   return !!(packageJson.dependencies?.expo || packageJson.devDependencies?.expo);
 }
 
