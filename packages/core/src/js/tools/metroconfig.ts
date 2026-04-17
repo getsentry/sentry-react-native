@@ -10,11 +10,11 @@ import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
 import { enableLogger } from './enableLogger';
 import { withSentryMiddleware } from './metroMiddleware';
-import { checkSentryExpoNativeProject } from './sentryExpoNativeCheck';
 import {
   setSentryBabelTransformerOptions,
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
+import { checkSentryExpoNativeProject } from './sentryExpoNativeCheck';
 import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
