@@ -14,7 +14,7 @@
 
 ### Fixes
 
-- fix(profiling): iOS UI profiling on v8
+- Fix iOS UI profiling options being silently ignored since v8.0.0 ([#6012](https://github.com/getsentry/sentry-react-native/pull/6012))
 
 ## 8.8.0
 

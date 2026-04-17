@@ -1399,6 +1399,12 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNotNil(actualOptions.configureProfiling,
         @"configureProfiling must be installed after startWithOptions when profilingOptions is "
         @"present");
+
+    SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
+    actualOptions.configureProfiling(probe);
+    XCTAssertEqual(probe.sessionSampleRate, 1.0f);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertTrue(probe.profileAppStarts);
 }
 
 - (void)testStartCreateOptionsWithDictionaryProfilingOptionsInstallsConfigureProfiling
@@ -1422,6 +1428,12 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertNotNil(actualOptions.configureProfiling,
         @"configureProfiling callback should be installed when profilingOptions is present");
+
+    SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
+    actualOptions.configureProfiling(probe);
+    XCTAssertEqual(probe.sessionSampleRate, 1.0f);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertTrue(probe.profileAppStarts);
 }
 
 - (void)testStartCreateOptionsWithDictionaryProfilingOptionsMissingDoesNotInstallConfigureProfiling
