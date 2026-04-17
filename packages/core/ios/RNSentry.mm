@@ -831,14 +831,15 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     }
     // Fallback: call the void method and assume success if a replay ID exists.
     // This preserves the old behavior when the integration isn't directly accessible.
-    @
-    try {
+    // clang-format off
+    @try {
         [PrivateSentrySDKOnly captureReplay];
         return [PrivateSentrySDKOnly getReplayId] != nil;
     } @catch (NSException *exception) {
         NSLog(@"[RNSentry] Failed to call captureReplay fallback: %@", exception);
         return NO;
     }
+    // clang-format on
 #else
     return NO;
 #endif
