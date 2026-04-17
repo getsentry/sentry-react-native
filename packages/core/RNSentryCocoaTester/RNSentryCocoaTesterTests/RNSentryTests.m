@@ -1,4 +1,5 @@
 #import "RNSentryTests.h"
+#import "RNSentry+Test.h"
 #import "RNSentryReplay.h"
 #import "RNSentryStart+Test.h"
 #import "SentrySDKWrapper.h"
