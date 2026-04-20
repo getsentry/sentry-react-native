@@ -419,6 +419,38 @@ describe('TouchEventBoundary._onTouchStart', () => {
         }),
       );
     });
+
+    it('does not trigger when taps are outside the time window', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      const nowMock = jest.spyOn(Date, 'now');
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: { 'sentry-label': 'submit' },
+        },
+      };
+
+      nowMock.mockReturnValue(1000);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      nowMock.mockReturnValue(1500);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      // Third tap beyond 1000ms default window
+      nowMock.mockReturnValue(2500);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      // Only touch breadcrumbs, no multiClick
+      expect(addBreadcrumb).toHaveBeenCalledTimes(3);
+      for (const call of addBreadcrumb.mock.calls) {
+        expect(call[0].category).toBe('touch');
+      }
+    });
   });
 
   describe('sentry-span-attributes', () => {

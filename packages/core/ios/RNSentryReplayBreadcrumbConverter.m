@@ -85,8 +85,12 @@
         return nil;
     }
 
-    NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
-    NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
+    id maybePath = [breadcrumb.data valueForKey:@"path"];
+    if (![maybePath isKindOfClass:[NSArray class]]) {
+        return nil;
+    }
+
+    NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:maybePath];
 
     return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                               category:@"ui.multiClick"

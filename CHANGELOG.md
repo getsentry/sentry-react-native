@@ -13,6 +13,7 @@
 - Expose screenshot masking options (`screenshot.maskAllText`, `screenshot.maskAllImages`, `screenshot.maskedViewClasses`, `screenshot.unmaskedViewClasses`) for error screenshots ([#6007](https://github.com/getsentry/sentry-react-native/pull/6007))
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
 - Add `Sentry.GlobalErrorBoundary` component (and `withGlobalErrorBoundary` HOC) that renders a fallback UI for fatal non-rendering JS errors routed through `ErrorUtils` in addition to the render-phase errors caught by `Sentry.ErrorBoundary`. Opt-in flags `includeNonFatalGlobalErrors` and `includeUnhandledRejections` extend the fallback to non-fatal errors and unhandled promise rejections respectively. ([#6023](https://github.com/getsentry/sentry-react-native/pull/6023))
+- Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
 ### Fixes
 
@@ -39,7 +40,6 @@
 - Add `strictTraceContinuation` and `orgId` options for trace continuation validation ([#5829](https://github.com/getsentry/sentry-react-native/pull/5829))
 - Add `deeplinkIntegration` for automatic deep link breadcrumbs ([#5983](https://github.com/getsentry/sentry-react-native/pull/5983))
 - Name navigation spans using dispatched action payload when `useDispatchedActionData` is enabled ([#5982](https://github.com/getsentry/sentry-react-native/pull/5982))
-- Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
 ### Fixes
 

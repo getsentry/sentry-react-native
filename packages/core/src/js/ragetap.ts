@@ -50,6 +50,9 @@ export class RageTapDetector {
   public updateOptions(options: Partial<RageTapDetectorOptions>): void {
     if (options.enabled !== undefined) {
       this._enabled = options.enabled;
+      if (!this._enabled) {
+        this._recentTaps = [];
+      }
     }
     if (options.threshold !== undefined) {
       this._threshold = options.threshold;
