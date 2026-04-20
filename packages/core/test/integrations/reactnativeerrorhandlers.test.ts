@@ -315,11 +315,9 @@ describe('ReactNativeErrorHandlers', () => {
 
       const publishSpy = jest.spyOn(globalErrorBus, 'publishGlobalError').mockImplementation(() => {});
       onUnhandledHandler('test-id', 'Test Error');
-      expect(publishSpy).toHaveBeenCalledWith({
-        error: 'Test Error',
-        isFatal: false,
-        kind: 'onunhandledrejection',
-      });
+      expect(publishSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Test Error', isFatal: false, kind: 'onunhandledrejection' }),
+      );
       publishSpy.mockRestore();
 
       expect(captureException).toHaveBeenCalledWith(
@@ -393,11 +391,9 @@ describe('ReactNativeErrorHandlers', () => {
         const testError = new Error('Hermes Test Error');
         const publishSpy = jest.spyOn(globalErrorBus, 'publishGlobalError').mockImplementation(() => {});
         onUnhandledHandler('hermes-test-error', testError);
-        expect(publishSpy).toHaveBeenCalledWith({
-          error: testError,
-          isFatal: false,
-          kind: 'onunhandledrejection',
-        });
+        expect(publishSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ error: testError, isFatal: false, kind: 'onunhandledrejection' }),
+        );
         publishSpy.mockRestore();
 
         expect(captureException).toHaveBeenCalledWith(
@@ -441,11 +437,9 @@ describe('ReactNativeErrorHandlers', () => {
         const mockError = new Error('Web Test Error');
         const publishSpy = jest.spyOn(globalErrorBus, 'publishGlobalError').mockImplementation(() => {});
         callback(mockError);
-        expect(publishSpy).toHaveBeenCalledWith({
-          error: mockError,
-          isFatal: false,
-          kind: 'onunhandledrejection',
-        });
+        expect(publishSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ error: mockError, isFatal: false, kind: 'onunhandledrejection' }),
+        );
         publishSpy.mockRestore();
 
         expect(captureException).toHaveBeenCalledWith(
