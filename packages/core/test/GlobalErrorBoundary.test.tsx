@@ -27,18 +27,19 @@ function Ok(): React.ReactElement {
 }
 
 describe('GlobalErrorBoundary', () => {
-  // react-test-renderer / React surfaces a console.error for uncaught exceptions
-  // routed through componentDidCatch. Silence to keep test output clean.
-  let errorSpy: jest.SpyInstance;
-  beforeAll(() => {
-    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-  });
-  afterAll(() => {
-    errorSpy.mockRestore();
-  });
-
   beforeEach(() => {
     _resetGlobalErrorBus();
+    // react-test-renderer / React surfaces a console.error for uncaught
+    // exceptions routed through componentDidCatch. Silence per-test so it
+    // survives restoreAllMocks() in afterEach.
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    // Restore every jest.spyOn() created in beforeEach or inside individual
+    // tests (lastEventId, captureReactException, …) so they don't leak into
+    // subsequent tests.
+    jest.restoreAllMocks();
   });
 
   test('renders children when no error occurs', () => {
@@ -209,7 +210,6 @@ describe('GlobalErrorBoundary', () => {
 
     expect(getByTestId('fallback').props.children.join('')).toBe('fallback:global-once');
     expect(captureReactExceptionSpy).not.toHaveBeenCalled();
-    captureReactExceptionSpy.mockRestore();
   });
 
   test('surfaces the published eventId to the fallback for global errors', () => {
