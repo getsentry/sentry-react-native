@@ -76,12 +76,16 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
 
       // Use Sentry's built-in global unhandled rejection handler
       addGlobalUnhandledRejectionInstrumentationHandler((error: unknown) => {
-        captureException(error, {
+        const eventId = captureException(error, {
           originalException: error,
           syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
           mechanism: { handled: false, type: 'onunhandledrejection' },
         });
-        publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection' });
+        try {
+          publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection', eventId });
+        } catch (e) {
+          debug.error('[ReactNativeErrorHandlers] Failed to publish global error.', e);
+        }
       });
     } else if (patchGlobalPromise) {
       // For JSC and other environments, use the existing approach
@@ -109,13 +113,17 @@ const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
 
     // Marking the rejection as handled to avoid breaking crash rate calculations.
     // See: https://github.com/getsentry/sentry-react-native/issues/4141
-    captureException(error, {
+    const eventId = captureException(error, {
       data: { id },
       originalException: error,
       syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
       mechanism: { handled: true, type: 'onunhandledrejection' },
     });
-    publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection' });
+    try {
+      publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection', eventId });
+    } catch (e) {
+      debug.error('[ReactNativeErrorHandlers] Failed to publish global error.', e);
+    }
   },
   onHandled: id => {
     if (__DEV__) {
@@ -205,11 +213,16 @@ function setupErrorUtilsGlobalHandler(): void {
       });
     }
 
-    client.captureEvent(event, hint);
+    const eventId = client.captureEvent(event, hint);
 
     // Notify any mounted GlobalErrorBoundary. Subscribers filter internally by
-    // fatal/non-fatal preferences.
-    publishGlobalError({ error, isFatal: !!isFatal, kind: 'onerror' });
+    // fatal/non-fatal preferences. Wrapped defensively so a misbehaving
+    // subscriber can't unwind into this handler and leave handlingFatal set.
+    try {
+      publishGlobalError({ error, isFatal: !!isFatal, kind: 'onerror', eventId });
+    } catch (e) {
+      debug.error('[ReactNativeErrorHandlers] Failed to publish global error.', e);
+    }
 
     if (__DEV__) {
       // If in dev, we call the default handler anyway and hope the error will be sent

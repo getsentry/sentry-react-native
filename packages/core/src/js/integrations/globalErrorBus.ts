@@ -9,6 +9,8 @@
  * This module is internal to the SDK.
  */
 
+import { debug } from '@sentry/core';
+
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 
 /** Where the error came from. */
@@ -19,6 +21,13 @@ export interface GlobalErrorEvent {
   error: unknown;
   isFatal: boolean;
   kind: GlobalErrorKind;
+  /**
+   * Sentry event id assigned when the integration captured this error.
+   * Threaded through to subscribers so the fallback UI can show the exact
+   * id without racing against unrelated `captureException` calls happening
+   * elsewhere in the app via `lastEventId()`.
+   */
+  eventId?: string;
 }
 
 /** Options describing which kinds of errors a subscriber wants. */
@@ -91,14 +100,24 @@ export function hasInterestedSubscribers(kind: GlobalErrorKind, isFatal: boolean
 }
 
 /**
- * Publish a global error to all interested subscribers.
+ * Publish a global error to all interested subscribers. Each listener runs
+ * isolated in try/catch so a misbehaving subscriber cannot interrupt others
+ * or unwind into the caller (the error handlers integration depends on
+ * publish never throwing so its `handlingFatal` latch is always released).
  */
 export function publishGlobalError(event: GlobalErrorEvent): void {
   for (const { listener, options } of getBus().subscribers) {
-    if (event.kind === 'onerror') {
-      if (event.isFatal ? options.fatal : options.nonFatal) listener(event);
-    } else if (event.kind === 'onunhandledrejection' && options.unhandledRejection) {
+    const interested =
+      event.kind === 'onerror'
+        ? event.isFatal
+          ? options.fatal
+          : options.nonFatal
+        : event.kind === 'onunhandledrejection' && options.unhandledRejection;
+    if (!interested) continue;
+    try {
       listener(event);
+    } catch (e) {
+      debug.error('[GlobalErrorBus] Subscriber threw while handling a global error.', e);
     }
   }
 }

@@ -212,8 +212,11 @@ describe('GlobalErrorBoundary', () => {
     captureReactExceptionSpy.mockRestore();
   });
 
-  test('surfaces lastEventId to the fallback for global errors', () => {
-    jest.spyOn(SentryCore, 'lastEventId').mockReturnValue('evt-abc123');
+  test('surfaces the published eventId to the fallback for global errors', () => {
+    // lastEventId is intentionally set to a *different* id to prove the
+    // boundary prefers the eventId threaded through the bus payload over the
+    // racy global lastEventId().
+    jest.spyOn(SentryCore, 'lastEventId').mockReturnValue('evt-stale');
 
     let capturedEventId = '';
     const { getByTestId } = render(
@@ -228,11 +231,56 @@ describe('GlobalErrorBoundary', () => {
     );
 
     act(() => {
-      publishGlobalError({ error: new Error('with-event'), isFatal: true, kind: 'onerror' });
+      publishGlobalError({
+        error: new Error('with-event'),
+        isFatal: true,
+        kind: 'onerror',
+        eventId: 'evt-from-bus',
+      });
     });
 
     expect(getByTestId('fallback')).not.toBeNull();
-    expect(capturedEventId).toBe('evt-abc123');
+    expect(capturedEventId).toBe('evt-from-bus');
+  });
+
+  test('falls back to lastEventId when the bus payload omits eventId', () => {
+    jest.spyOn(SentryCore, 'lastEventId').mockReturnValue('evt-fallback');
+
+    let capturedEventId = '';
+    render(
+      <GlobalErrorBoundary
+        fallback={({ error, eventId, resetError }) => {
+          capturedEventId = eventId;
+          return <Fallback error={error} resetError={resetError} />;
+        }}
+      >
+        <Ok />
+      </GlobalErrorBoundary>,
+    );
+
+    act(() => {
+      publishGlobalError({ error: new Error('legacy'), isFatal: true, kind: 'onerror' });
+    });
+
+    expect(capturedEventId).toBe('evt-fallback');
+  });
+
+  test('isolates a misbehaving subscriber so other listeners still fire', () => {
+    const good = jest.fn();
+    // First subscriber throws on every call — the bus must not propagate.
+    const unsubBad = require('../src/js/integrations/globalErrorBus').subscribeGlobalError(
+      () => {
+        throw new Error('bad listener');
+      },
+      { fatal: true },
+    );
+    const unsubGood = require('../src/js/integrations/globalErrorBus').subscribeGlobalError(good, { fatal: true });
+
+    expect(() => publishGlobalError({ error: new Error('isolated'), isFatal: true, kind: 'onerror' })).not.toThrow();
+    expect(good).toHaveBeenCalledTimes(1);
+
+    unsubBad();
+    unsubGood();
   });
 
   test('invokes onError for global errors', () => {

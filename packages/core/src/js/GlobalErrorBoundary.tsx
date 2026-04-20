@@ -148,9 +148,11 @@ export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProp
     this._latched = true;
 
     const error = event.error ?? new Error('Unknown global error');
-    // The integration captured the event just before publishing, so the
-    // current lastEventId is ours. Fall back to '' to match the type contract.
-    const eventId = lastEventId() ?? '';
+    // Prefer the eventId threaded through the bus payload — it's the exact id
+    // returned by the capture call that produced this notification. Fall back
+    // to lastEventId() for older publishers that don't include it, then to ''
+    // to satisfy the type contract.
+    const eventId = event.eventId ?? lastEventId() ?? '';
 
     this.setState({ globalError: error, globalEventId: eventId });
     this.props.onError?.(error, '', eventId);

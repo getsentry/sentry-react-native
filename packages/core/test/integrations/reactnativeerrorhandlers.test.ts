@@ -226,7 +226,7 @@ describe('ReactNativeErrorHandlers', () => {
         await errorHandlerCallback!(error, true);
         await client.flush();
 
-        expect(publishSpy).toHaveBeenCalledWith({ error, isFatal: true, kind: 'onerror' });
+        expect(publishSpy).toHaveBeenCalledWith(expect.objectContaining({ error, isFatal: true, kind: 'onerror' }));
       });
 
       test('still invokes the default handler when no boundary is subscribed', async () => {
@@ -270,11 +270,9 @@ describe('ReactNativeErrorHandlers', () => {
 
         expect(client.event).toBeDefined();
         expect(client.event?.exception?.values?.[0]?.value).toBe('Second fatal');
-        expect(publishSpy).toHaveBeenLastCalledWith({
-          error: secondError,
-          isFatal: true,
-          kind: 'onerror',
-        });
+        expect(publishSpy).toHaveBeenLastCalledWith(
+          expect.objectContaining({ error: secondError, isFatal: true, kind: 'onerror' }),
+        );
       });
 
       test('re-evaluates subscribers after flush (boundary unmounts during flush)', async () => {
