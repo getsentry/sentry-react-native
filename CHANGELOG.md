@@ -10,6 +10,7 @@
 
 ### Features
 
+- Expose screenshot masking options (`screenshot.maskAllText`, `screenshot.maskAllImages`, `screenshot.maskedViewClasses`, `screenshot.unmaskedViewClasses`) for error screenshots ([#6007](https://github.com/getsentry/sentry-react-native/pull/6007))
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
 
 ### Fixes
