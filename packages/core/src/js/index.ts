@@ -75,6 +75,8 @@ export { ReactNativeClient } from './client';
 
 export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun, appLoaded } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
+export { GlobalErrorBoundary, withGlobalErrorBoundary } from './GlobalErrorBoundary';
+export type { GlobalErrorBoundaryProps } from './GlobalErrorBoundary';
 
 export {
   reactNativeTracingIntegration,

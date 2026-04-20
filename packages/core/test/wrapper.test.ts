@@ -397,6 +397,64 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.enableLogs).toBe(expectedEnableLogs);
       expect(initParameter.logsOrigin).toBeUndefined();
     });
+
+    test('passes strictTraceContinuation option to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        strictTraceContinuation: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.strictTraceContinuation).toBe(true);
+    });
+
+    test('passes screenshot options to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        screenshot: {
+          maskAllText: false,
+          maskAllImages: true,
+          maskedViewClasses: ['com.example.MyView'],
+          unmaskedViewClasses: ['com.example.SafeView'],
+        },
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.screenshot).toEqual({
+        maskAllText: false,
+        maskAllImages: true,
+        maskedViewClasses: ['com.example.MyView'],
+        unmaskedViewClasses: ['com.example.SafeView'],
+      });
+    });
+
+    test('passes orgId option to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: 'test',
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        orgId: '12345',
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.orgId).toBe('12345');
+    });
   });
 
   describe('sendEnvelope', () => {

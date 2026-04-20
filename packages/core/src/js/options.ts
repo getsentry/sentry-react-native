@@ -195,6 +195,37 @@ export interface BaseReactNativeOptions {
   attachScreenshot?: boolean;
 
   /**
+   * Options for configuring screenshot masking on error screenshots.
+   * When `attachScreenshot` is enabled, these options control what gets masked in the screenshot.
+   */
+  screenshot?: {
+    /**
+     * Mask all text content in error screenshots.
+     *
+     * @default true
+     */
+    maskAllText?: boolean;
+    /**
+     * Mask all images in error screenshots.
+     *
+     * @default true
+     */
+    maskAllImages?: boolean;
+    /**
+     * A list of native view class names to mask in error screenshots.
+     * Useful for masking views from third-party native libraries (e.g., map views, payment forms).
+     *
+     * @example ['com.example.MyCustomView'] // Android
+     * @example ['MKMapView'] // iOS
+     */
+    maskedViewClasses?: string[];
+    /**
+     * A list of native view class names to exclude from masking in error screenshots.
+     */
+    unmaskedViewClasses?: string[];
+  };
+
+  /**
    * When enabled Sentry includes the current view hierarchy in the error attachments.
    *
    * @default false

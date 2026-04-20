@@ -14,6 +14,7 @@ import {
   setSentryBabelTransformerOptions,
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
+import { checkSentryExpoNativeProject } from './sentryExpoNativeCheck';
 import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
@@ -113,6 +114,8 @@ export function getSentryExpoConfig(
   options: DefaultConfigOptions & SentryExpoConfigOptions & SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
+
+  checkSentryExpoNativeProject(projectRoot);
 
   const getDefaultConfig = options.getDefaultConfig || loadExpoMetroConfigModule().getDefaultConfig;
   const config = getDefaultConfig(projectRoot, {

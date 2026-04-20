@@ -2,6 +2,7 @@ package io.sentry.react;
 
 import android.app.Activity;
 import android.content.Context;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.common.JavascriptException;
@@ -136,11 +137,50 @@ final class RNSentryStart {
     if (rnOptions.hasKey("attachScreenshot")) {
       options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
     }
+    if (rnOptions.hasKey("screenshot")) {
+      @Nullable final ReadableMap screenshotOptions = rnOptions.getMap("screenshot");
+      if (screenshotOptions != null) {
+        if (screenshotOptions.hasKey("maskAllText")) {
+          options.getScreenshot().setMaskAllText(screenshotOptions.getBoolean("maskAllText"));
+        }
+        if (screenshotOptions.hasKey("maskAllImages")) {
+          options.getScreenshot().setMaskAllImages(screenshotOptions.getBoolean("maskAllImages"));
+        }
+        if (screenshotOptions.hasKey("maskedViewClasses")) {
+          @Nullable
+          final ReadableArray maskedClasses = screenshotOptions.getArray("maskedViewClasses");
+          if (maskedClasses != null) {
+            for (int i = 0; i < maskedClasses.size(); i++) {
+              options.getScreenshot().addMaskViewClass(maskedClasses.getString(i));
+            }
+          }
+        }
+        if (screenshotOptions.hasKey("unmaskedViewClasses")) {
+          @Nullable
+          final ReadableArray unmaskedClasses = screenshotOptions.getArray("unmaskedViewClasses");
+          if (unmaskedClasses != null) {
+            for (int i = 0; i < unmaskedClasses.size(); i++) {
+              options.getScreenshot().addUnmaskViewClass(unmaskedClasses.getString(i));
+            }
+          }
+        }
+      }
+    }
     if (rnOptions.hasKey("attachViewHierarchy")) {
       options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
     }
     if (rnOptions.hasKey("sendDefaultPii")) {
       options.setSendDefaultPii(rnOptions.getBoolean("sendDefaultPii"));
+    }
+    if (rnOptions.hasKey("strictTraceContinuation")) {
+      options.setStrictTraceContinuation(rnOptions.getBoolean("strictTraceContinuation"));
+    }
+    if (rnOptions.hasKey("orgId")) {
+      if (rnOptions.getType("orgId") == ReadableType.String) {
+        options.setOrgId(rnOptions.getString("orgId"));
+      } else if (rnOptions.getType("orgId") == ReadableType.Number) {
+        options.setOrgId(String.valueOf((long) rnOptions.getDouble("orgId")));
+      }
     }
     if (rnOptions.hasKey("maxQueueSize")) {
       options.setMaxQueueSize(rnOptions.getInt("maxQueueSize"));

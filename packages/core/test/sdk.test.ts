@@ -416,6 +416,34 @@ describe('Tests the SDK functionality', () => {
     });
   });
 
+  describe('strictTraceContinuation', () => {
+    it('passes strictTraceContinuation option through to client options', () => {
+      init({
+        strictTraceContinuation: true,
+      });
+      expect(usedOptions()?.strictTraceContinuation).toBe(true);
+    });
+
+    it('passes orgId option through to client options', () => {
+      init({
+        orgId: '12345',
+      });
+      expect(usedOptions()?.orgId).toBe('12345');
+    });
+
+    it('passes numeric orgId option through to client options', () => {
+      init({
+        orgId: 12345,
+      });
+      expect(usedOptions()?.orgId).toBe(12345);
+    });
+
+    it('defaults strictTraceContinuation to undefined when not set', () => {
+      init({});
+      expect(usedOptions()?.strictTraceContinuation).toBeUndefined();
+    });
+  });
+
   describe('beforeBreadcrumb', () => {
     it('should filters out dev server breadcrumbs', () => {
       const devServerUrl = 'http://localhost:8081';

@@ -318,6 +318,12 @@ const ErrorsScreen = (_props: Props) => {
         />
 
         <Button
+          title="Global Error Boundary demo"
+          onPress={() => {
+            _props.navigation.navigate('GlobalErrorBoundary');
+          }}
+        />
+        <Button
           title="Feedback form"
           onPress={() => {
             _props.navigation.navigate('FeedbackForm');
