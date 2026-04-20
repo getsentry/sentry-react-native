@@ -5,6 +5,7 @@ import type { SeverityLevel } from '@sentry/core';
 
 import { addGlobalUnhandledRejectionInstrumentationHandler, captureException, setCurrentClient } from '@sentry/core';
 
+import * as globalErrorBus from '../../src/js/integrations/globalErrorBus';
 import { reactNativeErrorHandlersIntegration } from '../../src/js/integrations/reactnativeerrorhandlers';
 import {
   checkPromiseAndWarn,
@@ -195,6 +196,60 @@ describe('ReactNativeErrorHandlers', () => {
       await errorHandlerCallback!(error, false);
 
       expect(error.stack).toBe(originalStack);
+    });
+
+    describe('GlobalErrorBoundary integration', () => {
+      let publishSpy: jest.SpyInstance;
+      let hasSubscribersSpy: jest.SpyInstance;
+      let defaultHandler: jest.Mock;
+
+      beforeEach(() => {
+        publishSpy = jest.spyOn(globalErrorBus, 'publishGlobalError').mockImplementation(() => {});
+        hasSubscribersSpy = jest.spyOn(globalErrorBus, 'hasInterestedSubscribers');
+        defaultHandler = jest.fn();
+        (RN_GLOBAL_OBJ.ErrorUtils!.getGlobalHandler as jest.Mock).mockReturnValue(defaultHandler);
+        set__DEV__(false);
+      });
+
+      afterEach(() => {
+        publishSpy.mockRestore();
+        hasSubscribersSpy.mockRestore();
+        set__DEV__(true);
+      });
+
+      test('publishes fatals to the global error bus', async () => {
+        hasSubscribersSpy.mockReturnValue(false);
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+
+        const error = new Error('Boom');
+        await errorHandlerCallback!(error, true);
+        await client.flush();
+
+        expect(publishSpy).toHaveBeenCalledWith({ error, isFatal: true, kind: 'onerror' });
+      });
+
+      test('still invokes the default handler when no boundary is subscribed', async () => {
+        hasSubscribersSpy.mockReturnValue(false);
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+
+        await errorHandlerCallback!(new Error('Boom'), true);
+        await client.flush();
+
+        expect(defaultHandler).toHaveBeenCalledTimes(1);
+      });
+
+      test('skips the default handler on fatals when a boundary is subscribed', async () => {
+        hasSubscribersSpy.mockImplementation((kind, isFatal) => kind === 'onerror' && isFatal === true);
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+
+        await errorHandlerCallback!(new Error('Boom'), true);
+        await client.flush();
+
+        expect(defaultHandler).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -391,3 +446,7 @@ describe('ReactNativeErrorHandlers', () => {
     });
   });
 });
+
+function set__DEV__(value: boolean): void {
+  Object.defineProperty(globalThis, '__DEV__', { value, writable: true });
+}

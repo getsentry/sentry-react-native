@@ -14,6 +14,7 @@ import type { ReactNativeClientOptions } from '../options';
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import { hasInterestedSubscribers, publishGlobalError } from './globalErrorBus';
 import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
 
 const INTEGRATION_NAME = 'ReactNativeErrorHandlers';
@@ -80,6 +81,7 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
           syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
           mechanism: { handled: false, type: 'onunhandledrejection' },
         });
+        publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection' });
       });
     } else if (patchGlobalPromise) {
       // For JSC and other environments, use the existing approach
@@ -113,6 +115,7 @@ const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
       syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
       mechanism: { handled: true, type: 'onunhandledrejection' },
     });
+    publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection' });
   },
   onHandled: id => {
     if (__DEV__) {
@@ -204,16 +207,29 @@ function setupErrorUtilsGlobalHandler(): void {
 
     client.captureEvent(event, hint);
 
+    // Notify any mounted GlobalErrorBoundary. Subscribers filter internally by
+    // fatal/non-fatal preferences.
+    publishGlobalError({ error, isFatal: !!isFatal, kind: 'onerror' });
+
+    // If a GlobalErrorBoundary is interested in this error, we skip the
+    // default handler so the fallback UI can own the screen. Otherwise the
+    // default handler would unmount React (in release) or show LogBox (in dev)
+    // over our fallback.
+    const fallbackWillRender = hasInterestedSubscribers('onerror', !!isFatal);
+
     if (__DEV__) {
       // If in dev, we call the default handler anyway and hope the error will be sent
-      // Just for a better dev experience
+      // Just for a better dev experience. If a fallback is mounted it will still
+      // render alongside LogBox.
       defaultHandler(error, isFatal);
       return;
     }
 
     void client.flush((client.getOptions() as ReactNativeClientOptions).shutdownTimeout || 2000).then(
       () => {
-        defaultHandler(error, isFatal);
+        if (!fallbackWillRender) {
+          defaultHandler(error, isFatal);
+        }
       },
       (reason: unknown) => {
         debug.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
