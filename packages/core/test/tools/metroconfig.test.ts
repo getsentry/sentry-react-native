@@ -9,6 +9,7 @@ import {
   getSentryExpoConfig,
   withSentryBabelTransformer,
   withSentryExcludeServerOnlyResolver,
+  withSentryFeedbackResolver,
   withSentryFramesCollapsed,
   withSentryResolver,
 } from '../../src/js/tools/metroconfig';
@@ -319,6 +320,190 @@ describe('metroconfig', () => {
         // @ts-expect-error mock.
         const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
         const modifiedConfig = withSentryResolver({ resolver: {} }, true);
+        const moduleName = 'some/other/module';
+        resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
+
+        expect(mockExit).toHaveBeenCalledWith(-1);
+      });
+
+      type CustomResolverBeforeMetro067 = (
+        // @ts-expect-error Can't see type CustomResolutionContext
+        context: CustomResolutionContext,
+        realModuleName: string,
+        platform: string | null,
+        moduleName?: string,
+        // @ts-expect-error Can't see type CustomResolutionContext
+      ) => Resolution;
+
+      function resolveRequest(
+        metroConfig: MetroConfig,
+        context: any,
+        moduleName: string,
+        platform: string | null,
+        // @ts-expect-error Can't see type Resolution.
+      ): Resolution {
+        if (oldMetro) {
+          const resolver = metroConfig.resolver?.resolveRequest as CustomResolverBeforeMetro067;
+          // On older Metro the resolveRequest is the creater resolver.
+          context.resolveRequest = resolver;
+          return resolver(context, `real${moduleName}`, platform, moduleName);
+        }
+        return metroConfig.resolver?.resolveRequest?.(context, moduleName, platform);
+      }
+
+      function ExpectToBeCalledWithMetroParameters(
+        received: CustomResolverBeforeMetro067,
+        contextMock: CustomResolverBeforeMetro067,
+        moduleName: string,
+        platform: string | null,
+      ) {
+        if (oldMetro) {
+          expect(received).toHaveBeenCalledWith(contextMock, `real${moduleName}`, platform, moduleName);
+        } else {
+          expect(received).toHaveBeenCalledWith(contextMock, moduleName, platform);
+        }
+      }
+    });
+  });
+  describe('withSentryFeedbackResolver', () => {
+    let originalResolverMock: any;
+
+    // @ts-expect-error Can't see type CustomResolutionContext
+    let contextMock: CustomResolutionContext;
+    let config: MetroConfig = {};
+
+    beforeEach(() => {
+      originalResolverMock = jest.fn();
+      contextMock = {
+        resolveRequest: jest.fn(),
+      };
+
+      config = {
+        resolver: {
+          resolveRequest: originalResolverMock,
+        },
+      };
+    });
+
+    describe.each([
+      ['new Metro', false, '0.70.0'],
+      ['old Metro', true, '0.67.0'],
+    ])('on %s', (_description, oldMetro, metroVersion) => {
+      beforeEach(() => {
+        jest.resetModules();
+        // Mock metro/package.json
+        jest.mock('metro/package.json', () => ({
+          version: metroVersion,
+        }));
+      });
+
+      describe.each([['@sentry-internal/feedback'], ['@sentry/feedback']])('with %s', feedbackPackage => {
+        test('keep Feedback when platform is web and includeFeedback is true', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, true);
+          resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'web');
+
+          ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, 'web');
+        });
+
+        test('removes Feedback when platform is web and includeFeedback is false', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, false);
+          const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'web');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
+        test('keep Feedback when platform is android and includeFeedback is true', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, true);
+          resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'android');
+
+          ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, 'android');
+        });
+
+        test('removes Feedback when platform is android and includeFeedback is false', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, false);
+          const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'android');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
+        test('removes Feedback when platform is android and includeFeedback is undefined', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, undefined);
+          const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'android');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
+        test('keep Feedback when platform is undefined and includeFeedback is null', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, undefined);
+          resolveRequest(modifiedConfig, contextMock, feedbackPackage, null);
+
+          ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, null);
+        });
+
+        test('keep Feedback when platform is ios and includeFeedback is true', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, true);
+          resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'ios');
+
+          ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, 'ios');
+        });
+
+        test('removes Feedback when platform is ios and includeFeedback is false', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, false);
+          const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'ios');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
+        test('removes Feedback when platform is ios and includeFeedback is undefined', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, undefined);
+          const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'ios');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+      });
+
+      test('calls originalResolver when moduleName is not @sentry-internal/feedback', () => {
+        const modifiedConfig = withSentryFeedbackResolver(config, true);
+        const moduleName = 'some/other/module';
+        resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
+
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, moduleName, 'web');
+      });
+
+      test('calls originalResolver when moduleName is not @sentry-internal/feedback and includeFeedback set to false', () => {
+        const modifiedConfig = withSentryFeedbackResolver(config, false);
+        const moduleName = 'some/other/module';
+        resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
+
+        ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, moduleName, 'web');
+      });
+
+      test('calls default resolver on new metro resolver when originalResolver is not provided', () => {
+        if (oldMetro) {
+          return;
+        }
+
+        const modifiedConfig = withSentryFeedbackResolver({ resolver: {} }, true);
+        const moduleName = 'some/other/module';
+        const platform = 'web';
+        resolveRequest(modifiedConfig, contextMock, moduleName, platform);
+
+        ExpectToBeCalledWithMetroParameters(contextMock.resolveRequest, contextMock, moduleName, platform);
+      });
+
+      test('throws error when running on old metro and includeFeedback is set to false', () => {
+        if (!oldMetro) {
+          return;
+        }
+
+        // @ts-expect-error mock.
+        const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
+        const modifiedConfig = withSentryFeedbackResolver({ resolver: {} }, true);
         const moduleName = 'some/other/module';
         resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
 

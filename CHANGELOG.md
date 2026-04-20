@@ -11,6 +11,7 @@
 ### Features
 
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
+- Add `includeFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#5629](https://github.com/getsentry/sentry-react-native/issues/5629))
 
 ### Dependencies
 
