@@ -142,7 +142,9 @@ export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProp
     // shouldn't rewrite what the user is looking at. We use an instance flag
     // instead of reading state because multiple publishes can fire in the
     // same batch, before setState has flushed.
-    if (this._latched) return;
+    if (this._latched) {
+      return;
+    }
     this._latched = true;
     this.setState({ globalError: event.error ?? new Error('Unknown global error') });
   };
