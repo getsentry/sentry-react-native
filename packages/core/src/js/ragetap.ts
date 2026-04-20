@@ -128,10 +128,11 @@ export class RageTapDetector {
 }
 
 function getTapIdentity(root: TouchedComponentInfo, label?: string): string {
+  const base = `name:${root.name ?? ''}|file:${root.file ?? ''}`;
   if (label) {
-    return `label:${label}`;
+    return `label:${label}|${base}`;
   }
-  return `name:${root.name ?? ''}|file:${root.file ?? ''}`;
+  return base;
 }
 
 /**
