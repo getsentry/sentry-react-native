@@ -236,6 +236,8 @@ describe('ReactNativeErrorHandlers', () => {
 
         await errorHandlerCallback!(new Error('Boom'), true);
         await client.flush();
+        // Drain the .then() microtask attached to the integration's flush promise.
+        await new Promise(resolve => setImmediate(resolve));
 
         expect(defaultHandler).toHaveBeenCalledTimes(1);
       });
@@ -247,6 +249,7 @@ describe('ReactNativeErrorHandlers', () => {
 
         await errorHandlerCallback!(new Error('Boom'), true);
         await client.flush();
+        await new Promise(resolve => setImmediate(resolve));
 
         expect(defaultHandler).not.toHaveBeenCalled();
       });
