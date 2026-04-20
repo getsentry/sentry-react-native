@@ -485,5 +485,5 @@ describe('ReactNativeErrorHandlers', () => {
 });
 
 function set__DEV__(value: boolean): void {
-  Object.defineProperty(globalThis, '__DEV__', { value, writable: true });
+  Object.defineProperty(globalThis, '__DEV__', { value, writable: true, configurable: true });
 }
