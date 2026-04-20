@@ -119,17 +119,20 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
 
   // Compare versions
   if (sdkVersion !== bundledVersion) {
-    fail(
+    warn(
       createSectionWarning(
         'Android SDK Version Mismatch',
         `| Component | Version |\n` +
           `|-----------|--------|\n` +
           `| \`sentry-android\` in build.gradle | **${sdkVersion}** |\n` +
           `| \`sentry-android\` bundled by gradle plugin ${gradlePluginVersion} | **${bundledVersion}** |\n\n` +
-          `This mismatch will cause crashes on Android with error:\n` +
+          `If a user enables AGP \`autoInstallation\` (default: \`true\`), this mismatch causes:\n` +
           `> \`IllegalStateException: Sentry SDK has detected a mix of versions\`\n\n` +
-          `**Fix:** Update \`packages/core/android/build.gradle\` to use version \`${bundledVersion}\` ` +
-          `or wait for a gradle plugin release that bundles \`${sdkVersion}\`.`,
+          `Our docs instruct React Native users to set \`autoInstallation.enabled = false\`, ` +
+          `so users following the guide are unaffected. Consider either updating ` +
+          `\`packages/core/android/build.gradle\` to \`${bundledVersion}\` or waiting for a ` +
+          `gradle plugin release that bundles \`${sdkVersion}\`.`,
+        '⚠️',
       ),
     );
   } else {
