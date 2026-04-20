@@ -11020,74 +11020,74 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/cli-darwin@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-darwin@npm:3.3.5"
+"@sentry/cli-darwin@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-darwin@npm:3.4.0"
   conditions: os=darwin
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm64@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-linux-arm64@npm:3.3.5"
+"@sentry/cli-linux-arm64@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-linux-arm64@npm:3.4.0"
   conditions: (os=linux | os=freebsd | os=android) & cpu=arm64
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-arm@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-linux-arm@npm:3.3.5"
+"@sentry/cli-linux-arm@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-linux-arm@npm:3.4.0"
   conditions: (os=linux | os=freebsd | os=android) & cpu=arm
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-i686@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-linux-i686@npm:3.3.5"
+"@sentry/cli-linux-i686@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-linux-i686@npm:3.4.0"
   conditions: (os=linux | os=freebsd | os=android) & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-linux-x64@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-linux-x64@npm:3.3.5"
+"@sentry/cli-linux-x64@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-linux-x64@npm:3.4.0"
   conditions: (os=linux | os=freebsd | os=android) & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-arm64@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-win32-arm64@npm:3.3.5"
+"@sentry/cli-win32-arm64@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-win32-arm64@npm:3.4.0"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-i686@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-win32-i686@npm:3.3.5"
+"@sentry/cli-win32-i686@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-win32-i686@npm:3.4.0"
   conditions: os=win32 & (cpu=x86 | cpu=ia32)
   languageName: node
   linkType: hard
 
-"@sentry/cli-win32-x64@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli-win32-x64@npm:3.3.5"
+"@sentry/cli-win32-x64@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli-win32-x64@npm:3.4.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@sentry/cli@npm:3.3.5":
-  version: 3.3.5
-  resolution: "@sentry/cli@npm:3.3.5"
+"@sentry/cli@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@sentry/cli@npm:3.4.0"
   dependencies:
-    "@sentry/cli-darwin": 3.3.5
-    "@sentry/cli-linux-arm": 3.3.5
-    "@sentry/cli-linux-arm64": 3.3.5
-    "@sentry/cli-linux-i686": 3.3.5
-    "@sentry/cli-linux-x64": 3.3.5
-    "@sentry/cli-win32-arm64": 3.3.5
-    "@sentry/cli-win32-i686": 3.3.5
-    "@sentry/cli-win32-x64": 3.3.5
+    "@sentry/cli-darwin": 3.4.0
+    "@sentry/cli-linux-arm": 3.4.0
+    "@sentry/cli-linux-arm64": 3.4.0
+    "@sentry/cli-linux-i686": 3.4.0
+    "@sentry/cli-linux-x64": 3.4.0
+    "@sentry/cli-win32-arm64": 3.4.0
+    "@sentry/cli-win32-i686": 3.4.0
+    "@sentry/cli-win32-x64": 3.4.0
     progress: ^2.0.3
     proxy-from-env: ^1.1.0
     undici: ^6.22.0
@@ -11111,7 +11111,7 @@ __metadata:
       optional: true
   bin:
     sentry-cli: bin/sentry-cli
-  checksum: f746f759f69f7bb1d5033c8e11193eaceba5bf166f661bf077bf4c45c390405e3011444811124d17a0da15586ed1e1c4efeb57b56c6a69ac7f3171a4ae048011
+  checksum: 6654a7220d66645c7e5dce8a5890b20da0e31aca7ecf5b2d3617906a69eef7bf6dcab1fa805ae66590bbaca4df983fc543b58a05b57461beb87e2e959dd92436
   languageName: node
   linkType: hard
 
@@ -11219,7 +11219,7 @@ __metadata:
     "@sentry-internal/typescript": 10.49.0
     "@sentry/babel-plugin-component-annotate": 5.2.0
     "@sentry/browser": 10.49.0
-    "@sentry/cli": 3.3.5
+    "@sentry/cli": 3.4.0
     "@sentry/core": 10.49.0
     "@sentry/react": 10.49.0
     "@sentry/types": 10.49.0
@@ -30289,7 +30289,7 @@ __metadata:
   resolution: "sentry-react-native@workspace:."
   dependencies:
     "@naturalcycles/ktlint": ^1.13.0
-    "@sentry/cli": 3.3.5
+    "@sentry/cli": 3.4.0
     downlevel-dts: ^0.11.0
     google-java-format: ^1.4.0
     lerna: ^8.1.8

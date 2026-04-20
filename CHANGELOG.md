@@ -25,6 +25,9 @@
 - Bump Android SDK from v8.38.0 to v8.39.1 ([#6010](https://github.com/getsentry/sentry-react-native/pull/6010))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8391)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.38.0...8.39.1)
+- Bump CLI from v3.3.5 to v3.4.0 ([#6026](https://github.com/getsentry/sentry-react-native/pull/6026))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#340)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.5...3.4.0)
 
 ## 8.8.0
 
