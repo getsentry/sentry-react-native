@@ -250,6 +250,22 @@ describe('ReactNativeErrorHandlers', () => {
 
         expect(defaultHandler).not.toHaveBeenCalled();
       });
+
+      test('re-evaluates subscribers after flush (boundary unmounts during flush)', async () => {
+        // Always returns false — simulates the boundary being gone by the
+        // time the flush resolves. The check must happen inside the .then,
+        // not before client.flush(), otherwise we'd never call defaultHandler.
+        hasSubscribersSpy.mockReturnValue(false);
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+
+        await errorHandlerCallback!(new Error('Boom'), true);
+        await client.flush();
+        // Drain the .then() microtask attached to the integration's flush promise.
+        await new Promise(resolve => setImmediate(resolve));
+
+        expect(defaultHandler).toHaveBeenCalledTimes(1);
+      });
     });
   });
 

@@ -211,12 +211,6 @@ function setupErrorUtilsGlobalHandler(): void {
     // fatal/non-fatal preferences.
     publishGlobalError({ error, isFatal: !!isFatal, kind: 'onerror' });
 
-    // If a GlobalErrorBoundary is interested in this error, we skip the
-    // default handler so the fallback UI can own the screen. Otherwise the
-    // default handler would unmount React (in release) or show LogBox (in dev)
-    // over our fallback.
-    const fallbackWillRender = hasInterestedSubscribers('onerror', !!isFatal);
-
     if (__DEV__) {
       // If in dev, we call the default handler anyway and hope the error will be sent
       // Just for a better dev experience. If a fallback is mounted it will still
@@ -227,7 +221,12 @@ function setupErrorUtilsGlobalHandler(): void {
 
     void client.flush((client.getOptions() as ReactNativeClientOptions).shutdownTimeout || 2000).then(
       () => {
-        if (!fallbackWillRender) {
+        // Re-check subscribers *after* the flush. The flush can take up to the
+        // configured shutdownTimeout (default 2s); a boundary could mount or
+        // unmount during that window, so the pre-flush answer may be stale.
+        // If a fallback will render, we skip the default handler so it can own
+        // the screen instead of being torn down.
+        if (!hasInterestedSubscribers('onerror', !!isFatal)) {
           defaultHandler(error, isFatal);
         }
       },
