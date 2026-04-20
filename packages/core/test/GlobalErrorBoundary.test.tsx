@@ -1,3 +1,5 @@
+import * as SentryCore from '@sentry/core';
+import * as SentryReact from '@sentry/react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
@@ -186,6 +188,69 @@ describe('GlobalErrorBoundary', () => {
     expect(hasInterestedSubscribers('onerror', true)).toBe(true);
     unmount();
     expect(hasInterestedSubscribers('onerror', true)).toBe(false);
+  });
+
+  test('does not double-capture global errors through the inner ErrorBoundary', () => {
+    // The integration captures the fatal before publishing to the bus; if we
+    // also re-threw through the inner ErrorBoundary, componentDidCatch would
+    // call captureReactException and produce a duplicate Sentry event.
+    const captureReactExceptionSpy = jest.spyOn(SentryReact, 'captureReactException');
+    jest.spyOn(SentryCore, 'lastEventId').mockReturnValue('evt-global');
+
+    const { getByTestId } = render(
+      <GlobalErrorBoundary fallback={props => <Fallback {...props} />}>
+        <Ok />
+      </GlobalErrorBoundary>,
+    );
+
+    act(() => {
+      publishGlobalError({ error: new Error('global-once'), isFatal: true, kind: 'onerror' });
+    });
+
+    expect(getByTestId('fallback').props.children.join('')).toBe('fallback:global-once');
+    expect(captureReactExceptionSpy).not.toHaveBeenCalled();
+    captureReactExceptionSpy.mockRestore();
+  });
+
+  test('surfaces lastEventId to the fallback for global errors', () => {
+    jest.spyOn(SentryCore, 'lastEventId').mockReturnValue('evt-abc123');
+
+    let capturedEventId = '';
+    const { getByTestId } = render(
+      <GlobalErrorBoundary
+        fallback={({ error, eventId, resetError }) => {
+          capturedEventId = eventId;
+          return <Fallback error={error} resetError={resetError} />;
+        }}
+      >
+        <Ok />
+      </GlobalErrorBoundary>,
+    );
+
+    act(() => {
+      publishGlobalError({ error: new Error('with-event'), isFatal: true, kind: 'onerror' });
+    });
+
+    expect(getByTestId('fallback')).not.toBeNull();
+    expect(capturedEventId).toBe('evt-abc123');
+  });
+
+  test('invokes onError for global errors', () => {
+    jest.spyOn(SentryCore, 'lastEventId').mockReturnValue('evt-xyz');
+    const onError = jest.fn();
+
+    render(
+      <GlobalErrorBoundary fallback={props => <Fallback {...props} />} onError={onError}>
+        <Ok />
+      </GlobalErrorBoundary>,
+    );
+
+    const err = new Error('cb');
+    act(() => {
+      publishGlobalError({ error: err, isFatal: true, kind: 'onerror' });
+    });
+
+    expect(onError).toHaveBeenCalledWith(err, '', 'evt-xyz');
   });
 
   test('withGlobalErrorBoundary wraps a component', () => {

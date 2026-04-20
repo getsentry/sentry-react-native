@@ -1,5 +1,6 @@
 import type { ErrorBoundaryProps } from '@sentry/react';
 
+import { lastEventId } from '@sentry/core';
 import { ErrorBoundary } from '@sentry/react';
 import * as React from 'react';
 
@@ -31,28 +32,9 @@ export type GlobalErrorBoundaryProps = ErrorBoundaryProps & {
   includeUnhandledRejections?: boolean;
 };
 
-interface GlobalErrorThrowerProps {
-  error: unknown | null;
-  children?: React.ReactNode | (() => React.ReactNode);
-}
-
-/**
- * Tiny component that re-throws a global error during render so the
- * surrounding `ErrorBoundary` catches it through the standard React path.
- */
-class GlobalErrorThrower extends React.Component<GlobalErrorThrowerProps> {
-  public render(): React.ReactNode {
-    if (this.props.error !== null && this.props.error !== undefined) {
-      // Throwing here routes the error into the surrounding ErrorBoundary's
-      // getDerivedStateFromError / componentDidCatch lifecycle.
-      throw this.props.error;
-    }
-    return typeof this.props.children === 'function' ? this.props.children() : this.props.children;
-  }
-}
-
 interface GlobalErrorBoundaryState {
   globalError: unknown | null;
+  globalEventId: string;
 }
 
 /**
@@ -68,9 +50,9 @@ interface GlobalErrorBoundaryState {
  * - Optionally, unhandled promise rejections (opt-in via
  *   `includeUnhandledRejections`).
  *
- * The Sentry error pipeline (capture → flush → mechanism tagging) is
- * unchanged; this component only surfaces the fallback UI and suppresses
- * React Native's default fatal handler while the fallback is mounted.
+ * The Sentry error pipeline (capture → flush → mechanism tagging) runs in the
+ * integration before this component is notified, so the fallback UI surfaces
+ * an already-captured event and does not generate a duplicate.
  *
  * Intended usage is at the top of the component tree, typically just inside
  * `Sentry.wrap()`:
@@ -86,17 +68,13 @@ interface GlobalErrorBoundaryState {
  * ```
  */
 export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProps, GlobalErrorBoundaryState> {
-  public state: GlobalErrorBoundaryState = { globalError: null };
+  public state: GlobalErrorBoundaryState = { globalError: null, globalEventId: '' };
 
   private _unsubscribe?: () => void;
   private _latched = false;
 
   public componentDidMount(): void {
-    this._unsubscribe = subscribeGlobalError(this._onGlobalError, {
-      fatal: true,
-      nonFatal: !!this.props.includeNonFatalGlobalErrors,
-      unhandledRejection: !!this.props.includeUnhandledRejections,
-    });
+    this._subscribe();
   }
 
   public componentWillUnmount(): void {
@@ -111,18 +89,15 @@ export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProp
       prevProps.includeUnhandledRejections !== this.props.includeUnhandledRejections
     ) {
       this._unsubscribe?.();
-      this._unsubscribe = subscribeGlobalError(this._onGlobalError, {
-        fatal: true,
-        nonFatal: !!this.props.includeNonFatalGlobalErrors,
-        unhandledRejection: !!this.props.includeUnhandledRejections,
-      });
+      this._subscribe();
     }
   }
 
   public render(): React.ReactNode {
+    const { globalError, globalEventId } = this.state;
     const {
       children,
-      onReset,
+      fallback,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       includeNonFatalGlobalErrors: _ignoredA,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -130,11 +105,36 @@ export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProp
       ...forwarded
     } = this.props;
 
+    // Global-error path: render the fallback directly. The error was already
+    // captured by the integration before the bus published it, so we must NOT
+    // route it through @sentry/react's ErrorBoundary — its componentDidCatch
+    // would call captureReactException and produce a duplicate Sentry event.
+    if (globalError !== null && globalError !== undefined) {
+      if (typeof fallback === 'function') {
+        return fallback({
+          error: globalError,
+          componentStack: '',
+          eventId: globalEventId,
+          resetError: this._resetFromFallback,
+        });
+      }
+      return fallback ?? null;
+    }
+
+    // Render-phase path: delegate to the upstream ErrorBoundary untouched.
     return (
-      <ErrorBoundary {...forwarded} onReset={this._onReset(onReset)}>
-        <GlobalErrorThrower error={this.state.globalError}>{children}</GlobalErrorThrower>
+      <ErrorBoundary {...forwarded} fallback={fallback} onReset={this._onRenderBoundaryReset}>
+        {children}
       </ErrorBoundary>
     );
+  }
+
+  private _subscribe(): void {
+    this._unsubscribe = subscribeGlobalError(this._onGlobalError, {
+      fatal: true,
+      nonFatal: !!this.props.includeNonFatalGlobalErrors,
+      unhandledRejection: !!this.props.includeUnhandledRejections,
+    });
   }
 
   private _onGlobalError = (event: GlobalErrorEvent): void => {
@@ -146,16 +146,28 @@ export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProp
       return;
     }
     this._latched = true;
-    this.setState({ globalError: event.error ?? new Error('Unknown global error') });
+
+    const error = event.error ?? new Error('Unknown global error');
+    // The integration captured the event just before publishing, so the
+    // current lastEventId is ours. Fall back to '' to match the type contract.
+    const eventId = lastEventId() ?? '';
+
+    this.setState({ globalError: error, globalEventId: eventId });
+    this.props.onError?.(error, '', eventId);
   };
 
-  private _onReset =
-    (userOnReset: GlobalErrorBoundaryProps['onReset']) =>
-    (error: unknown, componentStack: string, eventId: string): void => {
-      this._latched = false;
-      this.setState({ globalError: null });
-      userOnReset?.(error, componentStack, eventId);
-    };
+  private _resetFromFallback = (): void => {
+    const { globalError, globalEventId } = this.state;
+    this._latched = false;
+    this.setState({ globalError: null, globalEventId: '' });
+    this.props.onReset?.(globalError, '', globalEventId);
+  };
+
+  private _onRenderBoundaryReset = (error: unknown, componentStack: string, eventId: string): void => {
+    // Delegate to the user's onReset for render-phase resets; no internal
+    // state to clear on this path.
+    this.props.onReset?.(error, componentStack, eventId);
+  };
 }
 
 /**
