@@ -1,6 +1,8 @@
 import type { SeverityLevel } from '@sentry/core';
 import { addBreadcrumb, debug } from '@sentry/core';
 
+import { getCurrentReactNativeTracingIntegration } from './tracing/reactnativetracing';
+
 const DEFAULT_RAGE_TAP_THRESHOLD = 3;
 const DEFAULT_RAGE_TAP_TIME_WINDOW = 1000;
 
@@ -24,7 +26,11 @@ interface RecentTap {
 
 /**
  * Detects rage taps (repeated rapid taps on the same target) and emits
- * `ui.frustration` breadcrumbs when the threshold is hit.
+ * `ui.multiClick` breadcrumbs when the threshold is hit.
+ *
+ * Uses the same breadcrumb category and data shape as the web JS SDK's
+ * rage click detection so the Sentry replay timeline renders the fire
+ * icon and "Rage Click" label automatically.
  */
 export class RageTapDetector {
   private _recentTaps: RecentTap[] = [];
@@ -54,7 +60,7 @@ export class RageTapDetector {
   }
 
   /**
-   * Call after each touch event. If a rage tap is detected, a `ui.frustration`
+   * Call after each touch event. If a rage tap is detected, a `ui.multiClick`
    * breadcrumb is emitted automatically.
    */
   public check(touchPath: TouchedComponentInfo[], label?: string): void {
@@ -69,24 +75,27 @@ export class RageTapDetector {
 
     const identity = getTapIdentity(root, label);
     const now = Date.now();
-    const rageTapCount = this._detect(identity, now);
+    const tapCount = this._detect(identity, now);
 
-    if (rageTapCount > 0) {
-      const detail = label ? label : `${root.name}${root.file ? ` (${root.file})` : ''}`;
+    if (tapCount > 0) {
+      const message = buildTouchMessage(root, label);
+      const node = buildNodeFromTouchPath(root, label);
+
       addBreadcrumb({
-        category: 'ui.frustration',
-        data: {
-          type: 'rage_tap',
-          tapCount: rageTapCount,
-          path: touchPath,
-          label,
-        },
+        category: 'ui.multiClick',
+        type: 'default',
         level: 'warning' as SeverityLevel,
-        message: `Rage tap detected on: ${detail}`,
-        type: 'user',
+        message,
+        data: {
+          clickCount: tapCount,
+          metric: true,
+          route: getCurrentRoute(),
+          node,
+          path: touchPath,
+        },
       });
 
-      debug.log(`[TouchEvents] Rage tap detected: ${rageTapCount} taps on ${detail}`);
+      debug.log(`[TouchEvents] Rage tap detected: ${tapCount} taps on ${message}`);
     }
   }
 
@@ -123,4 +132,55 @@ function getTapIdentity(root: TouchedComponentInfo, label?: string): string {
     return `label:${label}`;
   }
   return `name:${root.name ?? ''}|file:${root.file ?? ''}`;
+}
+
+/**
+ * Build a human-readable message matching the touch breadcrumb format.
+ */
+function buildTouchMessage(root: TouchedComponentInfo, label?: string): string {
+  if (label) {
+    return label;
+  }
+  return `${root.name}${root.file ? ` (${root.file})` : ''}`;
+}
+
+/**
+ * Build a node object compatible with the web SDK's `ReplayBaseDomFrameData`
+ * so that `stringifyNodeAttributes` in the Sentry frontend can render it.
+ *
+ * Maps the React Native component info to the DOM-like shape:
+ * - `tagName` → element type (e.g. "RCTView") or component name
+ * - `attributes['data-sentry-component']` → component name from babel plugin
+ * - `attributes['data-sentry-source-file']` → source file
+ */
+function buildNodeFromTouchPath(
+  root: TouchedComponentInfo,
+  label?: string,
+): { id: number; tagName: string; textContent: string; attributes: Record<string, string> } {
+  const attributes: Record<string, string> = {};
+
+  if (root.name) {
+    attributes['data-sentry-component'] = root.name;
+  }
+  if (root.file) {
+    attributes['data-sentry-source-file'] = root.file;
+  }
+  if (label) {
+    attributes['sentry-label'] = label;
+  }
+
+  return {
+    id: 0,
+    tagName: root.element ?? root.name ?? 'unknown',
+    textContent: '',
+    attributes,
+  };
+}
+
+function getCurrentRoute(): string | undefined {
+  try {
+    return getCurrentReactNativeTracingIntegration()?.state.currentRoute;
+  } catch {
+    return undefined;
+  }
 }

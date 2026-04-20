@@ -15,7 +15,7 @@ describe('RageTapDetector', () => {
     jest.restoreAllMocks();
   });
 
-  it('emits ui.frustration breadcrumb after 3 taps on same label', () => {
+  it('emits ui.multiClick breadcrumb after 3 taps on same label', () => {
     const detector = new RageTapDetector();
     const path = [{ name: 'Button', label: 'submit' }];
 
@@ -26,15 +26,21 @@ describe('RageTapDetector', () => {
     expect(addBreadcrumb).toHaveBeenCalledTimes(1);
     expect(addBreadcrumb).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: 'ui.frustration',
+        category: 'ui.multiClick',
         level: 'warning',
-        message: 'Rage tap detected on: submit',
-        type: 'user',
+        type: 'default',
+        message: 'submit',
         data: expect.objectContaining({
-          type: 'rage_tap',
-          tapCount: 3,
-          label: 'submit',
+          clickCount: 3,
+          metric: true,
           path,
+          node: expect.objectContaining({
+            tagName: 'Button',
+            attributes: expect.objectContaining({
+              'data-sentry-component': 'Button',
+              'sentry-label': 'submit',
+            }),
+          }),
         }),
       }),
     );
@@ -108,7 +114,7 @@ describe('RageTapDetector', () => {
     expect(addBreadcrumb).toHaveBeenCalledTimes(1);
     expect(addBreadcrumb).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ tapCount: 5 }),
+        data: expect.objectContaining({ clickCount: 5 }),
       }),
     );
   });
@@ -142,8 +148,16 @@ describe('RageTapDetector', () => {
     expect(addBreadcrumb).toHaveBeenCalledTimes(1);
     expect(addBreadcrumb).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Rage tap detected on: SubmitButton (form.tsx)',
-        data: expect.objectContaining({ label: undefined }),
+        message: 'SubmitButton (form.tsx)',
+        data: expect.objectContaining({
+          node: expect.objectContaining({
+            tagName: 'SubmitButton',
+            attributes: expect.objectContaining({
+              'data-sentry-component': 'SubmitButton',
+              'data-sentry-source-file': 'form.tsx',
+            }),
+          }),
+        }),
       }),
     );
   });

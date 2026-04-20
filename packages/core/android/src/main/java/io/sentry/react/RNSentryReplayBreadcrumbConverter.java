@@ -32,8 +32,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     if ("touch".equals(breadcrumb.getCategory())) {
       return convertTouchBreadcrumb(breadcrumb);
     }
-    if ("ui.frustration".equals(breadcrumb.getCategory())) {
-      return convertFrustrationBreadcrumb(breadcrumb);
+    if ("ui.multiClick".equals(breadcrumb.getCategory())) {
+      return convertMultiClickBreadcrumb(breadcrumb);
     }
     if ("navigation".equals(breadcrumb.getCategory())) {
       return convertNavigationBreadcrumb(breadcrumb);
@@ -76,14 +76,14 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
   }
 
   @TestOnly
-  public @Nullable RRWebEvent convertFrustrationBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+  public @Nullable RRWebEvent convertMultiClickBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
     if (breadcrumb.getData("path") == null) {
       return null;
     }
 
     final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
 
-    rrWebBreadcrumb.setCategory("ui.frustration");
+    rrWebBreadcrumb.setCategory("ui.multiClick");
 
     rrWebBreadcrumb.setMessage(getTouchPathMessage(breadcrumb.getData("path")));
 

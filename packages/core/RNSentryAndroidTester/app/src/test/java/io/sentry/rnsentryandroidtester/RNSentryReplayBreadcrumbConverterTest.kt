@@ -91,13 +91,13 @@ class RNSentryReplayBreadcrumbConverterTest {
     }
 
     @Test
-    fun convertFrustrationBreadcrumb() {
+    fun convertMultiClickBreadcrumb() {
         val converter = RNSentryReplayBreadcrumbConverter()
         val testBreadcrumb = Breadcrumb()
         testBreadcrumb.level = SentryLevel.WARNING
-        testBreadcrumb.type = "user"
-        testBreadcrumb.category = "ui.frustration"
-        testBreadcrumb.message = "Rage tap detected on: Submit"
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "ui.multiClick"
+        testBreadcrumb.message = "Submit"
         testBreadcrumb.setData(
             "path",
             arrayListOf(
@@ -108,13 +108,13 @@ class RNSentryReplayBreadcrumbConverterTest {
                 ),
             ),
         )
-        testBreadcrumb.setData("type", "rage_tap")
-        testBreadcrumb.setData("tapCount", 3.0)
+        testBreadcrumb.setData("clickCount", 3.0)
+        testBreadcrumb.setData("metric", true)
         val actual = converter.convert(testBreadcrumb) as RRWebBreadcrumbEvent
 
         assertRRWebBreadcrumbDefaults(actual)
         assertEquals(SentryLevel.WARNING, actual.level)
-        assertEquals("ui.frustration", actual.category)
+        assertEquals("ui.multiClick", actual.category)
         assertEquals("Submit(form.tsx)", actual.message)
     }
 

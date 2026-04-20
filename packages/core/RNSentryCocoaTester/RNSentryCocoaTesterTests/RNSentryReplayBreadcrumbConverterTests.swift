@@ -100,20 +100,20 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         XCTAssertNil(actual)
     }
 
-    func testConvertFrustrationBreadcrumb() {
+    func testConvertMultiClickBreadcrumb() {
         let converter = RNSentryReplayBreadcrumbConverter()
         let testBreadcrumb = Breadcrumb()
         testBreadcrumb.timestamp = Date()
         testBreadcrumb.level = .warning
-        testBreadcrumb.type = "user"
-        testBreadcrumb.category = "ui.frustration"
-        testBreadcrumb.message = "Rage tap detected on: Submit"
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "ui.multiClick"
+        testBreadcrumb.message = "Submit"
         testBreadcrumb.data = [
             "path": [
                 ["name": "SubmitButton", "label": "Submit", "file": "form.tsx"]
             ],
-            "type": "rage_tap",
-            "tapCount": 3
+            "clickCount": 3,
+            "metric": true
         ]
         let actual = converter.convert(from: testBreadcrumb)
 
@@ -123,7 +123,7 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         let payload = data["payload"] as! [String: Any?]
         assertRRWebBreadcrumbDefaults(actual: event)
         XCTAssertEqual("warning", payload["level"] as! String)
-        XCTAssertEqual("ui.frustration", payload["category"] as! String)
+        XCTAssertEqual("ui.multiClick", payload["category"] as! String)
         XCTAssertEqual("Submit(form.tsx)", payload["message"] as! String)
     }
 

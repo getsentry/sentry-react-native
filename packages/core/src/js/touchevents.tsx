@@ -52,7 +52,7 @@ export type TouchEventBoundaryProps = {
   spanAttributes?: Record<string, SpanAttributeValue>;
   /**
    * Enable rage tap detection. When enabled, rapid consecutive taps on the
-   * same element are detected and emitted as `ui.frustration` breadcrumbs.
+   * same element are detected and emitted as `ui.multiClick` breadcrumbs.
    *
    * @default true
    */

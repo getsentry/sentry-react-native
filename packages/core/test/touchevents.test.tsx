@@ -319,7 +319,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
       jest.spyOn(Date, 'now').mockReturnValue(1000);
     });
 
-    it('emits ui.frustration breadcrumb after 3 taps on same target', () => {
+    it('emits ui.multiClick breadcrumb after 3 taps on same target', () => {
       const { defaultProps } = TouchEventBoundary;
       const boundary = new TouchEventBoundary(defaultProps);
 
@@ -337,18 +337,16 @@ describe('TouchEventBoundary._onTouchStart', () => {
       // @ts-expect-error Calling private member
       boundary._onTouchStart(event);
 
-      // 3 touch breadcrumbs + 1 frustration breadcrumb
+      // 3 touch breadcrumbs + 1 multiClick breadcrumb
       expect(addBreadcrumb).toHaveBeenCalledTimes(4);
       expect(addBreadcrumb).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          category: 'ui.frustration',
+          category: 'ui.multiClick',
           level: 'warning',
-          message: 'Rage tap detected on: submit',
-          type: 'user',
+          type: 'default',
           data: expect.objectContaining({
-            type: 'rage_tap',
-            tapCount: 3,
-            label: 'submit',
+            clickCount: 3,
+            metric: true,
           }),
         }),
       );
@@ -413,11 +411,11 @@ describe('TouchEventBoundary._onTouchStart', () => {
       // @ts-expect-error Calling private member
       boundary._onTouchStart(event);
 
-      expect(addBreadcrumb).toHaveBeenCalledTimes(6); // 5 touch + 1 frustration
+      expect(addBreadcrumb).toHaveBeenCalledTimes(6); // 5 touch + 1 multiClick
       expect(addBreadcrumb).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          category: 'ui.frustration',
-          data: expect.objectContaining({ tapCount: 5 }),
+          category: 'ui.multiClick',
+          data: expect.objectContaining({ clickCount: 5 }),
         }),
       );
     });

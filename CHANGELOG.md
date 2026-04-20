@@ -14,7 +14,7 @@
 - Add `attachAllThreads` option to attach full stack traces for all threads to captured events on iOS ([#5960](https://github.com/getsentry/sentry-react-native/issues/5960))
 - Add `deeplinkIntegration` for automatic deep link breadcrumbs ([#5983](https://github.com/getsentry/sentry-react-native/pull/5983))
 - Name navigation spans using dispatched action payload when `useDispatchedActionData` is enabled ([#5982](https://github.com/getsentry/sentry-react-native/pull/5982))
-- Add rage tap detection — rapid consecutive taps on the same element emit `ui.frustration` breadcrumbs and appear on the replay timeline ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
+- Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
 ### Fixes
 
