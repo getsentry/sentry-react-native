@@ -446,6 +446,94 @@ describe('Mobile Replay Integration', () => {
     });
   });
 
+  describe('captureReplay returns null (native capture failed)', () => {
+    it('should not set replay_id when captureReplay returns null and no ongoing recording', async () => {
+      mockCaptureReplay.mockResolvedValue(null);
+      mockGetCurrentReplayId.mockReturnValue(null);
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Test error',
+              mechanism: { handled: false, type: 'onerror' },
+            },
+          ],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(mockCaptureReplay).toHaveBeenCalledWith(true); // isHardCrash
+      expect(result?.contexts?.replay?.replay_id).toBeUndefined();
+    });
+
+    it('should use ongoing recording when captureReplay returns null but recording exists', async () => {
+      mockCaptureReplay.mockResolvedValue(null);
+      // First call during setup returns initial ID, second call during processEvent returns ongoing ID
+      mockGetCurrentReplayId.mockReturnValueOnce(null).mockReturnValue('ongoing-replay-id');
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Test error',
+              mechanism: { handled: false, type: 'onerror' },
+            },
+          ],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(mockCaptureReplay).toHaveBeenCalled();
+      // Should fall back to ongoing recording ID
+      expect(result?.contexts?.replay?.replay_id).toBe('ongoing-replay-id');
+    });
+
+    it('should set replay_id when captureReplay succeeds', async () => {
+      mockCaptureReplay.mockResolvedValue('new-replay-id');
+      mockGetCurrentReplayId.mockReturnValue(null);
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Test error',
+              mechanism: { handled: false, type: 'onerror' },
+            },
+          ],
+        },
+      } as ErrorEvent;
+      const hint: EventHint = {};
+
+      const result = await clientOptions.beforeSend?.(event, hint);
+
+      expect(result).toBeDefined();
+      expect(mockCaptureReplay).toHaveBeenCalled();
+      expect(result?.contexts?.replay?.replay_id).toBe('new-replay-id');
+    });
+  });
+
   describe('platform checks', () => {
     it('should return noop integration in Expo Go', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
