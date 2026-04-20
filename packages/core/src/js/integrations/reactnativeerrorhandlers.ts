@@ -229,9 +229,16 @@ function setupErrorUtilsGlobalHandler(): void {
         if (!hasInterestedSubscribers('onerror', !!isFatal)) {
           defaultHandler(error, isFatal);
         }
+        // Release the latch so any subsequent fatal can still be captured.
+        // Before GlobalErrorBoundary existed, the default handler always tore
+        // the app down, so the latch was effectively permanent. Now the app
+        // can survive the first fatal via the fallback UI, and a later fatal
+        // must flow through the full capture + publish pipeline.
+        handlingFatal = false;
       },
       (reason: unknown) => {
         debug.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
+        handlingFatal = false;
       },
     );
   });

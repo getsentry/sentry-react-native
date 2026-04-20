@@ -251,6 +251,32 @@ describe('ReactNativeErrorHandlers', () => {
         expect(defaultHandler).not.toHaveBeenCalled();
       });
 
+      test('releases handlingFatal latch after flush so subsequent fatals are captured', async () => {
+        // With a GlobalErrorBoundary mounted, defaultHandler is skipped and the
+        // app survives the first fatal. The latch that previously relied on the
+        // app crashing must now release so later fatals still flow through.
+        hasSubscribersSpy.mockReturnValue(true);
+        const integration = reactNativeErrorHandlersIntegration();
+        integration.setupOnce!();
+
+        await errorHandlerCallback!(new Error('First fatal'), true);
+        await client.flush();
+        await new Promise(resolve => setImmediate(resolve));
+
+        (captureException as jest.Mock).mockClear();
+        const secondError = new Error('Second fatal');
+        await errorHandlerCallback!(secondError, true);
+        await client.flush();
+
+        expect(client.event).toBeDefined();
+        expect(client.event?.exception?.values?.[0]?.value).toBe('Second fatal');
+        expect(publishSpy).toHaveBeenLastCalledWith({
+          error: secondError,
+          isFatal: true,
+          kind: 'onerror',
+        });
+      });
+
       test('re-evaluates subscribers after flush (boundary unmounts during flush)', async () => {
         // Always returns false — simulates the boundary being gone by the
         // time the flush resolves. The check must happen inside the .then,
