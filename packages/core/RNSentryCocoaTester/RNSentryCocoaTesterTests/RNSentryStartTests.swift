@@ -197,6 +197,34 @@ final class RNSentryStartTests: XCTestCase {
         }
     }
 
+    func testScreenshotMaskingOptions() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            "attachScreenshot": true,
+            "screenshot": [
+                "maskAllText": false,
+                "maskAllImages": true
+            ]
+        ])
+
+        let actualOptions = PrivateSentrySDKOnly.options
+        XCTAssertTrue(actualOptions.attachScreenshot)
+        XCTAssertFalse(actualOptions.screenshot.maskAllText)
+        XCTAssertTrue(actualOptions.screenshot.maskAllImages)
+    }
+
+    func testScreenshotMaskingOptionsDefaults() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            "attachScreenshot": true
+        ])
+
+        let actualOptions = PrivateSentrySDKOnly.options
+        XCTAssertTrue(actualOptions.attachScreenshot)
+        XCTAssertTrue(actualOptions.screenshot.maskAllText)
+        XCTAssertTrue(actualOptions.screenshot.maskAllImages)
+    }
+
     func startFromRN(options: [String: Any]) throws {
         var error: NSError?
         RNSentryStart.start(options: options, error: &error)

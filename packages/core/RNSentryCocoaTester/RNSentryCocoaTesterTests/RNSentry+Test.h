@@ -5,4 +5,6 @@
 + (SentryUser *_Nullable)userFrom:(NSDictionary *)userKeys
                     otherUserKeys:(NSDictionary *)userDataKeys;
 
++ (BOOL)captureReplayWithReturnValue;
+
 @end

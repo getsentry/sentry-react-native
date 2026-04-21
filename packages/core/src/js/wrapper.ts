@@ -108,6 +108,7 @@ interface SentryNativeWrapper {
   setTag(key: string, value?: string): void;
   setAttribute(key: string, value: string | number | boolean): void;
   setAttributes(attributes: Record<string, string | number | boolean>): void;
+  removeAttribute(key: string): void;
 
   nativeCrash(): void;
 
@@ -608,6 +609,21 @@ export const NATIVE: SentryNativeWrapper = {
     });
 
     RNSentry.setAttributes(serializedAttributes);
+  },
+
+  /**
+   * Removes an attribute from the native scope.
+   * @param key string
+   */
+  removeAttribute(key: string): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    RNSentry.removeAttribute(key);
   },
 
   /**

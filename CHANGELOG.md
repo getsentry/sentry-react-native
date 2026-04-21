@@ -10,8 +10,15 @@
 
 ### Features
 
+- Expose scope-level attributes API (`setAttribute`, `setAttributes`, `removeAttribute`) bridging to native SDKs ([#6009](https://github.com/getsentry/sentry-react-native/pull/6009))
+- Expose screenshot masking options (`screenshot.maskAllText`, `screenshot.maskAllImages`, `screenshot.maskedViewClasses`, `screenshot.unmaskedViewClasses`) for error screenshots ([#6007](https://github.com/getsentry/sentry-react-native/pull/6007))
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
 - Add `includeFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
+- Add `Sentry.GlobalErrorBoundary` component (and `withGlobalErrorBoundary` HOC) that renders a fallback UI for fatal non-rendering JS errors routed through `ErrorUtils` in addition to the render-phase errors caught by `Sentry.ErrorBoundary`. Opt-in flags `includeNonFatalGlobalErrors` and `includeUnhandledRejections` extend the fallback to non-fatal errors and unhandled promise rejections respectively. ([#6023](https://github.com/getsentry/sentry-react-native/pull/6023))
+
+### Fixes
+
+- Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))
 
 ### Dependencies
 
@@ -21,6 +28,9 @@
 - Bump Android SDK from v8.38.0 to v8.39.1 ([#6010](https://github.com/getsentry/sentry-react-native/pull/6010))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8391)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.38.0...8.39.1)
+- Bump CLI from v3.3.5 to v3.4.0 ([#6026](https://github.com/getsentry/sentry-react-native/pull/6026))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#340)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.5...3.4.0)
 
 ## 8.8.0
 

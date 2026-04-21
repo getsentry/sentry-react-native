@@ -118,11 +118,9 @@ describe('ScopeSync', () => {
     let setExtrasScopeSpy: jest.SpyInstance;
     let addBreadcrumbScopeSpy: jest.SpyInstance;
     let setContextScopeSpy: jest.SpyInstance;
-    /*
-      TODO: Uncomment once Native setattribute is implemented.
     let setAttributeScopeSpy: jest.SpyInstance;
     let setAttributesScopeSpy: jest.SpyInstance;
-    */
+    let removeAttributeScopeSpy: jest.SpyInstance;
 
     beforeAll(() => {
       const testScope = SentryCore.getIsolationScope();
@@ -135,6 +133,7 @@ describe('ScopeSync', () => {
       setContextScopeSpy = jest.spyOn(testScope, 'setContext');
       setAttributeScopeSpy = jest.spyOn(testScope, 'setAttribute');
       setAttributesScopeSpy = jest.spyOn(testScope, 'setAttributes');
+      removeAttributeScopeSpy = jest.spyOn(testScope, 'removeAttribute');
     });
 
     beforeEach(() => {
@@ -224,8 +223,6 @@ describe('ScopeSync', () => {
       expect(setContextScopeSpy).toHaveBeenCalledExactlyOnceWith('key', { key: 'value' });
     });
 
-    /*
-      TODO: uncomment tests once native implementation is done.
     it('setAttribute', () => {
       expect(SentryCore.getIsolationScope().setAttribute).not.toBe(setAttributeScopeSpy);
 
@@ -290,6 +287,13 @@ describe('ScopeSync', () => {
       });
       expect(NATIVE.setAttributes).not.toHaveBeenCalled();
     });
-    */
+
+    it('removeAttribute', () => {
+      expect(SentryCore.getIsolationScope().removeAttribute).not.toBe(removeAttributeScopeSpy);
+
+      SentryCore.getIsolationScope().removeAttribute('session_id');
+      expect(NATIVE.removeAttribute).toHaveBeenCalledExactlyOnceWith('session_id');
+      expect(removeAttributeScopeSpy).toHaveBeenCalledExactlyOnceWith('session_id');
+    });
   });
 });

@@ -14,6 +14,7 @@ import type { ReactNativeClientOptions } from '../options';
 import { isHermesEnabled, isWeb } from '../utils/environment';
 import { createSyntheticError, isErrorLike } from '../utils/error';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
+import { hasInterestedSubscribers, publishGlobalError } from './globalErrorBus';
 import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from './reactnativeerrorhandlersutils';
 
 const INTEGRATION_NAME = 'ReactNativeErrorHandlers';
@@ -75,11 +76,16 @@ function setupUnhandledRejectionsTracking(patchGlobalPromise: boolean): void {
 
       // Use Sentry's built-in global unhandled rejection handler
       addGlobalUnhandledRejectionInstrumentationHandler((error: unknown) => {
-        captureException(error, {
+        const eventId = captureException(error, {
           originalException: error,
           syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
           mechanism: { handled: false, type: 'onunhandledrejection' },
         });
+        try {
+          publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection', eventId });
+        } catch (e) {
+          debug.error('[ReactNativeErrorHandlers] Failed to publish global error.', e);
+        }
       });
     } else if (patchGlobalPromise) {
       // For JSC and other environments, use the existing approach
@@ -107,12 +113,17 @@ const promiseRejectionTrackingOptions: PromiseRejectionTrackingOptions = {
 
     // Marking the rejection as handled to avoid breaking crash rate calculations.
     // See: https://github.com/getsentry/sentry-react-native/issues/4141
-    captureException(error, {
+    const eventId = captureException(error, {
       data: { id },
       originalException: error,
       syntheticException: isErrorLike(error) ? undefined : createSyntheticError(),
       mechanism: { handled: true, type: 'onunhandledrejection' },
     });
+    try {
+      publishGlobalError({ error, isFatal: false, kind: 'onunhandledrejection', eventId });
+    } catch (e) {
+      debug.error('[ReactNativeErrorHandlers] Failed to publish global error.', e);
+    }
   },
   onHandled: id => {
     if (__DEV__) {
@@ -202,21 +213,51 @@ function setupErrorUtilsGlobalHandler(): void {
       });
     }
 
-    client.captureEvent(event, hint);
+    const eventId = client.captureEvent(event, hint);
+
+    // Notify any mounted GlobalErrorBoundary. Subscribers filter internally by
+    // fatal/non-fatal preferences. Wrapped defensively so a misbehaving
+    // subscriber can't unwind into this handler and leave handlingFatal set.
+    try {
+      publishGlobalError({ error, isFatal: !!isFatal, kind: 'onerror', eventId });
+    } catch (e) {
+      debug.error('[ReactNativeErrorHandlers] Failed to publish global error.', e);
+    }
 
     if (__DEV__) {
       // If in dev, we call the default handler anyway and hope the error will be sent
-      // Just for a better dev experience
+      // Just for a better dev experience. If a fallback is mounted it will still
+      // render alongside LogBox.
       defaultHandler(error, isFatal);
       return;
     }
 
     void client.flush((client.getOptions() as ReactNativeClientOptions).shutdownTimeout || 2000).then(
       () => {
-        defaultHandler(error, isFatal);
+        // Re-check subscribers *after* the flush. The flush can take up to the
+        // configured shutdownTimeout (default 2s); a boundary could mount or
+        // unmount during that window, so the pre-flush answer may be stale.
+        // If a fallback will render, we skip the default handler so it can own
+        // the screen instead of being torn down.
+        if (!hasInterestedSubscribers('onerror', !!isFatal)) {
+          defaultHandler(error, isFatal);
+        }
+        // Release the latch so any subsequent fatal can still be captured.
+        // Before GlobalErrorBoundary existed, the default handler always tore
+        // the app down, so the latch was effectively permanent. Now the app
+        // can survive the first fatal via the fallback UI, and a later fatal
+        // must flow through the full capture + publish pipeline. Guard with
+        // shouldHandleFatal so a concurrent non-fatal's flush can't clear the
+        // latch out from under an in-flight fatal.
+        if (shouldHandleFatal) {
+          handlingFatal = false;
+        }
       },
       (reason: unknown) => {
         debug.error('[ReactNativeErrorHandlers] Error while flushing the event cache after uncaught error.', reason);
+        if (shouldHandleFatal) {
+          handlingFatal = false;
+        }
       },
     );
   });
