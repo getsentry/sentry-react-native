@@ -45,6 +45,7 @@ const NATIVE: MockInterface<NativeType> = {
   setTag: jest.fn(),
   setAttribute: jest.fn(),
   setAttributes: jest.fn(),
+  removeAttribute: jest.fn(),
 
   nativeCrash: jest.fn(),
 
