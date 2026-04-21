@@ -11,6 +11,7 @@
 ### Features
 
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
+- Re-export AI SDK manual instrumentation helpers (`instrumentOpenAiClient`, `instrumentAnthropicAiClient`, `instrumentGoogleGenAIClient`, `createLangChainCallbackHandler`, `instrumentLangGraph`, `instrumentStateGraphCompile`) for use in React Native apps ([#5297](https://github.com/getsentry/sentry-react-native/issues/5297))
 
 ### Dependencies
 
