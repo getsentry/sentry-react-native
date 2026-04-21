@@ -75,6 +75,7 @@
     "@sentry/browser": "10.49.0",
     "@sentry/cli": "3.4.0",
     "@sentry/core": "10.49.0",
+    "@sentry/expo-upload-sourcemaps": "workspace:*",
     "@sentry/react": "10.49.0",
     "@sentry/types": "10.49.0"
   },

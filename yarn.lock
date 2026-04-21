@@ -11129,6 +11129,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/expo-upload-sourcemaps@workspace:*, @sentry/expo-upload-sourcemaps@workspace:packages/expo-upload-sourcemaps":
+  version: 0.0.0-use.local
+  resolution: "@sentry/expo-upload-sourcemaps@workspace:packages/expo-upload-sourcemaps"
+  dependencies:
+    "@sentry/cli": 3.4.0
+  peerDependencies:
+    "@expo/env": "*"
+    dotenv: "*"
+  peerDependenciesMeta:
+    "@expo/env":
+      optional: true
+    dotenv:
+      optional: true
+  bin:
+    expo-upload-sourcemaps: ./cli.js
+  languageName: unknown
+  linkType: soft
+
 "@sentry/node-core@npm:10.31.0":
   version: 10.31.0
   resolution: "@sentry/node-core@npm:10.31.0"
@@ -11221,6 +11239,7 @@ __metadata:
     "@sentry/browser": 10.49.0
     "@sentry/cli": 3.4.0
     "@sentry/core": 10.49.0
+    "@sentry/expo-upload-sourcemaps": "workspace:*"
     "@sentry/react": 10.49.0
     "@sentry/types": 10.49.0
     "@sentry/wizard": 6.12.0
