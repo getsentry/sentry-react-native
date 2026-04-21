@@ -34,6 +34,7 @@ import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
+import io.sentry.SentryAttributes;
 import io.sentry.SentryDate;
 import io.sentry.SentryDateProvider;
 import io.sentry.SentryExecutorService;
@@ -677,23 +678,25 @@ public class RNSentryModuleImpl {
   }
 
   public void setAttribute(String key, String value) {
-    // TODO(alwx): This is not implemented in sentry-android yet
-    /*
-     * Sentry.configureScope(
-     * scope -> {
-     * scope.setAttribute(key, value);
-     * });
-     */
+    Sentry.configureScope(
+        scope -> {
+          scope.setAttribute(key, value);
+        });
   }
 
   public void setAttributes(ReadableMap attributes) {
-    // TODO(alwx): This is not implemented in sentry-android yet
-    /*
-     * Sentry.configureScope(
-     * scope -> {
-     * scope.setAttributes(attributes);
-     * });
-     */
+    Sentry.configureScope(
+        scope -> {
+          final Map<String, Object> attributesHashMap = attributes.toHashMap();
+          scope.setAttributes(SentryAttributes.fromMap(attributesHashMap));
+        });
+  }
+
+  public void removeAttribute(String key) {
+    Sentry.configureScope(
+        scope -> {
+          scope.removeAttribute(key);
+        });
   }
 
   public void closeNativeSdk(Promise promise) {
