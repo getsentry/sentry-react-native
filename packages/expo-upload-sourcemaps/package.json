@@ -19,7 +19,7 @@
   ],
   "bin": "./cli.js",
   "scripts": {
-    "build:tarball": "rm -f *.tgz && npm pack"
+    "build:tarball": "bash scripts/build-tarball.sh"
   },
   "files": [
     "cli.js",
