@@ -67,7 +67,6 @@ export type {
   GoogleGenAIClient,
   GoogleGenAIChat,
   GoogleGenAIOptions,
-  GoogleGenAIIstrumentedMethod,
   LangChainOptions,
   LangChainIntegration,
   LangGraphOptions,
