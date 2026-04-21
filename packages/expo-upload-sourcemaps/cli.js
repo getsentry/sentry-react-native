@@ -105,15 +105,8 @@ function readAndPrintJSONFile(filePath) {
 }
 
 function writeJSONFile(filePath, object) {
-  // Convert the updated JavaScript object back to a JSON string
   const updatedJsonString = JSON.stringify(object, null, 2);
-  fs.writeFileSync(filePath, updatedJsonString, 'utf8', writeErr => {
-    if (writeErr) {
-      console.error('Error writing to the file:', writeErr);
-    } else {
-      console.log('File updated successfully.');
-    }
-  });
+  fs.writeFileSync(filePath, updatedJsonString, 'utf8');
 }
 
 function isAsset(filename) {
@@ -295,8 +288,12 @@ for (const [assetGroupName, assets] of Object.entries(groupedAssets)) {
     process.exit(1);
   }
   if (result.status !== 0) {
-    console.error(`sentry-cli exited with status ${result.status}`);
-    process.exit(result.status);
+    if (result.signal) {
+      console.error(`sentry-cli was terminated by signal ${result.signal}`);
+    } else {
+      console.error(`sentry-cli exited with status ${result.status}`);
+    }
+    process.exit(result.status || 1);
   }
   numAssetsUploaded++;
 }
