@@ -248,7 +248,7 @@ type CustomResolverBeforeMetro068 = (
  */
 function buildSentryPackageExcludeResolver(
   config: MetroConfig,
-  include: boolean | undefined,
+  includePackage: boolean | undefined,
   moduleRegex: RegExp,
   optionName: string,
 ): MetroConfig {
@@ -261,7 +261,7 @@ function buildSentryPackageExcludeResolver(
     oldMetroModuleName?: string,
   ) => {
     if (
-      (include === false || (include === undefined && (platform === 'android' || platform === 'ios'))) &&
+      (includePackage === false || (includePackage === undefined && (platform === 'android' || platform === 'ios'))) &&
       !!(oldMetroModuleName ?? moduleName).match(moduleRegex)
     ) {
       return { type: 'empty' } as Resolution;
