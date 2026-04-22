@@ -2,8 +2,8 @@ appId: ${APP_ID}
 jsEngine: graaljs
 ---
 # Warm up Maestro's IDB/XCUITest driver connection on the simulator.
-# The very first Maestro launchApp after simulator boot can fail on Cirrus
-# Labs Tart VMs — running a lightweight flow first ensures the driver is
+# The very first Maestro launchApp after simulator boot can fail,
+# running a lightweight flow first ensures the driver is
 # fully connected before real test flows start.
 - launchApp:
     clearState: true

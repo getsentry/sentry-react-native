@@ -518,7 +518,7 @@ jobs:
           xcrun simctl bootstatus booted -b
           # Launch and dismiss Settings.app to ensure SpringBoard and system services
           # are fully initialized — this avoids Maestro connecting to a half-booted
-          # simulator on Cirrus Labs Tart VMs.
+          # simulator.
           xcrun simctl launch booted com.apple.Preferences
           sleep 5
           xcrun simctl terminate booted com.apple.Preferences

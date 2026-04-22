@@ -295,7 +295,7 @@ if (actions.includes('test')) {
       .filter(f => f.endsWith('.yml') && !f.startsWith('utils'))
       .sort((a, b) => {
         // Run crash.yml last — it kills the app via nativeCrash(), and
-        // post-crash simulator state can be flaky on Cirrus Labs Tart VMs.
+        // post-crash simulator state can be flaky.
         if (a === 'crash.yml') return 1;
         if (b === 'crash.yml') return -1;
         return a.localeCompare(b);
@@ -304,8 +304,7 @@ if (actions.includes('test')) {
     console.log(`Discovered ${flowFiles.length} Maestro flows: ${flowFiles.join(', ')}`);
 
     // Warm up Maestro's driver connection before running test flows.
-    // The first Maestro launchApp after simulator boot can fail on Cirrus
-    // Labs Tart VMs because the IDB/XCUITest driver isn't fully connected.
+    // The first Maestro launchApp after simulator boot can fail if thedriver isn't fully connected.
     // Running a lightweight warmup flow ensures the driver is ready.
     const warmupFlow = path.join('maestro', 'utils', 'warmup.yml');
     console.log('Warming up Maestro driver...');
