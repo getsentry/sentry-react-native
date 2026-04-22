@@ -208,7 +208,29 @@ plugins.withId('com.android.application') {
                                 try {
                                     sentryProps.load(new FileInputStream(propertiesFile))
                                 } catch (FileNotFoundException e) {
+                                    if (config.flavorAware) {
+                                        throw new GradleException(
+                                            "Sentry: expected properties file not found for variant '${variant}': ${propertiesFile}. " +
+                                            "Create it, or disable 'flavorAware' in project.ext.sentryCli.")
+                                    }
                                     project.logger.info("file not found '$propertiesFile' for '$variant'")
+                                }
+
+                                def sentryUrl = sentryProps.get("defaults.url")
+                                def sentryAuthToken = sentryProps.get("auth.token") ?: System.getenv("SENTRY_AUTH_TOKEN")
+                                def sentryOrg = sentryProps.get("defaults.org")
+                                def sentryProject = sentryProps.get("defaults.project")
+
+                                if (config.flavorAware) {
+                                    def missing = []
+                                    if (!sentryAuthToken) missing << "auth.token (or SENTRY_AUTH_TOKEN env var)"
+                                    if (!sentryOrg) missing << "defaults.org"
+                                    if (!sentryProject) missing << "defaults.project"
+                                    if (!missing.isEmpty()) {
+                                        throw new GradleException(
+                                            "Sentry: missing required properties in '${propertiesFile}' for variant '${variant}':\n" +
+                                            "  - " + missing.join("\n  - "))
+                                    }
                                 }
 
                                 def cliPackage = resolveSentryCliPackagePath(reactRoot)
@@ -228,18 +250,22 @@ plugins.withId('com.android.application') {
                                 args.addAll(!config.logLevel ? [] : [
                                     "--log-level", config.logLevel      // control verbosity of the output
                                 ])
-                                args.addAll(!config.flavorAware ? [] : [
-                                    "--url", sentryProps.get("defaults.url"),
-                                    "--auth-token", sentryProps.get("auth.token") ?: System.getenv("SENTRY_AUTH_TOKEN")
-                                ])
+                                if (config.flavorAware) {
+                                    if (sentryUrl) {
+                                        args.addAll(["--url", sentryUrl])
+                                    }
+                                    args.addAll(["--auth-token", sentryAuthToken])
+                                }
                                 args.addAll(["react-native", "gradle",
                                     "--bundle", bundleOutput,           // The path to a bundle that should be uploaded.
                                     "--sourcemap", sourcemapOutput      // The path to a sourcemap that should be uploaded.
                                 ])
-                                args.addAll(!config.flavorAware ? [] : [
-                                    "--org", sentryProps.get("defaults.org"),
-                                    "--project", sentryProps.get("defaults.project")
-                                ])
+                                if (config.flavorAware) {
+                                    args.addAll([
+                                        "--org", sentryOrg,
+                                        "--project", sentryProject
+                                    ])
+                                }
 
                                 args.addAll(extraArgs)
 
