@@ -44,7 +44,7 @@ jobs:
 
   build-ios:
     name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    runs-on: macos-26
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -212,7 +212,7 @@ jobs:
 
   build-macos:
     name: Build legacy macos ${{ matrix.build-type }}
-    runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
+    runs-on: macos-15
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -290,7 +290,7 @@ jobs:
 
   test-ios:
     name: Test ios production REV2
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    runs-on: macos-26
     needs: [diff_check, detect-changes, build-ios]
     if: >-
       ${{

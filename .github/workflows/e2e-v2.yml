@@ -54,11 +54,11 @@ jobs:
         platform: ["ios", "android"]
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+            runs-on: macos-26
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+            runs-on: ubuntu-latest
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
@@ -237,13 +237,13 @@ jobs:
           # Use Xcode 16 for older RN versions
           - platform: ios
             rn-version: '0.71.19'
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
+            runs-on: macos-15
           # Use Xcode 26 for newer RN versions (0.83.0)
           - platform: ios
             rn-version: '0.85.1'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+            runs-on: macos-26
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+            runs-on: ubuntu-latest
         exclude:
           # exclude all rn versions lower than 0.80.0 for new architecture
           - rn-version: '0.71.19'
@@ -392,9 +392,9 @@ jobs:
         include:
           - platform: ios
             rn-version: '0.85.1'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+            runs-on: macos-26
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+            runs-on: ubuntu-latest
 
     steps:
       - name: Check if platform is needed

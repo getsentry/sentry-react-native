@@ -92,7 +92,7 @@ jobs:
   ios:
     needs: [ready-to-merge-gate]
     name: iOS Size Analysis
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
