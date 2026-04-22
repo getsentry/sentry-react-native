@@ -48,6 +48,30 @@ export {
   addEventProcessor,
   lastEventId,
   consoleSandbox,
+  instrumentOpenAiClient,
+  instrumentAnthropicAiClient,
+  instrumentGoogleGenAIClient,
+  createLangChainCallbackHandler,
+  instrumentLangGraph,
+  instrumentStateGraphCompile,
+} from '@sentry/core';
+
+export type {
+  OpenAiClient,
+  OpenAiOptions,
+  InstrumentedMethod,
+  AnthropicAiClient,
+  AnthropicAiOptions,
+  AnthropicAiInstrumentedMethod,
+  AnthropicAiResponse,
+  GoogleGenAIClient,
+  GoogleGenAIChat,
+  GoogleGenAIOptions,
+  LangChainOptions,
+  LangChainIntegration,
+  LangGraphOptions,
+  LangGraphIntegration,
+  CompiledGraph,
 } from '@sentry/core';
 
 export {
