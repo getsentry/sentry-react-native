@@ -116,7 +116,7 @@
     "ts-jest": "^29.3.1",
     "typescript": "~5.9.3",
     "uglify-js": "^3.17.4",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.0",
     "xmlhttprequest": "^1.8.0"
   },
   "codegenConfig": {
