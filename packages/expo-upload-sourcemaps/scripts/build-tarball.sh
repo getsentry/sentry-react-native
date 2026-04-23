@@ -1,5 +1,5 @@
 #!/bin/bash
 
-rm -f $(dirname "$0")/../*.tgz
+rm -f $(dirname "$0")/../sentry-expo-upload-sourcemaps-*.tgz
 
 npm pack
