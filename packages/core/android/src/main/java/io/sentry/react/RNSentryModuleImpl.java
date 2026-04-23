@@ -114,7 +114,14 @@ public class RNSentryModuleImpl {
    */
   private int profilingTracesHz = 101;
 
-  private AndroidProfiler androidProfiler = null;
+  // Volatile because invalidate() (NativeModules/teardown thread) can null this concurrently
+  // with stopProfiling() (JS thread); we need cross-thread visibility of the null write.
+  private volatile AndroidProfiler androidProfiler = null;
+
+  // Written on the JS thread (start/stopProfiling via @ReactMethod isBlockingSynchronousMethod),
+  // read on the NativeModules/teardown thread (invalidate). volatile ensures cross-thread
+  // visibility so invalidate() cannot observe a stale `false` while profiling is active.
+  private volatile boolean isProfiling = false;
 
   private boolean isProguardDebugMetaLoaded = false;
   private @Nullable String proguardUuid = null;
@@ -789,10 +796,15 @@ public class RNSentryModuleImpl {
     }
 
     try {
+      // Defensive reset: the Hermes sampling profiler is global with no state
+      // introspection, so flush any leaked registration from a prior run before
+      // enabling. See https://github.com/facebook/hermes/issues/1853.
+      HermesSamplingProfiler.disable();
       HermesSamplingProfiler.enable();
       if (androidProfiler != null) {
         androidProfiler.start();
       }
+      isProfiling = true;
 
       result.putBoolean("started", true);
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
@@ -812,6 +824,7 @@ public class RNSentryModuleImpl {
         end = androidProfiler.endAndCollect(false, null);
       }
       HermesSamplingProfiler.disable();
+      isProfiling = false;
 
       output =
           File.createTempFile(
@@ -850,6 +863,47 @@ public class RNSentryModuleImpl {
       }
     }
     return result;
+  }
+
+  /**
+   * Cleanup hook invoked from the module wrappers when the React instance is destroyed (e.g. Metro
+   * reload, orderly Activity teardown). Calls HermesSamplingProfiler.disable(), which synchronously
+   * joins the sampler's timer thread, so no pthread_kill can fire after the JS thread is torn down.
+   *
+   * <p>Correctness depends on RN invoking module invalidate() before joining the JS message queue
+   * thread. That is the documented contract for both old-arch CatalystInstance shutdown and
+   * new-arch TurboModule teardown.
+   *
+   * <p>See https://github.com/getsentry/sentry-react-native/issues/5441 and
+   * https://github.com/facebook/hermes/issues/1853.
+   */
+  public void invalidate() {
+    if (!isProfiling) {
+      return;
+    }
+    // Flip the flag first to make a re-entrant invalidate() a no-op. Then snatch the
+    // AndroidProfiler reference and null the field so a concurrent stopProfiling() on the
+    // JS thread sees null and skips its own endAndCollect() on the same instance.
+    isProfiling = false;
+    final AndroidProfiler profiler = androidProfiler;
+    androidProfiler = null;
+
+    try {
+      if (profiler != null) {
+        final AndroidProfiler.ProfileEndData end = profiler.endAndCollect(false, null);
+        // The profile is being discarded; delete the trace file to avoid leaking in cacheDir.
+        if (end != null && end.traceFile != null) {
+          try {
+            end.traceFile.delete();
+          } catch (Throwable ignored) { // NOPMD - File cleanup is best-effort.
+          }
+        }
+      }
+      HermesSamplingProfiler.disable();
+      logger.log(SentryLevel.INFO, "Stopped Hermes sampling profiler on React instance destroy.");
+    } catch (Throwable e) { // NOPMD - Guards the JNI boundary; does not catch native SIGABRT.
+      logger.log(SentryLevel.WARNING, "Failed to stop Hermes sampling profiler on teardown: " + e);
+    }
   }
 
   private @Nullable String getProguardUuid() {
