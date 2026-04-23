@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 
 import ErrorsScreen from '../Screens/ErrorsScreen';
+import GlobalErrorBoundaryScreen from '../Screens/GlobalErrorBoundaryScreen';
 import store from '../store';
 
 const styles = StyleSheet.create({
@@ -26,6 +27,11 @@ export default function getErrorsTab(Navigator: TypedNavigator<any, any>) {
                 name="ErrorsScreen"
                 component={ErrorsScreen}
                 options={{ title: 'Errors' }}
+              />
+              <Navigator.Screen
+                name="GlobalErrorBoundary"
+                component={GlobalErrorBoundaryScreen}
+                options={{ title: 'Global Error Boundary' }}
               />
               <Navigator.Screen
                 name="FeedbackForm"

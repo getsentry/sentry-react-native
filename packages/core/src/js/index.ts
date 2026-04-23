@@ -48,6 +48,30 @@ export {
   addEventProcessor,
   lastEventId,
   consoleSandbox,
+  instrumentOpenAiClient,
+  instrumentAnthropicAiClient,
+  instrumentGoogleGenAIClient,
+  createLangChainCallbackHandler,
+  instrumentLangGraph,
+  instrumentStateGraphCompile,
+} from '@sentry/core';
+
+export type {
+  OpenAiClient,
+  OpenAiOptions,
+  InstrumentedMethod,
+  AnthropicAiClient,
+  AnthropicAiOptions,
+  AnthropicAiInstrumentedMethod,
+  AnthropicAiResponse,
+  GoogleGenAIClient,
+  GoogleGenAIChat,
+  GoogleGenAIOptions,
+  LangChainOptions,
+  LangChainIntegration,
+  LangGraphOptions,
+  LangGraphIntegration,
+  CompiledGraph,
 } from '@sentry/core';
 
 export {
@@ -75,6 +99,8 @@ export { ReactNativeClient } from './client';
 
 export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun, appLoaded } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
+export { GlobalErrorBoundary, withGlobalErrorBoundary } from './GlobalErrorBoundary';
+export type { GlobalErrorBoundaryProps } from './GlobalErrorBoundary';
 
 export {
   reactNativeTracingIntegration,

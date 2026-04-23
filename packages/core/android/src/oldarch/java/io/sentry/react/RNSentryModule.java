@@ -129,6 +129,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void removeAttribute(String key) {
+    this.impl.removeAttribute(key);
+  }
+
+  @ReactMethod
   public void closeNativeSdk(Promise promise) {
     this.impl.closeNativeSdk(promise);
   }

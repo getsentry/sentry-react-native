@@ -55,6 +55,46 @@
         return nil;
     }
 
+#if SENTRY_HAS_UIKIT
+    NSDictionary *screenshotDict = mutableOptions[@"screenshot"];
+    if ([screenshotDict isKindOfClass:[NSDictionary class]]) {
+        id maskAllText = screenshotDict[@"maskAllText"];
+        if ([maskAllText isKindOfClass:[NSNumber class]]) {
+            sentryOptions.screenshot.maskAllText = [maskAllText boolValue];
+        }
+        id maskAllImages = screenshotDict[@"maskAllImages"];
+        if ([maskAllImages isKindOfClass:[NSNumber class]]) {
+            sentryOptions.screenshot.maskAllImages = [maskAllImages boolValue];
+        }
+        id maskedViewClasses = screenshotDict[@"maskedViewClasses"];
+        if ([maskedViewClasses isKindOfClass:[NSArray class]]) {
+            NSMutableArray *classes = [NSMutableArray array];
+            for (id className in maskedViewClasses) {
+                if ([className isKindOfClass:[NSString class]]) {
+                    Class cls = NSClassFromString(className);
+                    if (cls != nil) {
+                        [classes addObject:cls];
+                    }
+                }
+            }
+            sentryOptions.screenshot.maskedViewClasses = classes;
+        }
+        id unmaskedViewClasses = screenshotDict[@"unmaskedViewClasses"];
+        if ([unmaskedViewClasses isKindOfClass:[NSArray class]]) {
+            NSMutableArray *classes = [NSMutableArray array];
+            for (id className in unmaskedViewClasses) {
+                if ([className isKindOfClass:[NSString class]]) {
+                    Class cls = NSClassFromString(className);
+                    if (cls != nil) {
+                        [classes addObject:cls];
+                    }
+                }
+            }
+            sentryOptions.screenshot.unmaskedViewClasses = classes;
+        }
+    }
+#endif
+
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
     // TODO: For Auto Init from JS dev server is resolved automatically, for init from options file

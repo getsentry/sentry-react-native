@@ -758,18 +758,22 @@ RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 
 RCT_EXPORT_METHOD(setAttribute : (NSString *)key value : (NSString *)value)
 {
-    // TODO(alwx): This is not implemented in sentry-cocoa yet
-    /*[SentrySDKWrapper
-        configureScope:^(SentryScope *_Nonnull scope) { [scope setAttribute:value forKey:key]; }];*/
+    [SentrySDKWrapper configureScope:^(
+        SentryScope *_Nonnull scope) { [scope setAttributeValue:value forKey:key]; }];
 }
 
 RCT_EXPORT_METHOD(setAttributes : (NSDictionary *)attributes)
 {
-    // TODO(alwx): This is not implemented in sentry-cocoa yet
-    /*[SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        [attributes enumerateKeysAndObjectsUsingBlock:^(
-            NSString *key, NSString *value, BOOL *stop) { [scope setAttribute:value forKey:key]; }];
-    }];*/
+    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
+        [attributes enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSString *value,
+            BOOL *stop) { [scope setAttributeValue:value forKey:key]; }];
+    }];
+}
+
+RCT_EXPORT_METHOD(removeAttribute : (NSString *)key)
+{
+    [SentrySDKWrapper
+        configureScope:^(SentryScope *_Nonnull scope) { [scope removeAttributeForKey:key]; }];
 }
 
 RCT_EXPORT_METHOD(crash) { [SentrySDKWrapper crash]; }
@@ -794,12 +798,67 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
+/**
+ * Calls captureReplay on the native replay integration and returns
+ * the BOOL result indicating whether the capture succeeded.
+ *
+ * PrivateSentrySDKOnly.captureReplay is void and discards the result,
+ * so we call the integration directly to get the success status.
+ * This prevents returning a stale buffer-mode replay ID when the
+ * capture actually failed (e.g., replay not running).
+ *
+ * Falls back to the old void captureReplay if the integration
+ * cannot be accessed directly (e.g., future Cocoa SDK changes).
+ *
+ * See https://github.com/getsentry/sentry-react-native/issues/5074
+ */
++ (BOOL)captureReplayWithReturnValue
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    @try {
+        if ([PrivateSentrySDKOnly respondsToSelector:@selector(getReplayIntegration)]) {
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+            id replayIntegration =
+                [PrivateSentrySDKOnly performSelector:@selector(getReplayIntegration)];
+#    pragma clang diagnostic pop
+            if (replayIntegration &&
+                [replayIntegration respondsToSelector:@selector(captureReplay)]) {
+                typedef BOOL (*CaptureReplayIMP)(id, SEL);
+                CaptureReplayIMP captureFunc = (CaptureReplayIMP)
+                    [replayIntegration methodForSelector:@selector(captureReplay)];
+                return captureFunc(replayIntegration, @selector(captureReplay));
+            }
+        }
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call captureReplay on integration: %@", exception);
+    }
+    // Fallback: call the void method and assume success if a replay ID exists.
+    // This preserves the old behavior when the integration isn't directly accessible.
+    // clang-format off
+    @try {
+        [PrivateSentrySDKOnly captureReplay];
+        return [PrivateSentrySDKOnly getReplayId] != nil;
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call captureReplay fallback: %@", exception);
+        return NO;
+    }
+    // clang-format on
+#else
+    return NO;
+#endif
+}
+
 RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [PrivateSentrySDKOnly captureReplay];
-    resolve([PrivateSentrySDKOnly getReplayId]);
+    BOOL captured = [RNSentry captureReplayWithReturnValue];
+    if (captured) {
+        resolve([PrivateSentrySDKOnly getReplayId]);
+    } else {
+        resolve(nil);
+    }
 #else
     resolve(nil);
 #endif
