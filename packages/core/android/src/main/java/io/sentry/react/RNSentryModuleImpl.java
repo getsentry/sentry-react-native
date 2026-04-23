@@ -831,17 +831,22 @@ public class RNSentryModuleImpl {
   public WritableMap stopProfiling() {
     final boolean isDebug = ScopesAdapter.getInstance().getOptions().isDebug();
     final WritableMap result = new WritableNativeMap();
+    // Claim cleanup ownership atomically. If invalidate() got here first, it already
+    // disabled Hermes and collected the Android profiler; there's nothing to return.
+    if (!isProfiling.compareAndSet(true, false)) {
+      result.putString("error", "Profiling not active");
+      return result;
+    }
+    // Take sole ownership of the AndroidProfiler reference so a concurrent invalidate()
+    // cannot also call endAndCollect() on the same instance.
+    final AndroidProfiler profiler = androidProfiler.getAndSet(null);
     File output = null;
     try {
       AndroidProfiler.ProfileEndData end = null;
-      // Snapshot the reference locally so a concurrent invalidate() cannot null the field
-      // between the null-check and the endAndCollect() call.
-      final AndroidProfiler profiler = androidProfiler.get();
       if (profiler != null) {
         end = profiler.endAndCollect(false, null);
       }
       HermesSamplingProfiler.disable();
-      isProfiling.set(false);
 
       output =
           File.createTempFile(
@@ -904,21 +909,32 @@ public class RNSentryModuleImpl {
     // sees null and skips its own endAndCollect() on the same instance.
     final AndroidProfiler profiler = androidProfiler.getAndSet(null);
 
+    // Crash-critical: disable the Hermes sampler first. disable() synchronously joins the
+    // timer thread, so once it returns no pthread_kill can fire after the JS thread is
+    // joined. Isolated in its own try/catch so a failure in the Android profiler cleanup
+    // below cannot skip this call.
     try {
-      if (profiler != null) {
+      HermesSamplingProfiler.disable();
+      logger.log(SentryLevel.INFO, "Stopped Hermes sampling profiler on React instance destroy.");
+    } catch (Throwable e) { // NOPMD - Guards the JNI boundary; does not catch native SIGABRT.
+      logger.log(SentryLevel.WARNING, "Failed to stop Hermes sampling profiler on teardown: " + e);
+    }
+
+    // Android platform profiler is independent of Hermes; a failure here must not leak
+    // back into the Hermes shutdown above. The profile is being discarded; delete the
+    // trace file to avoid leaking it in cacheDir.
+    if (profiler != null) {
+      try {
         final AndroidProfiler.ProfileEndData end = profiler.endAndCollect(false, null);
-        // The profile is being discarded; delete the trace file to avoid leaking in cacheDir.
         if (end != null && end.traceFile != null) {
           try {
             end.traceFile.delete();
           } catch (Throwable ignored) { // NOPMD - File cleanup is best-effort.
           }
         }
+      } catch (Throwable e) { // NOPMD - Android profiler cleanup is best-effort on teardown.
+        logger.log(SentryLevel.WARNING, "AndroidProfiler cleanup failed during invalidate: " + e);
       }
-      HermesSamplingProfiler.disable();
-      logger.log(SentryLevel.INFO, "Stopped Hermes sampling profiler on React instance destroy.");
-    } catch (Throwable e) { // NOPMD - Guards the JNI boundary; does not catch native SIGABRT.
-      logger.log(SentryLevel.WARNING, "Failed to stop Hermes sampling profiler on teardown: " + e);
     }
   }
 
