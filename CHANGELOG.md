@@ -18,6 +18,7 @@
 
 ### Fixes
 
+- Fix iOS UI profiling options being silently ignored ([#6012](https://github.com/getsentry/sentry-react-native/pull/6012))
 - Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))
 - Report the expected properties file path and any missing keys when using `flavorAware` on Android, instead of failing with an opaque `Illegal null value provided in this collection` error ([#6031](https://github.com/getsentry/sentry-react-native/pull/6031))
 
