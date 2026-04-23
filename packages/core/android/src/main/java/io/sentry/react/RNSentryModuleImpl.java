@@ -77,6 +77,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,14 +116,15 @@ public class RNSentryModuleImpl {
    */
   private int profilingTracesHz = 101;
 
-  // Volatile because invalidate() (NativeModules/teardown thread) can null this concurrently
-  // with stopProfiling() (JS thread); we need cross-thread visibility of the null write.
-  private volatile AndroidProfiler androidProfiler = null;
+  // Atomic because invalidate() (NativeModules/teardown thread) can null the reference
+  // concurrently with stopProfiling() (JS thread). getAndSet gives us an atomic snapshot-and-clear.
+  private final AtomicReference<AndroidProfiler> androidProfiler = new AtomicReference<>();
 
-  // Written on the JS thread (start/stopProfiling via @ReactMethod isBlockingSynchronousMethod),
-  // read on the NativeModules/teardown thread (invalidate). volatile ensures cross-thread
-  // visibility so invalidate() cannot observe a stale `false` while profiling is active.
-  private volatile boolean isProfiling = false;
+  // Atomic so that invalidate() can claim cleanup responsibility via compareAndSet/getAndSet.
+  // startProfiling/stopProfiling run on the JS thread (@ReactMethod isBlockingSynchronousMethod);
+  // invalidate runs on the NativeModules/teardown thread. Without atomicity, invalidate could
+  // observe a stale false and skip disabling a running Hermes sampler.
+  private final AtomicBoolean isProfiling = new AtomicBoolean(false);
 
   private boolean isProguardDebugMetaLoaded = false;
   private @Nullable String proguardUuid = null;
@@ -780,18 +783,18 @@ public class RNSentryModuleImpl {
     }
     final String tracesFilesDirPath = getProfilingTracesDirPath();
 
-    androidProfiler =
+    androidProfiler.set(
         new AndroidProfiler(
             tracesFilesDirPath,
             (int) SECONDS.toMicros(1) / profilingTracesHz,
             new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
             () -> executorService,
-            logger);
+            logger));
   }
 
   public WritableMap startProfiling(boolean platformProfilers) {
     final WritableMap result = new WritableNativeMap();
-    if (androidProfiler == null && platformProfilers) {
+    if (androidProfiler.get() == null && platformProfilers) {
       initializeAndroidProfiler();
     }
 
@@ -801,13 +804,24 @@ public class RNSentryModuleImpl {
       // enabling. See https://github.com/facebook/hermes/issues/1853.
       HermesSamplingProfiler.disable();
       HermesSamplingProfiler.enable();
-      if (androidProfiler != null) {
-        androidProfiler.start();
+      // Mark profiling active immediately after enable() succeeds so a concurrent
+      // invalidate() observes the running state even if androidProfiler.start() below throws.
+      isProfiling.set(true);
+      final AndroidProfiler profiler = androidProfiler.get();
+      if (profiler != null) {
+        profiler.start();
       }
-      isProfiling = true;
 
       result.putBoolean("started", true);
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      // Unwind Hermes if we enabled it but failed before returning. getAndSet(false) makes
+      // this idempotent with a concurrent invalidate()/stopProfiling().
+      if (isProfiling.getAndSet(false)) {
+        try {
+          HermesSamplingProfiler.disable();
+        } catch (Throwable ignored) { // NOPMD - Best-effort unwind.
+        }
+      }
       result.putBoolean("started", false);
       result.putString("error", e.toString());
     }
@@ -820,11 +834,14 @@ public class RNSentryModuleImpl {
     File output = null;
     try {
       AndroidProfiler.ProfileEndData end = null;
-      if (androidProfiler != null) {
-        end = androidProfiler.endAndCollect(false, null);
+      // Snapshot the reference locally so a concurrent invalidate() cannot null the field
+      // between the null-check and the endAndCollect() call.
+      final AndroidProfiler profiler = androidProfiler.get();
+      if (profiler != null) {
+        end = profiler.endAndCollect(false, null);
       }
       HermesSamplingProfiler.disable();
-      isProfiling = false;
+      isProfiling.set(false);
 
       output =
           File.createTempFile(
@@ -878,15 +895,14 @@ public class RNSentryModuleImpl {
    * https://github.com/facebook/hermes/issues/1853.
    */
   public void invalidate() {
-    if (!isProfiling) {
+    // Atomic gate: only one caller (invalidate vs stopProfiling vs a re-entrant invalidate)
+    // wins the right to clean up; the rest no-op.
+    if (!isProfiling.getAndSet(false)) {
       return;
     }
-    // Flip the flag first to make a re-entrant invalidate() a no-op. Then snatch the
-    // AndroidProfiler reference and null the field so a concurrent stopProfiling() on the
-    // JS thread sees null and skips its own endAndCollect() on the same instance.
-    isProfiling = false;
-    final AndroidProfiler profiler = androidProfiler;
-    androidProfiler = null;
+    // getAndSet(null) atomically snatches the reference so a concurrent stopProfiling()
+    // sees null and skips its own endAndCollect() on the same instance.
+    final AndroidProfiler profiler = androidProfiler.getAndSet(null);
 
     try {
       if (profiler != null) {
