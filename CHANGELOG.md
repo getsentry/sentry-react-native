@@ -20,6 +20,7 @@
 
 ### Fixes
 
+- Fix `@sentry/expo-upload-sourcemaps` publishing issue ([#6037](https://github.com/getsentry/sentry-react-native/pull/6037))
 - Fix iOS UI profiling options being silently ignored ([#6012](https://github.com/getsentry/sentry-react-native/pull/6012))
 - Fix `_experiments.enableUnhandledCPPExceptionsV2` being silently ignored on iOS ([#6014](https://github.com/getsentry/sentry-react-native/pull/6014))
 - Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))

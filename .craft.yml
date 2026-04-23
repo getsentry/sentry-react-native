@@ -9,4 +9,5 @@ targets:
       npm:@sentry/react-native:
         includeNames: /^sentry-react-native-\d.*\.tgz$/
       npm:@sentry/expo-upload-sourcemaps:
+        name: '@sentry/expo-upload-sourcemaps'
         includeNames: /^sentry-expo-upload-sourcemaps-\d.*\.tgz$/
