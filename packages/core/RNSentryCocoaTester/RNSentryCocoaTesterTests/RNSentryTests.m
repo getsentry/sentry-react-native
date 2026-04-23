@@ -1471,6 +1471,60 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
 }
 #endif
 
+- (void)testStartCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Enabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"enableUnhandledCPPExceptionsV2" : @YES,
+        },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertTrue(actualOptions.experimental.enableUnhandledCPPExceptionsV2,
+        @"enableUnhandledCPPExceptionsV2 should be enabled");
+}
+
+- (void)testStartCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Disabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"enableUnhandledCPPExceptionsV2" : @NO,
+        },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.experimental.enableUnhandledCPPExceptionsV2,
+        @"enableUnhandledCPPExceptionsV2 should be disabled");
+}
+
+- (void)testStartCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Default
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.experimental.enableUnhandledCPPExceptionsV2,
+        @"enableUnhandledCPPExceptionsV2 should default to disabled");
+}
+
 - (void)testStartEventFromSentryCocoaReactNativeHasOriginAndEnvironmentTags
 {
     SentryEvent *testEvent = [[SentryEvent alloc] init];
