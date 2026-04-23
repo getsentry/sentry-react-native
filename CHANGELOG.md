@@ -20,7 +20,7 @@
 
 ### Fixes
 
-- Re-release `8.9.0` as `8.9.1` after the original `8.9.0` tarball shipped with an unresolved `workspace:*` spec for `@sentry/expo-upload-sourcemaps`, which prevented installation. `8.9.0` has been deprecated on npm; install `8.9.1` or newer.
+- Fixes`@sentry/expo-upload-sourcemaps` publishing issue ([#6037](https://github.com/getsentry/sentry-react-native/pull/6037))
 - Fix iOS UI profiling options being silently ignored ([#6012](https://github.com/getsentry/sentry-react-native/pull/6012))
 - Fix `_experiments.enableUnhandledCPPExceptionsV2` being silently ignored on iOS ([#6014](https://github.com/getsentry/sentry-react-native/pull/6014))
 - Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))
