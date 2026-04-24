@@ -140,9 +140,15 @@
         }
     }
 
-    // Configure iOS UI Profiling from _experiments.profilingOptions
+    // Configure experimental options from _experiments
     NSDictionary *experiments = mutableOptions[@"_experiments"];
     if (experiments != nil && [experiments isKindOfClass:[NSDictionary class]]) {
+        BOOL enableUnhandledCPPExceptions =
+            [experiments[@"enableUnhandledCPPExceptionsV2"] boolValue];
+        [RNSentryExperimentalOptions setEnableUnhandledCPPExceptionsV2:enableUnhandledCPPExceptions
+                                                         sentryOptions:sentryOptions];
+
+        // Configure iOS UI Profiling
         NSDictionary *profilingOptions = experiments[@"profilingOptions"];
         if (profilingOptions != nil && [profilingOptions isKindOfClass:[NSDictionary class]]) {
             [RNSentryExperimentalOptions configureProfilingWithOptions:profilingOptions
