@@ -233,4 +233,10 @@ public class RNSentryModule extends NativeRNSentrySpec {
   public void disableShakeDetection() {
     this.impl.disableShakeDetection();
   }
+
+  @Override
+  public void invalidate() {
+    this.impl.invalidate();
+    super.invalidate();
+  }
 }
