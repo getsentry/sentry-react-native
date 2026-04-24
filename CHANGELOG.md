@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `includeWebFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
+
 ### Fixes
 
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
