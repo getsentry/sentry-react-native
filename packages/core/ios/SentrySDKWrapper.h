@@ -16,11 +16,9 @@
 + (void)startWithOptions:(SentryOptions *)options;
 
 + (SentryOptions *)createOptionsWithDictionary:(NSDictionary *)options
-                        isSessionReplayEnabled:(BOOL)isSessionReplayEnabled
                                          error:(NSError **)errorPointer;
 
 + (void)setupWithDictionary:(NSDictionary *)options
-     isSessionReplayEnabled:(BOOL)isSessionReplayEnabled
                       error:(NSError **)errorPointer;
 
 + (BOOL)debug;

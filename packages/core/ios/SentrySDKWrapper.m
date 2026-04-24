@@ -31,7 +31,6 @@
 }
 
 + (SentryOptions *)createOptionsWithDictionary:(NSDictionary *)options
-                        isSessionReplayEnabled:(BOOL)isSessionReplayEnabled
                                          error:(NSError *__autoreleasing *)errorPointer
 {
     NSString *dsn = [self getURLFromDSN:[options valueForKey:@"dsn"]];
@@ -128,11 +127,9 @@
 }
 
 + (void)setupWithDictionary:(NSDictionary *_Nonnull)options
-     isSessionReplayEnabled:(BOOL)isSessionReplayEnabled
                       error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
     SentryOptions *sentryOptions = [self createOptionsWithDictionary:options
-                                              isSessionReplayEnabled:isSessionReplayEnabled
                                                                error:errorPointer];
     if (!options) {
         return;
