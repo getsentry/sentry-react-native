@@ -11249,7 +11249,6 @@ __metadata:
     "@types/react": ^19.1.0
     "@types/react-test-renderer": ^19.1.0
     "@types/uglify-js": ^3.17.2
-    "@types/uuid": ^9.0.4
     "@types/xmlhttprequest": ^1.8.2
     babel-jest: ^29.6.3
     babel-plugin-module-resolver: ^5.0.0
@@ -12020,13 +12019,6 @@ __metadata:
   version: 0.0.6
   resolution: "@types/use-sync-external-store@npm:0.0.6"
   checksum: a95ce330668501ad9b1c5b7f2b14872ad201e552a0e567787b8f1588b22c7040c7c3d80f142cbb9f92d13c4ea41c46af57a20f2af4edf27f224d352abcfe4049
-  languageName: node
-  linkType: hard
-
-"@types/uuid@npm:^9.0.4":
-  version: 9.0.8
-  resolution: "@types/uuid@npm:9.0.8"
-  checksum: b8c60b7ba8250356b5088302583d1704a4e1a13558d143c549c408bf8920535602ffc12394ede77f8a8083511b023704bc66d1345792714002bfa261b17c5275
   languageName: node
   linkType: hard
 
