@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
+
 ## 8.9.1
 
 ### Features
@@ -25,7 +31,6 @@
 - Fix `_experiments.enableUnhandledCPPExceptionsV2` being silently ignored on iOS ([#6014](https://github.com/getsentry/sentry-react-native/pull/6014))
 - Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))
 - Report the expected properties file path and any missing keys when using `flavorAware` on Android, instead of failing with an opaque `Illegal null value provided in this collection` error ([#6031](https://github.com/getsentry/sentry-react-native/pull/6031))
-- Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
 
 ### Dependencies
 
