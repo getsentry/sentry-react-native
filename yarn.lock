@@ -11129,6 +11129,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/expo-upload-sourcemaps@workspace:*, @sentry/expo-upload-sourcemaps@workspace:packages/expo-upload-sourcemaps":
+  version: 0.0.0-use.local
+  resolution: "@sentry/expo-upload-sourcemaps@workspace:packages/expo-upload-sourcemaps"
+  dependencies:
+    "@sentry/cli": 3.4.0
+  peerDependencies:
+    "@expo/env": "*"
+    dotenv: "*"
+  peerDependenciesMeta:
+    "@expo/env":
+      optional: true
+    dotenv:
+      optional: true
+  bin:
+    expo-upload-sourcemaps: ./cli.js
+  languageName: unknown
+  linkType: soft
+
 "@sentry/node-core@npm:10.31.0":
   version: 10.31.0
   resolution: "@sentry/node-core@npm:10.31.0"
@@ -11207,7 +11225,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react-native@8.8.0, @sentry/react-native@workspace:packages/core":
+"@sentry/react-native@8.9.1, @sentry/react-native@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sentry/react-native@workspace:packages/core"
   dependencies:
@@ -11221,6 +11239,7 @@ __metadata:
     "@sentry/browser": 10.49.0
     "@sentry/cli": 3.4.0
     "@sentry/core": 10.49.0
+    "@sentry/expo-upload-sourcemaps": "workspace:*"
     "@sentry/react": 10.49.0
     "@sentry/types": 10.49.0
     "@sentry/wizard": 6.12.0
@@ -12509,7 +12528,7 @@ __metadata:
     "@react-native/metro-config": 0.80.2
     "@react-native/new-app-screen": 0.80.2
     "@react-native/typescript-config": 0.80.2
-    "@sentry/react-native": 8.8.0
+    "@sentry/react-native": 8.9.1
     "@types/jest": ^29.5.13
     "@types/react": ^19.1.0
     "@types/react-test-renderer": ^19.1.0
@@ -30121,7 +30140,7 @@ __metadata:
     "@babel/preset-env": ^7.25.3
     "@babel/preset-typescript": ^7.18.6
     "@sentry/core": 10.49.0
-    "@sentry/react-native": 8.8.0
+    "@sentry/react-native": 8.9.1
     "@types/node": ^20.9.3
     "@types/react": ^18.2.64
     appium: 3.2.2
@@ -30151,7 +30170,7 @@ __metadata:
     "@babel/preset-env": ^7.26.0
     "@sentry/babel-plugin-component-annotate": 5.2.0
     "@sentry/core": 10.49.0
-    "@sentry/react-native": 8.8.0
+    "@sentry/react-native": 8.9.1
     "@types/node": 20.10.4
     "@types/react": ~19.2.10
     expo: ^55.0.0
@@ -30190,7 +30209,7 @@ __metadata:
     "@react-navigation/stack": ^6.3.20
     "@sentry/core": 10.49.0
     "@sentry/react": 10.49.0
-    "@sentry/react-native": 8.8.0
+    "@sentry/react-native": 8.9.1
     "@types/react": ^18.2.65
     "@types/react-native-vector-icons": ^6.4.18
     babel-plugin-module-resolver: ^5.0.0
@@ -30236,7 +30255,7 @@ __metadata:
     "@sentry/babel-plugin-component-annotate": 5.2.0
     "@sentry/core": 10.49.0
     "@sentry/react": 10.49.0
-    "@sentry/react-native": 8.8.0
+    "@sentry/react-native": 8.9.1
     "@shopify/flash-list": ^2.0.2
     "@testing-library/react-native": ^13.2.2
     "@types/jest": ^29.5.14

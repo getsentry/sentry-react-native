@@ -42,6 +42,7 @@
   },
   "workspaces": [
     "packages/core",
+    "packages/expo-upload-sourcemaps",
     "dev-packages/e2e-tests",
     "dev-packages/type-check",
     "dev-packages/utils",

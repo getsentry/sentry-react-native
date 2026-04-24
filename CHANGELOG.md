@@ -8,8 +8,16 @@
 
 ## Unreleased
 
+### Fixes
+
+- Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
+
+## 8.9.1
+
 ### Features
 
+- Add new `@sentry/expo-upload-sourcemaps` package for uploading JavaScript bundles and source maps from Expo builds to Sentry ([#6027](https://github.com/getsentry/sentry-react-native/pull/6027))
+  - The existing `sentry-expo-upload-sourcemaps` bin bundled with `@sentry/react-native` is superseded by the new package; it continues to work unchanged for now
 - Expose scope-level attributes API (`setAttribute`, `setAttributes`, `removeAttribute`) bridging to native SDKs ([#6009](https://github.com/getsentry/sentry-react-native/pull/6009))
 - Expose screenshot masking options (`screenshot.maskAllText`, `screenshot.maskAllImages`, `screenshot.maskedViewClasses`, `screenshot.unmaskedViewClasses`) for error screenshots ([#6007](https://github.com/getsentry/sentry-react-native/pull/6007))
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
@@ -19,19 +27,26 @@
 
 ### Fixes
 
+- Fix `@sentry/expo-upload-sourcemaps` publishing issue ([#6037](https://github.com/getsentry/sentry-react-native/pull/6037))
+- Fix iOS UI profiling options being silently ignored ([#6012](https://github.com/getsentry/sentry-react-native/pull/6012))
+- Fix `_experiments.enableUnhandledCPPExceptionsV2` being silently ignored on iOS ([#6014](https://github.com/getsentry/sentry-react-native/pull/6014))
 - Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))
+- Report the expected properties file path and any missing keys when using `flavorAware` on Android, instead of failing with an opaque `Illegal null value provided in this collection` error ([#6031](https://github.com/getsentry/sentry-react-native/pull/6031))
 
 ### Dependencies
 
 - Bump JavaScript SDK from v10.48.0 to v10.49.0 ([#6011](https://github.com/getsentry/sentry-react-native/pull/6011))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10490)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.48.0...10.49.0)
-- Bump Android SDK from v8.38.0 to v8.39.1 ([#6010](https://github.com/getsentry/sentry-react-native/pull/6010))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8391)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.38.0...8.39.1)
+- Bump Android SDK from v8.38.0 to v8.40.0 ([#6010](https://github.com/getsentry/sentry-react-native/pull/6010), [#6034](https://github.com/getsentry/sentry-react-native/pull/6034))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8400)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.38.0...8.40.0)
 - Bump CLI from v3.3.5 to v3.4.0 ([#6026](https://github.com/getsentry/sentry-react-native/pull/6026))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#340)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.5...3.4.0)
+- Bump Cocoa SDK from v9.10.0 to v9.11.0 ([#6033](https://github.com/getsentry/sentry-react-native/pull/6033))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9110)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.10.0...9.11.0)
 
 ## 8.8.0
 
