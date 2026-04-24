@@ -1,3 +1,4 @@
+/* oxlint-disable eslint(max-lines) */
 import type { MetroConfig, MixedOutput, Module, ReadOnlyGraph } from 'metro';
 import type { CustomResolutionContext, CustomResolver, Resolution } from 'metro-resolver';
 
@@ -39,6 +40,11 @@ export interface SentryMetroConfigOptions {
    */
   includeWebReplay?: boolean;
   /**
+   * Adds the Sentry user feedback widget package.
+   * @default true
+   */
+  includeWebFeedback?: boolean;
+  /**
    * Add Sentry Metro Server Middleware which
    * enables the app to fetch stack frames source context.
    * @default true
@@ -79,6 +85,7 @@ export function withSentryConfig(
   {
     annotateReactComponents = false,
     includeWebReplay = true,
+    includeWebFeedback = true,
     enableSourceContextInDevelopment = true,
     optionsFile = true,
   }: SentryMetroConfigOptions = {},
@@ -94,6 +101,9 @@ export function withSentryConfig(
   }
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
+  }
+  if (includeWebFeedback === false) {
+    newConfig = withSentryFeedbackResolver(newConfig, includeWebFeedback);
   }
   newConfig = withSentryExcludeServerOnlyResolver(newConfig);
   if (enableSourceContextInDevelopment) {
@@ -134,6 +144,9 @@ export function getSentryExpoConfig(
 
   if (options.includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
+  }
+  if (options.includeWebFeedback === false) {
+    newConfig = withSentryFeedbackResolver(newConfig, options.includeWebFeedback);
   }
   newConfig = withSentryExcludeServerOnlyResolver(newConfig);
 
@@ -230,21 +243,26 @@ type CustomResolverBeforeMetro068 = (
 ) => Resolution;
 
 /**
- * Includes `@sentry/replay` packages based on the `includeWebReplay` flag and current bundle `platform`.
+ * Builds a Metro resolver that returns `{ type: 'empty' }` for Sentry sub-packages
+ * matching `moduleRegex` when the user opts out on web or the platform is native.
  */
-export function withSentryResolver(config: MetroConfig, includeWebReplay: boolean | undefined): MetroConfig {
+function buildSentryPackageExcludeResolver(
+  config: MetroConfig,
+  includePackage: boolean | undefined,
+  moduleRegex: RegExp,
+  optionName: string,
+): MetroConfig {
   const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro068 | undefined;
 
-  const sentryResolverRequest: CustomResolver = (
+  const resolverRequest: CustomResolver = (
     context: CustomResolutionContext,
     moduleName: string,
     platform: string | null,
     oldMetroModuleName?: string,
   ) => {
     if (
-      (includeWebReplay === false ||
-        (includeWebReplay === undefined && (platform === 'android' || platform === 'ios'))) &&
-      !!(oldMetroModuleName ?? moduleName).match(/@sentry(?:-internal)?\/replay/)
+      (includePackage === false || (includePackage === undefined && (platform === 'android' || platform === 'ios'))) &&
+      !!(oldMetroModuleName ?? moduleName).match(moduleRegex)
     ) {
       return { type: 'empty' } as Resolution;
     }
@@ -254,15 +272,15 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
         : originalResolver(context, moduleName, platform);
     }
 
-    // Prior 0.68, resolve context.resolveRequest is sentryResolver itself, where on later version it is the default resolver.
-    if (context.resolveRequest === sentryResolverRequest) {
+    // Prior 0.68, context.resolveRequest is resolverRequest itself, where on later version it is the default resolver.
+    if (context.resolveRequest === resolverRequest) {
       // oxlint-disable-next-line eslint(no-console)
       console.error(
         `Error: [@sentry/react-native/metro] Can not resolve the defaultResolver on Metro older than 0.68.
 Please follow one of the following options:
 - Include your resolverRequest on your metroconfig.
 - Update your Metro version to 0.68 or higher.
-- Set includeWebReplay as true on your metro config.
+- Set ${optionName} as true on your metro config.
 - If you are still facing issues, report the issue at http://www.github.com/getsentry/sentry-react-native/issues`,
       );
       // Return required for test.
@@ -276,9 +294,33 @@ Please follow one of the following options:
     ...config,
     resolver: {
       ...config.resolver,
-      resolveRequest: sentryResolverRequest,
+      resolveRequest: resolverRequest,
     },
   };
+}
+
+/**
+ * Includes `@sentry/replay` packages based on the `includeWebReplay` flag and current bundle `platform`.
+ */
+export function withSentryResolver(config: MetroConfig, includeWebReplay: boolean | undefined): MetroConfig {
+  return buildSentryPackageExcludeResolver(
+    config,
+    includeWebReplay,
+    /@sentry(?:-internal)?\/replay/,
+    'includeWebReplay',
+  );
+}
+
+/**
+ * Includes `@sentry-internal/feedback` packages based on the `includeWebFeedback` flag and current bundle `platform`.
+ */
+export function withSentryFeedbackResolver(config: MetroConfig, includeWebFeedback: boolean | undefined): MetroConfig {
+  return buildSentryPackageExcludeResolver(
+    config,
+    includeWebFeedback,
+    /@sentry(?:-internal)?\/feedback/,
+    'includeWebFeedback',
+  );
 }
 
 /**
