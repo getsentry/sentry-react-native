@@ -12,6 +12,12 @@
 
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.49.0 to v10.50.0 ([#6040](https://github.com/getsentry/sentry-react-native/pull/6040))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10500)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.49.0...10.50.0)
+
 ## 8.9.1
 
 ### Features
