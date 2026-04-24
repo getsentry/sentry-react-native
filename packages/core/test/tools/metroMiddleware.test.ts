@@ -15,6 +15,8 @@ jest.mock('../../src/js/tools/metroMiddleware', () => jest.requireActual('../../
 jest.mock('fs', () => {
   return {
     readFile: jest.fn(),
+    realpath: jest.fn((p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(null, p)),
+    realpathSync: jest.fn((p: string) => p),
   };
 });
 
@@ -130,6 +132,12 @@ describe('metroMiddleware', () => {
     let testData: string = '';
 
     beforeEach(() => {
+      // afterEach resetAllMocks wipes the default fs impls installed via jest.mock, so reinstate.
+      (fs.realpath as unknown as jest.Mock).mockImplementation(
+        (p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(null, p),
+      );
+      (fs.realpathSync as unknown as jest.Mock).mockImplementation((p: string) => p);
+
       request = {
         setEncoding: jest.fn(),
         on: jest.fn((event: string, cb: (data?: string) => void) => {
@@ -369,6 +377,61 @@ describe('metroMiddleware', () => {
           },
         ],
       });
+    });
+
+    it('should skip frames whose realpath resolves outside the allowed roots', async () => {
+      const realpathSpy = jest.spyOn(fs, 'realpath') as unknown as jest.Mock;
+      const readFileSpy = jest.spyOn(fs, 'readFile');
+
+      // Simulate a symlink: the file lives at <project>/link/file.js inside the project,
+      // but its realpath is /etc/shadow — outside every allowed root.
+      realpathSpy.mockImplementationOnce(
+        (_p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(null, '/etc/shadow'),
+      );
+
+      testData = JSON.stringify({
+        stack: [
+          {
+            in_app: true,
+            filename: 'link/file.js',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+        ],
+      } satisfies { stack: StackFrame[] });
+
+      await stackFramesContextMiddleware(request, response, next);
+
+      expect(readFileSpy).not.toHaveBeenCalled();
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should skip frames whose realpath cannot be resolved', async () => {
+      const realpathSpy = jest.spyOn(fs, 'realpath') as unknown as jest.Mock;
+      const readFileSpy = jest.spyOn(fs, 'readFile');
+
+      const enoent: NodeJS.ErrnoException = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      realpathSpy.mockImplementationOnce(
+        (_p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(enoent, ''),
+      );
+
+      testData = JSON.stringify({
+        stack: [
+          {
+            in_app: true,
+            filename: 'missing.js',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+        ],
+      } satisfies { stack: StackFrame[] });
+
+      await stackFramesContextMiddleware(request, response, next);
+
+      expect(readFileSpy).not.toHaveBeenCalled();
+      expect(response.statusCode).toBe(200);
     });
 
     it('should handle mixed frame types correctly', async () => {
