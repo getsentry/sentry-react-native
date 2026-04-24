@@ -4,6 +4,7 @@ import type { InputConfigT, Middleware } from 'metro-config';
 
 import { addContextToFrame, debug } from '@sentry/core';
 import { readFile } from 'fs';
+import * as path from 'path';
 import { promisify } from 'util';
 
 import { SENTRY_CONTEXT_REQUEST_PATH, SENTRY_OPEN_URL_REQUEST_PATH } from '../metro/constants';
@@ -15,42 +16,44 @@ const readFileAsync = promisify(readFile);
 /**
  * Accepts Sentry formatted stack frames and
  * adds source context to the in app frames.
+ *
+ * Filenames are resolved relative to `projectRoot` and must remain within it.
  */
-export const stackFramesContextMiddleware: Middleware = async (
-  request: IncomingMessage,
-  response: ServerResponse,
-  _next: () => void,
-): Promise<void> => {
-  debug.log('[@sentry/react-native/metro] Received request for stack frames context.');
-  request.setEncoding('utf8');
-  const rawBody = await getRawBody(request);
+export const createStackFramesContextMiddleware = (projectRoot: string): Middleware => {
+  const normalizedRoot = path.resolve(projectRoot);
 
-  let body: {
-    stack?: Partial<StackFrame>[];
-  } = {};
-  try {
-    body = JSON.parse(rawBody);
-  } catch (e) {
-    debug.log('[@sentry/react-native/metro] Could not parse request body.', e);
-    badRequest(response, 'Invalid request body. Expected a JSON object.');
-    return;
-  }
+  return async (request: IncomingMessage, response: ServerResponse, _next: () => void): Promise<void> => {
+    debug.log('[@sentry/react-native/metro] Received request for stack frames context.');
+    request.setEncoding('utf8');
+    const rawBody = await getRawBody(request);
 
-  const stack = body.stack;
-  if (!Array.isArray(stack)) {
-    debug.log('[@sentry/react-native/metro] Invalid stack frames.', stack);
-    badRequest(response, 'Invalid stack frames. Expected an array.');
-    return;
-  }
+    let body: {
+      stack?: Partial<StackFrame>[];
+    } = {};
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      debug.log('[@sentry/react-native/metro] Could not parse request body.', e);
+      badRequest(response, 'Invalid request body. Expected a JSON object.');
+      return;
+    }
 
-  const stackWithSourceContext = await Promise.all(stack.map(addSourceContext));
-  response.setHeader('Content-Type', 'application/json');
-  response.statusCode = 200;
-  response.end(JSON.stringify({ stack: stackWithSourceContext }));
-  debug.log('[@sentry/react-native/metro] Sent stack frames context.');
+    const stack = body.stack;
+    if (!Array.isArray(stack)) {
+      debug.log('[@sentry/react-native/metro] Invalid stack frames.', stack);
+      badRequest(response, 'Invalid stack frames. Expected an array.');
+      return;
+    }
+
+    const stackWithSourceContext = await Promise.all(stack.map(frame => addSourceContext(frame, normalizedRoot)));
+    response.setHeader('Content-Type', 'application/json');
+    response.statusCode = 200;
+    response.end(JSON.stringify({ stack: stackWithSourceContext }));
+    debug.log('[@sentry/react-native/metro] Sent stack frames context.');
+  };
 };
 
-async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
+async function addSourceContext(frame: StackFrame, projectRoot: string): Promise<StackFrame> {
   if (!frame.in_app) {
     return frame;
   }
@@ -61,7 +64,14 @@ async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
       return frame;
     }
 
-    const source = await readFileAsync(frame.filename, { encoding: 'utf8' });
+    const resolvedPath = path.resolve(projectRoot, frame.filename);
+    const relative = path.relative(projectRoot, resolvedPath);
+    if (relative === '' || relative.startsWith('..') || path.isAbsolute(relative)) {
+      debug.warn('[@sentry/react-native/metro] Skipping frame whose filename is outside the project root.');
+      return frame;
+    }
+
+    const source = await readFileAsync(resolvedPath, { encoding: 'utf8' });
     const lines = source.split('\n');
     addContextToFrame(lines, frame);
   } catch (error) {
@@ -78,7 +88,12 @@ function badRequest(response: ServerResponse, message: string): void {
 /**
  * Creates a middleware that adds source context to the Sentry formatted stack frames.
  */
-export const createSentryMetroMiddleware = (middleware: Middleware): Middleware => {
+export const createSentryMetroMiddleware = (middleware: Middleware, projectRoot: string): Middleware => {
+  const stackFramesContextMiddleware = createStackFramesContextMiddleware(projectRoot) as (
+    req: IncomingMessage,
+    res: ServerResponse,
+    next: () => void,
+  ) => void;
   return (request: IncomingMessage, response: ServerResponse, next: () => void) => {
     if (request.url?.startsWith(`/${SENTRY_CONTEXT_REQUEST_PATH}`)) {
       return stackFramesContextMiddleware(request, response, next);
@@ -102,9 +117,10 @@ export const withSentryMiddleware = (config: InputConfigT): InputConfigT => {
     config.server = {};
   }
 
+  const projectRoot = (config as { projectRoot?: string }).projectRoot || process.cwd();
   const originalEnhanceMiddleware = config.server.enhanceMiddleware;
   config.server.enhanceMiddleware = (middleware, server) => {
-    const sentryMiddleware = createSentryMetroMiddleware(middleware);
+    const sentryMiddleware = createSentryMetroMiddleware(middleware, projectRoot);
     return originalEnhanceMiddleware ? originalEnhanceMiddleware(sentryMiddleware, server) : sentryMiddleware;
   };
   return config;
