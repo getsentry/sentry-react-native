@@ -14,6 +14,12 @@
 - Restrict the Metro source-context middleware to files within the project root ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
 - Escape `name` and `version` values when injecting release constants into the web bundle ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.49.0 to v10.50.0 ([#6040](https://github.com/getsentry/sentry-react-native/pull/6040))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10500)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.49.0...10.50.0)
+
 ## 8.9.1
 
 ### Features
