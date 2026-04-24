@@ -17,10 +17,12 @@ const readFileAsync = promisify(readFile);
  * Accepts Sentry formatted stack frames and
  * adds source context to the in app frames.
  *
- * Filenames are resolved relative to `projectRoot` and must remain within it.
+ * Relative filenames are resolved against the first entry in `allowedRoots`.
+ * A resolved filename must be contained in at least one of `allowedRoots`
+ * (project root plus any Metro `watchFolders`).
  */
-export const createStackFramesContextMiddleware = (projectRoot: string): Middleware => {
-  const normalizedRoot = path.resolve(projectRoot);
+export const createStackFramesContextMiddleware = (allowedRoots: string[]): Middleware => {
+  const normalizedRoots = allowedRoots.map(root => path.resolve(root));
 
   return async (request: IncomingMessage, response: ServerResponse, _next: () => void): Promise<void> => {
     debug.log('[@sentry/react-native/metro] Received request for stack frames context.');
@@ -45,7 +47,7 @@ export const createStackFramesContextMiddleware = (projectRoot: string): Middlew
       return;
     }
 
-    const stackWithSourceContext = await Promise.all(stack.map(frame => addSourceContext(frame, normalizedRoot)));
+    const stackWithSourceContext = await Promise.all(stack.map(frame => addSourceContext(frame, normalizedRoots)));
     response.setHeader('Content-Type', 'application/json');
     response.statusCode = 200;
     response.end(JSON.stringify({ stack: stackWithSourceContext }));
@@ -53,7 +55,7 @@ export const createStackFramesContextMiddleware = (projectRoot: string): Middlew
   };
 };
 
-async function addSourceContext(frame: StackFrame, projectRoot: string): Promise<StackFrame> {
+async function addSourceContext(frame: StackFrame, allowedRoots: string[]): Promise<StackFrame> {
   if (!frame.in_app) {
     return frame;
   }
@@ -64,10 +66,18 @@ async function addSourceContext(frame: StackFrame, projectRoot: string): Promise
       return frame;
     }
 
-    const resolvedPath = path.resolve(projectRoot, frame.filename);
-    const relative = path.relative(projectRoot, resolvedPath);
-    if (relative === '' || relative.startsWith('..') || path.isAbsolute(relative)) {
-      debug.warn('[@sentry/react-native/metro] Skipping frame whose filename is outside the project root.');
+    if (allowedRoots.length === 0) {
+      debug.warn('[@sentry/react-native/metro] Skipping frame: no allowed roots configured.');
+      return frame;
+    }
+
+    const resolvedPath = path.resolve(allowedRoots[0]!, frame.filename);
+    const isInside = allowedRoots.some(root => {
+      const relative = path.relative(root, resolvedPath);
+      return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+    });
+    if (!isInside) {
+      debug.warn('[@sentry/react-native/metro] Skipping frame whose filename is outside the allowed roots.');
       return frame;
     }
 
@@ -88,8 +98,8 @@ function badRequest(response: ServerResponse, message: string): void {
 /**
  * Creates a middleware that adds source context to the Sentry formatted stack frames.
  */
-export const createSentryMetroMiddleware = (middleware: Middleware, projectRoot: string): Middleware => {
-  const stackFramesContextMiddleware = createStackFramesContextMiddleware(projectRoot) as (
+export const createSentryMetroMiddleware = (middleware: Middleware, allowedRoots: string[]): Middleware => {
+  const stackFramesContextMiddleware = createStackFramesContextMiddleware(allowedRoots) as (
     req: IncomingMessage,
     res: ServerResponse,
     next: () => void,
@@ -117,10 +127,14 @@ export const withSentryMiddleware = (config: InputConfigT): InputConfigT => {
     config.server = {};
   }
 
-  const projectRoot = (config as { projectRoot?: string }).projectRoot || process.cwd();
+  const typedConfig = config as { projectRoot?: string; watchFolders?: readonly string[] };
+  const projectRoot = typedConfig.projectRoot || process.cwd();
+  const watchFolders = typedConfig.watchFolders || [];
+  const allowedRoots = [projectRoot, ...watchFolders];
+
   const originalEnhanceMiddleware = config.server.enhanceMiddleware;
   config.server.enhanceMiddleware = (middleware, server) => {
-    const sentryMiddleware = createSentryMetroMiddleware(middleware, projectRoot);
+    const sentryMiddleware = createSentryMetroMiddleware(middleware, allowedRoots);
     return originalEnhanceMiddleware ? originalEnhanceMiddleware(sentryMiddleware, server) : sentryMiddleware;
   };
   return config;

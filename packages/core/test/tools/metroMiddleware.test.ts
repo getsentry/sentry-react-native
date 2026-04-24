@@ -79,14 +79,14 @@ describe('metroMiddleware', () => {
     });
 
     it('should call stackFramesContextMiddleware for sentry context requests', () => {
-      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, TEST_PROJECT_ROOT);
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
 
       const sentryRequest = {
         url: '/__sentry/context',
       } as any;
       testedMiddleware(sentryRequest, response, next);
       expect(defaultMiddleware).not.toHaveBeenCalled();
-      expect(spiedCreateStackFramesContextMiddleware).toHaveBeenCalledWith(TEST_PROJECT_ROOT);
+      expect(spiedCreateStackFramesContextMiddleware).toHaveBeenCalledWith([TEST_PROJECT_ROOT]);
       expect(mockedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response, next);
     });
 
@@ -95,7 +95,7 @@ describe('metroMiddleware', () => {
         .spyOn(openUrlMiddlewareModule, 'openURLMiddleware')
         .mockReturnValue(undefined as any);
 
-      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, TEST_PROJECT_ROOT);
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
 
       const openUrlRequest = {
         url: '/__sentry/open-url',
@@ -109,7 +109,7 @@ describe('metroMiddleware', () => {
     });
 
     it('should call default middleware for non-sentry requests', () => {
-      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, TEST_PROJECT_ROOT);
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
 
       const regularRequest = {
         url: '/regular/path',
@@ -125,7 +125,7 @@ describe('metroMiddleware', () => {
     let request: any;
     let response: any;
     const next = jest.fn();
-    const stackFramesContextMiddleware = createStackFramesContextMiddleware(TEST_PROJECT_ROOT);
+    const stackFramesContextMiddleware = createStackFramesContextMiddleware([TEST_PROJECT_ROOT]);
 
     let testData: string = '';
 
@@ -284,6 +284,43 @@ describe('metroMiddleware', () => {
             function: 'testFunction',
             lineno: 3,
             colno: 1,
+          },
+        ],
+      });
+    });
+
+    it('should add source context for frames under additional allowed roots (watchFolders)', async () => {
+      const watchFolder = path.resolve('/tmp/sentry-rn-test-workspace-pkg');
+      const scopedMiddleware = createStackFramesContextMiddleware([TEST_PROJECT_ROOT, watchFolder]);
+      const readFileSpy = jest.spyOn(fs, 'readFile');
+      mockReadFileOnce(readFileSpy, path.join(watchFolder, 'shared.js'), 'one\ntwo\nthree\nfour\nfive');
+
+      testData = JSON.stringify({
+        stack: [
+          {
+            in_app: true,
+            filename: path.join(watchFolder, 'shared.js'),
+            function: 'sharedFn',
+            lineno: 3,
+            colno: 1,
+          },
+        ],
+      } satisfies { stack: StackFrame[] });
+
+      await scopedMiddleware(request, response, next);
+
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.end.mock.calls[0][0])).toEqual({
+        stack: [
+          {
+            in_app: true,
+            filename: path.join(watchFolder, 'shared.js'),
+            function: 'sharedFn',
+            lineno: 3,
+            colno: 1,
+            pre_context: ['one', 'two'],
+            context_line: 'three',
+            post_context: ['four', 'five'],
           },
         ],
       });
