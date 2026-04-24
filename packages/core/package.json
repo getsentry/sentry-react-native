@@ -93,7 +93,6 @@
     "@types/react": "^19.1.0",
     "@types/react-test-renderer": "^19.1.0",
     "@types/uglify-js": "^3.17.2",
-    "@types/uuid": "^9.0.4",
     "@types/xmlhttprequest": "^1.8.2",
     "babel-jest": "^29.6.3",
     "babel-plugin-module-resolver": "^5.0.0",
@@ -116,7 +115,6 @@
     "ts-jest": "^29.3.1",
     "typescript": "~5.9.3",
     "uglify-js": "^3.17.4",
-    "uuid": "^9.0.1",
     "xmlhttprequest": "^1.8.0"
   },
   "codegenConfig": {
