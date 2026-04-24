@@ -6,10 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.9.1
 
 ### Features
 
+- Add new `@sentry/expo-upload-sourcemaps` package for uploading JavaScript bundles and source maps from Expo builds to Sentry ([#6027](https://github.com/getsentry/sentry-react-native/pull/6027))
+  - The existing `sentry-expo-upload-sourcemaps` bin bundled with `@sentry/react-native` is superseded by the new package; it continues to work unchanged for now
 - Expose scope-level attributes API (`setAttribute`, `setAttributes`, `removeAttribute`) bridging to native SDKs ([#6009](https://github.com/getsentry/sentry-react-native/pull/6009))
 - Expose screenshot masking options (`screenshot.maskAllText`, `screenshot.maskAllImages`, `screenshot.maskedViewClasses`, `screenshot.unmaskedViewClasses`) for error screenshots ([#6007](https://github.com/getsentry/sentry-react-native/pull/6007))
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
@@ -18,6 +20,9 @@
 
 ### Fixes
 
+- Fix `@sentry/expo-upload-sourcemaps` publishing issue ([#6037](https://github.com/getsentry/sentry-react-native/pull/6037))
+- Fix iOS UI profiling options being silently ignored ([#6012](https://github.com/getsentry/sentry-react-native/pull/6012))
+- Fix `_experiments.enableUnhandledCPPExceptionsV2` being silently ignored on iOS ([#6014](https://github.com/getsentry/sentry-react-native/pull/6014))
 - Check `captureReplay` return value in iOS bridge to avoid linking error events to uncaptured replays ([#6008](https://github.com/getsentry/sentry-react-native/pull/6008))
 - Report the expected properties file path and any missing keys when using `flavorAware` on Android, instead of failing with an opaque `Illegal null value provided in this collection` error ([#6031](https://github.com/getsentry/sentry-react-native/pull/6031))
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))

@@ -1,0 +1,50 @@
+{
+  "name": "@sentry/expo-upload-sourcemaps",
+  "version": "8.9.1",
+  "description": "CLI to upload bundles and source maps from Expo builds to Sentry.",
+  "homepage": "https://github.com/getsentry/sentry-react-native/tree/main/packages/expo-upload-sourcemaps",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getsentry/sentry-react-native",
+    "directory": "packages/expo-upload-sourcemaps"
+  },
+  "license": "MIT",
+  "author": "Sentry",
+  "keywords": [
+    "sentry",
+    "expo",
+    "react-native",
+    "sourcemaps",
+    "cli"
+  ],
+  "bin": "./cli.js",
+  "scripts": {
+    "build:tarball": "bash scripts/build-tarball.sh"
+  },
+  "files": [
+    "cli.js",
+    "LICENSE.md",
+    "README.md"
+  ],
+  "dependencies": {
+    "@sentry/cli": "3.4.0"
+  },
+  "peerDependencies": {
+    "@expo/env": "*",
+    "dotenv": "*"
+  },
+  "peerDependenciesMeta": {
+    "@expo/env": {
+      "optional": true
+    },
+    "dotenv": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
