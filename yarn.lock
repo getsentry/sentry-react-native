@@ -12429,17 +12429,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:0.8.12, @xmldom/xmldom@npm:^0.8.12":
-  version: 0.8.12
-  resolution: "@xmldom/xmldom@npm:0.8.12"
-  checksum: 609bbcd6f31fa24023f5cc836e804d49c60e3df83ca73f744da9caff7fed516221dcf2f23de44e5289d715951781ec35fa90adf57008c3eae944a7550c39e325
+"@xmldom/xmldom@npm:0.8.13, @xmldom/xmldom@npm:^0.8.13":
+  version: 0.8.13
+  resolution: "@xmldom/xmldom@npm:0.8.13"
+  checksum: b5568a3dee6306c4c6256c94f27d74f904d7cc923607f0dcaa37998e370361ce37a6e99aa55e8e725f07079e619a6f8b3a7de218e76b522ba2b1aca3ada5265c
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:^0.9.9":
-  version: 0.9.9
-  resolution: "@xmldom/xmldom@npm:0.9.9"
-  checksum: 73bd69379f70b29cdef742eb834c299ef13268e9ce42ea6384a78ade1083c3e0c71c764019d3c8d860a76147c6c84b4cba5e6e5b2123ed2cd806d8621c4c9559
+"@xmldom/xmldom@npm:^0.9.10":
+  version: 0.9.10
+  resolution: "@xmldom/xmldom@npm:0.9.10"
+  checksum: 420f3ba52316163384ce626cda087d06b0eb5888d393b00bbc5f56489bbaccc8633e9b078942ee05facda93fbf813b209a5deb5044f89a6e04373305a0e573c0
   languageName: node
   linkType: hard
 
