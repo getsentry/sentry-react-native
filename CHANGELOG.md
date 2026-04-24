@@ -15,8 +15,8 @@
 ### Fixes
 
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
-- Restrict `getDataFromUri` on iOS to the app's temporary, caches, and documents directories
-- Restrict `getDataFromUri` on Android to known media and document content providers and app-internal file locations
+- Restrict `getDataFromUri` on iOS to the app's temporary, caches, and documents directories ([#6045](https://github.com/getsentry/sentry-react-native/pull/6045))
+- Restrict `getDataFromUri` on Android to known media and document content providers and app-internal file locations ([#6045](https://github.com/getsentry/sentry-react-native/pull/6045))
 
 ### Dependencies
 
