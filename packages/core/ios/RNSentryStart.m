@@ -170,11 +170,6 @@
         }
     }
 
-    if (isSessionReplayEnabled) {
-        [RNSentryExperimentalOptions setEnableSessionReplayInUnreliableEnvironment:YES
-                                                                     sentryOptions:sentryOptions];
-    }
-
     return sentryOptions;
 }
 
