@@ -61,7 +61,8 @@ public class RNSentryUriValidationTest {
   @Test
   public void allowsContentMediaAuthority() {
     assertTrue(
-        RNSentryModuleImpl.isAllowedUri(mockUri("content", "media", "/external/images/media/42"), ctx));
+        RNSentryModuleImpl.isAllowedUri(
+            mockUri("content", "media", "/external/images/media/42"), ctx));
   }
 
   @Test
@@ -144,7 +145,8 @@ public class RNSentryUriValidationTest {
 
   @Test
   public void rejectsPrefixCollision() throws IOException {
-    // If filesDir is <root>/files, a path <root>/filesEvil/victim must not match as inside filesDir.
+    // If filesDir is <root>/files, a path <root>/filesEvil/victim must not match as inside
+    // filesDir.
     File sibling = new File(tempFolder.getRoot(), "filesEvil");
     assertTrue(sibling.mkdirs());
     File victim = new File(sibling, "victim.txt");
