@@ -61,7 +61,7 @@
     "See: https://github.com/appium/appium-chromedriver/pull/424"
   ],
   "resolutions": {
-    "appium-chromedriver@npm:8.2.19/@xmldom/xmldom": "0.8.12",
+    "appium-chromedriver@npm:8.2.19/@xmldom/xmldom": "0.8.13",
     "@istanbuljs/load-nyc-config@npm:1.1.0/js-yaml": "^3.14.2",
     "@yarnpkg/parsers@npm:3.0.0-rc.46/js-yaml": "^3.14.2",
     "cosmiconfig@npm:5.2.1/js-yaml": "^3.14.2",
@@ -122,13 +122,13 @@
     "minimatch@npm:5.1.9/brace-expansion": "^2.0.3",
     "minimatch@npm:8.0.7/brace-expansion": "^2.0.3",
     "minimatch@npm:9.0.9/brace-expansion": "^2.0.3",
-    "@expo/plist@npm:0.1.3/@xmldom/xmldom": "^0.8.12",
-    "@expo/plist@npm:0.3.4/@xmldom/xmldom": "^0.8.12",
-    "@expo/plist@npm:0.5.2/@xmldom/xmldom": "^0.8.12",
-    "plist@npm:3.1.0/@xmldom/xmldom": "^0.8.12",
+    "@expo/plist@npm:0.1.3/@xmldom/xmldom": "^0.8.13",
+    "@expo/plist@npm:0.3.4/@xmldom/xmldom": "^0.8.13",
+    "@expo/plist@npm:0.5.2/@xmldom/xmldom": "^0.8.13",
+    "plist@npm:3.1.0/@xmldom/xmldom": "^0.8.13",
     "@appium/support@npm:7.0.6/yauzl": "^3.2.1",
-    "appium-ios-remotexpc@npm:0.36.0/@xmldom/xmldom": "^0.9.9",
-    "appium-ios-simulator@npm:8.0.12/@xmldom/xmldom": "^0.9.9"
+    "appium-ios-remotexpc@npm:0.36.0/@xmldom/xmldom": "^0.9.10",
+    "appium-ios-simulator@npm:8.0.12/@xmldom/xmldom": "^0.9.10"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
