@@ -6,6 +6,7 @@
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
+#import <Sentry/SentryProfilingConditionals.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
 @import Sentry;
@@ -1371,6 +1372,157 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     SentryBreadcrumb *result = options.beforeBreadcrumb(breadcrumb);
 
     XCTAssertEqual(breadcrumb, result);
+}
+
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+// Regression test for the v8.0.0 bug where the init path (RNSentryStart) did not
+// handle `_experiments.profilingOptions`, silently dropping iOS UI profiling config.
+// This pins the full entry point used by `initNativeSdk` in RNSentry.mm.
+- (void)testStartWithDictionaryInstallsConfigureProfilingFromExperimentsProfilingOptions
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"profilingOptions" : @ {
+                @"profileSessionSampleRate" : @1.0,
+                @"lifecycle" : @"trace",
+                @"startOnAppStart" : @YES,
+            },
+        },
+    };
+    [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
+    SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertNotNil(actualOptions.configureProfiling,
+        @"configureProfiling must be installed after startWithOptions when profilingOptions is "
+        @"present");
+
+    SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
+    actualOptions.configureProfiling(probe);
+    XCTAssertEqual(probe.sessionSampleRate, 1.0f);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertTrue(probe.profileAppStarts);
+}
+
+- (void)testStartCreateOptionsWithDictionaryProfilingOptionsInstallsConfigureProfiling
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"profilingOptions" : @ {
+                @"profileSessionSampleRate" : @1.0,
+                @"lifecycle" : @"trace",
+                @"startOnAppStart" : @YES,
+            },
+        },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertNotNil(actualOptions.configureProfiling,
+        @"configureProfiling callback should be installed when profilingOptions is present");
+
+    SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
+    actualOptions.configureProfiling(probe);
+    XCTAssertEqual(probe.sessionSampleRate, 1.0f);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertTrue(probe.profileAppStarts);
+}
+
+- (void)testStartCreateOptionsWithDictionaryProfilingOptionsMissingDoesNotInstallConfigureProfiling
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertNil(actualOptions.configureProfiling,
+        @"configureProfiling callback should not be installed without profilingOptions");
+}
+
+- (void)testStartCreateOptionsWithDictionaryEmptyExperimentsDoesNotInstallConfigureProfiling
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ { },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertNil(actualOptions.configureProfiling,
+        @"configureProfiling callback should not be installed when profilingOptions is absent");
+}
+#endif
+
+- (void)testStartCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Enabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"enableUnhandledCPPExceptionsV2" : @YES,
+        },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertTrue(actualOptions.experimental.enableUnhandledCPPExceptionsV2,
+        @"enableUnhandledCPPExceptionsV2 should be enabled");
+}
+
+- (void)testStartCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Disabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"_experiments" : @ {
+            @"enableUnhandledCPPExceptionsV2" : @NO,
+        },
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.experimental.enableUnhandledCPPExceptionsV2,
+        @"enableUnhandledCPPExceptionsV2 should be disabled");
+}
+
+- (void)testStartCreateOptionsWithDictionaryEnableUnhandledCPPExceptionsV2Default
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.experimental.enableUnhandledCPPExceptionsV2,
+        @"enableUnhandledCPPExceptionsV2 should default to disabled");
 }
 
 - (void)testStartEventFromSentryCocoaReactNativeHasOriginAndEnvironmentTags

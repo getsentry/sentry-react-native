@@ -166,6 +166,7 @@ jobs:
           name: ${{ github.sha }}
           path: |
             ${{ github.workspace }}/packages/core/*.tgz
+            ${{ github.workspace }}/packages/expo-upload-sourcemaps/*.tgz
 
   job_type_check:
     name: Type Check Typescript 3.8

@@ -77,6 +77,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,7 +116,15 @@ public class RNSentryModuleImpl {
    */
   private int profilingTracesHz = 101;
 
-  private AndroidProfiler androidProfiler = null;
+  // Atomic because invalidate() (NativeModules/teardown thread) can null the reference
+  // concurrently with stopProfiling() (JS thread). getAndSet gives us an atomic snapshot-and-clear.
+  private final AtomicReference<AndroidProfiler> androidProfiler = new AtomicReference<>();
+
+  // Atomic so that invalidate() can claim cleanup responsibility via compareAndSet/getAndSet.
+  // startProfiling/stopProfiling run on the JS thread (@ReactMethod isBlockingSynchronousMethod);
+  // invalidate runs on the NativeModules/teardown thread. Without atomicity, invalidate could
+  // observe a stale false and skip disabling a running Hermes sampler.
+  private final AtomicBoolean isProfiling = new AtomicBoolean(false);
 
   private boolean isProguardDebugMetaLoaded = false;
   private @Nullable String proguardUuid = null;
@@ -773,29 +783,45 @@ public class RNSentryModuleImpl {
     }
     final String tracesFilesDirPath = getProfilingTracesDirPath();
 
-    androidProfiler =
+    androidProfiler.set(
         new AndroidProfiler(
             tracesFilesDirPath,
             (int) SECONDS.toMicros(1) / profilingTracesHz,
             new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
             () -> executorService,
-            logger);
+            logger));
   }
 
   public WritableMap startProfiling(boolean platformProfilers) {
     final WritableMap result = new WritableNativeMap();
-    if (androidProfiler == null && platformProfilers) {
+    if (androidProfiler.get() == null && platformProfilers) {
       initializeAndroidProfiler();
     }
 
     try {
+      // Defensive reset: the Hermes sampling profiler is global with no state
+      // introspection, so flush any leaked registration from a prior run before
+      // enabling. See https://github.com/facebook/hermes/issues/1853.
+      HermesSamplingProfiler.disable();
       HermesSamplingProfiler.enable();
-      if (androidProfiler != null) {
-        androidProfiler.start();
+      // Mark profiling active immediately after enable() succeeds so a concurrent
+      // invalidate() observes the running state even if androidProfiler.start() below throws.
+      isProfiling.set(true);
+      final AndroidProfiler profiler = androidProfiler.get();
+      if (profiler != null) {
+        profiler.start();
       }
 
       result.putBoolean("started", true);
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      // Unwind Hermes if we enabled it but failed before returning. getAndSet(false) makes
+      // this idempotent with a concurrent invalidate()/stopProfiling().
+      if (isProfiling.getAndSet(false)) {
+        try {
+          HermesSamplingProfiler.disable();
+        } catch (Throwable ignored) { // NOPMD - Best-effort unwind.
+        }
+      }
       result.putBoolean("started", false);
       result.putString("error", e.toString());
     }
@@ -805,11 +831,20 @@ public class RNSentryModuleImpl {
   public WritableMap stopProfiling() {
     final boolean isDebug = ScopesAdapter.getInstance().getOptions().isDebug();
     final WritableMap result = new WritableNativeMap();
+    // Claim cleanup ownership atomically. If invalidate() got here first, it already
+    // disabled Hermes and collected the Android profiler; there's nothing to return.
+    if (!isProfiling.compareAndSet(true, false)) {
+      result.putString("error", "Profiling not active");
+      return result;
+    }
+    // Take sole ownership of the AndroidProfiler reference so a concurrent invalidate()
+    // cannot also call endAndCollect() on the same instance.
+    final AndroidProfiler profiler = androidProfiler.getAndSet(null);
     File output = null;
     try {
       AndroidProfiler.ProfileEndData end = null;
-      if (androidProfiler != null) {
-        end = androidProfiler.endAndCollect(false, null);
+      if (profiler != null) {
+        end = profiler.endAndCollect(false, null);
       }
       HermesSamplingProfiler.disable();
 
@@ -850,6 +885,57 @@ public class RNSentryModuleImpl {
       }
     }
     return result;
+  }
+
+  /**
+   * Cleanup hook invoked from the module wrappers when the React instance is destroyed (e.g. Metro
+   * reload, orderly Activity teardown). Calls HermesSamplingProfiler.disable(), which synchronously
+   * joins the sampler's timer thread, so no pthread_kill can fire after the JS thread is torn down.
+   *
+   * <p>Correctness depends on RN invoking module invalidate() before joining the JS message queue
+   * thread. That is the documented contract for both old-arch CatalystInstance shutdown and
+   * new-arch TurboModule teardown.
+   *
+   * <p>See https://github.com/getsentry/sentry-react-native/issues/5441 and
+   * https://github.com/facebook/hermes/issues/1853.
+   */
+  public void invalidate() {
+    // Atomic gate: only one caller (invalidate vs stopProfiling vs a re-entrant invalidate)
+    // wins the right to clean up; the rest no-op.
+    if (!isProfiling.getAndSet(false)) {
+      return;
+    }
+    // getAndSet(null) atomically snatches the reference so a concurrent stopProfiling()
+    // sees null and skips its own endAndCollect() on the same instance.
+    final AndroidProfiler profiler = androidProfiler.getAndSet(null);
+
+    // Crash-critical: disable the Hermes sampler first. disable() synchronously joins the
+    // timer thread, so once it returns no pthread_kill can fire after the JS thread is
+    // joined. Isolated in its own try/catch so a failure in the Android profiler cleanup
+    // below cannot skip this call.
+    try {
+      HermesSamplingProfiler.disable();
+      logger.log(SentryLevel.INFO, "Stopped Hermes sampling profiler on React instance destroy.");
+    } catch (Throwable e) { // NOPMD - Guards the JNI boundary; does not catch native SIGABRT.
+      logger.log(SentryLevel.WARNING, "Failed to stop Hermes sampling profiler on teardown: " + e);
+    }
+
+    // Android platform profiler is independent of Hermes; a failure here must not leak
+    // back into the Hermes shutdown above. The profile is being discarded; delete the
+    // trace file to avoid leaking it in cacheDir.
+    if (profiler != null) {
+      try {
+        final AndroidProfiler.ProfileEndData end = profiler.endAndCollect(false, null);
+        if (end != null && end.traceFile != null) {
+          try {
+            end.traceFile.delete();
+          } catch (Throwable ignored) { // NOPMD - File cleanup is best-effort.
+          }
+        }
+      } catch (Throwable e) { // NOPMD - Android profiler cleanup is best-effort on teardown.
+        logger.log(SentryLevel.WARNING, "AndroidProfiler cleanup failed during invalidate: " + e);
+      }
+    }
   }
 
   private @Nullable String getProguardUuid() {
