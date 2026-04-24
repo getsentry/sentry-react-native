@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `includeWebFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
+
 ### Fixes
 
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
@@ -21,7 +25,6 @@
 - Expose scope-level attributes API (`setAttribute`, `setAttributes`, `removeAttribute`) bridging to native SDKs ([#6009](https://github.com/getsentry/sentry-react-native/pull/6009))
 - Expose screenshot masking options (`screenshot.maskAllText`, `screenshot.maskAllImages`, `screenshot.maskedViewClasses`, `screenshot.unmaskedViewClasses`) for error screenshots ([#6007](https://github.com/getsentry/sentry-react-native/pull/6007))
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
-- Add `includeFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
 - Re-export AI SDK manual instrumentation helpers (`instrumentOpenAiClient`, `instrumentAnthropicAiClient`, `instrumentGoogleGenAIClient`, `createLangChainCallbackHandler`, `instrumentLangGraph`, `instrumentStateGraphCompile`) for use in React Native apps ([#6028](https://github.com/getsentry/sentry-react-native/pull/6028))
 - Add `Sentry.GlobalErrorBoundary` component (and `withGlobalErrorBoundary` HOC) that renders a fallback UI for fatal non-rendering JS errors routed through `ErrorUtils` in addition to the render-phase errors caught by `Sentry.ErrorBoundary`. Opt-in flags `includeNonFatalGlobalErrors` and `includeUnhandledRejections` extend the fallback to non-fatal errors and unhandled promise rejections respectively. ([#6023](https://github.com/getsentry/sentry-react-native/pull/6023))
 

@@ -40,10 +40,10 @@ export interface SentryMetroConfigOptions {
    */
   includeWebReplay?: boolean;
   /**
-   * Adds the Sentry user feedback widget package for web.
+   * Adds the Sentry user feedback widget package.
    * @default true
    */
-  includeFeedback?: boolean;
+  includeWebFeedback?: boolean;
   /**
    * Add Sentry Metro Server Middleware which
    * enables the app to fetch stack frames source context.
@@ -85,7 +85,7 @@ export function withSentryConfig(
   {
     annotateReactComponents = false,
     includeWebReplay = true,
-    includeFeedback = true,
+    includeWebFeedback = true,
     enableSourceContextInDevelopment = true,
     optionsFile = true,
   }: SentryMetroConfigOptions = {},
@@ -102,8 +102,8 @@ export function withSentryConfig(
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
   }
-  if (includeFeedback === false) {
-    newConfig = withSentryFeedbackResolver(newConfig, includeFeedback);
+  if (includeWebFeedback === false) {
+    newConfig = withSentryFeedbackResolver(newConfig, includeWebFeedback);
   }
   newConfig = withSentryExcludeServerOnlyResolver(newConfig);
   if (enableSourceContextInDevelopment) {
@@ -145,8 +145,8 @@ export function getSentryExpoConfig(
   if (options.includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, options.includeWebReplay);
   }
-  if (options.includeFeedback === false) {
-    newConfig = withSentryFeedbackResolver(newConfig, options.includeFeedback);
+  if (options.includeWebFeedback === false) {
+    newConfig = withSentryFeedbackResolver(newConfig, options.includeWebFeedback);
   }
   newConfig = withSentryExcludeServerOnlyResolver(newConfig);
 
@@ -312,14 +312,14 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
 }
 
 /**
- * Includes `@sentry-internal/feedback` packages based on the `includeFeedback` flag and current bundle `platform`.
+ * Includes `@sentry-internal/feedback` packages based on the `includeWebFeedback` flag and current bundle `platform`.
  */
-export function withSentryFeedbackResolver(config: MetroConfig, includeFeedback: boolean | undefined): MetroConfig {
+export function withSentryFeedbackResolver(config: MetroConfig, includeWebFeedback: boolean | undefined): MetroConfig {
   return buildSentryPackageExcludeResolver(
     config,
-    includeFeedback,
+    includeWebFeedback,
     /@sentry(?:-internal)?\/feedback/,
-    'includeFeedback',
+    'includeWebFeedback',
   );
 }
 

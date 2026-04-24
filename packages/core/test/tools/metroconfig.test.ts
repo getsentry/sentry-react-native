@@ -398,14 +398,14 @@ describe('metroconfig', () => {
       });
 
       describe.each([['@sentry-internal/feedback'], ['@sentry/feedback']])('with %s', feedbackPackage => {
-        test('keep Feedback when platform is web and includeFeedback is true', () => {
+        test('keep Feedback when platform is web and includeWebFeedback is true', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, true);
           resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'web');
 
           ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, 'web');
         });
 
-        test('removes Feedback when platform is web and includeFeedback is false', () => {
+        test('removes Feedback when platform is web and includeWebFeedback is false', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, false);
           const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'web');
 
@@ -413,14 +413,14 @@ describe('metroconfig', () => {
           expect(originalResolverMock).not.toHaveBeenCalled();
         });
 
-        test('keep Feedback when platform is android and includeFeedback is true', () => {
+        test('keep Feedback when platform is android and includeWebFeedback is true', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, true);
           resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'android');
 
           ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, 'android');
         });
 
-        test('removes Feedback when platform is android and includeFeedback is false', () => {
+        test('removes Feedback when platform is android and includeWebFeedback is false', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, false);
           const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'android');
 
@@ -428,7 +428,7 @@ describe('metroconfig', () => {
           expect(originalResolverMock).not.toHaveBeenCalled();
         });
 
-        test('removes Feedback when platform is android and includeFeedback is undefined', () => {
+        test('removes Feedback when platform is android and includeWebFeedback is undefined', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, undefined);
           const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'android');
 
@@ -436,21 +436,21 @@ describe('metroconfig', () => {
           expect(originalResolverMock).not.toHaveBeenCalled();
         });
 
-        test('keep Feedback when platform is undefined and includeFeedback is null', () => {
+        test('keep Feedback when platform is undefined and includeWebFeedback is null', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, undefined);
           resolveRequest(modifiedConfig, contextMock, feedbackPackage, null);
 
           ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, null);
         });
 
-        test('keep Feedback when platform is ios and includeFeedback is true', () => {
+        test('keep Feedback when platform is ios and includeWebFeedback is true', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, true);
           resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'ios');
 
           ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, feedbackPackage, 'ios');
         });
 
-        test('removes Feedback when platform is ios and includeFeedback is false', () => {
+        test('removes Feedback when platform is ios and includeWebFeedback is false', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, false);
           const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'ios');
 
@@ -458,7 +458,7 @@ describe('metroconfig', () => {
           expect(originalResolverMock).not.toHaveBeenCalled();
         });
 
-        test('removes Feedback when platform is ios and includeFeedback is undefined', () => {
+        test('removes Feedback when platform is ios and includeWebFeedback is undefined', () => {
           const modifiedConfig = withSentryFeedbackResolver(config, undefined);
           const result = resolveRequest(modifiedConfig, contextMock, feedbackPackage, 'ios');
 
@@ -475,7 +475,7 @@ describe('metroconfig', () => {
         ExpectToBeCalledWithMetroParameters(originalResolverMock, contextMock, moduleName, 'web');
       });
 
-      test('calls originalResolver when moduleName is not @sentry-internal/feedback and includeFeedback set to false', () => {
+      test('calls originalResolver when moduleName is not @sentry-internal/feedback and includeWebFeedback set to false', () => {
         const modifiedConfig = withSentryFeedbackResolver(config, false);
         const moduleName = 'some/other/module';
         resolveRequest(modifiedConfig, contextMock, moduleName, 'web');
@@ -496,7 +496,7 @@ describe('metroconfig', () => {
         ExpectToBeCalledWithMetroParameters(contextMock.resolveRequest, contextMock, moduleName, platform);
       });
 
-      test('throws error when running on old metro and includeFeedback is set to false', () => {
+      test('throws error when running on old metro and includeWebFeedback is set to false', () => {
         if (!oldMetro) {
           return;
         }
