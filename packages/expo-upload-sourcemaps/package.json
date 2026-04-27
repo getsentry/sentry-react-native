@@ -1,6 +1,6 @@
 {
   "name": "@sentry/expo-upload-sourcemaps",
-  "version": "8.9.1",
+  "version": "8.9.2",
   "description": "CLI to upload bundles and source maps from Expo builds to Sentry.",
   "homepage": "https://github.com/getsentry/sentry-react-native/tree/main/packages/expo-upload-sourcemaps",
   "repository": {
