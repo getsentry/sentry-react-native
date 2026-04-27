@@ -91,6 +91,34 @@ class RNSentryReplayBreadcrumbConverterTest {
     }
 
     @Test
+    fun convertMultiClickBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.level = SentryLevel.WARNING
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "ui.multiClick"
+        testBreadcrumb.message = "Submit"
+        testBreadcrumb.setData(
+            "path",
+            arrayListOf(
+                mapOf(
+                    "name" to "SubmitButton",
+                    "label" to "Submit",
+                    "file" to "form.tsx",
+                ),
+            ),
+        )
+        testBreadcrumb.setData("clickCount", 3.0)
+        testBreadcrumb.setData("metric", true)
+        val actual = converter.convert(testBreadcrumb) as RRWebBreadcrumbEvent
+
+        assertRRWebBreadcrumbDefaults(actual)
+        assertEquals(SentryLevel.WARNING, actual.level)
+        assertEquals("ui.multiClick", actual.category)
+        assertEquals("Submit(form.tsx)", actual.message)
+    }
+
+    @Test
     fun convertTouchBreadcrumb() {
         val converter = RNSentryReplayBreadcrumbConverter()
         val testBreadcrumb = Breadcrumb()
