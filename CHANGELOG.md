@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Restore executable bit on shell scripts in the published tarball, fixing `Permission denied` on iOS build ([#6049](https://github.com/getsentry/sentry-react-native/pull/6049))
+- Restore EAS build hook bin scripts (`sentry-eas-build-on-{success,error,complete}`) missing from the published tarball ([#6049](https://github.com/getsentry/sentry-react-native/pull/6049))
+
 ## 8.9.1
 
 ### Features
