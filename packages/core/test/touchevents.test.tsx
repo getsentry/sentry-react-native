@@ -342,7 +342,6 @@ describe('TouchEventBoundary._onTouchStart', () => {
       expect(addBreadcrumb).toHaveBeenLastCalledWith(
         expect.objectContaining({
           category: 'ui.multiClick',
-          level: 'warning',
           type: 'default',
           data: expect.objectContaining({
             clickCount: 3,

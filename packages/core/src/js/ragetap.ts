@@ -1,10 +1,9 @@
-import type { SeverityLevel } from '@sentry/core';
 import { addBreadcrumb, debug } from '@sentry/core';
 
 import { getCurrentReactNativeTracingIntegration } from './tracing/reactnativetracing';
 
-const DEFAULT_RAGE_TAP_THRESHOLD = 3;
-const DEFAULT_RAGE_TAP_TIME_WINDOW = 1000;
+export const DEFAULT_RAGE_TAP_THRESHOLD = 3;
+export const DEFAULT_RAGE_TAP_TIME_WINDOW = 1000;
 
 export interface TouchedComponentInfo {
   name?: string;
@@ -87,7 +86,6 @@ export class RageTapDetector {
       addBreadcrumb({
         category: 'ui.multiClick',
         type: 'default',
-        level: 'warning' as SeverityLevel,
         message,
         data: {
           clickCount: tapCount,
@@ -174,6 +172,8 @@ function buildNodeFromTouchPath(
   }
 
   return {
+    // Mobile replays don't have rrweb node IDs — 0 is a placeholder
+    // to satisfy the ReplayBaseDomFrameData shape expected by the frontend.
     id: 0,
     tagName: root.element ?? root.name ?? 'unknown',
     textContent: '',

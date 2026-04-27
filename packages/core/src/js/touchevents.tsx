@@ -5,9 +5,10 @@ import { addBreadcrumb, debug, dropUndefinedKeys, getClient, SEMANTIC_ATTRIBUTE_
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { createIntegration } from './integrations/factory';
 import type { TouchedComponentInfo } from './ragetap';
-import { RageTapDetector } from './ragetap';
+
+import { createIntegration } from './integrations/factory';
+import { DEFAULT_RAGE_TAP_THRESHOLD, DEFAULT_RAGE_TAP_TIME_WINDOW, RageTapDetector } from './ragetap';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './tracing/origin';
@@ -111,13 +112,22 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     ignoreNames: [],
     maxComponentTreeSize: DEFAULT_MAX_COMPONENT_TREE_SIZE,
     enableRageTapDetection: true,
-    rageTapThreshold: 3,
-    rageTapTimeWindow: 1000,
+    rageTapThreshold: DEFAULT_RAGE_TAP_THRESHOLD,
+    rageTapTimeWindow: DEFAULT_RAGE_TAP_TIME_WINDOW,
   };
 
   public readonly name: string = 'TouchEventBoundary';
 
-  private _rageTapDetector: RageTapDetector = new RageTapDetector();
+  private _rageTapDetector: RageTapDetector;
+
+  public constructor(props: TouchEventBoundaryProps) {
+    super(props);
+    this._rageTapDetector = new RageTapDetector({
+      enabled: props.enableRageTapDetection,
+      threshold: props.rageTapThreshold,
+      timeWindow: props.rageTapTimeWindow,
+    });
+  }
 
   /**
    * Registers the TouchEventBoundary as a Sentry Integration.
@@ -125,6 +135,17 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
   public componentDidMount(): void {
     const client = getClient();
     client?.addIntegration?.(createIntegration(this.name));
+  }
+
+  /**
+   * Sync rage tap options when props change.
+   */
+  public componentDidUpdate(): void {
+    this._rageTapDetector.updateOptions({
+      enabled: this.props.enableRageTapDetection,
+      threshold: this.props.rageTapThreshold,
+      timeWindow: this.props.rageTapTimeWindow,
+    });
   }
 
   /**
@@ -222,11 +243,6 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     const label = touchPath.find(info => info.label)?.label;
     if (touchPath.length > 0) {
       this._logTouchEvent(touchPath, label);
-      this._rageTapDetector.updateOptions({
-        enabled: this.props.enableRageTapDetection,
-        threshold: this.props.rageTapThreshold,
-        timeWindow: this.props.rageTapTimeWindow,
-      });
       this._rageTapDetector.check(touchPath, label);
     }
 

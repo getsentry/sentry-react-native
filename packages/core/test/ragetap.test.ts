@@ -27,7 +27,6 @@ describe('RageTapDetector', () => {
     expect(addBreadcrumb).toHaveBeenCalledWith(
       expect.objectContaining({
         category: 'ui.multiClick',
-        level: 'warning',
         type: 'default',
         message: 'submit',
         data: expect.objectContaining({
@@ -180,6 +179,34 @@ describe('RageTapDetector', () => {
     detector.check([]);
 
     expect(addBreadcrumb).not.toHaveBeenCalled();
+  });
+
+  it('clears buffer when disabled via updateOptions', () => {
+    const detector = new RageTapDetector();
+    const path = [{ name: 'Button', label: 'ok' }];
+
+    // Two taps, then disable
+    detector.check(path, 'ok');
+    detector.check(path, 'ok');
+    detector.updateOptions({ enabled: false });
+
+    // Re-enable and tap once — should NOT trigger (buffer was cleared)
+    detector.updateOptions({ enabled: true });
+    detector.check(path, 'ok');
+
+    expect(addBreadcrumb).not.toHaveBeenCalled();
+  });
+
+  it('applies new threshold via updateOptions', () => {
+    const detector = new RageTapDetector({ threshold: 5 });
+    const path = [{ name: 'Button', label: 'ok' }];
+
+    detector.updateOptions({ threshold: 2 });
+
+    detector.check(path, 'ok');
+    detector.check(path, 'ok');
+
+    expect(addBreadcrumb).toHaveBeenCalledTimes(1);
   });
 
   it('can trigger again after buffer reset and enough new taps', () => {
