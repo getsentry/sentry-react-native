@@ -491,10 +491,11 @@ describe('App Start Integration', () => {
       });
 
       // Simulate the span being dropped (e.g., ignoreEmptyRouteChangeTransactions
-      // sets _sampled = false during spanEnd processing).
-      // Note: _sampled is a @sentry/core SentrySpan internal — this couples to the
-      // same mechanism used by onSpanEndUtils.ts (discardEmptyNavigationSpan).
-      (firstSpan as any)['_sampled'] = false;
+      // marking the root span via the `sentry.rn.discard_reason` attribute during
+      // spanEnd processing). The tracing integration's event processor drops the
+      // resulting transaction; appStart detects the marker on the next spanStart
+      // and resets the lock so the next root span can attach app start data.
+      firstSpan.setAttribute('sentry.rn.discard_reason', 'no_route_info');
 
       // Second root span starts — recordFirstStartedActiveRootSpanId detects
       // the previously locked span is no longer sampled and resets the lock

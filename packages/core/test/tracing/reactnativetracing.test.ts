@@ -142,4 +142,71 @@ describe('ReactNativeTracing', () => {
       expect(processedEvent).toEqual(expectedEvent);
     });
   });
+
+  describe('discarded transaction event processor', () => {
+    it('drops transaction events marked with the discard reason attribute', () => {
+      const integration = reactNativeTracingIntegration();
+      const recordDroppedEvent = jest.spyOn(client, 'recordDroppedEvent');
+
+      const event: Event = {
+        type: 'transaction',
+        contexts: {
+          trace: {
+            trace_id: 'a'.repeat(32),
+            span_id: 'b'.repeat(16),
+            data: { 'sentry.rn.discard_reason': 'no_route_info' },
+          },
+        },
+      };
+
+      const processedEvent = integration.processEvent(event, {}, client);
+
+      expect(processedEvent).toBeNull();
+      expect(recordDroppedEvent).toHaveBeenCalledTimes(1);
+      expect(recordDroppedEvent).toHaveBeenCalledWith('event_processor', 'transaction');
+    });
+
+    it('does not drop transaction events without the discard reason attribute', () => {
+      const integration = reactNativeTracingIntegration();
+      const recordDroppedEvent = jest.spyOn(client, 'recordDroppedEvent');
+
+      const event: Event = {
+        type: 'transaction',
+        contexts: {
+          trace: {
+            trace_id: 'a'.repeat(32),
+            span_id: 'b'.repeat(16),
+            data: { 'route.name': 'Home' },
+          },
+        },
+      };
+
+      const processedEvent = integration.processEvent(event, {}, client);
+
+      expect(processedEvent).not.toBeNull();
+      expect(recordDroppedEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not drop non-transaction events even if marked', () => {
+      const integration = reactNativeTracingIntegration();
+      const recordDroppedEvent = jest.spyOn(client, 'recordDroppedEvent');
+
+      // Errors should never carry this attribute, but the processor should
+      // still pass them through unchanged if they happen to.
+      const event: Event = {
+        contexts: {
+          trace: {
+            trace_id: 'a'.repeat(32),
+            span_id: 'b'.repeat(16),
+            data: { 'sentry.rn.discard_reason': 'no_route_info' },
+          },
+        },
+      };
+
+      const processedEvent = integration.processEvent(event, {}, client);
+
+      expect(processedEvent).not.toBeNull();
+      expect(recordDroppedEvent).not.toHaveBeenCalled();
+    });
+  });
 });

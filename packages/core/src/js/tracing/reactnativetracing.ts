@@ -1,10 +1,11 @@
 import type { Client, Event, Integration, StartSpanOptions } from '@sentry/core';
 
 import { instrumentOutgoingRequests } from '@sentry/browser';
-import { getClient } from '@sentry/core';
+import { debug, getClient } from '@sentry/core';
 
 import { isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
+import { getTransactionEventDiscardReason } from './onSpanEndUtils';
 import { addDefaultOpForSpanFrom, addThreadInfoToSpan, defaultIdleOptions } from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
@@ -136,7 +137,16 @@ export const reactNativeTracingIntegration = (
     });
   };
 
-  const processEvent = (event: Event): Event => {
+  const processEvent = (event: Event, _hint: unknown, client: Client): Event | null => {
+    if (event.type === 'transaction') {
+      const discardReason = getTransactionEventDiscardReason(event);
+      if (discardReason) {
+        debug.log(`[ReactNativeTracing] Dropping transaction marked for discard (reason: ${discardReason}).`);
+        client.recordDroppedEvent('event_processor', 'transaction');
+        return null;
+      }
+    }
+
     if (event.contexts && state.currentRoute) {
       event.contexts.app = { view_names: [state.currentRoute], ...event.contexts.app };
     }
