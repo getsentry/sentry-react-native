@@ -11,6 +11,7 @@
 ### Features
 
 - Add `includeWebFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
+- Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
 ### Fixes
 
@@ -33,7 +34,6 @@
 - Warn Expo users at Metro startup when prebuilt native projects are missing Sentry configuration ([#5984](https://github.com/getsentry/sentry-react-native/pull/5984))
 - Re-export AI SDK manual instrumentation helpers (`instrumentOpenAiClient`, `instrumentAnthropicAiClient`, `instrumentGoogleGenAIClient`, `createLangChainCallbackHandler`, `instrumentLangGraph`, `instrumentStateGraphCompile`) for use in React Native apps ([#6028](https://github.com/getsentry/sentry-react-native/pull/6028))
 - Add `Sentry.GlobalErrorBoundary` component (and `withGlobalErrorBoundary` HOC) that renders a fallback UI for fatal non-rendering JS errors routed through `ErrorUtils` in addition to the render-phase errors caught by `Sentry.ErrorBoundary`. Opt-in flags `includeNonFatalGlobalErrors` and `includeUnhandledRejections` extend the fallback to non-fatal errors and unhandled promise rejections respectively. ([#6023](https://github.com/getsentry/sentry-react-native/pull/6023))
-- Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
 ### Fixes
 
