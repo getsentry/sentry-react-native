@@ -76,7 +76,7 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
   }
 
   public @Nullable RRWebEvent convertMultiClickBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
-    if (breadcrumb.getData("path") == null) {
+    if (!(breadcrumb.getData("path") instanceof List)) {
       return null;
     }
 
