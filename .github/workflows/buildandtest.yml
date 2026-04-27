@@ -210,11 +210,18 @@ jobs:
       - name: Install tarball into fresh project
         run: |
           set -e
-          TARBALL=$(find "$PWD/artifacts" -name 'sentry-react-native-*.tgz' -print -quit)
+          CORE_TARBALL=$(find "$PWD/artifacts" -name 'sentry-react-native-*.tgz' -print -quit)
+          EXPO_TARBALL=$(find "$PWD/artifacts" -name 'sentry-expo-upload-sourcemaps-*.tgz' -print -quit)
+          [ -n "$CORE_TARBALL" ] || { echo "::error::core tarball not found"; exit 1; }
+          [ -n "$EXPO_TARBALL" ] || { echo "::error::expo-upload-sourcemaps tarball not found"; exit 1; }
           mkdir -p /tmp/install-test
           cd /tmp/install-test
           npm init -y >/dev/null
-          npm install --no-save "$TARBALL"
+          # Install both local tarballs together so the @sentry/expo-upload-sourcemaps
+          # cross-dep is satisfied locally. On a release branch the bumped version
+          # is not on the npm registry yet (workspace:* resolves to the version
+          # we are about to publish), and a registry fetch would fail with ETARGET.
+          npm install --no-save "$EXPO_TARBALL" "$CORE_TARBALL"
           # workspace:* spec must have been resolved by yarn pack (#6037 regression)
           if grep -q 'workspace:' node_modules/@sentry/react-native/package.json; then
             echo "::error::published package.json still contains unresolved workspace: spec"
