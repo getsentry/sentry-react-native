@@ -129,6 +129,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void removeAttribute(String key) {
+    this.impl.removeAttribute(key);
+  }
+
+  @Override
   public void closeNativeSdk(Promise promise) {
     this.impl.closeNativeSdk(promise);
   }
@@ -227,5 +232,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   @Override
   public void disableShakeDetection() {
     this.impl.disableShakeDetection();
+  }
+
+  @Override
+  public void invalidate() {
+    this.impl.invalidate();
+    super.invalidate();
   }
 }

@@ -55,6 +55,7 @@ const e2eTestPackageName = JSON.parse(fs.readFileSync(`${e2eDir}/package.json`, 
 const patchScriptsDir = path.resolve(e2eDir, 'patch-scripts');
 const workspaceRootDir = path.resolve(__dirname, '../..');
 const corePackageDir = path.resolve(workspaceRootDir, 'packages/core');
+const expoUploadSourcemapsPackageDir = path.resolve(workspaceRootDir, 'packages/expo-upload-sourcemaps');
 const corePackageJson = JSON.parse(fs.readFileSync(`${corePackageDir}/package.json`, 'utf8'));
 const RNVersion = env.RN_VERSION ? env.RN_VERSION : corePackageJson.devDependencies['react-native'];
 const RNEngine = env.RN_ENGINE ? env.RN_ENGINE : 'hermes';
@@ -109,6 +110,7 @@ function patchBoostIfNeeded(rnVersion, patchScriptsDir) {
 if (actions.includes('create') || (env.CI === undefined && actions.includes('build'))) {
   execSync(`yarn build`, { stdio: 'inherit', cwd: workspaceRootDir, env: env });
   execSync(`yalc publish --private`, { stdio: 'inherit', cwd: e2eDir, env: env });
+  execSync(`yalc publish`, { stdio: 'inherit', cwd: expoUploadSourcemapsPackageDir, env: env });
   execSync(`yalc publish`, { stdio: 'inherit', cwd: corePackageDir, env: env });
 }
 
@@ -122,7 +124,14 @@ if (actions.includes('create')) {
 
   // Install dependencies
   // yalc add doesn't fail if the package is not found - it skips silently.
-  let yalcAddOutput = execSync(`yalc add @sentry/react-native`, { cwd: appDir, env: env, encoding: 'utf-8' });
+  let yalcAddOutput = execSync(`yalc add @sentry/expo-upload-sourcemaps`, { cwd: appDir, env: env, encoding: 'utf-8' });
+  if (!yalcAddOutput.match(/Package .* added ==>/)) {
+    console.error(yalcAddOutput);
+    process.exit(1);
+  } else {
+    console.log(yalcAddOutput.trim());
+  }
+  yalcAddOutput = execSync(`yalc add @sentry/react-native`, { cwd: appDir, env: env, encoding: 'utf-8' });
   if (!yalcAddOutput.match(/Package .* added ==>/)) {
     console.error(yalcAddOutput);
     process.exit(1);
@@ -136,6 +145,19 @@ if (actions.includes('create')) {
   } else {
     console.log(yalcAddOutput.trim());
   }
+
+  // Force yarn to resolve the transitive @sentry/expo-upload-sourcemaps dep
+  // to the local yalc copy. Without this, yarn tries to fetch it from the
+  // npm registry (because yalc rewrites the workspace:* spec in core's
+  // published package.json to a concrete version) and 404s until the package
+  // is released.
+  const appPackageJsonPath = `${appDir}/package.json`;
+  const appPackageJson = JSON.parse(fs.readFileSync(appPackageJsonPath, 'utf-8'));
+  appPackageJson.resolutions = {
+    ...appPackageJson.resolutions,
+    '@sentry/expo-upload-sourcemaps': 'file:.yalc/@sentry/expo-upload-sourcemaps',
+  };
+  fs.writeFileSync(appPackageJsonPath, JSON.stringify(appPackageJson, null, 2) + '\n');
 
   // original yarnrc contains the exact yarn version which causes corepack to fail to install yarn v3
   fs.writeFileSync(`${appDir}/.yarnrc.yml`, 'nodeLinker: node-modules', { encoding: 'utf-8' });
