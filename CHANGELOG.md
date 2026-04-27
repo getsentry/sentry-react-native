@@ -23,6 +23,13 @@
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10500)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.49.0...10.50.0)
 
+## 8.9.2
+
+### Fixes
+
+- Restore executable bit on shell scripts in the published tarball, fixing `Permission denied` on iOS build ([#6049](https://github.com/getsentry/sentry-react-native/pull/6049))
+- Restore EAS build hook bin scripts (`sentry-eas-build-on-{success,error,complete}`) missing from the published tarball ([#6049](https://github.com/getsentry/sentry-react-native/pull/6049))
+
 ## 8.9.1
 
 ### Features
