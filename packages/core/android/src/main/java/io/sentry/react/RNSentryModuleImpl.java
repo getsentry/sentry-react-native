@@ -1142,10 +1142,7 @@ public class RNSentryModuleImpl {
     if ("content".equals(lowerScheme)) {
       return isAllowedContentAuthority(uri.getAuthority(), ctx);
     }
-    if ("file".equals(lowerScheme)) {
-      return isPathUnderAppDirs(uri.getPath(), ctx);
-    }
-    return false;
+    return "file".equals(lowerScheme) && isPathUnderAppDirs(uri.getPath(), ctx);
   }
 
   @VisibleForTesting
