@@ -3,9 +3,8 @@
 
 /**
  * Updates the session replay options
- * @return true when session replay is enabled
  */
-+ (BOOL)updateOptions:(NSMutableDictionary *)options;
++ (void)updateOptions:(NSMutableDictionary *)options;
 
 + (void)postInit;
 

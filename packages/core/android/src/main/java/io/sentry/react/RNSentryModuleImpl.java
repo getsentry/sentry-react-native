@@ -74,6 +74,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -1083,10 +1084,26 @@ public class RNSentryModuleImpl {
   }
 
   public void getDataFromUri(String uri, Promise promise) {
+    final Uri parsedUri;
     try {
-      Uri contentUri = Uri.parse(uri);
+      parsedUri = Uri.parse(uri);
+    } catch (Exception e) {
+      String msg = "Invalid uri: " + uri;
+      logger.log(SentryLevel.ERROR, msg);
+      promise.reject(new Exception(msg));
+      return;
+    }
+
+    if (!isAllowedUri(parsedUri, getReactApplicationContext())) {
+      String msg = "Unsupported uri scheme or location: " + uri;
+      logger.log(SentryLevel.ERROR, msg);
+      promise.reject(new Exception(msg));
+      return;
+    }
+
+    try {
       try (InputStream is =
-          getReactApplicationContext().getContentResolver().openInputStream(contentUri)) {
+          getReactApplicationContext().getContentResolver().openInputStream(parsedUri)) {
         if (is == null) {
           String msg = "File not found for uri: " + uri;
           logger.log(SentryLevel.ERROR, msg);
@@ -1113,6 +1130,77 @@ public class RNSentryModuleImpl {
       logger.log(SentryLevel.ERROR, msg);
       promise.reject(new Exception(msg));
     }
+  }
+
+  @VisibleForTesting
+  static boolean isAllowedUri(@NotNull Uri uri, @Nullable Context ctx) {
+    final String scheme = uri.getScheme();
+    if (scheme == null) {
+      return false;
+    }
+    final String lowerScheme = scheme.toLowerCase(Locale.ROOT);
+    if ("content".equals(lowerScheme)) {
+      return isAllowedContentAuthority(uri.getAuthority(), ctx);
+    }
+    return "file".equals(lowerScheme) && isPathUnderAppDirs(uri.getPath(), ctx);
+  }
+
+  // Allowlist is intentionally narrow:
+  // - `media` is what the in-SDK image picker flow returns.
+  // - the app's own FileProvider is needed when the host app exposes attachments via it.
+  // SAF document authorities
+  // (com.android.{externalstorage,providers.media,providers.downloads}.documents)
+  // are deliberately excluded: authority-only matching would let any caller read any document
+  // the app has been granted persistent SAF permission for, without verifying the URI was granted
+  // in the current attach flow.
+  @VisibleForTesting
+  static boolean isAllowedContentAuthority(@Nullable String authority, @Nullable Context ctx) {
+    if (authority == null) {
+      return false;
+    }
+    final String lower = authority.toLowerCase(Locale.ROOT);
+    if ("media".equals(lower)) {
+      return true;
+    }
+    if (ctx != null) {
+      final String pkg = ctx.getPackageName();
+      if (pkg != null && lower.equals(pkg.toLowerCase(Locale.ROOT) + ".fileprovider")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @VisibleForTesting
+  static boolean isPathUnderAppDirs(@Nullable String rawPath, @Nullable Context ctx) {
+    if (rawPath == null || rawPath.isEmpty()) {
+      return false;
+    }
+    if (ctx == null) {
+      return false;
+    }
+    try {
+      final String target = new File(rawPath).getCanonicalPath();
+      final File[] roots =
+          new File[] {
+            ctx.getFilesDir(),
+            ctx.getCacheDir(),
+            ctx.getExternalFilesDir(null),
+            ctx.getExternalCacheDir()
+          };
+      for (File root : roots) {
+        if (root == null) {
+          continue;
+        }
+        final String rootPath = root.getCanonicalPath();
+        if (target.equals(rootPath) || target.startsWith(rootPath + File.separator)) {
+          return true;
+        }
+      }
+    } catch (IOException e) {
+      return false;
+    }
+    return false;
   }
 
   public void encodeToBase64(ReadableArray array, Promise promise) {
