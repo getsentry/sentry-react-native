@@ -16,6 +16,7 @@
 ### Fixes
 
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
+- Discard invalid navigation/interaction transactions via an event processor instead of mutating the internal `_sampled` flag, removing misleading "dropped due to sampling" debug logs ([#6051](https://github.com/getsentry/sentry-react-native/pull/6051))
 
 ### Dependencies
 
