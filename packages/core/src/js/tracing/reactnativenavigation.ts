@@ -13,7 +13,11 @@ import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 
 import { isSentrySpan } from '../utils/span';
-import { ignoreEmptyBackNavigation, ignoreEmptyRouteChangeTransactions } from './onSpanEndUtils';
+import {
+  ignoreEmptyBackNavigation,
+  ignoreEmptyRouteChangeTransactions,
+  markRootSpanForDiscard,
+} from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NATIVE_NAVIGATION } from './origin';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import {
@@ -221,7 +225,7 @@ export const reactNativeNavigationIntegration = ({
   const discardLatestNavigationSpan = (): void => {
     if (latestNavigationSpan) {
       if (isSentrySpan(latestNavigationSpan)) {
-        latestNavigationSpan['_sampled'] = false;
+        markRootSpanForDiscard(latestNavigationSpan, 'discarded_latest_navigation');
       }
       // TODO: What if it's not SentrySpan?
       latestNavigationSpan.end();

@@ -2,16 +2,21 @@ import type { StackFrame } from '@sentry/core';
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as fs from 'fs';
+import * as path from 'path';
 
 import * as openUrlMiddlewareModule from '../../src/js/metro/openUrlMiddleware';
 import * as metroMiddleware from '../../src/js/tools/metroMiddleware';
 
-const { withSentryMiddleware, createSentryMetroMiddleware, stackFramesContextMiddleware } = metroMiddleware;
+const { withSentryMiddleware, createSentryMetroMiddleware, createStackFramesContextMiddleware } = metroMiddleware;
+
+const TEST_PROJECT_ROOT = path.resolve('/tmp/sentry-rn-test-project');
 
 jest.mock('../../src/js/tools/metroMiddleware', () => jest.requireActual('../../src/js/tools/metroMiddleware'));
 jest.mock('fs', () => {
   return {
     readFile: jest.fn(),
+    realpath: jest.fn((p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(null, p)),
+    realpathSync: jest.fn((p: string) => p),
   };
 });
 
@@ -60,13 +65,15 @@ describe('metroMiddleware', () => {
     const next = jest.fn();
     const response = {} as any;
 
-    let spiedStackFramesContextMiddleware: jest.Spied<typeof stackFramesContextMiddleware>;
+    let spiedCreateStackFramesContextMiddleware: jest.Spied<typeof createStackFramesContextMiddleware>;
+    let mockedStackFramesContextMiddleware: jest.Mock;
 
     beforeEach(() => {
       jest.clearAllMocks();
-      spiedStackFramesContextMiddleware = jest
-        .spyOn(metroMiddleware, 'stackFramesContextMiddleware')
-        .mockReturnValue(undefined);
+      mockedStackFramesContextMiddleware = jest.fn();
+      spiedCreateStackFramesContextMiddleware = jest
+        .spyOn(metroMiddleware, 'createStackFramesContextMiddleware')
+        .mockReturnValue(mockedStackFramesContextMiddleware);
     });
 
     afterEach(() => {
@@ -74,14 +81,15 @@ describe('metroMiddleware', () => {
     });
 
     it('should call stackFramesContextMiddleware for sentry context requests', () => {
-      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware);
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
 
       const sentryRequest = {
         url: '/__sentry/context',
       } as any;
       testedMiddleware(sentryRequest, response, next);
       expect(defaultMiddleware).not.toHaveBeenCalled();
-      expect(spiedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response, next);
+      expect(spiedCreateStackFramesContextMiddleware).toHaveBeenCalledWith([TEST_PROJECT_ROOT]);
+      expect(mockedStackFramesContextMiddleware).toHaveBeenCalledWith(sentryRequest, response, next);
     });
 
     it('should call openURLMiddleware for sentry open-url requests', () => {
@@ -89,21 +97,21 @@ describe('metroMiddleware', () => {
         .spyOn(openUrlMiddlewareModule, 'openURLMiddleware')
         .mockReturnValue(undefined as any);
 
-      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware);
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
 
       const openUrlRequest = {
         url: '/__sentry/open-url',
       } as any;
       testedMiddleware(openUrlRequest, response, next);
       expect(defaultMiddleware).not.toHaveBeenCalled();
-      expect(spiedStackFramesContextMiddleware).not.toHaveBeenCalled();
+      expect(mockedStackFramesContextMiddleware).not.toHaveBeenCalled();
       expect(spiedOpenURLMiddleware).toHaveBeenCalledWith(openUrlRequest, response);
 
       spiedOpenURLMiddleware.mockRestore();
     });
 
     it('should call default middleware for non-sentry requests', () => {
-      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware);
+      const testedMiddleware = createSentryMetroMiddleware(defaultMiddleware, [TEST_PROJECT_ROOT]);
 
       const regularRequest = {
         url: '/regular/path',
@@ -111,7 +119,7 @@ describe('metroMiddleware', () => {
       testedMiddleware(regularRequest, response, next);
       expect(defaultMiddleware).toHaveBeenCalledWith(regularRequest, response, next);
       expect(defaultMiddleware).toHaveBeenCalledTimes(1);
-      expect(spiedStackFramesContextMiddleware).not.toHaveBeenCalled();
+      expect(mockedStackFramesContextMiddleware).not.toHaveBeenCalled();
     });
   });
 
@@ -119,10 +127,17 @@ describe('metroMiddleware', () => {
     let request: any;
     let response: any;
     const next = jest.fn();
+    const stackFramesContextMiddleware = createStackFramesContextMiddleware([TEST_PROJECT_ROOT]);
 
     let testData: string = '';
 
     beforeEach(() => {
+      // afterEach resetAllMocks wipes the default fs impls installed via jest.mock, so reinstate.
+      (fs.realpath as unknown as jest.Mock).mockImplementation(
+        (p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(null, p),
+      );
+      (fs.realpathSync as unknown as jest.Mock).mockImplementation((p: string) => p);
+
       request = {
         setEncoding: jest.fn(),
         on: jest.fn((event: string, cb: (data?: string) => void) => {
@@ -201,7 +216,7 @@ describe('metroMiddleware', () => {
         ],
       } satisfies { stack: StackFrame[] });
 
-      mockReadFileOnce(readFileSpy, 'test.js', 'line1\nline2\nline3\nline4\nline5');
+      mockReadFileOnce(readFileSpy, path.join(TEST_PROJECT_ROOT, 'test.js'), 'line1\nline2\nline3\nline4\nline5');
 
       await stackFramesContextMiddleware(request, response, next);
 
@@ -282,10 +297,147 @@ describe('metroMiddleware', () => {
       });
     });
 
+    it('should add source context for frames under additional allowed roots (watchFolders)', async () => {
+      const watchFolder = path.resolve('/tmp/sentry-rn-test-workspace-pkg');
+      const scopedMiddleware = createStackFramesContextMiddleware([TEST_PROJECT_ROOT, watchFolder]);
+      const readFileSpy = jest.spyOn(fs, 'readFile');
+      mockReadFileOnce(readFileSpy, path.join(watchFolder, 'shared.js'), 'one\ntwo\nthree\nfour\nfive');
+
+      testData = JSON.stringify({
+        stack: [
+          {
+            in_app: true,
+            filename: path.join(watchFolder, 'shared.js'),
+            function: 'sharedFn',
+            lineno: 3,
+            colno: 1,
+          },
+        ],
+      } satisfies { stack: StackFrame[] });
+
+      await scopedMiddleware(request, response, next);
+
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.end.mock.calls[0][0])).toEqual({
+        stack: [
+          {
+            in_app: true,
+            filename: path.join(watchFolder, 'shared.js'),
+            function: 'sharedFn',
+            lineno: 3,
+            colno: 1,
+            pre_context: ['one', 'two'],
+            context_line: 'three',
+            post_context: ['four', 'five'],
+          },
+        ],
+      });
+    });
+
+    it('should skip frames whose filename escapes the project root', async () => {
+      const readFileSpy = jest.spyOn(fs, 'readFile');
+      testData = JSON.stringify({
+        stack: [
+          {
+            in_app: true,
+            filename: '/etc/passwd',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+          {
+            in_app: true,
+            filename: '../outside.js',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+        ],
+      } satisfies { stack: StackFrame[] });
+
+      await stackFramesContextMiddleware(request, response, next);
+
+      expect(readFileSpy).not.toHaveBeenCalled();
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.end.mock.calls[0][0])).toEqual({
+        stack: [
+          {
+            in_app: true,
+            filename: '/etc/passwd',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+          {
+            in_app: true,
+            filename: '../outside.js',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+        ],
+      });
+    });
+
+    it('should skip frames whose realpath resolves outside the allowed roots', async () => {
+      const realpathSpy = jest.spyOn(fs, 'realpath') as unknown as jest.Mock;
+      const readFileSpy = jest.spyOn(fs, 'readFile');
+
+      // Simulate a symlink: the file lives at <project>/link/file.js inside the project,
+      // but its realpath is /etc/shadow — outside every allowed root.
+      realpathSpy.mockImplementationOnce(
+        (_p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(null, '/etc/shadow'),
+      );
+
+      testData = JSON.stringify({
+        stack: [
+          {
+            in_app: true,
+            filename: 'link/file.js',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+        ],
+      } satisfies { stack: StackFrame[] });
+
+      await stackFramesContextMiddleware(request, response, next);
+
+      expect(readFileSpy).not.toHaveBeenCalled();
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should skip frames whose realpath cannot be resolved', async () => {
+      const realpathSpy = jest.spyOn(fs, 'realpath') as unknown as jest.Mock;
+      const readFileSpy = jest.spyOn(fs, 'readFile');
+
+      const enoent: NodeJS.ErrnoException = Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      realpathSpy.mockImplementationOnce(
+        (_p: string, cb: (err: NodeJS.ErrnoException | null, resolved: string) => void) => cb(enoent, ''),
+      );
+
+      testData = JSON.stringify({
+        stack: [
+          {
+            in_app: true,
+            filename: 'missing.js',
+            function: 'testFunction',
+            lineno: 1,
+            colno: 1,
+          },
+        ],
+      } satisfies { stack: StackFrame[] });
+
+      await stackFramesContextMiddleware(request, response, next);
+
+      expect(readFileSpy).not.toHaveBeenCalled();
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should handle mixed frame types correctly', async () => {
       const readFileSpy = jest.spyOn(fs, 'readFile');
-      mockReadFileOnce(readFileSpy, 'app1.js', 'line1\nline2\nline3\nline4\nline5');
-      mockReadFileOnce(readFileSpy, 'app2.js', 'code1\ncode2\ncode3\ncode4\ncode5');
+      mockReadFileOnce(readFileSpy, path.join(TEST_PROJECT_ROOT, 'app1.js'), 'line1\nline2\nline3\nline4\nline5');
+      mockReadFileOnce(readFileSpy, path.join(TEST_PROJECT_ROOT, 'app2.js'), 'code1\ncode2\ncode3\ncode4\ncode5');
 
       testData = JSON.stringify({
         stack: [
