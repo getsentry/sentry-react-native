@@ -16,6 +16,7 @@
 ### Fixes
 
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
+- Mask the Sentry auth token in the `sentry.gradle` upload-task lifecycle log
 
 ### Dependencies
 
