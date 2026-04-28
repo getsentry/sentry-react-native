@@ -21,7 +21,11 @@ import { getAppRegistryIntegration } from '../integrations/appRegistry';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
-import { ignoreEmptyBackNavigation, ignoreEmptyRouteChangeTransactions } from './onSpanEndUtils';
+import {
+  ignoreEmptyBackNavigation,
+  ignoreEmptyRouteChangeTransactions,
+  markRootSpanForDiscard,
+} from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
@@ -535,7 +539,7 @@ export const reactNavigationIntegration = ({
   const _discardLatestTransaction = (): void => {
     if (latestNavigationSpan) {
       if (isSentrySpan(latestNavigationSpan)) {
-        latestNavigationSpan['_sampled'] = false;
+        markRootSpanForDiscard(latestNavigationSpan, 'discarded_latest_navigation');
       }
       // TODO: What if it's not SentrySpan?
       latestNavigationSpan.end();
