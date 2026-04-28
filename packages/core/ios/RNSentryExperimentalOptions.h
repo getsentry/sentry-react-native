@@ -29,15 +29,6 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)setEnableLogs:(BOOL)enabled sentryOptions:(SentryOptions *)sentryOptions;
 
 /**
- * Sets the enableSessionReplayInUnreliableEnvironment experimental option on SentryOptions
- * @param sentryOptions The SentryOptions instance to configure
- * @param enabled Whether enableSessionReplayInUnreliableEnvironment from sentry Cocoa should be
- * enabled
- */
-+ (void)setEnableSessionReplayInUnreliableEnvironment:(BOOL)enabled
-                                        sentryOptions:(SentryOptions *)sentryOptions;
-
-/**
  * Configures iOS UI profiling options on SentryOptions
  * @param profilingOptions Dictionary containing profiling configuration
  * @param sentryOptions The SentryOptions instance to configure

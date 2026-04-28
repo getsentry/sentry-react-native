@@ -1,10 +1,54 @@
-import type { Client, Span } from '@sentry/core';
+import type { Client, Event, Span } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 
 import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON, timestampInSeconds } from '@sentry/core';
 import { AppState, Platform } from 'react-native';
 
 import { isRootSpan, isSentrySpan } from '../utils/span';
+
+/**
+ * Attribute used to mark root spans whose corresponding transaction event
+ * should be dropped by the React Native tracing event processor instead of
+ * being treated as sampled-out by `@sentry/core`.
+ *
+ * The value is a stable string identifier describing why the SDK chose to
+ * discard the transaction (e.g. an empty back-navigation, a route-change
+ * transaction that never received route information, or a childless idle
+ * transaction).
+ */
+export const SENTRY_DISCARD_REASON_ATTRIBUTE = 'sentry.rn.discard_reason';
+
+export type SentryDiscardReason =
+  | 'empty_back_navigation'
+  | 'no_route_info'
+  | 'no_child_spans'
+  | 'discarded_latest_navigation';
+
+/**
+ * Marks a root span so its transaction event will be filtered out by the
+ * tracing integration's event processor. The span itself is left with its
+ * original sampling decision so debug logs no longer report "dropped due to
+ * sampling" for SDK-side discards.
+ */
+export function markRootSpanForDiscard(span: Span, reason: SentryDiscardReason): void {
+  span.setAttribute(SENTRY_DISCARD_REASON_ATTRIBUTE, reason);
+}
+
+/**
+ * Returns the SDK-side discard reason recorded on a root span, if any.
+ */
+export function getRootSpanDiscardReason(span: Span): SentryDiscardReason | undefined {
+  const value = spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE];
+  return typeof value === 'string' ? (value as SentryDiscardReason) : undefined;
+}
+
+/**
+ * Returns the SDK-side discard reason from a transaction event, if any.
+ */
+export function getTransactionEventDiscardReason(event: Event): SentryDiscardReason | undefined {
+  const value = event.contexts?.trace?.data?.[SENTRY_DISCARD_REASON_ATTRIBUTE];
+  return typeof value === 'string' ? (value as SentryDiscardReason) : undefined;
+}
 
 /**
  * The time to wait after the app enters the `inactive` state on iOS before
@@ -104,7 +148,6 @@ function discardEmptyNavigationSpan(
     const meaningfulChildren = getMeaningfulChildSpans(span);
     if (meaningfulChildren.length <= 0) {
       onDiscardFn(span);
-      span['_sampled'] = false;
     }
   });
 }
@@ -115,11 +158,12 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
     span,
     // Only discard if route has been seen before
     span => spanToJSON(span).data?.['route.has_been_seen'] === true,
-    // Log message when discarding
-    () => {
+    // Log message and mark the span for discard via the event processor.
+    span => {
       debug.log(
         'Not sampling transaction as route has been seen before. Pass ignoreEmptyBackNavigationTransactions = false to disable this feature.',
       );
+      markRootSpanForDiscard(span, 'empty_back_navigation');
     },
   );
 };
@@ -151,10 +195,13 @@ export const ignoreEmptyRouteChangeTransactions = (
         spanJSON.description === defaultNavigationSpanName && !spanJSON.data?.['route.name'] && isSpanStillTracked()
       );
     },
-    // Log and record dropped event
-    _span => {
+    // Log and mark the span for discard. The actual `recordDroppedEvent` call
+    // happens in the tracing integration's event processor with the correct
+    // `event_processor` reason, so we no longer record it here as a sampling
+    // drop.
+    span => {
       debug.log(`Discarding empty "${defaultNavigationSpanName}" transaction that never received route information.`);
-      client?.recordDroppedEvent('sample_rate', 'transaction');
+      markRootSpanForDiscard(span, 'no_route_info');
     },
   );
 };
@@ -180,7 +227,7 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
     if (children.length <= 1) {
       // Span always has at lest one child, itself
       debug.log(`Not sampling as ${spanToJSON(span).op} transaction has no child spans.`);
-      span['_sampled'] = false;
+      markRootSpanForDiscard(span, 'no_child_spans');
     }
   });
 };

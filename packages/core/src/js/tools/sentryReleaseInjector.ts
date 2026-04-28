@@ -43,5 +43,5 @@ function createSentryReleaseModule({
 }
 
 function createReleaseConstantsSnippet({ name, version }: { name: string; version: string }): string {
-  return `var SENTRY_RELEASE;SENTRY_RELEASE={name: "${name}", version: "${version}"};`;
+  return `var SENTRY_RELEASE;SENTRY_RELEASE={name: ${JSON.stringify(name)}, version: ${JSON.stringify(version)}};`;
 }

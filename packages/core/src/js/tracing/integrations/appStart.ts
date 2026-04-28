@@ -23,6 +23,7 @@ import {
 } from '../../measurements';
 import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
+import { getRootSpanDiscardReason, getTransactionEventDiscardReason } from '../onSpanEndUtils';
 import {
   APP_START_COLD as APP_START_COLD_OP,
   APP_START_WARM as APP_START_WARM_OP,
@@ -353,14 +354,14 @@ export const appStartIntegration = ({
   const recordFirstStartedActiveRootSpanId = (rootSpan: Span): void => {
     if (firstStartedActiveRootSpanId) {
       // Check if the previously locked span was dropped after it ended (e.g., by
-      // ignoreEmptyRouteChangeTransactions or ignoreEmptyBackNavigation setting
-      // _sampled = false during spanEnd). If so, reset and allow this new span.
+      // ignoreEmptyRouteChangeTransactions or ignoreEmptyBackNavigation marking
+      // it for discard during spanEnd). If so, reset and allow this new span.
       // We check here (at the next spanStart) rather than at spanEnd because
       // the discard listeners run after the app start listener in registration order,
-      // so _sampled is not yet false when our own spanEnd listener would fire.
-      if (firstStartedActiveRootSpan && !spanIsSampled(firstStartedActiveRootSpan)) {
+      // so the discard attribute is not yet set when our own spanEnd listener would fire.
+      if (firstStartedActiveRootSpan && getRootSpanDiscardReason(firstStartedActiveRootSpan) !== undefined) {
         debug.log(
-          '[AppStart] Previously locked root span was unsampled after ending. Resetting to allow next transaction.',
+          '[AppStart] Previously locked root span was marked for discard after ending. Resetting to allow next transaction.',
         );
         resetFirstStartedActiveRootSpanId();
         // Fall through to lock to this new span
@@ -465,6 +466,16 @@ export const appStartIntegration = ({
     if (appStartDataFlushed) {
       // App start data is only relevant for the first transaction of the app run
       debug.log('[AppStart] App start data already flushed. Skipping.');
+      return;
+    }
+
+    // Don't attach (and don't flip the flushed flag) for transactions the
+    // tracing integration is about to drop — e.g. empty back-navigations,
+    // route-change spans that never received route info, or childless idle
+    // spans. Otherwise the next real transaction would be left without app
+    // start data because `appStartDataFlushed` would already be `true`.
+    if (getTransactionEventDiscardReason(event)) {
+      debug.log('[AppStart] Skipping app start attach for transaction marked for discard.');
       return;
     }
 
