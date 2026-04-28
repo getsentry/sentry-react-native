@@ -834,8 +834,8 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
-    SentryException *exception = [SentryException alloc];
-    exception.value = @"IgnoreMe: This should be ignored";
+    SentryException *exception =
+        [[SentryException alloc] initWithValue:@"IgnoreMe: This should be ignored" type:nil];
     event.exceptions = @[ exception ];
     SentryEvent *result = options.beforeSend(event);
     XCTAssertNil(result, @"Event with matching exception.value should be dropped");
@@ -854,7 +854,8 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
-    SentryMessage *msg = [SentryMessage alloc];
+    SentryMessage *msg =
+        [[SentryMessage alloc] initWithFormatted:@"DropThisError: should be dropped"];
     msg.message = @"DropThisError: should be dropped";
     event.message = msg;
     SentryEvent *result = options.beforeSend(event);
@@ -874,10 +875,10 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
-    SentryException *exception = [SentryException alloc];
-    exception.value = @"SomeOtherError: should not be ignored";
+    SentryException *exception =
+        [[SentryException alloc] initWithValue:@"SomeOtherError: should not be ignored" type:nil];
     event.exceptions = @[ exception ];
-    SentryMessage *msg = [SentryMessage alloc];
+    SentryMessage *msg = [[SentryMessage alloc] initWithFormatted:@"SomeOtherMessage"];
     msg.message = @"SomeOtherMessage";
     event.message = msg;
     SentryEvent *result = options.beforeSend(event);
@@ -897,7 +898,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event = [[SentryEvent alloc] init];
-    SentryMessage *msg = [SentryMessage alloc];
+    SentryMessage *msg = [[SentryMessage alloc] initWithFormatted:@"ExactError"];
     msg.message = @"ExactError";
     event.message = msg;
     SentryEvent *result = options.beforeSend(event);
@@ -919,19 +920,19 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNotNil(options);
     XCTAssertNil(error);
     SentryEvent *event1 = [[SentryEvent alloc] init];
-    SentryException *exception = [SentryException alloc];
-    exception.value = @"IgnoreMe: This should be ignored";
+    SentryException *exception =
+        [[SentryException alloc] initWithValue:@"IgnoreMe: This should be ignored" type:nil];
     event1.exceptions = @[ exception ];
     SentryEvent *result1 = options.beforeSend(event1);
     XCTAssertNil(result1, @"Event with matching regex should be dropped");
     SentryEvent *event2 = [[SentryEvent alloc] init];
-    SentryMessage *msg = [SentryMessage alloc];
+    SentryMessage *msg = [[SentryMessage alloc] initWithFormatted:@"ExactError"];
     msg.message = @"ExactError";
     event2.message = msg;
     SentryEvent *result2 = options.beforeSend(event2);
     XCTAssertNil(result2, @"Event with exactly matching string should be dropped");
     SentryEvent *event3 = [[SentryEvent alloc] init];
-    SentryMessage *msg3 = [SentryMessage alloc];
+    SentryMessage *msg3 = [[SentryMessage alloc] initWithFormatted:@"OtherError"];
     msg3.message = @"OtherError";
     event3.message = msg3;
     SentryEvent *result3 = options.beforeSend(event3);
@@ -954,9 +955,8 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNil(error);
 
     SentryEvent *event = [[SentryEvent alloc] init];
-    SentryException *exception = [SentryException alloc];
-    exception.type = @"Unhandled JS Exception";
-    exception.value = @"Error: Test error";
+    SentryException *exception = [[SentryException alloc] initWithValue:@"Error: Test error"
+                                                                   type:@"Unhandled JS Exception"];
     event.exceptions = @[ exception ];
     SentryEvent *result = options.beforeSend(event);
     XCTAssertNil(result, @"Event with Unhandled JS Exception should be dropped");
@@ -976,29 +976,29 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNil(error);
 
     SentryEvent *event1 = [[SentryEvent alloc] init];
-    SentryException *exception1 = [SentryException alloc];
-    exception1.type = @"C++ Exception";
-    exception1.value = @"N8facebook3jsi7JSErrorE: ExceptionsManager.reportException raised an "
-                       @"exception: Unhandled JS Exception: Error: Test error";
+    SentryException *exception1 = [[SentryException alloc]
+        initWithValue:@"N8facebook3jsi7JSErrorE: ExceptionsManager.reportException raised an "
+                      @"exception: Unhandled JS Exception: Error: Test error"
+                 type:@"C++ Exception"];
     event1.exceptions = @[ exception1 ];
     SentryEvent *result1 = options.beforeSend(event1);
     XCTAssertNil(
         result1, @"Event with ExceptionsManager.reportException in value should be dropped");
 
     SentryEvent *event2 = [[SentryEvent alloc] init];
-    SentryException *exception2 = [SentryException alloc];
-    exception2.type = @"SomeOtherException";
-    exception2.value = @"ExceptionsManager.reportException raised an exception: Unhandled JS "
-                       @"Exception: Error: Test";
+    SentryException *exception2 = [[SentryException alloc]
+        initWithValue:@"ExceptionsManager.reportException raised an exception: Unhandled JS "
+                      @"Exception: Error: Test"
+                 type:@"SomeOtherException"];
     event2.exceptions = @[ exception2 ];
     SentryEvent *result2 = options.beforeSend(event2);
     XCTAssertNil(
         result2, @"Event with ExceptionsManager.reportException in value should be dropped");
 
     SentryEvent *event3 = [[SentryEvent alloc] init];
-    SentryException *exception3 = [SentryException alloc];
-    exception3.type = @"C++ Exception";
-    exception3.value = @"std::runtime_error: Some other C++ error occurred";
+    SentryException *exception3 =
+        [[SentryException alloc] initWithValue:@"std::runtime_error: Some other C++ error occurred"
+                                          type:@"C++ Exception"];
     event3.exceptions = @[ exception3 ];
     SentryEvent *result3 = options.beforeSend(event3);
     XCTAssertNotNil(result3,
