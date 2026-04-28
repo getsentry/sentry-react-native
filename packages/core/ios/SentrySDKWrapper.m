@@ -129,8 +129,7 @@
 + (void)setupWithDictionary:(NSDictionary *_Nonnull)options
                       error:(NSError *_Nonnull *_Nonnull)errorPointer
 {
-    SentryOptions *sentryOptions = [self createOptionsWithDictionary:options
-                                                               error:errorPointer];
+    SentryOptions *sentryOptions = [self createOptionsWithDictionary:options error:errorPointer];
     if (!options) {
         return;
     }

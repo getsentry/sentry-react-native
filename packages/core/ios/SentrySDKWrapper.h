@@ -18,8 +18,7 @@
 + (SentryOptions *)createOptionsWithDictionary:(NSDictionary *)options
                                          error:(NSError **)errorPointer;
 
-+ (void)setupWithDictionary:(NSDictionary *)options
-                      error:(NSError **)errorPointer;
++ (void)setupWithDictionary:(NSDictionary *)options error:(NSError **)errorPointer;
 
 + (BOOL)debug;
 
