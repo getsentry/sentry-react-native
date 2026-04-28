@@ -16,6 +16,7 @@
 ### Fixes
 
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
+- Restrict the URI scope of `getDataFromUri` on iOS and Android ([#6045](https://github.com/getsentry/sentry-react-native/pull/6045))
 - Restrict the Metro source-context middleware to files within the project root ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
 - Escape `name` and `version` values when injecting release constants into the web bundle ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
 - Mask the Sentry auth token in the `sentry.gradle` upload-task lifecycle log ([#6057](https://github.com/getsentry/sentry-react-native/pull/6057))
