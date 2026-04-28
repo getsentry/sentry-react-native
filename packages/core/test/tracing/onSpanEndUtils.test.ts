@@ -1,6 +1,6 @@
 import type { Client, Span } from '@sentry/core';
 
-import { getClient, startSpanManual } from '@sentry/core';
+import { getClient, spanToJSON, startSpan, startSpanManual } from '@sentry/core';
 
 import {
   adjustTransactionDuration,
@@ -9,6 +9,7 @@ import {
   ignoreEmptyRouteChangeTransactions,
   onlySampleIfChildSpans,
   onThisSpanEnd,
+  SENTRY_DISCARD_REASON_ATTRIBUTE,
 } from '../../src/js/tracing/onSpanEndUtils';
 import { setupTestClient } from '../mocks/client';
 
@@ -131,6 +132,41 @@ describe('onSpanEndUtils', () => {
       span.end();
       expect(getUnsubscribeCount()).toBe(1);
     });
+
+    it('marks the span for discard without mutating sampling', () => {
+      const client = getClient()!;
+      const span = createRootSpan('target') as Span & { _sampled?: boolean };
+      span.setAttribute('route.has_been_seen', true);
+
+      ignoreEmptyBackNavigation(client, span);
+      span.end();
+
+      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('empty_back_navigation');
+      expect(span._sampled).not.toBe(false);
+    });
+
+    it('does not mark the span when the route has not been seen', () => {
+      const client = getClient()!;
+      const span = createRootSpan('target');
+
+      ignoreEmptyBackNavigation(client, span);
+      span.end();
+
+      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
+    });
+
+    it('does not mark the span when meaningful child spans exist', () => {
+      const client = getClient()!;
+      let parent: Span | undefined;
+      startSpan({ name: 'parent', forceTransaction: true }, span => {
+        parent = span;
+        span.setAttribute('route.has_been_seen', true);
+        ignoreEmptyBackNavigation(client, span);
+        startSpan({ name: 'meaningful child' }, () => undefined);
+      });
+
+      expect(spanToJSON(parent!).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
+    });
   });
 
   describe('ignoreEmptyRouteChangeTransactions', () => {
@@ -145,6 +181,28 @@ describe('onSpanEndUtils', () => {
       span.end();
       expect(getUnsubscribeCount()).toBe(1);
     });
+
+    it('marks the span for discard when the route name is missing', () => {
+      const client = getClient()!;
+      const span = createRootSpan('Route Change') as Span & { _sampled?: boolean };
+
+      ignoreEmptyRouteChangeTransactions(client, span, 'Route Change', () => true);
+      span.end();
+
+      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('no_route_info');
+      expect(span._sampled).not.toBe(false);
+    });
+
+    it('does not mark the span when route info has been received', () => {
+      const client = getClient()!;
+      const span = createRootSpan('Route Change');
+      span.setAttribute('route.name', 'Home');
+
+      ignoreEmptyRouteChangeTransactions(client, span, 'Route Change', () => true);
+      span.end();
+
+      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
+    });
   });
 
   describe('onlySampleIfChildSpans', () => {
@@ -158,6 +216,17 @@ describe('onSpanEndUtils', () => {
 
       span.end();
       expect(getUnsubscribeCount()).toBe(1);
+    });
+
+    it('marks childless root spans for discard', () => {
+      const client = getClient()!;
+      const span = createRootSpan('target') as Span & { _sampled?: boolean };
+
+      onlySampleIfChildSpans(client, span);
+      span.end();
+
+      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('no_child_spans');
+      expect(span._sampled).not.toBe(false);
     });
   });
 
