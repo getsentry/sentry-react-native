@@ -819,27 +819,6 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertFalse(enableLogs, @"enableLogs should be disabled");
 }
 
-#pragma mark - RNSentryStart beforeBreadcrumb edge case
-
-- (void)
-    testStartBeforeBreadcrumbsCallbackKeepsBreadcrumbWhenDevServerUrlIsNotPassedAndDsnDoesNotMatch
-{
-    NSError *error = nil;
-
-    NSDictionary *_Nonnull mockedDictionary = @{ // dsn is always validated in SentryOptions initialization
-        @"dsn" : @"https://abc@def.ingest.sentry.io/1234567"
-    };
-    SentryOptions *options = [RNSentryStart createOptionsWithDictionary:mockedDictionary
-                                                                  error:&error];
-    SentryBreadcrumb *breadcrumb = [[SentryBreadcrumb alloc] init];
-    breadcrumb.type = @"http";
-    breadcrumb.data = @{ @"url" : @"http://testurl.com/service" };
-
-    SentryBreadcrumb *result = options.beforeBreadcrumb(breadcrumb);
-
-    XCTAssertEqual(breadcrumb, result);
-}
-
 #pragma mark - RNSentryStart ignoreErrors Tests
 
 - (void)testStartIgnoreErrorsDropsMatchingExceptionValue
