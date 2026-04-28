@@ -269,7 +269,9 @@ plugins.withId('com.android.application') {
 
                                 args.addAll(extraArgs)
 
-                                project.logger.lifecycle("Sentry-CLI arguments: ${args}")
+                                // Mask sentryAuthToken in the logged args; do not pass loggedArgs to the CLI.
+                                def loggedArgs = sentryAuthToken ? args.collect { it == sentryAuthToken ? "***" : it } : args
+                                project.logger.lifecycle("Sentry-CLI arguments: ${loggedArgs}")
                                 def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c', 'node'] : []
                                 if (!System.getenv('SENTRY_DOTENV_PATH') && file("$reactRoot/.env.sentry-build-plugin").exists()) {
                                     environment('SENTRY_DOTENV_PATH', "$reactRoot/.env.sentry-build-plugin")
