@@ -865,7 +865,8 @@ RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
 }
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-static BOOL RNSentryIsPathUnderAllowedRoots(NSString *path)
+static BOOL
+RNSentryIsPathUnderAllowedRoots(NSString *path)
 {
     if (path.length == 0) {
         return NO;
@@ -881,18 +882,19 @@ static BOOL RNSentryIsPathUnderAllowedRoots(NSString *path)
     if (tmp.length > 0) {
         [roots addObject:[tmp stringByResolvingSymlinksInPath]];
     }
-    NSArray<NSString *> *caches = NSSearchPathForDirectoriesInDomains(
-        NSCachesDirectory, NSUserDomainMask, YES);
+    NSArray<NSString *> *caches
+        = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     if (caches.firstObject) {
         [roots addObject:[caches.firstObject stringByResolvingSymlinksInPath]];
     }
-    NSArray<NSString *> *docs = NSSearchPathForDirectoriesInDomains(
-        NSDocumentDirectory, NSUserDomainMask, YES);
+    NSArray<NSString *> *docs
+        = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     if (docs.firstObject) {
         [roots addObject:[docs.firstObject stringByResolvingSymlinksInPath]];
     }
     for (NSString *root in roots) {
-        NSString *rootWithSlash = [root hasSuffix:@"/"] ? root : [root stringByAppendingString:@"/"];
+        NSString *rootWithSlash =
+            [root hasSuffix:@"/"] ? root : [root stringByAppendingString:@"/"];
         if ([resolved isEqualToString:root] || [resolved hasPrefix:rootWithSlash]) {
             return YES;
         }
@@ -912,7 +914,8 @@ RCT_EXPORT_METHOD(getDataFromUri : (NSString *_Nonnull)uri resolve : (
     }
     if (!RNSentryIsPathUnderAllowedRoots(fileURL.path)) {
         reject(@"SentryReactNative",
-            @"The provided URI points outside the app's temporary, caches, or documents directories",
+            @"The provided URI points outside the app's temporary, caches, or documents "
+            @"directories",
             nil);
         return;
     }
