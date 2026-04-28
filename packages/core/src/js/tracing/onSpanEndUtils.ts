@@ -37,17 +37,17 @@ export function markRootSpanForDiscard(span: Span, reason: SentryDiscardReason):
 /**
  * Returns the SDK-side discard reason recorded on a root span, if any.
  */
-export function getRootSpanDiscardReason(span: Span): string | undefined {
+export function getRootSpanDiscardReason(span: Span): SentryDiscardReason | undefined {
   const value = spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE];
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === 'string' ? (value as SentryDiscardReason) : undefined;
 }
 
 /**
  * Returns the SDK-side discard reason from a transaction event, if any.
  */
-export function getTransactionEventDiscardReason(event: Event): string | undefined {
+export function getTransactionEventDiscardReason(event: Event): SentryDiscardReason | undefined {
   const value = event.contexts?.trace?.data?.[SENTRY_DISCARD_REASON_ATTRIBUTE];
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === 'string' ? (value as SentryDiscardReason) : undefined;
 }
 
 /**

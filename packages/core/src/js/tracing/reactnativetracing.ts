@@ -1,4 +1,4 @@
-import type { Client, Event, Integration, StartSpanOptions } from '@sentry/core';
+import type { Client, Event, EventHint, Integration, StartSpanOptions } from '@sentry/core';
 
 import { instrumentOutgoingRequests } from '@sentry/browser';
 import { debug, getClient } from '@sentry/core';
@@ -137,12 +137,14 @@ export const reactNativeTracingIntegration = (
     });
   };
 
-  const processEvent = (event: Event, _hint: unknown, client: Client): Event | null => {
+  const processEvent = (event: Event, _hint: EventHint, _client: Client): Event | null => {
     if (event.type === 'transaction') {
       const discardReason = getTransactionEventDiscardReason(event);
       if (discardReason) {
         debug.log(`[ReactNativeTracing] Dropping transaction marked for discard (reason: ${discardReason}).`);
-        client.recordDroppedEvent('event_processor', 'transaction');
+        // `@sentry/core` automatically records a dropped event with reason
+        // `event_processor` when a processor returns `null`, so we don't call
+        // `recordDroppedEvent` here to avoid double-counting in client reports.
         return null;
       }
     }

@@ -162,8 +162,10 @@ describe('ReactNativeTracing', () => {
       const processedEvent = integration.processEvent(event, {}, client);
 
       expect(processedEvent).toBeNull();
-      expect(recordDroppedEvent).toHaveBeenCalledTimes(1);
-      expect(recordDroppedEvent).toHaveBeenCalledWith('event_processor', 'transaction');
+      // `@sentry/core` records the `event_processor` drop automatically when
+      // a processor returns `null`, so the integration must not call
+      // `recordDroppedEvent` itself (would double-count in client reports).
+      expect(recordDroppedEvent).not.toHaveBeenCalled();
     });
 
     it('does not drop transaction events without the discard reason attribute', () => {
