@@ -32,6 +32,9 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     if ("touch".equals(breadcrumb.getCategory())) {
       return convertTouchBreadcrumb(breadcrumb);
     }
+    if ("ui.multiClick".equals(breadcrumb.getCategory())) {
+      return convertMultiClickBreadcrumb(breadcrumb);
+    }
     if ("navigation".equals(breadcrumb.getCategory())) {
       return convertNavigationBreadcrumb(breadcrumb);
     }
@@ -65,6 +68,21 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
 
     rrWebBreadcrumb.setCategory("ui.tap");
+
+    rrWebBreadcrumb.setMessage(getTouchPathMessage(breadcrumb.getData("path")));
+
+    setRRWebEventDefaultsFrom(rrWebBreadcrumb, breadcrumb);
+    return rrWebBreadcrumb;
+  }
+
+  public @Nullable RRWebEvent convertMultiClickBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+    if (!(breadcrumb.getData("path") instanceof List)) {
+      return null;
+    }
+
+    final RRWebBreadcrumbEvent rrWebBreadcrumb = new RRWebBreadcrumbEvent();
+
+    rrWebBreadcrumb.setCategory("ui.multiClick");
 
     rrWebBreadcrumb.setMessage(getTouchPathMessage(breadcrumb.getData("path")));
 
