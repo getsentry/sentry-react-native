@@ -28,15 +28,6 @@
     sentryOptions.enableLogs = enabled;
 }
 
-+ (void)setEnableSessionReplayInUnreliableEnvironment:(BOOL)enabled
-                                        sentryOptions:(SentryOptions *)sentryOptions
-{
-    if (sentryOptions == nil) {
-        return;
-    }
-    sentryOptions.experimental.enableSessionReplayInUnreliableEnvironment = enabled;
-}
-
 + (void)configureProfilingWithOptions:(NSDictionary *)profilingOptions
                         sentryOptions:(SentryOptions *)sentryOptions
 {
