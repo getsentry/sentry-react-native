@@ -47,4 +47,25 @@ describe('Sentry Release Injector', () => {
       'var SENTRY_RELEASE;SENTRY_RELEASE={name: "TestApp", version: "1.0.0"};',
     );
   });
+
+  test('unstableReleaseConstantsPlugin escapes values that would break out of the string literal', () => {
+    mockedExpoConfigRequire.mockReturnValue({
+      exp: {
+        name: 'App", evil();//',
+        version: '1.0\\"',
+      },
+    });
+    const projectRoot = '/some/project/root';
+    const graph = {
+      transformOptions: { platform: 'web' },
+    } as unknown as ReadOnlyGraph<MixedOutput>;
+    const premodules = [{ path: 'someModule.js' }] as Module[];
+
+    const plugin = unstableReleaseConstantsPlugin(projectRoot);
+    const result = plugin({ graph, premodules });
+
+    expect(result[0]?.getSource().toString()).toEqual(
+      'var SENTRY_RELEASE;SENTRY_RELEASE={name: "App\\", evil();//", version: "1.0\\\\\\""};',
+    );
+  });
 });
