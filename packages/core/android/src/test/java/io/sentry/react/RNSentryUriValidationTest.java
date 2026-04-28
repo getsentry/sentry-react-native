@@ -71,14 +71,16 @@ public class RNSentryUriValidationTest {
   }
 
   @Test
-  public void allowsSafDocumentsAuthorities() {
-    assertTrue(
+  public void rejectsSafDocumentsAuthorities() {
+    // SAF authorities are excluded from the allowlist: authority-only matching cannot verify
+    // that the URI was granted in the current attach flow versus a previously persisted grant.
+    assertFalse(
         RNSentryModuleImpl.isAllowedUri(
             mockUri("content", "com.android.providers.media.documents", "/doc"), ctx));
-    assertTrue(
+    assertFalse(
         RNSentryModuleImpl.isAllowedUri(
             mockUri("content", "com.android.externalstorage.documents", "/doc"), ctx));
-    assertTrue(
+    assertFalse(
         RNSentryModuleImpl.isAllowedUri(
             mockUri("content", "com.android.providers.downloads.documents", "/doc"), ctx));
   }
