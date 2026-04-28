@@ -100,6 +100,33 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         XCTAssertNil(actual)
     }
 
+    func testConvertMultiClickBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.level = .warning
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "ui.multiClick"
+        testBreadcrumb.message = "Submit"
+        testBreadcrumb.data = [
+            "path": [
+                ["name": "SubmitButton", "label": "Submit", "file": "form.tsx"]
+            ],
+            "clickCount": 3,
+            "metric": true
+        ]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual)
+        let event = actual!.serialize()
+        let data = event["data"] as! [String: Any?]
+        let payload = data["payload"] as! [String: Any?]
+        assertRRWebBreadcrumbDefaults(actual: event)
+        XCTAssertEqual("warning", payload["level"] as! String)
+        XCTAssertEqual("ui.multiClick", payload["category"] as! String)
+        XCTAssertEqual("Submit(form.tsx)", payload["message"] as! String)
+    }
+
     func testConvertTouchBreadcrumb() {
         let converter = RNSentryReplayBreadcrumbConverter()
         let testBreadcrumb = Breadcrumb()

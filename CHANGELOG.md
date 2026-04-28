@@ -11,6 +11,7 @@
 ### Features
 
 - Add `includeWebFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
+- Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
 ### Fixes
 
@@ -23,6 +24,13 @@
 - Bump JavaScript SDK from v10.49.0 to v10.50.0 ([#6040](https://github.com/getsentry/sentry-react-native/pull/6040))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10500)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.49.0...10.50.0)
+
+## 8.9.2
+
+### Fixes
+
+- Restore executable bit on shell scripts in the published tarball, fixing `Permission denied` on iOS build ([#6049](https://github.com/getsentry/sentry-react-native/pull/6049))
+- Restore EAS build hook bin scripts (`sentry-eas-build-on-{success,error,complete}`) missing from the published tarball ([#6049](https://github.com/getsentry/sentry-react-native/pull/6049))
 
 ## 8.9.1
 
