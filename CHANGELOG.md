@@ -15,6 +15,7 @@
 
 ### Fixes
 
+- Android build failure in `expo-handler` when Android SDK 31 is not installed by using `safeExtGet` for `compileSdkVersion` and `minSdkVersion` ([#6061](https://github.com/getsentry/sentry-react-native/pull/6061))
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
 - Restrict the URI scope of `getDataFromUri` on iOS and Android ([#6045](https://github.com/getsentry/sentry-react-native/pull/6045))
 - Restrict the Metro source-context middleware to files within the project root ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
