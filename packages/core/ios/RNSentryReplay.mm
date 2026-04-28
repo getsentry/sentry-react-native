@@ -12,14 +12,14 @@
 @implementation RNSentryReplay {
 }
 
-+ (BOOL)updateOptions:(NSMutableDictionary *)options
++ (void)updateOptions:(NSMutableDictionary *)options
 {
     NSNumber *sessionSampleRate = options[@"replaysSessionSampleRate"];
     NSNumber *errorSampleRate = options[@"replaysOnErrorSampleRate"];
 
     if (sessionSampleRate == nil && errorSampleRate == nil) {
         NSLog(@"Session replay disabled via configuration");
-        return NO;
+        return;
     }
 
     NSLog(@"Setting up session replay");
@@ -45,8 +45,6 @@
             @ { @"name" : REACT_NATIVE_SDK_NAME, @"version" : REACT_NATIVE_SDK_PACKAGE_VERSION }
     }
                forKey:@"sessionReplay"];
-    return (errorSampleRate != nil && [errorSampleRate doubleValue] > 0)
-        || (sessionSampleRate != nil && [sessionSampleRate doubleValue] > 0);
 }
 
 + (NSArray *_Nonnull)getReplayRNRedactClasses:(NSDictionary *_Nullable)replayOptions
