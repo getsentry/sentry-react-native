@@ -864,6 +864,45 @@ RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
 #endif
 }
 
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+static BOOL
+RNSentryIsPathUnderAllowedRoots(NSString *path)
+{
+    if (path.length == 0) {
+        return NO;
+    }
+    for (NSString *component in path.pathComponents) {
+        if ([component isEqualToString:@".."]) {
+            return NO;
+        }
+    }
+    NSString *resolved = [path stringByResolvingSymlinksInPath];
+    NSMutableArray<NSString *> *roots = [NSMutableArray arrayWithCapacity:3];
+    NSString *tmp = NSTemporaryDirectory();
+    if (tmp.length > 0) {
+        [roots addObject:[tmp stringByResolvingSymlinksInPath]];
+    }
+    NSArray<NSString *> *caches
+        = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    if (caches.firstObject) {
+        [roots addObject:[caches.firstObject stringByResolvingSymlinksInPath]];
+    }
+    NSArray<NSString *> *docs
+        = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    if (docs.firstObject) {
+        [roots addObject:[docs.firstObject stringByResolvingSymlinksInPath]];
+    }
+    for (NSString *root in roots) {
+        NSString *rootWithSlash =
+            [root hasSuffix:@"/"] ? root : [root stringByAppendingString:@"/"];
+        if ([resolved isEqualToString:root] || [resolved hasPrefix:rootWithSlash]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+#endif
+
 RCT_EXPORT_METHOD(getDataFromUri : (NSString *_Nonnull)uri resolve : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
@@ -871,6 +910,13 @@ RCT_EXPORT_METHOD(getDataFromUri : (NSString *_Nonnull)uri resolve : (
     NSURL *fileURL = [NSURL URLWithString:uri];
     if (![fileURL isFileURL]) {
         reject(@"SentryReactNative", @"The provided URI is not a valid file:// URL", nil);
+        return;
+    }
+    if (!RNSentryIsPathUnderAllowedRoots(fileURL.path)) {
+        reject(@"SentryReactNative",
+            @"The provided URI points outside the app's temporary, caches, or documents "
+            @"directories",
+            nil);
         return;
     }
     NSError *error = nil;
