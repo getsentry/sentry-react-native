@@ -168,6 +168,87 @@ jobs:
             ${{ github.workspace }}/packages/core/*.tgz
             ${{ github.workspace }}/packages/expo-upload-sourcemaps/*.tgz
 
+  job_validate_tarball:
+    name: Validate tarball
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+    needs: [job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 18
+      - name: Download tarball artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ github.sha }}
+          path: artifacts
+      - name: Verify executable bits in tarball
+        run: |
+          set -e
+          TARBALL=$(find artifacts -name 'sentry-react-native-*.tgz' -print -quit)
+          [ -n "$TARBALL" ] || { echo "::error::tarball not found in artifacts/"; exit 1; }
+          echo "Tarball: $TARBALL"
+          FAILED=0
+          for entry in package/scripts/sentry-xcode.sh \
+                       package/scripts/sentry-xcode-debug-files.sh \
+                       package/scripts/collect-modules.sh \
+                       package/scripts/eas-build-hook.js \
+                       package/scripts/expo-upload-sourcemaps.js; do
+            mode=$(tar -tvf "$TARBALL" "$entry" 2>/dev/null | awk 'NR==1{print $1}')
+            if [ -z "$mode" ]; then
+              echo "::error::$entry missing from tarball"
+              FAILED=1
+            elif [ "$mode" != "-rwxr-xr-x" ]; then
+              echo "::error::$entry has mode $mode, expected -rwxr-xr-x"
+              FAILED=1
+            else
+              echo "OK: $entry ($mode)"
+            fi
+          done
+          exit $FAILED
+      - name: Install tarball into fresh project
+        run: |
+          set -e
+          CORE_TARBALL=$(find "$PWD/artifacts" -name 'sentry-react-native-*.tgz' -print -quit)
+          EXPO_TARBALL=$(find "$PWD/artifacts" -name 'sentry-expo-upload-sourcemaps-*.tgz' -print -quit)
+          [ -n "$CORE_TARBALL" ] || { echo "::error::core tarball not found"; exit 1; }
+          [ -n "$EXPO_TARBALL" ] || { echo "::error::expo-upload-sourcemaps tarball not found"; exit 1; }
+          mkdir -p /tmp/install-test
+          cd /tmp/install-test
+          npm init -y >/dev/null
+          # Install both local tarballs together so the @sentry/expo-upload-sourcemaps
+          # cross-dep is satisfied locally. On a release branch the bumped version
+          # is not on the npm registry yet (workspace:* resolves to the version
+          # we are about to publish), and a registry fetch would fail with ETARGET.
+          npm install --no-save "$EXPO_TARBALL" "$CORE_TARBALL"
+          # workspace:* spec must have been resolved by yarn pack (#6037 regression)
+          if grep -q 'workspace:' node_modules/@sentry/react-native/package.json; then
+            echo "::error::published package.json still contains unresolved workspace: spec"
+            grep workspace: node_modules/@sentry/react-native/package.json
+            exit 1
+          fi
+          # bin entries must be linked into node_modules/.bin and executable
+          for bin in sentry-eas-build-on-complete \
+                     sentry-eas-build-on-error \
+                     sentry-eas-build-on-success \
+                     sentry-expo-upload-sourcemaps; do
+            if [ ! -x "node_modules/.bin/$bin" ]; then
+              echo "::error::node_modules/.bin/$bin missing or not executable"
+              ls -la node_modules/.bin/ | grep -i sentry || true
+              exit 1
+            fi
+            echo "OK: node_modules/.bin/$bin"
+          done
+          # sentry-xcode.sh is invoked directly by the iOS build phase, so it
+          # must remain executable after install (#6047)
+          if [ ! -x node_modules/@sentry/react-native/scripts/sentry-xcode.sh ]; then
+            echo "::error::scripts/sentry-xcode.sh is not executable after install"
+            ls -la node_modules/@sentry/react-native/scripts/sentry-xcode.sh
+            exit 1
+          fi
+          echo "OK: scripts/sentry-xcode.sh executable"
+
   job_type_check:
     name: Type Check Typescript 3.8
     runs-on: ubuntu-latest

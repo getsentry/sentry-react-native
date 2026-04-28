@@ -35,6 +35,10 @@
         return [self convertTouch:breadcrumb];
     }
 
+    if ([breadcrumb.category isEqualToString:@"ui.multiClick"]) {
+        return [self convertMultiClick:breadcrumb];
+    }
+
     if ([breadcrumb.category isEqualToString:@"navigation"]) {
         return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                                   category:breadcrumb.category
@@ -70,6 +74,26 @@
 
     return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                               category:@"ui.tap"
+                                                               message:message
+                                                                 level:breadcrumb.level
+                                                                  data:breadcrumb.data];
+}
+
+- (id<SentryRRWebEvent> _Nullable)convertMultiClick:(SentryBreadcrumb *_Nonnull)breadcrumb
+{
+    if (breadcrumb.data == nil) {
+        return nil;
+    }
+
+    id maybePath = [breadcrumb.data valueForKey:@"path"];
+    if (![maybePath isKindOfClass:[NSArray class]]) {
+        return nil;
+    }
+
+    NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:maybePath];
+
+    return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
+                                                              category:@"ui.multiClick"
                                                                message:message
                                                                  level:breadcrumb.level
                                                                   data:breadcrumb.data];

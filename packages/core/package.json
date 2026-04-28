@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "8.9.1",
+  "version": "8.9.2",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -72,20 +72,20 @@
   },
   "dependencies": {
     "@sentry/babel-plugin-component-annotate": "5.2.0",
-    "@sentry/browser": "10.49.0",
+    "@sentry/browser": "10.50.0",
     "@sentry/cli": "3.4.0",
-    "@sentry/core": "10.49.0",
+    "@sentry/core": "10.50.0",
     "@sentry/expo-upload-sourcemaps": "workspace:*",
-    "@sentry/react": "10.49.0",
-    "@sentry/types": "10.49.0"
+    "@sentry/react": "10.50.0",
+    "@sentry/types": "10.50.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.7",
     "@expo/metro-config": "~0.20.0",
     "@mswjs/interceptors": "^0.25.15",
     "@react-native/babel-preset": "0.80.0",
-    "@sentry-internal/eslint-plugin-sdk": "10.49.0",
-    "@sentry-internal/typescript": "10.49.0",
+    "@sentry-internal/eslint-plugin-sdk": "10.50.0",
+    "@sentry-internal/typescript": "10.50.0",
     "@sentry/wizard": "6.12.0",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.13",
@@ -93,7 +93,6 @@
     "@types/react": "^19.1.0",
     "@types/react-test-renderer": "^19.1.0",
     "@types/uglify-js": "^3.17.2",
-    "@types/uuid": "^9.0.4",
     "@types/xmlhttprequest": "^1.8.2",
     "babel-jest": "^29.6.3",
     "babel-plugin-module-resolver": "^5.0.0",
@@ -116,7 +115,6 @@
     "ts-jest": "^29.3.1",
     "typescript": "~5.9.3",
     "uglify-js": "^3.17.4",
-    "uuid": "^9.0.1",
     "xmlhttprequest": "^1.8.0"
   },
   "codegenConfig": {

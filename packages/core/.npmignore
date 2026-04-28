@@ -27,6 +27,7 @@
 !scripts/sentry-xcode-debug-files.sh
 !scripts/sentry_utils.rb
 !scripts/expo-upload-sourcemaps.js
+!scripts/eas-build-hook.js
 
 # Metro
 !/metro.js

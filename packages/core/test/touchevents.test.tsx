@@ -314,6 +314,144 @@ describe('TouchEventBoundary._onTouchStart', () => {
     });
   });
 
+  describe('rage tap detection', () => {
+    beforeEach(() => {
+      jest.spyOn(Date, 'now').mockReturnValue(1000);
+    });
+
+    it('emits ui.multiClick breadcrumb after 3 taps on same target', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: { 'sentry-label': 'submit' },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      // 3 touch breadcrumbs + 1 multiClick breadcrumb
+      expect(addBreadcrumb).toHaveBeenCalledTimes(4);
+      expect(addBreadcrumb).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          category: 'ui.multiClick',
+          type: 'default',
+          data: expect.objectContaining({
+            clickCount: 3,
+            metric: true,
+          }),
+        }),
+      );
+    });
+
+    it('does not emit frustration breadcrumb when disabled via prop', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary({
+        ...defaultProps,
+        enableRageTapDetection: false,
+      });
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: { 'sentry-label': 'submit' },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      // Only touch breadcrumbs
+      expect(addBreadcrumb).toHaveBeenCalledTimes(3);
+      for (const call of addBreadcrumb.mock.calls) {
+        expect(call[0].category).toBe('touch');
+      }
+    });
+
+    it('respects custom threshold and time window props', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary({
+        ...defaultProps,
+        rageTapThreshold: 5,
+        rageTapTimeWindow: 2000,
+      });
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: { 'sentry-label': 'submit' },
+        },
+      };
+
+      // 3 taps should not trigger with threshold=5
+      for (let i = 0; i < 3; i++) {
+        // @ts-expect-error Calling private member
+        boundary._onTouchStart(event);
+      }
+      expect(addBreadcrumb).toHaveBeenCalledTimes(3);
+      for (const call of addBreadcrumb.mock.calls) {
+        expect(call[0].category).toBe('touch');
+      }
+
+      // 2 more taps (total 5) should trigger
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledTimes(6); // 5 touch + 1 multiClick
+      expect(addBreadcrumb).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          category: 'ui.multiClick',
+          data: expect.objectContaining({ clickCount: 5 }),
+        }),
+      );
+    });
+
+    it('does not trigger when taps are outside the time window', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      const nowMock = jest.spyOn(Date, 'now');
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: { 'sentry-label': 'submit' },
+        },
+      };
+
+      nowMock.mockReturnValue(1000);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      nowMock.mockReturnValue(1500);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      // Third tap beyond 1000ms default window
+      nowMock.mockReturnValue(2500);
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      // Only touch breadcrumbs, no multiClick
+      expect(addBreadcrumb).toHaveBeenCalledTimes(3);
+      for (const call of addBreadcrumb.mock.calls) {
+        expect(call[0].category).toBe('touch');
+      }
+    });
+  });
+
   describe('sentry-span-attributes', () => {
     it('sets custom attributes from prop on user interaction span', () => {
       const { defaultProps } = TouchEventBoundary;
