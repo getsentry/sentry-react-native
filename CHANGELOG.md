@@ -10,6 +10,7 @@
 
 ### Features
 
+- Support `SENTRY_RELEASE` and `SENTRY_DIST` env vars in build scripts to override values in `sentry.options.json` at build time ([#6070](https://github.com/getsentry/sentry-react-native/pull/6070))
 - Add `includeWebFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
 - Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
