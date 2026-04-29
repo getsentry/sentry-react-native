@@ -692,7 +692,11 @@ describe('sentry-xcode.sh', () => {
     });
 
     it('does not modify the source file when overriding', () => {
-      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', release: 'original@1.0.0', environment: 'production' });
+      const optionsContent = JSON.stringify({
+        dsn: 'https://key@sentry.io/123',
+        release: 'original@1.0.0',
+        environment: 'production',
+      });
       const optionsFile = path.join(tempDir, 'sentry.options.json');
       fs.writeFileSync(optionsFile, optionsContent);
 
