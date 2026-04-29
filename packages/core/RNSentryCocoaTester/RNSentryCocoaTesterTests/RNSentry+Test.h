@@ -7,4 +7,8 @@
 
 + (BOOL)captureReplayWithReturnValue;
 
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
++ (BOOL)isPathUnderAllowedRootsForTesting:(NSString *)path;
+#endif
+
 @end

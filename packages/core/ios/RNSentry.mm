@@ -901,6 +901,11 @@ RNSentryIsPathUnderAllowedRoots(NSString *path)
     }
     return NO;
 }
+
++ (BOOL)isPathUnderAllowedRootsForTesting:(NSString *)path
+{
+    return RNSentryIsPathUnderAllowedRoots(path);
+}
 #endif
 
 RCT_EXPORT_METHOD(getDataFromUri : (NSString *_Nonnull)uri resolve : (
