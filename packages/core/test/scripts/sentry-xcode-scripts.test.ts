@@ -531,8 +531,8 @@ describe('sentry-xcode.sh', () => {
     });
   });
 
-  describe('sentry.options.json SENTRY_ENVIRONMENT override', () => {
-    it('copies file without modification when SENTRY_ENVIRONMENT is not set', () => {
+  describe('sentry.options.json environment variable overrides', () => {
+    it('copies file without modification when no override env vars are set', () => {
       const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', environment: 'production' });
       const optionsFile = path.join(tempDir, 'sentry.options.json');
       fs.writeFileSync(optionsFile, optionsContent);
@@ -575,15 +575,124 @@ describe('sentry-xcode.sh', () => {
       });
 
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Overriding');
+      expect(result.stdout).toContain("Overriding 'environment' from SENTRY_ENVIRONMENT");
       const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
       const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
       expect(copied.environment).toBe('staging');
       expect(copied.dsn).toBe('https://key@sentry.io/123');
     });
 
-    it('does not modify the source sentry.options.json', () => {
+    it('overrides release from SENTRY_RELEASE env var', () => {
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123' });
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_RELEASE: 'my-app@1.0.0+42',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("Overriding 'release' from SENTRY_RELEASE");
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
+      expect(copied.release).toBe('my-app@1.0.0+42');
+      expect(copied.dsn).toBe('https://key@sentry.io/123');
+    });
+
+    it('overrides existing release value from SENTRY_RELEASE env var', () => {
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', release: 'old@1.0.0', dist: '1' });
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_RELEASE: 'new@2.0.0',
+        SENTRY_DIST: '2',
+      });
+
+      expect(result.exitCode).toBe(0);
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
+      expect(copied.release).toBe('new@2.0.0');
+      expect(copied.dist).toBe('2');
+    });
+
+    it('overrides dist from SENTRY_DIST env var', () => {
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123' });
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_DIST: '42',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("Overriding 'dist' from SENTRY_DIST");
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
+      expect(copied.dist).toBe('42');
+      expect(copied.dsn).toBe('https://key@sentry.io/123');
+    });
+
+    it('overrides release, dist, and environment together', () => {
       const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', environment: 'production' });
+      const optionsFile = path.join(tempDir, 'sentry.options.json');
+      fs.writeFileSync(optionsFile, optionsContent);
+
+      const buildDir = path.join(tempDir, 'build');
+      const resourcesPath = 'Resources';
+      fs.mkdirSync(path.join(buildDir, resourcesPath), { recursive: true });
+
+      const result = runScript({
+        SENTRY_DISABLE_AUTO_UPLOAD: 'true',
+        SENTRY_COPY_OPTIONS_FILE: 'true',
+        SENTRY_OPTIONS_FILE_PATH: optionsFile,
+        CONFIGURATION_BUILD_DIR: buildDir,
+        UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
+        SENTRY_ENVIRONMENT: 'staging',
+        SENTRY_RELEASE: 'my-app@2.0.0+10',
+        SENTRY_DIST: '10',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain("Overriding 'environment' from SENTRY_ENVIRONMENT");
+      expect(result.stdout).toContain("Overriding 'release' from SENTRY_RELEASE");
+      expect(result.stdout).toContain("Overriding 'dist' from SENTRY_DIST");
+      const destPath = path.join(buildDir, resourcesPath, 'sentry.options.json');
+      const copied = JSON.parse(fs.readFileSync(destPath, 'utf8'));
+      expect(copied.environment).toBe('staging');
+      expect(copied.release).toBe('my-app@2.0.0+10');
+      expect(copied.dist).toBe('10');
+    });
+
+    it('does not modify the source file when overriding', () => {
+      const optionsContent = JSON.stringify({ dsn: 'https://key@sentry.io/123', release: 'original@1.0.0', environment: 'production' });
       const optionsFile = path.join(tempDir, 'sentry.options.json');
       fs.writeFileSync(optionsFile, optionsContent);
 
@@ -598,10 +707,14 @@ describe('sentry-xcode.sh', () => {
         CONFIGURATION_BUILD_DIR: buildDir,
         UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
         SENTRY_ENVIRONMENT: 'staging',
+        SENTRY_RELEASE: 'override@2.0.0',
+        SENTRY_DIST: '99',
       });
 
       const source = JSON.parse(fs.readFileSync(optionsFile, 'utf8'));
       expect(source.environment).toBe('production');
+      expect(source.release).toBe('original@1.0.0');
+      expect(source.dist).toBeUndefined();
     });
 
     it('falls back to plain copy when sentry.options.json contains invalid JSON', () => {
@@ -618,7 +731,7 @@ describe('sentry-xcode.sh', () => {
         SENTRY_OPTIONS_FILE_PATH: optionsFile,
         CONFIGURATION_BUILD_DIR: buildDir,
         UNLOCALIZED_RESOURCES_FOLDER_PATH: resourcesPath,
-        SENTRY_ENVIRONMENT: 'staging',
+        SENTRY_RELEASE: 'my-app@1.0.0',
       });
 
       expect(result.exitCode).toBe(0);
