@@ -1,6 +1,6 @@
 {
   "name": "TestAppSentry",
-  "version": "8.9.2",
+  "version": "8.10.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.80.2",
-    "@sentry/react-native": "8.9.2",
+    "@sentry/react-native": "8.10.0",
     "react": "19.1.0",
     "react-native": "0.80.2"
   },
