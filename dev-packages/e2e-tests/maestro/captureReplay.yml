@@ -5,10 +5,6 @@ jsEngine: graaljs
     file: utils/launchTestAppClear.yml
     env:
       replaysOnErrorSampleRate: 1.0
-- runFlow:
-    file: utils/waitForReplayBuffer.yml
-    when:
-      platform: iOS
 - tapOn: "Capture Exception"
 - runFlow: utils/assertEventIdVisible.yml
 - runFlow:

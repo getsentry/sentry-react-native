@@ -65,11 +65,27 @@ switch (fetch) {
     // The replay_id is set by the SDK on the event before sending (in
     // contexts.replay.replay_id or _dsc.replay_id). It should be present
     // when the event is fetched from the API.
-    const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
-    const rawReplayId = (event.contexts && event.contexts.replay && event.contexts.replay.replay_id)
-      || (event._dsc && event._dsc.replay_id);
+    // Retry a few times: on slow CI the native replay buffer may not have
+    // captured a frame before the error was sent, so replay_id can be
+    // missing. Re-fetching gives time for a subsequent event update or
+    // for eventual consistency in the API.
+    const REPLAY_ID_RETRIES = 10;
+    const REPLAY_ID_RETRY_INTERVAL = 3000;
+    let rawReplayId = null;
+    for (let attempt = 0; attempt < REPLAY_ID_RETRIES; attempt++) {
+      const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
+      rawReplayId = (event.contexts && event.contexts.replay && event.contexts.replay.replay_id)
+        || (event._dsc && event._dsc.replay_id);
+      if (rawReplayId) {
+        break;
+      }
+      if (attempt < REPLAY_ID_RETRIES - 1) {
+        console.log(`replay_id not yet on event, retrying: ${attempt + 1}/${REPLAY_ID_RETRIES}`);
+        sleep(REPLAY_ID_RETRY_INTERVAL);
+      }
+    }
     if (!rawReplayId) {
-      throw new Error('replay_id not available on the event');
+      throw new Error('replay_id not available on the event after retries');
     }
     const replayId = rawReplayId.replace(/\-/g, '');
     const replay = json(fetchFromSentry(`${baseUrl}/replays/${replayId}/`));
