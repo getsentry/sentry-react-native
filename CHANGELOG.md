@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
+
 ## 8.10.0
 
 ### Features
