@@ -43,9 +43,12 @@ if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
     PNPM_BIN_PATH="$PWD/../node_modules/@sentry/react-native/node_modules/.bin/sentry-cli"
 
     if [ -f "$PNPM_BIN_PATH" ]; then
-      FIRST_NODE_PATH=$(grep -oE 'NODE_PATH="[^"]+"' "$PNPM_BIN_PATH" | head -n1 | sed -E 's/^NODE_PATH="([^":]+).*/\1/')
-      if [ -n "$FIRST_NODE_PATH" ]; then
-        SENTRY_CLI_PACKAGE_PATH="${FIRST_NODE_PATH%/node_modules}/bin/sentry-cli"
+      NODE_PATH_VALUE=$(grep -oE 'NODE_PATH="[^"]+"' "$PNPM_BIN_PATH" | head -n1 | sed -E 's/^NODE_PATH="([^"]*)"/\1/')
+      # Strip everything from the first `@sentry/cli/` onwards. If `%%` finds no match
+      # PREFIX equals NODE_PATH_VALUE and we leave SENTRY_CLI_PACKAGE_PATH unset.
+      SENTRY_CLI_PREFIX="${NODE_PATH_VALUE%%@sentry/cli/*}"
+      if [ -n "$NODE_PATH_VALUE" ] && [ "$SENTRY_CLI_PREFIX" != "$NODE_PATH_VALUE" ]; then
+        SENTRY_CLI_PACKAGE_PATH="${SENTRY_CLI_PREFIX}@sentry/cli/bin/sentry-cli"
       fi
     fi
   fi
