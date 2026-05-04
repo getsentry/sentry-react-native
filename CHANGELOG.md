@@ -10,8 +10,8 @@
 
 ### Breaking Changes
 
-- `enableLogs` defaults to `true` ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
-- `consoleLoggingIntegration` is no longer added by default. To forward `console.*` calls to Sentry logs, add it explicitly: `integrations: [Sentry.consoleLoggingIntegration()]` ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- `enableLogs` defaults to `true` ([#6084](https://github.com/getsentry/sentry-react-native/pull/6084))
+- `consoleLoggingIntegration` is no longer added by default. To forward `console.*` calls to Sentry logs, add it explicitly: `integrations: [Sentry.consoleLoggingIntegration()]` ([#6084](https://github.com/getsentry/sentry-react-native/pull/6084))
 
 ## 8.10.0
 
