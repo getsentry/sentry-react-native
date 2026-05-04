@@ -44,9 +44,7 @@
     NSMutableDictionary *mutableOptions = [options mutableCopy];
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    BOOL isSessionReplayEnabled = [RNSentryReplay updateOptions:mutableOptions];
-#else
-    BOOL isSessionReplayEnabled = NO;
+    [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
     SentryOptions *sentryOptions = [PrivateSentrySDKOnly optionsWithDictionary:mutableOptions
@@ -168,11 +166,6 @@
         } else if ([orgIdValue isKindOfClass:[NSNumber class]]) {
             sentryOptions.orgId = [orgIdValue stringValue];
         }
-    }
-
-    if (isSessionReplayEnabled) {
-        [RNSentryExperimentalOptions setEnableSessionReplayInUnreliableEnvironment:YES
-                                                                     sentryOptions:sentryOptions];
     }
 
     return sentryOptions;

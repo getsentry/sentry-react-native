@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "8.9.2",
+  "version": "8.10.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -23,8 +23,8 @@
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
-    "@sentry/core": "10.50.0",
-    "@sentry/react-native": "8.9.2",
+    "@sentry/core": "10.51.0",
+    "@sentry/react-native": "8.10.0",
     "@types/react": "~19.2.10",
     "expo": "^55.0.0",
     "expo-constants": "~55.0.7",
@@ -47,7 +47,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
-    "@sentry/babel-plugin-component-annotate": "5.2.0",
+    "@sentry/babel-plugin-component-annotate": "5.2.1",
     "@types/node": "20.10.4",
     "sentry-react-native-samples-utils": "workspace:^"
   },

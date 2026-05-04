@@ -3,7 +3,8 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import type { InputConfigT, Middleware } from 'metro-config';
 
 import { addContextToFrame, debug } from '@sentry/core';
-import { readFile } from 'fs';
+import { readFile, realpath, realpathSync } from 'fs';
+import * as path from 'path';
 import { promisify } from 'util';
 
 import { SENTRY_CONTEXT_REQUEST_PATH, SENTRY_OPEN_URL_REQUEST_PATH } from '../metro/constants';
@@ -11,46 +12,59 @@ import { getRawBody } from '../metro/getRawBody';
 import { openURLMiddleware } from '../metro/openUrlMiddleware';
 
 const readFileAsync = promisify(readFile);
+const realpathAsync = promisify(realpath);
 
 /**
  * Accepts Sentry formatted stack frames and
  * adds source context to the in app frames.
+ *
+ * Relative filenames are resolved against the first entry in `allowedRoots`.
+ * Both the resolved filename and the allowed roots are canonicalized via
+ * `fs.realpath`, so a symlink inside an allowed root pointing outside of it
+ * cannot escape the containment check.
  */
-export const stackFramesContextMiddleware: Middleware = async (
-  request: IncomingMessage,
-  response: ServerResponse,
-  _next: () => void,
-): Promise<void> => {
-  debug.log('[@sentry/react-native/metro] Received request for stack frames context.');
-  request.setEncoding('utf8');
-  const rawBody = await getRawBody(request);
+export const createStackFramesContextMiddleware = (allowedRoots: string[]): Middleware => {
+  const canonicalRoots = allowedRoots.map(root => {
+    const resolved = path.resolve(root);
+    try {
+      return realpathSync(resolved);
+    } catch {
+      return resolved;
+    }
+  });
 
-  let body: {
-    stack?: Partial<StackFrame>[];
-  } = {};
-  try {
-    body = JSON.parse(rawBody);
-  } catch (e) {
-    debug.log('[@sentry/react-native/metro] Could not parse request body.', e);
-    badRequest(response, 'Invalid request body. Expected a JSON object.');
-    return;
-  }
+  return async (request: IncomingMessage, response: ServerResponse, _next: () => void): Promise<void> => {
+    debug.log('[@sentry/react-native/metro] Received request for stack frames context.');
+    request.setEncoding('utf8');
+    const rawBody = await getRawBody(request);
 
-  const stack = body.stack;
-  if (!Array.isArray(stack)) {
-    debug.log('[@sentry/react-native/metro] Invalid stack frames.', stack);
-    badRequest(response, 'Invalid stack frames. Expected an array.');
-    return;
-  }
+    let body: {
+      stack?: Partial<StackFrame>[];
+    } = {};
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      debug.log('[@sentry/react-native/metro] Could not parse request body.', e);
+      badRequest(response, 'Invalid request body. Expected a JSON object.');
+      return;
+    }
 
-  const stackWithSourceContext = await Promise.all(stack.map(addSourceContext));
-  response.setHeader('Content-Type', 'application/json');
-  response.statusCode = 200;
-  response.end(JSON.stringify({ stack: stackWithSourceContext }));
-  debug.log('[@sentry/react-native/metro] Sent stack frames context.');
+    const stack = body.stack;
+    if (!Array.isArray(stack)) {
+      debug.log('[@sentry/react-native/metro] Invalid stack frames.', stack);
+      badRequest(response, 'Invalid stack frames. Expected an array.');
+      return;
+    }
+
+    const stackWithSourceContext = await Promise.all(stack.map(frame => addSourceContext(frame, canonicalRoots)));
+    response.setHeader('Content-Type', 'application/json');
+    response.statusCode = 200;
+    response.end(JSON.stringify({ stack: stackWithSourceContext }));
+    debug.log('[@sentry/react-native/metro] Sent stack frames context.');
+  };
 };
 
-async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
+async function addSourceContext(frame: StackFrame, canonicalRoots: string[]): Promise<StackFrame> {
   if (!frame.in_app) {
     return frame;
   }
@@ -61,7 +75,30 @@ async function addSourceContext(frame: StackFrame): Promise<StackFrame> {
       return frame;
     }
 
-    const source = await readFileAsync(frame.filename, { encoding: 'utf8' });
+    if (canonicalRoots.length === 0) {
+      debug.warn('[@sentry/react-native/metro] Skipping frame: no allowed roots configured.');
+      return frame;
+    }
+
+    const resolvedPath = path.resolve(canonicalRoots[0]!, frame.filename);
+    let canonicalPath: string;
+    try {
+      canonicalPath = await realpathAsync(resolvedPath);
+    } catch {
+      debug.warn('[@sentry/react-native/metro] Skipping frame: could not canonicalize filename.');
+      return frame;
+    }
+
+    const isInside = canonicalRoots.some(root => {
+      const relative = path.relative(root, canonicalPath);
+      return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+    });
+    if (!isInside) {
+      debug.warn('[@sentry/react-native/metro] Skipping frame whose filename is outside the allowed roots.');
+      return frame;
+    }
+
+    const source = await readFileAsync(canonicalPath, { encoding: 'utf8' });
     const lines = source.split('\n');
     addContextToFrame(lines, frame);
   } catch (error) {
@@ -78,7 +115,12 @@ function badRequest(response: ServerResponse, message: string): void {
 /**
  * Creates a middleware that adds source context to the Sentry formatted stack frames.
  */
-export const createSentryMetroMiddleware = (middleware: Middleware): Middleware => {
+export const createSentryMetroMiddleware = (middleware: Middleware, allowedRoots: string[]): Middleware => {
+  const stackFramesContextMiddleware = createStackFramesContextMiddleware(allowedRoots) as (
+    req: IncomingMessage,
+    res: ServerResponse,
+    next: () => void,
+  ) => void;
   return (request: IncomingMessage, response: ServerResponse, next: () => void) => {
     if (request.url?.startsWith(`/${SENTRY_CONTEXT_REQUEST_PATH}`)) {
       return stackFramesContextMiddleware(request, response, next);
@@ -102,9 +144,13 @@ export const withSentryMiddleware = (config: InputConfigT): InputConfigT => {
     config.server = {};
   }
 
+  const projectRoot = config.projectRoot || process.cwd();
+  const watchFolders = config.watchFolders || [];
+  const allowedRoots = [projectRoot, ...watchFolders];
+
   const originalEnhanceMiddleware = config.server.enhanceMiddleware;
   config.server.enhanceMiddleware = (middleware, server) => {
-    const sentryMiddleware = createSentryMetroMiddleware(middleware);
+    const sentryMiddleware = createSentryMetroMiddleware(middleware, allowedRoots);
     return originalEnhanceMiddleware ? originalEnhanceMiddleware(sentryMiddleware, server) : sentryMiddleware;
   };
   return config;

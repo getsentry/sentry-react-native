@@ -491,10 +491,11 @@ describe('App Start Integration', () => {
       });
 
       // Simulate the span being dropped (e.g., ignoreEmptyRouteChangeTransactions
-      // sets _sampled = false during spanEnd processing).
-      // Note: _sampled is a @sentry/core SentrySpan internal — this couples to the
-      // same mechanism used by onSpanEndUtils.ts (discardEmptyNavigationSpan).
-      (firstSpan as any)['_sampled'] = false;
+      // marking the root span via the `sentry.rn.discard_reason` attribute during
+      // spanEnd processing). The tracing integration's event processor drops the
+      // resulting transaction; appStart detects the marker on the next spanStart
+      // and resets the lock so the next root span can attach app start data.
+      firstSpan.setAttribute('sentry.rn.discard_reason', 'no_route_info');
 
       // Second root span starts — recordFirstStartedActiveRootSpanId detects
       // the previously locked span is no longer sampled and resets the lock
@@ -521,6 +522,61 @@ describe('App Start Integration', () => {
           op: APP_START_COLD_OP,
         }),
       );
+      expect((actualEvent as TransactionEvent)?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeDefined();
+    });
+
+    it('Skips app start attachment for discarded transactions and preserves it for the next one', async () => {
+      mockAppStart({ cold: true });
+
+      const integration = appStartIntegration();
+      const client = new TestClient({
+        ...getDefaultTestClientOptions(),
+        enableAppStartTracking: true,
+        tracesSampleRate: 1.0,
+      });
+      setCurrentClient(client);
+      integration.setup(client);
+      integration.afterAllSetup(client);
+
+      // First root span — gets marked for discard before its transaction event
+      // reaches the app start integration's processEvent.
+      const firstSpan = startInactiveSpan({ name: 'First Navigation', forceTransaction: true });
+      const firstSpanId = firstSpan.spanContext().spanId;
+      firstSpan.setAttribute('sentry.rn.discard_reason', 'no_route_info');
+
+      // Simulate `appStartIntegration` (registered before `reactNativeTracingIntegration`)
+      // running its processEvent on the discarded transaction. It must not
+      // attach app start data nor flip `appStartDataFlushed = true`, otherwise
+      // the next real transaction would lose app start.
+      const discardedEvent = getMinimalTransactionEvent();
+      discardedEvent.contexts!.trace!.span_id = firstSpanId;
+      discardedEvent.contexts!.trace!.data = { 'sentry.rn.discard_reason': 'no_route_info' };
+
+      const processedDiscarded = await processEventWithIntegration(integration, discardedEvent);
+
+      // Event passes through unchanged — no app start span attached.
+      const discardedColdStartSpan = (processedDiscarded as TransactionEvent)?.spans?.find(
+        ({ description }) => description === 'Cold Start',
+      );
+      expect(discardedColdStartSpan).toBeUndefined();
+      expect((processedDiscarded as TransactionEvent)?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeUndefined();
+
+      // Next real root span starts — its discard marker on the previous span
+      // resets the lock and the new span gets locked.
+      const secondSpan = startInactiveSpan({ name: 'Second Navigation', forceTransaction: true });
+      const secondSpanId = secondSpan.spanContext().spanId;
+
+      const realEvent = getMinimalTransactionEvent();
+      realEvent.contexts!.trace!.span_id = secondSpanId;
+
+      const actualEvent = await processEventWithIntegration(integration, realEvent);
+
+      // App start data is still available because the discarded event did not
+      // flip `appStartDataFlushed`.
+      const appStartSpan = (actualEvent as TransactionEvent)?.spans?.find(
+        ({ description }) => description === 'Cold Start',
+      );
+      expect(appStartSpan).toBeDefined();
       expect((actualEvent as TransactionEvent)?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeDefined();
     });
 

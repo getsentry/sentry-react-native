@@ -407,8 +407,9 @@ describe('ReactNavigationInstrumentation', () => {
 
     await client.flush();
 
-    // Should have recorded a dropped transaction
-    expect(mockRecordDroppedEvent).toHaveBeenCalledWith('sample_rate', 'transaction');
+    // Should have recorded a dropped transaction via the tracing integration's
+    // event processor (no longer reported as a sampling drop).
+    expect(mockRecordDroppedEvent).toHaveBeenCalledWith('event_processor', 'transaction');
   });
 
   test('empty Route Change transaction is not sent after multiple undefined routes', async () => {
@@ -533,6 +534,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       await jest.runOnlyPendingTimersAsync();
 
+      expect(spanToJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBeUndefined();
       expect(mockTransaction['_sampled']).not.toBe(false);
     });
 
@@ -787,10 +789,17 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(mockTransaction['_sampled']).toBe(true);
       expect(mockTransaction['_name']).toBe(DEFAULT_NAVIGATION_SPAN_NAME);
+      expect(spanToJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBeUndefined();
 
       jest.advanceTimersByTime(20);
 
-      expect(mockTransaction['_sampled']).toBe(false);
+      // After the routeChangeTimeout, the SDK marks the span for discard via a
+      // dedicated attribute (instead of mutating the private `_sampled` flag)
+      // so the tracing integration's event processor drops it.
+      // `ignoreEmptyRouteChangeTransactions` runs after `_discardLatestTransaction`
+      // and overwrites the reason with the more specific `no_route_info`.
+      expect(mockTransaction['_sampled']).toBe(true);
+      expect(spanToJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBe('no_route_info');
     });
   });
 

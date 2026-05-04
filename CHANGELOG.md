@@ -6,22 +6,38 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.10.0
 
 ### Features
 
+- Support `SENTRY_RELEASE` and `SENTRY_DIST` env vars in build scripts to override values in `sentry.options.json` at build time ([#6070](https://github.com/getsentry/sentry-react-native/pull/6070))
 - Add `includeWebFeedback` Metro config option to exclude `@sentry-internal/feedback` from the bundle ([#6025](https://github.com/getsentry/sentry-react-native/pull/6025))
 - Add rage tap detection — rapid consecutive taps on the same element emit `ui.multiClick` breadcrumbs and appear on the replay timeline with the rage click icon ([#5992](https://github.com/getsentry/sentry-react-native/pull/5992))
 
 ### Fixes
 
+- Android build failure in `expo-handler` when Android SDK 31 is not installed by using `safeExtGet` for `compileSdkVersion` and `minSdkVersion` ([#6061](https://github.com/getsentry/sentry-react-native/pull/6061))
 - Stop the Hermes sampling profiler on React instance teardown to prevent `pthread_kill` SIGABRT when the JS thread is torn down with profiling active ([#6035](https://github.com/getsentry/sentry-react-native/pull/6035))
+- Restrict the URI scope of `getDataFromUri` on iOS and Android ([#6045](https://github.com/getsentry/sentry-react-native/pull/6045))
+- Restrict the Metro source-context middleware to files within the project root ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
+- Escape `name` and `version` values when injecting release constants into the web bundle ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
+- Mask the Sentry auth token in the `sentry.gradle` upload-task lifecycle log ([#6057](https://github.com/getsentry/sentry-react-native/pull/6057))
+- Discard invalid navigation/interaction transactions via an event processor instead of mutating the internal `_sampled` flag, removing misleading "dropped due to sampling" debug logs ([#6051](https://github.com/getsentry/sentry-react-native/pull/6051))
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.49.0 to v10.50.0 ([#6040](https://github.com/getsentry/sentry-react-native/pull/6040))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10500)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.49.0...10.50.0)
+- Bump JavaScript SDK from v10.49.0 to v10.51.0 ([#6040](https://github.com/getsentry/sentry-react-native/pull/6040), [#6071](https://github.com/getsentry/sentry-react-native/pull/6071))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10510)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.49.0...10.51.0)
+- Bump CLI from v3.4.0 to v3.4.1 ([#6066](https://github.com/getsentry/sentry-react-native/pull/6066))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#341)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.0...3.4.1)
+- Bump Bundler Plugins from v5.2.0 to v5.2.1 ([#6067](https://github.com/getsentry/sentry-react-native/pull/6067))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#521)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/5.2.0...5.2.1)
+- Bump Cocoa SDK from v9.11.0 to v9.12.0 ([#6073](https://github.com/getsentry/sentry-react-native/pull/6073))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9120)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.11.0...9.12.0)
 
 ## 8.9.2
 

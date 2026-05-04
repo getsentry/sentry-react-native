@@ -57,4 +57,7 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
     api 'io.sentry:sentry-android:8.40.0'
     debugImplementation 'io.sentry:sentry-spotlight:8.40.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.12.0'
 }
