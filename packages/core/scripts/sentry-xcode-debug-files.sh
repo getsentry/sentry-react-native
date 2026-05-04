@@ -43,7 +43,10 @@ if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
     PNPM_BIN_PATH="$PWD/../node_modules/@sentry/react-native/node_modules/.bin/sentry-cli"
 
     if [ -f "$PNPM_BIN_PATH" ]; then
-      SENTRY_CLI_PACKAGE_PATH="$PNPM_BIN_PATH"
+      FIRST_NODE_PATH=$(grep -oE 'NODE_PATH="[^"]+"' "$PNPM_BIN_PATH" | head -n1 | sed -E 's/^NODE_PATH="([^":]+).*/\1/')
+      if [ -n "$FIRST_NODE_PATH" ]; then
+        SENTRY_CLI_PACKAGE_PATH="${FIRST_NODE_PATH%/node_modules}/bin/sentry-cli"
+      fi
     fi
   fi
 fi
