@@ -407,6 +407,13 @@ export interface BaseReactNativeOptions {
   propagateTraceparent?: boolean;
 
   /**
+   * Acts as the kill switch for Sentry logs. When set to `false`, no logs are sent to Sentry.
+   *
+   * @default true
+   */
+  enableLogs?: boolean;
+
+  /**
    * Controls which log origin is captured when `enableLogs` is set to true.
    * 'all' will log all origins.
    * 'js' will capture only JavaScript logs.
