@@ -14,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.5.0'
+  MAESTRO_VERSION: '2.5.1'
   IOS_DEVICE: 'iPhone 17'
   IOS_VERSION: '>=18.0'
 
@@ -291,8 +291,10 @@ jobs:
 
       - name: Sentry Release
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        env:
+          REF: ${{ github.ref }}
         run: |
-          SENTRY_RELEASE_CANDIDATE=$(echo 'e2e/${{ github.ref }}' | perl -pe 's/\//-/g')
+          SENTRY_RELEASE_CANDIDATE=$(echo "e2e/$REF" | perl -pe 's/\//-/g')
           echo "SENTRY_RELEASE=$SENTRY_RELEASE_CANDIDATE" >> $GITHUB_ENV
 
       - name: Sentry Dist
