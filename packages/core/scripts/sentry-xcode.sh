@@ -39,12 +39,16 @@ if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
 
     if [ -f "$PNPM_BIN_PATH" ]; then
       NODE_PATH_VALUE=$(grep -oE 'NODE_PATH="[^"]+"' "$PNPM_BIN_PATH" | head -n1 | sed -E 's/^NODE_PATH="([^"]*)"/\1/')
-      # Strip everything from the first `@sentry/cli/` onwards. If `%%` finds no match
-      # PREFIX equals NODE_PATH_VALUE and we leave SENTRY_CLI_PACKAGE_PATH unset.
-      SENTRY_CLI_PREFIX="${NODE_PATH_VALUE%%@sentry/cli/*}"
-      if [ -n "$NODE_PATH_VALUE" ] && [ "$SENTRY_CLI_PREFIX" != "$NODE_PATH_VALUE" ]; then
-        SENTRY_CLI_PACKAGE_PATH="${SENTRY_CLI_PREFIX}@sentry/cli/bin/sentry-cli"
-      fi
+      # Split on ':' and pick the first entry containing `@sentry/cli/`. Handling each
+      # entry separately avoids producing colon-joined garbage when the matching entry
+      # isn't the first one in NODE_PATH.
+      IFS=':' read -ra NODE_PATH_ENTRIES <<< "$NODE_PATH_VALUE"
+      for entry in "${NODE_PATH_ENTRIES[@]}"; do
+        if [[ "$entry" == *@sentry/cli/* ]]; then
+          SENTRY_CLI_PACKAGE_PATH="${entry%%@sentry/cli/*}@sentry/cli/bin/sentry-cli"
+          break
+        fi
+      done
     fi
   fi
 fi
