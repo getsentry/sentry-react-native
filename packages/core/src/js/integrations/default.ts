@@ -1,7 +1,7 @@
 /* oxlint-disable eslint(complexity) */
 import type { Integration } from '@sentry/core';
 
-import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/browser';
+import { browserSessionIntegration } from '@sentry/browser';
 
 import type { ReactNativeClientOptions } from '../options';
 
@@ -92,7 +92,6 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(modulesLoaderIntegration());
     if (options.enableLogs && options.logsOrigin !== 'native') {
       integrations.push(logEnricherIntegration());
-      integrations.push(consoleLoggingIntegration());
     }
     if (options.attachScreenshot) {
       integrations.push(screenshotIntegration());

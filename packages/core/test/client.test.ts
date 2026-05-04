@@ -900,6 +900,32 @@ describe('Tests ReactNativeClient', () => {
       expect(flushLogsSpy).toHaveBeenCalledTimes(1);
       expect(flushLogsSpy).toHaveBeenLastCalledWith(client);
     });
+
+    test('defaults enableLogs to true when not provided', () => {
+      jest.useFakeTimers();
+      const flushLogsSpy = jest.spyOn(SentryCore, '_INTERNAL_flushLogsBuffer').mockImplementation(jest.fn());
+
+      const { client } = createClientWithSpy({});
+
+      expect(client.getOptions().enableLogs).toBe(true);
+
+      client.emit('afterCaptureLog', { message: 'test', attributes: {} } as unknown);
+      jest.advanceTimersByTime(5000);
+
+      expect(flushLogsSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('respects user-provided enableLogs: false over the default', () => {
+      const { client } = createClientWithSpy({ enableLogs: false });
+      expect(client.getOptions().enableLogs).toBe(false);
+    });
+
+    test('backfills enableLogs from _experiments.enableLogs when top-level is undefined', () => {
+      const { client } = createClientWithSpy({
+        _experiments: { enableLogs: false },
+      } as Partial<ReactNativeClientOptions>);
+      expect(client.getOptions().enableLogs).toBe(false);
+    });
   });
 });
 

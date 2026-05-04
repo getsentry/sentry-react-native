@@ -37,21 +37,26 @@ describe('getDefaultIntegrations - logging integrations', () => {
     return integrations.map((integration: Integration) => integration.name);
   };
 
-  it('does not add logging integrations when enableLogs is falsy', () => {
+  it('does not add logEnricher when enableLogs is false', () => {
     const names = getIntegrationNames(createOptions({ enableLogs: false }));
 
     expect(names).not.toContain(logEnricherIntegrationName);
     expect(names).not.toContain(consoleLoggingIntegrationName);
   });
 
-  it('adds logging integrations when enableLogs is true and logsOrigin is not native', () => {
+  it('adds logEnricher when enableLogs is true and logsOrigin is not native', () => {
     const names = getIntegrationNames(createOptions({ enableLogs: true }));
 
     expect(names).toContain(logEnricherIntegrationName);
-    expect(names).toContain(consoleLoggingIntegrationName);
   });
 
-  it('does not add logging integrations when logsOrigin is native', () => {
+  it('never adds consoleLoggingIntegration by default — it must be opt-in', () => {
+    const names = getIntegrationNames(createOptions({ enableLogs: true }));
+
+    expect(names).not.toContain(consoleLoggingIntegrationName);
+  });
+
+  it('does not add logEnricher when logsOrigin is native', () => {
     const names = getIntegrationNames(
       createOptions({
         enableLogs: true,
@@ -76,6 +81,7 @@ describe('getDefaultIntegrations - logging integrations', () => {
     );
 
     expect(names.includes(logEnricherIntegrationName)).toBe(shouldInclude);
-    expect(names.includes(consoleLoggingIntegrationName)).toBe(shouldInclude);
+    // consoleLoggingIntegration is always opt-in regardless of logsOrigin
+    expect(names).not.toContain(consoleLoggingIntegrationName);
   });
 });
