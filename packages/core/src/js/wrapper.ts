@@ -262,6 +262,11 @@ export const NATIVE: SentryNativeWrapper = {
       return false;
     }
 
+    if (options.dsn && options.dsn !== options.dsn.trim()) {
+      debug.warn('The DSN contains whitespace which can cause native crashes. Whitespace has been trimmed.');
+      options.dsn = options.dsn.trim();
+    }
+
     if (!options.dsn) {
       debug.warn(
         'Warning: No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',

@@ -18,6 +18,8 @@ import type { ReactNativeOptions } from '../src/js/options';
 import { base64StringFromByteArray, utf8ToBytes } from '../src/js/vendor';
 import { NATIVE } from '../src/js/wrapper';
 
+const VALID_DSN = 'https://key@sentry.io/123';
+
 jest.mock('react-native', () => {
   let initPayload: ReactNativeOptions | null = null;
 
@@ -109,7 +111,7 @@ describe('Tests Native Wrapper', () => {
   describe('startWithOptions', () => {
     test('calls native module', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
@@ -135,11 +137,30 @@ describe('Tests Native Wrapper', () => {
       );
     });
 
+    test('trims whitespace from dsn and warns', async () => {
+      debug.warn = jest.fn();
+
+      await NATIVE.initNativeSdk({
+        dsn: `  ${VALID_DSN}  `,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(debug.warn).toHaveBeenCalledWith(
+        'The DSN contains whitespace which can cause native crashes. Whitespace has been trimmed.',
+      );
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      const initParameter = (RNSentry.initNativeSdk as jest.MockedFunction<any>).mock.calls[0][0];
+      expect(initParameter.dsn).toBe(VALID_DSN);
+    });
+
     test('does not call native module with enableNative: false', async () => {
       debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: false,
         enableNativeNagger: true,
         devServerUrl: undefined,
@@ -154,7 +175,7 @@ describe('Tests Native Wrapper', () => {
 
     test('filter beforeSend when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeSend: jest.fn(),
@@ -172,7 +193,7 @@ describe('Tests Native Wrapper', () => {
 
     test('filter beforeBreadcrumb when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeBreadcrumb: jest.fn(),
@@ -190,7 +211,7 @@ describe('Tests Native Wrapper', () => {
 
     test('filter beforeSendTransaction when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeSendTransaction: jest.fn(),
@@ -208,7 +229,7 @@ describe('Tests Native Wrapper', () => {
 
     test('filter beforeSendMetric when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         beforeSendMetric: jest.fn(),
@@ -226,7 +247,7 @@ describe('Tests Native Wrapper', () => {
 
     test('passes attachAllThreads to native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         attachAllThreads: true,
@@ -243,7 +264,7 @@ describe('Tests Native Wrapper', () => {
 
     test('filter integrations when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         integrations: [],
@@ -264,7 +285,7 @@ describe('Tests Native Wrapper', () => {
       debug.warn = jest.fn();
 
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: false,
         devServerUrl: undefined,
@@ -311,7 +332,7 @@ describe('Tests Native Wrapper', () => {
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
         mobileReplayOptions: undefined,
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: false,
         autoInitializeNativeSdk: false,
       });
@@ -333,7 +354,7 @@ describe('Tests Native Wrapper', () => {
       const regex1 = /foo/;
       const regex2 = new RegExp('bar');
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         ignoreErrors: ['string1', regex1, 'string2', regex2],
         devServerUrl: undefined,
@@ -348,7 +369,7 @@ describe('Tests Native Wrapper', () => {
 
     test('does not set ignoreErrorsStr or ignoreErrorsRegex if ignoreErrors is not provided', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
@@ -362,7 +383,7 @@ describe('Tests Native Wrapper', () => {
 
     test('does not set enableLogs when option is undefined', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         devServerUrl: undefined,
@@ -382,7 +403,7 @@ describe('Tests Native Wrapper', () => {
       ['with logsOrigin set to JS', 'js' as const, false],
     ])('handles enableLogs %s', async (_description, logsOrigin, expectedEnableLogs) => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         enableLogs: true,
@@ -400,7 +421,7 @@ describe('Tests Native Wrapper', () => {
 
     test('passes strictTraceContinuation option to native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         strictTraceContinuation: true,
@@ -416,7 +437,7 @@ describe('Tests Native Wrapper', () => {
 
     test('passes screenshot options to native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         screenshot: {
@@ -442,7 +463,7 @@ describe('Tests Native Wrapper', () => {
 
     test('passes orgId option to native SDK', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test',
+        dsn: VALID_DSN,
         enableNative: true,
         autoInitializeNativeSdk: true,
         orgId: '12345',
@@ -520,7 +541,7 @@ describe('Tests Native Wrapper', () => {
     test('does not call RNSentry at all if enableNative is false', async () => {
       try {
         await NATIVE.initNativeSdk({
-          dsn: 'test-dsn',
+          dsn: VALID_DSN,
           enableNative: false,
           devServerUrl: undefined,
           defaultSidecarUrl: undefined,
@@ -825,7 +846,7 @@ describe('Tests Native Wrapper', () => {
     });
     test('does not call crash if enableNative is false', async () => {
       await NATIVE.initNativeSdk({
-        dsn: 'test-dsn',
+        dsn: VALID_DSN,
         enableNative: false,
         devServerUrl: undefined,
         defaultSidecarUrl: undefined,
