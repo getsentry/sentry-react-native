@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Use sentry-java `getFramesDelay` API instead of custom frame delay collector ([#6074](https://github.com/getsentry/sentry-react-native/pull/6074))
+
 ## 8.10.0
 
 ### Features
@@ -23,7 +29,6 @@
 - Escape `name` and `version` values when injecting release constants into the web bundle ([#6044](https://github.com/getsentry/sentry-react-native/pull/6044))
 - Mask the Sentry auth token in the `sentry.gradle` upload-task lifecycle log ([#6057](https://github.com/getsentry/sentry-react-native/pull/6057))
 - Discard invalid navigation/interaction transactions via an event processor instead of mutating the internal `_sampled` flag, removing misleading "dropped due to sampling" debug logs ([#6051](https://github.com/getsentry/sentry-react-native/pull/6051))
-- Use sentry-java `getFramesDelay` API instead of custom frame delay collector ([#6074](https://github.com/getsentry/sentry-react-native/pull/6074))
 
 ### Dependencies
 
