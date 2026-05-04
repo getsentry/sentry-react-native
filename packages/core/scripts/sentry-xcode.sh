@@ -38,12 +38,7 @@ if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
     PNPM_BIN_PATH="$PWD/../node_modules/@sentry/react-native/node_modules/.bin/sentry-cli"
 
     if [ -f "$PNPM_BIN_PATH" ]; then
-      CLI_FILE_TEXT=$(cat "$PNPM_BIN_PATH")
-
-      # Filter where PNPM stored Sentry CLI
-      NODE_PATH_LINE=$(echo "$CLI_FILE_TEXT" | grep -oE 'NODE_PATH="[^"]+"' | head -n1)
-      NODE_PATH_VALUE=$(echo "$NODE_PATH_LINE" | sed -E 's/^NODE_PATH="([^"]+)".*/\1/')
-      SENTRY_CLI_PACKAGE_PATH=${NODE_PATH_VALUE%%/bin*}
+      SENTRY_CLI_PACKAGE_PATH="$PNPM_BIN_PATH"
     fi
   fi
 fi

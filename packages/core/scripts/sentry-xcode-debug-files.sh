@@ -29,7 +29,6 @@ RN_PROJECT_ROOT="${SENTRY_PROJECT_ROOT:-${PROJECT_DIR}/..}"
 [ -z "$SENTRY_PROPERTIES" ] && export SENTRY_PROPERTIES=sentry.properties
 [ -z "$SENTRY_DOTENV_PATH" ] && [ -f "$RN_PROJECT_ROOT/.env.sentry-build-plugin" ] && export SENTRY_DOTENV_PATH="$RN_PROJECT_ROOT/.env.sentry-build-plugin"
 
-[ -z "$SENTRY_CLI_EXECUTABLE" ] && SENTRY_CLI_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))")
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
 
 if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
@@ -44,12 +43,7 @@ if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
     PNPM_BIN_PATH="$PWD/../node_modules/@sentry/react-native/node_modules/.bin/sentry-cli"
 
     if [ -f "$PNPM_BIN_PATH" ]; then
-      CLI_FILE_TEXT=$(cat "$PNPM_BIN_PATH")
-
-      # Filter where PNPM stored Sentry CLI
-      NODE_PATH_LINE=$(echo "$CLI_FILE_TEXT" | grep -oE 'NODE_PATH="[^"]+"' | head -n1)
-      NODE_PATH_VALUE=$(echo "$NODE_PATH_LINE" | sed -E 's/^NODE_PATH="([^"]+)".*/\1/')
-      SENTRY_CLI_PACKAGE_PATH=${NODE_PATH_VALUE%%/bin*}
+      SENTRY_CLI_PACKAGE_PATH="$PNPM_BIN_PATH"
     fi
   fi
 fi
