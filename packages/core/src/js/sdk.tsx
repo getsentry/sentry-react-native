@@ -164,6 +164,8 @@ export function init(passedOptions: ReactNativeOptions): void {
     options.environment = getDefaultEnvironment();
   }
 
+  options.enableLogs = options.enableLogs ?? options._experiments?.enableLogs ?? true;
+
   const defaultIntegrations: false | Integration[] =
     userOptions.defaultIntegrations === undefined ? getDefaultIntegrations(options) : userOptions.defaultIntegrations;
 

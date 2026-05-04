@@ -1296,6 +1296,35 @@ describe('Tests the SDK functionality', () => {
       }),
     );
   });
+
+  describe('enableLogs default', () => {
+    it('defaults enableLogs to true when not provided', () => {
+      init({});
+      expect(usedOptions()?.enableLogs).toBe(true);
+    });
+
+    it('registers logEnricherIntegration in default integrations when enableLogs defaults to true', () => {
+      init({});
+      expectIntegration('LogEnricher');
+    });
+
+    it('does not register consoleLoggingIntegration by default — it must be opt-in', () => {
+      init({});
+      expectNotIntegration('ConsoleLogs');
+    });
+
+    it('respects user-provided enableLogs: false', () => {
+      init({ enableLogs: false });
+      expect(usedOptions()?.enableLogs).toBe(false);
+      expectNotIntegration('LogEnricher');
+    });
+
+    it('backfills enableLogs from _experiments.enableLogs when top-level is undefined', () => {
+      init({ _experiments: { enableLogs: false } });
+      expect(usedOptions()?.enableLogs).toBe(false);
+      expectNotIntegration('LogEnricher');
+    });
+  });
 });
 
 function expectIntegration(name: string): void {
