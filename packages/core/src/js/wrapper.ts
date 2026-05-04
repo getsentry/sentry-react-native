@@ -270,6 +270,12 @@ export const NATIVE: SentryNativeWrapper = {
       return false;
     }
 
+    const trimmedDsn = options.dsn.trim();
+    if (trimmedDsn !== options.dsn) {
+      debug.warn('The DSN contains whitespace which can cause native crashes. Whitespace has been trimmed.');
+      options.dsn = trimmedDsn;
+    }
+
     if (!this._isModuleLoaded(RNSentry)) {
       throw this._NativeClientError;
     }
