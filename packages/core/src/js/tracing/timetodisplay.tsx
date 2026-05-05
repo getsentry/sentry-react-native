@@ -13,12 +13,14 @@ import {
   startInactiveSpan,
 } from '@sentry/core';
 import * as React from 'react';
-import { useState } from 'react';
+import { useEffect, useId, useReducer, useState } from 'react';
 
 import type { NativeFramesResponse } from '../NativeRNSentry';
 
 import { NATIVE } from '../wrapper';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
+import type { DisplayKind } from './timeToDisplayCoordinator';
+import { isAllReady, registerCheckpoint, subscribe, updateCheckpoint } from './timeToDisplayCoordinator';
 import { getRNSentryOnDrawReporter } from './timetodisplaynative';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
 
@@ -59,15 +61,31 @@ const spanFrameDataMap = new Map<string, FrameDataForSpan>();
 
 export type TimeToDisplayProps = {
   children?: React.ReactNode;
+  /**
+   * @deprecated Use `ready` instead. `record` and `ready` are equivalent;
+   * `record` will be removed in the next major version.
+   */
   record?: boolean;
+  /**
+   * Marks this checkpoint as ready. The display is recorded only when every
+   * `<TimeToFullDisplay>` / `<TimeToInitialDisplay>` mounted under the
+   * currently active span reports `ready === true`.
+   *
+   *   <TimeToFullDisplay ready={feedReady} />
+   *   <TimeToFullDisplay ready={sidebarReady} />
+   */
+  ready?: boolean;
 };
 
 /**
  * Component to measure time to initial display.
  *
- * The initial display is recorded when the component prop `record` is true.
+ * Single instance:
+ *   <TimeToInitialDisplay ready={isLoaded} />
  *
- * <TimeToInitialDisplay record />
+ * Multiple instances coordinating on one screen:
+ *   <TimeToInitialDisplay ready={headerLoaded} />
+ *   <TimeToInitialDisplay ready={contentLoaded} />
  */
 export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElement {
   const activeSpan = getActiveSpan();
@@ -76,8 +94,10 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
   }
 
   const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  const initialDisplay = useCoordinatedDisplay('ttid', parentSpanId, props);
+
   return (
-    <TimeToDisplay initialDisplay={props.record} parentSpanId={parentSpanId}>
+    <TimeToDisplay initialDisplay={initialDisplay} parentSpanId={parentSpanId}>
       {props.children}
     </TimeToDisplay>
   );
@@ -86,18 +106,80 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
 /**
  * Component to measure time to full display.
  *
- * The initial display is recorded when the component prop `record` is true.
+ * Single instance:
+ *   <TimeToFullDisplay ready={isLoaded} />
  *
- * <TimeToInitialDisplay record />
+ * Multiple instances coordinating on one screen:
+ *   <TimeToFullDisplay ready={feedReady} />
+ *   <TimeToFullDisplay ready={sidebarReady} />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
   const activeSpan = getActiveSpan();
   const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  const fullDisplay = useCoordinatedDisplay('ttfd', parentSpanId, props);
+
   return (
-    <TimeToDisplay fullDisplay={props.record} parentSpanId={parentSpanId}>
+    <TimeToDisplay fullDisplay={fullDisplay} parentSpanId={parentSpanId}>
       {props.children}
     </TimeToDisplay>
   );
+}
+
+/**
+ * Every `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` instance registers as
+ * a checkpoint under the active span. The aggregate is ready if every
+ * checkpoint reports ready.
+ */
+function useCoordinatedDisplay(
+  kind: DisplayKind,
+  parentSpanId: string | undefined,
+  props: TimeToDisplayProps,
+): boolean {
+  const checkpointId = useId();
+  const [, force] = useReducer((x: number) => x + 1, 0);
+
+  // `ready` takes precedence when both are provided.
+  const localReady = props.ready !== undefined ? !!props.ready : !!props.record;
+
+  if (__DEV__) {
+    if (props.ready !== undefined && props.record !== undefined) {
+      debug.warn('[TimeToDisplay] Both `ready` and `record` were provided — ignoring `record`.');
+    }
+    if (props.record !== undefined) {
+      debug.warn('[TimeToDisplay] The `record` prop is deprecated. Use `ready` instead.');
+    }
+  }
+
+  // Subscribe FIRST so this component receives its own registration notify
+  // (and any peer notifications) on mount.
+  useEffect(() => {
+    if (!parentSpanId) {
+      return undefined;
+    }
+    return subscribe(kind, parentSpanId, force);
+  }, [kind, parentSpanId]);
+
+  // Register on mount / when the active span changes; unregister on unmount.
+  useEffect(() => {
+    if (!parentSpanId) {
+      return undefined;
+    }
+    return registerCheckpoint(kind, parentSpanId, checkpointId, localReady);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kind, parentSpanId, checkpointId]);
+
+  // Propagate ready transitions to the registry.
+  useEffect(() => {
+    if (!parentSpanId) {
+      return;
+    }
+    updateCheckpoint(kind, parentSpanId, checkpointId, localReady);
+  }, [kind, parentSpanId, checkpointId, localReady]);
+
+  if (!parentSpanId) {
+    return false;
+  }
+  return isAllReady(kind, parentSpanId);
 }
 
 function TimeToDisplay(props: {
