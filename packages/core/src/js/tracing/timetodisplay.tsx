@@ -152,14 +152,20 @@ function useCoordinatedDisplay(
   // `ready` takes precedence when both are provided.
   const localReady = props.ready !== undefined ? !!props.ready : !!props.record;
 
-  if (__DEV__) {
+  // Using refs here to only throw warnings once
+  const warnedRef = useRef(false);
+  useEffect(() => {
+    if (!__DEV__ || warnedRef.current) return;
     if (props.ready !== undefined && props.record !== undefined) {
+      warnedRef.current = true;
       debug.warn('[TimeToDisplay] Both `ready` and `record` were provided — ignoring `record`.');
     }
     if (props.record !== undefined) {
+      warnedRef.current = true;
       debug.warn('[TimeToDisplay] The `record` prop is deprecated. Use `ready` instead.');
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Subscribe FIRST so this component receives its own registration notify
   // (and any peer notifications) on mount.
