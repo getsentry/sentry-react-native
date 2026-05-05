@@ -13,7 +13,7 @@ import {
   startInactiveSpan,
 } from '@sentry/core';
 import * as React from 'react';
-import { useEffect, useId, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 
 import type { NativeFramesResponse } from '../NativeRNSentry';
 
@@ -130,12 +130,23 @@ export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement
  * a checkpoint under the active span. The aggregate is ready if every
  * checkpoint reports ready.
  */
+/**
+ * Module-local counter used to mint stable, unique checkpoint ids per
+ * component instance without requiring React 18's `useId`.
+ */
+let nextCheckpointId = 0;
+
 function useCoordinatedDisplay(
   kind: DisplayKind,
   parentSpanId: string | undefined,
   props: TimeToDisplayProps,
 ): boolean {
-  const checkpointId = useId();
+  // Stable per-instance id. `useRef` is available since React 16.8.
+  const checkpointIdRef = useRef<string | null>(null);
+  if (checkpointIdRef.current === null) {
+    checkpointIdRef.current = `cp-${nextCheckpointId++}`;
+  }
+  const checkpointId = checkpointIdRef.current;
   const [, force] = useReducer((x: number) => x + 1, 0);
 
   // `ready` takes precedence when both are provided.
