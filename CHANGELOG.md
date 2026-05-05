@@ -12,6 +12,13 @@
 
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
 
+### Features
+
+  - Multi-instance `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` coordination ([#XXXX](https://github.com/getsentry/sentry-react-native/pulls/XXXX))
+    - When a screen has multiple async data sources, you can now mount one `<TimeToFullDisplay>` per source — the TTID/TTFD will get recorded
+      only when all the sources report `ready`.   
+    - The new `ready` prop is declarative and replaces the previously imperative `record` prop, which is now marked as deprecated.
+
 ## 8.10.0
 
 ### Features
