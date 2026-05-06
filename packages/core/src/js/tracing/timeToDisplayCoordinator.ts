@@ -9,6 +9,13 @@ type Listener = () => void;
 interface SpanRegistry {
   checkpoints: Map<string, Checkpoint>;
   listeners: Set<Listener>;
+  /**
+   * Last-observed aggregate ready state. Used to avoid waking subscribers when
+   * a checkpoint change does not flip the aggregate — the dominant lifecycle
+   * pattern is "all checkpoints register as not-ready, then flip to ready over
+   * time", and only the final flip needs to notify.
+   */
+  aggregateReady: boolean;
 }
 
 const TTID = 'ttid';
@@ -27,11 +34,41 @@ function getOrCreate(kind: DisplayKind, parentSpanId: string): SpanRegistry {
   if (!entry) {
     entry = {
       checkpoints: new Map(),
-      listeners: new Set()
+      listeners: new Set(),
+      aggregateReady: false,
     };
     map.set(parentSpanId, entry);
   }
   return entry;
+}
+
+function computeAggregate(entry: SpanRegistry): boolean {
+  if (entry.checkpoints.size === 0) {
+    return false;
+  }
+  for (const cp of entry.checkpoints.values()) {
+    if (!cp.ready) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Recompute the aggregate; if it flipped, update the cached value and notify.
+ * No-op when the aggregate is unchanged — this is what avoids the O(N²)
+ * notify-storm when many checkpoints register/update without crossing the
+ * aggregate boundary.
+ */
+function reevaluate(entry: SpanRegistry): void {
+  const next = computeAggregate(entry);
+  if (next === entry.aggregateReady) {
+    return;
+  }
+  entry.aggregateReady = next;
+  for (const listener of entry.listeners) {
+    listener();
+  }
 }
 
 function performCleanup(kind: DisplayKind, parentSpanId: string, entry: SpanRegistry): void {
@@ -51,7 +88,7 @@ export function registerCheckpoint(
 ): () => void {
   const entry = getOrCreate(kind, parentSpanId);
   entry.checkpoints.set(checkpointId, { ready });
-  notify(entry);
+  reevaluate(entry);
 
   return () => {
     const e = registries[kind].get(parentSpanId);
@@ -59,7 +96,7 @@ export function registerCheckpoint(
       return;
     }
     if (e.checkpoints.delete(checkpointId)) {
-      notify(e);
+      reevaluate(e);
     }
     performCleanup(kind, parentSpanId, e);
   };
@@ -80,23 +117,16 @@ export function updateCheckpoint(
     return;
   }
   cp.ready = ready;
-  notify(entry);
+  reevaluate(entry);
 }
 
 /**
  * True if at least one checkpoint is registered AND all checkpoints are ready.
+ * Reads the cached aggregate — O(1).
  */
 export function isAllReady(kind: DisplayKind, parentSpanId: string): boolean {
   const entry = registries[kind].get(parentSpanId);
-  if (!entry || entry.checkpoints.size === 0) {
-    return false;
-  }
-  for (const cp of entry.checkpoints.values()) {
-    if (!cp.ready) {
-      return false;
-    }
-  }
-  return true;
+  return !!entry && entry.aggregateReady;
 }
 
 /**
@@ -108,8 +138,9 @@ export function hasAnyCheckpoints(kind: DisplayKind, parentSpanId: string): bool
 }
 
 /**
- * Subscribe to any checkpoint state change for a given span. The listener is
- * called synchronously after each register/update/unregister event.
+ * Subscribe to aggregate-ready transitions for a given span. The listener is
+ * called only when the aggregate flips, not on every individual checkpoint
+ * change.
  */
 export function subscribe(kind: DisplayKind, parentSpanId: string, listener: Listener): () => void {
   const entry = getOrCreate(kind, parentSpanId);
@@ -122,12 +153,6 @@ export function subscribe(kind: DisplayKind, parentSpanId: string, listener: Lis
     e.listeners.delete(listener);
     performCleanup(kind, parentSpanId, e);
   };
-}
-
-function notify(entry: SpanRegistry): void {
-  for (const listener of entry.listeners) {
-    listener();
-  }
 }
 
 /**

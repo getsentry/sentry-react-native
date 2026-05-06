@@ -96,18 +96,34 @@ describe('timeToDisplayCoordinator', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
-  test('subscribers are notified on register / update / unregister', () => {
+  test('subscribers are notified only on aggregate-ready flips', () => {
     const listener = jest.fn();
     subscribe('ttfd', SPAN_FIRST, listener);
 
     const unregister = registerCheckpoint('ttfd', SPAN_FIRST, 'a', false);
-    expect(listener).toHaveBeenCalledTimes(1);
-
+    expect(listener).toHaveBeenCalledTimes(0);
     updateCheckpoint('ttfd', SPAN_FIRST, 'a', true);
-    expect(listener).toHaveBeenCalledTimes(2);
-
+    expect(listener).toHaveBeenCalledTimes(1);
     unregister();
-    expect(listener).toHaveBeenCalledTimes(3);
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  test('non-flipping checkpoint changes do not wake subscribers (storm avoidance)', () => {
+    const listener = jest.fn();
+    subscribe('ttfd', SPAN_FIRST, listener);
+
+    for (let i = 0; i < 10; i++) {
+      registerCheckpoint('ttfd', SPAN_FIRST, `cp-${i}`, false);
+    }
+    expect(listener).toHaveBeenCalledTimes(0);
+
+    for (let i = 0; i < 9; i++) {
+      updateCheckpoint('ttfd', SPAN_FIRST, `cp-${i}`, true);
+    }
+    expect(listener).toHaveBeenCalledTimes(0);
+
+    updateCheckpoint('ttfd', SPAN_FIRST, 'cp-9', true);
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 
   test('unsubscribe stops further notifications', () => {

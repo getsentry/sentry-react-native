@@ -156,7 +156,11 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
     });
   });
 
-  test('mixed `record` + `ready`: both must be satisfied', () => {
+  test('mixed `record` + `ready`: legacy `record` is independent, `ready` peers coordinate', () => {
+    // Backward compat: `record`-only instances do not register as checkpoints
+    // and are not gated by `ready` peers. They emit `fullDisplay` directly
+    // from their own prop, exactly as before this change. `ready` peers gate
+    // each other via the registry.
     startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
       const spanId = spanToJSON(activeSpan!).span_id;
 
@@ -167,15 +171,53 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
         </>
       );
 
+      // record=true fires independently; ready=false blocks the ready reporter.
+      // The tail reflects: [record:true, ready:false] → fullDisplay=true present.
       const tree = render(<Screen rec={true} rdy={false} />);
-      expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+      expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
+      // record=false stops emitting; ready=true now fires.
       act(() => tree.rerender(<Screen rec={false} rdy={true} />));
-      expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+      expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
+      // Both fire.
       act(() => tree.rerender(<Screen rec={true} rdy={true} />));
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
+      activeSpan?.end();
+    });
+  });
+
+  test('legacy: bare <TimeToFullDisplay /> does not block `ready` peers', () => {
+    // Backward compat for layout-placeholder usage. A bare component with
+    // neither prop is a no-op (legacy `record=false`).
+    startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+      const spanId = spanToJSON(activeSpan!).span_id;
+      render(
+        <>
+          <TimeToFullDisplay />
+          <TimeToFullDisplay ready={true} />
+        </>,
+      );
+      expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+      activeSpan?.end();
+    });
+  });
+
+  test('legacy: two `record` peers fire independently (no coordination)', () => {
+    // Backward compat: pre-change behavior was last-write-wins on the native
+    // side. record-only peers must continue to fire independently.
+    startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+      const spanId = spanToJSON(activeSpan!).span_id;
+      render(
+        <>
+          <TimeToFullDisplay record={true} />
+          <TimeToFullDisplay record={false} />
+        </>,
+      );
+      // The record=true reporter fires; record=false does not. fullDisplay=true
+      // present in the tail.
+      expect(tailHasFullDisplay(spanId, 2)).toBe(true);
       activeSpan?.end();
     });
   });

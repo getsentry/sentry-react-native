@@ -126,13 +126,26 @@ export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement
 }
 
 /**
- * Every `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` instance registers as
- * a checkpoint under the active span. The aggregate is ready if every
- * checkpoint reports ready.
- */
-/**
- * Module-local counter used to mint stable, unique checkpoint ids per
- * component instance without requiring React 18's `useId`.
+ * Resolves the boolean passed to the underlying native draw reporter.
+ *
+ * Two semantically-distinct modes preserve backward compatibility:
+ *
+ * 1. **Legacy (`record`)** — the component is independent. The reporter
+ *    receives `!!props.record` directly. Multiple `record`-only peers don't
+ *    coordinate; the native side resolves them via last-write-wins, exactly
+ *    as before this change.
+ *
+ * 2. **Registry (`ready`)** — the component is a checkpoint. It registers
+ *    under the active span and the reporter receives the per-span aggregate.
+ *    Multiple `ready` peers coordinate: every one of them must be ready
+ *    before any of their reporters emits true.
+ *
+ * Mode is selected per-instance: `ready !== undefined` opts into registry
+ * mode. A bare `<TimeToFullDisplay />` (no props) is legacy mode with
+ * `record=false` — a no-op, same as today.
+ *
+ * `ready` and `record` will be unified into one prop in the next major when
+ * `record` is removed.
  */
 let nextCheckpointId = 0;
 
@@ -149,18 +162,17 @@ function useCoordinatedDisplay(
   const checkpointId = checkpointIdRef.current;
   const [, force] = useReducer((x: number) => x + 1, 0);
 
-  // `ready` takes precedence when both are provided.
-  const localReady = props.ready !== undefined ? !!props.ready : !!props.record;
+  const useRegistry = props.ready !== undefined;
+  const localReady = useRegistry ? !!props.ready : !!props.record;
 
-  // Using refs here to only throw warnings once
+  // Emit deprecation / conflict warnings once per component instance.
   const warnedRef = useRef(false);
   useEffect(() => {
     if (!__DEV__ || warnedRef.current) return;
     if (props.ready !== undefined && props.record !== undefined) {
       warnedRef.current = true;
       debug.warn('[TimeToDisplay] Both `ready` and `record` were provided — ignoring `record`.');
-    }
-    if (props.record !== undefined) {
+    } else if (props.record !== undefined) {
       warnedRef.current = true;
       debug.warn('[TimeToDisplay] The `record` prop is deprecated. Use `ready` instead.');
     }
@@ -168,34 +180,44 @@ function useCoordinatedDisplay(
   }, []);
 
   // Subscribe FIRST so this component receives its own registration notify
-  // (and any peer notifications) on mount.
+  // (and any peer notifications) on mount. Only registry-mode components
+  // need peer notifications.
   useEffect(() => {
-    if (!parentSpanId) {
+    if (!parentSpanId || !useRegistry) {
       return undefined;
     }
     return subscribe(kind, parentSpanId, force);
-  }, [kind, parentSpanId]);
+  }, [kind, parentSpanId, useRegistry]);
 
   // Register on mount / when the active span changes; unregister on unmount.
+  // Legacy-mode components do not register — they are independent and don't
+  // gate or get gated by peers.
   useEffect(() => {
-    if (!parentSpanId) {
+    if (!parentSpanId || !useRegistry) {
       return undefined;
     }
     return registerCheckpoint(kind, parentSpanId, checkpointId, localReady);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kind, parentSpanId, checkpointId]);
+  }, [kind, parentSpanId, useRegistry, checkpointId]);
 
-  // Propagate ready transitions to the registry.
+  // Propagate ready transitions to the registry. Legacy-mode components
+  // skip this — they propagate their value directly via the returned boolean.
   useEffect(() => {
-    if (!parentSpanId) {
+    if (!parentSpanId || !useRegistry) {
       return;
     }
     updateCheckpoint(kind, parentSpanId, checkpointId, localReady);
-  }, [kind, parentSpanId, checkpointId, localReady]);
+  }, [kind, parentSpanId, useRegistry, checkpointId, localReady]);
 
   if (!parentSpanId) {
     return false;
   }
+  // Legacy: propagate the local `record` value directly. Native last-wins
+  // resolves multi-instance ordering exactly as before.
+  if (!useRegistry) {
+    return localReady;
+  }
+  // Registry: gated on the per-span aggregate.
   return isAllReady(kind, parentSpanId);
 }
 
