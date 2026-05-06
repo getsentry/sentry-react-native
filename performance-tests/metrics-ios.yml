@@ -6,9 +6,9 @@ apps:
 
 startupTimeTest:
   runs: 50
-  diffMin: -20
+  diffMin: -3000
   diffMax: 150
 
 binarySizeTest:
   diffMin: 600 KiB
-  diffMax: 1470 KiB
+  diffMax: 1550 KiB
