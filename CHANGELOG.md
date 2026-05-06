@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Use `accessibilityLabel`, `aria-label`, and `testID` as fallback labels for touch breadcrumbs when `sentry-label` is not set ([#6096](https://github.com/getsentry/sentry-react-native/issues/6096))
+
 ### Fixes
 
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
