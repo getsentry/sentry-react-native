@@ -562,7 +562,7 @@ export const screenshotIntegration: () => Integration;
 export const SDK_NAME = "sentry.javascript.react-native";
 
 // @public (undocumented)
-export const SDK_VERSION = "8.10.0";
+export const SDK_VERSION: string;
 
 export { SdkInfo }
 
