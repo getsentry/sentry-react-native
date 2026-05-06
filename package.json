@@ -25,7 +25,8 @@
     "swift:lint": "./scripts/swiftlint.sh",
     "run-ios": "cd samples/react-native && yarn react-native run-ios",
     "run-android": "cd samples/react-native && yarn react-native run-android",
-    "set-version-samples": "lerna run set-version"
+    "set-version-samples": "lerna run set-version",
+    "api-report": "yarn workspace @sentry/react-native api-report:generate"
   },
   "devDependencies": {
     "@naturalcycles/ktlint": "^1.13.0",
