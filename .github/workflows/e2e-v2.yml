@@ -157,6 +157,7 @@ jobs:
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               export RCT_NEW_ARCH_ENABLED=1
             fi
+            export REACT_NATIVE_NODE_MODULES_DIR="$PWD/../node_modules/react-native"
             bundle install
             bundle exec pod install
             cd ../..
@@ -188,6 +189,7 @@ jobs:
             if [[ ${{ matrix.rn-architecture }} == 'new' ]]; then
               export RCT_NEW_ARCH_ENABLED=1
             fi
+            export REACT_NATIVE_NODE_MODULES_DIR="$PWD/../node_modules/react-native"
             bundle install
             bundle exec pod install
             cd ../..
