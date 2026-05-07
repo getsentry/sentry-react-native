@@ -20,10 +20,11 @@ import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import * as React from 'react';
 
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
+import { _resetTimeToDisplayCoordinator } from '../../src/js/tracing/timeToDisplayCoordinator';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
@@ -48,6 +49,28 @@ jest.mock('../../src/js/utils/environment', () => ({
 const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } =
   mockedtimetodisplaynative;
 
+/** Flush the coordinator's deferred up-flip + any consequent React re-renders. */
+function flushReadyDefer(): void {
+  act(() => {
+    jest.runOnlyPendingTimers();
+  });
+}
+
+/**
+ * The mock records every render of every native draw reporter. We slice the
+ * tail of the prop log to inspect the converged post-effect state of all
+ * currently-mounted reporters for a given span.
+ */
+function tailHasFullDisplay(parentSpanId: string, mountedReporterCount: number): boolean {
+  const props = getMockedOnDrawReportedProps().filter(p => p.parentSpanId === parentSpanId);
+  return props.slice(-mountedReporterCount).some(p => p.fullDisplay === true);
+}
+
+function tailHasInitialDisplay(parentSpanId: string, mountedReporterCount: number): boolean {
+  const props = getMockedOnDrawReportedProps().filter(p => p.parentSpanId === parentSpanId);
+  return props.slice(-mountedReporterCount).some(p => p.initialDisplay === true);
+}
+
 jest.useFakeTimers({
   advanceTimers: true,
   doNotFake: ['performance'], // Keep real performance API
@@ -58,6 +81,7 @@ describe('TimeToDisplay', () => {
 
   beforeEach(() => {
     clearMockedOnDrawReportedProps();
+    _resetTimeToDisplayCoordinator();
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
@@ -743,5 +767,306 @@ describe('Frame Data', () => {
     const ttidSpan = client.event!.spans!.find((span: SpanJSON) => span.op === 'ui.load.initial_display');
     expect(ttidSpan).toBeDefined();
     expect(ttidSpan!.data).not.toHaveProperty('frames.delay');
+  });
+
+  describe('multi-instance (`ready` prop)', () => {
+    test('legacy: single `record` instance behaves identically to today', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+        render(<TimeToFullDisplay record={true} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+        activeSpan?.end();
+      });
+    });
+
+    test('two `ready={false}` instances do not emit', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+        render(
+          <>
+            <TimeToFullDisplay ready={false} />
+            <TimeToFullDisplay ready={false} />
+          </>,
+        );
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+        activeSpan?.end();
+      });
+    });
+
+    test('two `ready` instances emit only when both are ready', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ a, b }: { a: boolean; b: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={a} />
+            <TimeToFullDisplay ready={b} />
+          </>
+        );
+
+        const tree = render(<Screen a={false} b={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen a={true} b={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen a={true} b={true} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('late-mounting `ready={false}` un-readies an already-ready aggregate', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ showLate, lateReady }: { showLate: boolean; lateReady: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={true} />
+            {showLate ? <TimeToFullDisplay ready={lateReady} /> : null}
+          </>
+        );
+
+        const tree = render(<Screen showLate={false} lateReady={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+
+        act(() => tree.rerender(<Screen showLate={true} lateReady={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen showLate={true} lateReady={true} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('unmounting the sole blocker does NOT emit ready (sticky safeguard)', () => {
+      // A conditionally-rendered loading section that disappears before its
+      // data resolves must not trick TTFD into firing as if the screen were
+      // fully displayed. The sole-blocker checkpoint is kept sticky in the
+      // registry, so its unmount cannot flip the aggregate to true.
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ showBlocker }: { showBlocker: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={true} />
+            {showBlocker ? <TimeToFullDisplay ready={false} /> : null}
+          </>
+        );
+
+        const tree = render(<Screen showBlocker={true} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen showBlocker={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(false);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('unmounting a non-sole-blocker resolves the aggregate when remaining peers are ready', () => {
+      // The sticky safeguard only applies to *sole* blockers. If other
+      // not-ready peers exist, an unmount can't flip the aggregate to true,
+      // so it removes normally.
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ aReady, showB }: { aReady: boolean; showB: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={aReady} />
+            {showB ? <TimeToFullDisplay ready={false} /> : null}
+          </>
+        );
+
+        const tree = render(<Screen aReady={false} showB={true} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen aReady={false} showB={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(false);
+
+        act(() => tree.rerender(<Screen aReady={true} showB={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('mixed `record` + `ready`: legacy `record` is independent, `ready` peers coordinate', () => {
+      // Backward compat: `record`-only instances do not register as checkpoints
+      // and are not gated by `ready` peers.
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ rec, rdy }: { rec: boolean; rdy: boolean }) => (
+          <>
+            <TimeToFullDisplay record={rec} />
+            <TimeToFullDisplay ready={rdy} />
+          </>
+        );
+
+        const tree = render(<Screen rec={true} rdy={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+
+        act(() => tree.rerender(<Screen rec={false} rdy={true} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+
+        act(() => tree.rerender(<Screen rec={true} rdy={true} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('legacy: bare <TimeToFullDisplay /> does not block `ready` peers', () => {
+      // Backward compat for layout-placeholder usage. A bare component is a no-op.
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+        render(
+          <>
+            <TimeToFullDisplay />
+            <TimeToFullDisplay ready={true} />
+          </>,
+        );
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+        activeSpan?.end();
+      });
+    });
+
+    test('legacy: two `record` peers fire independently (no coordination)', () => {
+      // Pre-change behavior was last-write-wins on the native side. record-only
+      // peers must continue to fire independently.
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+        render(
+          <>
+            <TimeToFullDisplay record={true} />
+            <TimeToFullDisplay record={false} />
+          </>,
+        );
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+        activeSpan?.end();
+      });
+    });
+
+    test('late-mounting `ready={false}` peer does not inherit existing peer\u2019s ready=true (pre-register clamp)', () => {
+      // A fresh component on its first render calls isAllReady before its
+      // useEffect has registered. The clamp `localReady && isAllReady` ensures
+      // it can never inherit a peer's true verdict on its first render.
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ showLate }: { showLate: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={true} />
+            {showLate ? <TimeToFullDisplay ready={false} /> : null}
+          </>
+        );
+
+        const tree = render(<Screen showLate={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+
+        act(() => tree.rerender(<Screen showLate={true} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('same-task wave: header alone-and-ready does not fire when sibling mounts on next commit', () => {
+      // The defining race the deferred up-flip protects against: header
+      // registers ready=true alone, sibling mounts a tick later via the typical
+      // parent-useEffect-setState wave. setTimeout(0) defers past the entire
+      // task so the late mount cancels the pending up-flip.
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = (): React.ReactElement => {
+          const [showSidebar, setShowSidebar] = React.useState(false);
+          React.useEffect(() => {
+            setShowSidebar(true);
+          }, []);
+          return (
+            <>
+              <TimeToFullDisplay ready={true} />
+              {showSidebar ? <TimeToFullDisplay ready={false} /> : null}
+            </>
+          );
+        };
+
+        render(<Screen />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('different active spans have independent registries', () => {
+      let firstSpanId = '';
+      let secondSpanId = '';
+
+      startSpanManual({ name: 'Screen A', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        firstSpanId = spanToJSON(activeSpan!).span_id;
+        render(<TimeToFullDisplay ready={true} />);
+        activeSpan?.end();
+      });
+
+      clearMockedOnDrawReportedProps();
+
+      startSpanManual({ name: 'Screen B', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        secondSpanId = spanToJSON(activeSpan!).span_id;
+        render(<TimeToFullDisplay ready={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(secondSpanId, 1)).toBe(false);
+        activeSpan?.end();
+      });
+
+      expect(firstSpanId).not.toEqual(secondSpanId);
+    });
+
+    test('TTID `ready` aggregates symmetrically', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ a, b }: { a: boolean; b: boolean }) => (
+          <>
+            <TimeToInitialDisplay ready={a} />
+            <TimeToInitialDisplay ready={b} />
+          </>
+        );
+
+        const tree = render(<Screen a={false} b={true} />);
+        flushReadyDefer();
+        expect(tailHasInitialDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen a={true} b={true} />));
+        flushReadyDefer();
+        expect(tailHasInitialDisplay(spanId, 2)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
   });
 });

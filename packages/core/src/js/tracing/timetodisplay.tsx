@@ -61,29 +61,16 @@ const spanFrameDataMap = new Map<string, FrameDataForSpan>();
 
 export type TimeToDisplayProps = {
   children?: React.ReactNode;
-  /**
-   * @deprecated Use `ready` instead. `record` and `ready` are equivalent;
-   * `record` will be removed in the next major version.
-   */
+  /** @deprecated Use `ready` instead. `record` will be removed in the next major version. **/
   record?: boolean;
-  /**
-   * Marks this checkpoint as ready. The display is recorded only when every
-   * `<TimeToFullDisplay>` / `<TimeToInitialDisplay>` mounted under the
-   * currently active span reports `ready === true`.
-   *
-   *   <TimeToFullDisplay ready={feedReady} />
-   *   <TimeToFullDisplay ready={sidebarReady} />
-   */
+  // Marks this checkpoint as ready.
   ready?: boolean;
 };
 
 /**
  * Component to measure time to initial display.
  *
- * Single instance:
- *   <TimeToInitialDisplay ready={isLoaded} />
- *
- * Multiple instances coordinating on one screen:
+ * Usage example:
  *   <TimeToInitialDisplay ready={headerLoaded} />
  *   <TimeToInitialDisplay ready={contentLoaded} />
  */
@@ -106,10 +93,7 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
 /**
  * Component to measure time to full display.
  *
- * Single instance:
- *   <TimeToFullDisplay ready={isLoaded} />
- *
- * Multiple instances coordinating on one screen:
+ * Usage example:
  *   <TimeToFullDisplay ready={feedReady} />
  *   <TimeToFullDisplay ready={sidebarReady} />
  */
@@ -125,28 +109,6 @@ export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement
   );
 }
 
-/**
- * Resolves the boolean passed to the underlying native draw reporter.
- *
- * Two semantically-distinct modes preserve backward compatibility:
- *
- * 1. **Legacy (`record`)** — the component is independent. The reporter
- *    receives `!!props.record` directly. Multiple `record`-only peers don't
- *    coordinate; the native side resolves them via last-write-wins, exactly
- *    as before this change.
- *
- * 2. **Registry (`ready`)** — the component is a checkpoint. It registers
- *    under the active span and the reporter receives the per-span aggregate.
- *    Multiple `ready` peers coordinate: every one of them must be ready
- *    before any of their reporters emits true.
- *
- * Mode is selected per-instance: `ready !== undefined` opts into registry
- * mode. A bare `<TimeToFullDisplay />` (no props) is legacy mode with
- * `record=false` — a no-op, same as today.
- *
- * `ready` and `record` will be unified into one prop in the next major when
- * `record` is removed.
- */
 let nextCheckpointId = 0;
 
 function useCoordinatedDisplay(
@@ -154,7 +116,6 @@ function useCoordinatedDisplay(
   parentSpanId: string | undefined,
   props: TimeToDisplayProps,
 ): boolean {
-  // Stable per-instance id. `useRef` is available since React 16.8.
   const checkpointIdRef = useRef<string | null>(null);
   if (checkpointIdRef.current === null) {
     checkpointIdRef.current = `cp-${nextCheckpointId++}`;
@@ -162,10 +123,11 @@ function useCoordinatedDisplay(
   const checkpointId = checkpointIdRef.current;
   const [, force] = useReducer((x: number) => x + 1, 0);
 
+  // useRegistry means we might use multiple TTID/TTFD components
   const useRegistry = props.ready !== undefined;
   const localReady = useRegistry ? !!props.ready : !!props.record;
 
-  // Emit deprecation / conflict warnings once per component instance.
+  // We do it this way because we don't want warnings being thrown on every re-render
   const warnedRef = useRef(false);
   useEffect(() => {
     if (!__DEV__ || warnedRef.current) return;
@@ -179,9 +141,6 @@ function useCoordinatedDisplay(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Subscribe FIRST so this component receives its own registration notify
-  // (and any peer notifications) on mount. Only registry-mode components
-  // need peer notifications.
   useEffect(() => {
     if (!parentSpanId || !useRegistry) {
       return undefined;
@@ -189,16 +148,10 @@ function useCoordinatedDisplay(
     return subscribe(kind, parentSpanId, force);
   }, [kind, parentSpanId, useRegistry]);
 
-  // Tracks whether this component's checkpoint is currently registered with
-  // the coordinator. Used to detect the pre-register render so we don't
-  // inherit a peer's ready=true verdict before our own checkpoint exists in
-  // the aggregate. Reset on unregister so re-mount under a new active span
-  // re-clamps correctly.
+  // Tracks if this component's checkpoint is currently registered with the coordinator
   const registeredRef = useRef(false);
 
-  // Register on mount / when the active span changes; unregister on unmount.
-  // Legacy-mode components do not register — they are independent and don't
-  // gate or get gated by peers.
+  // Register on mount / when the active span changes
   useEffect(() => {
     if (!parentSpanId || !useRegistry) {
       return undefined;
@@ -212,8 +165,7 @@ function useCoordinatedDisplay(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, parentSpanId, useRegistry, checkpointId]);
 
-  // Propagate ready transitions to the registry. Legacy-mode components
-  // skip this — they propagate their value directly via the returned boolean.
+  // Propagate ready transitions to the registry
   useEffect(() => {
     if (!parentSpanId || !useRegistry) {
       return;
@@ -221,23 +173,16 @@ function useCoordinatedDisplay(
     updateCheckpoint(kind, parentSpanId, checkpointId, localReady);
   }, [kind, parentSpanId, useRegistry, checkpointId, localReady]);
 
+  // Main logic for "readiness"
   if (!parentSpanId) {
     return false;
   }
-  // Legacy: propagate the local `record` value directly. Native last-wins
-  // resolves multi-instance ordering exactly as before.
   if (!useRegistry) {
     return localReady;
   }
-  // Registry, pre-register render: our checkpoint is not yet in the
-  // registry, so `isAllReady` reflects only peer state. Combine it with our
-  // own `localReady` so we never inherit a peer's true verdict before our
-  // own checkpoint has had a chance to report.
   if (!registeredRef.current) {
     return localReady && isAllReady(kind, parentSpanId);
   }
-  // Registry, post-register: gated on the per-span aggregate, which now
-  // includes our checkpoint.
   return isAllReady(kind, parentSpanId);
 }
 

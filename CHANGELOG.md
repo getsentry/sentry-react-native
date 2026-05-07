@@ -12,14 +12,7 @@
 
 - Multi-instance `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` coordination ([#6090](https://github.com/getsentry/sentry-react-native/pull/6090))
   - New `ready` prop. When a screen has multiple async data sources, mount one `<TimeToFullDisplay ready={...} />` per source — TTID/TTFD is recorded only when every instance reports `ready === true`.
-    ```tsx
-    <TimeToFullDisplay ready={feedLoaded} />
-    <TimeToFullDisplay ready={sidebarLoaded} />
-    // TTFD fires when both are ready.
-    ```
-  - The existing `record` prop is **unchanged** and continues to behave exactly as before — instances using `record` are independent and do not gate or get gated by `ready` peers. Existing apps require no migration.
-  - `record` is now deprecated in favor of `ready`. Migrating to `ready` is a one-line rename that opts the instance into multi-instance coordination. `record` will be removed in the next major version.
-  - Mounting a not-yet-ready peer on the next render commit (typical `useEffect` → `setState` → child mount waves) cancels any pending fire from an earlier-ready peer, preventing premature TTFD recording. Up-flips of the aggregate are deferred by one macrotask to absorb same-task peer mounts; down-flips are immediate.
+  - The existing `record` prop is unchanged BUT it is now deprecated in favor of `ready`.
 
 ### Fixes
 

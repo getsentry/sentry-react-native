@@ -87,10 +87,6 @@ export const timeToDisplayIntegration = (): Integration => {
         event.timestamp = newTransactionEndTimestampSeconds;
       }
 
-      // Drop the per-span coordinator state now that we've read the native
-      // ttid/ttfd values. Prevents the module-level registries from
-      // accumulating entries for screens that outlive their span (keep-alive,
-      // idle-timeout discarded transactions, etc.).
       clearTimeToDisplayCoordinatorSpan(rootSpanId);
 
       return event;
