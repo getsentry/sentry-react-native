@@ -112,7 +112,7 @@
     "oxlint": "^1.56.0",
     "oxlint-tsgolint": "^0.17.4",
     "react": "19.1.0",
-    "react-native": "0.80.1",
+    "react-native": "0.85.3",
     "react-test-renderer": "19.1.0",
     "rimraf": "^4.1.1",
     "ts-jest": "^29.3.1",
