@@ -19,6 +19,7 @@
     ```
   - The existing `record` prop is **unchanged** and continues to behave exactly as before — instances using `record` are independent and do not gate or get gated by `ready` peers. Existing apps require no migration.
   - `record` is now deprecated in favor of `ready`. Migrating to `ready` is a one-line rename that opts the instance into multi-instance coordination. `record` will be removed in the next major version.
+  - Mounting a not-yet-ready peer on the next render commit (typical `useEffect` → `setState` → child mount waves) cancels any pending fire from an earlier-ready peer, preventing premature TTFD recording. Up-flips of the aggregate are deferred by one macrotask to absorb same-task peer mounts; down-flips are immediate.
 
 ### Fixes
 

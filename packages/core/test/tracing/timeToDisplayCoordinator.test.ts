@@ -1,5 +1,6 @@
 import {
   _resetTimeToDisplayCoordinator,
+  clearSpan,
   hasAnyCheckpoints,
   isAllReady,
   registerCheckpoint,
@@ -10,9 +11,19 @@ import {
 const SPAN_FIRST = 'span-first';
 const SPAN_SECOND = 'span-second';
 
+/** Flush the coordinator's deferred up-flip timer. */
+function flushDefer(): void {
+  jest.runOnlyPendingTimers();
+}
+
 describe('timeToDisplayCoordinator', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     _resetTimeToDisplayCoordinator();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   test('empty registry is not ready', () => {
@@ -27,6 +38,7 @@ describe('timeToDisplayCoordinator', () => {
 
   test('single ready checkpoint resolves', () => {
     registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
   });
 
@@ -37,12 +49,14 @@ describe('timeToDisplayCoordinator', () => {
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
 
     updateCheckpoint('ttfd', SPAN_FIRST, 'c', true);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
   });
 
   test('late-registering not-ready checkpoint un-readies the aggregate', () => {
     registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
     registerCheckpoint('ttfd', SPAN_FIRST, 'b', true);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
 
     registerCheckpoint('ttfd', SPAN_FIRST, 'c', false);
@@ -75,6 +89,7 @@ describe('timeToDisplayCoordinator', () => {
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
     // 'a' remains, 'b' is gone.
     updateCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
   });
 
@@ -86,11 +101,13 @@ describe('timeToDisplayCoordinator', () => {
     // 'a' is still blocking; 'b' was ready so removing it is safe.
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
     updateCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
   });
 
   test('unregistering the last checkpoint leaves aggregate not-ready', () => {
     const unregister = registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
 
     unregister();
@@ -101,6 +118,7 @@ describe('timeToDisplayCoordinator', () => {
   test('different spans are independent', () => {
     registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
     registerCheckpoint('ttfd', SPAN_SECOND, 'a', false);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
     expect(isAllReady('ttfd', SPAN_SECOND)).toBe(false);
   });
@@ -108,6 +126,7 @@ describe('timeToDisplayCoordinator', () => {
   test('different kinds are independent', () => {
     registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
     registerCheckpoint('ttid', SPAN_FIRST, 'a', false);
+    flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
     expect(isAllReady('ttid', SPAN_FIRST)).toBe(false);
   });
@@ -134,6 +153,7 @@ describe('timeToDisplayCoordinator', () => {
     const unregister = registerCheckpoint('ttfd', SPAN_FIRST, 'a', false);
     expect(listener).toHaveBeenCalledTimes(0);
     updateCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    flushDefer();
     expect(listener).toHaveBeenCalledTimes(1);
     unregister();
     expect(listener).toHaveBeenCalledTimes(2);
@@ -154,6 +174,7 @@ describe('timeToDisplayCoordinator', () => {
     expect(listener).toHaveBeenCalledTimes(0);
 
     updateCheckpoint('ttfd', SPAN_FIRST, 'cp-9', true);
+    flushDefer();
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
@@ -170,5 +191,70 @@ describe('timeToDisplayCoordinator', () => {
     subscribe('ttfd', SPAN_FIRST, listener);
     registerCheckpoint('ttfd', SPAN_SECOND, 'a', true);
     expect(listener).not.toHaveBeenCalled();
+  });
+
+  test('up-flip is deferred so a same-task late-mounting peer can cancel it', () => {
+    // The defining race: header registers ready=true alone, sidebar mounts
+    // a tick later (e.g. parent useEffect setState→child mount). Without the
+    // defer, header would fire instantly. With the defer, sidebar's
+    // registration cancels the pending up-flip before it fires.
+    registerCheckpoint('ttfd', SPAN_FIRST, 'header', true);
+    // Aggregate is *raw* ready, but `isAllReady` (deferred view) is still false.
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+
+    // Same-task: sidebar mounts before the timer macrotask runs.
+    registerCheckpoint('ttfd', SPAN_FIRST, 'sidebar', false);
+
+    flushDefer();
+    // Aggregate must NOT have flipped — the defer protected us.
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+
+    // Sidebar resolves — now we get a real ready transition.
+    updateCheckpoint('ttfd', SPAN_FIRST, 'sidebar', true);
+    flushDefer();
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
+  });
+
+  test('down-flip is immediate (cancels pending up-flip and not deferred itself)', () => {
+    registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    flushDefer();
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
+
+    registerCheckpoint('ttfd', SPAN_FIRST, 'b', false);
+    // No flushDefer: down-flip is immediate.
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+  });
+
+  test('clearSpan drops all coordinator state for a span', () => {
+    // Simulates the integration calling clearSpan after popTimeToDisplayFor
+    // returns. Prevents the registries from accumulating entries for screens
+    // that outlive their span (keep-alive, idle-timeout discarded txns, etc.).
+    registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    registerCheckpoint('ttid', SPAN_FIRST, 'a', true);
+    registerCheckpoint('ttfd', SPAN_SECOND, 'a', true);
+    flushDefer();
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
+    flushDefer();
+    expect(isAllReady('ttid', SPAN_FIRST)).toBe(true);
+    flushDefer();
+    expect(isAllReady('ttfd', SPAN_SECOND)).toBe(true);
+
+    clearSpan(SPAN_FIRST);
+
+    expect(hasAnyCheckpoints('ttfd', SPAN_FIRST)).toBe(false);
+    expect(hasAnyCheckpoints('ttid', SPAN_FIRST)).toBe(false);
+    // Other spans untouched.
+    flushDefer();
+    expect(isAllReady('ttfd', SPAN_SECOND)).toBe(true);
+  });
+
+  test('clearSpan also drops sticky checkpoints', () => {
+    registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    const unregisterB = registerCheckpoint('ttfd', SPAN_FIRST, 'b', false);
+    unregisterB(); // becomes sticky
+    expect(hasAnyCheckpoints('ttfd', SPAN_FIRST)).toBe(true);
+
+    clearSpan(SPAN_FIRST);
+    expect(hasAnyCheckpoints('ttfd', SPAN_FIRST)).toBe(false);
   });
 });

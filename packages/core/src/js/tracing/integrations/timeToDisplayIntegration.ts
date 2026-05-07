@@ -4,6 +4,7 @@ import { debug } from '@sentry/core';
 
 import { NATIVE } from '../../wrapper';
 import { UI_LOAD_FULL_DISPLAY, UI_LOAD_INITIAL_DISPLAY } from '../ops';
+import { clearSpan as clearTimeToDisplayCoordinatorSpan } from '../timeToDisplayCoordinator';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../origin';
 import { getReactNavigationIntegration } from '../reactnavigation';
 import { SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN } from '../semanticAttributes';
@@ -85,6 +86,12 @@ export const timeToDisplayIntegration = (): Integration => {
       if (newTransactionEndTimestampSeconds !== -1) {
         event.timestamp = newTransactionEndTimestampSeconds;
       }
+
+      // Drop the per-span coordinator state now that we've read the native
+      // ttid/ttfd values. Prevents the module-level registries from
+      // accumulating entries for screens that outlive their span (keep-alive,
+      // idle-timeout discarded transactions, etc.).
+      clearTimeToDisplayCoordinatorSpan(rootSpanId);
 
       return event;
     },

@@ -32,6 +32,16 @@ jest.mock('../../src/js/utils/environment', () => ({
 
 const { getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } = mockedtimetodisplaynative;
 
+/**
+ * Flush the coordinator's deferred up-flip timer + any consequent React
+ * re-renders. Wrapped in act() so React applies the resulting state updates.
+ */
+function flushReadyDefer(): void {
+  act(() => {
+    jest.runOnlyPendingTimers();
+  });
+}
+
 function tailHasFullDisplay(parentSpanId: string, mountedReporterCount: number): boolean {
   const props = getMockedOnDrawReportedProps().filter(p => p.parentSpanId === parentSpanId);
   const tail = props.slice(-mountedReporterCount);
@@ -68,6 +78,7 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
     startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
       const spanId = spanToJSON(activeSpan!).span_id;
       render(<TimeToFullDisplay record={true} />);
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 1)).toBe(true);
       activeSpan?.end();
     });
@@ -82,6 +93,7 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
           <TimeToFullDisplay ready={false} />
         </>,
       );
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(false);
       activeSpan?.end();
     });
@@ -99,12 +111,15 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       );
 
       const tree = render(<Screen a={false} b={false} />);
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(false);
 
       act(() => tree.rerender(<Screen a={true} b={false} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(false);
 
       act(() => tree.rerender(<Screen a={true} b={true} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
       activeSpan?.end();
@@ -123,12 +138,15 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       );
 
       const tree = render(<Screen showLate={false} lateReady={false} />);
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 1)).toBe(true);
 
       act(() => tree.rerender(<Screen showLate={true} lateReady={false} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(false);
 
       act(() => tree.rerender(<Screen showLate={true} lateReady={true} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
       activeSpan?.end();
@@ -151,9 +169,11 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       );
 
       const tree = render(<Screen showBlocker={true} />);
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(false);
 
       act(() => tree.rerender(<Screen showBlocker={false} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 1)).toBe(false);
 
       activeSpan?.end();
@@ -175,15 +195,18 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       );
 
       const tree = render(<Screen aReady={false} showB={true} />);
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(false);
 
       // Unmount B while A is also not-ready: not a sole-blocker case, B
       // removes normally; aggregate still blocked by A.
       act(() => tree.rerender(<Screen aReady={false} showB={false} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 1)).toBe(false);
 
       // Now flip A to ready: aggregate flips, A's reporter emits.
       act(() => tree.rerender(<Screen aReady={true} showB={false} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 1)).toBe(true);
 
       activeSpan?.end();
@@ -208,14 +231,17 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       // record=true fires independently; ready=false blocks the ready reporter.
       // The tail reflects: [record:true, ready:false] → fullDisplay=true present.
       const tree = render(<Screen rec={true} rdy={false} />);
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
       // record=false stops emitting; ready=true now fires.
       act(() => tree.rerender(<Screen rec={false} rdy={true} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
       // Both fire.
       act(() => tree.rerender(<Screen rec={true} rdy={true} />));
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
 
       activeSpan?.end();
@@ -233,7 +259,79 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
           <TimeToFullDisplay ready={true} />
         </>,
       );
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+      activeSpan?.end();
+    });
+  });
+
+  test('late-mounting `ready={false}` peer does not inherit existing peer’s ready=true (pre-register clamp)', () => {
+    // Bug class: a fresh component on its first render calls `isAllReady`
+    // before its useEffect has registered its checkpoint. If a peer was
+    // already registered ready, the new instance would see aggregate=true
+    // and emit `fullDisplay=true` from its own reporter on its very first
+    // render — a premature fire whose timestamp would overwrite the (also
+    // premature) earlier one via native last-wins.
+    //
+    // The clamp `localReady && isAllReady` guarantees: if the new
+    // instance's local prop is false, it can never emit true on its first
+    // render even when peers are already ready.
+    startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+      const spanId = spanToJSON(activeSpan!).span_id;
+
+      const Screen = ({ showLate }: { showLate: boolean }) => (
+        <>
+          <TimeToFullDisplay ready={true} />
+          {showLate ? <TimeToFullDisplay ready={false} /> : null}
+        </>
+      );
+
+      const tree = render(<Screen showLate={false} />);
+      flushReadyDefer();
+      expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+
+      // Mount the late ready=false peer. Its very first render must NOT emit
+      // true even though aggregate is currently true (peer A is ready).
+      act(() => tree.rerender(<Screen showLate={true} />));
+      // After both renders settle, neither reporter should have its current
+      // prop set to true.
+      flushReadyDefer();
+      expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+      activeSpan?.end();
+    });
+  });
+
+  test('same-task wave: header alone-and-ready does not fire when sibling mounts on next commit', () => {
+    // Reviewer's scenario: a header that loads instantly would otherwise
+    // finalize TTFD before a sibling that mounts a tick later registers as
+    // not-ready. The coordinator's deferred up-flip catches this race as
+    // long as the late mount happens within the same event-loop task
+    // (the typical "parent useEffect setState → child mount" wave).
+    startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+      const spanId = spanToJSON(activeSpan!).span_id;
+
+      const Screen = (): React.ReactElement => {
+        const [showSidebar, setShowSidebar] = React.useState(false);
+        React.useEffect(() => {
+          setShowSidebar(true);
+        }, []);
+        return (
+          <>
+            <TimeToFullDisplay ready={true} />
+            {showSidebar ? <TimeToFullDisplay ready={false} /> : null}
+          </>
+        );
+      };
+
+      render(<Screen />);
+      // Both the synchronous header mount and the deferred-via-useEffect
+      // sidebar mount have completed; flushing the up-flip timer must NOT
+      // produce a fullDisplay=true emission, because the sidebar is now a
+      // registered blocker.
+      flushReadyDefer();
+      expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
       activeSpan?.end();
     });
   });
@@ -251,6 +349,7 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       );
       // The record=true reporter fires; record=false does not. fullDisplay=true
       // present in the tail.
+      flushReadyDefer();
       expect(tailHasFullDisplay(spanId, 2)).toBe(true);
       activeSpan?.end();
     });
@@ -271,6 +370,7 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
     startSpanManual({ name: 'Screen B', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
       secondSpanId = spanToJSON(activeSpan!).span_id;
       render(<TimeToFullDisplay ready={false} />);
+      flushReadyDefer();
       expect(tailHasFullDisplay(secondSpanId, 1)).toBe(false);
       activeSpan?.end();
     });
@@ -290,9 +390,11 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       );
 
       const tree = render(<Screen a={false} b={true} />);
+      flushReadyDefer();
       expect(tailHasInitialDisplay(spanId, 2)).toBe(false);
 
       act(() => tree.rerender(<Screen a={true} b={true} />));
+      flushReadyDefer();
       expect(tailHasInitialDisplay(spanId, 2)).toBe(true);
 
       activeSpan?.end();

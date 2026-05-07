@@ -189,6 +189,13 @@ function useCoordinatedDisplay(
     return subscribe(kind, parentSpanId, force);
   }, [kind, parentSpanId, useRegistry]);
 
+  // Tracks whether this component's checkpoint is currently registered with
+  // the coordinator. Used to detect the pre-register render so we don't
+  // inherit a peer's ready=true verdict before our own checkpoint exists in
+  // the aggregate. Reset on unregister so re-mount under a new active span
+  // re-clamps correctly.
+  const registeredRef = useRef(false);
+
   // Register on mount / when the active span changes; unregister on unmount.
   // Legacy-mode components do not register — they are independent and don't
   // gate or get gated by peers.
@@ -196,7 +203,12 @@ function useCoordinatedDisplay(
     if (!parentSpanId || !useRegistry) {
       return undefined;
     }
-    return registerCheckpoint(kind, parentSpanId, checkpointId, localReady);
+    const unregister = registerCheckpoint(kind, parentSpanId, checkpointId, localReady);
+    registeredRef.current = true;
+    return () => {
+      registeredRef.current = false;
+      unregister();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, parentSpanId, useRegistry, checkpointId]);
 
@@ -217,7 +229,15 @@ function useCoordinatedDisplay(
   if (!useRegistry) {
     return localReady;
   }
-  // Registry: gated on the per-span aggregate.
+  // Registry, pre-register render: our checkpoint is not yet in the
+  // registry, so `isAllReady` reflects only peer state. Combine it with our
+  // own `localReady` so we never inherit a peer's true verdict before our
+  // own checkpoint has had a chance to report.
+  if (!registeredRef.current) {
+    return localReady && isAllReady(kind, parentSpanId);
+  }
+  // Registry, post-register: gated on the per-span aggregate, which now
+  // includes our checkpoint.
   return isAllReady(kind, parentSpanId);
 }
 
