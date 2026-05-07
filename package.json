@@ -25,7 +25,8 @@
     "swift:lint": "./scripts/swiftlint.sh",
     "run-ios": "cd samples/react-native && yarn react-native run-ios",
     "run-android": "cd samples/react-native && yarn react-native run-android",
-    "set-version-samples": "lerna run set-version"
+    "set-version-samples": "lerna run set-version",
+    "api-report": "yarn workspace @sentry/react-native api-report:generate"
   },
   "devDependencies": {
     "@naturalcycles/ktlint": "^1.13.0",
@@ -98,7 +99,7 @@
     "nx@npm:19.6.4/minimatch": "^9.0.7",
     "webdriverio@npm:8.40.5/minimatch": "^9.0.7",
     "glob@npm:13.0.0/minimatch": "^10.2.3",
-    "axios": "^1.15.0",
+    "axios": "^1.16.0",
     "fast-xml-parser": "^5.7.0",
     "form-data": "4.0.5",
     "qs": "^6.14.2",

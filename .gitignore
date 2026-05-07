@@ -88,6 +88,9 @@ node_modules.bak
 !.yarn/plugins
 .pnp.*
 
+# API Extractor temp files
+/packages/core/temp/
+
 # Sentry React Native Monorepo
 /packages/core/README.md
 .env.sentry-build-plugin

@@ -6,7 +6,11 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.11.0
+
+### Features
+
+- Use `accessibilityLabel`, `aria-label`, and `testID` as fallback labels for touch breadcrumbs when `sentry-label` is not set ([#6103](https://github.com/getsentry/sentry-react-native/pull/6103))
 
 ### Features
 
@@ -17,6 +21,16 @@
 ### Fixes
 
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
+- Improve frame delay collection performance by using sentry-java `getFramesDelay` API ([#6074](https://github.com/getsentry/sentry-react-native/pull/6074))
+
+### Dependencies
+
+- Bump Android SDK from v8.40.0 to v8.41.0 ([#6104](https://github.com/getsentry/sentry-react-native/pull/6104))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8410)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.40.0...8.41.0)
+- Bump Cocoa SDK from v9.12.0 to v9.12.1 ([#6105](https://github.com/getsentry/sentry-react-native/pull/6105))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9121)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.0...9.12.1)
 
 ## 8.10.0
 

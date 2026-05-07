@@ -11,4 +11,5 @@ module.exports = async function ({ fail, warn, message, markdown, danger }) {
   await safeRun('./check-github-label', { fail, warn, message, markdown, danger });
   await safeRun('./check-replay-stubs', { fail, warn, message, markdown, danger });
   await safeRun('./check-android-sdk-mismatch', { fail, warn, message, markdown, danger });
+  await safeRun('./check-auth-token-changes', { fail, warn, message, markdown, danger });
 };
