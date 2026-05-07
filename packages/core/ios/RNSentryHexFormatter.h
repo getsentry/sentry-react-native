@@ -1,38 +1,30 @@
 #import <Foundation/Foundation.h>
 
-// 2 for the "0x" prefix, plus 16 for the hex value, plus 1 for the null terminator.
+// 2 for the 0x prefix, plus 16 for the hex value, plus 1 for the null terminator
 #define RN_SENTRY_HEX_ADDRESS_LENGTH 19
 
-/**
- * Formats a 64-bit unsigned integer as a zero-padded hex address string
- * (e.g. @c 0x000000010f1a2b3c).
- *
- * Inlined here so we don't need to reach into sentry-cocoa's private
- * @c SentryFormatter.h via @c HEADER_SEARCH_PATHS. Keep behavior identical
- * to @c sentry_snprintfHexAddress in sentry-cocoa.
- */
 static inline NSString *
 rnsentry_snprintfHexAddress(uint64_t value)
 {
     char buffer[RN_SENTRY_HEX_ADDRESS_LENGTH];
     snprintf(buffer, RN_SENTRY_HEX_ADDRESS_LENGTH, "0x%016llx", value);
-    return [NSString stringWithCString:buffer encoding:NSASCIIStringEncoding];
+    NSString *nsString = [NSString stringWithCString:buffer encoding:NSASCIIStringEncoding];
+    return nsString;
 }
 
-/**
- * Formats an @c NSNumber address as a zero-padded hex string.
- * Drop-in replacement for sentry-cocoa's @c sentry_formatHexAddress.
- */
 static inline NSString *
 rnsentry_formatHexAddress(NSNumber *value)
 {
+    /*
+     * We observed a 41% speedup by using snprintf vs +[NSString stringWithFormat:]. In a trial
+     * using a profile, we observed the +[NSString stringWithFormat:] using 282ms of CPU time, vs
+     * 164ms of CPU time for snprintf. There is also an assumed space improvement due to not needing
+     * to allocate as many instances of NSString, like for the format string literal, instead only
+     * using stack-bound C strings.
+     */
     return rnsentry_snprintfHexAddress([value unsignedLongLongValue]);
 }
 
-/**
- * Formats a @c uint64_t address as a zero-padded hex string.
- * Drop-in replacement for sentry-cocoa's @c sentry_formatHexAddressUInt64.
- */
 static inline NSString *
 rnsentry_formatHexAddressUInt64(uint64_t value)
 {
