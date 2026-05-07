@@ -11,6 +11,7 @@
 ### Fixes
 
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
+- Improve frame delay collection performance by using sentry-java `getFramesDelay` API ([#6074](https://github.com/getsentry/sentry-react-native/pull/6074))
 
 ### Dependencies
 
