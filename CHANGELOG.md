@@ -12,6 +12,12 @@
 
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
 
+### Dependencies
+
+- Bump Android SDK from v8.40.0 to v8.41.0 ([#6104](https://github.com/getsentry/sentry-react-native/pull/6104))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8410)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.40.0...8.41.0)
+
 ## 8.10.0
 
 ### Features
