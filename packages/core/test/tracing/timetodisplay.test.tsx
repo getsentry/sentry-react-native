@@ -20,10 +20,11 @@ import * as mockedtimetodisplaynative from './mockedtimetodisplaynative';
 
 jest.mock('../../src/js/tracing/timetodisplaynative', () => mockedtimetodisplaynative);
 
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import * as React from 'react';
 
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
+import { _resetTimeToDisplayCoordinator } from '../../src/js/tracing/timeToDisplayCoordinator';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
@@ -48,6 +49,28 @@ jest.mock('../../src/js/utils/environment', () => ({
 const { mockRecordedTimeToDisplay, getMockedOnDrawReportedProps, clearMockedOnDrawReportedProps } =
   mockedtimetodisplaynative;
 
+/** Flush the coordinator's deferred up-flip + any consequent React re-renders. */
+function flushReadyDefer(): void {
+  act(() => {
+    jest.runOnlyPendingTimers();
+  });
+}
+
+/**
+ * The mock records every render of every native draw reporter. We slice the
+ * tail of the prop log to inspect the converged post-effect state of all
+ * currently-mounted reporters for a given span.
+ */
+function tailHasFullDisplay(parentSpanId: string, mountedReporterCount: number): boolean {
+  const props = getMockedOnDrawReportedProps().filter(p => p.parentSpanId === parentSpanId);
+  return props.slice(-mountedReporterCount).some(p => p.fullDisplay === true);
+}
+
+function tailHasInitialDisplay(parentSpanId: string, mountedReporterCount: number): boolean {
+  const props = getMockedOnDrawReportedProps().filter(p => p.parentSpanId === parentSpanId);
+  return props.slice(-mountedReporterCount).some(p => p.initialDisplay === true);
+}
+
 jest.useFakeTimers({
   advanceTimers: true,
   doNotFake: ['performance'], // Keep real performance API
@@ -58,6 +81,7 @@ describe('TimeToDisplay', () => {
 
   beforeEach(() => {
     clearMockedOnDrawReportedProps();
+    _resetTimeToDisplayCoordinator();
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
@@ -743,5 +767,159 @@ describe('Frame Data', () => {
     const ttidSpan = client.event!.spans!.find((span: SpanJSON) => span.op === 'ui.load.initial_display');
     expect(ttidSpan).toBeDefined();
     expect(ttidSpan!.data).not.toHaveProperty('frames.delay');
+  });
+
+  describe('multi-instance', () => {
+    test('legacy: single instance behaves identically to today', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+        render(<TimeToFullDisplay record={true} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+        activeSpan?.end();
+      });
+    });
+
+    test('two ready=false instances do not emit', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+        render(
+          <>
+            <TimeToFullDisplay ready={false} />
+            <TimeToFullDisplay ready={false} />
+          </>,
+        );
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+        activeSpan?.end();
+      });
+    });
+
+    test('two ready instances emit only when both are ready', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ a, b }: { a: boolean; b: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={a} />
+            <TimeToFullDisplay ready={b} />
+          </>
+        );
+
+        const tree = render(<Screen a={false} b={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen a={true} b={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen a={true} b={true} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('late-mounting makes a previously ready aggregate non-ready', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ showLate, lateReady }: { showLate: boolean; lateReady: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={true} />
+            {showLate ? <TimeToFullDisplay ready={lateReady} /> : null}
+          </>
+        );
+
+        const tree = render(<Screen showLate={false} lateReady={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+
+        act(() => tree.rerender(<Screen showLate={true} lateReady={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen showLate={true} lateReady={true} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('unmounting the sole blocker does NOT emit ready', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ showBlocker }: { showBlocker: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={true} />
+            {showBlocker ? <TimeToFullDisplay ready={false} /> : null}
+          </>
+        );
+
+        const tree = render(<Screen showBlocker={true} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen showBlocker={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(false);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('unmounting a non-sole-blocker resolves the aggregate when remaining peers are ready', () => {
+      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        const spanId = spanToJSON(activeSpan!).span_id;
+
+        const Screen = ({ aReady, showB }: { aReady: boolean; showB: boolean }) => (
+          <>
+            <TimeToFullDisplay ready={aReady} />
+            {showB ? <TimeToFullDisplay ready={false} /> : null}
+          </>
+        );
+
+        const tree = render(<Screen aReady={false} showB={true} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+        act(() => tree.rerender(<Screen aReady={false} showB={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(false);
+
+        act(() => tree.rerender(<Screen aReady={true} showB={false} />));
+        flushReadyDefer();
+        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
+
+        activeSpan?.end();
+      });
+    });
+
+    test('different active spans have independent registries', () => {
+      let firstSpanId = '';
+      let secondSpanId = '';
+
+      startSpanManual({ name: 'Screen A', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        firstSpanId = spanToJSON(activeSpan!).span_id;
+        render(<TimeToFullDisplay ready={true} />);
+        activeSpan?.end();
+      });
+
+      clearMockedOnDrawReportedProps();
+
+      startSpanManual({ name: 'Screen B', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+        secondSpanId = spanToJSON(activeSpan!).span_id;
+        render(<TimeToFullDisplay ready={false} />);
+        flushReadyDefer();
+        expect(tailHasFullDisplay(secondSpanId, 1)).toBe(false);
+        activeSpan?.end();
+      });
+
+      expect(firstSpanId).not.toEqual(secondSpanId);
+    });
   });
 });

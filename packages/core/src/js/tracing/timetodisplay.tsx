@@ -13,12 +13,14 @@ import {
   startInactiveSpan,
 } from '@sentry/core';
 import * as React from 'react';
-import { useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 
 import type { NativeFramesResponse } from '../NativeRNSentry';
 
 import { NATIVE } from '../wrapper';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
+import type { DisplayKind } from './timeToDisplayCoordinator';
+import { isAllReady, registerCheckpoint, subscribe, updateCheckpoint } from './timeToDisplayCoordinator';
 import { getRNSentryOnDrawReporter } from './timetodisplaynative';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
 
@@ -59,15 +61,18 @@ const spanFrameDataMap = new Map<string, FrameDataForSpan>();
 
 export type TimeToDisplayProps = {
   children?: React.ReactNode;
+  /** @deprecated Use `ready` instead. `record` will be removed in the next major version. **/
   record?: boolean;
+  // Marks this checkpoint as ready.
+  ready?: boolean;
 };
 
 /**
  * Component to measure time to initial display.
  *
- * The initial display is recorded when the component prop `record` is true.
- *
- * <TimeToInitialDisplay record />
+ * Usage example:
+ *   <TimeToInitialDisplay ready={headerLoaded} />
+ *   <TimeToInitialDisplay ready={contentLoaded} />
  */
 export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElement {
   const activeSpan = getActiveSpan();
@@ -76,8 +81,10 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
   }
 
   const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  const initialDisplay = useCoordinatedDisplay('ttid', parentSpanId, props);
+
   return (
-    <TimeToDisplay initialDisplay={props.record} parentSpanId={parentSpanId}>
+    <TimeToDisplay initialDisplay={initialDisplay} parentSpanId={parentSpanId}>
       {props.children}
     </TimeToDisplay>
   );
@@ -86,18 +93,97 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
 /**
  * Component to measure time to full display.
  *
- * The initial display is recorded when the component prop `record` is true.
- *
- * <TimeToInitialDisplay record />
+ * Usage example:
+ *   <TimeToFullDisplay ready={feedReady} />
+ *   <TimeToFullDisplay ready={sidebarReady} />
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
   const activeSpan = getActiveSpan();
   const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  const fullDisplay = useCoordinatedDisplay('ttfd', parentSpanId, props);
+
   return (
-    <TimeToDisplay fullDisplay={props.record} parentSpanId={parentSpanId}>
+    <TimeToDisplay fullDisplay={fullDisplay} parentSpanId={parentSpanId}>
       {props.children}
     </TimeToDisplay>
   );
+}
+
+let nextCheckpointId = 0;
+
+function useCoordinatedDisplay(
+  kind: DisplayKind,
+  parentSpanId: string | undefined,
+  props: TimeToDisplayProps,
+): boolean {
+  const checkpointIdRef = useRef<string | null>(null);
+  if (checkpointIdRef.current === null) {
+    checkpointIdRef.current = `cp-${nextCheckpointId++}`;
+  }
+  const checkpointId = checkpointIdRef.current;
+  const [, force] = useReducer((x: number) => x + 1, 0);
+
+  // useRegistry means we might use multiple TTID/TTFD components
+  const useRegistry = props.ready !== undefined;
+  const localReady = useRegistry ? !!props.ready : !!props.record;
+
+  // We do it this way because we don't want warnings being thrown on every re-render
+  const warnedRef = useRef(false);
+  useEffect(() => {
+    if (!__DEV__ || warnedRef.current) return;
+    if (props.ready !== undefined && props.record !== undefined) {
+      warnedRef.current = true;
+      debug.warn('[TimeToDisplay] Both `ready` and `record` were provided — ignoring `record`.');
+    } else if (props.record !== undefined) {
+      warnedRef.current = true;
+      debug.warn('[TimeToDisplay] The `record` prop is deprecated. Use `ready` instead.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!parentSpanId || !useRegistry) {
+      return undefined;
+    }
+    return subscribe(kind, parentSpanId, force);
+  }, [kind, parentSpanId, useRegistry]);
+
+  // Tracks if this component's checkpoint is currently registered with the coordinator
+  const registeredRef = useRef(false);
+
+  // Register on mount / when the active span changes
+  useEffect(() => {
+    if (!parentSpanId || !useRegistry) {
+      return undefined;
+    }
+    const unregister = registerCheckpoint(kind, parentSpanId, checkpointId, localReady);
+    registeredRef.current = true;
+    return () => {
+      registeredRef.current = false;
+      unregister();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kind, parentSpanId, useRegistry, checkpointId]);
+
+  // Propagate ready transitions to the registry
+  useEffect(() => {
+    if (!parentSpanId || !useRegistry) {
+      return;
+    }
+    updateCheckpoint(kind, parentSpanId, checkpointId, localReady);
+  }, [kind, parentSpanId, useRegistry, checkpointId, localReady]);
+
+  // Main logic for "readiness"
+  if (!parentSpanId) {
+    return false;
+  }
+  if (!useRegistry) {
+    return localReady;
+  }
+  if (!registeredRef.current) {
+    return localReady && isAllReady(kind, parentSpanId);
+  }
+  return isAllReady(kind, parentSpanId);
 }
 
 function TimeToDisplay(props: {
@@ -435,7 +521,12 @@ function createTimeToDisplay({
       };
     });
 
-    return <Component {...props} record={focused && props.record} />;
+    // gate both legacy `record` and the new `ready` checkpoint on focus
+    //
+    // the idea here is that wrappers built via createTimeToFullDisplay/createTimeToInitialDisplay
+    // can only record TTID/TTFD on a focused screen
+    const gatedReady = props.ready === undefined ? undefined : focused && props.ready;
+    return <Component {...props} record={focused && props.record} ready={gatedReady} />;
   };
 
   TimeToDisplayWrapper.displayName = 'TimeToDisplayWrapper';
