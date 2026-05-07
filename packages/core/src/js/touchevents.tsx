@@ -460,6 +460,8 @@ function collectTextFromFiber(
   }
 
   if (inst.elementType?.name === MASK_COMPONENT_NAME || inst.elementType?.displayName === MASK_COMPONENT_NAME) {
+    // Skip masked node's children but still visit its siblings
+    collectTextFromFiber(inst.sibling, parts, depth, siblingIndex + 1);
     return;
   }
 

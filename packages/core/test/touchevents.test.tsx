@@ -957,6 +957,41 @@ describe('TouchEventBoundary._onTouchStart', () => {
       );
     });
 
+    it('collects sibling text after Sentry.Mask boundary', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'RNSentryReplayMask' },
+            memoizedProps: {},
+            child: {
+              elementType: { name: 'Text' },
+              memoizedProps: { children: 'Secret text' },
+            },
+            sibling: {
+              elementType: { name: 'Text' },
+              memoizedProps: { children: 'Visible text' },
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Visible text',
+          data: { path: [{ name: 'TouchableOpacity', label: 'Visible text' }] },
+        }),
+      );
+    });
+
     it('sentry-label takes priority over extracted text', () => {
       const { defaultProps } = TouchEventBoundary;
       const boundary = new TouchEventBoundary(defaultProps);
