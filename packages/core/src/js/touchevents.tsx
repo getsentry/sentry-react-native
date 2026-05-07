@@ -79,8 +79,6 @@ export type TouchEventBoundaryProps = {
    * `mobileReplayIntegration` config to enable text extraction.
    * Per-view `Sentry.Mask` boundaries are also respected.
    * Set to `false` to opt out of text extraction entirely.
-   *
-   * @default true
    */
   extractTextFromChildren?: boolean;
 };
