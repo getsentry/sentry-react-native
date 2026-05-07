@@ -127,4 +127,16 @@ describe('timeToDisplayCoordinator', () => {
     registerCheckpoint('ttfd', SPAN_FIRST, 'b', false);
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
   });
+
+  test('sticky-blocker survives sibling unmounts and continues to block new peers', () => {
+    const unregisterA = registerCheckpoint('ttfd', SPAN_FIRST, 'a', false);
+    const unregisterB = registerCheckpoint('ttfd', SPAN_FIRST, 'b', true);
+
+    unregisterA(); // A becomes sticky
+    unregisterB();
+
+    registerCheckpoint('ttfd', SPAN_FIRST, 'c', true);
+    flushDefer();
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+  });
 });
