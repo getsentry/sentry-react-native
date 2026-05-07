@@ -903,4 +903,391 @@ describe('TouchEventBoundary._onTouchStart', () => {
       expect(() => boundary._onTouchStart(event)).not.toThrow();
     });
   });
+
+  describe('text extraction from children', () => {
+    it('extracts text from child fiber nodes when no label is set', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Save workout',
+          data: {
+            path: [{ name: 'TouchableOpacity', label: 'Save workout' }],
+          },
+        }),
+      );
+    });
+
+    it('extracts text from nested fiber children', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Pressable' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'View' },
+            memoizedProps: {},
+            child: {
+              elementType: { name: 'Text' },
+              memoizedProps: { children: 'Continue' },
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Continue',
+        }),
+      );
+    });
+
+    it('collects text from sibling fiber nodes', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Add' },
+            sibling: {
+              elementType: { name: 'Text' },
+              memoizedProps: { children: 'to cart' },
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Add to cart',
+        }),
+      );
+    });
+
+    it('truncates long text at 64 characters', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const longText = 'A'.repeat(100);
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'Button' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: longText },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: `Touch event within element: ${'A'.repeat(64)}...`,
+        }),
+      );
+    });
+
+    it('does not extract text when maskAllText is enabled', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue({
+        name: 'MobileReplay',
+        options: { maskAllText: true },
+      } as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: TouchableOpacity',
+          data: { path: [{ name: 'TouchableOpacity' }] },
+        }),
+      );
+    });
+
+    it('extracts text when maskAllText is explicitly false', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue({
+        name: 'MobileReplay',
+        options: { maskAllText: false },
+      } as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Save workout',
+        }),
+      );
+    });
+
+    it('does not extract text when MobileReplay integration has no options property', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue({
+        name: 'MobileReplay',
+        setupOnce: jest.fn(),
+      } as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Save workout',
+        }),
+      );
+    });
+
+    it('does not extract text when maskAllText is not set (defaults to masked)', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue({
+        name: 'MobileReplay',
+        options: {},
+      } as any);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: TouchableOpacity',
+          data: { path: [{ name: 'TouchableOpacity' }] },
+        }),
+      );
+    });
+
+    it('stops at Sentry.Mask boundary', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'RNSentryReplayMask' },
+            memoizedProps: {},
+            child: {
+              elementType: { name: 'Text' },
+              memoizedProps: { children: 'Secret text' },
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: TouchableOpacity',
+          data: { path: [{ name: 'TouchableOpacity' }] },
+        }),
+      );
+    });
+
+    it('collects sibling text after Sentry.Mask boundary', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'RNSentryReplayMask' },
+            memoizedProps: {},
+            child: {
+              elementType: { name: 'Text' },
+              memoizedProps: { children: 'Secret text' },
+            },
+            sibling: {
+              elementType: { name: 'Text' },
+              memoizedProps: { children: 'Visible text' },
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Visible text',
+          data: { path: [{ name: 'TouchableOpacity', label: 'Visible text' }] },
+        }),
+      );
+    });
+
+    it('sentry-label takes priority over extracted text', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: { 'sentry-label': 'my-button' },
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: my-button',
+        }),
+      );
+    });
+
+    it('does not extract text when extractTextFromChildren prop is false', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary({
+        ...defaultProps,
+        extractTextFromChildren: false,
+      });
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: TouchableOpacity',
+          data: { path: [{ name: 'TouchableOpacity' }] },
+        }),
+      );
+    });
+
+    it('handles string memoizedProps (raw text fiber nodes)', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: {},
+            child: {
+              memoizedProps: 'Hello world',
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Hello world',
+        }),
+      );
+    });
+  });
 });

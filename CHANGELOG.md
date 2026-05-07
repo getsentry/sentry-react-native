@@ -11,6 +11,7 @@
 ### Features
 
 - Use `accessibilityLabel`, `aria-label`, and `testID` as fallback labels for touch breadcrumbs when `sentry-label` is not set ([#6103](https://github.com/getsentry/sentry-react-native/pull/6103))
+- Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
 
 ### Fixes
 
