@@ -363,8 +363,7 @@ function getTouchedComponentInfo(
     return undefined;
   }
 
-  const label = getLabelValue(props, labelKey)
-    || (shouldExtractText ? extractTextFromFiber(currentInst) : undefined);
+  const label = getLabelValue(props, labelKey) || (shouldExtractText ? extractTextFromFiber(currentInst) : undefined);
 
   return dropUndefinedKeys<TouchedComponentInfo>({
     // provided by @sentry/babel-plugin-component-annotate
