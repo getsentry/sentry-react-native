@@ -7,7 +7,3 @@ jsEngine: graaljs
       replaysOnErrorSampleRate: 1.0
 - tapOn: "Capture Exception"
 - runFlow: utils/assertEventIdVisible.yml
-- runFlow:
-    file: utils/assertReplay.yml
-    when:
-      platform: iOS

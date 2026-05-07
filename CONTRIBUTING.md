@@ -40,6 +40,19 @@ cd packages/core
 yarn test:watch
 ```
 
+## Public API Changes
+
+We track the public API surface using [@microsoft/api-extractor](https://api-extractor.com/). A baseline report is committed at `packages/core/etc/sentry-react-native.api.md`. CI will fail if the public API changes without updating this file.
+
+If your change modifies the public API (new exports, changed signatures, removed APIs):
+
+```sh
+yarn build:sdk
+yarn api-report
+```
+
+Review the diff in `packages/core/etc/sentry-react-native.api.md` and commit the updated report alongside your code changes.
+
 ## Running the sample
 
 First, set up the Sentry CLI token.

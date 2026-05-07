@@ -311,6 +311,31 @@ jobs:
       - name: Run madge
         run: yarn circularDepCheck
 
+  job_api_report:
+    name: API Report Check
+    runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+    needs: [job_build, diff_check]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - run: corepack enable
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          package-manager-cache: false
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+      - name: Install Dependencies
+        run: yarn install
+      - name: Download dist
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: packages/core/dist
+      - name: Check API Report
+        working-directory: packages/core
+        run: yarn api-report:check
+
   job_bundle:
     name: Bundle
     runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]

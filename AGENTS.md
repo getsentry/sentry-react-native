@@ -24,6 +24,8 @@ yarn build
 | Run all linters | `yarn lint` |
 | Auto-fix lint | `yarn fix` |
 | Circular dep check | `yarn circularDepCheck` |
+| API report generate | `yarn api-report` |
+| API report check | `cd packages/core && yarn api-report:check` |
 | TS/JS lint | `yarn lint:lerna` |
 | Android lint | `yarn lint:android` |
 | Kotlin lint | `yarn lint:kotlin` |
@@ -62,6 +64,7 @@ When asked to open a PR:
 - [ ] All tests pass (`yarn test`)
 - [ ] Linting passes (`yarn lint`)
 - [ ] No circular dependencies (`yarn circularDepCheck`)
+- [ ] API report up to date (`yarn api-report` after `yarn build:sdk`)
 - [ ] Native code formatted correctly
 - [ ] TypeScript types are correct
 - [ ] Tests added/updated for changes
@@ -72,7 +75,7 @@ Workflows in `.github/workflows/`:
 
 | Workflow | Purpose |
 |----------|---------|
-| `buildandtest.yml` | TS compilation, Jest tests, linting, circular dep check, TS 3.8 compat |
+| `buildandtest.yml` | TS compilation, Jest tests, linting, circular dep check, API report, TS 3.8 compat |
 | `native-tests.yml` | iOS/Android native tests across RN versions |
 | `e2e-v2.yml` | E2E tests with Maestro on Sauce Labs |
 | `sample-application.yml` | Sample RN app builds (iOS, Android, old/new arch) |
