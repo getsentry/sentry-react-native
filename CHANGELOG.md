@@ -10,7 +10,7 @@
 
 ### Features
 
-- Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6097](https://github.com/getsentry/sentry-react-native/issues/6097))
+- Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
 
 ### Fixes
 
