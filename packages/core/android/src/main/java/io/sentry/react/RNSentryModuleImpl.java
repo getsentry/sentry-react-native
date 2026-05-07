@@ -758,8 +758,7 @@ public class RNSentryModuleImpl {
           // Register a no-op listener to ensure frame metrics collection is active.
           // This is needed so that getFramesDelay() has data to query.
           stopFrameMetricsCollection();
-          frameMetricsCollector = collector;
-          frameMetricsListenerId =
+          String listenerId =
               collector.startCollection(
                   (startNanos,
                       endNanos,
@@ -768,7 +767,9 @@ public class RNSentryModuleImpl {
                       isSlow,
                       isFrozen,
                       refreshRate) -> {});
-          if (frameMetricsListenerId != null) {
+          if (listenerId != null) {
+            frameMetricsCollector = collector;
+            frameMetricsListenerId = listenerId;
             logger.log(SentryLevel.INFO, "SentryFrameMetricsCollector listener installed.");
           }
         }
