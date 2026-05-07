@@ -13738,10 +13738,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"basic-ftp@npm:^5.3.0":
-  version: 5.3.0
-  resolution: "basic-ftp@npm:5.3.0"
-  checksum: b2c93d98541c805171813bddd7e6349b7fc304ba8896acf60b0b4393253204cff88aa2a31adbaec2f1a58f78e90005672c30796042a2c717a69ccae10160d72d
+"basic-ftp@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "basic-ftp@npm:5.3.1"
+  checksum: a3b5ffbedb070f89636aaaa5f639b2b275cab3486f8e216902bd60529e51047b42c732059dc94869581e2f585937a76d183a09fc519b1ce909155c137a502953
   languageName: node
   linkType: hard
 
