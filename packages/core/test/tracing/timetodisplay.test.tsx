@@ -769,8 +769,8 @@ describe('Frame Data', () => {
     expect(ttidSpan!.data).not.toHaveProperty('frames.delay');
   });
 
-  describe('multi-instance (`ready` prop)', () => {
-    test('legacy: single `record` instance behaves identically to today', () => {
+  describe('multi-instance', () => {
+    test('legacy: single instance behaves identically to today', () => {
       startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
         const spanId = spanToJSON(activeSpan!).span_id;
         render(<TimeToFullDisplay record={true} />);
@@ -780,7 +780,7 @@ describe('Frame Data', () => {
       });
     });
 
-    test('two `ready={false}` instances do not emit', () => {
+    test('two ready=false instances do not emit', () => {
       startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
         const spanId = spanToJSON(activeSpan!).span_id;
         render(
@@ -795,7 +795,7 @@ describe('Frame Data', () => {
       });
     });
 
-    test('two `ready` instances emit only when both are ready', () => {
+    test('two ready instances emit only when both are ready', () => {
       startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
         const spanId = spanToJSON(activeSpan!).span_id;
 
@@ -822,7 +822,7 @@ describe('Frame Data', () => {
       });
     });
 
-    test('late-mounting `ready={false}` un-readies an already-ready aggregate', () => {
+    test('late-mounting makes a previously ready aggregate non-ready', () => {
       startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
         const spanId = spanToJSON(activeSpan!).span_id;
 
@@ -849,11 +849,7 @@ describe('Frame Data', () => {
       });
     });
 
-    test('unmounting the sole blocker does NOT emit ready (sticky safeguard)', () => {
-      // A conditionally-rendered loading section that disappears before its
-      // data resolves must not trick TTFD into firing as if the screen were
-      // fully displayed. The sole-blocker checkpoint is kept sticky in the
-      // registry, so its unmount cannot flip the aggregate to true.
+    test('unmounting the sole blocker does NOT emit ready', () => {
       startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
         const spanId = spanToJSON(activeSpan!).span_id;
 
@@ -877,9 +873,6 @@ describe('Frame Data', () => {
     });
 
     test('unmounting a non-sole-blocker resolves the aggregate when remaining peers are ready', () => {
-      // The sticky safeguard only applies to *sole* blockers. If other
-      // not-ready peers exist, an unmount can't flip the aggregate to true,
-      // so it removes normally.
       startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
         const spanId = spanToJSON(activeSpan!).span_id;
 
@@ -906,123 +899,6 @@ describe('Frame Data', () => {
       });
     });
 
-    test('mixed `record` + `ready`: legacy `record` is independent, `ready` peers coordinate', () => {
-      // Backward compat: `record`-only instances do not register as checkpoints
-      // and are not gated by `ready` peers.
-      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
-        const spanId = spanToJSON(activeSpan!).span_id;
-
-        const Screen = ({ rec, rdy }: { rec: boolean; rdy: boolean }) => (
-          <>
-            <TimeToFullDisplay record={rec} />
-            <TimeToFullDisplay ready={rdy} />
-          </>
-        );
-
-        const tree = render(<Screen rec={true} rdy={false} />);
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
-
-        act(() => tree.rerender(<Screen rec={false} rdy={true} />));
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
-
-        act(() => tree.rerender(<Screen rec={true} rdy={true} />));
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
-
-        activeSpan?.end();
-      });
-    });
-
-    test('legacy: bare <TimeToFullDisplay /> does not block `ready` peers', () => {
-      // Backward compat for layout-placeholder usage. A bare component is a no-op.
-      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
-        const spanId = spanToJSON(activeSpan!).span_id;
-        render(
-          <>
-            <TimeToFullDisplay />
-            <TimeToFullDisplay ready={true} />
-          </>,
-        );
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
-        activeSpan?.end();
-      });
-    });
-
-    test('legacy: two `record` peers fire independently (no coordination)', () => {
-      // Pre-change behavior was last-write-wins on the native side. record-only
-      // peers must continue to fire independently.
-      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
-        const spanId = spanToJSON(activeSpan!).span_id;
-        render(
-          <>
-            <TimeToFullDisplay record={true} />
-            <TimeToFullDisplay record={false} />
-          </>,
-        );
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 2)).toBe(true);
-        activeSpan?.end();
-      });
-    });
-
-    test('late-mounting `ready={false}` peer does not inherit existing peer\u2019s ready=true (pre-register clamp)', () => {
-      // A fresh component on its first render calls isAllReady before its
-      // useEffect has registered. The clamp `localReady && isAllReady` ensures
-      // it can never inherit a peer's true verdict on its first render.
-      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
-        const spanId = spanToJSON(activeSpan!).span_id;
-
-        const Screen = ({ showLate }: { showLate: boolean }) => (
-          <>
-            <TimeToFullDisplay ready={true} />
-            {showLate ? <TimeToFullDisplay ready={false} /> : null}
-          </>
-        );
-
-        const tree = render(<Screen showLate={false} />);
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 1)).toBe(true);
-
-        act(() => tree.rerender(<Screen showLate={true} />));
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
-
-        activeSpan?.end();
-      });
-    });
-
-    test('same-task wave: header alone-and-ready does not fire when sibling mounts on next commit', () => {
-      // The defining race the deferred up-flip protects against: header
-      // registers ready=true alone, sibling mounts a tick later via the typical
-      // parent-useEffect-setState wave. setTimeout(0) defers past the entire
-      // task so the late mount cancels the pending up-flip.
-      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
-        const spanId = spanToJSON(activeSpan!).span_id;
-
-        const Screen = (): React.ReactElement => {
-          const [showSidebar, setShowSidebar] = React.useState(false);
-          React.useEffect(() => {
-            setShowSidebar(true);
-          }, []);
-          return (
-            <>
-              <TimeToFullDisplay ready={true} />
-              {showSidebar ? <TimeToFullDisplay ready={false} /> : null}
-            </>
-          );
-        };
-
-        render(<Screen />);
-        flushReadyDefer();
-        expect(tailHasFullDisplay(spanId, 2)).toBe(false);
-
-        activeSpan?.end();
-      });
-    });
-
     test('different active spans have independent registries', () => {
       let firstSpanId = '';
       let secondSpanId = '';
@@ -1044,29 +920,6 @@ describe('Frame Data', () => {
       });
 
       expect(firstSpanId).not.toEqual(secondSpanId);
-    });
-
-    test('TTID `ready` aggregates symmetrically', () => {
-      startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
-        const spanId = spanToJSON(activeSpan!).span_id;
-
-        const Screen = ({ a, b }: { a: boolean; b: boolean }) => (
-          <>
-            <TimeToInitialDisplay ready={a} />
-            <TimeToInitialDisplay ready={b} />
-          </>
-        );
-
-        const tree = render(<Screen a={false} b={true} />);
-        flushReadyDefer();
-        expect(tailHasInitialDisplay(spanId, 2)).toBe(false);
-
-        act(() => tree.rerender(<Screen a={true} b={true} />));
-        flushReadyDefer();
-        expect(tailHasInitialDisplay(spanId, 2)).toBe(true);
-
-        activeSpan?.end();
-      });
     });
   });
 });
