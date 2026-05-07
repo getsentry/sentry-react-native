@@ -45,10 +45,10 @@ import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
+import io.sentry.android.core.SentryFramesDelayResult;
 import io.sentry.android.core.SentryShakeDetector;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
-import io.sentry.android.core.SentryFramesDelayResult;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.protocol.Geo;
@@ -420,8 +420,7 @@ public class RNSentryModuleImpl {
         return;
       }
 
-      SentryFramesDelayResult result =
-          frameMetricsCollector.getFramesDelay(startNanos, endNanos);
+      SentryFramesDelayResult result = frameMetricsCollector.getFramesDelay(startNanos, endNanos);
       if (result.getDelaySeconds() >= 0) {
         promise.resolve(result.getDelaySeconds());
       } else {
@@ -762,8 +761,13 @@ public class RNSentryModuleImpl {
           frameMetricsCollector = collector;
           frameMetricsListenerId =
               collector.startCollection(
-                  (startNanos, endNanos, durationNanos, delayNanos, isSlow, isFrozen, refreshRate)
-                      -> {});
+                  (startNanos,
+                      endNanos,
+                      durationNanos,
+                      delayNanos,
+                      isSlow,
+                      isFrozen,
+                      refreshRate) -> {});
           if (frameMetricsListenerId != null) {
             logger.log(SentryLevel.INFO, "SentryFrameMetricsCollector listener installed.");
           }
