@@ -135,7 +135,11 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
     });
   });
 
-  test('unmounting the only blocking checkpoint emits ready', () => {
+  test('unmounting the sole blocker does NOT emit ready (sticky safeguard)', () => {
+    // A conditionally-rendered loading section that disappears before its
+    // data resolves must not trick TTFD into firing as if the screen were
+    // fully displayed. The sole-blocker checkpoint is kept sticky in the
+    // registry, so its unmount cannot flip the aggregate to true.
     startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
       const spanId = spanToJSON(activeSpan!).span_id;
 
@@ -150,6 +154,36 @@ describe('TimeToDisplay multi-instance (`ready` prop)', () => {
       expect(tailHasFullDisplay(spanId, 2)).toBe(false);
 
       act(() => tree.rerender(<Screen showBlocker={false} />));
+      expect(tailHasFullDisplay(spanId, 1)).toBe(false);
+
+      activeSpan?.end();
+    });
+  });
+
+  test('unmounting a non-sole-blocker resolves the aggregate when remaining peers are ready', () => {
+    // The sticky safeguard only applies to *sole* blockers. If other
+    // not-ready peers exist, an unmount can't flip the aggregate to true,
+    // so it removes normally.
+    startSpanManual({ name: 'Screen', startTime: secondAgoTimestampMs() }, (activeSpan: Span | undefined) => {
+      const spanId = spanToJSON(activeSpan!).span_id;
+
+      const Screen = ({ aReady, showB }: { aReady: boolean; showB: boolean }) => (
+        <>
+          <TimeToFullDisplay ready={aReady} />
+          {showB ? <TimeToFullDisplay ready={false} /> : null}
+        </>
+      );
+
+      const tree = render(<Screen aReady={false} showB={true} />);
+      expect(tailHasFullDisplay(spanId, 2)).toBe(false);
+
+      // Unmount B while A is also not-ready: not a sole-blocker case, B
+      // removes normally; aggregate still blocked by A.
+      act(() => tree.rerender(<Screen aReady={false} showB={false} />));
+      expect(tailHasFullDisplay(spanId, 1)).toBe(false);
+
+      // Now flip A to ready: aggregate flips, A's reporter emits.
+      act(() => tree.rerender(<Screen aReady={true} showB={false} />));
       expect(tailHasFullDisplay(spanId, 1)).toBe(true);
 
       activeSpan?.end();

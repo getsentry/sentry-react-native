@@ -16,6 +16,13 @@ interface SpanRegistry {
    * time", and only the final flip needs to notify.
    */
   aggregateReady: boolean;
+  /**
+   * Checkpoint ids whose components have unmounted but are kept in the
+   * registry to prevent a premature aggregate flip (sole-blocker safeguard).
+   * They participate in `computeAggregate` but are excluded from the
+   * "live work" count in `performCleanup`.
+   */
+  sticky: Set<string>;
 }
 
 const TTID = 'ttid';
@@ -36,6 +43,7 @@ function getOrCreate(kind: DisplayKind, parentSpanId: string): SpanRegistry {
       checkpoints: new Map(),
       listeners: new Set(),
       aggregateReady: false,
+      sticky: new Set(),
     };
     map.set(parentSpanId, entry);
   }
@@ -71,10 +79,54 @@ function reevaluate(entry: SpanRegistry): void {
   }
 }
 
+/**
+ * Delete the registry entry once there is no live work attached to it.
+ *
+ * "Live work" means either subscribed listeners (registry-mode components
+ * still mounted) or non-sticky checkpoints (still-mounted registrations).
+ * Sticky checkpoints (kept after a not-ready unmount; see `unregister`)
+ * exist only to prevent premature aggregate flips while the screen is still
+ * mounted; once every live counterpart is gone, they are orphaned and safe
+ * to drop along with the entry.
+ */
 function performCleanup(kind: DisplayKind, parentSpanId: string, entry: SpanRegistry): void {
-  if (entry.checkpoints.size === 0 && entry.listeners.size === 0) {
+  const liveCheckpoints = entry.checkpoints.size - entry.sticky.size;
+  if (liveCheckpoints === 0 && entry.listeners.size === 0) {
     registries[kind].delete(parentSpanId);
   }
+}
+
+/**
+ * True iff removing `checkpointId` from `entry` would flip the aggregate
+ * from false to true — i.e., the checkpoint is the sole blocker.
+ *
+ * Used to detect the premature-fire scenario where a not-ready checkpoint
+ * unmounts while every other checkpoint is ready: deleting it would let the
+ * aggregate flip to true and immediately record TTFD/TTID, even though the
+ * unmounting source never actually became ready.
+ */
+function isSoleBlocker(entry: SpanRegistry, checkpointId: string): boolean {
+  if (entry.aggregateReady) {
+    return false;
+  }
+  if (entry.checkpoints.size <= 1) {
+    // Removing the only checkpoint leaves the registry empty, which yields
+    // aggregate=false (per `computeAggregate`). No flip.
+    return false;
+  }
+  const cp = entry.checkpoints.get(checkpointId);
+  if (!cp || cp.ready) {
+    return false;
+  }
+  for (const [id, other] of entry.checkpoints) {
+    if (id === checkpointId) {
+      continue;
+    }
+    if (!other.ready) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -95,7 +147,17 @@ export function registerCheckpoint(
     if (!e) {
       return;
     }
+    // If this checkpoint is the sole blocker, removing it would flip the
+    // aggregate to true and prematurely fire TTFD/TTID even though the
+    // unmounting source never became ready. Keep the checkpoint sticky;
+    // it gets cleared when the screen fully unmounts.
+    if (isSoleBlocker(e, checkpointId)) {
+      e.sticky.add(checkpointId);
+      performCleanup(kind, parentSpanId, e);
+      return;
+    }
     if (e.checkpoints.delete(checkpointId)) {
+      e.sticky.delete(checkpointId);
       reevaluate(e);
     }
     performCleanup(kind, parentSpanId, e);

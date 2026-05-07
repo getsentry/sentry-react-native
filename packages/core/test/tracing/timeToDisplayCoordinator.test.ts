@@ -49,12 +49,43 @@ describe('timeToDisplayCoordinator', () => {
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
   });
 
-  test('unregistering the only blocking checkpoint resolves the aggregate', () => {
+  test('unregistering the sole blocker keeps the aggregate not-ready (sticky)', () => {
+    // A not-ready checkpoint that unmounts while it is the sole blocker is
+    // kept in the registry to prevent a premature aggregate flip. Otherwise
+    // a conditionally-rendered loading section that disappears before its
+    // data resolves would silently record an incomplete display.
     registerCheckpoint('ttfd', SPAN_FIRST, 'a', true);
     const unregisterB = registerCheckpoint('ttfd', SPAN_FIRST, 'b', false);
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
 
     unregisterB();
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+    // The sticky 'b' is still tracked so a subsequent component on the same
+    // span continues to see it as a blocker.
+    expect(hasAnyCheckpoints('ttfd', SPAN_FIRST)).toBe(true);
+  });
+
+  test('unregistering a non-sole-blocker not-ready checkpoint removes it normally', () => {
+    // When other not-ready checkpoints are still present, removing one
+    // would not flip the aggregate, so the sticky safeguard does not apply.
+    registerCheckpoint('ttfd', SPAN_FIRST, 'a', false);
+    const unregisterB = registerCheckpoint('ttfd', SPAN_FIRST, 'b', false);
+
+    unregisterB();
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+    // 'a' remains, 'b' is gone.
+    updateCheckpoint('ttfd', SPAN_FIRST, 'a', true);
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
+  });
+
+  test('unregistering a ready checkpoint never goes sticky', () => {
+    registerCheckpoint('ttfd', SPAN_FIRST, 'a', false);
+    const unregisterB = registerCheckpoint('ttfd', SPAN_FIRST, 'b', true);
+
+    unregisterB();
+    // 'a' is still blocking; 'b' was ready so removing it is safe.
+    expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+    updateCheckpoint('ttfd', SPAN_FIRST, 'a', true);
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(true);
   });
 
