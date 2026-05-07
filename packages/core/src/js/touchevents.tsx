@@ -98,6 +98,9 @@ const SENTRY_SPAN_ATTRIBUTES_PROP_KEY = 'sentry-span-attributes';
 const SENTRY_COMPONENT_PROP_KEY = 'data-sentry-component';
 const SENTRY_ELEMENT_PROP_KEY = 'data-sentry-element';
 const SENTRY_FILE_PROP_KEY = 'data-sentry-source-file';
+const ACCESSIBILITY_LABEL_PROP_KEY = 'accessibilityLabel';
+const ARIA_LABEL_PROP_KEY = 'aria-label';
+const TEST_ID_PROP_KEY = 'testID';
 
 const MASK_COMPONENT_NAME = 'RNSentryReplayMask';
 const MAX_TEXT_LENGTH = 64;
@@ -404,15 +407,31 @@ function getFileName(props: Record<string, unknown>): string | undefined {
 }
 
 function getLabelValue(props: Record<string, unknown>, labelKey: string | undefined): string | undefined {
-  return typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0
-    ? props[SENTRY_LABEL_PROP_KEY]
-    : // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
-      // the "check-label" if sentence, so we have to assign it to a variable here first
-      // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
-      typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
-      ? // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
-        (props[labelKey] as string)
-      : undefined;
+  if (typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0) {
+    return props[SENTRY_LABEL_PROP_KEY];
+  }
+
+  // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
+  // the "check-label" if sentence, so we have to assign it to a variable here first
+  // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
+  if (typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0) {
+    // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
+    return props[labelKey] as string;
+  }
+
+  if (typeof props[ACCESSIBILITY_LABEL_PROP_KEY] === 'string' && props[ACCESSIBILITY_LABEL_PROP_KEY].length > 0) {
+    return props[ACCESSIBILITY_LABEL_PROP_KEY];
+  }
+
+  if (typeof props[ARIA_LABEL_PROP_KEY] === 'string' && props[ARIA_LABEL_PROP_KEY].length > 0) {
+    return props[ARIA_LABEL_PROP_KEY];
+  }
+
+  if (typeof props[TEST_ID_PROP_KEY] === 'string' && props[TEST_ID_PROP_KEY].length > 0) {
+    return props[TEST_ID_PROP_KEY];
+  }
+
+  return undefined;
 }
 
 function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAttributeValue> | undefined {

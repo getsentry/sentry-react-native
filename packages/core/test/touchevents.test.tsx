@@ -111,6 +111,219 @@ describe('TouchEventBoundary._onTouchStart', () => {
     });
   });
 
+  it('accessibilityLabel is used as label fallback when sentry-label is not set', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Button',
+        },
+        memoizedProps: {
+          accessibilityLabel: 'Save workout',
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toHaveBeenCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Button', label: 'Save workout' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: Save workout',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
+  it('testID is used as label fallback when sentry-label and accessibilityLabel are not set', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Button',
+        },
+        memoizedProps: {
+          testID: 'save-workout-button',
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toHaveBeenCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Button', label: 'save-workout-button' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: save-workout-button',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
+  it('sentry-label takes priority over accessibilityLabel and testID', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Button',
+        },
+        memoizedProps: {
+          'sentry-label': 'explicit-label',
+          accessibilityLabel: 'Save workout',
+          testID: 'save-workout-button',
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toHaveBeenCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Button', label: 'explicit-label' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: explicit-label',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
+  it('custom labelName takes priority over accessibilityLabel', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary({
+      ...defaultProps,
+      labelName: 'custom-label-key',
+    });
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Button',
+        },
+        memoizedProps: {
+          'custom-label-key': 'Custom label',
+          accessibilityLabel: 'Save workout',
+          testID: 'save-workout-button',
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toHaveBeenCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Button', label: 'Custom label' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: Custom label',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
+  it('aria-label is used as fallback after accessibilityLabel', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Button',
+        },
+        memoizedProps: {
+          'aria-label': 'Close dialog',
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toHaveBeenCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Button', label: 'Close dialog' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: Close dialog',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
+  it('accessibilityLabel takes priority over aria-label and testID', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Button',
+        },
+        memoizedProps: {
+          accessibilityLabel: 'Save workout',
+          'aria-label': 'Close dialog',
+          testID: 'save-workout-button',
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toHaveBeenCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Button', label: 'Save workout' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: Save workout',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
+  it('accessibilityLabel takes priority over testID', () => {
+    const { defaultProps } = TouchEventBoundary;
+    const boundary = new TouchEventBoundary(defaultProps);
+
+    const event = {
+      _targetInst: {
+        elementType: {
+          displayName: 'Button',
+        },
+        memoizedProps: {
+          accessibilityLabel: 'Save workout',
+          testID: 'save-workout-button',
+        },
+      },
+    };
+
+    // @ts-expect-error Calling private member
+    boundary._onTouchStart(event);
+
+    expect(addBreadcrumb).toHaveBeenCalledWith({
+      category: defaultProps.breadcrumbCategory,
+      data: {
+        path: [{ name: 'Button', label: 'Save workout' }],
+      },
+      level: 'info' as SeverityLevel,
+      message: 'Touch event within element: Save workout',
+      type: defaultProps.breadcrumbType,
+    });
+  });
+
   it('ignoreNames', () => {
     const { defaultProps } = TouchEventBoundary;
     const boundary = new TouchEventBoundary({
