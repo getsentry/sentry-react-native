@@ -128,15 +128,13 @@ describe('timeToDisplayCoordinator', () => {
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
   });
 
-  test('sticky-blocker survives sibling unmounts and continues to block new peers', () => {
-    const unregisterA = registerCheckpoint('ttfd', SPAN_FIRST, 'a', false);
-    const unregisterB = registerCheckpoint('ttfd', SPAN_FIRST, 'b', true);
+  test('sole-blocker unmount with no remount keeps the aggregate blocked', () => {
+    registerCheckpoint('ttfd', SPAN_FIRST, 'header', true);
+    const unregisterLoader = registerCheckpoint('ttfd', SPAN_FIRST, 'loader', false);
 
-    unregisterA(); // A becomes sticky
-    unregisterB();
-
-    registerCheckpoint('ttfd', SPAN_FIRST, 'c', true);
+    unregisterLoader(); // sticky
     flushDefer();
     expect(isAllReady('ttfd', SPAN_FIRST)).toBe(false);
+    expect(hasAnyCheckpoints('ttfd', SPAN_FIRST)).toBe(true);
   });
 });
