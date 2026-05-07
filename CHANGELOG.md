@@ -12,6 +12,12 @@
 
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.12.0 to v9.12.1 ([#6105](https://github.com/getsentry/sentry-react-native/pull/6105))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9121)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.0...9.12.1)
+
 ## 8.10.0
 
 ### Features
