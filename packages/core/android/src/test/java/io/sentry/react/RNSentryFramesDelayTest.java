@@ -67,6 +67,17 @@ public class RNSentryFramesDelayTest {
   }
 
   @Test
+  public void resolvesNullWhenResultIsNull() {
+    SentryFrameMetricsCollector collector = mock(SentryFrameMetricsCollector.class);
+    when(collector.getFramesDelay(anyLong(), anyLong())).thenReturn(null);
+    module.frameMetricsCollector = collector;
+
+    double now = System.currentTimeMillis() / 1e3;
+    module.fetchNativeFramesDelay(now - 1.0, now, promise);
+    verify(promise).resolve(isNull());
+  }
+
+  @Test
   public void resolvesNullWhenStartIsInFuture() {
     SentryFrameMetricsCollector collector = mock(SentryFrameMetricsCollector.class);
     module.frameMetricsCollector = collector;

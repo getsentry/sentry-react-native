@@ -421,7 +421,7 @@ public class RNSentryModuleImpl {
       }
 
       SentryFramesDelayResult result = frameMetricsCollector.getFramesDelay(startNanos, endNanos);
-      if (result.getDelaySeconds() >= 0) {
+      if (result != null && result.getDelaySeconds() >= 0) {
         promise.resolve(result.getDelaySeconds());
       } else {
         promise.resolve(null);
