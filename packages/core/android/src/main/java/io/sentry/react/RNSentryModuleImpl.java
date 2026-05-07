@@ -99,7 +99,7 @@ public class RNSentryModuleImpl {
   private final ReactApplicationContext reactApplicationContext;
   private final PackageInfo packageInfo;
   private FrameMetricsAggregator frameMetricsAggregator = null;
-  private @Nullable SentryFrameMetricsCollector frameMetricsCollector = null;
+  @VisibleForTesting @Nullable SentryFrameMetricsCollector frameMetricsCollector = null;
   private @Nullable String frameMetricsListenerId = null;
   private boolean androidXAvailable;
 
