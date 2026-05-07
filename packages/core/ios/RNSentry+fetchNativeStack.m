@@ -1,7 +1,7 @@
 #import "RNSentry.h"
 #import "RNSentryBreadcrumb.h"
+#import "RNSentryHexFormatter.h"
 #import "RNSentryId.h"
-#import "SentryFormatter.h"
 #import <Sentry/PrivateSentrySDKOnly.h>
 @import Sentry;
 
@@ -25,12 +25,12 @@
         SentryBinaryImageInfo *_Nullable image = [[[SentryDependencyContainer sharedInstance]
             binaryImageCache] imageByAddress:[addr unsignedLongLongValue]];
         if (image != nil) {
-            NSString *imageAddr = sentry_formatHexAddressUInt64([image address]);
+            NSString *imageAddr = rnsentry_formatHexAddressUInt64([image address]);
             [imagesAddrToRetrieveDebugMetaImages addObject:imageAddr];
 
             NSDictionary<NSString *, id> *_Nonnull nativeFrame = @{
                 @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
+                @"instruction_addr" : rnsentry_formatHexAddress(addr),
                 @"package" : [image name],
                 @"image_addr" : imageAddr,
                 @"in_app" : [NSNumber numberWithBool:[appPackageName isEqualToString:[image name]]],
@@ -45,7 +45,7 @@
                     NSMutableDictionary<NSString *, id> *_Nonnull symbolicated
                         = nativeFrame.mutableCopy;
                     symbolicated[@"symbol_addr"]
-                        = sentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
+                        = rnsentry_formatHexAddressUInt64((uintptr_t)symbolsBuffer.dli_saddr);
                     symbolicated[@"function"] = [NSString stringWithCString:symbolsBuffer.dli_sname
                                                                    encoding:NSUTF8StringEncoding];
 
@@ -57,7 +57,7 @@
         } else {
             [serializedFrames addObject:@{
                 @"platform" : @"cocoa",
-                @"instruction_addr" : sentry_formatHexAddress(addr),
+                @"instruction_addr" : rnsentry_formatHexAddress(addr),
             }];
         }
     }
