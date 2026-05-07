@@ -45,6 +45,7 @@ import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
+import io.sentry.android.core.SentryFramesDelayResult;
 import io.sentry.android.core.SentryShakeDetector;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
@@ -98,7 +99,8 @@ public class RNSentryModuleImpl {
   private final ReactApplicationContext reactApplicationContext;
   private final PackageInfo packageInfo;
   private FrameMetricsAggregator frameMetricsAggregator = null;
-  private final RNSentryFrameDelayCollector frameDelayCollector = new RNSentryFrameDelayCollector();
+  @VisibleForTesting @Nullable SentryFrameMetricsCollector frameMetricsCollector = null;
+  private @Nullable String frameMetricsListenerId = null;
   private boolean androidXAvailable;
 
   @VisibleForTesting static long lastStartTimestampMs = -1;
@@ -413,9 +415,14 @@ public class RNSentryModuleImpl {
       long startNanos = nowNanos - (long) (startOffsetSeconds * 1e9);
       long endNanos = nowNanos - (long) (endOffsetSeconds * 1e9);
 
-      double delaySeconds = frameDelayCollector.getFramesDelay(startNanos, endNanos);
-      if (delaySeconds >= 0) {
-        promise.resolve(delaySeconds);
+      if (frameMetricsCollector == null) {
+        promise.resolve(null);
+        return;
+      }
+
+      SentryFramesDelayResult result = frameMetricsCollector.getFramesDelay(startNanos, endNanos);
+      if (result != null && result.getDelaySeconds() >= 0) {
+        promise.resolve(result.getDelaySeconds());
       } else {
         promise.resolve(null);
       }
@@ -747,12 +754,28 @@ public class RNSentryModuleImpl {
       if (options instanceof SentryAndroidOptions) {
         final SentryFrameMetricsCollector collector =
             ((SentryAndroidOptions) options).getFrameMetricsCollector();
-        if (frameDelayCollector.start(collector)) {
-          logger.log(SentryLevel.INFO, "RNSentryFrameDelayCollector installed.");
+        if (collector != null) {
+          // Register a no-op listener to ensure frame metrics collection is active.
+          // This is needed so that getFramesDelay() has data to query.
+          stopFrameMetricsCollection();
+          String listenerId =
+              collector.startCollection(
+                  (startNanos,
+                      endNanos,
+                      durationNanos,
+                      delayNanos,
+                      isSlow,
+                      isFrozen,
+                      refreshRate) -> {});
+          if (listenerId != null) {
+            frameMetricsCollector = collector;
+            frameMetricsListenerId = listenerId;
+            logger.log(SentryLevel.INFO, "SentryFrameMetricsCollector listener installed.");
+          }
         }
       }
     } catch (Throwable ignored) { // NOPMD - We don't want to crash in any case
-      logger.log(SentryLevel.WARNING, "Error starting RNSentryFrameDelayCollector.");
+      logger.log(SentryLevel.WARNING, "Error starting frame metrics collection.");
     }
   }
 
@@ -761,7 +784,15 @@ public class RNSentryModuleImpl {
       frameMetricsAggregator.stop();
       frameMetricsAggregator = null;
     }
-    frameDelayCollector.stop();
+    stopFrameMetricsCollection();
+  }
+
+  private void stopFrameMetricsCollection() {
+    if (frameMetricsCollector != null && frameMetricsListenerId != null) {
+      frameMetricsCollector.stopCollection(frameMetricsListenerId);
+    }
+    frameMetricsCollector = null;
+    frameMetricsListenerId = null;
   }
 
   public void getNewScreenTimeToDisplay(Promise promise) {
