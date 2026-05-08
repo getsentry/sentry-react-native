@@ -79,6 +79,7 @@ export type TouchEventBoundaryProps = {
    * `mobileReplayIntegration` config to enable text extraction.
    * Per-view `Sentry.Mask` boundaries are also respected.
    * Set to `false` to opt out of text extraction entirely.
+   * @default true
    */
   extractTextFromChildren?: boolean;
 };
@@ -310,7 +311,10 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
       return true;
     }
     const replayIntegration = client.getIntegrationByName(MOBILE_REPLAY_INTEGRATION_NAME);
-    if (replayIntegration && 'options' in replayIntegration) {
+    if (replayIntegration) {
+      if (!('options' in replayIntegration)) {
+        return false;
+      }
       const options = replayIntegration.options as { maskAllText?: boolean };
       if (options.maskAllText !== false) {
         return false;

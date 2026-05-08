@@ -1140,7 +1140,7 @@ describe('TouchEventBoundary._onTouchStart', () => {
 
       expect(addBreadcrumb).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Touch event within element: Save workout',
+          message: 'Touch event within element: TouchableOpacity',
         }),
       );
     });
