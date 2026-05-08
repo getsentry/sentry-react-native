@@ -73,6 +73,42 @@ class RNSentryReplayBreadcrumbConverterTest {
     }
 
     @Test
+    fun convertDeviceOrientationBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "device.orientation"
+        testBreadcrumb.setData("orientation", "portrait")
+        val actual = converter.convert(testBreadcrumb)
+
+        assert(actual != null) { "device.orientation breadcrumbs should pass through to the default converter" }
+    }
+
+    @Test
+    fun convertDeviceConnectivityBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "device.connectivity"
+        testBreadcrumb.setData("connectivity", "wifi")
+        val actual = converter.convert(testBreadcrumb)
+
+        assert(actual != null) { "device.connectivity breadcrumbs should pass through to the default converter" }
+    }
+
+    @Test
+    fun convertDeviceEventBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "system"
+        testBreadcrumb.category = "device.event"
+        testBreadcrumb.setData("action", "LOW_MEMORY")
+        val actual = converter.convert(testBreadcrumb)
+
+        assert(actual != null) { "device.event breadcrumbs should pass through to the default converter" }
+    }
+
+    @Test
     fun doesNotConvertSentryEventBreadcrumb() {
         val converter = RNSentryReplayBreadcrumbConverter()
         val testBreadcrumb = Breadcrumb()
