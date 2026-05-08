@@ -324,14 +324,14 @@ export function withSentryFeedbackResolver(config: MetroConfig, includeWebFeedba
 }
 
 /**
- * Matches relative import paths to server-only AI/MCP modules within `@sentry/core`.
+ * Matches relative import paths to server-only modules within `@sentry/core`.
  *
  * Metro passes the module name as-written in the source code, so for imports inside
  * `@sentry/core`'s barrel file like `export { ... } from './integrations/mcp-server/index.js'`,
  * the `moduleName` will be `./integrations/mcp-server/index.js`.
  */
 const SERVER_ONLY_MODULE_RE =
-  /\/(mcp-server|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|$)/;
+  /\/(mcp-server|integrations\/http|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|$)/;
 
 function isFromSentryCore(originModulePath: string): boolean {
   return originModulePath.includes('@sentry/core');
