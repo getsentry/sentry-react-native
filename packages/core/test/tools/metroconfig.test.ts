@@ -574,6 +574,7 @@ describe('metroconfig', () => {
 
     describe.each([
       ['./integrations/mcp-server/index.js'],
+      ['./integrations/http/index.js'],
       ['./tracing/openai/index.js'],
       ['./tracing/anthropic-ai/index.js'],
       ['./tracing/google-genai/index.js'],

@@ -84,6 +84,39 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         XCTAssertEqual(payload["category"] as! String, "app.background")
     }
 
+    func testConvertDeviceOrientationBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "device.orientation"
+        testBreadcrumb.data = ["orientation": "portrait"]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual, "device.orientation breadcrumbs should pass through to the default converter")
+    }
+
+    func testConvertDeviceConnectivityBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "device.connectivity"
+        testBreadcrumb.data = ["connectivity": "wifi"]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual, "device.connectivity breadcrumbs should pass through to the default converter")
+    }
+
+    func testConvertDeviceEventBreadcrumb() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "system"
+        testBreadcrumb.category = "device.event"
+        testBreadcrumb.data = ["action": "LOW_MEMORY"]
+        let actual = converter.convert(from: testBreadcrumb)
+
+        XCTAssertNotNil(actual, "device.event breadcrumbs should pass through to the default converter")
+    }
+
     func testNotConvertSentryEventBreadcrumb() {
         let converter = RNSentryReplayBreadcrumbConverter()
         let testBreadcrumb = Breadcrumb()

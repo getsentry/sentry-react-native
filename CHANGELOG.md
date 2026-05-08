@@ -8,6 +8,14 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.51.0 to v10.52.0 ([#6108](https://github.com/getsentry/sentry-react-native/pull/6108))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10520)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.51.0...10.52.0)
+
+## 8.11.0
+
 ### Features
 
 - Use `accessibilityLabel`, `aria-label`, and `testID` as fallback labels for touch breadcrumbs when `sentry-label` is not set ([#6103](https://github.com/getsentry/sentry-react-native/pull/6103))
