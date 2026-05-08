@@ -934,6 +934,42 @@ describe('TouchEventBoundary._onTouchStart', () => {
       );
     });
 
+    it('does not duplicate text when props.children and HostText child both exist', () => {
+      // In real React Native fiber trees, <Text>Hello</Text> has both:
+      // - Text fiber: memoizedProps = { children: 'Hello' }
+      // - HostText child fiber: memoizedProps = 'Hello' (raw string)
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            elementType: { name: 'Text' },
+            memoizedProps: { children: 'Save workout' },
+            child: {
+              // HostText fiber — raw string props
+              memoizedProps: 'Save workout',
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: Save workout',
+          data: {
+            path: [{ name: 'TouchableOpacity', label: 'Save workout' }],
+          },
+        }),
+      );
+    });
+
     it('extracts text from nested fiber children', () => {
       const { defaultProps } = TouchEventBoundary;
       const boundary = new TouchEventBoundary(defaultProps);

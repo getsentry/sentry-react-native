@@ -484,12 +484,16 @@ function collectTextFromFiber(
 
   const props = inst.memoizedProps;
   if (typeof props === 'string') {
+    // Raw text fiber (HostText) — no children to recurse into
     parts.push(props);
   } else if (typeof props?.children === 'string') {
+    // Component with string children — skip child recursion to avoid
+    // duplicating text from the HostText child fiber
     parts.push(props.children);
+  } else {
+    collectTextFromFiber(inst.child, parts, depth + 1, 0);
   }
 
-  collectTextFromFiber(inst.child, parts, depth + 1, 0);
   collectTextFromFiber(inst.sibling, parts, depth, siblingIndex + 1);
 }
 
