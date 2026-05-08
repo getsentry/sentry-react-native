@@ -131,7 +131,9 @@
     "appium-ios-remotexpc@npm:0.36.0/@xmldom/xmldom": "^0.9.10",
     "appium-ios-simulator@npm:8.0.12/@xmldom/xmldom": "^0.9.10",
     "postcss": "^8.5.10",
-    "socks": "^2.8.8"
+    "socks": "^2.8.8",
+    "@appium/support@npm:7.0.6/uuid": "^13.0.1",
+    "node-simctl@npm:8.1.6/uuid": "^13.0.1"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
