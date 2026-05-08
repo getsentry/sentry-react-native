@@ -1297,6 +1297,109 @@ describe('TouchEventBoundary._onTouchStart', () => {
       );
     });
 
+    it('stops collecting text beyond depth limit', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      // Build a fiber tree beyond the depth limit (> 3), depths 0-3 are allowed
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: {
+            // depth 0
+            elementType: { name: 'View' },
+            memoizedProps: {},
+            child: {
+              // depth 1
+              elementType: { name: 'View' },
+              memoizedProps: {},
+              child: {
+                // depth 2
+                elementType: { name: 'View' },
+                memoizedProps: {},
+                child: {
+                  // depth 3
+                  elementType: { name: 'View' },
+                  memoizedProps: {},
+                  child: {
+                    // depth 4 — beyond limit, should be ignored
+                    elementType: { name: 'Text' },
+                    memoizedProps: { children: 'Too deep' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: TouchableOpacity',
+        }),
+      );
+    });
+
+    it('stops collecting text beyond sibling limit', () => {
+      const { defaultProps } = TouchEventBoundary;
+      const boundary = new TouchEventBoundary(defaultProps);
+      jest.spyOn(client, 'getIntegrationByName').mockReturnValue(undefined);
+
+      // Build 6 sibling text nodes, limit is 5
+      const sibling6 = {
+        elementType: { name: 'Text' },
+        memoizedProps: { children: 'six' },
+        sibling: undefined,
+      };
+      const sibling5 = {
+        elementType: { name: 'Text' },
+        memoizedProps: { children: 'five' },
+        sibling: sibling6,
+      };
+      const sibling4 = {
+        elementType: { name: 'Text' },
+        memoizedProps: { children: 'four' },
+        sibling: sibling5,
+      };
+      const sibling3 = {
+        elementType: { name: 'Text' },
+        memoizedProps: { children: 'three' },
+        sibling: sibling4,
+      };
+      const sibling2 = {
+        elementType: { name: 'Text' },
+        memoizedProps: { children: 'two' },
+        sibling: sibling3,
+      };
+      const sibling1 = {
+        elementType: { name: 'Text' },
+        memoizedProps: { children: 'one' },
+        sibling: sibling2,
+      };
+
+      const event = {
+        _targetInst: {
+          elementType: { displayName: 'TouchableOpacity' },
+          memoizedProps: {},
+          child: sibling1,
+        },
+      };
+
+      // @ts-expect-error Calling private member
+      boundary._onTouchStart(event);
+
+      expect(addBreadcrumb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Touch event within element: one two three four five',
+        }),
+      );
+    });
+
     it('handles string memoizedProps (raw text fiber nodes)', () => {
       const { defaultProps } = TouchEventBoundary;
       const boundary = new TouchEventBoundary(defaultProps);
