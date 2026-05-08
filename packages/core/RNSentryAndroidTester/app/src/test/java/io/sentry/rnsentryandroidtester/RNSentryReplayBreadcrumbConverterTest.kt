@@ -5,6 +5,7 @@ import io.sentry.SentryLevel
 import io.sentry.react.RNSentryReplayBreadcrumbConverter
 import io.sentry.rrweb.RRWebBreadcrumbEvent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -81,7 +82,7 @@ class RNSentryReplayBreadcrumbConverterTest {
         testBreadcrumb.setData("orientation", "portrait")
         val actual = converter.convert(testBreadcrumb)
 
-        assert(actual != null) { "device.orientation breadcrumbs should pass through to the default converter" }
+        assertNotNull("device.orientation breadcrumbs should pass through to the default converter", actual)
     }
 
     @Test
@@ -93,7 +94,7 @@ class RNSentryReplayBreadcrumbConverterTest {
         testBreadcrumb.setData("connectivity", "wifi")
         val actual = converter.convert(testBreadcrumb)
 
-        assert(actual != null) { "device.connectivity breadcrumbs should pass through to the default converter" }
+        assertNotNull("device.connectivity breadcrumbs should pass through to the default converter", actual)
     }
 
     @Test
@@ -105,7 +106,7 @@ class RNSentryReplayBreadcrumbConverterTest {
         testBreadcrumb.setData("action", "LOW_MEMORY")
         val actual = converter.convert(testBreadcrumb)
 
-        assert(actual != null) { "device.event breadcrumbs should pass through to the default converter" }
+        assertNotNull("device.event breadcrumbs should pass through to the default converter", actual)
     }
 
     @Test
