@@ -20,6 +20,9 @@
 
 ## 8.11.0
 
+> [!WARNING]
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. Until a fix is released, pin `sentry-react-native` to **8.9.2** (`sentry-cocoa` `9.11.0`). Follow [#7886](https://github.com/getsentry/sentry-cocoa/issues/7886) for updates.
+
 ### Features
 
 - Use `accessibilityLabel`, `aria-label`, and `testID` as fallback labels for touch breadcrumbs when `sentry-label` is not set ([#6103](https://github.com/getsentry/sentry-react-native/pull/6103))
@@ -39,6 +42,9 @@
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.0...9.12.1)
 
 ## 8.10.0
+
+> [!WARNING]
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. Until a fix is released, pin `sentry-react-native` to **8.9.2** (`sentry-cocoa` `9.11.0`). Follow [#7886](https://github.com/getsentry/sentry-cocoa/issues/7886) for updates.
 
 ### Features
 
