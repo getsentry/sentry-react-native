@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.51.0 to v10.52.0 ([#6108](https://github.com/getsentry/sentry-react-native/pull/6108))
