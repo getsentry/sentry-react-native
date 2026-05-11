@@ -12,6 +12,10 @@
 
 - Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
 
+### Fixes
+
+- Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.51.0 to v10.52.0 ([#6108](https://github.com/getsentry/sentry-react-native/pull/6108))
