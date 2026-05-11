@@ -273,6 +273,300 @@ describe('Device Context Integration', () => {
     });
   });
 
+  describe('http breadcrumb deduplication', () => {
+    it('removes native http breadcrumbs that duplicate js xhr breadcrumbs', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00', // 1730985899
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 1730985899.5,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toStrictEqual([
+        {
+          category: 'xhr',
+          type: 'http',
+          data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+          timestamp: 1730985899.5,
+        },
+      ]);
+    });
+
+    it('keeps native http breadcrumbs that have no js match', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'POST', url: 'https://native-only.example.com/sync', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 1730985899,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toHaveLength(2);
+    });
+
+    it('keeps non-http native breadcrumbs unchanged', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'ui.click',
+                message: 'button pressed',
+                timestamp: 'Thursday, November 7, 2024 3:24:58 PM GMT+02:00',
+              },
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 1730985899,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toStrictEqual([
+        { category: 'ui.click', message: 'button pressed', timestamp: 1730985898 },
+        {
+          category: 'xhr',
+          type: 'http',
+          data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+          timestamp: 1730985899,
+        },
+      ]);
+    });
+
+    it('does not deduplicate when timestamps differ by more than tolerance', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:55 PM GMT+02:00', // 1730985895
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 1730985899,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toHaveLength(2);
+    });
+
+    it('each js breadcrumb consumes at most one native duplicate', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:58 PM GMT+02:00', // 1730985898
+              },
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00', // 1730985899
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 1730985898,
+              },
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 1730985899,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      // Both native duplicates removed, both JS breadcrumbs kept
+      expect(processedEvent?.breadcrumbs).toStrictEqual([
+        {
+          category: 'xhr',
+          type: 'http',
+          data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+          timestamp: 1730985898,
+        },
+        {
+          category: 'xhr',
+          type: 'http',
+          data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+          timestamp: 1730985899,
+        },
+      ]);
+    });
+
+    it('deduplicates when native status_code is a string and js is a number', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: '200' },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 1730985899,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toStrictEqual([
+        {
+          category: 'xhr',
+          type: 'http',
+          data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+          timestamp: 1730985899,
+        },
+      ]);
+    });
+
+    it('keeps all native http breadcrumbs when there are no js breadcrumbs', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toStrictEqual([
+        {
+          category: 'http',
+          type: 'http',
+          data: { method: 'GET', url: 'https://api.example.com/data', status_code: 200 },
+          timestamp: 1730985899,
+        },
+      ]);
+    });
+
+    it('deduplicates fetch breadcrumbs the same as xhr', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'POST', url: 'https://api.example.com/submit', status_code: 201 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'fetch',
+                type: 'http',
+                data: { method: 'POST', url: 'https://api.example.com/submit', status_code: 201 },
+                timestamp: 1730985899,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toStrictEqual([
+        {
+          category: 'fetch',
+          type: 'http',
+          data: { method: 'POST', url: 'https://api.example.com/submit', status_code: 201 },
+          timestamp: 1730985899,
+        },
+      ]);
+    });
+  });
+
   it('do not add in_foreground if unknown', async () => {
     mockCurrentAppState = 'unknown';
     const { processedEvent } = await processEventWith({
