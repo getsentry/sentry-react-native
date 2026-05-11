@@ -132,10 +132,12 @@ function deduplicateNativeHttpBreadcrumbs(nativeBreadcrumbs: Breadcrumb[], jsBre
 
       const sameMethod = nativeBreadcrumb.data?.method === jsBreadcrumb.data?.method;
       const sameUrl = nativeBreadcrumb.data?.url === jsBreadcrumb.data?.url;
+      const nativeStatus = nativeBreadcrumb.data?.status_code;
+      const jsStatus = jsBreadcrumb.data?.status_code;
       const sameStatus =
-        nativeBreadcrumb.data?.status_code != null &&
-        jsBreadcrumb.data?.status_code != null &&
-        Number(nativeBreadcrumb.data.status_code) === Number(jsBreadcrumb.data.status_code);
+        nativeStatus == null && jsStatus == null
+          ? true
+          : nativeStatus != null && jsStatus != null && Number(nativeStatus) === Number(jsStatus);
       const withinTimeTolerance =
         nativeBreadcrumb.timestamp != null &&
         jsBreadcrumb.timestamp != null &&

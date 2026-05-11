@@ -465,6 +465,42 @@ describe('Device Context Integration', () => {
       ]);
     });
 
+    it('deduplicates when both breadcrumbs have no status_code (network error)', async () => {
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data' },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: {
+            breadcrumbs: [
+              {
+                category: 'xhr',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/data' },
+                timestamp: 1730985899,
+              },
+            ],
+          },
+        },
+        mockClient,
+      );
+      expect(processedEvent?.breadcrumbs).toStrictEqual([
+        {
+          category: 'xhr',
+          type: 'http',
+          data: { method: 'GET', url: 'https://api.example.com/data' },
+          timestamp: 1730985899,
+        },
+      ]);
+    });
+
     it('deduplicates when native status_code is a string and js is a number', async () => {
       const { processedEvent } = await processEventWith(
         {
