@@ -6,6 +6,18 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix iOS crash with AVAssetDownloadTask in urlSessionTask:setState: ([#6133](https://github.com/getsentry/sentry-react-native/pull/6133))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.12.1 to v9.13.0 ([#6133](https://github.com/getsentry/sentry-react-native/pull/6133))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9130)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.1...9.13.0)
+
 ## 8.11.0
 
 ### Features
