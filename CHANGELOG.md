@@ -6,6 +6,21 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.51.0 to v10.52.0 ([#6108](https://github.com/getsentry/sentry-react-native/pull/6108))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10520)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.51.0...10.52.0)
+- Bump CLI from v3.4.1 to v3.4.2 ([#6129](https://github.com/getsentry/sentry-react-native/pull/6129))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#342)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.1...3.4.2)
+
 ## 8.11.1
 
 ### Fixes
@@ -19,6 +34,9 @@
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.1...9.13.0)
 
 ## 8.11.0
+
+> [!WARNING]
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. Until a fix is released, pin `sentry-react-native` to **8.9.2** (`sentry-cocoa` `9.11.0`). Follow [#7886](https://github.com/getsentry/sentry-cocoa/issues/7886) for updates.
 
 ### Features
 
@@ -39,6 +57,9 @@
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.0...9.12.1)
 
 ## 8.10.0
+
+> [!WARNING]
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. Until a fix is released, pin `sentry-react-native` to **8.9.2** (`sentry-cocoa` `9.11.0`). Follow [#7886](https://github.com/getsentry/sentry-cocoa/issues/7886) for updates.
 
 ### Features
 

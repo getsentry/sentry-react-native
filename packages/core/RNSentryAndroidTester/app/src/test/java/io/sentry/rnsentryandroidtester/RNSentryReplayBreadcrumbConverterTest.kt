@@ -5,6 +5,7 @@ import io.sentry.SentryLevel
 import io.sentry.react.RNSentryReplayBreadcrumbConverter
 import io.sentry.rrweb.RRWebBreadcrumbEvent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -70,6 +71,42 @@ class RNSentryReplayBreadcrumbConverterTest {
 
         assertRRWebBreadcrumbDefaults(actual)
         assertEquals("app.background", actual.category)
+    }
+
+    @Test
+    fun convertDeviceOrientationBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "device.orientation"
+        testBreadcrumb.setData("orientation", "portrait")
+        val actual = converter.convert(testBreadcrumb)
+
+        assertNotNull("device.orientation breadcrumbs should pass through to the default converter", actual)
+    }
+
+    @Test
+    fun convertDeviceConnectivityBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "default"
+        testBreadcrumb.category = "device.connectivity"
+        testBreadcrumb.setData("connectivity", "wifi")
+        val actual = converter.convert(testBreadcrumb)
+
+        assertNotNull("device.connectivity breadcrumbs should pass through to the default converter", actual)
+    }
+
+    @Test
+    fun convertDeviceEventBreadcrumb() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.type = "system"
+        testBreadcrumb.category = "device.event"
+        testBreadcrumb.setData("action", "LOW_MEMORY")
+        val actual = converter.convert(testBreadcrumb)
+
+        assertNotNull("device.event breadcrumbs should pass through to the default converter", actual)
     }
 
     @Test
