@@ -213,9 +213,7 @@ export function withSentryBabelTransformer(
 
   if (typeof annotateReactComponents === 'object') {
     setSentryBabelTransformerOptions({
-      annotateReactComponents: {
-        ...annotateReactComponents,
-      },
+      annotateReactComponents,
     });
   }
 
