@@ -50,7 +50,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  s.dependency 'Sentry', '9.12.1'
+  s.dependency 'Sentry', '9.13.0'
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)

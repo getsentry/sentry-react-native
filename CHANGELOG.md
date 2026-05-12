@@ -21,6 +21,18 @@
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#342)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.1...3.4.2)
 
+## 8.11.1
+
+### Fixes
+
+- Fix iOS crash with AVAssetDownloadTask in urlSessionTask:setState: ([#6133](https://github.com/getsentry/sentry-react-native/pull/6133))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.12.1 to v9.13.0 ([#6133](https://github.com/getsentry/sentry-react-native/pull/6133))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9130)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.1...9.13.0)
+
 ## 8.11.0
 
 > [!WARNING]
