@@ -33,6 +33,14 @@ export interface SentryMetroConfigOptions {
     | boolean
     | {
         ignoredComponents?: string[];
+        /**
+         * Automatically inject `sentry-label` props from static text content.
+         * When enabled, the Babel plugin extracts text from children of touchable
+         * components and injects it as a `sentry-label` prop at build time.
+         *
+         * @default true when `annotateReactComponents` is enabled
+         */
+        autoInjectSentryLabel?: boolean;
       };
   /**
    * Adds the Sentry replay package for web.
@@ -205,7 +213,9 @@ export function withSentryBabelTransformer(
 
   if (typeof annotateReactComponents === 'object') {
     setSentryBabelTransformerOptions({
-      annotateReactComponents,
+      annotateReactComponents: {
+        ...annotateReactComponents,
+      },
     });
   }
 
