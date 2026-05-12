@@ -11,6 +11,7 @@
 ### Features
 
 - Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
+- Auto-inject `sentry-label` from static text content at build time when `annotateReactComponents` is enabled ([#6141](https://github.com/getsentry/sentry-react-native/pull/6141))
 
 ### Dependencies
 
