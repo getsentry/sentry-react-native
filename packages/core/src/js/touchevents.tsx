@@ -244,7 +244,10 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
     let currentInst: ElementInstance | undefined = e._targetInst;
     const touchPath: TouchedComponentInfo[] = [];
-    const shouldExtractText = this._shouldExtractText();
+    const maskAllText = this._isMaskAllTextEnabled();
+    const isInsideMask = !maskAllText && hasAncestorMask(e._targetInst);
+    const shouldReadSentryLabel = !maskAllText && !isInsideMask;
+    const shouldExtractText = this._shouldExtractText() && !isInsideMask;
 
     while (
       currentInst &&
@@ -259,7 +262,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
         break;
       }
 
-      const info = getTouchedComponentInfo(currentInst, this.props.labelName, shouldExtractText);
+      const info = getTouchedComponentInfo(currentInst, this.props.labelName, shouldExtractText, shouldReadSentryLabel);
       this._pushIfNotIgnored(touchPath, info);
 
       currentInst = currentInst.return;
@@ -302,25 +305,27 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     }
   }
 
+  private _isMaskAllTextEnabled(): boolean {
+    const client = getClient();
+    if (!client) {
+      return false;
+    }
+    const replayIntegration = client.getIntegrationByName(MOBILE_REPLAY_INTEGRATION_NAME);
+    if (!replayIntegration) {
+      return false;
+    }
+    if (!('options' in replayIntegration)) {
+      return true;
+    }
+    const options = replayIntegration.options as { maskAllText?: boolean };
+    return options.maskAllText !== false;
+  }
+
   private _shouldExtractText(): boolean {
     if (!this.props.extractTextFromChildren) {
       return false;
     }
-    const client = getClient();
-    if (!client) {
-      return true;
-    }
-    const replayIntegration = client.getIntegrationByName(MOBILE_REPLAY_INTEGRATION_NAME);
-    if (replayIntegration) {
-      if (!('options' in replayIntegration)) {
-        return false;
-      }
-      const options = replayIntegration.options as { maskAllText?: boolean };
-      if (options.maskAllText !== false) {
-        return false;
-      }
-    }
-    return true;
+    return !this._isMaskAllTextEnabled();
   }
 
   /**
@@ -355,6 +360,7 @@ function getTouchedComponentInfo(
   currentInst: ElementInstance,
   labelKey: string | undefined,
   shouldExtractText: boolean,
+  shouldReadSentryLabel: boolean,
 ): TouchedComponentInfo | undefined {
   const displayName = currentInst.elementType?.displayName;
 
@@ -368,7 +374,9 @@ function getTouchedComponentInfo(
     return undefined;
   }
 
-  const label = getLabelValue(props, labelKey) || (shouldExtractText ? extractTextFromFiber(currentInst) : undefined);
+  const label =
+    getLabelValue(props, labelKey, shouldReadSentryLabel) ||
+    (shouldExtractText ? extractTextFromFiber(currentInst) : undefined);
 
   return dropUndefinedKeys<TouchedComponentInfo>({
     // provided by @sentry/babel-plugin-component-annotate
@@ -410,8 +418,12 @@ function getFileName(props: Record<string, unknown>): string | undefined {
   );
 }
 
-function getLabelValue(props: Record<string, unknown>, labelKey: string | undefined): string | undefined {
-  if (typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0) {
+function getLabelValue(
+  props: Record<string, unknown>,
+  labelKey: string | undefined,
+  readSentryLabel: boolean = true,
+): string | undefined {
+  if (readSentryLabel && typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0) {
     return props[SENTRY_LABEL_PROP_KEY];
   }
 
@@ -452,6 +464,17 @@ function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAtt
   }
 
   return undefined;
+}
+
+function hasAncestorMask(inst: ElementInstance): boolean {
+  let current = inst.return;
+  while (current) {
+    if (current.elementType?.name === MASK_COMPONENT_NAME || current.elementType?.displayName === MASK_COMPONENT_NAME) {
+      return true;
+    }
+    current = current.return;
+  }
+  return false;
 }
 
 function extractTextFromFiber(inst: ElementInstance): string | undefined {
