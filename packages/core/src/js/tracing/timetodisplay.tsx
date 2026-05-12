@@ -148,8 +148,8 @@ function useCoordinatedDisplay(
     return subscribe(kind, parentSpanId, force);
   }, [kind, parentSpanId, useRegistry]);
 
-  // Tracks if this component's checkpoint is currently registered with the coordinator
-  const registeredRef = useRef(false);
+  // Tracks the span this component is currently registered under
+  const registeredSpanRef = useRef<string | null>(null);
 
   // Register on mount / when the active span changes
   useEffect(() => {
@@ -157,9 +157,9 @@ function useCoordinatedDisplay(
       return undefined;
     }
     const unregister = registerCheckpoint(kind, parentSpanId, checkpointId, localReady);
-    registeredRef.current = true;
+    registeredSpanRef.current = parentSpanId;
     return () => {
-      registeredRef.current = false;
+      registeredSpanRef.current = null;
       unregister();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,7 +180,7 @@ function useCoordinatedDisplay(
   if (!useRegistry) {
     return localReady;
   }
-  if (!registeredRef.current) {
+  if (registeredSpanRef.current !== parentSpanId) {
     return false;
   }
   return isAllReady(kind, parentSpanId);
@@ -524,9 +524,10 @@ function createTimeToDisplay({
     // gate both legacy `record` and the new `ready` checkpoint on focus
     //
     // the idea here is that wrappers built via createTimeToFullDisplay/createTimeToInitialDisplay
-    // can only record TTID/TTFD on a focused scree
+    // can only record TTID/TTFD on a focused screen
     const gatedReady = focused ? props.ready : undefined;
-    return <Component {...props} record={focused && props.record} ready={gatedReady} />;
+    const gatedRecord = focused ? props.record : undefined;
+    return <Component {...props} record={gatedRecord} ready={gatedReady} />;
   };
 
   TimeToDisplayWrapper.displayName = 'TimeToDisplayWrapper';
