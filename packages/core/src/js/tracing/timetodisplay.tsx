@@ -524,8 +524,8 @@ function createTimeToDisplay({
     // gate both legacy `record` and the new `ready` checkpoint on focus
     //
     // the idea here is that wrappers built via createTimeToFullDisplay/createTimeToInitialDisplay
-    // can only record TTID/TTFD on a focused screen
-    const gatedReady = props.ready === undefined ? undefined : focused && props.ready;
+    // can only record TTID/TTFD on a focused scree
+    const gatedReady = focused ? props.ready : undefined;
     return <Component {...props} record={focused && props.record} ready={gatedReady} />;
   };
 
