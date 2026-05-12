@@ -24,7 +24,6 @@ import { act, render } from '@testing-library/react-native';
 import * as React from 'react';
 
 import { timeToDisplayIntegration } from '../../src/js/tracing/integrations/timeToDisplayIntegration';
-import { _resetTimeToDisplayCoordinator } from '../../src/js/tracing/timeToDisplayCoordinator';
 import { SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from '../../src/js/tracing/origin';
 import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
@@ -38,6 +37,7 @@ import {
   TimeToInitialDisplay,
   updateInitialDisplaySpan,
 } from '../../src/js/tracing/timetodisplay';
+import { _resetTimeToDisplayCoordinator } from '../../src/js/tracing/timeToDisplayCoordinator';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
 
@@ -64,11 +64,6 @@ function flushReadyDefer(): void {
 function tailHasFullDisplay(parentSpanId: string, mountedReporterCount: number): boolean {
   const props = getMockedOnDrawReportedProps().filter(p => p.parentSpanId === parentSpanId);
   return props.slice(-mountedReporterCount).some(p => p.fullDisplay === true);
-}
-
-function tailHasInitialDisplay(parentSpanId: string, mountedReporterCount: number): boolean {
-  const props = getMockedOnDrawReportedProps().filter(p => p.parentSpanId === parentSpanId);
-  return props.slice(-mountedReporterCount).some(p => p.initialDisplay === true);
 }
 
 jest.useFakeTimers({

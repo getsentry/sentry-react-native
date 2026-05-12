@@ -149,7 +149,7 @@ export function registerCheckpoint(
 
   // Any new registration means the screen's component graph is changing.
   // Drop leftover sticky entries from previous unmount cycles -- otherwise
-  // a remounted checkpoint would be permanently blockedю
+  // a remounted checkpoint would be permanently blocked
   if (entry.sticky.size > 0) {
     for (const id of entry.sticky) {
       entry.checkpoints.delete(id);
@@ -181,12 +181,7 @@ export function registerCheckpoint(
   };
 }
 
-export function updateCheckpoint(
-  kind: DisplayKind,
-  parentSpanId: string,
-  checkpointId: string,
-  ready: boolean,
-): void {
+export function updateCheckpoint(kind: DisplayKind, parentSpanId: string, checkpointId: string, ready: boolean): void {
   const entry = registries[kind].get(parentSpanId);
   const cp = entry?.checkpoints.get(checkpointId);
   if (!entry || !cp || cp.ready === ready) {

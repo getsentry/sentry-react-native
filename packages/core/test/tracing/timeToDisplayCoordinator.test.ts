@@ -1,6 +1,5 @@
 import {
   _resetTimeToDisplayCoordinator,
-  clearSpan,
   hasAnyCheckpoints,
   isAllReady,
   registerCheckpoint,

@@ -16,10 +16,10 @@ import * as React from 'react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
 import type { NativeFramesResponse } from '../NativeRNSentry';
+import type { DisplayKind } from './timeToDisplayCoordinator';
 
 import { NATIVE } from '../wrapper';
 import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY } from './origin';
-import type { DisplayKind } from './timeToDisplayCoordinator';
 import { isAllReady, registerCheckpoint, subscribe, updateCheckpoint } from './timeToDisplayCoordinator';
 import { getRNSentryOnDrawReporter } from './timetodisplaynative';
 import { setSpanDurationAsMeasurement, setSpanDurationAsMeasurementOnSpan } from './utils';
