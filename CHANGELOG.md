@@ -24,7 +24,7 @@
 ## 8.11.0
 
 > [!WARNING]
-> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. Until a fix is released, pin `sentry-react-native` to **8.9.2** (`sentry-cocoa` `9.11.0`). Follow [#7886](https://github.com/getsentry/sentry-cocoa/issues/7886) for updates.
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. **Please use [8.11.1](https://github.com/getsentry/sentry-react-native/releases/tag/8.11.1)**.
 
 ### Features
 
@@ -47,7 +47,7 @@
 ## 8.10.0
 
 > [!WARNING]
-> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. Until a fix is released, pin `sentry-react-native` to **8.9.2** (`sentry-cocoa` `9.11.0`). Follow [#7886](https://github.com/getsentry/sentry-cocoa/issues/7886) for updates.
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. **Please use [8.11.1](https://github.com/getsentry/sentry-react-native/releases/tag/8.11.1)**.
 
 ### Features
 
