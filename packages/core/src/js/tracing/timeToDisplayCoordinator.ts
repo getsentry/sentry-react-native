@@ -105,10 +105,8 @@ function notifyListeners(entry: SpanRegistry): void {
 }
 
 function performCleanup(kind: DisplayKind, parentSpanId: string, entry: SpanRegistry): void {
-  if (entry.sticky.size > 0) {
-    return;
-  }
-  if (entry.checkpoints.size === 0 && entry.listeners.size === 0) {
+  const liveCheckpoints = entry.checkpoints.size - entry.sticky.size;
+  if (liveCheckpoints === 0 && entry.listeners.size === 0) {
     cancelPendingUpFlip(entry);
     registries[kind].delete(parentSpanId);
   }

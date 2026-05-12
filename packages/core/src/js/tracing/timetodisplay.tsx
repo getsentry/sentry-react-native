@@ -181,7 +181,7 @@ function useCoordinatedDisplay(
     return localReady;
   }
   if (!registeredRef.current) {
-    return localReady && isAllReady(kind, parentSpanId);
+    return false;
   }
   return isAllReady(kind, parentSpanId);
 }
