@@ -79,12 +79,11 @@ describe('Object.freeze type inference', () => {
   it('should maintain type safety and prevent modifications at compile time', () => {
     const frozen = Object.freeze({ value: 42 });
 
-    // Runtime: attempting to modify should silently fail (in non-strict mode)
-    // or throw (in strict mode)
+    // Jest runs in strict mode, so assigning to a frozen property throws
     expect(() => {
       // @ts-expect-error - TypeScript should prevent this at compile time
       (frozen as any).value = 100;
-    }).not.toThrow(); // In non-strict mode, this silently fails
+    }).toThrow(TypeError);
 
     // Value should remain unchanged
     expect(frozen.value).toBe(42);
