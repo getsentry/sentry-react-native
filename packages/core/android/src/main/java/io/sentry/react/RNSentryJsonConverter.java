@@ -31,7 +31,9 @@ final class RNSentryJsonConverter {
       while (iterator.hasNext()) {
         String key = iterator.next();
         Object value = jsonObject.get(key);
-        if (value instanceof Float || value instanceof Double) {
+        if (value instanceof Boolean) {
+          writableMap.putBoolean(key, jsonObject.getBoolean(key));
+        } else if (value instanceof Float || value instanceof Double) {
           writableMap.putDouble(key, jsonObject.getDouble(key));
         } else if (value instanceof Number) {
           writableMap.putInt(key, jsonObject.getInt(key));
@@ -57,7 +59,9 @@ final class RNSentryJsonConverter {
     WritableArray writableArray = new JavaOnlyArray();
     for (int i = 0; i < jsonArray.length(); i++) {
       Object value = jsonArray.get(i);
-      if (value instanceof Float || value instanceof Double) {
+      if (value instanceof Boolean) {
+        writableArray.pushBoolean(jsonArray.getBoolean(i));
+      } else if (value instanceof Float || value instanceof Double) {
         writableArray.pushDouble(jsonArray.getDouble(i));
       } else if (value instanceof Number) {
         writableArray.pushInt(jsonArray.getInt(i));

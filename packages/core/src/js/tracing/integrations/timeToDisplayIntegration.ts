@@ -8,6 +8,7 @@ import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISP
 import { getReactNavigationIntegration } from '../reactnavigation';
 import { SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN } from '../semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../span';
+import { clearSpan as clearTimeToDisplayCoordinatorSpan } from '../timeToDisplayCoordinator';
 import { getTimeToInitialDisplayFallback } from '../timeToDisplayFallback';
 import { createSpanJSON } from '../utils';
 
@@ -85,6 +86,8 @@ export const timeToDisplayIntegration = (): Integration => {
       if (newTransactionEndTimestampSeconds !== -1) {
         event.timestamp = newTransactionEndTimestampSeconds;
       }
+
+      clearTimeToDisplayCoordinatorSpan(rootSpanId);
 
       return event;
     },

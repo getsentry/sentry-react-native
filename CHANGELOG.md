@@ -8,11 +8,70 @@
 
 ## Unreleased
 
+### Features
+
+- Multi-instance `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` coordination ([#6090](https://github.com/getsentry/sentry-react-native/pull/6090))
+  - New `ready` prop. When a screen has multiple async data sources, mount one `<TimeToFullDisplay ready={...} />` per source — TTID/TTFD is recorded only when every instance reports `ready === true`.
+  - The existing `record` prop is unchanged BUT it is now deprecated in favor of `ready`.
+- Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
+- Auto-inject `sentry-label` from static text content at build time when `annotateReactComponents` is enabled ([#6141](https://github.com/getsentry/sentry-react-native/pull/6141))
+- Respect Replay Mask boundaries when reading `sentry-label` for touch breadcrumbs ([#6142](https://github.com/getsentry/sentry-react-native/pull/6142))
+
+### Fixes
+
+- Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.51.0 to v10.53.1 ([#6108](https://github.com/getsentry/sentry-react-native/pull/6108), [#6139](https://github.com/getsentry/sentry-react-native/pull/6139))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10531)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.51.0...10.53.1)
+- Bump CLI from v3.4.1 to v3.4.2 ([#6129](https://github.com/getsentry/sentry-react-native/pull/6129))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#342)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.1...3.4.2)
+- Bump Bundler Plugins from v5.2.1 to v5.3.0 ([#6138](https://github.com/getsentry/sentry-react-native/pull/6138))
+  - [changelog](https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/CHANGELOG.md#530)
+  - [diff](https://github.com/getsentry/sentry-javascript-bundler-plugins/compare/5.2.1...5.3.0)
+
+## 8.11.1
+
+### Fixes
+
+- Fix iOS crash with AVAssetDownloadTask in urlSessionTask:setState: ([#6133](https://github.com/getsentry/sentry-react-native/pull/6133))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.12.1 to v9.13.0 ([#6133](https://github.com/getsentry/sentry-react-native/pull/6133))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9130)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.1...9.13.0)
+
+## 8.11.0
+
+> [!WARNING]
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. **Please use [8.11.1](https://github.com/getsentry/sentry-react-native/releases/tag/8.11.1)**.
+
+### Features
+
+- Use `accessibilityLabel`, `aria-label`, and `testID` as fallback labels for touch breadcrumbs when `sentry-label` is not set ([#6103](https://github.com/getsentry/sentry-react-native/pull/6103))
+
 ### Fixes
 
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
+- Improve frame delay collection performance by using sentry-java `getFramesDelay` API ([#6074](https://github.com/getsentry/sentry-react-native/pull/6074))
+
+### Dependencies
+
+- Bump Android SDK from v8.40.0 to v8.41.0 ([#6104](https://github.com/getsentry/sentry-react-native/pull/6104))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8410)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.40.0...8.41.0)
+- Bump Cocoa SDK from v9.12.0 to v9.12.1 ([#6105](https://github.com/getsentry/sentry-react-native/pull/6105))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9121)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.12.0...9.12.1)
 
 ## 8.10.0
+
+> [!WARNING]
+> ⚠️ **Known Issue (iOS):** Apps using `sentry-react-native` **8.11.0+** may crash when using `AVAssetDownloadURLSession` due to an issue in the [`sentry-cocoa`](https://github.com/getsentry/sentry-cocoa/) SDK. **Please use [8.11.1](https://github.com/getsentry/sentry-react-native/releases/tag/8.11.1)**.
 
 ### Features
 

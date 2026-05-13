@@ -1,3 +1,4 @@
+/* oxlint-disable eslint(max-lines) */
 import type { SeverityLevel, SpanAttributeValue } from '@sentry/core';
 import type { GestureResponderEvent } from 'react-native';
 
@@ -9,6 +10,7 @@ import type { TouchedComponentInfo } from './ragetap';
 
 import { createIntegration } from './integrations/factory';
 import { DEFAULT_RAGE_TAP_THRESHOLD, DEFAULT_RAGE_TAP_TIME_WINDOW, RageTapDetector } from './ragetap';
+import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
 import { startUserInteractionSpan } from './tracing/integrations/userInteraction';
 import { UI_ACTION_TOUCH } from './tracing/ops';
 import { SPAN_ORIGIN_AUTO_INTERACTION } from './tracing/origin';
@@ -70,6 +72,16 @@ export type TouchEventBoundaryProps = {
    * @default 1000
    */
   rageTapTimeWindow?: number;
+  /**
+   * Extract text content from children of touched components as a label fallback.
+   * Automatically disabled when Session Replay's `maskAllText` is enabled (the default)
+   * to avoid leaking masked content via breadcrumbs. Set `maskAllText: false` in your
+   * `mobileReplayIntegration` config to enable text extraction.
+   * Per-view `Sentry.Mask` boundaries are also respected.
+   * Set to `false` to opt out of text extraction entirely.
+   * @default true
+   */
+  extractTextFromChildren?: boolean;
 };
 
 const touchEventStyles = StyleSheet.create({
@@ -87,14 +99,25 @@ const SENTRY_SPAN_ATTRIBUTES_PROP_KEY = 'sentry-span-attributes';
 const SENTRY_COMPONENT_PROP_KEY = 'data-sentry-component';
 const SENTRY_ELEMENT_PROP_KEY = 'data-sentry-element';
 const SENTRY_FILE_PROP_KEY = 'data-sentry-source-file';
+const ACCESSIBILITY_LABEL_PROP_KEY = 'accessibilityLabel';
+const ARIA_LABEL_PROP_KEY = 'aria-label';
+const TEST_ID_PROP_KEY = 'testID';
+
+const MASK_COMPONENT_NAME = 'RNSentryReplayMask';
+const MAX_TEXT_LENGTH = 64;
+const MAX_TEXT_EXTRACTION_DEPTH = 3;
+const MAX_SIBLINGS_TO_VISIT = 5;
 
 interface ElementInstance {
   elementType?: {
     displayName?: string;
     name?: string;
   };
-  memoizedProps?: Record<string, unknown>;
+  // Raw text fiber nodes store a string instead of an object
+  memoizedProps?: Record<string, unknown> | string;
   return?: ElementInstance;
+  child?: ElementInstance;
+  sibling?: ElementInstance;
 }
 
 interface PrivateGestureResponderEvent extends GestureResponderEvent {
@@ -114,6 +137,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     enableRageTapDetection: true,
     rageTapThreshold: DEFAULT_RAGE_TAP_THRESHOLD,
     rageTapTimeWindow: DEFAULT_RAGE_TAP_TIME_WINDOW,
+    extractTextFromChildren: true,
   };
 
   public readonly name: string = 'TouchEventBoundary';
@@ -220,6 +244,10 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 
     let currentInst: ElementInstance | undefined = e._targetInst;
     const touchPath: TouchedComponentInfo[] = [];
+    const maskAllText = this._isMaskAllTextEnabled();
+    const isInsideMask = !maskAllText && hasAncestorMask(e._targetInst);
+    const shouldReadSentryLabel = !maskAllText && !isInsideMask;
+    const shouldExtractText = this._shouldExtractText() && !isInsideMask;
 
     while (
       currentInst &&
@@ -234,7 +262,7 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
         break;
       }
 
-      const info = getTouchedComponentInfo(currentInst, this.props.labelName);
+      const info = getTouchedComponentInfo(currentInst, this.props.labelName, shouldExtractText, shouldReadSentryLabel);
       this._pushIfNotIgnored(touchPath, info);
 
       currentInst = currentInst.return;
@@ -277,6 +305,29 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
     }
   }
 
+  private _isMaskAllTextEnabled(): boolean {
+    const client = getClient();
+    if (!client) {
+      return false;
+    }
+    const replayIntegration = client.getIntegrationByName(MOBILE_REPLAY_INTEGRATION_NAME);
+    if (!replayIntegration) {
+      return false;
+    }
+    if (!('options' in replayIntegration)) {
+      return true;
+    }
+    const options = replayIntegration.options as { maskAllText?: boolean };
+    return options.maskAllText !== false;
+  }
+
+  private _shouldExtractText(): boolean {
+    if (!this.props.extractTextFromChildren) {
+      return false;
+    }
+    return !this._isMaskAllTextEnabled();
+  }
+
   /**
    * Pushes the name to the componentTreeNames array if it is not ignored.
    */
@@ -308,12 +359,13 @@ class TouchEventBoundary extends React.Component<TouchEventBoundaryProps> {
 function getTouchedComponentInfo(
   currentInst: ElementInstance,
   labelKey: string | undefined,
+  shouldExtractText: boolean,
+  shouldReadSentryLabel: boolean,
 ): TouchedComponentInfo | undefined {
   const displayName = currentInst.elementType?.displayName;
 
   const props = currentInst.memoizedProps;
-  if (!props) {
-    // Early return if no props are available, as we can't extract any useful information
+  if (!props || typeof props === 'string') {
     if (displayName) {
       return {
         name: displayName,
@@ -322,14 +374,17 @@ function getTouchedComponentInfo(
     return undefined;
   }
 
+  const label =
+    getLabelValue(props, labelKey, shouldReadSentryLabel) ||
+    (shouldExtractText ? extractTextFromFiber(currentInst) : undefined);
+
   return dropUndefinedKeys<TouchedComponentInfo>({
     // provided by @sentry/babel-plugin-component-annotate
     name: getComponentName(props) || displayName,
     element: getElementName(props),
     file: getFileName(props),
 
-    // `sentry-label` or user defined label key
-    label: getLabelValue(props, labelKey),
+    label,
   });
 }
 
@@ -363,20 +418,40 @@ function getFileName(props: Record<string, unknown>): string | undefined {
   );
 }
 
-function getLabelValue(props: Record<string, unknown>, labelKey: string | undefined): string | undefined {
-  return typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0
-    ? props[SENTRY_LABEL_PROP_KEY]
-    : // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
-      // the "check-label" if sentence, so we have to assign it to a variable here first
-      // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
-      typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0
-      ? // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
-        (props[labelKey] as string)
-      : undefined;
+function getLabelValue(
+  props: Record<string, unknown>,
+  labelKey: string | undefined,
+  readSentryLabel: boolean = true,
+): string | undefined {
+  if (readSentryLabel && typeof props[SENTRY_LABEL_PROP_KEY] === 'string' && props[SENTRY_LABEL_PROP_KEY].length > 0) {
+    return props[SENTRY_LABEL_PROP_KEY];
+  }
+
+  // For some reason type narrowing doesn't work as expected with indexing when checking it all in one go in
+  // the "check-label" if sentence, so we have to assign it to a variable here first
+  // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
+  if (typeof labelKey === 'string' && typeof props[labelKey] == 'string' && (props[labelKey] as string).length > 0) {
+    // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
+    return props[labelKey] as string;
+  }
+
+  if (typeof props[ACCESSIBILITY_LABEL_PROP_KEY] === 'string' && props[ACCESSIBILITY_LABEL_PROP_KEY].length > 0) {
+    return props[ACCESSIBILITY_LABEL_PROP_KEY];
+  }
+
+  if (typeof props[ARIA_LABEL_PROP_KEY] === 'string' && props[ARIA_LABEL_PROP_KEY].length > 0) {
+    return props[ARIA_LABEL_PROP_KEY];
+  }
+
+  if (typeof props[TEST_ID_PROP_KEY] === 'string' && props[TEST_ID_PROP_KEY].length > 0) {
+    return props[TEST_ID_PROP_KEY];
+  }
+
+  return undefined;
 }
 
 function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAttributeValue> | undefined {
-  if (!currentInst.memoizedProps) {
+  if (!currentInst.memoizedProps || typeof currentInst.memoizedProps === 'string') {
     return undefined;
   }
 
@@ -389,6 +464,64 @@ function getSpanAttributes(currentInst: ElementInstance): Record<string, SpanAtt
   }
 
   return undefined;
+}
+
+function hasAncestorMask(inst: ElementInstance): boolean {
+  let current = inst.return;
+  while (current) {
+    if (current.elementType?.name === MASK_COMPONENT_NAME || current.elementType?.displayName === MASK_COMPONENT_NAME) {
+      return true;
+    }
+    current = current.return;
+  }
+  return false;
+}
+
+function extractTextFromFiber(inst: ElementInstance): string | undefined {
+  const parts: string[] = [];
+  collectTextFromFiber(inst.child, parts, 0);
+  if (parts.length === 0) {
+    return undefined;
+  }
+  const text = parts.join(' ').trim();
+  if (text.length === 0) {
+    return undefined;
+  }
+  if (text.length > MAX_TEXT_LENGTH) {
+    return `${text.slice(0, MAX_TEXT_LENGTH)}...`;
+  }
+  return text;
+}
+
+function collectTextFromFiber(
+  inst: ElementInstance | undefined,
+  parts: string[],
+  depth: number,
+  siblingIndex: number = 0,
+): void {
+  if (!inst || depth > MAX_TEXT_EXTRACTION_DEPTH || siblingIndex >= MAX_SIBLINGS_TO_VISIT) {
+    return;
+  }
+
+  if (inst.elementType?.name === MASK_COMPONENT_NAME || inst.elementType?.displayName === MASK_COMPONENT_NAME) {
+    // Skip masked node's children but still visit its siblings
+    collectTextFromFiber(inst.sibling, parts, depth, siblingIndex + 1);
+    return;
+  }
+
+  const props = inst.memoizedProps;
+  if (typeof props === 'string') {
+    // Raw text fiber (HostText) — no children to recurse into
+    parts.push(props);
+  } else if (typeof props?.children === 'string') {
+    // Component with string children — skip child recursion to avoid
+    // duplicating text from the HostText child fiber
+    parts.push(props.children);
+  } else {
+    collectTextFromFiber(inst.child, parts, depth + 1, 0);
+  }
+
+  collectTextFromFiber(inst.sibling, parts, depth, siblingIndex + 1);
 }
 
 /**
