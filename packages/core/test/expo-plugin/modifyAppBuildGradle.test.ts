@@ -4,7 +4,7 @@ import { modifyAppBuildGradle } from '../../plugin/src/withSentryAndroid';
 jest.mock('../../plugin/src/logger');
 
 const buildGradleWithSentry = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 
 android {
 }
@@ -16,13 +16,20 @@ android {
 `;
 
 const monoRepoBuildGradleWithSentry = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 
 android {
 }
 `;
 
 const monoRepoBuildGradleWithOutSentry = `
+android {
+}
+`;
+
+const buildGradleWithOldSentryGradle = `
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+
 android {
 }
 `;
@@ -45,6 +52,10 @@ describe('Configures Android native project correctly', () => {
 
   it('Monorepo: Adds sentry.gradle script if not present already', () => {
     expect(modifyAppBuildGradle(monoRepoBuildGradleWithOutSentry)).toStrictEqual(monoRepoBuildGradleWithSentry);
+  });
+
+  it('Migrates old sentry.gradle reference to sentry.gradle.kts', () => {
+    expect(modifyAppBuildGradle(buildGradleWithOldSentryGradle)).toStrictEqual(buildGradleWithSentry);
   });
 
   it('Warns to file a bug report if no react.gradle is found', () => {
