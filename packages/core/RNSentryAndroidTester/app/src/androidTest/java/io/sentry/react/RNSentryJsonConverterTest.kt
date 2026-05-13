@@ -22,6 +22,8 @@ class RNSentryJsonConverterTest {
                 put("doubleKey", 12.3)
                 put("intKey", 123)
                 put("stringKey", "test")
+                put("boolTrueKey", true)
+                put("boolFalseKey", false)
                 put("nullKey", JSONObject.NULL)
             }
 
@@ -32,6 +34,8 @@ class RNSentryJsonConverterTest {
         assertEquals(12.3, result.getDouble("doubleKey"), 0.0)
         assertEquals(123, result.getInt("intKey"))
         assertEquals("test", result.getString("stringKey"))
+        assertEquals(true, result.getBoolean("boolTrueKey"))
+        assertEquals(false, result.getBoolean("boolFalseKey"))
         assertNull(result.getString("nullKey"))
     }
 
@@ -62,6 +66,8 @@ class RNSentryJsonConverterTest {
                 put(1)
                 put(2.5)
                 put("string")
+                put(true)
+                put(false)
                 put(JSONObject.NULL)
             }
 
@@ -70,7 +76,9 @@ class RNSentryJsonConverterTest {
         assertEquals(1, result.getInt(0))
         assertEquals(2.5, result.getDouble(1), 0.0)
         assertEquals("string", result.getString(2))
-        assertNull(result.getString(3))
+        assertEquals(true, result.getBoolean(3))
+        assertEquals(false, result.getBoolean(4))
+        assertNull(result.getString(5))
     }
 
     @Test
