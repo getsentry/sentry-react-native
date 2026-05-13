@@ -4,7 +4,12 @@ import * as process from 'process';
 
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
-export type SentryBabelTransformerOptions = { annotateReactComponents?: { ignoredComponents?: string[] } };
+export type SentryBabelTransformerOptions = {
+  annotateReactComponents?: {
+    ignoredComponents?: string[];
+    autoInjectSentryLabel?: boolean;
+  };
+};
 
 export const SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH = 'SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH';
 export const SENTRY_BABEL_TRANSFORMER_OPTIONS = 'SENTRY_BABEL_TRANSFORMER_OPTIONS';
@@ -111,10 +116,10 @@ function addSentryComponentAnnotatePlugin(
   }
 
   if (!args.filename.includes('node_modules')) {
-    if (options) {
-      args.plugins.push([componentAnnotatePlugin, options]);
-    } else {
-      args.plugins.push(componentAnnotatePlugin);
-    }
+    const pluginOptions = {
+      autoInjectSentryLabel: true,
+      ...options,
+    };
+    args.plugins.push([componentAnnotatePlugin, pluginOptions]);
   }
 }

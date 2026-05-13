@@ -45,20 +45,25 @@ describe('SentryBabelTransformer', () => {
       options: {
         projectRoot: 'project/root',
       },
-      plugins: [expect.any(Function), expect.any(Function)],
+      plugins: [expect.any(Function), [expect.any(Function), expect.objectContaining({ autoInjectSentryLabel: true })]],
     });
-    expect(MockDefaultBabelTransformer.transform.mock.calls[0][0]['plugins'][1].name).toEqual(
+    expect(MockDefaultBabelTransformer.transform.mock.calls[0][0]['plugins'][1][0].name).toEqual(
       'componentNameAnnotatePlugin',
     );
   });
 
-  test('transform adds plugin', () => {
+  test('transform adds plugin with autoInjectSentryLabel enabled by default', () => {
     createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
 
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
       expect.objectContaining({
-        plugins: expect.arrayContaining([expect.objectContaining({ name: 'componentNameAnnotatePlugin' })]),
+        plugins: expect.arrayContaining([
+          [
+            expect.objectContaining({ name: 'componentNameAnnotatePlugin' }),
+            expect.objectContaining({ autoInjectSentryLabel: true }),
+          ],
+        ]),
       }),
     );
   });
@@ -79,6 +84,7 @@ describe('SentryBabelTransformer', () => {
           [
             expect.objectContaining({ name: 'componentNameAnnotatePlugin' }),
             expect.objectContaining({
+              autoInjectSentryLabel: true,
               ignoredComponents: ['MyCustomComponent'],
             }),
           ],
@@ -87,7 +93,31 @@ describe('SentryBabelTransformer', () => {
     );
   });
 
-  test('degrades gracefully if options can not be parsed, transform adds plugin without options', () => {
+  test('transform respects autoInjectSentryLabel: false override', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      annotateReactComponents: {
+        autoInjectSentryLabel: false,
+      },
+    });
+
+    createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
+
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          [
+            expect.objectContaining({ name: 'componentNameAnnotatePlugin' }),
+            expect.objectContaining({
+              autoInjectSentryLabel: false,
+            }),
+          ],
+        ]),
+      }),
+    );
+  });
+
+  test('degrades gracefully if options can not be parsed, transform adds plugin with defaults', () => {
     process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = 'invalid json';
 
     createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
@@ -95,7 +125,12 @@ describe('SentryBabelTransformer', () => {
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
       expect.objectContaining({
-        plugins: expect.arrayContaining([expect.objectContaining({ name: 'componentNameAnnotatePlugin' })]),
+        plugins: expect.arrayContaining([
+          [
+            expect.objectContaining({ name: 'componentNameAnnotatePlugin' }),
+            expect.objectContaining({ autoInjectSentryLabel: true }),
+          ],
+        ]),
       }),
     );
   });
