@@ -19,6 +19,7 @@
 
 ### Fixes
 
+- Fix duplicate JS error reporting on iOS New Architecture when the native SDK is initialized early via `sentry.options.json` ("Capture App Start Errors"). It's done by applying the `ExceptionsManager.reportException` C++ wrapper filter in both init paths ([#6145](https://github.com/getsentry/sentry-react-native/pull/6145))
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
 
 ### Dependencies
@@ -56,7 +57,6 @@
 
 ### Fixes
 
-- Fix duplicate JS error reporting on iOS New Architecture when the native SDK is initialized early via `sentry.options.json` ("Capture App Start Errors"). It's done by applying the `ExceptionsManager.reportException` C++ wrapper filter in both init paths ([#6145](https://github.com/getsentry/sentry-react-native/pulls/6145))
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
 - Improve frame delay collection performance by using sentry-java `getFramesDelay` API ([#6074](https://github.com/getsentry/sentry-react-native/pull/6074))
 
