@@ -8,10 +8,6 @@
 
 ## Unreleased
 
-### Fixes
-
-- Deduplicate native HTTP breadcrumbs that duplicate JS XHR/fetch breadcrumbs ([#6132](https://github.com/getsentry/sentry-react-native/pull/6132))
-
 ### Features
 
 - Multi-instance `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` coordination ([#6090](https://github.com/getsentry/sentry-react-native/pull/6090))
@@ -23,6 +19,7 @@
 
 ### Fixes
 
+- Deduplicate native HTTP breadcrumbs that duplicate JS XHR/fetch breadcrumbs ([#6132](https://github.com/getsentry/sentry-react-native/pull/6132))
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
 
 ### Dependencies
