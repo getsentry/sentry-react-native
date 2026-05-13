@@ -121,6 +121,52 @@ final class RNSentryStartTests: XCTestCase {
         }
     }
 
+    func testStartIgnoresJsErrorCppExceptionWrapper() throws {
+        // Reproduces getsentry/sentry-react-native#6116:
+        // When the native SDK is started early via sentry.options.json ("Capture App Start
+        // Errors"), New Architecture wraps unhandled JS errors in a C++ exception that the
+        // native crash handler captures. Without dedup in updateWithReactFinals, both the JS
+        // event and the C++ wrapper are sent. Cover both init paths to keep them aligned.
+        let testCases: [() throws -> Void] = [
+            {
+                RNSentrySDK.start { options in
+                    options.dsn = "https://abcd@efgh.ingest.sentry.io/123456"
+                }
+            },
+            {
+                try self.startFromRN(options: [
+                    "dsn": "https://abcd@efgh.ingest.sentry.io/123456"
+                ])
+            }
+        ]
+
+        for startMethod in testCases {
+            try startMethod()
+
+            let actualOptions = PrivateSentrySDKOnly.options
+
+            let cppWrapperEvent = Event()
+            cppWrapperEvent.exceptions = [
+                Exception(
+                    value: "N8facebook3jsi7JSErrorE: ExceptionsManager.reportException raised an exception: Unhandled JS Exception: Error: Test error",
+                    type: "C++ Exception"
+                )
+            ]
+            XCTAssertNil(actualOptions.beforeSend!(cppWrapperEvent),
+                "Event with ExceptionsManager.reportException in value should be dropped")
+
+            let legitimateCppEvent = Event()
+            legitimateCppEvent.exceptions = [
+                Exception(
+                    value: "std::runtime_error: Some other C++ error occurred",
+                    type: "C++ Exception"
+                )
+            ]
+            XCTAssertNotNil(actualOptions.beforeSend!(legitimateCppEvent),
+                "Legitimate C++ exception without ExceptionsManager.reportException should not be dropped")
+        }
+    }
+
     func testStartSetsNativeEventOrigin() throws {
         let testCases: [() throws -> Void] = [
             {

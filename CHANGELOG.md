@@ -14,6 +14,7 @@
 
 ### Fixes
 
+- Fix duplicate JS error reporting on iOS New Architecture when the native SDK is initialized early via `sentry.options.json` ("Capture App Start Errors"). The `ExceptionsManager.reportException` C++ wrapper filter is now applied in both init paths, matching the JS-init dedup added in `7.9.0` ([#6116](https://github.com/getsentry/sentry-react-native/issues/6116))
 - Fix the issue with uploading iOS Debug Symbols in EAS Build when using pnpm ([#6076](https://github.com/getsentry/sentry-react-native/issues/6076))
 - Improve frame delay collection performance by using sentry-java `getFramesDelay` API ([#6074](https://github.com/getsentry/sentry-react-native/pull/6074))
 

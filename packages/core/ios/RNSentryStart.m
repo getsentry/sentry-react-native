@@ -203,6 +203,19 @@
             return nil;
         }
 
+        // With New Architecture, React Native wraps JS errors in C++ exceptions.
+        // These exceptions are caught by the native crash handler and should be filtered out
+        // since the JS error is already reported by the JS error handler.
+        // The key indicator is "ExceptionsManager.reportException" in the exception value,
+        // which is React Native's mechanism for reporting JS errors to the native layer.
+        for (SentryException *exception in event.exceptions) {
+            if (nil != exception.value &&
+                [exception.value rangeOfString:@"ExceptionsManager.reportException"].location
+                    != NSNotFound) {
+                return nil;
+            }
+        }
+
         [self setEventOriginTag:event];
         if (userBeforeSend == nil) {
             return event;
