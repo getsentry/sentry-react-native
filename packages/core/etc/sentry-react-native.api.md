@@ -669,6 +669,7 @@ export const timeToDisplayIntegration: () => Integration;
 export type TimeToDisplayProps = {
     children?: React_2.ReactNode;
     record?: boolean;
+    ready?: boolean;
 };
 
 // @public
