@@ -10,6 +10,9 @@
 
 ### Features
 
+- Multi-instance `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` coordination ([#6090](https://github.com/getsentry/sentry-react-native/pull/6090))
+  - New `ready` prop. When a screen has multiple async data sources, mount one `<TimeToFullDisplay ready={...} />` per source — TTID/TTFD is recorded only when every instance reports `ready === true`.
+  - The existing `record` prop is unchanged BUT it is now deprecated in favor of `ready`.
 - Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
 
 ### Dependencies
