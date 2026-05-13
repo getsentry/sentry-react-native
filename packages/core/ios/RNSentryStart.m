@@ -203,6 +203,14 @@
             return nil;
         }
 
+        for (SentryException *exception in event.exceptions) {
+            if (nil != exception.value &&
+                [exception.value rangeOfString:@"ExceptionsManager.reportException"].location
+                    != NSNotFound) {
+                return nil;
+            }
+        }
+
         [self setEventOriginTag:event];
         if (userBeforeSend == nil) {
             return event;
