@@ -20,6 +20,7 @@
 ### Fixes
 
 - Deduplicate native HTTP breadcrumbs that duplicate JS XHR/fetch breadcrumbs ([#6132](https://github.com/getsentry/sentry-react-native/pull/6132))
+- Fix duplicate JS error reporting on iOS New Architecture when the native SDK is initialized early via `sentry.options.json` ("Capture App Start Errors"). It's done by applying the `ExceptionsManager.reportException` C++ wrapper filter in both init paths ([#6145](https://github.com/getsentry/sentry-react-native/pull/6145))
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
 
 ### Dependencies
