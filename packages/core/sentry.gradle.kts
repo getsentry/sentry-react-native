@@ -682,9 +682,9 @@ project.afterEvaluate {
 
     val sentryPropertiesFile =
         when (sentryProperties) {
-            is String -> file(sentryProperties)
             is File -> sentryProperties
-            else -> null
+            null -> null
+            else -> file(sentryProperties.toString())
         }
 
     if (sentryPropertiesFile != null) {
