@@ -135,13 +135,13 @@ fun resolveSentryReactNativeSDKPath(reactRoot: File): String {
         val process =
             ProcessBuilder(listOf("node", "--print", "require.resolve('@sentry/react-native/package.json')"))
                 .directory(rootDir)
-                .redirectErrorStream(true)
                 .start()
         val output =
             process.inputStream
                 .bufferedReader()
                 .readText()
                 .trim()
+        process.errorStream.close()
         process.waitFor()
         resolvedSentryPath = File(output).parentFile
     } catch (_: Throwable) {
@@ -159,13 +159,13 @@ fun resolveSentryCliPackagePath(reactRoot: File): String {
         val process =
             ProcessBuilder(listOf("node", "--print", "require.resolve('@sentry/cli/package.json')"))
                 .directory(rootDir)
-                .redirectErrorStream(true)
                 .start()
         val output =
             process.inputStream
                 .bufferedReader()
                 .readText()
                 .trim()
+        process.errorStream.close()
         process.waitFor()
         resolvedCliPath = File(output).parentFile
     } catch (_: Throwable) {
