@@ -294,22 +294,24 @@ fun forceSourceMapOutputFromBundleTask(bundleTask: Task): ForceSourceMapResult {
 
     if (args.bundleOutput == null) {
         val props = DefaultGroovyMethods.getProperties(bundleTask)
+
         @Suppress("UNCHECKED_CAST")
         val cmdArgs = (props["args"] as? List<String>) ?: emptyList()
         args = extractBundleTaskArgumentsLegacy(cmdArgs, project)
     }
 
-    if (args.bundleOutput == null) {
+    val bundleOutput = args.bundleOutput
+    if (bundleOutput == null) {
         logger.warn("[sentry] Could not extract bundle task arguments for '${bundleTask.name}'. Source maps will not be uploaded.")
         return ForceSourceMapResult(false, null, null, null, null)
     }
 
     if (args.sourcemapOutput != null) {
         logger.info("Info: used pre-configured source map files: ${args.sourcemapOutput}")
-        return ForceSourceMapResult(false, args.bundleOutput, args.sourcemapOutput, args.packagerSourcemapOutput, args.bundleCommand)
+        return ForceSourceMapResult(false, bundleOutput, args.sourcemapOutput, args.packagerSourcemapOutput, args.bundleCommand)
     }
 
-    val forcedSourcemapOutput = File(args.bundleOutput.path + ".map")
+    val forcedSourcemapOutput = File(bundleOutput.path + ".map")
     val props =
         org.codehaus.groovy.runtime.DefaultGroovyMethods
             .getProperties(bundleTask)
@@ -330,7 +332,7 @@ fun forceSourceMapOutputFromBundleTask(bundleTask: Task): ForceSourceMapResult {
     bundleTask.setProperty("args", cmdArgs)
     logger.info("forced sourcemap file output for `${bundleTask.name}` task")
 
-    return ForceSourceMapResult(true, args.bundleOutput, forcedSourcemapOutput, args.packagerSourcemapOutput, args.bundleCommand)
+    return ForceSourceMapResult(true, bundleOutput, forcedSourcemapOutput, args.packagerSourcemapOutput, args.bundleCommand)
 }
 
 data class VariantInfo(
