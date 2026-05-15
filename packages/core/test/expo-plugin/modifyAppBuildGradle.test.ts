@@ -34,6 +34,13 @@ android {
 }
 `;
 
+const buildGradleWithAndroidGradlePlugin = `
+apply plugin: "io.sentry.android.gradle"
+
+android {
+}
+`;
+
 const buildGradleWithOutReactGradleScript = `
 `;
 
@@ -56,6 +63,13 @@ describe('Configures Android native project correctly', () => {
 
   it('Migrates old sentry.gradle reference to sentry.gradle.kts', () => {
     expect(modifyAppBuildGradle(buildGradleWithOldSentryGradle)).toStrictEqual(buildGradleWithSentry);
+  });
+
+  it('Does not rewrite io.sentry.android.gradle plugin declaration', () => {
+    const result = modifyAppBuildGradle(buildGradleWithAndroidGradlePlugin);
+    expect(result).toContain('io.sentry.android.gradle"');
+    expect(result).not.toContain('io.sentry.android.gradle.kts');
+    expect(result).toContain('sentry.gradle.kts');
   });
 
   it('Warns to file a bug report if no react.gradle is found', () => {
