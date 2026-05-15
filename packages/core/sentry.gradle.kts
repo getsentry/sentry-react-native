@@ -261,13 +261,16 @@ fun forceSourceMapOutputFromBundleTask(bundleTask: Task): ForceSourceMapResult {
 
     @Suppress("UNCHECKED_CAST")
     val cmdArgs = (props["args"] as? MutableList<String>)
-    if (cmd != null && cmdArgs != null) {
-        cmd.addAll(listOf("--sourcemap-output", forcedSourcemapOutput.path))
-        cmdArgs.addAll(listOf("--sourcemap-output", forcedSourcemapOutput.path))
-        bundleTask.setProperty("commandLine", cmd)
-        bundleTask.setProperty("args", cmdArgs)
-        logger.info("forced sourcemap file output for `${bundleTask.name}` task")
+    if (cmd == null || cmdArgs == null) {
+        logger.warn("[sentry] Could not inject --sourcemap-output for '${bundleTask.name}'. Source maps will not be uploaded.")
+        return ForceSourceMapResult(false, null, null, null, null)
     }
+
+    cmd.addAll(listOf("--sourcemap-output", forcedSourcemapOutput.path))
+    cmdArgs.addAll(listOf("--sourcemap-output", forcedSourcemapOutput.path))
+    bundleTask.setProperty("commandLine", cmd)
+    bundleTask.setProperty("args", cmdArgs)
+    logger.info("forced sourcemap file output for `${bundleTask.name}` task")
 
     return ForceSourceMapResult(true, args.bundleOutput, forcedSourcemapOutput, args.packagerSourcemapOutput, args.bundleCommand)
 }
