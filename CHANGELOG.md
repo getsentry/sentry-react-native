@@ -22,6 +22,11 @@
 - Fix duplicate JS error reporting on iOS New Architecture when the native SDK is initialized early via `sentry.options.json` ("Capture App Start Errors"). It's done by applying the `ExceptionsManager.reportException` C++ wrapper filter in both init paths ([#6145](https://github.com/getsentry/sentry-react-native/pull/6145))
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
 
+### Internal
+
+- Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
+  - The old `sentry.gradle` is kept as a shim forwarding to the new `.kts` file for backward compatibility
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.51.0 to v10.53.1 ([#6108](https://github.com/getsentry/sentry-react-native/pull/6108), [#6139](https://github.com/getsentry/sentry-react-native/pull/6139))
