@@ -445,11 +445,13 @@ fun processVariant(v: Any) {
 
                 val sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
                 val copyDebugIdScript =
-                    (config["copyDebugIdScript"] as? String)
+                    config["copyDebugIdScript"]
+                        ?.toString()
                         ?.let { file(it).absolutePath }
                         ?: "$sentryPackage/scripts/copy-debugid.js"
                 val hasSourceMapDebugIdScript =
-                    (config["hasSourceMapDebugIdScript"] as? String)
+                    config["hasSourceMapDebugIdScript"]
+                        ?.toString()
                         ?.let { file(it).absolutePath }
                         ?: "$sentryPackage/scripts/has-sourcemap-debugid.js"
 
@@ -481,7 +483,7 @@ fun processVariant(v: Any) {
                         workingDir(reactRoot)
 
                         var propertiesFile =
-                            (config["sentryProperties"] as? String)
+                            config["sentryProperties"]?.toString()
                                 ?: "$reactRoot/android/sentry.properties"
                         val flavorAware = config["flavorAware"] == true
 
@@ -532,7 +534,7 @@ fun processVariant(v: Any) {
 
                         val args = mutableListOf(cliExecutable)
 
-                        val logLevel = config["logLevel"] as? String
+                        val logLevel = config["logLevel"]?.toString()
                         if (logLevel != null) {
                             args.addAll(listOf("--log-level", logLevel))
                         }
@@ -586,7 +588,8 @@ fun processVariant(v: Any) {
                 val sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
 
                 val collectModulesScript =
-                    (config["collectModulesScript"] as? String)
+                    config["collectModulesScript"]
+                        ?.toString()
                         ?.let { file(it).absolutePath }
                         ?: "$sentryPackage/dist/js/tools/collectModules.js"
 
