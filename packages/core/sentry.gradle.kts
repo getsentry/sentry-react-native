@@ -238,8 +238,66 @@ data class ForceSourceMapResult(
     val bundleCommand: String?,
 )
 
+fun extractBundleTaskArgumentsLegacy(
+    cmdArgs: List<String>,
+    project: Project,
+): BundleTaskArgs {
+    var bundleOutput: String? = null
+    var sourcemapOutput: String? = null
+    var packagerSourcemapOutput: String? = null
+
+    cmdArgs.forEachIndexed { i, arg ->
+        if (arg == "--bundle-output" && i + 1 < cmdArgs.size) {
+            bundleOutput = cmdArgs[i + 1]
+            project.logger.info("--bundle-output: `$bundleOutput`")
+        } else if (arg == "--sourcemap-output" && i + 1 < cmdArgs.size) {
+            sourcemapOutput = cmdArgs[i + 1]
+            packagerSourcemapOutput = sourcemapOutput
+            project.logger.info("--sourcemap-output param: `$sourcemapOutput`")
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    val reactExt =
+        try {
+            project.extensions.extraProperties.get("react") as? Map<String, Any?>
+        } catch (_: Throwable) {
+            null
+        }
+
+    val enableHermes = reactExt?.get("enableHermes") == true
+    project.logger.info("enableHermes: `$enableHermes`")
+
+    if (bundleOutput != null && sourcemapOutput != null && enableHermes) {
+        val pattern = Pattern.compile("(/|\\\\)intermediates\\1sourcemaps\\1react\\1")
+        val matcher = pattern.matcher(sourcemapOutput!!)
+        if (matcher.find()) {
+            project.logger.info("sourcemapOutput has the wrong path, let's fix it.")
+            sourcemapOutput = bundleOutput!!
+                .replace(Regex("(/|\\\\)generated\\1assets\\1react\\1"), "\$1generated\$1sourcemaps\$1react\$1") + ".map"
+            project.logger.info("sourcemapOutput new path: `$sourcemapOutput`")
+        }
+    }
+
+    val bundleCommand = reactExt?.get("bundleCommand") as? String ?: "bundle"
+
+    return BundleTaskArgs(
+        bundleOutput?.let { File(it) },
+        sourcemapOutput?.let { File(it) },
+        packagerSourcemapOutput?.let { File(it) },
+        bundleCommand,
+    )
+}
+
 fun forceSourceMapOutputFromBundleTask(bundleTask: Task): ForceSourceMapResult {
-    val args = extractBundleTaskArguments(bundleTask, logger)
+    var args = extractBundleTaskArguments(bundleTask, logger)
+
+    if (args.bundleOutput == null) {
+        val props = DefaultGroovyMethods.getProperties(bundleTask)
+        @Suppress("UNCHECKED_CAST")
+        val cmdArgs = (props["args"] as? List<String>) ?: emptyList()
+        args = extractBundleTaskArgumentsLegacy(cmdArgs, project)
+    }
 
     if (args.bundleOutput == null) {
         logger.warn("[sentry] Could not extract bundle task arguments for '${bundleTask.name}'. Source maps will not be uploaded.")
@@ -403,21 +461,22 @@ fun processVariant(v: Any) {
     val packagerSourcemapOutput = result.packagerSourcemapOutput
 
     val props = DefaultGroovyMethods.getProperties(bundleTask)
-    var reactRoot: File? = props["workingDir"] as? File
-    if (reactRoot == null) {
+    var reactRootResolved: File? = props["workingDir"] as? File
+    if (reactRootResolved == null) {
         val rootProvider = props["root"] as? org.gradle.api.provider.Provider<*>
         val rootValue = rootProvider?.get()
-        reactRoot =
+        reactRootResolved =
             when (rootValue) {
                 is File -> rootValue
                 is org.gradle.api.file.Directory -> rootValue.asFile
                 else -> null
             }
     }
-    if (reactRoot == null) {
+    if (reactRootResolved == null) {
         project.logger.warn("[sentry] Could not determine reactRoot for '${bundleTask.name}'.")
         return
     }
+    val reactRoot = reactRootResolved
 
     val modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
 
