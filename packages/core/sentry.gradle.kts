@@ -199,10 +199,10 @@ fun extractBundleTaskArguments(
         (props["bundleAssetName"] as? org.gradle.api.provider.Provider<*>)?.orNull as? String
             ?: return BundleTaskArgs(null, null, null, null)
 
-    val bundleCommand = (props["bundleCommand"] as? org.gradle.api.provider.Provider<*>)?.get() as? String
-    val jsBundleDir = (props["jsBundleDir"] as? org.gradle.api.provider.Provider<*>)?.get()
-    val jsSourceMapsDir = (props["jsSourceMapsDir"] as? org.gradle.api.provider.Provider<*>)?.get()
-    val jsIntermediateSourceMapsDir = (props["jsIntermediateSourceMapsDir"] as? org.gradle.api.provider.Provider<*>)?.get()
+    val bundleCommand = (props["bundleCommand"] as? org.gradle.api.provider.Provider<*>)?.orNull as? String
+    val jsBundleDir = (props["jsBundleDir"] as? org.gradle.api.provider.Provider<*>)?.orNull
+    val jsSourceMapsDir = (props["jsSourceMapsDir"] as? org.gradle.api.provider.Provider<*>)?.orNull
+    val jsIntermediateSourceMapsDir = (props["jsIntermediateSourceMapsDir"] as? org.gradle.api.provider.Provider<*>)?.orNull
 
     val bundleDirFile =
         when (jsBundleDir) {
