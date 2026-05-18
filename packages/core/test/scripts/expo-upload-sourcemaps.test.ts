@@ -525,6 +525,57 @@ process.exit(1);
     });
   });
 
+  describe('expo resolution via cwd fallback (pnpm/yarn PnP)', () => {
+    it('resolves expo from cwd when not resolvable from the script location', () => {
+      createAssets(['bundle.js', 'bundle.js.map']);
+
+      const expoConfig = {
+        plugins: [
+          ['@sentry/react-native/expo', { organization: 'cwd-org', project: 'cwd-project', url: 'https://sentry.io/' }],
+        ],
+      };
+
+      // Place mock expo only under tempDir/node_modules — reachable via cwd, not via NODE_PATH
+      const mockExpoCliDir = path.join(tempDir, 'node_modules', 'expo', 'bin');
+      fs.mkdirSync(mockExpoCliDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(mockExpoCliDir, 'cli'),
+        `#!/usr/bin/env node
+const args = process.argv.slice(2);
+if (args.includes('config') && args.includes('--json')) {
+  process.stdout.write(${JSON.stringify(JSON.stringify(expoConfig))});
+  process.exit(0);
+}
+process.exit(1);
+`,
+      );
+      fs.chmodSync(path.join(mockExpoCliDir, 'cli'), '755');
+      fs.writeFileSync(
+        path.join(tempDir, 'node_modules', 'expo', 'package.json'),
+        JSON.stringify({ name: 'expo', version: '0.0.0' }),
+      );
+
+      const result = spawnSync(process.execPath, [EXPO_UPLOAD_SCRIPT, outputDir], {
+        cwd: tempDir,
+        env: {
+          ...process.env,
+          SENTRY_AUTH_TOKEN: 'test-token',
+          SENTRY_CLI_EXECUTABLE: mockSentryCliScript,
+          SENTRY_ORG: undefined,
+          SENTRY_PROJECT: undefined,
+          SENTRY_URL: undefined,
+          MOCK_CLI_EXIT_CODE: '0',
+          NODE_PATH: path.join(tempDir, 'nonexistent_modules'),
+        },
+        encoding: 'utf8',
+        timeout: 10000,
+      });
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('SENTRY_ORG resolved to cwd-org');
+    });
+  });
+
   describe('sourcemap processing', () => {
     it('converts debugId to debug_id in sourcemaps', () => {
       createAssets(['bundle.js', 'bundle.js.map']);
