@@ -22,6 +22,7 @@
 
 - Fix duplicate JS error reporting on iOS New Architecture when the native SDK is initialized early via `sentry.options.json` ("Capture App Start Errors"). It's done by applying the `ExceptionsManager.reportException` C++ wrapper filter in both init paths ([#6145](https://github.com/getsentry/sentry-react-native/pull/6145))
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
+- Fix `sentry-expo-upload-sourcemaps` failing for projects with `devEngines.packageManager` set to non-npm managers ([#6155](https://github.com/getsentry/sentry-react-native/pull/6155))
 
 ### Dependencies
 
