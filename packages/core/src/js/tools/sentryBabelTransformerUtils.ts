@@ -8,6 +8,7 @@ export type SentryBabelTransformerOptions = {
   annotateReactComponents?: {
     ignoredComponents?: string[];
     autoInjectSentryLabel?: boolean;
+    textComponentNames?: string[];
   };
 };
 
