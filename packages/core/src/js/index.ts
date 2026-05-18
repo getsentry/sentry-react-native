@@ -54,6 +54,7 @@ export {
   createLangChainCallbackHandler,
   instrumentLangGraph,
   instrumentStateGraphCompile,
+  addConsoleInstrumentationFilter,
 } from '@sentry/core';
 
 export type {
