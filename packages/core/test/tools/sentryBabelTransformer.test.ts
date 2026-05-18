@@ -117,6 +117,31 @@ describe('SentryBabelTransformer', () => {
     );
   });
 
+  test('transform passes textComponentNames to plugin', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      annotateReactComponents: {
+        textComponentNames: ['Text', 'MyText', 'Typography'],
+      },
+    });
+
+    createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
+
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          [
+            expect.objectContaining({ name: 'componentNameAnnotatePlugin' }),
+            expect.objectContaining({
+              autoInjectSentryLabel: true,
+              textComponentNames: ['Text', 'MyText', 'Typography'],
+            }),
+          ],
+        ]),
+      }),
+    );
+  });
+
   test('degrades gracefully if options can not be parsed, transform adds plugin with defaults', () => {
     process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = 'invalid json';
 
