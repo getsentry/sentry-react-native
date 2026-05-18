@@ -10,6 +10,7 @@
 
 ### Features
 
+- Opt-in: consume sentry-cocoa via Swift Package Manager. Set `SENTRY_USE_SPM=1` before `pod install` to pull `Sentry` from sentry-cocoa's SPM package as a binary xcframework instead of the CocoaPods source build. Requires React Native >= 0.75. Default behavior (CocoaPods) is unchanged. ([#TBD](https://github.com/getsentry/sentry-react-native/pull/TBD))
 - Multi-instance `<TimeToInitialDisplay>` / `<TimeToFullDisplay>` coordination ([#6090](https://github.com/getsentry/sentry-react-native/pull/6090))
   - New `ready` prop. When a screen has multiple async data sources, mount one `<TimeToFullDisplay ready={...} />` per source — TTID/TTFD is recorded only when every instance reports `ready === true`.
   - The existing `record` prop is unchanged BUT it is now deprecated in favor of `ready`.
