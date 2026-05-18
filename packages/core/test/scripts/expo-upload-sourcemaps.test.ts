@@ -295,19 +295,6 @@ process.exit(exitCode);
   });
 
   describe('sentry.properties fallback', () => {
-    let mockNpxScript: string;
-    let mockBinDir: string;
-
-    beforeEach(() => {
-      // Create a mock npx that makes `expo config --json` fail fast
-      // so the script falls through to the sentry.properties fallback
-      mockBinDir = path.join(tempDir, 'mock-bin');
-      fs.mkdirSync(mockBinDir, { recursive: true });
-      mockNpxScript = path.join(mockBinDir, 'npx');
-      fs.writeFileSync(mockNpxScript, '#!/usr/bin/env node\nprocess.exit(1);\n');
-      fs.chmodSync(mockNpxScript, '755');
-    });
-
     const createSentryProperties = (dir: string, content: string) => {
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(path.join(dir, 'sentry.properties'), content);
@@ -320,8 +307,7 @@ process.exit(exitCode);
       const defaultEnv = {
         SENTRY_AUTH_TOKEN: 'test-token',
         SENTRY_CLI_EXECUTABLE: mockSentryCliScript,
-        // Put mock npx first in PATH so expo config fails fast
-        PATH: `${mockBinDir}:${process.env.PATH}`,
+        NODE_PATH: path.join(tempDir, 'nonexistent_modules'),
       };
 
       const result = spawnSync(process.execPath, [EXPO_UPLOAD_SCRIPT, outputDir], {
@@ -415,28 +401,31 @@ process.exit(exitCode);
       expoConfig: Record<string, unknown>,
       env: Record<string, string | undefined> = {},
     ): { stdout: string; stderr: string; exitCode: number } => {
-      // Create a mock npx that outputs the given expo config as JSON
-      const mockBinDir = path.join(tempDir, 'mock-bin-expo');
-      fs.mkdirSync(mockBinDir, { recursive: true });
-      const mockNpxScript = path.join(mockBinDir, 'npx');
-      // The mock npx script outputs the config JSON when called with 'expo config --json'
+      // Create a mock expo/bin/cli that outputs the given expo config as JSON
+      const mockExpoCliDir = path.join(tempDir, 'node_modules', 'expo', 'bin');
+      fs.mkdirSync(mockExpoCliDir, { recursive: true });
       fs.writeFileSync(
-        mockNpxScript,
+        path.join(mockExpoCliDir, 'cli'),
         `#!/usr/bin/env node
 const args = process.argv.slice(2);
-if (args.includes('expo') && args.includes('config') && args.includes('--json')) {
+if (args.includes('config') && args.includes('--json')) {
   process.stdout.write(${JSON.stringify(JSON.stringify(expoConfig))});
   process.exit(0);
 }
 process.exit(1);
 `,
       );
-      fs.chmodSync(mockNpxScript, '755');
+      fs.chmodSync(path.join(mockExpoCliDir, 'cli'), '755');
+      // require.resolve needs a package.json to resolve the package
+      fs.writeFileSync(
+        path.join(tempDir, 'node_modules', 'expo', 'package.json'),
+        JSON.stringify({ name: 'expo', version: '0.0.0' }),
+      );
 
       const defaultEnv = {
         SENTRY_AUTH_TOKEN: 'test-token',
         SENTRY_CLI_EXECUTABLE: mockSentryCliScript,
-        PATH: `${mockBinDir}:${process.env.PATH}`,
+        NODE_PATH: path.join(tempDir, 'node_modules'),
       };
 
       const result = spawnSync(process.execPath, [EXPO_UPLOAD_SCRIPT, outputDir], {

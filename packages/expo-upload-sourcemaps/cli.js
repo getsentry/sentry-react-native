@@ -16,7 +16,13 @@ function getEnvVar(varname) {
 
 function getSentryPluginPropertiesFromExpoConfig() {
   try {
-    const result = spawnSync('npx', ['expo', 'config', '--json'], { encoding: 'utf8' });
+    let expoCli;
+    try {
+      expoCli = require.resolve('expo/bin/cli');
+    } catch {
+      expoCli = require.resolve('expo/bin/cli', { paths: [process.cwd()] });
+    }
+    const result = spawnSync(process.execPath, [expoCli, 'config', '--json'], { encoding: 'utf8' });
     if (result.error || result.status !== 0) {
       throw result.error || new Error(`expo config exited with status ${result.status}`);
     }
