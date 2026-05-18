@@ -416,10 +416,9 @@ process.exit(1);
 `,
       );
       fs.chmodSync(path.join(mockExpoCliDir, 'cli'), '755');
-      // require.resolve needs a package.json to resolve the package
       fs.writeFileSync(
         path.join(tempDir, 'node_modules', 'expo', 'package.json'),
-        JSON.stringify({ name: 'expo', version: '0.0.0' }),
+        JSON.stringify({ name: 'expo', version: '0.0.0', bin: { expo: 'bin/cli' } }),
       );
 
       const defaultEnv = {
@@ -552,7 +551,7 @@ process.exit(1);
       fs.chmodSync(path.join(mockExpoCliDir, 'cli'), '755');
       fs.writeFileSync(
         path.join(tempDir, 'node_modules', 'expo', 'package.json'),
-        JSON.stringify({ name: 'expo', version: '0.0.0' }),
+        JSON.stringify({ name: 'expo', version: '0.0.0', bin: { expo: 'bin/cli' } }),
       );
 
       const result = spawnSync(process.execPath, [EXPO_UPLOAD_SCRIPT, outputDir], {

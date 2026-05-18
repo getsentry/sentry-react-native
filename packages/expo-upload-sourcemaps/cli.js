@@ -16,12 +16,14 @@ function getEnvVar(varname) {
 
 function getSentryPluginPropertiesFromExpoConfig() {
   try {
-    let expoCli;
+    let expoPkgJson;
     try {
-      expoCli = require.resolve('expo/bin/cli');
+      expoPkgJson = require.resolve('expo/package.json');
     } catch {
-      expoCli = require.resolve('expo/bin/cli', { paths: [process.cwd()] });
+      expoPkgJson = require.resolve('expo/package.json', { paths: [process.cwd()] });
     }
+    const expoPkg = JSON.parse(fs.readFileSync(expoPkgJson, 'utf8'));
+    const expoCli = path.resolve(path.dirname(expoPkgJson), expoPkg.bin.expo);
     const result = spawnSync(process.execPath, [expoCli, 'config', '--json'], { encoding: 'utf8' });
     if (result.error || result.status !== 0) {
       throw result.error || new Error(`expo config exited with status ${result.status}`);
