@@ -201,7 +201,9 @@ function loadExpoMetroConfigModule(): {
  */
 export function withSentryBabelTransformer(
   config: MetroConfig,
-  annotateReactComponents: true | { ignoredComponents?: string[]; autoInjectSentryLabel?: boolean; textComponentNames?: string[] },
+  annotateReactComponents:
+    | true
+    | { ignoredComponents?: string[]; autoInjectSentryLabel?: boolean; textComponentNames?: string[] },
 ): MetroConfig {
   const defaultBabelTransformerPath = config.transformer?.babelTransformerPath;
   debug.log('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
