@@ -17,6 +17,7 @@
 - Auto-inject `sentry-label` from static text content at build time when `annotateReactComponents` is enabled ([#6141](https://github.com/getsentry/sentry-react-native/pull/6141))
 - Respect Replay Mask boundaries when reading `sentry-label` for touch breadcrumbs ([#6142](https://github.com/getsentry/sentry-react-native/pull/6142))
 - Add `textComponentNames` option to `annotateReactComponents` for custom text components ([#6169](https://github.com/getsentry/sentry-react-native/pull/6169))
+- Expose `captureSurfaceViews` option for Android Session Replay ([#6175](https://github.com/getsentry/sentry-react-native/pull/6175))
 
 ### Fixes
 
