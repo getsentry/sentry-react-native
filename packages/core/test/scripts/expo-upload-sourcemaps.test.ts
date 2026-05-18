@@ -525,7 +525,7 @@ process.exit(1);
     });
   });
 
-  describe('expo resolution via cwd fallback (pnpm/yarn PnP)', () => {
+  describe('expo resolution via cwd fallback (pnpm strict isolation)', () => {
     it('resolves expo from cwd when not resolvable from the script location', () => {
       createAssets(['bundle.js', 'bundle.js.map']);
 
