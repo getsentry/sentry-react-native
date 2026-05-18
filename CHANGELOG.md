@@ -16,12 +16,14 @@
 - Extract text content from children of touched components as a label fallback for touch breadcrumbs ([#6106](https://github.com/getsentry/sentry-react-native/pull/6106))
 - Auto-inject `sentry-label` from static text content at build time when `annotateReactComponents` is enabled ([#6141](https://github.com/getsentry/sentry-react-native/pull/6141))
 - Respect Replay Mask boundaries when reading `sentry-label` for touch breadcrumbs ([#6142](https://github.com/getsentry/sentry-react-native/pull/6142))
+- Add `textComponentNames` option to `annotateReactComponents` for custom text components ([#6169](https://github.com/getsentry/sentry-react-native/pull/6169))
 
 ### Fixes
 
 - Fix duplicate JS error reporting on iOS New Architecture when the native SDK is initialized early via `sentry.options.json` ("Capture App Start Errors"). It's done by applying the `ExceptionsManager.reportException` C++ wrapper filter in both init paths ([#6145](https://github.com/getsentry/sentry-react-native/pull/6145))
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
 - Fix `includeWebFeedback: false` Metro config option causing crash at startup ([#6150](https://github.com/getsentry/sentry-react-native/pull/6150))
+- Fix `sentry-expo-upload-sourcemaps` failing for projects with `devEngines.packageManager` set to non-npm managers ([#6155](https://github.com/getsentry/sentry-react-native/pull/6155))
 
 ### Dependencies
 
