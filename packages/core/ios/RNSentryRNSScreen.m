@@ -4,7 +4,11 @@
 
 #    import "RNSentryDependencyContainer.h"
 #    import "RNSentryFramesTrackerListener.h"
-#    import <Sentry/SentrySwizzle.h>
+#    if __has_include(<Sentry/SentrySwizzle.h>)
+#        import <Sentry/SentrySwizzle.h>
+#    else
+#        import "SentrySwizzle.h"
+#    endif
 @import Sentry;
 
 @implementation RNSentryRNSScreen
