@@ -57,9 +57,8 @@ interface BreadcrumbsOptions {
 
 export const breadcrumbsIntegration = (options: Partial<BreadcrumbsOptions> = {}): Integration => {
   const _options: BreadcrumbsOptions = {
-    // FIXME: In mobile environment XHR is implemented by native APIs, which are instrumented by the Native SDK.
-    // This will cause duplicates in React Native. On iOS `NSURLSession` is instrumented by default. On Android
-    // `OkHttp` is only instrumented by SAGP.
+    // In mobile environment XHR is implemented by native APIs, which are instrumented by the Native SDK.
+    // Duplicates from JS and native HTTP breadcrumbs are deduplicated in `deviceContextIntegration`.
     xhr: true,
     console: true,
     sentry: true,
