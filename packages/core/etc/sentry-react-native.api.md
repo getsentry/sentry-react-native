@@ -281,6 +281,11 @@ export interface ExpoRouter {
     replace?: (...args: unknown[]) => void;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ExpoRouterIntegrationOptions" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const expoRouterIntegration: (options?: Partial<ExpoRouterIntegrationOptions>) => Integration;
+
 // @public
 export const expoUpdatesListenerIntegration: () => Integration;
 
