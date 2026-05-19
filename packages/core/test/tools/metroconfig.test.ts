@@ -467,6 +467,53 @@ describe('metroconfig', () => {
         });
       });
 
+      describe.each([['./feedbackSync.js'], ['./feedbackAsync.js']])('with %s from @sentry/browser', wrapperModule => {
+        const SENTRY_BROWSER_ORIGIN = '/project/node_modules/@sentry/browser/build/npm/esm/prod/index.js';
+
+        let browserContextMock: any;
+
+        beforeEach(() => {
+          browserContextMock = {
+            resolveRequest: jest.fn(),
+            originModulePath: SENTRY_BROWSER_ORIGIN,
+          };
+        });
+
+        test('removes wrapper when includeWebFeedback is false', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, false);
+          const result = resolveRequest(modifiedConfig, browserContextMock, wrapperModule, 'android');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
+        test('removes wrapper when includeWebFeedback is undefined on native', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, undefined);
+          const result = resolveRequest(modifiedConfig, browserContextMock, wrapperModule, 'ios');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
+        test('keeps wrapper when includeWebFeedback is true', () => {
+          const modifiedConfig = withSentryFeedbackResolver(config, true);
+          resolveRequest(modifiedConfig, browserContextMock, wrapperModule, 'web');
+
+          ExpectToBeCalledWithMetroParameters(originalResolverMock, browserContextMock, wrapperModule, 'web');
+        });
+
+        test('keeps wrapper when origin is not @sentry/browser', () => {
+          const nonBrowserContextMock = {
+            resolveRequest: jest.fn(),
+            originModulePath: '/project/node_modules/some-other-package/index.js',
+          };
+          const modifiedConfig = withSentryFeedbackResolver(config, false);
+          resolveRequest(modifiedConfig, nonBrowserContextMock, wrapperModule, 'android');
+
+          ExpectToBeCalledWithMetroParameters(originalResolverMock, nonBrowserContextMock, wrapperModule, 'android');
+        });
+      });
+
       test('calls originalResolver when moduleName is not @sentry-internal/feedback', () => {
         const modifiedConfig = withSentryFeedbackResolver(config, true);
         const moduleName = 'some/other/module';
@@ -661,6 +708,48 @@ describe('metroconfig', () => {
 
       expect(mockExit).toHaveBeenCalledWith(-1);
     });
+  });
+  describe('feedback resolver handles @sentry/browser barrel imports', () => {
+    const SENTRY_BROWSER_BARREL = '/project/node_modules/@sentry/browser/build/npm/esm/prod/index.js';
+
+    const browserBarrelImports = [
+      { moduleName: './feedbackSync.js', shouldBeEmpty: true },
+      { moduleName: './feedbackAsync.js', shouldBeEmpty: true },
+      { moduleName: '@sentry-internal/feedback', shouldBeEmpty: true },
+      { moduleName: '@sentry-internal/replay', shouldBeEmpty: false },
+      { moduleName: '@sentry-internal/replay-canvas', shouldBeEmpty: false },
+      { moduleName: '@sentry-internal/browser-utils', shouldBeEmpty: false },
+      { moduleName: '@sentry/core/browser', shouldBeEmpty: false },
+      { moduleName: './helpers.js', shouldBeEmpty: false },
+      { moduleName: './client.js', shouldBeEmpty: false },
+      { moduleName: './sdk.js', shouldBeEmpty: false },
+      { moduleName: './userfeedback.js', shouldBeEmpty: false },
+    ];
+
+    test.each(browserBarrelImports)(
+      '$moduleName is resolved to empty=$shouldBeEmpty when includeWebFeedback is false',
+      ({ moduleName, shouldBeEmpty }) => {
+        const originalResolver = jest.fn();
+        const config: MetroConfig = {
+          resolver: { resolveRequest: originalResolver },
+        };
+        const context = {
+          resolveRequest: jest.fn(),
+          originModulePath: SENTRY_BROWSER_BARREL,
+        };
+
+        const modifiedConfig = withSentryFeedbackResolver(config, false);
+        const result = modifiedConfig.resolver?.resolveRequest?.(context, moduleName, 'android');
+
+        if (shouldBeEmpty) {
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolver).not.toHaveBeenCalled();
+        } else {
+          expect(result).not.toEqual({ type: 'empty' });
+          expect(originalResolver).toHaveBeenCalled();
+        }
+      },
+    );
   });
 });
 

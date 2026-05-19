@@ -267,7 +267,7 @@ type CustomResolverBeforeMetro068 = (
 function buildSentryPackageExcludeResolver(
   config: MetroConfig,
   includePackage: boolean | undefined,
-  moduleRegex: RegExp,
+  shouldExcludeModule: (moduleName: string, context: CustomResolutionContext) => boolean,
   optionName: string,
 ): MetroConfig {
   const originalResolver = config.resolver?.resolveRequest as CustomResolver | CustomResolverBeforeMetro068 | undefined;
@@ -280,7 +280,7 @@ function buildSentryPackageExcludeResolver(
   ) => {
     if (
       (includePackage === false || (includePackage === undefined && (platform === 'android' || platform === 'ios'))) &&
-      !!(oldMetroModuleName ?? moduleName).match(moduleRegex)
+      shouldExcludeModule(oldMetroModuleName ?? moduleName, context)
     ) {
       return { type: 'empty' } as Resolution;
     }
@@ -324,9 +324,21 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
   return buildSentryPackageExcludeResolver(
     config,
     includeWebReplay,
-    /@sentry(?:-internal)?\/replay/,
+    moduleName => /@sentry(?:-internal)?\/replay/.test(moduleName),
     'includeWebReplay',
   );
+}
+
+/**
+ * `@sentry/browser` re-exports feedback through `feedbackSync.js` and `feedbackAsync.js`
+ * which call `buildFeedbackIntegration()` at module evaluation time.
+ * Stubbing only `@sentry-internal/feedback` makes that call crash,
+ * so we also stub these wrapper modules.
+ */
+const SENTRY_BROWSER_FEEDBACK_WRAPPER_RE = /\/feedback(Sync|Async)/;
+
+function isFromSentryBrowser(originModulePath: string): boolean {
+  return originModulePath.includes('@sentry/browser');
 }
 
 /**
@@ -336,7 +348,10 @@ export function withSentryFeedbackResolver(config: MetroConfig, includeWebFeedba
   return buildSentryPackageExcludeResolver(
     config,
     includeWebFeedback,
-    /@sentry(?:-internal)?\/feedback/,
+    (moduleName, context) =>
+      /@sentry(?:-internal)?\/feedback/.test(moduleName) ||
+      (isFromSentryBrowser((context as { originModulePath?: string }).originModulePath ?? '') &&
+        SENTRY_BROWSER_FEEDBACK_WRAPPER_RE.test(moduleName)),
     'includeWebFeedback',
   );
 }
