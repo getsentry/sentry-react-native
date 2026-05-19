@@ -1,10 +1,8 @@
 import type { Client, Integration } from '@sentry/core';
+
 import { debug } from '@sentry/core';
 
-import {
-  getReactNavigationIntegration,
-  reactNavigationIntegration,
-} from './reactnavigation';
+import { getReactNavigationIntegration, reactNavigationIntegration } from './reactnavigation';
 
 export const INTEGRATION_NAME = 'ExpoRouter';
 
@@ -19,7 +17,7 @@ interface ExpoRouterStore {
   navigationRef?: ExpoRouterNavigationRef;
 }
 
-type ExpoRouterIntegrationOptions = NonNullable<Parameters<typeof reactNavigationIntegration>[0]>;
+type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationIntegration>[0];
 
 /**
  * Integration that connects Expo Router with `reactNavigationIntegration` without
@@ -32,13 +30,20 @@ type ExpoRouterIntegrationOptions = NonNullable<Parameters<typeof reactNavigatio
  * });
  * ```
  */
-export const expoRouterIntegration = (options: Partial<ExpoRouterIntegrationOptions> = {}): Integration => {
+export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}): Integration => {
   let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const setup = (client: Client): void => {
+  const afterAllSetup = (client: Client): void => {
     const store = tryGetExpoRouterStore();
-    if (!store?.navigationRef) {
+    if (!store) {
       // expo-router not installed
+      return;
+    }
+    if (!store.navigationRef) {
+      debug.warn(
+        `${INTEGRATION_NAME} Found expo-router router-store but it does not expose a \`navigationRef\`. ` +
+          `This likely means the installed expo-router version is incompatible with this integration.`,
+      );
       return;
     }
 
@@ -86,7 +91,7 @@ export const expoRouterIntegration = (options: Partial<ExpoRouterIntegrationOpti
 
   return {
     name: INTEGRATION_NAME,
-    setup,
+    afterAllSetup,
   };
 };
 

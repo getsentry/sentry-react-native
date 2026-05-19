@@ -59,25 +59,49 @@ describe('expoRouterIntegration', () => {
       const { client, addIntegration } = createMockClient();
 
       const integ = integration();
-      integ.setup?.(client);
+      integ.afterAllSetup?.(client);
 
       expect(integ.name).toBe('ExpoRouter');
       expect(addIntegration).not.toHaveBeenCalled();
     });
   });
 
-  describe('expo-router installed, navigationRef pre-populated', () => {
-    it('registers the navigation container immediately', () => {
-      const container = createMockNavigationContainer();
-      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({
-        store: { navigationRef: { current: container } },
-      }), { virtual: true });
+  describe('expo-router router-store found but navigationRef missing', () => {
+    it('warns and does not add the integration', () => {
+      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({ store: {} }), { virtual: true });
+
+      const { debug } = require('@sentry/core');
+      const warnSpy = jest.spyOn(debug, 'warn').mockImplementation(() => undefined);
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration } = createMockClient();
 
       const integ = integration();
-      integ.setup?.(client);
+      integ.afterAllSetup?.(client);
+
+      expect(addIntegration).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('navigationRef'));
+
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('expo-router installed, navigationRef pre-populated', () => {
+    it('registers the navigation container immediately', () => {
+      const container = createMockNavigationContainer();
+      jest.doMock(
+        EXPO_ROUTER_STORE_MODULE,
+        () => ({
+          store: { navigationRef: { current: container } },
+        }),
+        { virtual: true },
+      );
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, addIntegration } = createMockClient();
+
+      const integ = integration();
+      integ.afterAllSetup?.(client);
 
       expect(addIntegration).toHaveBeenCalledTimes(1);
       const added = addIntegration.mock.calls[0][0];
@@ -92,15 +116,19 @@ describe('expoRouterIntegration', () => {
     it('polls until ref.current is populated, then registers', () => {
       const container = createMockNavigationContainer();
       const navigationRef: { current: MockNavigationContainer | null } = { current: null };
-      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({
-        store: { navigationRef },
-      }), { virtual: true });
+      jest.doMock(
+        EXPO_ROUTER_STORE_MODULE,
+        () => ({
+          store: { navigationRef },
+        }),
+        { virtual: true },
+      );
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration } = createMockClient();
 
       const integ = integration();
-      integ.setup?.(client);
+      integ.afterAllSetup?.(client);
 
       // nothing registered yet
       expect(container.addListener).not.toHaveBeenCalled();
@@ -120,15 +148,19 @@ describe('expoRouterIntegration', () => {
 
     it('stops polling after the timeout if ref is never populated', () => {
       const navigationRef: { current: unknown } = { current: null };
-      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({
-        store: { navigationRef },
-      }), { virtual: true });
+      jest.doMock(
+        EXPO_ROUTER_STORE_MODULE,
+        () => ({
+          store: { navigationRef },
+        }),
+        { virtual: true },
+      );
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, closeHandlers } = createMockClient();
 
       const integ = integration();
-      integ.setup?.(client);
+      integ.afterAllSetup?.(client);
       const timersAfterSetup = jest.getTimerCount();
 
       jest.advanceTimersByTime(6_000);
@@ -141,9 +173,13 @@ describe('expoRouterIntegration', () => {
   describe('user already added reactNavigationIntegration', () => {
     it('reuses the existing integration and does not add a duplicate', () => {
       const container = createMockNavigationContainer();
-      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({
-        store: { navigationRef: { current: container } },
-      }), { virtual: true });
+      jest.doMock(
+        EXPO_ROUTER_STORE_MODULE,
+        () => ({
+          store: { navigationRef: { current: container } },
+        }),
+        { virtual: true },
+      );
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, addIntegration, getIntegrationByName } = createMockClient();
@@ -156,7 +192,7 @@ describe('expoRouterIntegration', () => {
       );
 
       const integ = integration();
-      integ.setup?.(client);
+      integ.afterAllSetup?.(client);
 
       expect(addIntegration).not.toHaveBeenCalled();
       expect(existingRegister).toHaveBeenCalledWith({ current: container });
@@ -166,16 +202,20 @@ describe('expoRouterIntegration', () => {
   describe('cleanup', () => {
     it('clears the polling timer when the client closes', () => {
       const navigationRef: { current: unknown } = { current: null };
-      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({
-        store: { navigationRef },
-      }), { virtual: true });
+      jest.doMock(
+        EXPO_ROUTER_STORE_MODULE,
+        () => ({
+          store: { navigationRef },
+        }),
+        { virtual: true },
+      );
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
       const { client, closeHandlers } = createMockClient();
 
       const baselineTimers = jest.getTimerCount();
       const integ = integration();
-      integ.setup?.(client);
+      integ.afterAllSetup?.(client);
       const timersAfterSetup = jest.getTimerCount();
 
       // Setup schedules exactly one polling timer
