@@ -50,7 +50,29 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  s.dependency 'Sentry', '9.13.0'
+  # Opt-in to consuming sentry-cocoa via Swift Package Manager.
+  # When `SENTRY_USE_SPM=1` is set, RNSentry pulls `Sentry` from the
+  # sentry-cocoa SPM package as a binary xcframework instead of from
+  # the Sentry CocoaPods source build. Defaults to CocoaPods consumption
+  # for backward compatibility with the full RN version range we support.
+  #
+  # Requires React Native >= 0.75 because the SPM helper
+  # (`react-native/scripts/cocoapods/spm.rb`) is loaded transitively from
+  # the Podfile via `react_native_pods.rb`.
+  if ENV['SENTRY_USE_SPM'] == '1'
+    unless defined?(SPM) && SPM.respond_to?(:dependency)
+      raise 'SENTRY_USE_SPM=1 is set but the SPM helper is not loaded. ' \
+            'This requires React Native >= 0.75 and a Podfile that imports ' \
+            'react_native_pods.rb.'
+    end
+    SPM.dependency(s,
+      url: 'https://github.com/getsentry/sentry-cocoa',
+      requirement: { kind: 'exactVersion', version: '9.13.0' },
+      products: ['Sentry']
+    )
+  else
+    s.dependency 'Sentry', '9.13.0'
+  end
 
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
