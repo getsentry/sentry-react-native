@@ -69,8 +69,7 @@ final class RNSentryStart {
       @NotNull Sentry.OptionsConfiguration<SentryAndroidOptions> configuration,
       @NotNull ILogger logger) {
     @Nullable
-    String jsSdkVersion =
-        rnOptions.hasKey("sdkVersion") ? rnOptions.getString("sdkVersion") : null;
+    String jsSdkVersion = rnOptions.hasKey("sdkVersion") ? rnOptions.getString("sdkVersion") : null;
     Sentry.OptionsConfiguration<SentryAndroidOptions> defaults =
         options -> updateWithReactDefaults(options, currentActivity, jsSdkVersion);
     Sentry.OptionsConfiguration<SentryAndroidOptions> rnConfigurationOptions =
@@ -340,8 +339,7 @@ final class RNSentryStart {
         RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION);
     if (jsSdkVersion != null
         && !jsSdkVersion.equals(RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_VERSION)) {
-      sdkVersion.addPackage(
-          RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME + ":ota", jsSdkVersion);
+      sdkVersion.addPackage(RNSentryVersion.REACT_NATIVE_SDK_PACKAGE_NAME + ":ota", jsSdkVersion);
     }
 
     options.setSentryClientName(sdkVersion.getName() + "/" + sdkVersion.getVersion());
