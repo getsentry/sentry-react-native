@@ -37,6 +37,8 @@ export function breadcrumbFromObject(candidate: BreadcrumbCandidate): Breadcrumb
     if (!isNaN(timestampSeconds)) {
       breadcrumb.timestamp = timestampSeconds;
     }
+  } else if (typeof candidate.timestamp === 'number' && !isNaN(candidate.timestamp)) {
+    breadcrumb.timestamp = candidate.timestamp;
   }
 
   return breadcrumb;

@@ -43,6 +43,31 @@ describe('Breadcrumb', () => {
       });
     });
 
+    it('convert plain object with numeric timestamp to a valid Breadcrumb', () => {
+      const candidate = {
+        type: 'test',
+        level: 'info',
+        timestamp: 1730985899,
+      };
+      const breadcrumb = breadcrumbFromObject(candidate);
+      expect(breadcrumb).toEqual(<Breadcrumb>{
+        type: 'test',
+        level: 'info',
+        timestamp: 1730985899,
+      });
+    });
+
+    it('ignores NaN numeric timestamp', () => {
+      const candidate = {
+        type: 'test',
+        timestamp: NaN,
+      };
+      const breadcrumb = breadcrumbFromObject(candidate);
+      expect(breadcrumb).toEqual(<Breadcrumb>{
+        type: 'test',
+      });
+    });
+
     it('convert empty object to a valid Breadcrumb', () => {
       const candidate = {};
       const breadcrumb = breadcrumbFromObject(candidate);
