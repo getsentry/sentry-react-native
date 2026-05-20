@@ -16,15 +16,33 @@
                                                          error:errorPointer];
     [self updateWithReactDefaults:options];
     [self updateWithReactFinals:options];
-    [self startWithOptions:options];
+    NSString *jsSdkVersion = nil;
+    id jsSdkVersionValue = javascriptOptions[@"sdkVersion"];
+    if ([jsSdkVersionValue isKindOfClass:[NSString class]]) {
+        jsSdkVersion = jsSdkVersionValue;
+    }
+    [self startWithOptions:options jsSdkVersion:jsSdkVersion];
 }
 
 + (void)startWithOptions:(SentryOptions *)options NS_SWIFT_NAME(start(options:))
+{
+    [self startWithOptions:options jsSdkVersion:nil];
+}
+
++ (void)startWithOptions:(SentryOptions *)options
+            jsSdkVersion:(NSString *_Nullable)jsSdkVersion
 {
     NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
     [PrivateSentrySDKOnly setSdkName:NATIVE_SDK_NAME andVersionString:sdkVersion];
     [PrivateSentrySDKOnly addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
                                 version:REACT_NATIVE_SDK_PACKAGE_VERSION];
+
+    if (jsSdkVersion != nil
+        && ![jsSdkVersion isEqualToString:REACT_NATIVE_SDK_PACKAGE_VERSION]) {
+        NSString *otaPackageName =
+            [REACT_NATIVE_SDK_PACKAGE_NAME stringByAppendingString:@":ota"];
+        [PrivateSentrySDKOnly addSdkPackage:otaPackageName version:jsSdkVersion];
+    }
 
     [SentrySDK startWithOptions:options];
 
