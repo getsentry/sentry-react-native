@@ -6,4 +6,5 @@ class RNSentryVersion {
   static final String NATIVE_SDK_NAME = "sentry.native.android.react-native";
   static final String ANDROID_SDK_NAME = "sentry.java.android.react-native";
   static final String REACT_NATIVE_SDK_NAME = "sentry.javascript.react-native";
+  static final String EXPECTED_ANDROID_SDK_VERSION = "8.41.0";
 }

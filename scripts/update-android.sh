@@ -33,6 +33,12 @@ set-version)
     expoHandlerContent=$(echo "$expoHandlerContent" | sed -E "s/(io\.sentry:sentry-android:)([0-9\.]+)/\1$2/g")
     echo "$expoHandlerContent" >$expoHandlerFile
 
+    # Update expected version constant in RNSentryVersion.java
+    versionFile='src/main/java/io/sentry/react/RNSentryVersion.java'
+    versionContent=$(cat $versionFile)
+    versionContent=$(echo "$versionContent" | sed -E "s/(EXPECTED_ANDROID_SDK_VERSION = \")([0-9\.]+)/\1$2/")
+    echo "$versionContent" >$versionFile
+
     # Update replay-stubs to match
     cd $ORIGINAL_DIR
     ./update-android-stubs.sh set-version $2

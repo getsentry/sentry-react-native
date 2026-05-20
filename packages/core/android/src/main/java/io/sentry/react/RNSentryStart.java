@@ -362,6 +362,19 @@ final class RNSentryStart {
    * applied after the configureOptions callback during manual native initialization.
    */
   static void updateWithReactFinals(@NotNull SentryAndroidOptions options) {
+    if (!BuildConfig.VERSION_NAME.equals(RNSentryVersion.EXPECTED_ANDROID_SDK_VERSION)) {
+      options
+          .getLogger()
+          .log(
+              SentryLevel.WARNING,
+              "sentry-android resolved to %s, but @sentry/react-native expects %s. "
+                  + "This may cause crashes at startup. "
+                  + "If you use the Sentry Android Gradle Plugin, disable autoInstallation: "
+                  + "https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/",
+              BuildConfig.VERSION_NAME,
+              RNSentryVersion.EXPECTED_ANDROID_SDK_VERSION);
+    }
+
     BeforeSendCallback userBeforeSend = options.getBeforeSend();
     options.setBeforeSend(
         (event, hint) -> {
