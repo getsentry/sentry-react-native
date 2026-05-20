@@ -284,7 +284,7 @@ export interface ExpoRouter {
 // Warning: (ae-forgotten-export) The symbol "ExpoRouterIntegrationOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
-export const expoRouterIntegration: (options?: Partial<ExpoRouterIntegrationOptions>) => Integration;
+export const expoRouterIntegration: (options?: ExpoRouterIntegrationOptions) => Integration;
 
 // @public
 export const expoUpdatesListenerIntegration: () => Integration;
