@@ -120,6 +120,7 @@ export {
   createTimeToFullDisplay,
   createTimeToInitialDisplay,
   wrapExpoRouter,
+  expoRouterIntegration,
   wrapExpoImage,
   wrapExpoAsset,
 } from './tracing';
