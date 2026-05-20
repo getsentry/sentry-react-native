@@ -57,13 +57,15 @@ export function withSentryOptionsFromFile(config: MetroConfig, optionsFile: stri
     return originalSerializer(entryPoint, preModules, graph, options);
   };
 
-  return {
-    ...config,
-    serializer: {
-      ...config.serializer,
-      customSerializer: sentryOptionsSerializer,
-    },
-  };
+  // Preserve Expo's __originalSerializer marker so Expo can detect user-provided serializers
+  if ('__originalSerializer' in originalSerializer) {
+    Object.assign(sentryOptionsSerializer, {
+      __originalSerializer: (originalSerializer as Record<string, unknown>).__originalSerializer,
+    });
+  }
+
+  config.serializer.customSerializer = sentryOptionsSerializer;
+  return config;
 }
 
 function createSentryOptionsModule(filePath: string): Module<VirtualJSOutput> | null {

@@ -27,6 +27,7 @@
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
 - Fix `includeWebFeedback: false` Metro config option causing crash at startup ([#6150](https://github.com/getsentry/sentry-react-native/pull/6150))
 - Fix `sentry-expo-upload-sourcemaps` failing for projects with `devEngines.packageManager` set to non-npm managers ([#6155](https://github.com/getsentry/sentry-react-native/pull/6155))
+- Fix Metro serializer wrapper breaking `getModulesRunBeforeMainModule` for third-party plugins like `react-native-worklets` `bundleMode` ([#6188](https://github.com/getsentry/sentry-react-native/pull/6188))
 
 ### Dependencies
 
