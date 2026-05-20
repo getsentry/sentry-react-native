@@ -5,6 +5,7 @@
 ```ts
 
 import { addBreadcrumb } from '@sentry/core';
+import { addConsoleInstrumentationFilter } from '@sentry/core';
 import { addEventProcessor } from '@sentry/core';
 import { addIntegration } from '@sentry/core';
 import { AnthropicAiClient } from '@sentry/core';
@@ -117,6 +118,8 @@ import { withErrorBoundary } from '@sentry/react';
 import { withProfiler } from '@sentry/react';
 
 export { addBreadcrumb }
+
+export { addConsoleInstrumentationFilter }
 
 export { addEventProcessor }
 

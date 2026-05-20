@@ -419,6 +419,11 @@ final class RNSentryStart {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
     }
 
+    if (rnMobileReplayOptions.hasKey("captureSurfaceViews")) {
+      androidReplayOptions.setCaptureSurfaceViews(
+          rnMobileReplayOptions.getBoolean("captureSurfaceViews"));
+    }
+
     if (rnMobileReplayOptions.hasKey("screenshotStrategy")) {
       final String strategy = rnMobileReplayOptions.getString("screenshotStrategy");
       if ("canvas".equals(strategy)) {

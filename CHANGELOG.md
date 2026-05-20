@@ -18,6 +18,8 @@
 - Respect Replay Mask boundaries when reading `sentry-label` for touch breadcrumbs ([#6142](https://github.com/getsentry/sentry-react-native/pull/6142))
 - Add `textComponentNames` option to `annotateReactComponents` for custom text components ([#6169](https://github.com/getsentry/sentry-react-native/pull/6169))
 - Add first-class `expoRouterIntegration()` with auto-registration ([#6189](https://github.com/getsentry/sentry-react-native/pull/6189))
+- Expose `addConsoleInstrumentationFilter` from `@sentry/core` ([#6180](https://github.com/getsentry/sentry-react-native/pull/6180))
+- Expose experimental `captureSurfaceViews` option for Android Session Replay ([#6175](https://github.com/getsentry/sentry-react-native/pull/6175))
 
 ### Fixes
 
@@ -26,6 +28,7 @@
 - Fix boolean options from `sentry.options.json` being ignored on Android when using `RNSentrySDK.init` ([#6130](https://github.com/getsentry/sentry-react-native/pull/6130))
 - Fix `includeWebFeedback: false` Metro config option causing crash at startup ([#6150](https://github.com/getsentry/sentry-react-native/pull/6150))
 - Fix `sentry-expo-upload-sourcemaps` failing for projects with `devEngines.packageManager` set to non-npm managers ([#6155](https://github.com/getsentry/sentry-react-native/pull/6155))
+- Fix Metro serializer wrapper breaking `getModulesRunBeforeMainModule` for third-party plugins like `react-native-worklets` `bundleMode` ([#6188](https://github.com/getsentry/sentry-react-native/pull/6188))
 
 ### Dependencies
 

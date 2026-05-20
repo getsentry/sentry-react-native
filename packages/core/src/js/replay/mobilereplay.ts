@@ -125,6 +125,20 @@ export interface MobileReplayOptions {
   screenshotStrategy?: ScreenshotStrategy;
 
   /**
+   * Enables capturing `SurfaceView` content in Session Replay on Android.
+   *
+   * This allows replays to include content from components that render outside the normal
+   * View hierarchy (e.g. video players, map SDKs) which otherwise appear as black regions.
+   *
+   * - Experiment: Masking granularity is at the `SurfaceView` level only.
+   * - Note: Only works with the `pixelCopy` screenshot strategy (the default).
+   *
+   * @default false
+   * @platform android
+   */
+  captureSurfaceViews?: boolean;
+
+  /**
    * Callback to determine if a replay should be captured for a specific error.
    * When this callback returns `false`, no replay will be captured for the error.
    * This callback is only called when an error occurs and `replaysOnErrorSampleRate` is set.
