@@ -19,6 +19,7 @@
 - Add `textComponentNames` option to `annotateReactComponents` for custom text components ([#6169](https://github.com/getsentry/sentry-react-native/pull/6169))
 - Expose `addConsoleInstrumentationFilter` from `@sentry/core` ([#6180](https://github.com/getsentry/sentry-react-native/pull/6180))
 - Expose experimental `captureSurfaceViews` option for Android Session Replay ([#6175](https://github.com/getsentry/sentry-react-native/pull/6175))
+- Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 
 ### Fixes
 

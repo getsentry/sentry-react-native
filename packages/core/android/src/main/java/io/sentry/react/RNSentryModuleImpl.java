@@ -279,6 +279,14 @@ public class RNSentryModuleImpl {
     stopShakeDetection();
   }
 
+  public void pauseAppHangTracking() {
+    // No-op: App hang tracking is iOS-only
+  }
+
+  public void resumeAppHangTracking() {
+    // No-op: App hang tracking is iOS-only
+  }
+
   public void fetchModules(Promise promise) {
     final AssetManager assets = this.getReactApplicationContext().getResources().getAssets();
     try (InputStream stream = new BufferedInputStream(assets.open(modulesPath))) {

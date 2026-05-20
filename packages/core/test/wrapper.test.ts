@@ -59,6 +59,8 @@ jest.mock('react-native', () => {
     _getLastPayload: () => ({ initPayload }),
     startProfiling: jest.fn(),
     stopProfiling: jest.fn(),
+    pauseAppHangTracking: jest.fn(),
+    resumeAppHangTracking: jest.fn(),
   };
 
   return {
@@ -1188,6 +1190,58 @@ describe('Tests Native Wrapper', () => {
 
       const result = await NATIVE.crashedLastRun();
       expect(result).toBeNull();
+    });
+  });
+
+  describe('pauseAppHangTracking', () => {
+    test('calls native pauseAppHangTracking', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      NATIVE.pauseAppHangTracking();
+      expect(RNSentry.pauseAppHangTracking).toHaveBeenCalled();
+    });
+
+    test('does not call native when enableNative is false', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      NATIVE.pauseAppHangTracking();
+      expect(RNSentry.pauseAppHangTracking).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resumeAppHangTracking', () => {
+    test('calls native resumeAppHangTracking', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      NATIVE.resumeAppHangTracking();
+      expect(RNSentry.resumeAppHangTracking).toHaveBeenCalled();
+    });
+
+    test('does not call native when enableNative is false', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      NATIVE.resumeAppHangTracking();
+      expect(RNSentry.resumeAppHangTracking).not.toHaveBeenCalled();
     });
   });
 
