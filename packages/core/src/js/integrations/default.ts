@@ -5,7 +5,7 @@ import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/br
 
 import type { ReactNativeClientOptions } from '../options';
 
-import { reactNativeTracingIntegration } from '../tracing';
+import { expoRouterIntegration, reactNativeTracingIntegration } from '../tracing';
 import { notWeb } from '../utils/environment';
 import {
   appRegistryIntegration,
@@ -138,6 +138,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(expoContextIntegration());
   integrations.push(expoConstantsIntegration());
   integrations.push(expoUpdatesListenerIntegration());
+
+  if (hasTracingEnabled && options.enableAutoPerformanceTracing) {
+    integrations.push(expoRouterIntegration());
+  }
 
   if (options.spotlight && __DEV__) {
     const sidecarUrl = typeof options.spotlight === 'string' ? options.spotlight : undefined;

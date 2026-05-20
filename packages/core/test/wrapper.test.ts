@@ -247,6 +247,23 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE.enableNative).toBe(true);
     });
 
+    test('passes sdkVersion to native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).toHaveProperty('sdkVersion');
+      expect(typeof initParameter.sdkVersion).toBe('string');
+    });
+
     test('passes attachAllThreads to native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,

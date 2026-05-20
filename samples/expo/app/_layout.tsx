@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import { useFonts } from 'expo-font';
 import * as ImagePicker from 'expo-image-picker';
-import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
+import { SplashScreen, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
 
@@ -21,10 +21,6 @@ LogBox.ignoreAllLogs();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
-const navigationIntegration = Sentry.reactNavigationIntegration({
-  enableTimeToInitialDisplay: !isRunningInExpoGo(), // This is not supported in Expo Go.
-});
 
 Sentry.init({
   // Replace the example DSN below with your own DSN:
@@ -61,7 +57,9 @@ Sentry.init({
         // default: [/.*/]
         failedRequestTargets: [/.*/],
       }),
-      navigationIntegration,
+      Sentry.expoRouterIntegration({
+        enableTimeToInitialDisplay: !isRunningInExpoGo(), // This is not supported in Expo Go.
+      }),
       Sentry.reactNativeTracingIntegration(),
       Sentry.mobileReplayIntegration({
         maskAllImages: true,
@@ -110,14 +108,6 @@ Sentry.init({
 });
 
 function RootLayout() {
-  const ref = useNavigationContainerRef();
-
-  useEffect(() => {
-    if (ref) {
-      navigationIntegration.registerNavigationContainer(ref);
-    }
-  }, [ref]);
-
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,

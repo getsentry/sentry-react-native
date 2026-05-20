@@ -35,6 +35,7 @@ import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
 import { ReactNativeLibraries } from './utils/rnlibraries';
 import { base64StringFromByteArray } from './vendor';
+import { SDK_VERSION } from './version';
 
 /**
  * Returns the RNSentry module. Dynamically resolves if NativeModule or TurboModule is used.
@@ -60,6 +61,7 @@ export type NativeSdkOptions = Partial<ReactNativeClientOptions> & {
   ignoreErrorsRegex?: string[] | undefined;
 } & {
   mobileReplayOptions: MobileReplayOptions | undefined;
+  sdkVersion?: string | undefined;
   profilingOptions?: ProfilingOptions | undefined;
   /** @deprecated Use `profilingOptions` instead. */
   androidProfilingOptions?: ProfilingOptions | undefined;
@@ -318,6 +320,8 @@ export const NATIVE: SentryNativeWrapper = {
         profilingOptions: resolvedProfilingOptions,
       };
     }
+
+    filteredOptions.sdkVersion = SDK_VERSION;
 
     const nativeIsReady = await RNSentry.initNativeSdk(filteredOptions);
 
