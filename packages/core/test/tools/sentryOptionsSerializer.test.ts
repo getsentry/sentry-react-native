@@ -165,6 +165,53 @@ describe('Sentry Options Serializer', () => {
     expect(actualResult).toEqual(mockedResult);
   });
 
+  test('mutates config in place to preserve object identity for Expo serializer closures', () => {
+    const config = {
+      projectRoot: '/test',
+      serializer: {
+        customSerializer: customSerializerMock,
+        getModulesRunBeforeMainModule: jest.fn(),
+      },
+    };
+    const originalSerializerObj = config.serializer;
+
+    const result = withSentryOptionsFromFile(config, true);
+
+    expect(result).toBe(config);
+    expect(result.serializer).toBe(originalSerializerObj);
+    expect(result.serializer?.customSerializer).not.toBe(customSerializerMock);
+    expect(result.serializer?.getModulesRunBeforeMainModule).toBe(config.serializer.getModulesRunBeforeMainModule);
+  });
+
+  test('preserves __originalSerializer marker from Expo serializer', () => {
+    const expoSerializer = Object.assign(jest.fn(), { __originalSerializer: null });
+    const config = {
+      projectRoot: '/test',
+      serializer: {
+        customSerializer: expoSerializer,
+      },
+    };
+
+    const result = withSentryOptionsFromFile(config, true);
+
+    expect('__originalSerializer' in (result.serializer?.customSerializer as Record<string, unknown>)).toBe(true);
+    expect((result.serializer?.customSerializer as Record<string, unknown>).__originalSerializer).toBeNull();
+  });
+
+  test('does not add __originalSerializer when original serializer lacks it', () => {
+    const plainSerializer = jest.fn();
+    const config = {
+      projectRoot: '/test',
+      serializer: {
+        customSerializer: plainSerializer,
+      },
+    };
+
+    const result = withSentryOptionsFromFile(config, true);
+
+    expect('__originalSerializer' in (result.serializer?.customSerializer as Record<string, unknown>)).toBe(false);
+  });
+
   test('uses custom file path when optionsFile is a string', () => {
     const config = () => ({
       projectRoot: '/test',
