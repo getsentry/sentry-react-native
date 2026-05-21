@@ -107,10 +107,18 @@ export function addDisableAutoUploadToExistingScript(script: BuildPhase): void {
   }
   try {
     const code = JSON.parse(script.shellScript);
-    script.shellScript = JSON.stringify(`${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${code}`);
+    script.shellScript = JSON.stringify(insertExportAfterDelimiter(code));
   } catch {
     script.shellScript = `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${script.shellScript}`;
   }
+}
+
+function insertExportAfterDelimiter(script: string): string {
+  if (script.startsWith('"')) {
+    const rest = script.slice(1).replace(/^\n/, '');
+    return `"\n${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${rest}`;
+  }
+  return `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${script}`;
 }
 
 export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {
