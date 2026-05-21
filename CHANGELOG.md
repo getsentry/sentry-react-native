@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
+
 ## 8.12.0
 
 ### Features
@@ -20,7 +26,6 @@
 - Add first-class `expoRouterIntegration()` with auto-registration ([#6189](https://github.com/getsentry/sentry-react-native/pull/6189))
 - Expose `addConsoleInstrumentationFilter` from `@sentry/core` ([#6180](https://github.com/getsentry/sentry-react-native/pull/6180))
 - Expose experimental `captureSurfaceViews` option for Android Session Replay ([#6175](https://github.com/getsentry/sentry-react-native/pull/6175))
-- Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 - Add OTA SDK version to native `sdk.packages` when JS bundle version differs from built-in version ([#6191](https://github.com/getsentry/sentry-react-native/pull/6191))
 
 ### Fixes
