@@ -491,6 +491,9 @@ export interface NativeLogEntry {
 // @public
 export const nativeReleaseIntegration: () => Integration;
 
+// @public
+export const NavigationContainer: React_2.ForwardRefExoticComponent<Omit<Record<string, unknown>, "ref"> & React_2.RefAttributes<unknown>>;
+
 export { OpenAiClient }
 
 export { OpenAiOptions }
