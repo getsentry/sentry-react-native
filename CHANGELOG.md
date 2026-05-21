@@ -11,6 +11,7 @@
 ### Features
 
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
+- Better route and dynamic param extraction for Expo Router ([#6197](https://github.com/getsentry/sentry-react-native/pull/6197))
 
 ## 8.12.0
 
