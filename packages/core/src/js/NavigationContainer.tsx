@@ -5,6 +5,7 @@ import { getNavigationContainerComponent } from './reactNavigationImport';
 import { getReactNavigationIntegration } from './tracing/reactnavigation';
 
 let _warnedMissing = false;
+let _warnedNoClient = false;
 let _warnedNoIntegration = false;
 
 /**
@@ -43,7 +44,14 @@ export const NavigationContainer = React.forwardRef<unknown, Record<string, unkn
 
   const onReady = React.useCallback(() => {
     const client = getClient();
-    if (client) {
+    if (!client) {
+      if (!_warnedNoClient) {
+        _warnedNoClient = true;
+        debug.warn(
+          '[Sentry] NavigationContainer: Sentry is not initialized. Call Sentry.init() before mounting NavigationContainer.',
+        );
+      }
+    } else {
       const integration = getReactNavigationIntegration(client);
       if (integration) {
         integration.registerNavigationContainer(internalRef);

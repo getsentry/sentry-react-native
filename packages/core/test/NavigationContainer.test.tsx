@@ -21,13 +21,9 @@ jest.mock('@sentry/core', () => ({
   },
 }));
 
+const mockGetReactNavigationIntegration = jest.fn();
 jest.mock('../src/js/tracing/reactnavigation', () => ({
-  getReactNavigationIntegration: (client: unknown) => {
-    if (client) {
-      return { registerNavigationContainer: mockRegisterNavigationContainer };
-    }
-    return undefined;
-  },
+  getReactNavigationIntegration: (...args: unknown[]) => mockGetReactNavigationIntegration(...args),
 }));
 
 const MockNavigationContainerComponent = React.forwardRef<View, Record<string, unknown>>((props, ref) => {
@@ -52,6 +48,9 @@ describe('NavigationContainer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetClient.mockReturnValue({ getIntegrationByName: jest.fn() });
+    mockGetReactNavigationIntegration.mockReturnValue({
+      registerNavigationContainer: mockRegisterNavigationContainer,
+    });
   });
 
   it('renders children through to the underlying NavigationContainer', () => {
@@ -108,7 +107,7 @@ describe('NavigationContainer', () => {
     expect(mockRegisterNavigationContainer).toHaveBeenCalledTimes(1);
   });
 
-  it('no-ops when client is not available', () => {
+  it('warns and skips registration when client is not available', () => {
     mockGetClient.mockReturnValue(undefined);
     render(
       <NavigationContainer>
@@ -116,6 +115,18 @@ describe('NavigationContainer', () => {
       </NavigationContainer>,
     );
     expect(mockRegisterNavigationContainer).not.toHaveBeenCalled();
+    expect(mockDebugWarn).toHaveBeenCalledWith(expect.stringContaining('Sentry is not initialized'));
+  });
+
+  it('logs when client exists but reactNavigationIntegration is not registered', () => {
+    mockGetReactNavigationIntegration.mockReturnValue(undefined);
+    render(
+      <NavigationContainer>
+        <Text>App</Text>
+      </NavigationContainer>,
+    );
+    expect(mockRegisterNavigationContainer).not.toHaveBeenCalled();
+    expect(mockDebugLog).toHaveBeenCalledWith(expect.stringContaining('reactNavigationIntegration is not registered'));
   });
 
   it('passes through all props to NavigationContainer', () => {
