@@ -68,6 +68,12 @@ export const NavigationContainer = React.forwardRef<unknown, Record<string, unkn
     }
   }, [userOnReady]);
 
+  React.useEffect(() => {
+    if (!RealNavigationContainer && typeof userOnReady === 'function') {
+      (userOnReady as () => void)();
+    }
+  }, [RealNavigationContainer, userOnReady]);
+
   if (!RealNavigationContainer) {
     if (!_warnedMissing) {
       _warnedMissing = true;

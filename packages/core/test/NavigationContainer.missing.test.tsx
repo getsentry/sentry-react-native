@@ -36,4 +36,14 @@ describe('NavigationContainer without @react-navigation/native', () => {
     expect(getByText('Fallback Content')).toBeTruthy();
     expect(mockDebugWarn).toHaveBeenCalled();
   });
+
+  it('calls onReady in the fallback path', () => {
+    const userOnReady = jest.fn();
+    render(
+      <NavigationContainer onReady={userOnReady}>
+        <Text>Fallback Content</Text>
+      </NavigationContainer>,
+    );
+    expect(userOnReady).toHaveBeenCalledTimes(1);
+  });
 });
