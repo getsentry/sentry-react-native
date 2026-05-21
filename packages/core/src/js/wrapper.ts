@@ -100,6 +100,8 @@ interface SentryNativeWrapper {
 
   disableNativeFramesTracking(): void;
   enableNativeFramesTracking(): void;
+  pauseAppHangTracking(): void;
+  resumeAppHangTracking(): void;
 
   addBreadcrumb(breadcrumb: Breadcrumb): void;
   // oxlint-disable-next-line typescript-eslint(no-explicit-any)
@@ -671,6 +673,28 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     RNSentry.enableNativeFramesTracking();
+  },
+
+  pauseAppHangTracking(): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    RNSentry.pauseAppHangTracking();
+  },
+
+  resumeAppHangTracking(): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      return;
+    }
+
+    RNSentry.resumeAppHangTracking();
   },
 
   isNativeAvailable(): boolean {

@@ -11,6 +11,7 @@
 ### Features
 
 - Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
+- Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 
 ## 8.12.0
 

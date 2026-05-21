@@ -798,6 +798,10 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
 
+RCT_EXPORT_METHOD(pauseAppHangTracking) { [SentrySDKWrapper pauseAppHangTracking]; }
+
+RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracking]; }
+
 /**
  * Calls captureReplay on the native replay integration and returns
  * the BOOL result indicating whether the capture succeeded.

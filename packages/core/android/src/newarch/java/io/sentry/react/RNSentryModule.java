@@ -235,6 +235,16 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void pauseAppHangTracking() {
+    this.impl.pauseAppHangTracking();
+  }
+
+  @Override
+  public void resumeAppHangTracking() {
+    this.impl.resumeAppHangTracking();
+  }
+
+  @Override
   public void invalidate() {
     this.impl.invalidate();
     super.invalidate();
