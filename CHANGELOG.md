@@ -6,6 +6,13 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Internal
+
+- Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
+  - The old `sentry.gradle` is kept as a shim forwarding to the new `.kts` file for backward compatibility
+
 ## 8.12.0
 
 ### Features
@@ -30,11 +37,6 @@
 - Fix `includeWebFeedback: false` Metro config option causing crash at startup ([#6150](https://github.com/getsentry/sentry-react-native/pull/6150))
 - Fix `sentry-expo-upload-sourcemaps` failing for projects with `devEngines.packageManager` set to non-npm managers ([#6155](https://github.com/getsentry/sentry-react-native/pull/6155))
 - Fix Metro serializer wrapper breaking `getModulesRunBeforeMainModule` for third-party plugins like `react-native-worklets` `bundleMode` ([#6188](https://github.com/getsentry/sentry-react-native/pull/6188))
-
-### Internal
-
-- Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
-  - The old `sentry.gradle` is kept as a shim forwarding to the new `.kts` file for backward compatibility
 
 ### Dependencies
 
