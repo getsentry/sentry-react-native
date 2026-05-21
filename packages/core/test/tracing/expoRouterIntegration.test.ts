@@ -199,6 +199,90 @@ describe('expoRouterIntegration', () => {
     });
   });
 
+  describe('route override provider', () => {
+    it('registers a route override provider on reactNavigation derived from store.getRouteInfo', () => {
+      const container = createMockNavigationContainer();
+      const getRouteInfo = jest.fn(() => ({
+        segments: ['(tabs)', 'profile', '[id]'],
+        params: { id: '123', utm_source: 'email' },
+        pathnameWithParams: '/profile/123?utm_source=email',
+        pathname: '/profile/123',
+      }));
+      jest.doMock(
+        EXPO_ROUTER_STORE_MODULE,
+        () => ({
+          store: { navigationRef: { current: container }, getRouteInfo },
+        }),
+        { virtual: true },
+      );
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, addIntegration } = createMockClient();
+
+      const integ = integration();
+      integ.afterAllSetup?.(client);
+
+      const reactNavigation = addIntegration.mock.calls[0][0];
+      expect(typeof reactNavigation._setRouteOverrideProvider).toBe('function');
+
+      // The integration should have installed a provider on reactNavigation. We can
+      // grab it by spying on the setter.
+      const setProvider = reactNavigation._setRouteOverrideProvider as jest.Mock | ((p: unknown) => void);
+      // Since we don't have a spy, install one and re-run setup to capture the provider.
+      jest.resetModules();
+      jest.doMock(
+        EXPO_ROUTER_STORE_MODULE,
+        () => ({
+          store: { navigationRef: { current: container }, getRouteInfo },
+        }),
+        { virtual: true },
+      );
+      const captured: { provider?: () => unknown } = {};
+      const { reactNavigationIntegration: actualRn } = require('../../src/js/tracing/reactnavigation');
+      const realRn = actualRn();
+      jest.spyOn(realRn, '_setRouteOverrideProvider').mockImplementation((p: unknown) => {
+        captured.provider = p as () => unknown;
+      });
+      const { client: client2, addIntegration: add2, getIntegrationByName: getByName2 } = createMockClient();
+      getByName2.mockImplementation((name: string) =>
+        name === REACT_NAVIGATION_INTEGRATION_NAME ? realRn : undefined,
+      );
+      const { expoRouterIntegration: integ2 } = require('../../src/js/tracing/expoRouterIntegration');
+      integ2().afterAllSetup?.(client2);
+      expect(add2).not.toHaveBeenCalled();
+
+      const result = captured.provider?.() as {
+        templatedPath: string;
+        concreteUrl?: string;
+        params?: Record<string, unknown>;
+      };
+      expect(result).toEqual({
+        templatedPath: '/profile/[id]',
+        concreteUrl: '/profile/123?utm_source=email',
+        params: { id: '123', utm_source: 'email' },
+      });
+      expect(getRouteInfo).toHaveBeenCalled();
+      // unused — silence ts-noemit warnings for captured `setProvider`
+      void setProvider;
+    });
+  });
+
+  describe('buildExpoRouterTemplatedPath', () => {
+    it('strips group segments and joins with /', () => {
+      const { buildExpoRouterTemplatedPath } = require('../../src/js/tracing/expoRouterIntegration');
+      expect(buildExpoRouterTemplatedPath(['(tabs)', 'profile', '[id]'])).toBe('/profile/[id]');
+      expect(buildExpoRouterTemplatedPath(['posts', '[...slug]'])).toBe('/posts/[...slug]');
+      expect(buildExpoRouterTemplatedPath(['(auth)', '(group)', 'login'])).toBe('/login');
+    });
+
+    it('returns / for empty or all-group segments (index routes)', () => {
+      const { buildExpoRouterTemplatedPath } = require('../../src/js/tracing/expoRouterIntegration');
+      expect(buildExpoRouterTemplatedPath([])).toBe('/');
+      expect(buildExpoRouterTemplatedPath(undefined)).toBe('/');
+      expect(buildExpoRouterTemplatedPath(['(tabs)'])).toBe('/');
+    });
+  });
+
   describe('cleanup', () => {
     it('clears the polling timer when the client closes', () => {
       const navigationRef: { current: unknown } = { current: null };

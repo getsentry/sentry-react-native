@@ -1498,6 +1498,149 @@ describe('ReactNavigationInstrumentation', () => {
     });
   });
 
+  describe('route override provider (Expo Router integration hook)', () => {
+    function setupWithOverride(setupOptions: { sendDefaultPii?: boolean } = {}) {
+      const rNavigation = reactNavigationIntegration({ routeChangeTimeoutMs: 200 });
+      mockNavigation = createMockNavigationAndAttachTo(rNavigation);
+
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, reactNativeTracingIntegration()],
+        enableAppStartTracking: false,
+        sendDefaultPii: setupOptions.sendDefaultPii,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      return rNavigation;
+    }
+
+    it('uses templated path as route.name and sets route.path; omits url and params without PII', async () => {
+      const rNavigation = setupWithOverride({ sendDefaultPii: false });
+      jest.runOnlyPendingTimers();
+
+      rNavigation._setRouteOverrideProvider(() => ({
+        templatedPath: '/profile/[id]',
+        concreteUrl: '/profile/123?utm_source=email',
+        params: { id: '123', utm_source: 'email' },
+      }));
+
+      mockNavigation.navigateToDynamicRoute();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(client.event?.transaction).toBe('/profile/[id]');
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('/profile/[id]');
+      expect(traceData['route.path']).toBe('/profile/[id]');
+      expect(traceData['route.url']).toBeUndefined();
+      expect(traceData['route.params.id']).toBeUndefined();
+      expect(traceData['route.params.utm_source']).toBeUndefined();
+    });
+
+    it('exposes route.url and only path params (not query) under sendDefaultPii', async () => {
+      const rNavigation = setupWithOverride({ sendDefaultPii: true });
+      jest.runOnlyPendingTimers();
+
+      rNavigation._setRouteOverrideProvider(() => ({
+        templatedPath: '/profile/[id]',
+        concreteUrl: '/profile/123?utm_source=email',
+        params: { id: '123', utm_source: 'email' },
+      }));
+
+      mockNavigation.navigateToDynamicRoute();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('/profile/[id]');
+      expect(traceData['route.path']).toBe('/profile/[id]');
+      expect(traceData['route.url']).toBe('/profile/123?utm_source=email');
+      expect(traceData['route.params.id']).toBe('123');
+      expect(traceData['route.params.utm_source']).toBeUndefined();
+    });
+
+    it('extracts catch-all [...slug] params from the templated path', async () => {
+      const rNavigation = setupWithOverride({ sendDefaultPii: true });
+      jest.runOnlyPendingTimers();
+
+      rNavigation._setRouteOverrideProvider(() => ({
+        templatedPath: '/posts/[...slug]',
+        concreteUrl: '/posts/tech/react-native',
+        params: { slug: ['tech', 'react-native'] },
+      }));
+
+      mockNavigation.navigateToCatchAllRoute();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('/posts/[...slug]');
+      expect(traceData['route.path']).toBe('/posts/[...slug]');
+      expect(traceData['route.params.slug']).toBe('tech/react-native');
+    });
+
+    it('falls back to React Navigation route name when provider returns undefined', async () => {
+      const rNavigation = setupWithOverride();
+      jest.runOnlyPendingTimers();
+
+      rNavigation._setRouteOverrideProvider(() => undefined);
+
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('New Screen');
+      expect(traceData['route.path']).toBeUndefined();
+      expect(traceData['route.url']).toBeUndefined();
+    });
+
+    it('does not throw and falls back when provider throws', async () => {
+      const rNavigation = setupWithOverride();
+      jest.runOnlyPendingTimers();
+
+      rNavigation._setRouteOverrideProvider(() => {
+        throw new Error('boom');
+      });
+
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('New Screen');
+      expect(traceData['route.path']).toBeUndefined();
+    });
+
+    it('uses overridden name for previous_route.name on subsequent navigations', async () => {
+      const rNavigation = setupWithOverride();
+      jest.runOnlyPendingTimers();
+
+      const sequence = [
+        { templatedPath: '/profile/[id]', params: { id: '1' } },
+        { templatedPath: '/posts/[...slug]', params: { slug: ['a', 'b'] } },
+      ];
+      let i = 0;
+      rNavigation._setRouteOverrideProvider(() => sequence[Math.min(i++, sequence.length - 1)]);
+
+      mockNavigation.navigateToDynamicRoute();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      mockNavigation.navigateToCatchAllRoute();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('/posts/[...slug]');
+      expect(traceData[SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]).toBe('/profile/[id]');
+    });
+  });
+
   function setupTestClient(
     setupOptions: {
       beforeSpanStart?: (options: StartSpanOptions) => StartSpanOptions;
