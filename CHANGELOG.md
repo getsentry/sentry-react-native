@@ -11,6 +11,7 @@
 ### Features
 
 - Add `Sentry.NavigationContainer` drop-in wrapper for React Navigation ([#6199](https://github.com/getsentry/sentry-react-native/pull/6199))
+- Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 
 ## 8.12.0
 

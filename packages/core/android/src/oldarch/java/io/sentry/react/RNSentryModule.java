@@ -234,6 +234,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.disableShakeDetection();
   }
 
+  @ReactMethod
+  public void pauseAppHangTracking() {
+    this.impl.pauseAppHangTracking();
+  }
+
+  @ReactMethod
+  public void resumeAppHangTracking() {
+    this.impl.resumeAppHangTracking();
+  }
+
   @Override
   public void invalidate() {
     this.impl.invalidate();

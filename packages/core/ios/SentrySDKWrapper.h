@@ -12,6 +12,10 @@
 
 + (BOOL)crashedLastRun;
 
++ (void)pauseAppHangTracking;
+
++ (void)resumeAppHangTracking;
+
 + (BOOL)debug;
 
 + (NSString *)releaseName;

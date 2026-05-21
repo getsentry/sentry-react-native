@@ -499,6 +499,9 @@ export { OpenAiClient }
 export { OpenAiOptions }
 
 // @public
+export function pauseAppHangTracking(): void;
+
+// @public
 export const primitiveTagIntegration: () => Integration;
 
 export { Profiler }
@@ -561,6 +564,9 @@ export const reactNavigationIntegration: (input?: Partial<ReactNavigationIntegra
     registerNavigationContainer: (navigationContainerRef: unknown) => void;
     options: ReactNavigationIntegrationOptions;
 };
+
+// @public
+export function resumeAppHangTracking(): void;
 
 export { rewriteFramesIntegration }
 

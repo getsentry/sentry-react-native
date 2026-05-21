@@ -312,3 +312,31 @@ export function withScope<T>(callback: (scope: Scope) => T): T | undefined {
 export async function crashedLastRun(): Promise<boolean | null> {
   return NATIVE.crashedLastRun();
 }
+
+/**
+ * Pauses app hang tracking on iOS.
+ *
+ * App hang detection will ignore detected app hangs until
+ * `resumeAppHangTracking` is called.
+ *
+ * Use this when showing system dialogs (e.g., permission prompts)
+ * that block the main thread but are not real hangs.
+ *
+ * No-op on Android and when native is not available.
+ *
+ * @platform ios
+ */
+export function pauseAppHangTracking(): void {
+  NATIVE.pauseAppHangTracking();
+}
+
+/**
+ * Resumes app hang tracking on iOS after it was paused.
+ *
+ * No-op on Android and when native is not available.
+ *
+ * @platform ios
+ */
+export function resumeAppHangTracking(): void {
+  NATIVE.resumeAppHangTracking();
+}

@@ -60,6 +60,8 @@ export interface Spec extends TurboModule {
   encodeToBase64(data: number[]): Promise<string | undefined | null>;
   enableShakeDetection(): void;
   disableShakeDetection(): void;
+  pauseAppHangTracking(): void;
+  resumeAppHangTracking(): void;
 }
 
 export type NativeStackFrame = {
