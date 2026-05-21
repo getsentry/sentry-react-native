@@ -12,6 +12,8 @@ export { reactNativeNavigationIntegration } from './reactnativenavigation';
 export { wrapExpoRouter } from './expoRouter';
 export type { ExpoRouter } from './expoRouter';
 
+export { expoRouterIntegration } from './expoRouterIntegration';
+
 export { wrapExpoImage } from './expoImage';
 export type { ExpoImage } from './expoImage';
 

@@ -54,6 +54,7 @@ export {
   createLangChainCallbackHandler,
   instrumentLangGraph,
   instrumentStateGraphCompile,
+  addConsoleInstrumentationFilter,
 } from '@sentry/core';
 
 export type {
@@ -119,6 +120,7 @@ export {
   createTimeToFullDisplay,
   createTimeToInitialDisplay,
   wrapExpoRouter,
+  expoRouterIntegration,
   wrapExpoImage,
   wrapExpoAsset,
 } from './tracing';
