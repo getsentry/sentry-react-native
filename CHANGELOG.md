@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
+
 ## 8.12.0
 
 ### Features
@@ -21,7 +27,6 @@
 - Expose `addConsoleInstrumentationFilter` from `@sentry/core` ([#6180](https://github.com/getsentry/sentry-react-native/pull/6180))
 - Expose experimental `captureSurfaceViews` option for Android Session Replay ([#6175](https://github.com/getsentry/sentry-react-native/pull/6175))
 - Add OTA SDK version to native `sdk.packages` when JS bundle version differs from built-in version ([#6191](https://github.com/getsentry/sentry-react-native/pull/6191))
-- Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
 
 ### Fixes
 
