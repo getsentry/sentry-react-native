@@ -79,4 +79,23 @@ android {
     const result = modifyAppBuildGradle(gradleWithOverride, true);
     expect(result).toBe(gradleWithOverride);
   });
+
+  it('Removes override when toggling disableAutoUpload back to false', () => {
+    const gradleWithOverride = `
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+project.ext.shouldSentryAutoUploadGeneral = { -> return false }
+
+android {
+}
+`;
+    const result = modifyAppBuildGradle(gradleWithOverride, false);
+    expect(result).not.toContain('shouldSentryAutoUploadGeneral');
+    expect(result).toContain('sentry.gradle');
+    expect(result).toContain('android {');
+  });
+
+  it('No-ops when toggling to false and override is not present', () => {
+    const result = modifyAppBuildGradle(buildGradleWithSentry, false);
+    expect(result).toBe(buildGradleWithSentry);
+  });
 });

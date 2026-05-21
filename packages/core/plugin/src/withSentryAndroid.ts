@@ -48,6 +48,12 @@ export function modifyAppBuildGradle(buildGradle: string, disableAutoUpload: boo
         `$1\nproject.ext.shouldSentryAutoUploadGeneral = { -> return false }`,
       );
     }
+    if (!disableAutoUpload && buildGradle.includes('shouldSentryAutoUploadGeneral')) {
+      return buildGradle.replace(
+        /\nproject\.ext\.shouldSentryAutoUploadGeneral = \{ -> return false \}\n?/,
+        '\n',
+      );
+    }
     return buildGradle;
   }
 

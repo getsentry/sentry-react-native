@@ -38,6 +38,8 @@ export const withSentryIOS: ConfigPlugin<{
       });
     } else if (disableAutoUpload) {
       addDisableAutoUploadToExistingScript(sentryBuildPhase);
+    } else {
+      removeDisableAutoUploadFromExistingScript(sentryBuildPhase);
     }
 
     const bundleReactNativePhase = xcodeProject.pbxItemByComment(
@@ -72,8 +74,9 @@ Please open a bug report at https://github.com/getsentry/sentry-react-native`,
   if (script.shellScript.includes('sentry-xcode.sh')) {
     if (disableAutoUpload) {
       addDisableAutoUploadToExistingScript(script);
+    } else {
+      removeDisableAutoUploadFromExistingScript(script);
     }
-    warnOnce("The latest 'sentry-xcode.sh' script already exists in 'Bundle React Native code and images'.");
     return;
   }
 
@@ -119,6 +122,18 @@ function insertExportAfterDelimiter(script: string): string {
     return `"\n${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${rest}`;
   }
   return `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${script}`;
+}
+
+export function removeDisableAutoUploadFromExistingScript(script: BuildPhase): void {
+  if (!script.shellScript.includes('SENTRY_DISABLE_AUTO_UPLOAD')) {
+    return;
+  }
+  try {
+    const code = JSON.parse(script.shellScript);
+    script.shellScript = JSON.stringify(code.replace(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n?/m, ''));
+  } catch {
+    script.shellScript = script.shellScript.replace(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n?/m, '');
+  }
 }
 
 export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {

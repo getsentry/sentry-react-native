@@ -3,6 +3,7 @@ import {
   addDisableAutoUploadToExistingScript,
   addSentryWithBundledScriptsToBundleShellScript,
   modifyExistingXcodeBuildScript,
+  removeDisableAutoUploadFromExistingScript,
 } from '../../plugin/src/withSentryIOS';
 
 jest.mock('../../plugin/src/logger');
@@ -216,6 +217,69 @@ describe('addDisableAutoUploadToExistingScript', () => {
     const parsed = JSON.parse(script.shellScript);
     expect(parsed).toMatch(/^"\nexport SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
     expect(parsed).toContain('sentry-xcode.sh');
+  });
+});
+
+describe('removeDisableAutoUploadFromExistingScript', () => {
+  const debugFilesShellScript =
+    "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
+
+  it('removes export from JSON-encoded shellScript', () => {
+    const script = {
+      shellScript: JSON.stringify(`export SENTRY_DISABLE_AUTO_UPLOAD=true\n${debugFilesShellScript}`),
+    };
+    removeDisableAutoUploadFromExistingScript(script);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).not.toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+    expect(parsed).toContain('sentry-xcode-debug-files.sh');
+  });
+
+  it('removes export from non-JSON-encoded shellScript', () => {
+    const script = {
+      shellScript: `export SENTRY_DISABLE_AUTO_UPLOAD=true\n${debugFilesShellScript}`,
+    };
+    removeDisableAutoUploadFromExistingScript(script);
+    expect(script.shellScript).not.toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+    expect(script.shellScript).toContain('sentry-xcode-debug-files.sh');
+  });
+
+  it('removes export from bundle phase script (JSON-encoded with inner quotes)', () => {
+    const script = Object.assign({}, buildScriptWithSentry);
+    addDisableAutoUploadToExistingScript(script);
+    expect(script.shellScript).toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+    removeDisableAutoUploadFromExistingScript(script);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).not.toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+    expect(parsed).toContain('sentry-xcode.sh');
+  });
+
+  it('no-ops when export is not present', () => {
+    const script = { shellScript: JSON.stringify(debugFilesShellScript) };
+    const before = script.shellScript;
+    removeDisableAutoUploadFromExistingScript(script);
+    expect(script.shellScript).toBe(before);
+  });
+});
+
+describe('disableAutoUpload toggle: re-prebuild with false removes prior injection', () => {
+  let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]], any>;
+
+  beforeEach(() => {
+    consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleWarnMock.mockRestore();
+  });
+
+  it('removes export from bundle script when toggling disableAutoUpload back to false', () => {
+    const script = Object.assign({}, buildScriptWithSentry);
+    modifyExistingXcodeBuildScript(script, true);
+    expect(JSON.parse(script.shellScript)).toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+
+    modifyExistingXcodeBuildScript(script, false);
+    expect(JSON.parse(script.shellScript)).not.toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+    expect(JSON.parse(script.shellScript)).toContain('sentry-xcode.sh');
   });
 });
 
