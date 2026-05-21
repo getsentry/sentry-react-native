@@ -40,8 +40,14 @@ const resolveSentryReactNativePackageJsonPath =
  * adding the relevant @sentry/react-native script.
  */
 export function modifyAppBuildGradle(buildGradle: string): string {
-  if (buildGradle.includes('sentry.gradle')) {
+  if (buildGradle.includes('sentry.gradle.kts')) {
     return buildGradle;
+  }
+
+  // Migrate old sentry.gradle references to sentry.gradle.kts
+  // Use a regex to avoid matching package names like io.sentry.android.gradle
+  if (/(?<=[/"'])sentry\.gradle(?!\.kts)/.test(buildGradle)) {
+    return buildGradle.replace(/(?<=[/"'])sentry\.gradle(?!\.kts)/g, 'sentry.gradle.kts');
   }
 
   // Use the same location that sentry-wizard uses
@@ -55,7 +61,7 @@ export function modifyAppBuildGradle(buildGradle: string): string {
     return buildGradle;
   }
 
-  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle")`;
+  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle.kts")`;
 
   return buildGradle.replace(pattern, match => `${applyFrom}\n\n${match}`);
 }
