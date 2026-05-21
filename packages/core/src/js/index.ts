@@ -111,6 +111,7 @@ export {
   resumeAppHangTracking,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
+export { NavigationContainer } from './NavigationContainer';
 export { GlobalErrorBoundary, withGlobalErrorBoundary } from './GlobalErrorBoundary';
 export type { GlobalErrorBoundaryProps } from './GlobalErrorBoundary';
 
