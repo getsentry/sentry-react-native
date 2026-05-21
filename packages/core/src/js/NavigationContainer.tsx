@@ -15,6 +15,9 @@ let _warnedNoIntegration = false;
  * Sentry registers the navigation container before the user-provided `onReady`
  * callback fires, so navigation spans are captured from the first route.
  *
+ * If `@react-navigation/native` is not installed, children are rendered directly
+ * and `onReady` is not called.
+ *
  * @example
  * ```jsx
  * <Sentry.NavigationContainer>
@@ -67,12 +70,6 @@ export const NavigationContainer = React.forwardRef<unknown, Record<string, unkn
       (userOnReady as () => void)();
     }
   }, [userOnReady]);
-
-  React.useEffect(() => {
-    if (!RealNavigationContainer && typeof userOnReady === 'function') {
-      (userOnReady as () => void)();
-    }
-  }, [RealNavigationContainer, userOnReady]);
 
   if (!RealNavigationContainer) {
     if (!_warnedMissing) {
