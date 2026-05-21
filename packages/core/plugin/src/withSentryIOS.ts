@@ -14,11 +14,13 @@ const SENTRY_REACT_NATIVE_XCODE_PATH =
   "`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'\"`";
 const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH =
   "`${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
+const SENTRY_DISABLE_AUTO_UPLOAD_EXPORT = 'export SENTRY_DISABLE_AUTO_UPLOAD=true';
 
-export const withSentryIOS: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
-  config,
-  { sentryProperties, useNativeInit = false },
-) => {
+export const withSentryIOS: ConfigPlugin<{
+  sentryProperties: string;
+  useNativeInit: boolean | undefined;
+  disableAutoUpload: boolean | undefined;
+}> = (config, { sentryProperties, useNativeInit = false, disableAutoUpload = false }) => {
   const xcodeProjectCfg = withXcodeProject(config, config => {
     const xcodeProject: XcodeProject = config.modResults;
 
@@ -27,17 +29,22 @@ export const withSentryIOS: ConfigPlugin<{ sentryProperties: string; useNativeIn
       'PBXShellScriptBuildPhase',
     );
     if (!sentryBuildPhase) {
+      const debugFilesScript = disableAutoUpload
+        ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`
+        : `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`;
       xcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
         shellPath: '/bin/sh',
-        shellScript: `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`,
+        shellScript: debugFilesScript,
       });
+    } else if (disableAutoUpload) {
+      addDisableAutoUploadToExistingScript(sentryBuildPhase);
     }
 
     const bundleReactNativePhase = xcodeProject.pbxItemByComment(
       'Bundle React Native code and images',
       'PBXShellScriptBuildPhase',
     );
-    modifyExistingXcodeBuildScript(bundleReactNativePhase);
+    modifyExistingXcodeBuildScript(bundleReactNativePhase, disableAutoUpload);
 
     return config;
   });
@@ -53,7 +60,7 @@ export const withSentryIOS: ConfigPlugin<{ sentryProperties: string; useNativeIn
   ]);
 };
 
-export function modifyExistingXcodeBuildScript(script: BuildPhase): void {
+export function modifyExistingXcodeBuildScript(script: BuildPhase, disableAutoUpload: boolean = false): void {
   if (!script.shellScript.match(/(packager|scripts)\/react-native-xcode\.sh\b/)) {
     warnOnce(
       `'react-native-xcode.sh' not found in 'Bundle React Native code and images'.
@@ -63,6 +70,9 @@ Please open a bug report at https://github.com/getsentry/sentry-react-native`,
   }
 
   if (script.shellScript.includes('sentry-xcode.sh')) {
+    if (disableAutoUpload) {
+      addDisableAutoUploadToExistingScript(script);
+    }
     warnOnce("The latest 'sentry-xcode.sh' script already exists in 'Bundle React Native code and images'.");
     return;
   }
@@ -77,14 +87,30 @@ Run npx expo prebuild --clean`,
   }
 
   const code = JSON.parse(script.shellScript);
-  script.shellScript = JSON.stringify(addSentryWithBundledScriptsToBundleShellScript(code));
+  script.shellScript = JSON.stringify(addSentryWithBundledScriptsToBundleShellScript(code, disableAutoUpload));
 }
 
-export function addSentryWithBundledScriptsToBundleShellScript(script: string): string {
+export function addSentryWithBundledScriptsToBundleShellScript(
+  script: string,
+  disableAutoUpload: boolean = false,
+): string {
+  const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
   return script.replace(
     /^.*?(packager|scripts)\/react-native-xcode\.sh\s*(\\'\\\\")?/m,
-    (match: string) => `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} ${match}`,
+    (match: string) => `${disableAutoUploadExport}/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} ${match}`,
   );
+}
+
+export function addDisableAutoUploadToExistingScript(script: BuildPhase): void {
+  if (script.shellScript.includes('SENTRY_DISABLE_AUTO_UPLOAD')) {
+    return;
+  }
+  try {
+    const code = JSON.parse(script.shellScript);
+    script.shellScript = JSON.stringify(`${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${code}`);
+  } catch {
+    script.shellScript = `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n${script.shellScript}`;
+  }
 }
 
 export function modifyAppDelegate(config: ExpoConfig): ExpoConfig {

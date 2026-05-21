@@ -51,4 +51,32 @@ describe('Configures Android native project correctly', () => {
     modifyAppBuildGradle(buildGradleWithOutReactGradleScript);
     expect(warnOnce).toHaveBeenCalled();
   });
+
+  it('Adds shouldSentryAutoUploadGeneral override when disableAutoUpload is true', () => {
+    const result = modifyAppBuildGradle(buildGradleWithOutSentry, true);
+    expect(result).toContain('project.ext.shouldSentryAutoUploadGeneral = { -> return false }');
+    expect(result).toContain('sentry.gradle');
+  });
+
+  it('Does not add shouldSentryAutoUploadGeneral override when disableAutoUpload is false', () => {
+    const result = modifyAppBuildGradle(buildGradleWithOutSentry, false);
+    expect(result).not.toContain('shouldSentryAutoUploadGeneral');
+  });
+
+  it('Adds override to already-configured build.gradle on re-prebuild', () => {
+    const result = modifyAppBuildGradle(buildGradleWithSentry, true);
+    expect(result).toContain('project.ext.shouldSentryAutoUploadGeneral = { -> return false }');
+  });
+
+  it('Does not duplicate override if already present', () => {
+    const gradleWithOverride = `
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+project.ext.shouldSentryAutoUploadGeneral = { -> return false }
+
+android {
+}
+`;
+    const result = modifyAppBuildGradle(gradleWithOverride, true);
+    expect(result).toBe(gradleWithOverride);
+  });
 });

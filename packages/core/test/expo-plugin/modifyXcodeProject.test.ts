@@ -1,5 +1,9 @@
 import { warnOnce } from '../../plugin/src/logger';
-import { modifyExistingXcodeBuildScript } from '../../plugin/src/withSentryIOS';
+import {
+  addDisableAutoUploadToExistingScript,
+  addSentryWithBundledScriptsToBundleShellScript,
+  modifyExistingXcodeBuildScript,
+} from '../../plugin/src/withSentryIOS';
 
 jest.mock('../../plugin/src/logger');
 
@@ -74,6 +78,125 @@ describe('Configures iOS native project correctly', () => {
   it("Warns to file a bug report if build script isn't what we expect to find", () => {
     modifyExistingXcodeBuildScript(buildScriptWeDontExpect);
     expect(warnOnce).toHaveBeenCalled();
+  });
+});
+
+describe('disableAutoUpload option for Bundle React Native code phase', () => {
+  let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]], any>;
+
+  beforeEach(() => {
+    consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleWarnMock.mockRestore();
+  });
+
+  it('Prepends export on its own line when disableAutoUpload is true', () => {
+    const script = Object.assign({}, buildScriptWithoutSentry);
+    modifyExistingXcodeBuildScript(script, true);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/m);
+    expect(parsed).toContain('sentry-xcode.sh');
+  });
+
+  it('Does not prepend export when disableAutoUpload is false', () => {
+    const script = Object.assign({}, buildScriptWithoutSentry);
+    modifyExistingXcodeBuildScript(script, false);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).not.toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+  });
+
+  it('Injects export into already-configured bundle script on re-prebuild', () => {
+    const script = Object.assign({}, buildScriptWithSentry);
+    modifyExistingXcodeBuildScript(script, true);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(parsed).toContain('sentry-xcode.sh');
+  });
+
+  it('Does not duplicate export if already present in bundle script', () => {
+    const scriptWithExport = {
+      shellScript: JSON.stringify(`export SENTRY_DISABLE_AUTO_UPLOAD=true
+"
+export NODE_BINARY=node
+/bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` ../node_modules/react-native/scripts/react-native-xcode.sh
+"`),
+    };
+    const before = scriptWithExport.shellScript;
+    modifyExistingXcodeBuildScript(scriptWithExport, true);
+    expect(scriptWithExport.shellScript).toBe(before);
+  });
+
+  it('Does not modify already-configured script when disableAutoUpload is false', () => {
+    const script = Object.assign({}, buildScriptWithSentry);
+    const before = script.shellScript;
+    modifyExistingXcodeBuildScript(script, false);
+    expect(script.shellScript).toBe(before);
+  });
+
+  it('addSentryWithBundledScriptsToBundleShellScript uses real newline, not literal backslash-n', () => {
+    const input = `"
+export NODE_BINARY=node
+../node_modules/react-native/scripts/react-native-xcode.sh
+"`;
+    const result = addSentryWithBundledScriptsToBundleShellScript(input, true);
+    expect(result).toContain('export SENTRY_DISABLE_AUTO_UPLOAD=true\n/bin/sh');
+    expect(result).not.toContain('true\\n');
+  });
+
+  it('Produces a valid shell script after JSON round-trip', () => {
+    const script = Object.assign({}, buildScriptWithoutSentry);
+    modifyExistingXcodeBuildScript(script, true);
+    const parsed = JSON.parse(script.shellScript);
+    const lines = parsed.split('\n');
+    expect(lines).toContainEqual('export SENTRY_DISABLE_AUTO_UPLOAD=true');
+  });
+});
+
+describe('addDisableAutoUploadToExistingScript', () => {
+  const debugFilesShellScript =
+    "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
+
+  it('injects export into JSON-encoded shellScript', () => {
+    const script = { shellScript: JSON.stringify(debugFilesShellScript) };
+    addDisableAutoUploadToExistingScript(script);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(parsed).toContain('sentry-xcode-debug-files.sh');
+  });
+
+  it('injects export into non-JSON-encoded shellScript via fallback', () => {
+    const script = { shellScript: debugFilesShellScript };
+    addDisableAutoUploadToExistingScript(script);
+    expect(script.shellScript).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(script.shellScript).toContain('sentry-xcode-debug-files.sh');
+  });
+
+  it('does not duplicate export if already present in JSON-encoded script', () => {
+    const script = {
+      shellScript: JSON.stringify(`export SENTRY_DISABLE_AUTO_UPLOAD=true\n${debugFilesShellScript}`),
+    };
+    const before = script.shellScript;
+    addDisableAutoUploadToExistingScript(script);
+    expect(script.shellScript).toBe(before);
+  });
+
+  it('does not duplicate export if already present in raw script', () => {
+    const script = {
+      shellScript: `export SENTRY_DISABLE_AUTO_UPLOAD=true\n${debugFilesShellScript}`,
+    };
+    const before = script.shellScript;
+    addDisableAutoUploadToExistingScript(script);
+    expect(script.shellScript).toBe(before);
+  });
+
+  it('works on the bundle phase script format (JSON-encoded with inner quotes)', () => {
+    const script = Object.assign({}, buildScriptWithSentry);
+    addDisableAutoUploadToExistingScript(script);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(parsed).toContain('sentry-xcode.sh');
   });
 });
 

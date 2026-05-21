@@ -7,13 +7,14 @@ import * as path from 'path';
 import { warnOnce } from './logger';
 import { writeSentryPropertiesTo } from './utils';
 
-export const withSentryAndroid: ConfigPlugin<{ sentryProperties: string; useNativeInit: boolean | undefined }> = (
-  config,
-  { sentryProperties, useNativeInit = false },
-) => {
+export const withSentryAndroid: ConfigPlugin<{
+  sentryProperties: string;
+  useNativeInit: boolean | undefined;
+  disableAutoUpload: boolean | undefined;
+}> = (config, { sentryProperties, useNativeInit = false, disableAutoUpload = false }) => {
   const appBuildGradleCfg = withAppBuildGradle(config, config => {
     if (config.modResults.language === 'groovy') {
-      config.modResults.contents = modifyAppBuildGradle(config.modResults.contents);
+      config.modResults.contents = modifyAppBuildGradle(config.modResults.contents, disableAutoUpload);
     } else {
       throw new Error('Cannot configure Sentry in the app gradle because the build.gradle is not groovy');
     }
@@ -39,8 +40,14 @@ const resolveSentryReactNativePackageJsonPath =
  * Writes to projectDirectory/android/app/build.gradle,
  * adding the relevant @sentry/react-native script.
  */
-export function modifyAppBuildGradle(buildGradle: string): string {
+export function modifyAppBuildGradle(buildGradle: string, disableAutoUpload: boolean = false): string {
   if (buildGradle.includes('sentry.gradle')) {
+    if (disableAutoUpload && !buildGradle.includes('shouldSentryAutoUploadGeneral')) {
+      return buildGradle.replace(
+        /^(apply from:.*sentry\.gradle.*)$/m,
+        `$1\nproject.ext.shouldSentryAutoUploadGeneral = { -> return false }`,
+      );
+    }
     return buildGradle;
   }
 
@@ -56,8 +63,11 @@ export function modifyAppBuildGradle(buildGradle: string): string {
   }
 
   const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle")`;
+  const disableUploadOverride = disableAutoUpload
+    ? `\nproject.ext.shouldSentryAutoUploadGeneral = { -> return false }`
+    : '';
 
-  return buildGradle.replace(pattern, match => `${applyFrom}\n\n${match}`);
+  return buildGradle.replace(pattern, match => `${applyFrom}${disableUploadOverride}\n\n${match}`);
 }
 
 export function modifyMainApplication(config: ExpoConfig): ExpoConfig {
