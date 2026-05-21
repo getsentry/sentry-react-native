@@ -46,24 +46,28 @@ export const NavigationContainer = React.forwardRef<unknown, Record<string, unkn
   );
 
   const onReady = React.useCallback(() => {
-    const client = getClient();
-    if (!client) {
-      if (!_warnedNoClient) {
-        _warnedNoClient = true;
-        debug.warn(
-          '[Sentry] NavigationContainer: Sentry is not initialized. Call Sentry.init() before mounting NavigationContainer.',
-        );
+    try {
+      const client = getClient();
+      if (!client) {
+        if (!_warnedNoClient) {
+          _warnedNoClient = true;
+          debug.warn(
+            '[Sentry] NavigationContainer: Sentry is not initialized. Call Sentry.init() before mounting NavigationContainer.',
+          );
+        }
+      } else {
+        const integration = getReactNavigationIntegration(client);
+        if (integration) {
+          integration.registerNavigationContainer(internalRef);
+        } else if (!_warnedNoIntegration) {
+          _warnedNoIntegration = true;
+          debug.log(
+            '[Sentry] NavigationContainer: reactNavigationIntegration is not registered. Navigation spans will not be captured.',
+          );
+        }
       }
-    } else {
-      const integration = getReactNavigationIntegration(client);
-      if (integration) {
-        integration.registerNavigationContainer(internalRef);
-      } else if (!_warnedNoIntegration) {
-        _warnedNoIntegration = true;
-        debug.log(
-          '[Sentry] NavigationContainer: reactNavigationIntegration is not registered. Navigation spans will not be captured.',
-        );
-      }
+    } catch {
+      // SDK failures must never break the host app
     }
 
     if (typeof userOnReady === 'function') {
