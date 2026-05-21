@@ -1,6 +1,6 @@
+import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
-import { render } from '@testing-library/react-native';
 
 import { NavigationContainer } from '../src/js/NavigationContainer';
 
@@ -11,7 +11,14 @@ const mockDebugWarn = jest.fn();
 
 jest.mock('@sentry/core', () => ({
   getClient: (...args: unknown[]) => mockGetClient(...args),
-  debug: { get log() { return mockDebugLog; }, get warn() { return mockDebugWarn; } },
+  debug: {
+    get log() {
+      return mockDebugLog;
+    },
+    get warn() {
+      return mockDebugWarn;
+    },
+  },
 }));
 
 jest.mock('../src/js/tracing/reactnavigation', () => ({
@@ -63,7 +70,9 @@ describe('NavigationContainer', () => {
       </NavigationContainer>,
     );
     expect(mockRegisterNavigationContainer).toHaveBeenCalledTimes(1);
-    expect(mockRegisterNavigationContainer).toHaveBeenCalledWith(expect.objectContaining({ current: expect.anything() }));
+    expect(mockRegisterNavigationContainer).toHaveBeenCalledWith(
+      expect.objectContaining({ current: expect.anything() }),
+    );
   });
 
   it('forwards ref to the underlying NavigationContainer', () => {

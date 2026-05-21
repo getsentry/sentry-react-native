@@ -1,8 +1,4 @@
 import React from 'react';
-import {
-  NavigationContainer,
-  NavigationContainerRef,
-} from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Animated, {
@@ -172,14 +168,8 @@ const TabTwoStack = Sentry.withProfiler(
 );
 
 function BottomTabs() {
-  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
-
   return (
-    <NavigationContainer
-      ref={navigation}
-      onReady={() => {
-        reactNavigationIntegration.registerNavigationContainer(navigation);
-      }}>
+    <Sentry.NavigationContainer>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
@@ -232,7 +222,7 @@ function BottomTabs() {
         />
       </Tab.Navigator>
       <RunningIndicator />
-    </NavigationContainer>
+    </Sentry.NavigationContainer>
   );
 }
 

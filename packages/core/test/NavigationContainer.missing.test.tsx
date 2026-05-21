@@ -1,6 +1,6 @@
+import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
-import { render } from '@testing-library/react-native';
 
 import { NavigationContainer } from '../src/js/NavigationContainer';
 
@@ -8,7 +8,14 @@ const mockDebugWarn = jest.fn();
 
 jest.mock('@sentry/core', () => ({
   getClient: () => undefined,
-  debug: { get log() { return jest.fn(); }, get warn() { return mockDebugWarn; } },
+  debug: {
+    get log() {
+      return jest.fn();
+    },
+    get warn() {
+      return mockDebugWarn;
+    },
+  },
 }));
 
 jest.mock('../src/js/tracing/reactnavigation', () => ({

@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add `Sentry.NavigationContainer` drop-in wrapper for React Navigation ([#6199](https://github.com/getsentry/sentry-react-native/pull/6199))
+
 ## 8.12.0
 
 ### Features
