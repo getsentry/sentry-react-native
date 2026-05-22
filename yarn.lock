@@ -10894,7 +10894,6 @@ __metadata:
     "@sentry/core": 10.53.1
     "@sentry/expo-upload-sourcemaps": "workspace:*"
     "@sentry/react": 10.53.1
-    "@sentry/types": 10.53.1
     "@sentry/wizard": 6.12.0
     "@testing-library/react-native": ^13.2.2
     "@types/jest": ^29.5.13
@@ -10949,15 +10948,6 @@ __metadata:
   peerDependencies:
     react: ^16.14.0 || 17.x || 18.x || 19.x
   checksum: 1ed54d1fb6307b79e9e97adc529aa0049c2b402cc0e6e4da7bf4c194a71b61ee4bc5c294bb9fcfb2d3bb6df8005a66b96593f11b79779db2fa7cf2fbc57117ff
-  languageName: node
-  linkType: hard
-
-"@sentry/types@npm:10.53.1":
-  version: 10.53.1
-  resolution: "@sentry/types@npm:10.53.1"
-  dependencies:
-    "@sentry/core": 10.53.1
-  checksum: 152275487a3557098dd3d40229a88da7ea4dd4bf41c6cc25762f4092ab20428509ab64e0f279b8a94ce69620cce2e962af218c3ca8554dab06d9fa9f3b6c64a1
   languageName: node
   linkType: hard
 
