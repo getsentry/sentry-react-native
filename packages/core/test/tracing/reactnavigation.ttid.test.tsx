@@ -433,6 +433,43 @@ describe('React Navigation - TTID', () => {
       );
     });
 
+    test('should mark ttid as deadline_exceeded and not extend transaction when ttid exceeds 30s', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      const activeSpanId = spanToJSON(getActiveSpan()).span_id;
+      const transactionStartTimestamp = spanToJSON(getActiveSpan()).start_timestamp;
+
+      // Simulate a stale TTID 60 seconds after the transaction start
+      mockRecordedTimeToDisplay({
+        ttidNavigation: {
+          [activeSpanId]: transactionStartTimestamp + 60,
+        },
+      });
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      expect(transaction).toEqual(
+        expect.objectContaining<TransactionEvent>({
+          type: 'transaction',
+          spans: expect.arrayContaining([
+            expect.objectContaining<Partial<SpanJSON>>({
+              op: 'ui.load.initial_display',
+              status: 'deadline_exceeded',
+            }),
+          ]),
+        }),
+      );
+      expect(transaction.measurements).toBeOneOf([
+        undefined,
+        expect.not.objectContaining<Required<TransactionEvent>['measurements']>({
+          time_to_initial_display: expect.any(Object),
+        }),
+      ]);
+      // Transaction timestamp should NOT be extended to the stale TTID
+      expect(transaction.timestamp - transaction.start_timestamp).toBeLessThan(30);
+    });
+
     test('should not sample empty back navigation transactions with navigation processing', () => {
       jest.runOnlyPendingTimers(); // Flush app start transaction
 
