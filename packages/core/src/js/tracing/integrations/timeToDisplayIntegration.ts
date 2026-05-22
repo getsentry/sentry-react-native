@@ -90,8 +90,8 @@ export const timeToDisplayIntegration = (): Integration => {
       }
 
       const newTransactionEndTimestampSeconds = Math.max(
-        (!ttidDeadlineExceeded && ttidSpan?.timestamp) ? ttidSpan.timestamp : -1,
-        (!ttfdDeadlineExceeded && ttfdSpan?.timestamp) ? ttfdSpan.timestamp : -1,
+        !ttidDeadlineExceeded && ttidSpan?.timestamp ? ttidSpan.timestamp : -1,
+        !ttfdDeadlineExceeded && ttfdSpan?.timestamp ? ttfdSpan.timestamp : -1,
         event.timestamp ?? -1,
       );
       if (newTransactionEndTimestampSeconds !== -1) {
@@ -242,15 +242,17 @@ async function addTimeToFullDisplay({
 
   const durationMs = (ttfdAdjustedEndTimestampSeconds - transactionStartTimestampSeconds) * 1000;
 
+  const ttfdStatus = isDeadlineExceeded(durationMs) ? 'deadline_exceeded' : 'ok';
+
   if (ttfdSpan?.status && ttfdSpan.status !== 'ok') {
-    ttfdSpan.status = 'ok';
+    ttfdSpan.status = ttfdStatus;
     ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
     debug.log(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);
     return ttfdSpan;
   }
 
   ttfdSpan = createSpanJSON({
-    status: isDeadlineExceeded(durationMs) ? 'deadline_exceeded' : 'ok',
+    status: ttfdStatus,
     op: UI_LOAD_FULL_DISPLAY,
     description: 'Time To Full Display',
     start_timestamp: transactionStartTimestampSeconds,
