@@ -12,6 +12,12 @@
 
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.13.0 to v9.14.0 ([#6204](https://github.com/getsentry/sentry-react-native/pull/6204))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9140)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.13.0...9.14.0)
+
 ## 8.12.0
 
 ### Features
