@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
+
 ### Features
 
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
