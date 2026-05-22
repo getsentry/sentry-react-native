@@ -213,7 +213,7 @@ export const reactNavigationIntegration = ({
    */
   registerNavigationContainer: (navigationContainerRef: unknown) => void;
   /**
-   * Internal API: allow another integration (for example, Expo Router integration) to
+   * @internal API: allow another integration (for example, Expo Router integration) to
    * supply the canonical route info on every state change. Use `undefined` to clear.
    */
   _setRouteOverrideProvider: (provider: RouteOverrideProvider | undefined) => void;
