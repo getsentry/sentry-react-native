@@ -27,7 +27,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@sentry/cli": "3.4.2"
+    "@sentry/cli": "3.4.3"
   },
   "peerDependencies": {
     "@expo/env": "*",
