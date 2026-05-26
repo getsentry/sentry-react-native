@@ -347,12 +347,30 @@ export const reactNavigationIntegration = ({
   // oxlint-disable-next-line eslint(complexity)
   const startIdleNavigationSpan = (unknownEvent?: unknown, isAppRestart = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
+    const actionType = event?.data?.action?.type;
+    const targetRouteName = getRouteNameFromAction(event);
+
     if (useDispatchedActionData && event?.data.noop) {
       debug.log(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
       return;
     }
 
-    const navigationActionType = useDispatchedActionData ? event?.data.action.type : undefined;
+    if (event && !isAppRestart) {
+      addBreadcrumb({
+        category: 'navigation.dispatch',
+        type: 'navigation',
+        message: targetRouteName
+          ? `Dispatched ${actionType ?? 'NAVIGATE'} to ${targetRouteName}`
+          : `Dispatched ${actionType ?? 'NAVIGATE'}`,
+        data: {
+          ...(actionType ? { action_type: actionType } : undefined),
+          ...(targetRouteName ? { to: targetRouteName } : undefined),
+        },
+        level: 'info',
+      });
+    }
+
+    const navigationActionType = useDispatchedActionData ? actionType : undefined;
 
     // Handle PRELOAD actions separately if prefetch tracking is enabled
     if (enablePrefetchTracking && navigationActionType === 'PRELOAD') {
@@ -407,7 +425,7 @@ export const reactNavigationIntegration = ({
     }
 
     // Extract route name from dispatch action payload when available
-    const dispatchedRouteName = useDispatchedActionData ? getRouteNameFromAction(event) : undefined;
+    const dispatchedRouteName = useDispatchedActionData ? targetRouteName : undefined;
     if (useDispatchedActionData && event && !dispatchedRouteName && !isAppRestart) {
       debug.log(`${INTEGRATION_NAME} Navigation action has no route name in payload, not starting navigation span.`);
       return;
