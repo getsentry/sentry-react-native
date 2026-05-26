@@ -8,9 +8,24 @@
 
 ## Unreleased
 
+### Fixes
+
+- Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
+
 ### Features
 
+- Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
+- Better route and dynamic param extraction for Expo Router ([#6197](https://github.com/getsentry/sentry-react-native/pull/6197))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.13.0 to v9.14.0 ([#6204](https://github.com/getsentry/sentry-react-native/pull/6204))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9140)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.13.0...9.14.0)
+- Bump CLI from v3.4.2 to v3.4.3 ([#6205](https://github.com/getsentry/sentry-react-native/pull/6205))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#343)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.2...3.4.3)
 
 ## 8.12.0
 
