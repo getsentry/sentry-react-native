@@ -67,7 +67,7 @@ Pod::Spec.new do |s|
     end
     SPM.dependency(s,
       url: 'https://github.com/getsentry/sentry-cocoa',
-      requirement: { kind: 'exactVersion', version: '9.13.0' },
+      requirement: { kind: 'exactVersion', version: '9.14.0' },
       products: ['Sentry']
     )
   else
