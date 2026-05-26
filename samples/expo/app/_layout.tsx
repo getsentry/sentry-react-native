@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import * as ImagePicker from 'expo-image-picker';
 import { SplashScreen, Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { LogBox } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
@@ -107,16 +107,9 @@ Sentry.init({
 });
 
 function RootLayout() {
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
-    setReady(true);
     SplashScreen.hideAsync();
   }, []);
-
-  if (!ready) {
-    return null;
-  }
 
   return <RootLayoutNav />;
 }
