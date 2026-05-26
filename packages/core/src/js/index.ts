@@ -112,6 +112,7 @@ export {
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 export { NavigationContainer } from './NavigationContainer';
+export type { SentryNavigationContainerProps } from './NavigationContainer';
 export { GlobalErrorBoundary, withGlobalErrorBoundary } from './GlobalErrorBoundary';
 export type { GlobalErrorBoundaryProps } from './GlobalErrorBoundary';
 

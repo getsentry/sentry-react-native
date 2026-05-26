@@ -73,7 +73,7 @@ static bool hasFetchedAppStart;
 
 + (BOOL)requiresMainQueueSetup
 {
-    return YES;
+    return NO;
 }
 
 - (instancetype)init

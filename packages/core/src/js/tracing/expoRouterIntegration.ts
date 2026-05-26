@@ -2,6 +2,8 @@ import type { Client, Integration } from '@sentry/core';
 
 import { debug } from '@sentry/core';
 
+import type { RouteOverride } from './reactnavigation';
+
 import { getReactNavigationIntegration, reactNavigationIntegration } from './reactnavigation';
 
 export const INTEGRATION_NAME = 'ExpoRouter';
@@ -13,8 +15,17 @@ interface ExpoRouterNavigationRef {
   current: unknown | null;
 }
 
+interface ExpoRouterUrlObject {
+  unstable_globalHref?: string;
+  pathname?: string;
+  pathnameWithParams?: string;
+  params?: Record<string, unknown>;
+  segments?: string[];
+}
+
 interface ExpoRouterStore {
   navigationRef?: ExpoRouterNavigationRef;
+  getRouteInfo?: () => ExpoRouterUrlObject;
 }
 
 type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationIntegration>[0];
@@ -56,6 +67,8 @@ export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}
     }
 
     const navigationRef = store.navigationRef;
+
+    reactNavigation._setRouteOverrideProvider?.(() => buildExpoRouterRouteOverride(store));
 
     if (navigationRef.current) {
       reactNavigation.registerNavigationContainer(navigationRef);
@@ -105,4 +118,39 @@ function tryGetExpoRouterStore(): ExpoRouterStore | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Builds a templated pathname from Expo Router's `segments`
+ *
+ * Examples:
+ *   ['(tabs)', 'profile', '[id]']  -> '/profile/[id]'
+ *   ['posts', '[...slug]']         -> '/posts/[...slug]'
+ *   []                              -> '/'
+ */
+export function buildExpoRouterTemplatedPath(segments: string[] | undefined): string {
+  if (!segments || segments.length === 0) {
+    return '/';
+  }
+  const filtered = segments.filter(s => !(s.startsWith('(') && s.endsWith(')')));
+  return filtered.length === 0 ? '/' : `/${filtered.join('/')}`;
+}
+
+function buildExpoRouterRouteOverride(store: ExpoRouterStore): RouteOverride | undefined {
+  let info: ExpoRouterUrlObject | undefined;
+  try {
+    info = store.getRouteInfo?.();
+  } catch {
+    return undefined;
+  }
+  if (!info) {
+    return undefined;
+  }
+
+  const templatedPath = buildExpoRouterTemplatedPath(info.segments);
+  return {
+    templatedPath,
+    concreteUrl: info.pathnameWithParams ?? info.pathname,
+    params: info.params,
+  };
 }

@@ -292,6 +292,77 @@ describe('TimeToDisplay', () => {
     );
   });
 
+  test('deadline exceeded full display does not extend transaction timestamp', async () => {
+    let transactionStartTimestamp: number;
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        transactionStartTimestamp = spanToJSON(activeSpan).start_timestamp;
+        startTimeToInitialDisplaySpan();
+        startTimeToFullDisplaySpan();
+
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
+          },
+          ttfd: {
+            [spanToJSON(activeSpan).span_id]: nowInSeconds() + 60,
+          },
+        });
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const event = client.event!;
+    expect(event.timestamp! - transactionStartTimestamp!).toBeLessThan(30);
+  });
+
+  test('deadline exceeded manual initial display does not extend transaction timestamp', async () => {
+    let transactionStartTimestamp: number;
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        transactionStartTimestamp = spanToJSON(activeSpan).start_timestamp;
+        startTimeToInitialDisplaySpan();
+
+        render(<TimeToInitialDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: nowInSeconds() + 60,
+          },
+        });
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const event = client.event!;
+    expectNoInitialDisplayMeasurementOnSpan(event);
+    expect(event.timestamp! - transactionStartTimestamp!).toBeLessThan(30);
+
+    const ttidSpan = event.spans!.find(s => s.op === 'ui.load.initial_display');
+    expect(ttidSpan?.status).toBe('deadline_exceeded');
+  });
+
   test('full display which ended before initial display is extended to initial display end', async () => {
     const fullDisplayEndTimestampMs = secondInFutureTimestampMs();
     const initialDisplayEndTimestampMs = secondInFutureTimestampMs() + 500;
