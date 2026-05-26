@@ -492,7 +492,29 @@ export interface NativeLogEntry {
 export const nativeReleaseIntegration: () => Integration;
 
 // @public
-export const NavigationContainer: React_2.ForwardRefExoticComponent<Omit<Record<string, unknown>, "ref"> & React_2.RefAttributes<unknown>>;
+export const NavigationContainer: React_2.ForwardRefExoticComponent<Omit<SentryNavigationContainerProps, "ref"> & React_2.RefAttributes<unknown>>;
+
+// @public
+export interface NavigationTheme {
+    // (undocumented)
+    colors: {
+        primary: string;
+        background: string;
+        card: string;
+        text: string;
+        border: string;
+        notification: string;
+    };
+    // (undocumented)
+    dark: boolean;
+    // (undocumented)
+    fonts: {
+        regular: FontStyle;
+        medium: FontStyle;
+        bold: FontStyle;
+        heavy: FontStyle;
+    };
+}
 
 export { OpenAiClient }
 
@@ -588,6 +610,70 @@ export { SdkInfo }
 export const sdkInfoIntegration: () => Integration;
 
 export { SendFeedbackParams }
+
+// @public
+export interface SentryNavigationContainerProps {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    children: React_2.ReactNode;
+    // (undocumented)
+    direction?: 'ltr' | 'rtl';
+    // (undocumented)
+    documentTitle?: {
+        enabled?: boolean;
+        formatter?: (options: Record<string, unknown> | undefined, route: {
+            key: string;
+            name: string;
+            params?: object;
+        } | undefined) => string;
+    };
+    // (undocumented)
+    fallback?: React_2.ReactNode;
+    // (undocumented)
+    initialState?: {
+        index?: number;
+        key?: string;
+        routeNames?: string[];
+        routes: Array<{
+            key?: string;
+            name: string;
+            params?: object;
+            state?: object;
+        }>;
+        stale?: true;
+        type?: string;
+    };
+    // (undocumented)
+    linking?: {
+        enabled?: boolean;
+        prefixes: string[];
+        filter?: (url: string) => boolean;
+        config?: {
+            path?: string;
+            screens: Record<string, unknown>;
+            initialRouteName?: string;
+        };
+        getInitialURL?: () => string | null | undefined | Promise<string | null | undefined>;
+        subscribe?: (listener: (url: string) => void) => undefined | void | (() => void);
+        getStateFromPath?: (path: string, options?: object) => object | undefined;
+        getPathFromState?: (state: object, options?: object) => string;
+        getActionFromState?: (state: object, options?: object) => object | undefined;
+    };
+    // (undocumented)
+    onReady?: () => void;
+    // (undocumented)
+    onStateChange?: (state: Readonly<Record<string, unknown>> | undefined) => void;
+    // (undocumented)
+    onUnhandledAction?: (action: Readonly<{
+        type: string;
+        payload?: object;
+        source?: string;
+        target?: string;
+    }>) => void;
+    // (undocumented)
+    theme?: NavigationTheme;
+}
 
 // @public
 export function sentryTraceGesture<GestureT>(
@@ -761,6 +847,7 @@ export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
 
 // Warnings were encountered during analysis:
 //
+// src/js/NavigationContainer.tsx:26:5 - (ae-forgotten-export) The symbol "FontStyle" needs to be exported by the entry point index.d.ts
 // src/js/feedback/integration.ts:21:5 - (ae-forgotten-export) The symbol "ScreenshotButtonProps" needs to be exported by the entry point index.d.ts
 // src/js/feedback/integration.ts:23:5 - (ae-forgotten-export) The symbol "FeedbackFormTheme" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnativetracing.ts:94:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts

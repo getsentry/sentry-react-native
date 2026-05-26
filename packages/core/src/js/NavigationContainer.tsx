@@ -12,7 +12,7 @@ type FontStyle = {
 /**
  * Mirrors the `Theme` type from `@react-navigation/native`.
  */
-interface NavigationTheme {
+export interface NavigationTheme {
   dark: boolean;
   colors: {
     primary: string;
@@ -75,7 +75,10 @@ export interface SentryNavigationContainerProps {
   fallback?: React.ReactNode;
   documentTitle?: {
     enabled?: boolean;
-    formatter?: (options: Record<string, unknown> | undefined, route: { key: string; name: string; params?: object } | undefined) => string;
+    formatter?: (
+      options: Record<string, unknown> | undefined,
+      route: { key: string; name: string; params?: object } | undefined,
+    ) => string;
   };
   [key: string]: unknown;
 }
