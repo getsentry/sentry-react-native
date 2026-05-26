@@ -1750,8 +1750,25 @@ describe('ReactNavigationInstrumentation', () => {
       );
     });
 
-    it('does not create dispatch breadcrumb for noop actions', async () => {
+    it('does not create dispatch breadcrumb for noop actions when useDispatchedActionData is enabled', async () => {
       setupTestClient({ useDispatchedActionData: true });
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'NAVIGATE' },
+          noop: true,
+          stack: undefined,
+        },
+      });
+      await jest.advanceTimersByTimeAsync(500);
+
+      const dispatchCall = addBreadcrumbSpy.mock.calls.find(
+        (call: unknown[]) => (call[0] as { category?: string }).category === 'navigation.dispatch',
+      );
+      expect(dispatchCall).toBeUndefined();
+    });
+
+    it('does not create dispatch breadcrumb for noop actions when useDispatchedActionData is disabled', async () => {
+      setupTestClient();
       mockNavigation.emitWithoutStateChange({
         data: {
           action: { type: 'NAVIGATE' },

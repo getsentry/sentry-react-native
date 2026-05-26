@@ -350,12 +350,7 @@ export const reactNavigationIntegration = ({
     const actionType = event?.data?.action?.type;
     const targetRouteName = getRouteNameFromAction(event);
 
-    if (useDispatchedActionData && event?.data.noop) {
-      debug.log(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
-      return;
-    }
-
-    if (event && !isAppRestart) {
+    if (event && !isAppRestart && !event.data?.noop) {
       addBreadcrumb({
         category: 'navigation.dispatch',
         type: 'navigation',
@@ -368,6 +363,11 @@ export const reactNavigationIntegration = ({
         },
         level: 'info',
       });
+    }
+
+    if (useDispatchedActionData && event?.data.noop) {
+      debug.log(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
+      return;
     }
 
     const navigationActionType = useDispatchedActionData ? actionType : undefined;
