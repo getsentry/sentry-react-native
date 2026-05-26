@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
+
 ### Features
 
 - Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))

@@ -57,30 +57,41 @@ export const timeToDisplayIntegration = (): Integration => {
       });
       const ttfdSpan = await addTimeToFullDisplay({ event, rootSpanId, transactionStartTimestampSeconds, ttidSpan });
 
-      if (ttidSpan?.start_timestamp && ttidSpan?.timestamp) {
+      const ttidDurationMs =
+        ttidSpan?.start_timestamp && ttidSpan?.timestamp
+          ? (ttidSpan.timestamp - ttidSpan.start_timestamp) * 1000
+          : undefined;
+      const ttidDeadlineExceeded = ttidDurationMs !== undefined && isDeadlineExceeded(ttidDurationMs);
+
+      if (ttidDurationMs !== undefined && !ttidDeadlineExceeded) {
         event.measurements['time_to_initial_display'] = {
-          value: (ttidSpan.timestamp - ttidSpan.start_timestamp) * 1000,
+          value: ttidDurationMs,
           unit: 'millisecond',
         };
       }
 
-      if (ttfdSpan?.start_timestamp && ttfdSpan?.timestamp) {
-        const durationMs = (ttfdSpan.timestamp - ttfdSpan.start_timestamp) * 1000;
-        if (isDeadlineExceeded(durationMs)) {
+      const ttfdDurationMs =
+        ttfdSpan?.start_timestamp && ttfdSpan?.timestamp
+          ? (ttfdSpan.timestamp - ttfdSpan.start_timestamp) * 1000
+          : undefined;
+      const ttfdDeadlineExceeded = ttfdDurationMs !== undefined && isDeadlineExceeded(ttfdDurationMs);
+
+      if (ttfdDurationMs !== undefined) {
+        if (ttfdDeadlineExceeded) {
           if (event.measurements['time_to_initial_display']) {
             event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
           }
         } else {
           event.measurements['time_to_full_display'] = {
-            value: durationMs,
+            value: ttfdDurationMs,
             unit: 'millisecond',
           };
         }
       }
 
       const newTransactionEndTimestampSeconds = Math.max(
-        ttidSpan?.timestamp ?? -1,
-        ttfdSpan?.timestamp ?? -1,
+        !ttidDeadlineExceeded && ttidSpan?.timestamp ? ttidSpan.timestamp : -1,
+        !ttfdDeadlineExceeded && ttfdSpan?.timestamp ? ttfdSpan.timestamp : -1,
         event.timestamp ?? -1,
       );
       if (newTransactionEndTimestampSeconds !== -1) {
@@ -126,14 +137,18 @@ async function addTimeToInitialDisplay({
     });
   }
 
+  const manualDurationMs = (ttidEndTimestampSeconds - transactionStartTimestampSeconds) * 1000;
+  const manualStatus = isDeadlineExceeded(manualDurationMs) ? 'deadline_exceeded' : 'ok';
+
   if (ttidSpan?.status && ttidSpan.status !== 'ok') {
-    ttidSpan.status = 'ok';
+    ttidSpan.status = manualStatus;
     ttidSpan.timestamp = ttidEndTimestampSeconds;
     debug.log(`[${INTEGRATION_NAME}] Updated existing ttid span.`, ttidSpan);
     return ttidSpan;
   }
 
   ttidSpan = createSpanJSON({
+    status: manualStatus,
     op: UI_LOAD_INITIAL_DISPLAY,
     description: 'Time To Initial Display',
     start_timestamp: transactionStartTimestampSeconds,
@@ -180,7 +195,9 @@ async function addAutomaticTimeToInitialDisplay({
   const viewNames = event.contexts?.app?.view_names;
   const screenName = Array.isArray(viewNames) ? viewNames[0] : viewNames;
 
+  const durationMs = (ttidTimestampSeconds - transactionStartTimestampSeconds) * 1000;
   const ttidSpan = createSpanJSON({
+    status: isDeadlineExceeded(durationMs) ? 'deadline_exceeded' : 'ok',
     op: UI_LOAD_INITIAL_DISPLAY,
     description: screenName ? `${screenName} initial display` : 'Time To Initial Display',
     start_timestamp: transactionStartTimestampSeconds,
@@ -225,15 +242,17 @@ async function addTimeToFullDisplay({
 
   const durationMs = (ttfdAdjustedEndTimestampSeconds - transactionStartTimestampSeconds) * 1000;
 
+  const ttfdStatus = isDeadlineExceeded(durationMs) ? 'deadline_exceeded' : 'ok';
+
   if (ttfdSpan?.status && ttfdSpan.status !== 'ok') {
-    ttfdSpan.status = 'ok';
+    ttfdSpan.status = ttfdStatus;
     ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
     debug.log(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);
     return ttfdSpan;
   }
 
   ttfdSpan = createSpanJSON({
-    status: isDeadlineExceeded(durationMs) ? 'deadline_exceeded' : 'ok',
+    status: ttfdStatus,
     op: UI_LOAD_FULL_DISPLAY,
     description: 'Time To Full Display',
     start_timestamp: transactionStartTimestampSeconds,
