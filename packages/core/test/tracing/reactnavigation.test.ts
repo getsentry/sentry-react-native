@@ -1,5 +1,6 @@
 import type { Event, Measurements, SentrySpan, StartSpanOptions } from '@sentry/core';
 
+import * as core from '@sentry/core';
 import {
   getActiveSpan,
   getCurrentScope,
@@ -1638,6 +1639,170 @@ describe('ReactNavigationInstrumentation', () => {
       const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
       expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('/posts/[...slug]');
       expect(traceData[SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]).toBe('/profile/[id]');
+    });
+  });
+
+  describe('dispatch breadcrumbs', () => {
+    let addBreadcrumbSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      addBreadcrumbSpy = jest.spyOn(core, 'addBreadcrumb');
+    });
+
+    afterEach(() => {
+      addBreadcrumbSpy.mockRestore();
+    });
+
+    it('includes action type and route name even when useDispatchedActionData is disabled', async () => {
+      setupTestClient();
+      mockNavigation.navigateToNewScreenWithPayload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'navigation.dispatch',
+          type: 'navigation',
+          message: 'Dispatched NAVIGATE to New Screen',
+          data: expect.objectContaining({
+            action_type: 'NAVIGATE',
+            to: 'New Screen',
+          }),
+        }),
+      );
+    });
+
+    it('includes action type and route name when useDispatchedActionData is enabled', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      mockNavigation.navigateToNewScreenWithPayload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'navigation.dispatch',
+          type: 'navigation',
+          message: 'Dispatched NAVIGATE to New Screen',
+          data: expect.objectContaining({
+            action_type: 'NAVIGATE',
+            to: 'New Screen',
+          }),
+        }),
+      );
+    });
+
+    it('creates dispatch breadcrumb without route name for GO_BACK', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      mockNavigation.emitGoBackWithStateChange();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'navigation.dispatch',
+          type: 'navigation',
+          message: 'Dispatched GO_BACK',
+          data: expect.objectContaining({
+            action_type: 'GO_BACK',
+          }),
+        }),
+      );
+    });
+
+    it('creates dispatch breadcrumb for filtered actions like SET_PARAMS', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'SET_PARAMS' },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'navigation.dispatch',
+          message: 'Dispatched SET_PARAMS',
+          data: expect.objectContaining({
+            action_type: 'SET_PARAMS',
+          }),
+        }),
+      );
+    });
+
+    it('creates dispatch breadcrumb for drawer actions', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'OPEN_DRAWER' },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'navigation.dispatch',
+          message: 'Dispatched OPEN_DRAWER',
+          data: expect.objectContaining({
+            action_type: 'OPEN_DRAWER',
+          }),
+        }),
+      );
+    });
+
+    it('does not create dispatch breadcrumb for noop actions', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'NAVIGATE' },
+          noop: true,
+          stack: undefined,
+        },
+      });
+      await jest.advanceTimersByTimeAsync(500);
+
+      const dispatchCall = addBreadcrumbSpy.mock.calls.find(
+        (call: unknown[]) => (call[0] as { category?: string }).category === 'navigation.dispatch',
+      );
+      expect(dispatchCall).toBeUndefined();
+    });
+
+    it('still creates navigation breadcrumb on completed navigation', async () => {
+      setupTestClient();
+      mockNavigation.navigateToNewScreen();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'navigation',
+          type: 'navigation',
+          message: 'Navigation to New Screen',
+        }),
+      );
+    });
+
+    it('does not create dispatch breadcrumb for app restart', async () => {
+      const rNavigation = reactNavigationIntegration({ routeChangeTimeoutMs: 200 });
+      const rnTracing = reactNativeTracingIntegration();
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [rNavigation, rnTracing],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+      mockNavigation = createMockNavigationAndAttachTo(rNavigation);
+
+      mockNavigation.finishAppStartNavigation();
+      await jest.advanceTimersByTimeAsync(500);
+
+      const dispatchCall = addBreadcrumbSpy.mock.calls.find(
+        (call: unknown[]) => (call[0] as { category?: string }).category === 'navigation.dispatch',
+      );
+      expect(dispatchCall).toBeUndefined();
     });
   });
 
