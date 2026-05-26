@@ -50,6 +50,8 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
+  sentry_cocoa_version = '9.14.0'
+
   # Opt-in to consuming sentry-cocoa via Swift Package Manager.
   # When `SENTRY_USE_SPM=1` is set, RNSentry pulls `Sentry` from the
   # sentry-cocoa SPM package as a binary xcframework instead of from
@@ -67,11 +69,11 @@ Pod::Spec.new do |s|
     end
     SPM.dependency(s,
       url: 'https://github.com/getsentry/sentry-cocoa',
-      requirement: { kind: 'exactVersion', version: '9.14.0' },
+      requirement: { kind: 'exactVersion', version: sentry_cocoa_version },
       products: ['Sentry']
     )
   else
-    s.dependency 'Sentry', '9.14.0'
+    s.dependency 'Sentry', sentry_cocoa_version
   end
 
   if defined? install_modules_dependencies
