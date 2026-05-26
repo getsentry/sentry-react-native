@@ -343,6 +343,12 @@ export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
 // @public
 export function flush(): Promise<boolean>;
 
+// @public (undocumented)
+export type FontStyle = {
+    fontFamily: string;
+    fontWeight: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+};
+
 export { functionToStringIntegration }
 
 export { getActiveSpan }
@@ -847,7 +853,6 @@ export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
 
 // Warnings were encountered during analysis:
 //
-// src/js/NavigationContainer.tsx:26:5 - (ae-forgotten-export) The symbol "FontStyle" needs to be exported by the entry point index.d.ts
 // src/js/feedback/integration.ts:21:5 - (ae-forgotten-export) The symbol "ScreenshotButtonProps" needs to be exported by the entry point index.d.ts
 // src/js/feedback/integration.ts:23:5 - (ae-forgotten-export) The symbol "FeedbackFormTheme" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnativetracing.ts:94:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts

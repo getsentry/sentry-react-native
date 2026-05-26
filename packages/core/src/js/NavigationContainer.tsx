@@ -4,7 +4,7 @@ import * as React from 'react';
 import { getNavigationContainerComponent } from './reactNavigationImport';
 import { getReactNavigationIntegration } from './tracing/reactnavigation';
 
-type FontStyle = {
+export type FontStyle = {
   fontFamily: string;
   fontWeight: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
 };
