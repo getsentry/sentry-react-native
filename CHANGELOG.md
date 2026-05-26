@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add breadcrumbs for dispatched React Navigation events ([#4904](https://github.com/getsentry/sentry-react-native/issues/4904))
+- Add breadcrumbs for dispatched React Navigation events ([#6218](https://github.com/getsentry/sentry-react-native/pull/6218))
 - Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 - Better route and dynamic param extraction for Expo Router ([#6197](https://github.com/getsentry/sentry-react-native/pull/6197))
