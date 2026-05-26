@@ -8,15 +8,16 @@
 
 ## Unreleased
 
-### Fixes
-
-- Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
-
 ### Features
 
 - Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 - Better route and dynamic param extraction for Expo Router ([#6197](https://github.com/getsentry/sentry-react-native/pull/6197))
+
+### Fixes
+
+- Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
+- Return `NO` from `requiresMainQueueSetup` to avoid unnecessary `dispatch_sync` on the main queue during bridge init ([#6202](https://github.com/getsentry/sentry-react-native/pull/6202))
 
 ### Dependencies
 
