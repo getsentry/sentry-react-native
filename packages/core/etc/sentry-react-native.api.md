@@ -343,6 +343,12 @@ export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
 // @public
 export function flush(): Promise<boolean>;
 
+// @public (undocumented)
+export type FontStyle = {
+    fontFamily: string;
+    fontWeight: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+};
+
 export { functionToStringIntegration }
 
 export { getActiveSpan }
@@ -491,6 +497,31 @@ export interface NativeLogEntry {
 // @public
 export const nativeReleaseIntegration: () => Integration;
 
+// @public
+export const NavigationContainer: React_2.ForwardRefExoticComponent<Omit<SentryNavigationContainerProps, "ref"> & React_2.RefAttributes<unknown>>;
+
+// @public
+export interface NavigationTheme {
+    // (undocumented)
+    colors: {
+        primary: string;
+        background: string;
+        card: string;
+        text: string;
+        border: string;
+        notification: string;
+    };
+    // (undocumented)
+    dark: boolean;
+    // (undocumented)
+    fonts: {
+        regular: FontStyle;
+        medium: FontStyle;
+        bold: FontStyle;
+        heavy: FontStyle;
+    };
+}
+
 export { OpenAiClient }
 
 export { OpenAiOptions }
@@ -585,6 +616,70 @@ export { SdkInfo }
 export const sdkInfoIntegration: () => Integration;
 
 export { SendFeedbackParams }
+
+// @public
+export interface SentryNavigationContainerProps {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    children: React_2.ReactNode;
+    // (undocumented)
+    direction?: 'ltr' | 'rtl';
+    // (undocumented)
+    documentTitle?: {
+        enabled?: boolean;
+        formatter?: (options: Record<string, unknown> | undefined, route: {
+            key: string;
+            name: string;
+            params?: object;
+        } | undefined) => string;
+    };
+    // (undocumented)
+    fallback?: React_2.ReactNode;
+    // (undocumented)
+    initialState?: {
+        index?: number;
+        key?: string;
+        routeNames?: string[];
+        routes: Array<{
+            key?: string;
+            name: string;
+            params?: object;
+            state?: object;
+        }>;
+        stale?: true;
+        type?: string;
+    };
+    // (undocumented)
+    linking?: {
+        enabled?: boolean;
+        prefixes: string[];
+        filter?: (url: string) => boolean;
+        config?: {
+            path?: string;
+            screens: Record<string, unknown>;
+            initialRouteName?: string;
+        };
+        getInitialURL?: () => string | null | undefined | Promise<string | null | undefined>;
+        subscribe?: (listener: (url: string) => void) => undefined | void | (() => void);
+        getStateFromPath?: (path: string, options?: object) => object | undefined;
+        getPathFromState?: (state: object, options?: object) => string;
+        getActionFromState?: (state: object, options?: object) => object | undefined;
+    };
+    // (undocumented)
+    onReady?: () => void;
+    // (undocumented)
+    onStateChange?: (state: Readonly<Record<string, unknown>> | undefined) => void;
+    // (undocumented)
+    onUnhandledAction?: (action: Readonly<{
+        type: string;
+        payload?: object;
+        source?: string;
+        target?: string;
+    }>) => void;
+    // (undocumented)
+    theme?: NavigationTheme;
+}
 
 // @public
 export function sentryTraceGesture<GestureT>(
