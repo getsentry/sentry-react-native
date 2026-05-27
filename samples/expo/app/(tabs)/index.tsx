@@ -16,7 +16,8 @@ export default function TabOneScreen() {
   const { currentlyRunning } = useUpdates();
   const rawRouter = useRouter();
   // Wrap the router to monitor prefetch performance
-  const router = Sentry.wrapExpoRouter(rawRouter);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const router = Sentry.wrapExpoRouter(rawRouter as any);
 
   return (
     <ScrollView>
@@ -32,7 +33,7 @@ export default function TabOneScreen() {
           <Button
             title="Open DevMenu"
             onPress={() => {
-              DevClient.openMenu();
+              DevClient.openMenu?.();
             }}
             disabled={isWeb()}
           />
