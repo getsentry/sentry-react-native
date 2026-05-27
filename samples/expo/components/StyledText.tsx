@@ -8,6 +8,6 @@ export function MonoText(props: TextProps) {
 
 const styles = StyleSheet.create({
   monoText: {
-    fontFamily: 'SpaceMono',
+    fontFamily: 'monospace',
   },
 });
