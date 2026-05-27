@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add `Sentry.NavigationContainer` drop-in wrapper for React Navigation ([#6199](https://github.com/getsentry/sentry-react-native/pull/6199))
 - Opt-in: consume sentry-cocoa via Swift Package Manager. Set `SENTRY_USE_SPM=1` before `pod install` to pull `Sentry` from sentry-cocoa's SPM package as a binary xcframework instead of the CocoaPods source build ([#6182](https://github.com/getsentry/sentry-react-native/pull/6182))
 - Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
