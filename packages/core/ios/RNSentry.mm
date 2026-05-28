@@ -73,7 +73,7 @@ static bool hasFetchedAppStart;
 
 + (BOOL)requiresMainQueueSetup
 {
-    return YES;
+    return NO;
 }
 
 - (instancetype)init
@@ -797,6 +797,10 @@ RCT_EXPORT_METHOD(enableNativeFramesTracking)
     // you can set the 'enableAutoPerformanceTracing: true' option and
     // the 'tracesSampleRate' or 'tracesSampler' option.
 }
+
+RCT_EXPORT_METHOD(pauseAppHangTracking) { [SentrySDKWrapper pauseAppHangTracking]; }
+
+RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracking]; }
 
 /**
  * Calls captureReplay on the native replay integration and returns

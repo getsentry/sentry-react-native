@@ -98,8 +98,21 @@ export { SDK_NAME, SDK_VERSION } from './version';
 export type { ReactNativeOptions, NativeLogEntry } from './options';
 export { ReactNativeClient } from './client';
 
-export { init, wrap, nativeCrash, flush, close, withScope, crashedLastRun, appLoaded } from './sdk';
+export {
+  init,
+  wrap,
+  nativeCrash,
+  flush,
+  close,
+  withScope,
+  crashedLastRun,
+  appLoaded,
+  pauseAppHangTracking,
+  resumeAppHangTracking,
+} from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
+export { NavigationContainer } from './NavigationContainer';
+export type { FontStyle, NavigationTheme, SentryNavigationContainerProps } from './NavigationContainer';
 export { GlobalErrorBoundary, withGlobalErrorBoundary } from './GlobalErrorBoundary';
 export type { GlobalErrorBoundaryProps } from './GlobalErrorBoundary';
 

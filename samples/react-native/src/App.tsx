@@ -2,11 +2,7 @@ import React from 'react';
 
 import { Ionicons } from '@react-native-vector-icons/ionicons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {
-  NavigationContainer,
-  NavigationContainerRef,
-  TypedNavigator,
-} from '@react-navigation/native';
+import { TypedNavigator } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Sentry from '@sentry/react-native';
@@ -234,14 +230,8 @@ function BottomTabsNavigator() {
 }
 
 function RootNavigationContainer() {
-  const navigation = React.useRef<NavigationContainerRef<{}>>(null);
-
   return (
-    <NavigationContainer
-      ref={navigation}
-      onReady={() => {
-        reactNavigationIntegration.registerNavigationContainer(navigation);
-      }}>
+    <Sentry.NavigationContainer>
       <StackNavigator.Navigator
         screenOptions={{
           headerShown: false,
@@ -261,7 +251,7 @@ function RootNavigationContainer() {
           options={{ headerShown: true }}
         />
       </StackNavigator.Navigator>
-    </NavigationContainer>
+    </Sentry.NavigationContainer>
   );
 }
 

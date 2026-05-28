@@ -13,6 +13,35 @@
 - Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
   - The old `sentry.gradle` is kept as a shim forwarding to the new `.kts` file for backward compatibility
 
+## 8.13.0
+
+### Features
+
+- Add breadcrumbs for dispatched React Navigation events ([#6218](https://github.com/getsentry/sentry-react-native/pull/6218))
+- Add `Sentry.NavigationContainer` drop-in wrapper for React Navigation ([#6199](https://github.com/getsentry/sentry-react-native/pull/6199))
+- Opt-in: consume sentry-cocoa via Swift Package Manager. Set `SENTRY_USE_SPM=1` before `pod install` to pull `Sentry` from sentry-cocoa's SPM package as a binary xcframework instead of the CocoaPods source build ([#6182](https://github.com/getsentry/sentry-react-native/pull/6182))
+- Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
+- Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
+- Better route and dynamic param extraction for Expo Router ([#6197](https://github.com/getsentry/sentry-react-native/pull/6197))
+
+### Fixes
+
+- Rethrow native exceptions from Sentry's Expo host handler so Android crashes terminate the process instead of leaving the app on a blank screen ([#6228](https://github.com/getsentry/sentry-react-native/pull/6228))
+- Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
+- Return `NO` from `requiresMainQueueSetup` to avoid unnecessary `dispatch_sync` on the main queue during bridge init ([#6202](https://github.com/getsentry/sentry-react-native/pull/6202))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.13.0 to v9.15.0 ([#6204](https://github.com/getsentry/sentry-react-native/pull/6204), [#6223](https://github.com/getsentry/sentry-react-native/pull/6223))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9150)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.13.0...9.15.0)
+- Bump CLI from v3.4.2 to v3.4.3 ([#6205](https://github.com/getsentry/sentry-react-native/pull/6205))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#343)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.2...3.4.3)
+- Bump Android SDK from v8.42.0 to v8.43.0 ([#6224](https://github.com/getsentry/sentry-react-native/pull/6224))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8430)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.42.0...8.43.0)
+
 ## 8.12.0
 
 ### Features

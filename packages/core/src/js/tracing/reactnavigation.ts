@@ -88,6 +88,25 @@ export function extractDynamicRouteParams(
 }
 
 /**
+ * Optional route override provided by another integration (e.g. Expo Router).
+ *
+ * When supplied, the route name and related attributes are derived from this
+ * override instead of React Navigation's `getCurrentRoute().name`, so we can
+ * report meaningful templated paths (e.g. `/profile/[id]`) instead of file
+ * names like `index` or `(tabs)`.
+ */
+export interface RouteOverride {
+  // templated pathname such as `/profile/[id]`. Used as the span name and `route.path` attribute
+  templatedPath: string;
+  // concrete URL with resolved values, e.g. `/profile/123?foo=bar`
+  concreteUrl?: string;
+  // merged route params (path + query)
+  params?: Record<string, unknown>;
+}
+
+export type RouteOverrideProvider = () => RouteOverride | undefined;
+
+/**
  * Builds a full path from the navigation state by traversing nested navigators.
  * For example, with nested navigators: "Home/Settings/Profile"
  */
@@ -193,9 +212,15 @@ export const reactNavigationIntegration = ({
    * @param navigationContainerRef Ref to a `NavigationContainer`
    */
   registerNavigationContainer: (navigationContainerRef: unknown) => void;
+  /**
+   * @internal API: allow another integration (for example, Expo Router integration) to
+   * supply the canonical route info on every state change. Use `undefined` to clear.
+   */
+  _setRouteOverrideProvider: (provider: RouteOverrideProvider | undefined) => void;
   options: ReactNavigationIntegrationOptions;
 } => {
   let navigationContainer: NavigationContainer | undefined;
+  let routeOverrideProvider: RouteOverrideProvider | undefined;
 
   let tracing: ReactNativeTracingIntegration | undefined;
   let idleSpanOptions: Parameters<typeof startGenericIdleNavigationSpan>[1] = defaultIdleOptions;
@@ -322,12 +347,30 @@ export const reactNavigationIntegration = ({
   // oxlint-disable-next-line eslint(complexity)
   const startIdleNavigationSpan = (unknownEvent?: unknown, isAppRestart = false): void => {
     const event = unknownEvent as UnsafeAction | undefined;
+    const actionType = event?.data?.action?.type;
+    const targetRouteName = getRouteNameFromAction(event);
+
+    if (event && !isAppRestart && !event.data?.noop) {
+      addBreadcrumb({
+        category: 'navigation.dispatch',
+        type: 'navigation',
+        message: targetRouteName
+          ? `Dispatched ${actionType ?? 'NAVIGATE'} to ${targetRouteName}`
+          : `Dispatched ${actionType ?? 'NAVIGATE'}`,
+        data: {
+          ...(actionType ? { action_type: actionType } : undefined),
+          ...(targetRouteName ? { to: targetRouteName } : undefined),
+        },
+        level: 'info',
+      });
+    }
+
     if (useDispatchedActionData && event?.data.noop) {
       debug.log(`${INTEGRATION_NAME} Navigation action is a noop, not starting navigation span.`);
       return;
     }
 
-    const navigationActionType = useDispatchedActionData ? event?.data.action.type : undefined;
+    const navigationActionType = useDispatchedActionData ? actionType : undefined;
 
     // Handle PRELOAD actions separately if prefetch tracking is enabled
     if (enablePrefetchTracking && navigationActionType === 'PRELOAD') {
@@ -382,7 +425,7 @@ export const reactNavigationIntegration = ({
     }
 
     // Extract route name from dispatch action payload when available
-    const dispatchedRouteName = useDispatchedActionData ? getRouteNameFromAction(event) : undefined;
+    const dispatchedRouteName = useDispatchedActionData ? targetRouteName : undefined;
     if (useDispatchedActionData && event && !dispatchedRouteName && !isAppRestart) {
       debug.log(`${INTEGRATION_NAME} Navigation action has no route name in payload, not starting navigation span.`);
       return;
@@ -474,9 +517,28 @@ export const reactNavigationIntegration = ({
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
 
-    // Get the full navigation path for nested navigators
+    // Resolve route name. Order of preference:
+    //   1. Route override provider (e.g. Expo Router templated path)
+    //   2. Full path joined from React Navigation state
+    //   3. React Navigation's leaf route name
     let routeName = route.name;
-    if (useFullPathsForNavigationRoutes) {
+    let routePath: string | undefined;
+    let routeUrl: string | undefined;
+    let routeParams: Record<string, unknown> | undefined = route.params;
+
+    let override: RouteOverride | undefined;
+    try {
+      override = routeOverrideProvider?.();
+    } catch (e) {
+      debug.warn(`${INTEGRATION_NAME} Route override provider threw, falling back to React Navigation route.`, e);
+    }
+
+    if (override?.templatedPath) {
+      routeName = override.templatedPath;
+      routePath = override.templatedPath;
+      routeUrl = override.concreteUrl;
+      routeParams = override.params ?? route.params;
+    } else if (useFullPathsForNavigationRoutes) {
       const navigationState = navigationContainer.getState();
       routeName = getPathFromState(navigationState) || route.name;
     }
@@ -493,7 +555,9 @@ export const reactNavigationIntegration = ({
     latestNavigationSpan.setAttributes({
       'route.name': routeName,
       'route.key': route.key,
-      ...(sendDefaultPii ? extractDynamicRouteParams(routeName, route.params) : undefined),
+      ...(routePath ? { 'route.path': routePath } : undefined),
+      ...(sendDefaultPii && routeUrl ? { 'route.url': routeUrl } : undefined),
+      ...(sendDefaultPii ? extractDynamicRouteParams(routeName, routeParams) : undefined),
       'route.has_been_seen': routeHasBeenSeen,
       'previous_route.name': previousRoute?.name,
       'previous_route.key': previousRoute?.key,
@@ -517,7 +581,7 @@ export const reactNavigationIntegration = ({
     tracing?.setCurrentRoute(routeName);
 
     pushRecentRouteKey(route.key);
-    if (useFullPathsForNavigationRoutes) {
+    if (override?.templatedPath || useFullPathsForNavigationRoutes) {
       latestRoute = { ...route, name: routeName };
     } else {
       latestRoute = route;
@@ -557,10 +621,15 @@ export const reactNavigationIntegration = ({
     }
   };
 
+  const _setRouteOverrideProvider = (provider: RouteOverrideProvider | undefined): void => {
+    routeOverrideProvider = provider;
+  };
+
   return {
     name: INTEGRATION_NAME,
     afterAllSetup,
     registerNavigationContainer,
+    _setRouteOverrideProvider,
     options: {
       routeChangeTimeoutMs,
       enableTimeToInitialDisplay,

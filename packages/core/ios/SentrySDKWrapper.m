@@ -18,6 +18,16 @@
     return [SentrySDK crashedLastRun];
 }
 
++ (void)pauseAppHangTracking
+{
+    [SentrySDK pauseAppHangTracking];
+}
+
++ (void)resumeAppHangTracking
+{
+    [SentrySDK resumeAppHangTracking];
+}
+
 + (void)configureScope:(void (^)(SentryScope *scope))callback
 {
     [SentrySDK configureScope:callback];
