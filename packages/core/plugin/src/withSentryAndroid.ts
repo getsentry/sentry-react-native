@@ -41,7 +41,7 @@ const resolveSentryReactNativePackageJsonPath =
  * adding the relevant @sentry/react-native script.
  */
 export function modifyAppBuildGradle(buildGradle: string, disableAutoUpload: boolean = false): string {
-  if (buildGradle.includes('sentry.gradle')) {
+  if (buildGradle.includes('sentry.gradle.kts')) {
     if (disableAutoUpload && !buildGradle.includes('shouldSentryAutoUploadGeneral')) {
       return buildGradle.replace(
         /^(apply from:.*sentry\.gradle.*)$/m,
@@ -52,6 +52,15 @@ export function modifyAppBuildGradle(buildGradle: string, disableAutoUpload: boo
       return buildGradle.replace(/\nproject\.ext\.shouldSentryAutoUploadGeneral = \{ -> return false \}\n?/, '\n');
     }
     return buildGradle;
+  }
+
+  // Migrate old sentry.gradle references to sentry.gradle.kts
+  // Use a regex to avoid matching package names like io.sentry.android.gradle
+  if (/(?<=[/"'])sentry\.gradle(?!\.kts)/.test(buildGradle)) {
+    return modifyAppBuildGradle(
+      buildGradle.replace(/(?<=[/"'])sentry\.gradle(?!\.kts)/g, 'sentry.gradle.kts'),
+      disableAutoUpload,
+    );
   }
 
   // Use the same location that sentry-wizard uses
@@ -65,7 +74,7 @@ export function modifyAppBuildGradle(buildGradle: string, disableAutoUpload: boo
     return buildGradle;
   }
 
-  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle")`;
+  const applyFrom = `apply from: new File(${resolveSentryReactNativePackageJsonPath}, "sentry.gradle.kts")`;
   const disableUploadOverride = disableAutoUpload
     ? `\nproject.ext.shouldSentryAutoUploadGeneral = { -> return false }`
     : '';

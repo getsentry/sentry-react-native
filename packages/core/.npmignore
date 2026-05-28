@@ -10,6 +10,7 @@
 !ts3.8/**/*
 !RNSentry.podspec
 !sentry.gradle
+!sentry.gradle.kts
 !react-native.config.js
 !/ios/**/*
 !/android/**/*

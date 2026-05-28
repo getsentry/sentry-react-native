@@ -40,7 +40,7 @@ const PBXPROJ_WITHOUT_SENTRY = `
 `;
 
 const BUILD_GRADLE_WITH_SENTRY = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 
 android {
 }
