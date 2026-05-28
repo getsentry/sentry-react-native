@@ -68,9 +68,10 @@ class SentryReactNativeHostHandlerTest {
         val handler = handlerWithoutExpoUpdates()
         val originalException = RuntimeException("test")
 
-        val thrown = assertThrows(RuntimeException::class.java) {
-            handler.onReactInstanceException(false, originalException)
-        }
+        val thrown =
+            assertThrows(RuntimeException::class.java) {
+                handler.onReactInstanceException(false, originalException)
+            }
         assertSame(originalException, thrown)
 
         sentryMock!!.verify({ Sentry.captureException(any()) }, never())
@@ -86,9 +87,10 @@ class SentryReactNativeHostHandlerTest {
         val handler = handlerWithoutExpoUpdates()
         val originalException = IllegalStateException("Fabric crash")
 
-        val thrown = assertThrows(IllegalStateException::class.java) {
-            handler.onReactInstanceException(false, originalException)
-        }
+        val thrown =
+            assertThrows(IllegalStateException::class.java) {
+                handler.onReactInstanceException(false, originalException)
+            }
         assertSame(originalException, thrown)
 
         val captor = argumentCaptor<Throwable>()
@@ -113,7 +115,8 @@ class SentryReactNativeHostHandlerTest {
         sentryMock =
             mockStatic(Sentry::class.java).also {
                 it.`when`<Boolean> { Sentry.isEnabled() }.thenReturn(true)
-                it.`when`<Any> { Sentry.captureException(any()) }
+                it
+                    .`when`<Any> { Sentry.captureException(any()) }
                     .thenThrow(RuntimeException("Sentry internal error"))
             }
 
@@ -122,9 +125,10 @@ class SentryReactNativeHostHandlerTest {
 
         // Sentry's internal failure must be swallowed, but the original native exception is still
         // rethrown so Android's UncaughtExceptionHandler can terminate the process.
-        val thrown = assertThrows(IllegalStateException::class.java) {
-            handler.onReactInstanceException(false, originalException)
-        }
+        val thrown =
+            assertThrows(IllegalStateException::class.java) {
+                handler.onReactInstanceException(false, originalException)
+            }
         assertSame(originalException, thrown)
     }
 
