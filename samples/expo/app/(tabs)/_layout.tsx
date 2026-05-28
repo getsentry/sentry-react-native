@@ -25,7 +25,8 @@ function InfoButton({ colorScheme }: { colorScheme: string }) {
               color: Colors[colorScheme === 'dark' ? 'dark' : 'light'].text,
               marginRight: 15,
               opacity: pressed ? 0.5 : 1,
-            }}>
+            }}
+          >
             ⓘ
           </Text>
         )}
