@@ -57,7 +57,10 @@ export function modifyAppBuildGradle(buildGradle: string, disableAutoUpload: boo
   // Migrate old sentry.gradle references to sentry.gradle.kts
   // Use a regex to avoid matching package names like io.sentry.android.gradle
   if (/(?<=[/"'])sentry\.gradle(?!\.kts)/.test(buildGradle)) {
-    return buildGradle.replace(/(?<=[/"'])sentry\.gradle(?!\.kts)/g, 'sentry.gradle.kts');
+    return modifyAppBuildGradle(
+      buildGradle.replace(/(?<=[/"'])sentry\.gradle(?!\.kts)/g, 'sentry.gradle.kts'),
+      disableAutoUpload,
+    );
   }
 
   // Use the same location that sentry-wizard uses

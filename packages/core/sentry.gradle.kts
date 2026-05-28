@@ -6,44 +6,54 @@ import java.util.Properties
 import java.util.regex.Pattern
 import javax.inject.Inject
 
-val shouldSentryAutoUploadNative: () -> Boolean = {
-    System.getenv("SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD") != "true"
-}
-
-val shouldSentryAutoUploadGeneral: () -> Boolean = {
-    System.getenv("SENTRY_DISABLE_AUTO_UPLOAD") != "true"
-}
-
-val shouldSentryAutoUpload: () -> Boolean = {
-    shouldSentryAutoUploadGeneral() && shouldSentryAutoUploadNative()
-}
-
 extra["shouldSentryAutoUploadNative"] =
     object : groovy.lang.Closure<Boolean>(this) {
-        fun doCall(): Boolean = shouldSentryAutoUploadNative()
+        fun doCall(): Boolean = System.getenv("SENTRY_DISABLE_NATIVE_DEBUG_UPLOAD") != "true"
     }
+
 extra["shouldSentryAutoUploadGeneral"] =
     object : groovy.lang.Closure<Boolean>(this) {
-        fun doCall(): Boolean = shouldSentryAutoUploadGeneral()
+        fun doCall(): Boolean = System.getenv("SENTRY_DISABLE_AUTO_UPLOAD") != "true"
     }
+
 extra["shouldSentryAutoUpload"] =
     object : groovy.lang.Closure<Boolean>(this) {
-        fun doCall(): Boolean = shouldSentryAutoUpload()
+        fun doCall(): Boolean = shouldSentryAutoUploadGeneral() && shouldSentryAutoUploadNative()
     }
+
+@Suppress("UNCHECKED_CAST")
+fun shouldSentryAutoUploadNative(): Boolean {
+    val closure = extra["shouldSentryAutoUploadNative"] as groovy.lang.Closure<*>
+    return closure.call() as Boolean
+}
+
+@Suppress("UNCHECKED_CAST")
+fun shouldSentryAutoUploadGeneral(): Boolean {
+    val closure = extra["shouldSentryAutoUploadGeneral"] as groovy.lang.Closure<*>
+    return closure.call() as Boolean
+}
+
+@Suppress("UNCHECKED_CAST")
+fun shouldSentryAutoUpload(): Boolean {
+    val closure = extra["shouldSentryAutoUpload"] as groovy.lang.Closure<*>
+    return closure.call() as Boolean
+}
 
 interface InjectedExecOps {
     @get:Inject
     val execOps: org.gradle.process.ExecOperations
 }
 
-val shouldCopySentryOptionsFile: () -> Boolean = {
-    System.getenv("SENTRY_COPY_OPTIONS_FILE") != "false"
-}
-
 extra["shouldCopySentryOptionsFile"] =
     object : groovy.lang.Closure<Boolean>(this) {
-        fun doCall(): Boolean = shouldCopySentryOptionsFile()
+        fun doCall(): Boolean = System.getenv("SENTRY_COPY_OPTIONS_FILE") != "false"
     }
+
+@Suppress("UNCHECKED_CAST")
+fun shouldCopySentryOptionsFile(): Boolean {
+    val closure = extra["shouldCopySentryOptionsFile"] as groovy.lang.Closure<*>
+    return closure.call() as Boolean
+}
 
 @Suppress("UNCHECKED_CAST")
 val config: Map<String, Any?> =

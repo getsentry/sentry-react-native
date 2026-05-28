@@ -65,6 +65,13 @@ describe('Configures Android native project correctly', () => {
     expect(modifyAppBuildGradle(buildGradleWithOldSentryGradle)).toStrictEqual(buildGradleWithSentry);
   });
 
+  it('Migrates old sentry.gradle and applies disableAutoUpload in one pass', () => {
+    const result = modifyAppBuildGradle(buildGradleWithOldSentryGradle, true);
+    expect(result).toContain('sentry.gradle.kts');
+    expect(result).not.toContain('"sentry.gradle"');
+    expect(result).toContain('project.ext.shouldSentryAutoUploadGeneral = { -> return false }');
+  });
+
   it('Does not rewrite io.sentry.android.gradle plugin declaration', () => {
     const result = modifyAppBuildGradle(buildGradleWithAndroidGradlePlugin);
     expect(result).toContain('io.sentry.android.gradle"');
