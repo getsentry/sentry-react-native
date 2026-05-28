@@ -52,10 +52,10 @@ public class SentryReactNativeHostHandler implements ReactNativeHostHandler {
     }
   }
 
-  private static boolean isExpoUpdatesPresent() {
+  // Visible for testing.
+  boolean isExpoUpdatesPresent() {
     try {
-      Class.forName(
-          EXPO_UPDATES_MARKER_CLASS, false, SentryReactNativeHostHandler.class.getClassLoader());
+      Class.forName(EXPO_UPDATES_MARKER_CLASS, false, getClass().getClassLoader());
       return true;
     } catch (ClassNotFoundException e) {
       return false;

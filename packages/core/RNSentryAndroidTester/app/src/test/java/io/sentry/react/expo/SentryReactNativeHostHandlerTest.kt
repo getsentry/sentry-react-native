@@ -6,12 +6,16 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.MockedStatic
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.never
@@ -26,6 +30,20 @@ class SentryReactNativeHostHandlerTest {
         sentryMock?.close()
     }
 
+    /** Creates a handler that pretends `expo-updates` is on the classpath, so the rethrow is suppressed. */
+    private fun handlerWithExpoUpdates(): SentryReactNativeHostHandler {
+        val handler = spy(SentryReactNativeHostHandler())
+        doReturn(true).`when`(handler).isExpoUpdatesPresent()
+        return handler
+    }
+
+    /** Creates a handler that pretends `expo-updates` is absent, so the original exception is rethrown. */
+    private fun handlerWithoutExpoUpdates(): SentryReactNativeHostHandler {
+        val handler = spy(SentryReactNativeHostHandler())
+        doReturn(false).`when`(handler).isExpoUpdatesPresent()
+        return handler
+    }
+
     @Test
     fun `does not capture when in developer support mode`() {
         sentryMock =
@@ -33,36 +51,45 @@ class SentryReactNativeHostHandlerTest {
                 it.`when`<Boolean> { Sentry.isEnabled() }.thenReturn(true)
             }
 
-        val handler = SentryReactNativeHostHandler()
+        val handler = handlerWithoutExpoUpdates()
+        // In dev mode we bail early — no capture and no rethrow.
         handler.onReactInstanceException(true, RuntimeException("test"))
 
         sentryMock!!.verify({ Sentry.captureException(any()) }, never())
     }
 
     @Test
-    fun `does not capture when sentry is not enabled`() {
+    fun `does not capture when sentry is not enabled but still rethrows`() {
         sentryMock =
             mockStatic(Sentry::class.java).also {
                 it.`when`<Boolean> { Sentry.isEnabled() }.thenReturn(false)
             }
 
-        val handler = SentryReactNativeHostHandler()
-        handler.onReactInstanceException(false, RuntimeException("test"))
+        val handler = handlerWithoutExpoUpdates()
+        val originalException = RuntimeException("test")
+
+        val thrown = assertThrows(RuntimeException::class.java) {
+            handler.onReactInstanceException(false, originalException)
+        }
+        assertSame(originalException, thrown)
 
         sentryMock!!.verify({ Sentry.captureException(any()) }, never())
     }
 
     @Test
-    fun `captures exception with unhandled mechanism when sentry is enabled`() {
+    fun `captures exception with unhandled mechanism when sentry is enabled and rethrows`() {
         sentryMock =
             mockStatic(Sentry::class.java).also {
                 it.`when`<Boolean> { Sentry.isEnabled() }.thenReturn(true)
             }
 
-        val handler = SentryReactNativeHostHandler()
+        val handler = handlerWithoutExpoUpdates()
         val originalException = IllegalStateException("Fabric crash")
 
-        handler.onReactInstanceException(false, originalException)
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            handler.onReactInstanceException(false, originalException)
+        }
+        assertSame(originalException, thrown)
 
         val captor = argumentCaptor<Throwable>()
         sentryMock!!.verify { Sentry.captureException(captor.capture()) }
@@ -82,15 +109,36 @@ class SentryReactNativeHostHandlerTest {
     }
 
     @Test
-    fun `does not throw when sentry capture fails`() {
+    fun `rethrows original exception even when sentry capture fails`() {
         sentryMock =
             mockStatic(Sentry::class.java).also {
                 it.`when`<Boolean> { Sentry.isEnabled() }.thenReturn(true)
-                it.`when`<Any> { Sentry.captureException(any()) }.thenThrow(RuntimeException("Sentry internal error"))
+                it.`when`<Any> { Sentry.captureException(any()) }
+                    .thenThrow(RuntimeException("Sentry internal error"))
             }
 
-        val handler = SentryReactNativeHostHandler()
-        // Should not throw
+        val handler = handlerWithoutExpoUpdates()
+        val originalException = IllegalStateException("test")
+
+        // Sentry's internal failure must be swallowed, but the original native exception is still
+        // rethrown so Android's UncaughtExceptionHandler can terminate the process.
+        val thrown = assertThrows(IllegalStateException::class.java) {
+            handler.onReactInstanceException(false, originalException)
+        }
+        assertSame(originalException, thrown)
+    }
+
+    @Test
+    fun `does not rethrow when expo-updates is present`() {
+        sentryMock =
+            mockStatic(Sentry::class.java).also {
+                it.`when`<Boolean> { Sentry.isEnabled() }.thenReturn(true)
+            }
+
+        val handler = handlerWithExpoUpdates()
+        // Must not throw — expo-updates' error-recovery flow gets a chance to run.
         handler.onReactInstanceException(false, IllegalStateException("test"))
+
+        sentryMock!!.verify { Sentry.captureException(any()) }
     }
 }
