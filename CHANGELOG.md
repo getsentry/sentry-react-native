@@ -19,7 +19,7 @@
 
 ### Fixes
 
-- Rethrow native exceptions from Sentry's Expo host handler so Android crashes terminate the process instead of leaving the app on a blank screen ([#5973](https://github.com/getsentry/sentry-react-native/issues/5973))
+- Rethrow native exceptions from Sentry's Expo host handler so Android crashes terminate the process instead of leaving the app on a blank screen ([#6228](https://github.com/getsentry/sentry-react-native/pull/6228))
 - Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
 - Return `NO` from `requiresMainQueueSetup` to avoid unnecessary `dispatch_sync` on the main queue during bridge init ([#6202](https://github.com/getsentry/sentry-react-native/pull/6202))
 
