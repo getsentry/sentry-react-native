@@ -19,6 +19,7 @@
 
 ### Fixes
 
+- Enable fetch instrumentation when Expo SDK 56's native `expo/fetch` is active ([#6226](https://github.com/getsentry/sentry-react-native/pull/6226))
 - Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
 - Return `NO` from `requiresMainQueueSetup` to avoid unnecessary `dispatch_sync` on the main queue during bridge init ([#6202](https://github.com/getsentry/sentry-react-native/pull/6202))
 
