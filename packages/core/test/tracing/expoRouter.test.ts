@@ -12,6 +12,7 @@ import {
 
 const mockStartInactiveSpan = jest.fn();
 const mockAddBreadcrumb = jest.fn();
+let mockSendDefaultPii = false;
 
 jest.mock('@sentry/core', () => {
   const actual = jest.requireActual('@sentry/core');
@@ -19,6 +20,7 @@ jest.mock('@sentry/core', () => {
     ...actual,
     startInactiveSpan: (...args: unknown[]) => mockStartInactiveSpan(...args),
     addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
+    getClient: () => ({ getOptions: () => ({ sendDefaultPii: mockSendDefaultPii }) }),
   };
 });
 
@@ -37,6 +39,7 @@ describe('wrapExpoRouter', () => {
       setAttribute: jest.fn(),
     };
     mockStartInactiveSpan.mockReturnValue(mockSpan);
+    mockSendDefaultPii = false;
     clearPendingExpoRouterNavigation();
   });
 
@@ -51,7 +54,7 @@ describe('wrapExpoRouter', () => {
     expect(wrapped).toBe(router);
   });
 
-  it('wraps prefetch method and creates a span with string href', () => {
+  it('wraps prefetch method and creates a span with string href (no PII attributes by default)', () => {
     const mockPrefetch = jest.fn();
     const router = { prefetch: mockPrefetch } as ExpoRouter;
 
@@ -63,7 +66,6 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch /details/123',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.href': '/details/123',
         'route.name': '/details/123',
       },
     });
@@ -73,7 +75,8 @@ describe('wrapExpoRouter', () => {
     expect(mockSpan.end).toHaveBeenCalled();
   });
 
-  it('wraps prefetch method and creates a span with object href', () => {
+  it('includes `route.href` on prefetch span only when sendDefaultPii is enabled', () => {
+    mockSendDefaultPii = true;
     const mockPrefetch = jest.fn();
     const router = { prefetch: mockPrefetch } as ExpoRouter;
     const href = { pathname: '/profile', params: { id: '456' } };
@@ -86,8 +89,8 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch /profile',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.href': JSON.stringify(href),
         'route.name': '/profile',
+        'route.href': JSON.stringify(href),
       },
     });
 
@@ -109,7 +112,6 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch unknown',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.href': JSON.stringify(href),
         'route.name': 'unknown',
       },
     });
@@ -185,7 +187,7 @@ describe('wrapExpoRouter', () => {
   });
 
   describe.each(['push', 'replace', 'navigate'] as const)('wraps %s', method => {
-    it(`creates a span and breadcrumb with string href for ${method}`, () => {
+    it(`creates a PII-free span and breadcrumb with string href for ${method}`, () => {
       const original = jest.fn();
       const router = { [method]: original } as unknown as ExpoRouter;
 
@@ -199,7 +201,6 @@ describe('wrapExpoRouter', () => {
         attributes: {
           'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
           'navigation.method': method,
-          'route.href': '/details/123',
           'route.name': '/details/123',
         },
       });
@@ -209,7 +210,6 @@ describe('wrapExpoRouter', () => {
         message: `Expo Router ${method} to /details/123`,
         data: {
           method,
-          href: '/details/123',
           pathname: '/details/123',
         },
       });
@@ -217,7 +217,7 @@ describe('wrapExpoRouter', () => {
       expect(mockSpan.end).toHaveBeenCalled();
     });
 
-    it(`creates a span and breadcrumb with object href for ${method}`, () => {
+    it(`creates a PII-free span and breadcrumb with object href for ${method}`, () => {
       const original = jest.fn();
       const router = { [method]: original } as unknown as ExpoRouter;
       const href = { pathname: '/profile', params: { id: '456' } };
@@ -232,7 +232,6 @@ describe('wrapExpoRouter', () => {
         attributes: {
           'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
           'navigation.method': method,
-          'route.href': JSON.stringify(href),
           'route.name': '/profile',
         },
       });
@@ -242,8 +241,37 @@ describe('wrapExpoRouter', () => {
         message: `Expo Router ${method} to /profile`,
         data: {
           method,
-          href: JSON.stringify(href),
           pathname: '/profile',
+        },
+      });
+    });
+
+    it(`includes href and params in ${method} span/breadcrumb only when sendDefaultPii is enabled`, () => {
+      mockSendDefaultPii = true;
+      const original = jest.fn();
+      const router = { [method]: original } as unknown as ExpoRouter;
+      const href = { pathname: '/profile', params: { id: '456' } };
+
+      wrapExpoRouter(router)[method]?.(href);
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+        op: `navigation.${method}`,
+        name: `Navigation ${method} to /profile`,
+        attributes: {
+          'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+          'navigation.method': method,
+          'route.name': '/profile',
+          'route.href': JSON.stringify(href),
+        },
+      });
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+        category: 'navigation',
+        type: 'navigation',
+        message: `Expo Router ${method} to /profile`,
+        data: {
+          method,
+          pathname: '/profile',
+          href: JSON.stringify(href),
           params: { id: '456' },
         },
       });

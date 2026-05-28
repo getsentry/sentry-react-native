@@ -37,6 +37,7 @@
 - Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 - Better route and dynamic param extraction for Expo Router ([#6197](https://github.com/getsentry/sentry-react-native/pull/6197))
+- Instrument Expo Router `push`, `replace`, `navigate`, `back`, and `dismiss` (in addition to `prefetch`) with breadcrumbs and spans, and tag the resulting idle navigation span with the initiating `navigation.method` ([#6221](https://github.com/getsentry/sentry-react-native/pull/6221))
 
 ### Fixes
 

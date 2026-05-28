@@ -1,4 +1,4 @@
-import { addBreadcrumb, SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
+import { addBreadcrumb, getClient, SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 
 import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION, SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from './origin';
 import { setPendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
@@ -88,8 +88,10 @@ function wrapPrefetch<T extends ExpoRouter>(router: T): void {
       name: `Prefetch ${routeName}`,
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.href': typeof href === 'string' ? href : JSON.stringify(href),
         'route.name': routeName,
+        // `route.href` may contain dynamic segment values (e.g. `/users/123`)
+        // or stringified `params`, so it is gated behind `sendDefaultPii`.
+        ...(isSendDefaultPiiEnabled() ? { 'route.href': serializeHref(href) } : undefined),
       },
     });
 
@@ -128,6 +130,7 @@ function wrapNavigationMethod(
 ): (...args: unknown[]) => unknown {
   return (...args: unknown[]) => {
     const parsed = parseMethodArgs(method, args);
+    const sendPii = isSendDefaultPiiEnabled();
 
     addBreadcrumb({
       category: 'navigation',
@@ -135,9 +138,12 @@ function wrapNavigationMethod(
       message: `Expo Router ${method}${parsed.pathname ? ` to ${parsed.pathname}` : ''}`,
       data: {
         method,
-        ...(parsed.href !== undefined ? { href: serializeHref(parsed.href) } : undefined),
         ...(parsed.pathname ? { pathname: parsed.pathname } : undefined),
-        ...(parsed.params ? { params: parsed.params } : undefined),
+        // `href` (raw URL form) and `params` may contain user identifiers or
+        // other PII (e.g. `/users/42`, `{ id: '42' }`). Mirror the behavior of
+        // `reactnavigation.ts` and only include them when `sendDefaultPii` is on.
+        ...(sendPii && parsed.href !== undefined ? { href: serializeHref(parsed.href) } : undefined),
+        ...(sendPii && parsed.params ? { params: parsed.params } : undefined),
       },
     });
 
@@ -154,8 +160,8 @@ function wrapNavigationMethod(
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
         'navigation.method': method,
-        ...(parsed.href !== undefined ? { 'route.href': serializeHref(parsed.href) } : undefined),
         ...(parsed.routeName ? { 'route.name': parsed.routeName } : undefined),
+        ...(sendPii && parsed.href !== undefined ? { 'route.href': serializeHref(parsed.href) } : undefined),
       },
     });
 
@@ -197,4 +203,8 @@ function parseHref(href: ExpoRouterHref | undefined): ParsedHref {
 
 function serializeHref(href: unknown): string {
   return typeof href === 'string' ? href : JSON.stringify(href);
+}
+
+function isSendDefaultPiiEnabled(): boolean {
+  return getClient()?.getOptions()?.sendDefaultPii ?? false;
 }
