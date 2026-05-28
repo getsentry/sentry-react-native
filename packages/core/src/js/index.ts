@@ -155,3 +155,12 @@ export { FeedbackForm as FeedbackWidget } from './feedback/FeedbackForm';
 export { showFeedbackForm as showFeedbackWidget } from './feedback/FeedbackFormManager';
 
 export { getDataFromUri } from './wrapper';
+
+export {
+  getActiveTurboModuleCall,
+  getTurboModuleCallStack,
+  popTurboModuleCall,
+  pushTurboModuleCall,
+  wrapTurboModule,
+} from './turbomodule';
+export type { TurboModuleCall } from './turbomodule';

@@ -145,7 +145,7 @@ export const appRegistryIntegration: () => Integration & {
 //
 // @public
 export const appStartIntegration: (input?: {
-    standalone?: boolean;
+    standalone?: boolean | undefined;
 }) => AppStartIntegration;
 
 export { Breadcrumb }
@@ -334,7 +334,7 @@ export { FeedbackForm as FeedbackWidget }
 export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
     buttonOptions?: FeedbackButtonProps;
     screenshotButtonOptions?: ScreenshotButtonProps;
-    colorScheme?: "system" | "light" | "dark";
+    colorScheme?: 'system' | 'light' | 'dark';
     themeLight?: Partial<FeedbackFormTheme>;
     themeDark?: Partial<FeedbackFormTheme>;
     enableShakeToReport?: boolean;
@@ -346,6 +346,9 @@ export function flush(): Promise<boolean>;
 export { functionToStringIntegration }
 
 export { getActiveSpan }
+
+// @public
+export function getActiveTurboModuleCall(): TurboModuleCall | undefined;
 
 export { getClient }
 
@@ -370,6 +373,9 @@ export { getIsolationScope }
 export function getReactNativeTracingIntegration(client: Client): ReactNativeTracingIntegration | undefined;
 
 export { getRootSpan }
+
+// @public
+export function getTurboModuleCallStack(): TurboModuleCall[];
 
 // Warning: (ae-forgotten-export) The symbol "GlobalErrorBoundaryState" needs to be exported by the entry point index.d.ts
 //
@@ -499,9 +505,20 @@ export { OpenAiOptions }
 export function pauseAppHangTracking(): void;
 
 // @public
+export function popTurboModuleCall(callId: number, scope?: Scope): void;
+
+// @public
 export const primitiveTagIntegration: () => Integration;
 
 export { Profiler }
+
+// @public
+export function pushTurboModuleCall(args: {
+    name: string;
+    method: string;
+    kind: 'sync' | 'async';
+    scope?: Scope;
+}): number;
 
 // Warning: (ae-forgotten-export) The symbol "ReactNativeClientOptions" needs to be exported by the entry point index.d.ts
 //
@@ -633,14 +650,15 @@ export { Stacktrace }
 
 // @public
 export const stallTrackingIntegration: (input?: {
-    minimumStallThresholdMs?: number;
+    minimumStallThresholdMs?: number | undefined;
 }) => Integration;
 
-// Warning: (ae-forgotten-export) The symbol "defaultIdleOptions" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export const startIdleNavigationSpan: (startSpanOption: StartSpanOptions, input?: Partial<typeof defaultIdleOptions> & {
-    isAppRestart?: boolean;
+export const startIdleNavigationSpan: (startSpanOption: StartSpanOptions, input?: Partial<{
+    idleTimeout: number;
+    finalTimeout: number;
+}> & {
+    isAppRestart?: boolean | undefined;
 }) => Span | undefined;
 
 // @public
@@ -712,6 +730,27 @@ export class TouchEventBoundary extends React_2.Component<TouchEventBoundaryProp
 
 export { TransactionEvent }
 
+// @public
+export interface TurboModuleCall {
+    callId: number;
+    kind: 'sync' | 'async';
+    method: string;
+    name: string;
+    startedAtMs: number;
+}
+
+// @public
+export const turboModuleContextIntegration: (options?: TurboModuleContextOptions) => Integration;
+
+// @public (undocumented)
+export interface TurboModuleContextOptions {
+    modules?: Array<{
+        name: string;
+        module: object | null | undefined;
+        skipMethods?: ReadonlyArray<string>;
+    }>;
+}
+
 // @public (undocumented)
 export const Unmask: HostComponent<ViewProps> | React_2.ComponentType<ViewProps>;
 
@@ -755,6 +794,11 @@ export function wrapExpoImage<T extends ExpoImage>(imageClass: T): T;
 
 // @public
 export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
+
+// @public
+export function wrapTurboModule<T extends object>(name: string, module: T | null | undefined, options?: {
+    skip?: ReadonlyArray<string>;
+}): T | null | undefined;
 
 // Warnings were encountered during analysis:
 //
