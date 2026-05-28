@@ -12,6 +12,11 @@
 
 - Enable fetch instrumentation when Expo SDK 56's native `expo/fetch` is active ([#6226](https://github.com/getsentry/sentry-react-native/pull/6226))
 
+### Internal
+
+- Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
+  - The old `sentry.gradle` is kept as a shim forwarding to the new `.kts` file for backward compatibility
+
 ## 8.13.0
 
 ### Features

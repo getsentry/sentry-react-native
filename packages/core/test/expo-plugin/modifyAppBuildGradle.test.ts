@@ -4,7 +4,7 @@ import { modifyAppBuildGradle } from '../../plugin/src/withSentryAndroid';
 jest.mock('../../plugin/src/logger');
 
 const buildGradleWithSentry = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 
 android {
 }
@@ -16,13 +16,27 @@ android {
 `;
 
 const monoRepoBuildGradleWithSentry = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 
 android {
 }
 `;
 
 const monoRepoBuildGradleWithOutSentry = `
+android {
+}
+`;
+
+const buildGradleWithOldSentryGradle = `
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+
+android {
+}
+`;
+
+const buildGradleWithAndroidGradlePlugin = `
+apply plugin: "io.sentry.android.gradle"
+
 android {
 }
 `;
@@ -45,6 +59,24 @@ describe('Configures Android native project correctly', () => {
 
   it('Monorepo: Adds sentry.gradle script if not present already', () => {
     expect(modifyAppBuildGradle(monoRepoBuildGradleWithOutSentry)).toStrictEqual(monoRepoBuildGradleWithSentry);
+  });
+
+  it('Migrates old sentry.gradle reference to sentry.gradle.kts', () => {
+    expect(modifyAppBuildGradle(buildGradleWithOldSentryGradle)).toStrictEqual(buildGradleWithSentry);
+  });
+
+  it('Migrates old sentry.gradle and applies disableAutoUpload in one pass', () => {
+    const result = modifyAppBuildGradle(buildGradleWithOldSentryGradle, true);
+    expect(result).toContain('sentry.gradle.kts');
+    expect(result).not.toContain('"sentry.gradle"');
+    expect(result).toContain('project.ext.shouldSentryAutoUploadGeneral = { -> return false }');
+  });
+
+  it('Does not rewrite io.sentry.android.gradle plugin declaration', () => {
+    const result = modifyAppBuildGradle(buildGradleWithAndroidGradlePlugin);
+    expect(result).toContain('io.sentry.android.gradle"');
+    expect(result).not.toContain('io.sentry.android.gradle.kts');
+    expect(result).toContain('sentry.gradle.kts');
   });
 
   it('Warns to file a bug report if no react.gradle is found', () => {
@@ -70,7 +102,7 @@ describe('Configures Android native project correctly', () => {
 
   it('Does not duplicate override if already present', () => {
     const gradleWithOverride = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 project.ext.shouldSentryAutoUploadGeneral = { -> return false }
 
 android {
@@ -82,7 +114,7 @@ android {
 
   it('Removes override when toggling disableAutoUpload back to false', () => {
     const gradleWithOverride = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 project.ext.shouldSentryAutoUploadGeneral = { -> return false }
 
 android {
