@@ -3,7 +3,7 @@ import type { Client, Event, EventHint, Integration, StartSpanOptions } from '@s
 import { instrumentOutgoingRequests } from '@sentry/browser';
 import { debug, getClient } from '@sentry/core';
 
-import { isWeb } from '../utils/environment';
+import { isExpoFetchEnabled, isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
 import { getTransactionEventDiscardReason } from './onSpanEndUtils';
 import { addDefaultOpForSpanFrom, addThreadInfoToSpan, defaultIdleOptions } from './span';
@@ -74,11 +74,7 @@ function getDefaultTracePropagationTargets(): RegExp[] | undefined {
 }
 
 export const defaultReactNativeTracingOptions: ReactNativeTracingOptions = {
-  // Fetch in React Native is a `whatwg-fetch` polyfill which uses XHR under the hood.
-  // This causes duplicates when both `traceFetch` and `traceXHR` are enabled at the same time.
-  // https://github.com/facebook/react-native/blob/28945c68da056ab2ac01de7e542a845b2bca6096/packages/react-native/Libraries/Network/fetch.js
-  // (RN Web uses browsers native fetch implementation)
-  traceFetch: isWeb() ? true : false,
+  traceFetch: false,
   traceXHR: true,
   enableHTTPTimings: true,
 };
@@ -98,8 +94,15 @@ export const reactNativeTracingIntegration = (
     currentRoute: undefined,
   };
 
+  // RN's default fetch is a `whatwg-fetch` polyfill over XHR, so tracing both causes duplicates.
+  // Expo SDK 56+ replaces fetch with a native implementation (`expo/fetch`) that bypasses XHR,
+  // so fetch tracing must be enabled for network requests to be captured.
+  // Computed here (not at module level) to ensure expo/fetch polyfill is installed before detection.
+  const traceFetchDefault = isWeb() || isExpoFetchEnabled();
+
   const finalOptions = {
     ...defaultReactNativeTracingOptions,
+    traceFetch: traceFetchDefault,
     ...options,
     beforeStartSpan: options.beforeStartSpan ?? ((options: StartSpanOptions) => options),
     finalTimeoutMs: options.finalTimeoutMs ?? defaultIdleOptions.finalTimeout,

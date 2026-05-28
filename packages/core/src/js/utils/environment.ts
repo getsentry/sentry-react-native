@@ -59,6 +59,19 @@ export function isWeb(): boolean {
   return Platform.OS === 'web';
 }
 
+/**
+ * Checks if Expo's native fetch implementation (`expo/fetch`) is active.
+ * Expo SDK 56+ replaces `globalThis.fetch` with a native implementation
+ * that bypasses XHR entirely. The SDK needs to know this to enable
+ * fetch instrumentation instead of relying on XHR instrumentation.
+ */
+export function isExpoFetchEnabled(): boolean {
+  return (
+    typeof globalThis.fetch === 'function' &&
+    (globalThis.fetch as unknown as Record<symbol, unknown>)[Symbol.for('expo.builtin')] === true
+  );
+}
+
 /** Checks if the current platform is not web */
 export function notWeb(): boolean {
   return Platform.OS !== 'web';
