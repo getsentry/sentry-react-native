@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Fixes
+
+- Enable fetch instrumentation when Expo SDK 56's native `expo/fetch` is active ([#6226](https://github.com/getsentry/sentry-react-native/pull/6226))
+
+## 8.13.0
+
 ### Features
 
 - Add breadcrumbs for dispatched React Navigation events ([#6218](https://github.com/getsentry/sentry-react-native/pull/6218))
@@ -19,18 +25,21 @@
 
 ### Fixes
 
-- Enable fetch instrumentation when Expo SDK 56's native `expo/fetch` is active ([#6226](https://github.com/getsentry/sentry-react-native/pull/6226))
+- Rethrow native exceptions from Sentry's Expo host handler so Android crashes terminate the process instead of leaving the app on a blank screen ([#6228](https://github.com/getsentry/sentry-react-native/pull/6228))
 - Bound TTID/TTFD to prevent inflated transactions ([#6210](https://github.com/getsentry/sentry-react-native/pull/6210))
 - Return `NO` from `requiresMainQueueSetup` to avoid unnecessary `dispatch_sync` on the main queue during bridge init ([#6202](https://github.com/getsentry/sentry-react-native/pull/6202))
 
 ### Dependencies
 
-- Bump Cocoa SDK from v9.13.0 to v9.14.0 ([#6204](https://github.com/getsentry/sentry-react-native/pull/6204))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9140)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.13.0...9.14.0)
+- Bump Cocoa SDK from v9.13.0 to v9.15.0 ([#6204](https://github.com/getsentry/sentry-react-native/pull/6204), [#6223](https://github.com/getsentry/sentry-react-native/pull/6223))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9150)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.13.0...9.15.0)
 - Bump CLI from v3.4.2 to v3.4.3 ([#6205](https://github.com/getsentry/sentry-react-native/pull/6205))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#343)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.2...3.4.3)
+- Bump Android SDK from v8.42.0 to v8.43.0 ([#6224](https://github.com/getsentry/sentry-react-native/pull/6224))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8430)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.42.0...8.43.0)
 
 ## 8.12.0
 

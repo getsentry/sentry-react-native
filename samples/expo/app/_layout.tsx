@@ -1,8 +1,8 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-navigation';
 import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import * as ImagePicker from 'expo-image-picker';
 import { SplashScreen, Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-navigation';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
 
