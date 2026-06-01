@@ -118,7 +118,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Run unit tests
         working-directory: packages/core/RNSentryAndroidTester
