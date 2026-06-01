@@ -17,6 +17,12 @@
 - Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
   - The old `sentry.gradle` is kept as a shim forwarding to the new `.kts` file for backward compatibility
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.53.1 to v10.55.0 ([#6222](https://github.com/getsentry/sentry-react-native/pull/6222))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10550)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.53.1...10.55.0)
+
 ## 8.13.0
 
 ### Features
