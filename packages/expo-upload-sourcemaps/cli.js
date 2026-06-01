@@ -187,7 +187,11 @@ let sentryOrg = getEnvVar(SENTRY_ORG);
 let sentryUrl = getEnvVar(SENTRY_URL);
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
-const sentryCliBin = getEnvVar(SENTRY_CLI_EXECUTABLE) || require.resolve('@sentry/cli/bin/sentry-cli');
+const sentryCliBin =
+  getEnvVar(SENTRY_CLI_EXECUTABLE) ||
+  require.resolve('@sentry/cli/bin/sentry-cli', {
+    paths: [require.resolve('@sentry/expo-upload-sourcemaps/package.json')],
+  });
 
 if (!sentryOrg || !sentryProject || !sentryUrl) {
   console.log('🐕 Fetching from expo config...');
