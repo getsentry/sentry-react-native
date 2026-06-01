@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add `enableAutoConsoleLogs` option to opt out of automatic `console.*` capture while keeping `enableLogs: true` for manual `Sentry.logger.*` calls ([#6231](https://github.com/getsentry/sentry-react-native/issues/6231))
+- Add `enableAutoConsoleLogs` option to opt out of automatic `console.*` capture while keeping `enableLogs: true` for manual `Sentry.logger.*` calls ([#6235](https://github.com/getsentry/sentry-react-native/pull/6235))
 
 ### Internal
 
