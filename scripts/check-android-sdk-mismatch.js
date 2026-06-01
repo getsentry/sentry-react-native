@@ -85,13 +85,13 @@ module.exports = async function ({ fail, warn, __, ___, danger }) {
   }
 
   const buildGradleContent = fs.readFileSync(buildGradlePath, 'utf8');
-  const sentryAndroidVersionMatch = buildGradleContent.match(/api\s+['"]io\.sentry:sentry-android:([^'"]+)['"]/);
+  const sentryAndroidVersionMatch = buildGradleContent.match(/sentryAndroidVersion\s*=\s*'([^']+)'/);
 
   if (!sentryAndroidVersionMatch) {
     warn(
       createSectionWarning(
         'Android SDK Version Check',
-        'Could not parse `sentry-android` version from build.gradle',
+        'Could not parse `sentryAndroidVersion` from build.gradle',
         '⚠️',
       ),
     );
