@@ -48,7 +48,7 @@ jobs:
           java-version: '17'
           distribution: "adopt"
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
       - name: Install Dependencies
         run: yarn install
       - name: Codegen
