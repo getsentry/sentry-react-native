@@ -417,6 +417,18 @@ export interface BaseReactNativeOptions {
   logsOrigin?: 'all' | 'js' | 'native';
 
   /**
+   * When `enableLogs` is true, the SDK automatically captures `console.*` calls
+   * as logs via the `ConsoleLogs` integration. Set this to `false` to disable
+   * the automatic console capture while still being able to send logs manually
+   * via `Sentry.logger.*`.
+   *
+   * Has no effect when `enableLogs` is false or `logsOrigin` is `'native'`.
+   *
+   * @default true
+   */
+  enableAutoConsoleLogs?: boolean;
+
+  /**
    * A callback that is invoked when the native SDK emits a log message.
    * This is useful for surfacing native SDK logs (e.g., transport errors like HTTP 413)
    * in the JavaScript console.

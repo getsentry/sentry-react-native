@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `enableAutoConsoleLogs` option to opt out of automatic `console.*` capture while keeping `enableLogs: true` for manual `Sentry.logger.*` calls ([#6235](https://github.com/getsentry/sentry-react-native/pull/6235))
+
 ### Fixes
 
 - Enable fetch instrumentation when Expo SDK 56's native `expo/fetch` is active ([#6226](https://github.com/getsentry/sentry-react-native/pull/6226))
@@ -16,6 +20,12 @@
 
 - Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
   - The old `sentry.gradle` is kept as a shim forwarding to the new `.kts` file for backward compatibility
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.53.1 to v10.55.0 ([#6222](https://github.com/getsentry/sentry-react-native/pull/6222))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10550)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.53.1...10.55.0)
 
 ## 8.13.0
 
