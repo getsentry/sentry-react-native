@@ -1,7 +1,7 @@
 import { addBreadcrumb, getClient, SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 
 import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION, SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from './origin';
-import { setPendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
+import { clearPendingExpoRouterNavigation, setPendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
 
 type ExpoRouterHref = string | { pathname?: string; params?: Record<string, unknown> };
 
@@ -21,9 +21,19 @@ type NavigationMethod = 'push' | 'replace' | 'navigate' | 'back' | 'dismiss';
 
 interface ParsedHref {
   href?: unknown;
+  /** A label used for span/transaction naming. May be PII when {@link concretePathname} is true. */
   routeName: string;
+  /** Pathname extracted from the href, if any. May be PII when {@link concretePathname} is true. */
   pathname?: string;
   params?: Record<string, unknown>;
+  /**
+   * Whether `pathname` / `routeName` came from a concrete string href (e.g. `/users/42`)
+   * rather than a templated object href (e.g. `{ pathname: '/users/[id]' }`).
+   *
+   * Concrete pathnames can contain user identifiers and must be gated behind
+   * `sendDefaultPii`. Templated pathnames are structural and safe.
+   */
+  concretePathname: boolean;
 }
 
 /**
@@ -81,17 +91,22 @@ function wrapPrefetch<T extends ExpoRouter>(router: T): void {
   const originalPrefetch = router.prefetch!.bind(router);
 
   router.prefetch = ((href: ExpoRouterHref) => {
-    const { routeName } = parseHref(href);
+    const parsed = parseHref(href);
+    const sendPii = isSendDefaultPiiEnabled();
+    // For concrete string hrefs (e.g. `/users/42`), `routeName` may carry
+    // user identifiers — gate it behind `sendDefaultPii`. For templated
+    // object hrefs (e.g. `{ pathname: '/users/[id]' }`) it is structural.
+    const safeRouteName = parsed.concretePathname && !sendPii ? 'unknown' : parsed.routeName;
 
     const span = startInactiveSpan({
       op: 'navigation.prefetch',
-      name: `Prefetch ${routeName}`,
+      name: `Prefetch ${safeRouteName}`,
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.name': routeName,
-        // `route.href` may contain dynamic segment values (e.g. `/users/123`)
+        'route.name': safeRouteName,
+        // `route.href` may contain dynamic segment values (e.g. `/users/42`)
         // or stringified `params`, so it is gated behind `sendDefaultPii`.
-        ...(isSendDefaultPiiEnabled() ? { 'route.href': serializeHref(href) } : undefined),
+        ...(sendPii ? { 'route.href': serializeHref(href) } : undefined),
       },
     });
 
@@ -131,14 +146,19 @@ function wrapNavigationMethod(
   return (...args: unknown[]) => {
     const parsed = parseMethodArgs(method, args);
     const sendPii = isSendDefaultPiiEnabled();
+    // For concrete string hrefs (e.g. `/users/42`) the pathname carries the
+    // resolved URL — gate it behind `sendDefaultPii`. Templated pathnames from
+    // object hrefs (e.g. `{ pathname: '/users/[id]' }`) are structural and safe.
+    const safePathname = parsed.concretePathname && !sendPii ? undefined : parsed.pathname;
+    const safeRouteName = parsed.concretePathname && !sendPii ? method : parsed.routeName;
 
     addBreadcrumb({
       category: 'navigation',
       type: 'navigation',
-      message: `Expo Router ${method}${parsed.pathname ? ` to ${parsed.pathname}` : ''}`,
+      message: `Expo Router ${method}${safePathname ? ` to ${safePathname}` : ''}`,
       data: {
         method,
-        ...(parsed.pathname ? { pathname: parsed.pathname } : undefined),
+        ...(safePathname ? { pathname: safePathname } : undefined),
         // `href` (raw URL form) and `params` may contain user identifiers or
         // other PII (e.g. `/users/42`, `{ id: '42' }`). Mirror the behavior of
         // `reactnavigation.ts` and only include them when `sendDefaultPii` is on.
@@ -156,11 +176,11 @@ function wrapNavigationMethod(
 
     const span = startInactiveSpan({
       op: `navigation.${method}`,
-      name: `Navigation ${method}${parsed.pathname ? ` to ${parsed.pathname}` : ''}`,
+      name: `Navigation ${method}${safePathname ? ` to ${safePathname}` : ''}`,
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
         'navigation.method': method,
-        ...(parsed.routeName ? { 'route.name': parsed.routeName } : undefined),
+        ...(safeRouteName ? { 'route.name': safeRouteName } : undefined),
         ...(sendPii && parsed.href !== undefined ? { 'route.href': serializeHref(parsed.href) } : undefined),
       },
     });
@@ -171,6 +191,9 @@ function wrapNavigationMethod(
       span?.end();
       return result;
     } catch (error) {
+      // Clear the pending value so a failed navigation does not leak its
+      // method/href onto the next successful idle navigation span.
+      clearPendingExpoRouterNavigation();
       span?.setStatus({ code: SPAN_STATUS_ERROR, message: String(error) });
       span?.end();
       throw error;
@@ -180,14 +203,14 @@ function wrapNavigationMethod(
 
 function parseMethodArgs(method: NavigationMethod, args: unknown[]): ParsedHref {
   if (method === 'back' || method === 'dismiss') {
-    return { routeName: method };
+    return { routeName: method, concretePathname: false };
   }
   return parseHref(args[0] as ExpoRouterHref | undefined);
 }
 
 function parseHref(href: ExpoRouterHref | undefined): ParsedHref {
   if (typeof href === 'string') {
-    return { href, routeName: href, pathname: href };
+    return { href, routeName: href, pathname: href, concretePathname: true };
   }
   if (href && typeof href === 'object') {
     const pathname = typeof href.pathname === 'string' ? href.pathname : undefined;
@@ -196,13 +219,28 @@ function parseHref(href: ExpoRouterHref | undefined): ParsedHref {
       routeName: pathname ?? 'unknown',
       pathname,
       params: href.params,
+      concretePathname: false,
     };
   }
-  return { routeName: 'unknown' };
+  return { routeName: 'unknown', concretePathname: false };
 }
 
+/**
+ * Serializes an href into a string for inclusion in spans/breadcrumbs.
+ *
+ * Wrapped in `try/catch` because `params` may contain values that `JSON.stringify`
+ * cannot serialize (BigInt, Symbol, circular references). A failure here must
+ * never prevent the underlying navigation from running.
+ */
 function serializeHref(href: unknown): string {
-  return typeof href === 'string' ? href : JSON.stringify(href);
+  if (typeof href === 'string') {
+    return href;
+  }
+  try {
+    return JSON.stringify(href);
+  } catch {
+    return '[unserializable href]';
+  }
 }
 
 function isSendDefaultPiiEnabled(): boolean {
