@@ -144,24 +144,24 @@ jobs:
       - name: Build
         run: yarn build
       - name: Archive dist
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: dist
           path: packages/core/dist
       - name: Archive ts3.8
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ts3.8
           path: packages/core/ts3.8
       - name: Archive Expo Plugin
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: expo-plugin
           path: packages/core/plugin/build
       - name: Pack
         run: yarn build:tarball
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ github.sha }}
           path: |
@@ -179,7 +179,7 @@ jobs:
         with:
           node-version: 18
       - name: Download tarball artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ github.sha }}
           path: artifacts
@@ -268,12 +268,12 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: dist
           path: packages/core/dist
       - name: Download ts3.8
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ts3.8
           path: packages/core/ts3.8
@@ -299,12 +299,12 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: dist
           path: packages/core/dist
       - name: Download Expo Plugin
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: expo-plugin
           path: packages/core/plugin/build
@@ -328,7 +328,7 @@ jobs:
       - name: Install Dependencies
         run: yarn install
       - name: Download dist
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: dist
           path: packages/core/dist
