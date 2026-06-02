@@ -14,6 +14,10 @@ import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
+import {
+  clearPendingExpoRouterNavigation,
+  setPendingExpoRouterNavigation,
+} from '../../src/js/tracing/pendingExpoRouterNavigation';
 import { extractDynamicRouteParams, reactNavigationIntegration } from '../../src/js/tracing/reactnavigation';
 import {
   SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_KEY,
@@ -259,6 +263,59 @@ describe('ReactNavigationInstrumentation', () => {
         }),
       }),
     );
+  });
+
+  describe('pendingExpoRouterNavigation hand-off', () => {
+    afterEach(() => {
+      clearPendingExpoRouterNavigation();
+    });
+
+    test('tags the next navigation transaction with `navigation.method` from the pending Expo Router call', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      setPendingExpoRouterNavigation({
+        method: 'push',
+        href: { pathname: '/profile', params: { id: '7' } },
+        pathname: '/profile',
+        params: { id: '7' },
+      });
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers(); // Flush the navigation transaction
+
+      await client.flush();
+
+      const data = client.event?.contexts?.trace?.data ?? {};
+      expect(data['navigation.method']).toBe('push');
+    });
+
+    test('consumes the pending value exactly once and does not leak into the following navigation', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      setPendingExpoRouterNavigation({ method: 'replace' });
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+      expect(client.event?.contexts?.trace?.data?.['navigation.method']).toBe('replace');
+
+      // Next navigation without a pending value — must not carry over the previous method.
+      mockNavigation.navigateToSecondScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+      expect(client.event?.contexts?.trace?.data?.['navigation.method']).toBeUndefined();
+    });
+
+    test('does not set `navigation.method` when no Expo Router call is pending', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      expect(client.event?.contexts?.trace?.data?.['navigation.method']).toBeUndefined();
+    });
   });
 
   test('transaction has correct metadata after multiple navigations', async () => {
