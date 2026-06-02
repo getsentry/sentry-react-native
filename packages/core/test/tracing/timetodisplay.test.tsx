@@ -43,6 +43,7 @@ import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '.
 
 jest.mock('../../src/js/utils/environment', () => ({
   isWeb: jest.fn().mockReturnValue(false),
+  isExpoFetchEnabled: jest.fn().mockReturnValue(false),
   isTurboModuleEnabled: jest.fn().mockReturnValue(false),
 }));
 

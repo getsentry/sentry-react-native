@@ -43,6 +43,35 @@ describe('breadcrumbsIntegration', () => {
     });
   });
 
+  it('enables fetch breadcrumbs when expo/fetch is active', () => {
+    jest.spyOn(environment, 'isWeb').mockReturnValue(false);
+    jest.spyOn(environment, 'isExpoFetchEnabled').mockReturnValue(true);
+
+    breadcrumbsIntegration();
+
+    expect(browserBreadcrumbsIntegration).toHaveBeenCalledWith({
+      xhr: true,
+      console: true,
+      sentry: true,
+      dom: false,
+      fetch: true,
+      history: false,
+    });
+  });
+
+  it('respects explicit fetch: false even when expo/fetch is active', () => {
+    jest.spyOn(environment, 'isWeb').mockReturnValue(false);
+    jest.spyOn(environment, 'isExpoFetchEnabled').mockReturnValue(true);
+
+    breadcrumbsIntegration({ fetch: false });
+
+    expect(browserBreadcrumbsIntegration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fetch: false,
+      }),
+    );
+  });
+
   it('respects custom options React Native options', () => {
     jest.spyOn(environment, 'isWeb').mockReturnValue(false);
 

@@ -17,7 +17,7 @@ jest.mock('../../src/js/wrapper', () => {
 import type { TestClient } from '../mocks/client';
 
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
-import { isWeb } from '../../src/js/utils/environment';
+import { isExpoFetchEnabled, isWeb } from '../../src/js/utils/environment';
 import { setupTestClient } from '../mocks/client';
 
 jest.mock('../../src/js/tracing/utils', () => {
@@ -99,6 +99,78 @@ describe('ReactNativeTracing', () => {
         expect.anything(),
         expect.objectContaining({
           tracePropagationTargets: undefined,
+        }),
+      );
+    });
+  });
+
+  describe('traceFetch default', () => {
+    it('disables fetch tracing on mobile without expo/fetch', () => {
+      (isWeb as jest.MockedFunction<typeof isWeb>).mockReturnValue(false);
+      (isExpoFetchEnabled as jest.MockedFunction<typeof isExpoFetchEnabled>).mockReturnValue(false);
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          traceFetch: false,
+          traceXHR: true,
+        }),
+      );
+    });
+
+    it('enables fetch tracing when expo/fetch is active', () => {
+      (isWeb as jest.MockedFunction<typeof isWeb>).mockReturnValue(false);
+      (isExpoFetchEnabled as jest.MockedFunction<typeof isExpoFetchEnabled>).mockReturnValue(true);
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          traceFetch: true,
+          traceXHR: true,
+        }),
+      );
+    });
+
+    it('enables fetch tracing on web', () => {
+      (isWeb as jest.MockedFunction<typeof isWeb>).mockReturnValue(true);
+      (isExpoFetchEnabled as jest.MockedFunction<typeof isExpoFetchEnabled>).mockReturnValue(false);
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          traceFetch: true,
+        }),
+      );
+    });
+
+    it('respects explicit user option over defaults', () => {
+      (isWeb as jest.MockedFunction<typeof isWeb>).mockReturnValue(false);
+      (isExpoFetchEnabled as jest.MockedFunction<typeof isExpoFetchEnabled>).mockReturnValue(true);
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration({ traceFetch: false })],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          traceFetch: false,
         }),
       );
     });
