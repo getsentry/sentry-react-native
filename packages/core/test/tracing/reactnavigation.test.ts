@@ -316,6 +316,30 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(client.event?.contexts?.trace?.data?.['navigation.method']).toBeUndefined();
     });
+
+    test('drains the pending value even when the listener short-circuits (no leak onto the next nav)', async () => {
+      // Reproduces the bug flagged by sentry-bot/cursor-bot: with
+      // `useDispatchedActionData: true`, a dispatched action without a route
+      // name in its payload makes `startIdleNavigationSpan` early-return before
+      // creating a span. The pending Expo Router value must still be drained,
+      // otherwise the *next* unrelated navigation inherits the wrong
+      // `navigation.method`.
+      setupTestClient({ useDispatchedActionData: true });
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      // Simulate `router.back()` (or any wrapped method) whose underlying
+      // dispatch carries no route name in payload — the listener short-circuits.
+      setPendingExpoRouterNavigation({ method: 'back' });
+      mockNavigation.emitCancelledNavigation();
+      jest.runOnlyPendingTimers();
+
+      // Next, unrelated navigation — must NOT inherit `navigation.method: 'back'`.
+      mockNavigation.navigateToNewScreenWithPayload();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      expect(client.event?.contexts?.trace?.data?.['navigation.method']).toBeUndefined();
+    });
   });
 
   test('transaction has correct metadata after multiple navigations', async () => {
