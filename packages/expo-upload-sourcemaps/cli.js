@@ -14,6 +14,31 @@ function getEnvVar(varname) {
   return process.env[varname];
 }
 
+function resolveSentryCliBin() {
+  const configuredExecutable = getEnvVar(SENTRY_CLI_EXECUTABLE);
+  if (configuredExecutable) {
+    return configuredExecutable;
+  }
+
+  let dependencyRelativeError;
+  try {
+    return require.resolve('@sentry/cli/bin/sentry-cli', {
+      paths: [require.resolve('@sentry/expo-upload-sourcemaps/package.json')],
+    });
+  } catch (error) {
+    dependencyRelativeError = error;
+  }
+
+  try {
+    return require.resolve('@sentry/cli/bin/sentry-cli');
+  } catch (error) {
+    console.error(`Could not resolve sentry-cli. Set ${SENTRY_CLI_EXECUTABLE} to the sentry-cli executable path.`);
+    console.error('Dependency-relative resolution failed:', dependencyRelativeError);
+    console.error('Standard resolution failed:', error);
+    process.exit(1);
+  }
+}
+
 function getSentryPluginPropertiesFromExpoConfig() {
   try {
     let expoPkgJson;
@@ -187,11 +212,7 @@ let sentryOrg = getEnvVar(SENTRY_ORG);
 let sentryUrl = getEnvVar(SENTRY_URL);
 let sentryProject = getEnvVar(SENTRY_PROJECT);
 let authToken = getEnvVar(SENTRY_AUTH_TOKEN);
-const sentryCliBin =
-  getEnvVar(SENTRY_CLI_EXECUTABLE) ||
-  require.resolve('@sentry/cli/bin/sentry-cli', {
-    paths: [require.resolve('@sentry/expo-upload-sourcemaps/package.json')],
-  });
+const sentryCliBin = resolveSentryCliBin();
 
 if (!sentryOrg || !sentryProject || !sentryUrl) {
   console.log('🐕 Fetching from expo config...');

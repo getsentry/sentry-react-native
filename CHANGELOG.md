@@ -12,6 +12,10 @@
 
 - Add `enableAutoConsoleLogs` option to opt out of automatic `console.*` capture while keeping `enableLogs: true` for manual `Sentry.logger.*` calls ([#6235](https://github.com/getsentry/sentry-react-native/pull/6235))
 
+### Fixes
+
+- Resolve `sentry-cli` in isolated dependency layouts ([#6242](https://github.com/getsentry/sentry-react-native/pull/6242))
+
 ### Internal
 
 - Convert `sentry.gradle` to Kotlin DSL (`sentry.gradle.kts`) ([#6119](https://github.com/getsentry/sentry-react-native/pull/6119))
