@@ -57,4 +57,14 @@ export interface NativeAndroidProfileEvent {
    * Proguard mapping file hash
    */
   build_id?: string;
+  measurements?: Record<
+    string,
+    {
+      unit: string;
+      values: {
+        elapsed_since_start_ns: string;
+        value: number;
+      }[];
+    }
+  >;
 }

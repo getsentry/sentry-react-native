@@ -147,4 +147,37 @@ describe('enrichAndroidProfileWithEventContext', () => {
     expect(result).not.toBeNull();
     expect(result).not.toHaveProperty('profilingStartTimestampNs');
   });
+
+  test('should include measurements when present', () => {
+    const measurements = {
+      cpu_usage: {
+        unit: 'percent' as const,
+        values: [
+          { elapsed_since_start_ns: 0, value: 35.5 },
+          { elapsed_since_start_ns: 5000000, value: 42.1 },
+        ],
+      },
+      memory_footprint: {
+        unit: 'byte' as const,
+        values: [{ elapsed_since_start_ns: 0, value: 104857600 }],
+      },
+    };
+    const profile = createMockAndroidCombinedProfile({ measurements });
+    const event = createMockEvent();
+
+    const result = enrichAndroidProfileWithEventContext('profile-id', profile, event);
+
+    expect(result).not.toBeNull();
+    expect(result!.measurements).toEqual(measurements);
+  });
+
+  test('should not include measurements when absent', () => {
+    const profile = createMockAndroidCombinedProfile();
+    const event = createMockEvent();
+
+    const result = enrichAndroidProfileWithEventContext('profile-id', profile, event);
+
+    expect(result).not.toBeNull();
+    expect(result!.measurements).toBeUndefined();
+  });
 });

@@ -51,6 +51,8 @@ import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
+import io.sentry.profilemeasurements.ProfileMeasurement;
+import io.sentry.profilemeasurements.ProfileMeasurementValue;
 import io.sentry.protocol.Geo;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
@@ -823,11 +825,23 @@ public class RNSentryModuleImpl {
     }
     final String tracesFilesDirPath = getProfilingTracesDirPath();
 
+    SentryFrameMetricsCollector collector = null;
+    try {
+      final SentryOptions options = Sentry.getCurrentScopes().getOptions();
+      if (options instanceof SentryAndroidOptions) {
+        collector = ((SentryAndroidOptions) options).getFrameMetricsCollector();
+      }
+    } catch (Throwable ignored) { // NOPMD - Best-effort
+    }
+    if (collector == null) {
+      collector = new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo);
+    }
+
     androidProfiler.set(
         new AndroidProfiler(
             tracesFilesDirPath,
             (int) SECONDS.toMicros(1) / profilingTracesHz,
-            new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
+            collector,
             () -> executorService,
             logger));
   }
@@ -908,6 +922,27 @@ public class RNSentryModuleImpl {
         androidProfile.putString("sampled_profile", base64AndroidProfile);
         androidProfile.putInt("android_api_level", buildInfo.getSdkInfoVersion());
         androidProfile.putString("build_id", getProguardUuid());
+
+        if (end.measurementsMap != null && !end.measurementsMap.isEmpty()) {
+          WritableMap measurements = new WritableNativeMap();
+          for (Map.Entry<String, ProfileMeasurement> entry : end.measurementsMap.entrySet()) {
+            WritableMap measurement = new WritableNativeMap();
+            measurement.putString("unit", entry.getValue().getUnit());
+            WritableArray values = new WritableNativeArray();
+            if (entry.getValue().getValues() != null) {
+              for (ProfileMeasurementValue pmv : entry.getValue().getValues()) {
+                WritableMap value = new WritableNativeMap();
+                value.putString("elapsed_since_start_ns", pmv.getRelativeStartNs());
+                value.putDouble("value", pmv.getValue());
+                values.pushMap(value);
+              }
+            }
+            measurement.putArray("values", values);
+            measurements.putMap(entry.getKey(), measurement);
+          }
+          androidProfile.putMap("measurements", measurements);
+        }
+
         result.putMap("androidProfile", androidProfile);
       }
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
