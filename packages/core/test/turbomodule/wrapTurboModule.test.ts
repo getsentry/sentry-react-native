@@ -2,13 +2,14 @@ import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
 
 import { _resetTurboModuleTracker, getTurboModuleCallStack } from '../../src/js/turbomodule/turboModuleTracker';
-import { wrapTurboModule } from '../../src/js/turbomodule/wrapTurboModule';
+import { _resetWrappedModules, wrapTurboModule } from '../../src/js/turbomodule/wrapTurboModule';
 
 describe('wrapTurboModule', () => {
   let scope: Scope;
 
   beforeEach(() => {
     _resetTurboModuleTracker();
+    _resetWrappedModules();
     scope = new Scope();
     jest.spyOn(SentryCore, 'getCurrentScope').mockReturnValue(scope);
   });
@@ -74,6 +75,26 @@ describe('wrapTurboModule', () => {
     expect(getTurboModuleCallStack()).toEqual([]);
   });
 
+  it('relabels async calls to kind="async" once the call returns a thenable', () => {
+    let resolveCall: (value: string) => void = () => undefined;
+    const module = {
+      asyncOp: () =>
+        new Promise<string>(resolve => {
+          resolveCall = resolve;
+        }),
+    };
+
+    wrapTurboModule('Mod', module);
+
+    const promise = module.asyncOp();
+
+    expect(getTurboModuleCallStack()[0]).toMatchObject({ method: 'asyncOp', kind: 'async' });
+    expect(scope.getScopeData().contexts.turbo_module).toMatchObject({ method: 'asyncOp', kind: 'async' });
+
+    resolveCall('done');
+    return promise;
+  });
+
   it('pops when an async method rejects', async () => {
     const module = {
       asyncFail: () => Promise.reject(new Error('nope')),
@@ -113,6 +134,54 @@ describe('wrapTurboModule', () => {
     wrapTurboModule('Mod', module);
 
     expect(module.doStuff).toBe(wrappedOnce);
+  });
+
+  it('does not double-wrap a sealed module on repeated calls', () => {
+    const module: { doStuff: () => void } = {
+      doStuff: () => undefined,
+    };
+    wrapTurboModule('Mod', module);
+    Object.seal(module);
+
+    // Repeated wrap attempts must be no-ops, otherwise every real call would
+    // push the same frame multiple times onto the tracker stack.
+    wrapTurboModule('Mod', module);
+    wrapTurboModule('Mod', module);
+
+    module.doStuff();
+    expect(getTurboModuleCallStack()).toEqual([]);
+  });
+
+  it('discovers methods exposed via the prototype chain (JSI HostObject shape)', () => {
+    let stackDuringCall: ReturnType<typeof getTurboModuleCallStack> = [];
+    class HostObjectLike {
+      public doStuff(): string {
+        stackDuringCall = getTurboModuleCallStack();
+        return 'ok';
+      }
+    }
+    const module = new HostObjectLike();
+
+    // sanity: methods are exposed via the prototype, not as own properties
+    expect(Object.keys(module)).toEqual([]);
+
+    wrapTurboModule('HostObj', module);
+
+    const result = module.doStuff();
+
+    expect(result).toBe('ok');
+    expect(stackDuringCall).toHaveLength(1);
+    expect(stackDuringCall[0]).toMatchObject({ name: 'HostObj', method: 'doStuff' });
+  });
+
+  it('warns and bails out cleanly when no methods are discoverable', () => {
+    const warnSpy = jest.spyOn(require('@sentry/react').logger, 'warn').mockImplementation(() => undefined);
+
+    const opaque = Object.create(null) as object;
+
+    wrapTurboModule('Opaque', opaque);
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("No methods discovered on 'Opaque'"));
   });
 
   it('ignores non-function properties', () => {

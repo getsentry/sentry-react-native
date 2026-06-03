@@ -13,6 +13,7 @@
 - Add `disableAutoUpload` option to Expo plugin to disable source map and debug symbol uploads ([#6195](https://github.com/getsentry/sentry-react-native/pull/6195))
 - Expose `pauseAppHangTracking` and `resumeAppHangTracking` APIs on iOS ([#6192](https://github.com/getsentry/sentry-react-native/pull/6192))
 - Better route and dynamic param extraction for Expo Router ([#6197](https://github.com/getsentry/sentry-react-native/pull/6197))
+- Attach the active TurboModule method to native crash reports as `contexts.turbo_module` + `turbo_module.name` / `turbo_module.method` tags ([#6227](https://github.com/getsentry/sentry-react-native/pull/6227))
 
 ### Fixes
 

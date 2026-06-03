@@ -6,6 +6,7 @@ import {
   getTurboModuleCallStack,
   popTurboModuleCall,
   pushTurboModuleCall,
+  relabelTurboModuleCallKind,
 } from '../../src/js/turbomodule/turboModuleTracker';
 
 describe('turboModuleTracker', () => {
@@ -88,6 +89,32 @@ describe('turboModuleTracker', () => {
     popTurboModuleCall(9999, scope);
 
     expect(getActiveTurboModuleCall()?.callId).toBe(id);
+  });
+
+  it('relabels the active call kind and re-syncs the scope', () => {
+    const id = pushTurboModuleCall({ name: 'RNSentry', method: 'captureEnvelope', kind: 'sync', scope });
+
+    const relabelled = relabelTurboModuleCallKind(id, 'async', scope);
+
+    expect(relabelled).toBe(true);
+    expect(getActiveTurboModuleCall()?.kind).toBe('async');
+    expect(scope.getScopeData().contexts.turbo_module).toMatchObject({ kind: 'async' });
+  });
+
+  it('relabels a non-top frame without touching the scope context', () => {
+    const outer = pushTurboModuleCall({ name: 'M', method: 'outer', kind: 'sync', scope });
+    pushTurboModuleCall({ name: 'M', method: 'inner', kind: 'sync', scope });
+
+    relabelTurboModuleCallKind(outer, 'async', scope);
+
+    // outer was relabelled
+    expect(getTurboModuleCallStack().find(c => c.callId === outer)?.kind).toBe('async');
+    // but the active scope context still describes the top of stack ('inner', sync)
+    expect(scope.getScopeData().contexts.turbo_module).toMatchObject({ method: 'inner', kind: 'sync' });
+  });
+
+  it('relabel returns false for an unknown id', () => {
+    expect(relabelTurboModuleCallKind(9999, 'async')).toBe(false);
   });
 
   it('assigns monotonically increasing call ids', () => {

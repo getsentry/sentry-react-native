@@ -1,15 +1,16 @@
 import { logger } from '@sentry/react';
 
-import { popTurboModuleCall, pushTurboModuleCall } from './turboModuleTracker';
-
-const WRAPPED_FLAG = '__sentryTurboModuleWrapped__';
+import { popTurboModuleCall, pushTurboModuleCall, relabelTurboModuleCallKind } from './turboModuleTracker';
 
 /**
- * Marker added to wrapped modules so we never double-wrap (which would push the
- * same call twice onto the tracker stack).
+ * Modules we've already wrapped. Tracked off-module so that even sealed proxies
+ * (which can't accept a marker property) are protected from double-wrapping.
  */
-interface MaybeWrapped {
-  [WRAPPED_FLAG]?: boolean;
+let wrappedModules = new WeakSet<object>();
+
+/** Tests only. */
+export function _resetWrappedModules(): void {
+  wrappedModules = new WeakSet<object>();
 }
 
 /**
@@ -18,8 +19,8 @@ interface MaybeWrapped {
  * `module` reference for chaining convenience.
  *
  * - Sync methods are tracked as `kind: 'sync'` and popped right after the call.
- * - Async methods (those returning a thenable) are tracked as `kind: 'async'`
- *   and popped when the returned promise settles.
+ * - Async methods (those returning a thenable) are relabelled to `kind: 'async'`
+ *   right after the call dispatches and popped when the returned promise settles.
  *
  * `skip` can be used to opt specific method names out of tracking (e.g. very
  * hot, no-op methods like RN's `addListener`/`removeListeners` event-emitter
@@ -34,15 +35,24 @@ export function wrapTurboModule<T extends object>(
     return module;
   }
 
-  const maybeWrapped = module as T & MaybeWrapped;
-  if (maybeWrapped[WRAPPED_FLAG]) {
+  if (wrappedModules.has(module)) {
+    return module;
+  }
+  wrappedModules.add(module);
+
+  const skip = new Set(options.skip ?? []);
+  const methodNames = collectMethodNames(module);
+
+  if (methodNames.length === 0) {
+    logger.warn(
+      `[TurboModuleTracker] No methods discovered on '${name}' — TurboModule context will not be attached for this module. ` +
+        `This usually means the module is a JSI HostObject that only materialises methods on first access.`,
+    );
     return module;
   }
 
-  const skip = new Set(options.skip ?? []);
-
   const target = module as unknown as Record<string, unknown>;
-  for (const key of Object.keys(target)) {
+  for (const key of methodNames) {
     if (skip.has(key)) {
       continue;
     }
@@ -52,9 +62,9 @@ export function wrapTurboModule<T extends object>(
     }
     const originalFn = original as (...a: unknown[]) => unknown;
 
-    target[key] = function sentryTurboModuleWrapper(this: unknown, ...args: unknown[]): unknown {
+    const wrapper = function sentryTurboModuleWrapper(this: unknown, ...args: unknown[]): unknown {
       // We don't know yet whether `original` is sync or async — start optimistic
-      // as sync, upgrade the scope context if the result is thenable.
+      // as sync, relabel to 'async' if the result turns out to be thenable.
       const callId = pushTurboModuleCall({ name, method: key, kind: 'sync' });
       let result: unknown;
       try {
@@ -65,13 +75,7 @@ export function wrapTurboModule<T extends object>(
       }
 
       if (isThenable(result)) {
-        // Re-record as async — clearer in the report. We just overwrite the
-        // existing tracker frame in place by popping + re-pushing with a fresh
-        // id would lose ordering, so instead we leave the stack frame alone
-        // and only relabel for the scope on completion (it's the *active*
-        // call's `kind` that ends up in `contexts.turbo_module`, and the
-        // outer perf-logger driven users can push with `kind: 'async'`
-        // directly when they know up front).
+        relabelTurboModuleCallKind(callId, 'async');
         return (result as Promise<unknown>).then(
           value => {
             popTurboModuleCall(callId);
@@ -87,27 +91,39 @@ export function wrapTurboModule<T extends object>(
       popTurboModuleCall(callId);
       return result;
     };
-  }
 
-  try {
-    Object.defineProperty(module, WRAPPED_FLAG, {
-      value: true,
-      enumerable: false,
-      configurable: false,
-      writable: false,
-    });
-  } catch (e) {
-    // Some TurboModule proxies are sealed — that's fine, we still patched the
-    // methods, but a second wrap call would be a no-op anyway because the
-    // properties now point at our wrappers (re-wrapping would still push
-    // through to `original` which is itself a wrapper, but the per-call
-    // pushes would double up). Log so this is visible during development.
-    logger.warn(
-      `[TurboModuleTracker] Could not mark ${name} as wrapped — repeated wrapping would double-track invocations.`,
-    );
+    try {
+      target[key] = wrapper;
+    } catch {
+      // Sealed / non-writable property — can't intercept this method, but we
+      // can still wrap the rest. Skip silently; the module-level method-count
+      // check above is the cliff that catches the "wrapped nothing" case.
+    }
   }
 
   return module;
+}
+
+/**
+ * Returns the union of own + prototype-chain method names on `module`,
+ * deduplicated and skipping `Object.prototype`. Walking the prototype chain is
+ * necessary for JSI HostObject-backed TurboModule proxies under RN's New
+ * Architecture, which can expose methods via the proto chain rather than as
+ * own enumerable properties.
+ */
+function collectMethodNames(module: object): string[] {
+  const seen = new Set<string>();
+  let current: object | null = module;
+  while (current && current !== Object.prototype) {
+    for (const key of Object.getOwnPropertyNames(current)) {
+      if (key === 'constructor') {
+        continue;
+      }
+      seen.add(key);
+    }
+    current = Object.getPrototypeOf(current) as object | null;
+  }
+  return Array.from(seen);
 }
 
 function isThenable(value: unknown): value is PromiseLike<unknown> {

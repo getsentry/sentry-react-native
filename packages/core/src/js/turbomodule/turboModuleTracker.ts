@@ -94,6 +94,26 @@ export function pushTurboModuleCall(args: {
 }
 
 /**
+ * Updates the `kind` of a previously-pushed call (in place) and re-syncs the
+ * scope if the call is currently the active one. Used by
+ * {@link wrapTurboModule} once it discovers that a method's return value is
+ * thenable.
+ *
+ * Returns `true` if the call was found and relabelled.
+ */
+export function relabelTurboModuleCallKind(callId: number, kind: 'sync' | 'async', scope?: Scope): boolean {
+  const call = stack.find(c => c.callId === callId);
+  if (!call || call.kind === kind) {
+    return !!call;
+  }
+  call.kind = kind;
+  if (stack[stack.length - 1] === call) {
+    syncToScope(call, scope);
+  }
+  return true;
+}
+
+/**
  * Records the end of a TurboModule method invocation previously started with
  * {@link pushTurboModuleCall}. Pops the matching frame off the stack and
  * updates the Sentry scope to point at the new top (or clears the context if
