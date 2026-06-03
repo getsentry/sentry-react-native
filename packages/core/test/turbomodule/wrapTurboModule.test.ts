@@ -1,6 +1,7 @@
 import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
 
+import * as tracker from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetTurboModuleTracker, getTurboModuleCallStack } from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetWrappedModules, wrapTurboModule } from '../../src/js/turbomodule/wrapTurboModule';
 
@@ -143,13 +144,40 @@ describe('wrapTurboModule', () => {
     wrapTurboModule('Mod', module);
     Object.seal(module);
 
-    // Repeated wrap attempts must be no-ops, otherwise every real call would
-    // push the same frame multiple times onto the tracker stack.
+    // Repeated wrap attempts must be no-ops — every real call should push
+    // exactly one frame onto the tracker, no matter how many times we wrapped.
     wrapTurboModule('Mod', module);
     wrapTurboModule('Mod', module);
 
+    const pushSpy = jest.spyOn(tracker, 'pushTurboModuleCall');
     module.doStuff();
+    expect(pushSpy).toHaveBeenCalledTimes(1);
     expect(getTurboModuleCallStack()).toEqual([]);
+  });
+
+  it('retries wrapping a previously-empty module (lazy JSI HostObject)', () => {
+    const warnSpy = jest.spyOn(require('@sentry/react').logger, 'warn').mockImplementation(() => undefined);
+
+    // First call: methods not yet materialised — should warn, NOT mark as wrapped.
+    const lazyModule: { doStuff?: () => string } = Object.create(null) as { doStuff?: () => string };
+    wrapTurboModule('Lazy', lazyModule);
+    expect(warnSpy).toHaveBeenCalled();
+
+    // Methods materialise (simulating a HostObject's lazy method resolution).
+    let seenDuringCall: ReturnType<typeof getTurboModuleCallStack> = [];
+    lazyModule.doStuff = () => {
+      seenDuringCall = getTurboModuleCallStack();
+      return 'ok';
+    };
+
+    // Second wrap must now actually install a wrapper on the freshly-discovered method.
+    wrapTurboModule('Lazy', lazyModule);
+
+    const result = lazyModule.doStuff();
+
+    expect(result).toBe('ok');
+    expect(seenDuringCall).toHaveLength(1);
+    expect(seenDuringCall[0]).toMatchObject({ name: 'Lazy', method: 'doStuff' });
   });
 
   it('discovers methods exposed via the prototype chain (JSI HostObject shape)', () => {

@@ -38,12 +38,13 @@ export function wrapTurboModule<T extends object>(
   if (wrappedModules.has(module)) {
     return module;
   }
-  wrappedModules.add(module);
 
   const skip = new Set(options.skip ?? []);
   const methodNames = collectMethodNames(module);
 
   if (methodNames.length === 0) {
+    // Do NOT add to wrappedModules — a later call (e.g. once a JSI HostObject
+    // has materialised its methods) should still get a chance to wrap.
     logger.warn(
       `[TurboModuleTracker] No methods discovered on '${name}' — TurboModule context will not be attached for this module. ` +
         `This usually means the module is a JSI HostObject that only materialises methods on first access.`,
@@ -51,6 +52,7 @@ export function wrapTurboModule<T extends object>(
     return module;
   }
 
+  let wrappedAny = false;
   const target = module as unknown as Record<string, unknown>;
   for (const key of methodNames) {
     if (skip.has(key)) {
@@ -94,11 +96,18 @@ export function wrapTurboModule<T extends object>(
 
     try {
       target[key] = wrapper;
+      wrappedAny = true;
     } catch {
       // Sealed / non-writable property — can't intercept this method, but we
-      // can still wrap the rest. Skip silently; the module-level method-count
-      // check above is the cliff that catches the "wrapped nothing" case.
+      // can still wrap the rest. Skip silently.
     }
+  }
+
+  // Only mark as wrapped if we actually installed at least one wrapper.
+  // Otherwise a future call (e.g. after the proxy has materialised methods)
+  // should be allowed to retry.
+  if (wrappedAny) {
+    wrappedModules.add(module);
   }
 
   return module;

@@ -18,6 +18,16 @@ export interface TurboModuleCall {
   callId: number;
 }
 
+interface InternalCall extends TurboModuleCall {
+  /**
+   * Scope captured at push time. We pin it so that an async call which spans a
+   * scope switch (`withScope`, isolation-scope swaps, …) pops the *same* scope
+   * it pushed onto — otherwise we'd clear `turbo_module` on the wrong scope and
+   * leave stale data on the original.
+   */
+  scope: Scope;
+}
+
 const CONTEXT_KEY = 'turbo_module';
 const TAG_NAME = 'turbo_module.name';
 const TAG_METHOD = 'turbo_module.method';
@@ -41,7 +51,7 @@ let nextCallId = 0;
  * `tags` for crash reports) — this covers crashes that happen *after* the
  * scope update is flushed but is not strictly async-signal-safe.
  */
-const stack: TurboModuleCall[] = [];
+const stack: InternalCall[] = [];
 
 /**
  * Returns the active TurboModule call (top of stack), or `undefined` if no
@@ -80,16 +90,17 @@ export function pushTurboModuleCall(args: {
   kind: 'sync' | 'async';
   scope?: Scope;
 }): number {
-  const call: TurboModuleCall = {
+  const call: InternalCall = {
     name: args.name,
     method: args.method,
     kind: args.kind,
     startedAtMs: Date.now(),
     callId: nextCallId++,
+    scope: args.scope ?? getCurrentScope(),
   };
 
   stack.push(call);
-  syncToScope(call, args.scope);
+  syncToScope(call);
   return call.callId;
 }
 
@@ -101,14 +112,14 @@ export function pushTurboModuleCall(args: {
  *
  * Returns `true` if the call was found and relabelled.
  */
-export function relabelTurboModuleCallKind(callId: number, kind: 'sync' | 'async', scope?: Scope): boolean {
+export function relabelTurboModuleCallKind(callId: number, kind: 'sync' | 'async'): boolean {
   const call = stack.find(c => c.callId === callId);
   if (!call || call.kind === kind) {
     return !!call;
   }
   call.kind = kind;
   if (stack[stack.length - 1] === call) {
-    syncToScope(call, scope);
+    syncToScope(call);
   }
   return true;
 }
@@ -122,44 +133,55 @@ export function relabelTurboModuleCallKind(callId: number, kind: 'sync' | 'async
  * `callId` is the value returned by `pushTurboModuleCall`. If the call cannot
  * be found (e.g. due to a misuse / race), the pop is a no-op.
  */
-export function popTurboModuleCall(callId: number, scope?: Scope): void {
+export function popTurboModuleCall(callId: number): void {
   // The common case is a perfectly nested LIFO — pop from the end.
+  let popped: InternalCall | undefined;
   const top = stack[stack.length - 1];
   if (top?.callId === callId) {
-    stack.pop();
+    popped = stack.pop();
   } else {
     // Out-of-order completion (async). Find and splice.
     const index = stack.findIndex(c => c.callId === callId);
     if (index < 0) {
       return;
     }
-    stack.splice(index, 1);
+    [popped] = stack.splice(index, 1);
   }
 
-  const newTop = stack[stack.length - 1];
-  if (newTop) {
-    syncToScope(newTop, scope);
-  } else {
-    clearScope(scope);
+  // Always clear / update on the scope the call was pushed against — the
+  // current scope may have changed in the meantime (async, withScope, …).
+  if (popped) {
+    const newTop = stack[stack.length - 1];
+    if (newTop && newTop.scope === popped.scope) {
+      syncToScope(newTop);
+    } else {
+      clearScope(popped.scope);
+    }
   }
 }
 
-function syncToScope(call: TurboModuleCall, scope?: Scope): void {
-  const target = scope ?? getCurrentScope();
-  target.setContext(CONTEXT_KEY, {
+function syncToScope(call: InternalCall): void {
+  call.scope.setContext(CONTEXT_KEY, {
     name: call.name,
     method: call.method,
     kind: call.kind,
     started_at_ms: call.startedAtMs,
     call_id: call.callId,
   });
-  target.setTag(TAG_NAME, call.name);
-  target.setTag(TAG_METHOD, call.method);
+  call.scope.setTag(TAG_NAME, call.name);
+  call.scope.setTag(TAG_METHOD, call.method);
 }
 
-function clearScope(scope?: Scope): void {
-  const target = scope ?? getCurrentScope();
-  target.setContext(CONTEXT_KEY, null);
-  target.setTag(TAG_NAME, undefined);
-  target.setTag(TAG_METHOD, undefined);
+// Empty-string sentinel for the "no active call" state. We don't pass
+// `undefined` because the native `setTag(key, value)` TurboModule spec
+// requires a string — the bridge would otherwise see `undefined` and either
+// throw or silently drop the call. `setContext(CONTEXT_KEY, null)` is the
+// canonical "no active call" signal; the empty tags exist only so the tag set
+// doesn't carry stale `name`/`method` from the previous call.
+const NO_ACTIVE_CALL = '';
+
+function clearScope(scope: Scope): void {
+  scope.setContext(CONTEXT_KEY, null);
+  scope.setTag(TAG_NAME, NO_ACTIVE_CALL);
+  scope.setTag(TAG_METHOD, NO_ACTIVE_CALL);
 }

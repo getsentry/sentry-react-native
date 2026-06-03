@@ -49,12 +49,32 @@ describe('turboModuleTracker', () => {
 
   it('clears the scope when the stack drains', () => {
     const id = pushTurboModuleCall({ name: 'RNSentry', method: 'crash', kind: 'sync', scope });
-    popTurboModuleCall(id, scope);
+    popTurboModuleCall(id);
 
     expect(getActiveTurboModuleCall()).toBeUndefined();
     expect(scope.getScopeData().contexts.turbo_module).toBeUndefined();
-    expect(scope.getScopeData().tags['turbo_module.name']).toBeUndefined();
-    expect(scope.getScopeData().tags['turbo_module.method']).toBeUndefined();
+    // Tags are cleared to the empty-string sentinel (native `setTag` requires a string).
+    expect(scope.getScopeData().tags['turbo_module.name']).toBe('');
+    expect(scope.getScopeData().tags['turbo_module.method']).toBe('');
+  });
+
+  it('pops against the scope captured at push time, not the current scope', () => {
+    const pushScope = new Scope();
+    const otherScope = new Scope();
+
+    const id = pushTurboModuleCall({ name: 'RNSentry', method: 'captureEnvelope', kind: 'async', scope: pushScope });
+    expect(pushScope.getScopeData().contexts.turbo_module).toBeDefined();
+
+    // Simulate a scope switch happening before the async call settles.
+    // pop must still clear `pushScope`, not `otherScope`.
+    popTurboModuleCall(id);
+
+    // Scope.setContext(key, null) removes the entry, so contexts.turbo_module is undefined after clear.
+    expect(pushScope.getScopeData().contexts.turbo_module).toBeUndefined();
+    expect(pushScope.getScopeData().tags['turbo_module.name']).toBe('');
+    // The unrelated scope was never written to.
+    expect(otherScope.getScopeData().contexts.turbo_module).toBeUndefined();
+    expect(otherScope.getScopeData().tags['turbo_module.name']).toBeUndefined();
   });
 
   it('exposes the new top of stack after popping a nested call', () => {
@@ -63,12 +83,12 @@ describe('turboModuleTracker', () => {
 
     expect(scope.getScopeData().tags['turbo_module.method']).toBe('inner');
 
-    popTurboModuleCall(inner, scope);
+    popTurboModuleCall(inner);
 
     expect(getActiveTurboModuleCall()?.callId).toBe(outer);
     expect(scope.getScopeData().tags['turbo_module.method']).toBe('outer');
 
-    popTurboModuleCall(outer, scope);
+    popTurboModuleCall(outer);
     expect(getActiveTurboModuleCall()).toBeUndefined();
   });
 
@@ -77,7 +97,7 @@ describe('turboModuleTracker', () => {
     const second = pushTurboModuleCall({ name: 'RNSentry', method: 'second', kind: 'async', scope });
 
     // Inner async finishes first — pop the outer one.
-    popTurboModuleCall(first, scope);
+    popTurboModuleCall(first);
 
     expect(getTurboModuleCallStack().map(c => c.callId)).toEqual([second]);
     expect(scope.getScopeData().tags['turbo_module.method']).toBe('second');
@@ -86,7 +106,7 @@ describe('turboModuleTracker', () => {
   it('is a no-op when popping an unknown id', () => {
     const id = pushTurboModuleCall({ name: 'RNSentry', method: 'a', kind: 'sync', scope });
 
-    popTurboModuleCall(9999, scope);
+    popTurboModuleCall(9999);
 
     expect(getActiveTurboModuleCall()?.callId).toBe(id);
   });
@@ -94,7 +114,7 @@ describe('turboModuleTracker', () => {
   it('relabels the active call kind and re-syncs the scope', () => {
     const id = pushTurboModuleCall({ name: 'RNSentry', method: 'captureEnvelope', kind: 'sync', scope });
 
-    const relabelled = relabelTurboModuleCallKind(id, 'async', scope);
+    const relabelled = relabelTurboModuleCallKind(id, 'async');
 
     expect(relabelled).toBe(true);
     expect(getActiveTurboModuleCall()?.kind).toBe('async');
@@ -105,7 +125,7 @@ describe('turboModuleTracker', () => {
     const outer = pushTurboModuleCall({ name: 'M', method: 'outer', kind: 'sync', scope });
     pushTurboModuleCall({ name: 'M', method: 'inner', kind: 'sync', scope });
 
-    relabelTurboModuleCallKind(outer, 'async', scope);
+    relabelTurboModuleCallKind(outer, 'async');
 
     // outer was relabelled
     expect(getTurboModuleCallStack().find(c => c.callId === outer)?.kind).toBe('async');

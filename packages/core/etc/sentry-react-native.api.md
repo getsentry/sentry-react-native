@@ -537,7 +537,7 @@ export { OpenAiOptions }
 export function pauseAppHangTracking(): void;
 
 // @public
-export function popTurboModuleCall(callId: number, scope?: Scope): void;
+export function popTurboModuleCall(callId: number): void;
 
 // @public
 export const primitiveTagIntegration: () => Integration;
