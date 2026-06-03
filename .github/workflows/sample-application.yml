@@ -73,7 +73,7 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
         with:
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
           ruby-version: '3.3.0' # based on what is used in the sample
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload iOS APP
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios
           path: ${{ env.IOS_APP_ARCHIVE_PATH }}
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
@@ -164,13 +164,13 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
         with:
           java-version: '17'
           distribution: 'adopt'
 
       - name: Gradle cache
-        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
 
       - name: Install SDK Dependencies
         run: yarn install
@@ -197,7 +197,7 @@ jobs:
 
       - name: Upload Android APK
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-android
           path: ${{ env.ANDROID_APP_ARCHIVE_PATH }}
@@ -205,7 +205,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-sample-${{ matrix.rn-architecture }}-android-${{ matrix.build-type }}-no-frameworks-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/*.log
@@ -239,7 +239,7 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
         with:
           working-directory: samples/react-native-macos
           ruby-version: '3.3.0' # based on what is used in the sample
@@ -283,7 +283,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
           path: samples/react-native-macos/macos/*.log
@@ -307,7 +307,7 @@ jobs:
           version: ${{env.MAESTRO_VERSION}}
 
       - name: Download iOS App Archive
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sample-rn-new-production-no-frameworks-ios
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
@@ -387,7 +387,7 @@ jobs:
           version: ${{env.MAESTRO_VERSION}}
 
       - name: Download Android APK
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sample-rn-new-production-android
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}

@@ -15,7 +15,7 @@ high_risk_code: &high_risk_code
   # Source Maps and Native Debug Files Autoupload
   - 'scripts/sentry-xcode.sh'
   - 'scripts/sentry-xcode-debug-files.sh'
-  - 'sentry.gradle'
+  - 'sentry.gradle.kts'
 
 # --- Platform-specific filters for CI optimization ---
 # Used by detect-changes.yml to skip platform-irrelevant CI jobs.
@@ -32,7 +32,7 @@ ios_native:
 android_native:
   - 'packages/core/android/**'
   - 'packages/core/RNSentryAndroidTester/**'
-  - 'packages/core/sentry.gradle'
+  - 'packages/core/sentry.gradle.kts'
 
 # Changes to JS/TS source code (affects ALL platforms)
 js_source:

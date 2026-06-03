@@ -305,12 +305,32 @@ export function createAndroidWithHermesProfile(
   nativeAndroid: NativeAndroidProfileEvent,
   durationNs: number,
 ): AndroidCombinedProfileEvent {
+  const { measurements: nativeMeasurements, ...rest } = nativeAndroid;
+  let measurements: AndroidCombinedProfileEvent['measurements'];
+  if (nativeMeasurements) {
+    measurements = {};
+    for (const key of Object.keys(nativeMeasurements)) {
+      const nativeMeasurement = nativeMeasurements[key];
+      if (!nativeMeasurement) {
+        continue;
+      }
+      measurements[key] = {
+        unit: nativeMeasurement.unit,
+        values: nativeMeasurement.values.map(v => ({
+          elapsed_since_start_ns: Number(v.elapsed_since_start_ns),
+          value: v.value,
+        })),
+      };
+    }
+  }
+
   return {
-    ...nativeAndroid,
+    ...rest,
     platform: 'android',
     js_profile: hermes.profile,
     duration_ns: durationNs.toString(10),
     active_thread_id: hermes.transaction.active_thread_id,
+    ...(measurements && Object.keys(measurements).length > 0 && { measurements }),
   };
 }
 

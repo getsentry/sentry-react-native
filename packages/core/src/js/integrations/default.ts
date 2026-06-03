@@ -93,7 +93,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     integrations.push(modulesLoaderIntegration());
     if (options.enableLogs && options.logsOrigin !== 'native') {
       integrations.push(logEnricherIntegration());
-      integrations.push(consoleLoggingIntegration());
+      if (options.enableAutoConsoleLogs !== false) {
+        integrations.push(consoleLoggingIntegration());
+      }
     }
     if (options.attachScreenshot) {
       integrations.push(screenshotIntegration());

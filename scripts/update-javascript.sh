@@ -3,7 +3,7 @@ set -euo pipefail
 
 tagPrefix=''
 repo="https://github.com/getsentry/sentry-javascript.git"
-packages=('@sentry/browser' '@sentry/core' '@sentry/react' '@sentry/types' '@sentry-internal/typescript')
+packages=('@sentry/browser' '@sentry/core' '@sentry/react' '@sentry-internal/typescript')
 packages+=('@sentry-internal/eslint-plugin-sdk')
 
 . $(dirname "$0")/update-package-json.sh

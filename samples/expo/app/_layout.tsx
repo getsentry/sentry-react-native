@@ -1,10 +1,8 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
-import { useFonts } from 'expo-font';
 import * as ImagePicker from 'expo-image-picker';
 import { SplashScreen, Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-navigation';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
 
@@ -73,7 +71,8 @@ Sentry.init({
       Sentry.feedbackIntegration({
         enableScreenshot: true,
         enableTakeScreenshot: true,
-        imagePicker: ImagePicker,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        imagePicker: ImagePicker as any,
         buttonOptions: {
           styles: {
             triggerButton: {
@@ -108,27 +107,9 @@ Sentry.init({
 });
 
 function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
-    if (error) {
-      throw error;
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+    SplashScreen.hideAsync();
+  }, []);
 
   return <RootLayoutNav />;
 }

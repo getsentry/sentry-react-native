@@ -2,7 +2,7 @@ import type { Integration } from '@sentry/core';
 
 import { breadcrumbsIntegration as browserBreadcrumbsIntegration } from '@sentry/browser';
 
-import { isWeb } from '../utils/environment';
+import { isExpoFetchEnabled, isWeb } from '../utils/environment';
 
 interface BreadcrumbsOptions {
   /**
@@ -26,9 +26,10 @@ interface BreadcrumbsOptions {
    * Log HTTP requests done with the global Fetch API.
    *
    * Disabled by default in React Native because fetch is built on XMLHttpRequest.
-   * Enabled by default on web.
+   * Enabled by default on web and when Expo's native fetch (`expo/fetch`) is active.
    *
-   * Setting `fetch: true` and `xhr: true` will cause duplicates in React Native.
+   * Setting `fetch: true` and `xhr: true` will cause duplicates in React Native
+   * when using the default XHR-based fetch polyfill.
    */
   fetch: boolean;
 
@@ -47,10 +48,11 @@ interface BreadcrumbsOptions {
   /**
    * Log HTTP requests done with the XHR API.
    *
-   * Because React Native global fetch is built on XMLHttpRequest,
-   * this will also log `fetch` network requests.
-   *
-   * Setting `fetch: true` and `xhr: true` will cause duplicates in React Native.
+   * In standard React Native, fetch is built on XMLHttpRequest,
+   * so XHR breadcrumbs also capture fetch requests.
+   * When Expo's native fetch (`expo/fetch`) is active, XHR does not
+   * capture fetch requests — both `fetch` and `xhr` can be enabled
+   * without duplicates.
    */
   xhr: boolean;
 }
@@ -63,7 +65,7 @@ export const breadcrumbsIntegration = (options: Partial<BreadcrumbsOptions> = {}
     console: true,
     sentry: true,
     ...options,
-    fetch: options.fetch ?? (isWeb() ? true : false),
+    fetch: options.fetch ?? (isWeb() || isExpoFetchEnabled()),
     dom: isWeb() ? (options.dom ?? true) : false,
     history: isWeb() ? (options.history ?? true) : false,
   };

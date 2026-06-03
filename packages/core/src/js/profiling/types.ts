@@ -33,6 +33,7 @@ export type AndroidCombinedProfileEvent = {
   duration_ns: string;
   active_thread_id: string;
   profilingStartTimestampNs?: number;
+  measurements?: AndroidProfileEvent['measurements'];
 };
 
 /*

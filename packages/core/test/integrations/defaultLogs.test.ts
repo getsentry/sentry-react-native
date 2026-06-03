@@ -63,6 +63,30 @@ describe('getDefaultIntegrations - logging integrations', () => {
     expect(names).not.toContain(consoleLoggingIntegrationName);
   });
 
+  it('keeps log enricher but drops console logging when enableAutoConsoleLogs is false', () => {
+    const names = getIntegrationNames(
+      createOptions({
+        enableLogs: true,
+        enableAutoConsoleLogs: false,
+      }),
+    );
+
+    expect(names).toContain(logEnricherIntegrationName);
+    expect(names).not.toContain(consoleLoggingIntegrationName);
+  });
+
+  it('adds console logging when enableAutoConsoleLogs is true (explicit default)', () => {
+    const names = getIntegrationNames(
+      createOptions({
+        enableLogs: true,
+        enableAutoConsoleLogs: true,
+      }),
+    );
+
+    expect(names).toContain(logEnricherIntegrationName);
+    expect(names).toContain(consoleLoggingIntegrationName);
+  });
+
   it.each([
     ['all', true],
     ['js', true],

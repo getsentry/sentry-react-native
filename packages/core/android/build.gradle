@@ -52,11 +52,13 @@ android {
     }
 }
 
+def sentryAndroidVersion = '8.43.0'
+
 dependencies {
     compileOnly files('libs/replay-stubs.jar')
     implementation 'com.facebook.react:react-native:+'
-    api 'io.sentry:sentry-android:8.42.0'
-    debugImplementation 'io.sentry:sentry-spotlight:8.42.0'
+    api "io.sentry:sentry-android:$sentryAndroidVersion"
+    debugImplementation "io.sentry:sentry-spotlight:$sentryAndroidVersion"
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.12.0'
