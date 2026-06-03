@@ -3,8 +3,42 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import org.gradle.api.tasks.Exec
 import java.io.FileInputStream
 import java.util.Properties
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 import javax.inject.Inject
+
+val expectedSentryAndroidVersion = "8.43.0"
+
+val sentryVersionCheckWarned = AtomicBoolean(false)
+project.configurations.configureEach {
+    if (isCanBeResolved) {
+        incoming.afterResolve {
+            if (sentryVersionCheckWarned.get()) return@afterResolve
+            resolutionResult.allComponents {
+                val id = moduleVersion
+                if (id != null &&
+                    id.group == "io.sentry" &&
+                    id.name == "sentry-android-core" &&
+                    id.version != expectedSentryAndroidVersion
+                ) {
+                    if (sentryVersionCheckWarned.compareAndSet(false, true)) {
+                        logger.warn(
+                            "\nWARNING: @sentry/react-native depends on sentry-android " +
+                                "$expectedSentryAndroidVersion, but version ${id.version} was resolved. " +
+                                "This may cause build errors or unexpected behavior.\n" +
+                                "The most common cause is the Sentry Android Gradle Plugin (SAGP) " +
+                                "overriding the version via autoInstallation. To fix this, set " +
+                                "autoInstallation.enabled = false in your app/build.gradle.\n" +
+                                "Other causes include resolutionStrategy.force, BOMs, or another " +
+                                "library depending on a different sentry-android version.\n" +
+                                "See: https://docs.sentry.io/platforms/react-native/manual-setup/manual-setup/#android\n",
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 extra["shouldSentryAutoUploadNative"] =
     object : groovy.lang.Closure<Boolean>(this) {

@@ -10,9 +10,11 @@
 
 ### Features
 
+- Add memory, CPU, and frame measurements to Android profiling ([#6250](https://github.com/getsentry/sentry-react-native/pull/6250))
 - Add `enableAutoConsoleLogs` option to opt out of automatic `console.*` capture while keeping `enableLogs: true` for manual `Sentry.logger.*` calls ([#6235](https://github.com/getsentry/sentry-react-native/pull/6235))
 - Instrument Expo Router `push`, `replace`, `navigate`, `back`, and `dismiss` (in addition to `prefetch`) with breadcrumbs and spans, and tag the resulting idle navigation span with the initiating `navigation.method` ([#6221](https://github.com/getsentry/sentry-react-native/pull/6221))
   - Note: Expo Router span/breadcrumb attributes that may contain user identifiers (`route.href`, `route.params`, and concrete pathnames derived from string hrefs such as `/users/42`) are now gated behind `sendDefaultPii`. When `sendDefaultPii` is off (the default), prefetch spans for string hrefs use `route.name: 'unknown'` and omit `route.href`. Templated object hrefs (e.g. `{ pathname: '/users/[id]' }`) are unaffected.
+- Warn when Gradle resolves `sentry-android` to a version incompatible with the SDK ([#6238](https://github.com/getsentry/sentry-react-native/pull/6238))
 
 ### Fixes
 
@@ -25,9 +27,12 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.53.1 to v10.55.0 ([#6222](https://github.com/getsentry/sentry-react-native/pull/6222))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10550)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.53.1...10.55.0)
+- Bump JavaScript SDK from v10.53.1 to v10.56.0 ([#6222](https://github.com/getsentry/sentry-react-native/pull/6222), [#6249](https://github.com/getsentry/sentry-react-native/pull/6249))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10560)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.53.1...10.56.0)
+- Bump CLI from v3.4.3 to v3.5.0 ([#6248](https://github.com/getsentry/sentry-react-native/pull/6248))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#350)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.3...3.5.0)
 
 ## 8.13.0
 

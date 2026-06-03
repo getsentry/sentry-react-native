@@ -166,3 +166,30 @@ export function createMockMinimalValidAndroidProfile(): NativeAndroidProfileEven
     build_id: 'mocked-build-id',
   };
 }
+
+export function createMockMinimalValidAndroidProfileWithMeasurements(): NativeAndroidProfileEvent {
+  return {
+    ...createMockMinimalValidAndroidProfile(),
+    measurements: {
+      frozen_frame_renders: {
+        unit: 'nanosecond',
+        values: [{ elapsed_since_start_ns: '1000000', value: 800000000 }],
+      },
+      slow_frame_renders: {
+        unit: 'nanosecond',
+        values: [{ elapsed_since_start_ns: '2000000', value: 20000000 }],
+      },
+      cpu_usage: {
+        unit: 'percent',
+        values: [
+          { elapsed_since_start_ns: '0', value: 35.5 },
+          { elapsed_since_start_ns: '5000000', value: 42.1 },
+        ],
+      },
+      memory_footprint: {
+        unit: 'byte',
+        values: [{ elapsed_since_start_ns: '0', value: 104857600 }],
+      },
+    },
+  };
+}
