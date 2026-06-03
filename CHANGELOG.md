@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add memory, CPU, and frame measurements to Android profiling ([#3641](https://github.com/getsentry/sentry-react-native/issues/3641))
 - Add `enableAutoConsoleLogs` option to opt out of automatic `console.*` capture while keeping `enableLogs: true` for manual `Sentry.logger.*` calls ([#6235](https://github.com/getsentry/sentry-react-native/pull/6235))
 - Warn when Gradle resolves `sentry-android` to a version incompatible with the SDK ([#6238](https://github.com/getsentry/sentry-react-native/pull/6238))
 
