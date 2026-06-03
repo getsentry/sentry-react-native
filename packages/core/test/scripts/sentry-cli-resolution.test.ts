@@ -27,10 +27,7 @@ describe('sentry-cli resolution', () => {
   });
 
   it('resolves @sentry/cli relative to @sentry/expo-upload-sourcemaps in the Expo uploader', () => {
-    const expoUploadSourcemapsScript = fs.readFileSync(
-      path.join(EXPO_UPLOAD_SOURCEMAPS_DIR, 'cli.js'),
-      'utf8',
-    );
+    const expoUploadSourcemapsScript = fs.readFileSync(path.join(EXPO_UPLOAD_SOURCEMAPS_DIR, 'cli.js'), 'utf8');
 
     expect(expoUploadSourcemapsScript).toContain("require.resolve('@sentry/cli/bin/sentry-cli'");
     expect(expoUploadSourcemapsScript).toContain(RELATIVE_EXPO_UPLOAD_SOURCEMAPS_CLI_RESOLVER_PATH);
