@@ -825,11 +825,23 @@ public class RNSentryModuleImpl {
     }
     final String tracesFilesDirPath = getProfilingTracesDirPath();
 
+    SentryFrameMetricsCollector collector = null;
+    try {
+      final SentryOptions options = Sentry.getCurrentScopes().getOptions();
+      if (options instanceof SentryAndroidOptions) {
+        collector = ((SentryAndroidOptions) options).getFrameMetricsCollector();
+      }
+    } catch (Throwable ignored) { // NOPMD - Best-effort
+    }
+    if (collector == null) {
+      collector = new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo);
+    }
+
     androidProfiler.set(
         new AndroidProfiler(
             tracesFilesDirPath,
             (int) SECONDS.toMicros(1) / profilingTracesHz,
-            new SentryFrameMetricsCollector(reactApplicationContext, logger, buildInfo),
+            collector,
             () -> executorService,
             logger));
   }
