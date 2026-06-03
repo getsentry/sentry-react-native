@@ -274,12 +274,7 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
-      setPendingExpoRouterNavigation({
-        method: 'push',
-        href: { pathname: '/profile', params: { id: '7' } },
-        pathname: '/profile',
-        params: { id: '7' },
-      });
+      setPendingExpoRouterNavigation({ method: 'push' });
       mockNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers(); // Flush the navigation transaction
 

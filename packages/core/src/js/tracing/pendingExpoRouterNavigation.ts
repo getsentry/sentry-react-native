@@ -11,12 +11,6 @@
 export interface PendingExpoRouterNavigation {
   /** The Expo Router method that initiated the navigation. */
   method: 'push' | 'replace' | 'navigate' | 'back' | 'dismiss';
-  /** The target href (string or object), if any. */
-  href?: unknown;
-  /** Parsed pathname from the href, if any. */
-  pathname?: string;
-  /** Parsed params from the href, if any. */
-  params?: Record<string, unknown>;
 }
 
 let pending: PendingExpoRouterNavigation | undefined;

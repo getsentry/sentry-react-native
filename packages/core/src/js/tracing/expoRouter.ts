@@ -167,12 +167,7 @@ function wrapNavigationMethod(
       },
     });
 
-    setPendingExpoRouterNavigation({
-      method,
-      href: parsed.href,
-      pathname: parsed.pathname,
-      params: parsed.params,
-    });
+    setPendingExpoRouterNavigation({ method });
 
     const span = startInactiveSpan({
       op: `navigation.${method}`,

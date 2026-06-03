@@ -345,13 +345,7 @@ describe('wrapExpoRouter', () => {
 
       wrapExpoRouter(router)[method]?.({ pathname: '/profile', params: { id: '7' } });
 
-      const pending = consumePendingExpoRouterNavigation();
-      expect(pending).toEqual({
-        method,
-        href: { pathname: '/profile', params: { id: '7' } },
-        pathname: '/profile',
-        params: { id: '7' },
-      });
+      expect(consumePendingExpoRouterNavigation()).toEqual({ method });
       // consumed exactly once
       expect(consumePendingExpoRouterNavigation()).toBeUndefined();
     });
