@@ -1,15 +1,26 @@
 import { SPAN_STATUS_ERROR, SPAN_STATUS_OK } from '@sentry/core';
 
 import { type ExpoRouter, wrapExpoRouter } from '../../src/js/tracing';
-import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from '../../src/js/tracing/origin';
+import {
+  SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+  SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
+} from '../../src/js/tracing/origin';
+import {
+  clearPendingExpoRouterNavigation,
+  consumePendingExpoRouterNavigation,
+} from '../../src/js/tracing/pendingExpoRouterNavigation';
 
 const mockStartInactiveSpan = jest.fn();
+const mockAddBreadcrumb = jest.fn();
+let mockSendDefaultPii = false;
 
 jest.mock('@sentry/core', () => {
   const actual = jest.requireActual('@sentry/core');
   return {
     ...actual,
     startInactiveSpan: (...args: unknown[]) => mockStartInactiveSpan(...args),
+    addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
+    getClient: () => ({ getOptions: () => ({ sendDefaultPii: mockSendDefaultPii }) }),
   };
 });
 
@@ -28,6 +39,8 @@ describe('wrapExpoRouter', () => {
       setAttribute: jest.fn(),
     };
     mockStartInactiveSpan.mockReturnValue(mockSpan);
+    mockSendDefaultPii = false;
+    clearPendingExpoRouterNavigation();
   });
 
   it('returns the router unchanged if router is null or undefined', () => {
@@ -41,20 +54,20 @@ describe('wrapExpoRouter', () => {
     expect(wrapped).toBe(router);
   });
 
-  it('wraps prefetch method and creates a span with string href', () => {
+  it('wraps prefetch with string href and sanitizes route.name when sendDefaultPii is off', () => {
     const mockPrefetch = jest.fn();
     const router = { prefetch: mockPrefetch } as ExpoRouter;
 
     const wrapped = wrapExpoRouter(router);
     wrapped.prefetch?.('/details/123');
 
+    // Concrete string hrefs may contain user identifiers; route.name must not leak.
     expect(mockStartInactiveSpan).toHaveBeenCalledWith({
       op: 'navigation.prefetch',
-      name: 'Prefetch /details/123',
+      name: 'Prefetch unknown',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.href': '/details/123',
-        'route.name': '/details/123',
+        'route.name': 'unknown',
       },
     });
 
@@ -63,7 +76,42 @@ describe('wrapExpoRouter', () => {
     expect(mockSpan.end).toHaveBeenCalled();
   });
 
-  it('wraps prefetch method and creates a span with object href', () => {
+  it('wraps prefetch with string href and uses the literal route.name when sendDefaultPii is on', () => {
+    mockSendDefaultPii = true;
+    const mockPrefetch = jest.fn();
+    const router = { prefetch: mockPrefetch } as ExpoRouter;
+
+    wrapExpoRouter(router).prefetch?.('/details/123');
+
+    expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+      op: 'navigation.prefetch',
+      name: 'Prefetch /details/123',
+      attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
+        'route.name': '/details/123',
+        'route.href': '/details/123',
+      },
+    });
+  });
+
+  it('wraps prefetch with templated object href and includes route.name unconditionally', () => {
+    const mockPrefetch = jest.fn();
+    const router = { prefetch: mockPrefetch } as ExpoRouter;
+
+    wrapExpoRouter(router).prefetch?.({ pathname: '/profile' });
+
+    expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+      op: 'navigation.prefetch',
+      name: 'Prefetch /profile',
+      attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
+        'route.name': '/profile',
+      },
+    });
+  });
+
+  it('includes `route.href` on prefetch span only when sendDefaultPii is enabled', () => {
+    mockSendDefaultPii = true;
     const mockPrefetch = jest.fn();
     const router = { prefetch: mockPrefetch } as ExpoRouter;
     const href = { pathname: '/profile', params: { id: '456' } };
@@ -76,8 +124,8 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch /profile',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.href': JSON.stringify(href),
         'route.name': '/profile',
+        'route.href': JSON.stringify(href),
       },
     });
 
@@ -99,7 +147,6 @@ describe('wrapExpoRouter', () => {
       name: 'Prefetch unknown',
       attributes: {
         'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH,
-        'route.href': JSON.stringify(href),
         'route.name': 'unknown',
       },
     });
@@ -166,20 +213,250 @@ describe('wrapExpoRouter', () => {
     expect(mockStartInactiveSpan).toHaveBeenCalledTimes(1);
   });
 
-  it('preserves other router methods', () => {
-    const mockPush = jest.fn();
-    const mockBack = jest.fn();
+  it('still wraps prefetch when other methods are absent', () => {
     const mockPrefetch = jest.fn();
-    const router = {
-      prefetch: mockPrefetch,
-      push: mockPush,
-      back: mockBack,
-    } as unknown as ExpoRouter;
+    const router = { prefetch: mockPrefetch } as ExpoRouter;
 
     const wrapped = wrapExpoRouter(router);
+    expect(wrapped.prefetch).not.toBe(mockPrefetch);
+  });
 
-    expect(wrapped.push).toBe(mockPush);
-    expect(wrapped.back).toBe(mockBack);
+  describe.each(['push', 'replace', 'navigate'] as const)('wraps %s', method => {
+    it(`strips concrete pathname/route.name for ${method} string hrefs when sendDefaultPii is off`, () => {
+      const original = jest.fn();
+      const router = { [method]: original } as unknown as ExpoRouter;
+
+      const wrapped = wrapExpoRouter(router);
+      wrapped[method]?.('/details/123');
+
+      expect(original).toHaveBeenCalledWith('/details/123');
+      // route.name falls back to the method label; no pathname leaks.
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+        op: `navigation.${method}`,
+        name: `Navigation ${method}`,
+        attributes: {
+          'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+          'navigation.method': method,
+          'route.name': method,
+        },
+      });
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+        category: 'navigation',
+        type: 'navigation',
+        message: `Expo Router ${method}`,
+        data: { method },
+      });
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SPAN_STATUS_OK });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it(`includes concrete pathname/route.name for ${method} string hrefs when sendDefaultPii is on`, () => {
+      mockSendDefaultPii = true;
+      const original = jest.fn();
+      const router = { [method]: original } as unknown as ExpoRouter;
+
+      wrapExpoRouter(router)[method]?.('/details/123');
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+        op: `navigation.${method}`,
+        name: `Navigation ${method} to /details/123`,
+        attributes: {
+          'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+          'navigation.method': method,
+          'route.name': '/details/123',
+          'route.href': '/details/123',
+        },
+      });
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+        category: 'navigation',
+        type: 'navigation',
+        message: `Expo Router ${method} to /details/123`,
+        data: {
+          method,
+          pathname: '/details/123',
+          href: '/details/123',
+        },
+      });
+    });
+
+    it(`creates a PII-free span and breadcrumb with object href for ${method}`, () => {
+      const original = jest.fn();
+      const router = { [method]: original } as unknown as ExpoRouter;
+      const href = { pathname: '/profile', params: { id: '456' } };
+
+      const wrapped = wrapExpoRouter(router);
+      wrapped[method]?.(href);
+
+      expect(original).toHaveBeenCalledWith(href);
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+        op: `navigation.${method}`,
+        name: `Navigation ${method} to /profile`,
+        attributes: {
+          'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+          'navigation.method': method,
+          'route.name': '/profile',
+        },
+      });
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+        category: 'navigation',
+        type: 'navigation',
+        message: `Expo Router ${method} to /profile`,
+        data: {
+          method,
+          pathname: '/profile',
+        },
+      });
+    });
+
+    it(`includes href and params in ${method} span/breadcrumb only when sendDefaultPii is enabled`, () => {
+      mockSendDefaultPii = true;
+      const original = jest.fn();
+      const router = { [method]: original } as unknown as ExpoRouter;
+      const href = { pathname: '/profile', params: { id: '456' } };
+
+      wrapExpoRouter(router)[method]?.(href);
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+        op: `navigation.${method}`,
+        name: `Navigation ${method} to /profile`,
+        attributes: {
+          'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+          'navigation.method': method,
+          'route.name': '/profile',
+          'route.href': JSON.stringify(href),
+        },
+      });
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+        category: 'navigation',
+        type: 'navigation',
+        message: `Expo Router ${method} to /profile`,
+        data: {
+          method,
+          pathname: '/profile',
+          href: JSON.stringify(href),
+          params: { id: '456' },
+        },
+      });
+    });
+
+    it(`sets pending navigation so it can be consumed for ${method}`, () => {
+      const original = jest.fn();
+      const router = { [method]: original } as unknown as ExpoRouter;
+
+      wrapExpoRouter(router)[method]?.({ pathname: '/profile', params: { id: '7' } });
+
+      expect(consumePendingExpoRouterNavigation()).toEqual({ method });
+      // consumed exactly once
+      expect(consumePendingExpoRouterNavigation()).toBeUndefined();
+    });
+
+    it(`reports errors via SPAN_STATUS_ERROR for ${method}`, () => {
+      const error = new Error(`${method} failed`);
+      const original = jest.fn(() => {
+        throw error;
+      });
+      const router = { [method]: original } as unknown as ExpoRouter;
+
+      expect(() => wrapExpoRouter(router)[method]?.('/x')).toThrow(`${method} failed`);
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SPAN_STATUS_ERROR,
+        message: `Error: ${method} failed`,
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it(`clears the pending navigation when ${method} throws, so the next nav is not stale-tagged`, () => {
+      const original = jest.fn(() => {
+        throw new Error('boom');
+      });
+      const router = { [method]: original } as unknown as ExpoRouter;
+
+      expect(() => wrapExpoRouter(router)[method]?.('/x')).toThrow('boom');
+      expect(consumePendingExpoRouterNavigation()).toBeUndefined();
+    });
+
+    it(`does not abort ${method} when serializing an unserializable href fails`, () => {
+      mockSendDefaultPii = true;
+      const original = jest.fn();
+      const router = { [method]: original } as unknown as ExpoRouter;
+      const circular: Record<string, unknown> = { pathname: '/profile' };
+      circular.self = circular;
+      const href = circular as { pathname?: string; params?: Record<string, unknown> };
+
+      expect(() => wrapExpoRouter(router)[method]?.(href)).not.toThrow();
+      expect(original).toHaveBeenCalledWith(href);
+      const startCallAttrs = mockStartInactiveSpan.mock.calls[0]![0].attributes;
+      expect(startCallAttrs['route.href']).toBe('[unserializable href]');
+    });
+  });
+
+  it('wraps back() with no args', () => {
+    const mockBack = jest.fn();
+    const router = { back: mockBack } as unknown as ExpoRouter;
+
+    wrapExpoRouter(router).back?.();
+
+    expect(mockBack).toHaveBeenCalledWith();
+    expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+      op: 'navigation.back',
+      name: 'Navigation back',
+      attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+        'navigation.method': 'back',
+        'route.name': 'back',
+      },
+    });
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+      category: 'navigation',
+      type: 'navigation',
+      message: 'Expo Router back',
+      data: { method: 'back' },
+    });
+    expect(consumePendingExpoRouterNavigation()).toEqual({ method: 'back' });
+  });
+
+  it('wraps dismiss() and forwards optional count', () => {
+    const mockDismiss = jest.fn();
+    const router = { dismiss: mockDismiss } as unknown as ExpoRouter;
+
+    wrapExpoRouter(router).dismiss?.(2);
+
+    expect(mockDismiss).toHaveBeenCalledWith(2);
+    expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+      op: 'navigation.dismiss',
+      name: 'Navigation dismiss',
+      attributes: {
+        'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION,
+        'navigation.method': 'dismiss',
+        'route.name': 'dismiss',
+      },
+    });
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+      category: 'navigation',
+      type: 'navigation',
+      message: 'Expo Router dismiss',
+      data: { method: 'dismiss' },
+    });
+  });
+
+  it('does not double-wrap navigation methods', () => {
+    const mockPush = jest.fn();
+    const router = { push: mockPush } as unknown as ExpoRouter;
+
+    const wrapped1 = wrapExpoRouter(router);
+    const wrappedPushAfterFirst = wrapped1.push;
+    const wrapped2 = wrapExpoRouter(wrapped1);
+
+    expect(wrapped2.push).toBe(wrappedPushAfterFirst);
+
+    wrapped2.push?.('/x');
+    expect(mockStartInactiveSpan).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the router unchanged if no known methods exist', () => {
+    const router = { somethingElse: jest.fn() } as unknown as ExpoRouter;
+    const wrapped = wrapExpoRouter(router);
+    expect(wrapped).toBe(router);
   });
 
   it('binds prefetch method correctly to maintain context', () => {

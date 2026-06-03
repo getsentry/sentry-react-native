@@ -27,6 +27,7 @@ import {
   markRootSpanForDiscard,
 } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
+import { consumePendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
 import {
@@ -350,6 +351,13 @@ export const reactNavigationIntegration = ({
     const actionType = event?.data?.action?.type;
     const targetRouteName = getRouteNameFromAction(event);
 
+    // Always drain the pending Expo Router value on this listener invocation —
+    // even if we end up short-circuiting below (noop / PRELOAD / drawer /
+    // missing route name). If the underlying router call did not produce an
+    // idle nav span, the value must not leak onto the next, unrelated
+    // navigation. Apply it only if we actually create `latestNavigationSpan`.
+    const pendingExpoRouter = consumePendingExpoRouterNavigation();
+
     if (event && !isAppRestart && !event.data?.noop) {
       addBreadcrumb({
         category: 'navigation.dispatch',
@@ -451,6 +459,10 @@ export const reactNavigationIntegration = ({
     latestNavigationSpan = startGenericIdleNavigationSpan(finalSpanOptions, { ...idleSpanOptions, isAppRestart });
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, navigationActionType);
+
+    if (pendingExpoRouter && latestNavigationSpan) {
+      latestNavigationSpan.setAttribute('navigation.method', pendingExpoRouter.method);
+    }
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }

@@ -272,12 +272,13 @@ export interface ExpoRouter {
     // (undocumented)
     back?: () => void;
     // (undocumented)
-    navigate?: (...args: unknown[]) => void;
+    dismiss?: (count?: number) => void;
     // (undocumented)
-    prefetch?: (href: string | {
-        pathname?: string;
-        params?: Record<string, unknown>;
-    }) => void | Promise<void>;
+    navigate?: (...args: unknown[]) => void;
+    // Warning: (ae-forgotten-export) The symbol "ExpoRouterHref" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    prefetch?: (href: ExpoRouterHref) => void | Promise<void>;
     // (undocumented)
     push?: (...args: unknown[]) => void;
     // (undocumented)
@@ -856,7 +857,7 @@ export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
 // src/js/feedback/integration.ts:21:5 - (ae-forgotten-export) The symbol "ScreenshotButtonProps" needs to be exported by the entry point index.d.ts
 // src/js/feedback/integration.ts:23:5 - (ae-forgotten-export) The symbol "FeedbackFormTheme" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnativetracing.ts:90:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
-// src/js/tracing/reactnavigation.ts:219:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
+// src/js/tracing/reactnavigation.ts:220:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
