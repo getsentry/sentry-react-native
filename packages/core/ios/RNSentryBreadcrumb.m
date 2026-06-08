@@ -1,37 +1,22 @@
 #import "RNSentryBreadcrumb.h"
 @import Sentry;
+#import <Sentry/SentryBreadcrumb+Private.h>
 
 @implementation RNSentryBreadcrumb
 
 + (SentryBreadcrumb *)from:(NSDictionary *)dict
 {
-    SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] init];
+    SentryBreadcrumb *crumb = [[SentryBreadcrumb alloc] initWithDictionary:dict];
 
-    NSString *levelString = dict[@"level"];
-    SentryLevel sentryLevel;
-    if ([levelString isEqualToString:@"fatal"]) {
-        sentryLevel = kSentryLevelFatal;
-    } else if ([levelString isEqualToString:@"warning"]) {
-        sentryLevel = kSentryLevelWarning;
-    } else if ([levelString isEqualToString:@"error"]) {
-        sentryLevel = kSentryLevelError;
-    } else if ([levelString isEqualToString:@"debug"]) {
-        sentryLevel = kSentryLevelDebug;
-    } else {
-        sentryLevel = kSentryLevelInfo;
+    if (crumb.timestamp == nil) {
+        [crumb setTimestamp:[NSDate date]];
     }
-
-    [crumb setLevel:sentryLevel];
-    [crumb setCategory:dict[@"category"]];
-    id origin = dict[@"origin"];
-    if (origin != nil) {
-        [crumb setOrigin:origin];
-    } else {
+    if (dict[@"level"] == nil) {
+        [crumb setLevel:kSentryLevelInfo];
+    }
+    if (dict[@"origin"] == nil) {
         [crumb setOrigin:@"react-native"];
     }
-    [crumb setType:dict[@"type"]];
-    [crumb setMessage:dict[@"message"]];
-    [crumb setData:dict[@"data"]];
 
     return crumb;
 }
