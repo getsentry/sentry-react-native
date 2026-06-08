@@ -40,6 +40,14 @@ final class RNSentryBreadcrumbTests: XCTestCase {
         XCTAssertEqual(actualCrumb!.origin, "someOrigin")
     }
     
+    func testSetsTimestamp() {
+        let actualCrumb = RNSentryBreadcrumb.from([
+            "message": "testMessage"
+        ])
+
+        XCTAssertNotNil(actualCrumb!.timestamp)
+    }
+
     func testUsesInfoAsDefaultSentryLevel() {
         let actualCrumb = RNSentryBreadcrumb.from([
             "message": "testMessage"

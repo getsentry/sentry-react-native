@@ -4,6 +4,7 @@ import com.facebook.react.bridge.JavaOnlyMap
 import io.sentry.SentryLevel
 import io.sentry.react.RNSentryBreadcrumb
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -39,6 +40,28 @@ class RNSentryBreadcrumbTest {
         assertEquals("testType", actual.type)
         assertEquals("testMessage", actual.message)
         assertEquals(testData.toHashMap(), actual.data)
+    }
+
+    @Test
+    fun defaultsToInfoLevelWhenMissing() {
+        val map =
+            JavaOnlyMap.of(
+                "message",
+                "testMessage",
+            )
+        val actual = RNSentryBreadcrumb.fromMap(map)
+        assertEquals(SentryLevel.INFO, actual.level)
+    }
+
+    @Test
+    fun setsTimestamp() {
+        val map =
+            JavaOnlyMap.of(
+                "message",
+                "testMessage",
+            )
+        val actual = RNSentryBreadcrumb.fromMap(map)
+        assertNotNull(actual.timestamp)
     }
 
     @Test
