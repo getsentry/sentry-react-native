@@ -364,7 +364,7 @@ export function withSentryFeedbackResolver(config: MetroConfig, includeWebFeedba
  * the `moduleName` will be `./integrations/mcp-server/index.js`.
  */
 const SERVER_ONLY_MODULE_RE =
-  /\/(mcp-server|integrations\/http|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|$)/;
+  /\/(mcp-server|integrations\/(http|express|postgresjs|requestdata|consola|spanStreaming)|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|\.js|$)/;
 
 function isFromSentryCore(originModulePath: string): boolean {
   return originModulePath.includes('@sentry/core');
