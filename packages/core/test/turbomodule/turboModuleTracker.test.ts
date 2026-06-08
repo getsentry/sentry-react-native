@@ -103,6 +103,50 @@ describe('turboModuleTracker', () => {
     expect(scope.getScopeData().tags['turbo_module.method']).toBe('second');
   });
 
+  it('preserves context on a scope that still has a deeper active call after interleaved pop', () => {
+    const scopeA = new Scope();
+    const scopeB = new Scope();
+
+    // Stack: [A@scopeA, B@scopeB, C@scopeA]. Pop C — scopeA must keep its
+    // turbo_module context (because A is still active), and re-sync to A.
+    const a = pushTurboModuleCall({ name: 'M', method: 'a', kind: 'sync', scope: scopeA });
+    pushTurboModuleCall({ name: 'M', method: 'b', kind: 'sync', scope: scopeB });
+    const c = pushTurboModuleCall({ name: 'M', method: 'c', kind: 'sync', scope: scopeA });
+
+    expect(scopeA.getScopeData().tags['turbo_module.method']).toBe('c');
+
+    popTurboModuleCall(c);
+
+    // scopeA still has an active frame (A) — must NOT be cleared, and must be
+    // re-synced to describe A, not C.
+    expect(scopeA.getScopeData().contexts.turbo_module).toMatchObject({
+      name: 'M',
+      method: 'a',
+      call_id: a,
+    });
+    expect(scopeA.getScopeData().tags['turbo_module.method']).toBe('a');
+
+    // scopeB still has its own active frame and is untouched.
+    expect(scopeB.getScopeData().tags['turbo_module.method']).toBe('b');
+  });
+
+  it('clears a scope only when no frames remain on it after an interleaved pop', () => {
+    const scopeA = new Scope();
+    const scopeB = new Scope();
+
+    const a = pushTurboModuleCall({ name: 'M', method: 'a', kind: 'sync', scope: scopeA });
+    const b = pushTurboModuleCall({ name: 'M', method: 'b', kind: 'sync', scope: scopeB });
+
+    // Pop the bottom frame (A). scopeA should clear; scopeB untouched.
+    popTurboModuleCall(a);
+
+    expect(scopeA.getScopeData().contexts.turbo_module).toBeUndefined();
+    expect(scopeA.getScopeData().tags['turbo_module.name']).toBe('');
+    expect(scopeB.getScopeData().tags['turbo_module.method']).toBe('b');
+
+    popTurboModuleCall(b);
+  });
+
   it('is a no-op when popping an unknown id', () => {
     const id = pushTurboModuleCall({ name: 'RNSentry', method: 'a', kind: 'sync', scope });
 

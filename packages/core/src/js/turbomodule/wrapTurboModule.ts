@@ -1,4 +1,4 @@
-import { logger } from '@sentry/react';
+import { logger } from '@sentry/core';
 
 import { popTurboModuleCall, pushTurboModuleCall, relabelTurboModuleCallKind } from './turboModuleTracker';
 
@@ -58,7 +58,16 @@ export function wrapTurboModule<T extends object>(
     if (skip.has(key)) {
       continue;
     }
-    const original = target[key];
+    // `target[key]` may be a getter (some JSI HostObject proxies expose methods
+    // as accessors under the New Architecture). Guard the read so a throwing
+    // getter is treated like a non-wrappable property instead of aborting the
+    // entire wrap loop.
+    let original: unknown;
+    try {
+      original = target[key];
+    } catch {
+      continue;
+    }
     if (typeof original !== 'function') {
       continue;
     }

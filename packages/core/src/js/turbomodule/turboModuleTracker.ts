@@ -150,10 +150,23 @@ export function popTurboModuleCall(callId: number): void {
 
   // Always clear / update on the scope the call was pushed against — the
   // current scope may have changed in the meantime (async, withScope, …).
+  //
+  // When scopes interleave on the stack (e.g. [A@s1, B@s2, C@s1] and we pop
+  // C), the immediate stack top is *not* the right thing to look at: there may
+  // still be a deeper frame holding `popped.scope` whose context we'd wipe by
+  // calling `clearScope`. Walk the stack from the top down and re-sync onto
+  // the newest remaining frame on `popped.scope`; only clear if none is left.
   if (popped) {
-    const newTop = stack[stack.length - 1];
-    if (newTop && newTop.scope === popped.scope) {
-      syncToScope(newTop);
+    let remainingOnSameScope: InternalCall | undefined;
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const frame = stack[i];
+      if (frame && frame.scope === popped.scope) {
+        remainingOnSameScope = frame;
+        break;
+      }
+    }
+    if (remainingOnSameScope) {
+      syncToScope(remainingOnSameScope);
     } else {
       clearScope(popped.scope);
     }

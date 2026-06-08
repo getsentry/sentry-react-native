@@ -156,7 +156,7 @@ describe('wrapTurboModule', () => {
   });
 
   it('retries wrapping a previously-empty module (lazy JSI HostObject)', () => {
-    const warnSpy = jest.spyOn(require('@sentry/react').logger, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
 
     // First call: methods not yet materialised — should warn, NOT mark as wrapped.
     const lazyModule: { doStuff?: () => string } = Object.create(null) as { doStuff?: () => string };
@@ -203,13 +203,38 @@ describe('wrapTurboModule', () => {
   });
 
   it('warns and bails out cleanly when no methods are discoverable', () => {
-    const warnSpy = jest.spyOn(require('@sentry/react').logger, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
 
     const opaque = Object.create(null) as object;
 
     wrapTurboModule('Opaque', opaque);
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("No methods discovered on 'Opaque'"));
+  });
+
+  it('skips properties whose getter throws (JSI HostObject accessor edge case)', () => {
+    let stackDuringCall: ReturnType<typeof getTurboModuleCallStack> = [];
+    const module = {
+      doStuff: () => {
+        stackDuringCall = getTurboModuleCallStack();
+        return 'ok';
+      },
+    };
+    Object.defineProperty(module, 'throwingGetter', {
+      enumerable: true,
+      configurable: true,
+      get() {
+        throw new Error('getter boom');
+      },
+    });
+
+    // Wrapping must not propagate the getter's throw; wrappable methods on the
+    // same module should still be wrapped.
+    expect(() => wrapTurboModule('Mod', module)).not.toThrow();
+
+    expect(module.doStuff()).toBe('ok');
+    expect(stackDuringCall).toHaveLength(1);
+    expect(stackDuringCall[0]).toMatchObject({ name: 'Mod', method: 'doStuff' });
   });
 
   it('ignores non-function properties', () => {
