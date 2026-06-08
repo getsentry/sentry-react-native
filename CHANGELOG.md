@@ -18,6 +18,7 @@
 
 ### Fixes
 
+- Exclude additional server-only modules (`express`, `postgresjs`, `requestdata`, `consola`, `spanStreaming`) from native bundles ([#6263](https://github.com/getsentry/sentry-react-native/pull/6263))
 - Enable fetch instrumentation when Expo SDK 56's native `expo/fetch` is active ([#6226](https://github.com/getsentry/sentry-react-native/pull/6226))
 
 ### Internal
