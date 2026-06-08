@@ -61,7 +61,7 @@ jobs:
         ios-use-frameworks: ['no-frameworks']
         build-type: ['dev', 'production']
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Enable Corepack
         run: corepack enable
@@ -152,7 +152,7 @@ jobs:
         rn-architecture: ['new']
         build-type: ['dev', 'production']
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Enable Corepack (NPM)
         run: npm i -g corepack
@@ -227,7 +227,7 @@ jobs:
       matrix:
         build-type: ['dev', 'production']
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Enable Corepack
         run: corepack enable
@@ -299,7 +299,7 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -379,7 +379,7 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_android == 'true')
       }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0

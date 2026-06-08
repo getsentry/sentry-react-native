@@ -16,7 +16,7 @@ jobs:
       high_risk_code: ${{ steps.changes.outputs.high_risk_code }}
       high_risk_code_files: ${{ steps.changes.outputs.high_risk_code_files }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: Get changed files
         id: changes
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
