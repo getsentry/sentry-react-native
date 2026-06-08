@@ -8,7 +8,7 @@ import io.sentry.ILogger;
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import io.sentry.util.MapObjectReader;
-import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,8 +65,8 @@ public final class RNSentryBreadcrumb {
   }
 
   @NotNull
-  static HashMap<String, Object> toDeepHashMap(@NotNull ReadableMap from) {
-    final HashMap<String, Object> map = from.toHashMap();
+  static Map<String, Object> toDeepHashMap(@NotNull ReadableMap from) {
+    final Map<String, Object> map = from.toHashMap();
     final ReadableMapKeySetIterator iterator = from.keySetIterator();
     while (iterator.hasNextKey()) {
       final String key = iterator.nextKey();
