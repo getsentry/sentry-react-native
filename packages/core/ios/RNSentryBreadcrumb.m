@@ -1,6 +1,9 @@
 #import "RNSentryBreadcrumb.h"
 @import Sentry;
-#import <Sentry/SentryBreadcrumb+Private.h>
+
+@interface SentryBreadcrumb ()
+- (instancetype _Nonnull)initWithDictionary:(NSDictionary *_Nonnull)dictionary;
+@end
 
 @implementation RNSentryBreadcrumb
 

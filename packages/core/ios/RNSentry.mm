@@ -25,8 +25,11 @@
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
 #import <Sentry/SentryGeo.h>
-#import <Sentry/SentryUser+Private.h>
 #import <Sentry/SentryUser.h>
+
+@interface SentryUser ()
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary;
+@end
 
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
