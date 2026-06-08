@@ -58,6 +58,44 @@ describe('turboModuleTracker', () => {
     expect(scope.getScopeData().tags['turbo_module.method']).toBe('');
   });
 
+  it('re-syncs the global stack top to its scope after a cross-scope pop', () => {
+    // Native SDKs share one scope; when scope A is cleared on pop, the
+    // scopeSync hook would also wipe native. We must re-sync the global top
+    // (which lives on scope B) so native crash reports keep the active call.
+    const scopeA = new Scope();
+    const scopeB = new Scope();
+
+    const aCallId = pushTurboModuleCall({ name: 'A', method: 'a', kind: 'sync', scope: scopeA });
+    pushTurboModuleCall({ name: 'B', method: 'b', kind: 'sync', scope: scopeB });
+
+    const setContextSpy = jest.spyOn(scopeB, 'setContext');
+
+    popTurboModuleCall(aCallId);
+
+    // scopeA's frame is gone, so scopeA's context was cleared (good for JS hygiene).
+    expect(scopeA.getScopeData().contexts.turbo_module).toBeUndefined();
+    // scopeB still holds the active call — and we proactively re-synced it via
+    // scopeB.setContext so the shared native scope ends up holding B's data
+    // rather than the null left behind by scopeA's clear.
+    expect(scopeB.getScopeData().contexts.turbo_module).toMatchObject({ name: 'B', method: 'b' });
+    expect(setContextSpy).toHaveBeenCalledWith('turbo_module', expect.objectContaining({ name: 'B', method: 'b' }));
+  });
+
+  it('does not redundantly re-sync the global top when popping leaves it on the same scope', () => {
+    const outerId = pushTurboModuleCall({ name: 'M', method: 'outer', kind: 'sync', scope });
+    const innerId = pushTurboModuleCall({ name: 'M', method: 'inner', kind: 'sync', scope });
+
+    const setContextSpy = jest.spyOn(scope, 'setContext');
+    popTurboModuleCall(innerId);
+
+    // Exactly one setContext call to restore the 'outer' frame on `scope`.
+    // (Without dedup, the global-top re-sync would fire a second redundant write.)
+    expect(setContextSpy).toHaveBeenCalledTimes(1);
+    expect(setContextSpy).toHaveBeenCalledWith('turbo_module', expect.objectContaining({ method: 'outer' }));
+
+    popTurboModuleCall(outerId);
+  });
+
   it('pops against the scope captured at push time, not the current scope', () => {
     const pushScope = new Scope();
     const otherScope = new Scope();

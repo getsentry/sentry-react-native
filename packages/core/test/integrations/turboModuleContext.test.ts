@@ -63,10 +63,13 @@ describe('turboModuleContextIntegration', () => {
     };
     jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
 
+    const originalCrash = fakeModule.crash;
     turboModuleContextIntegration().setupOnce!();
 
-    // crash is wrapped (replaced), scope-sync methods are not (still the jest mocks).
-    expect(fakeModule.crash).not.toBe(jest.fn());
+    // crash is wrapped (replaced with sentryTurboModuleWrapper, which is a plain
+    // function and therefore lacks the `_isMockFunction` marker the jest mocks carry).
+    expect(fakeModule.crash).not.toBe(originalCrash);
+    expect((fakeModule.crash as { _isMockFunction?: boolean })._isMockFunction).toBeUndefined();
     for (const method of [
       'setContext',
       'setTag',

@@ -148,28 +148,46 @@ export function popTurboModuleCall(callId: number): void {
     [popped] = stack.splice(index, 1);
   }
 
-  // Always clear / update on the scope the call was pushed against — the
-  // current scope may have changed in the meantime (async, withScope, …).
+  if (!popped) {
+    return;
+  }
+
+  // 1. Reflect the new state of `popped.scope` (the scope this call was pinned
+  //    to). When scopes interleave on the stack (e.g. [A@s1, B@s2, C@s1] and
+  //    we pop C), the immediate stack top is *not* the right thing to look at:
+  //    there may still be a deeper frame holding `popped.scope` whose context
+  //    we'd wipe by calling `clearScope`. Walk the stack from the top down and
+  //    re-sync onto the newest remaining frame on `popped.scope`; only clear
+  //    if none is left.
+  let remainingOnSameScope: InternalCall | undefined;
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const frame = stack[i];
+    if (frame && frame.scope === popped.scope) {
+      remainingOnSameScope = frame;
+      break;
+    }
+  }
+  if (remainingOnSameScope) {
+    syncToScope(remainingOnSameScope);
+  } else {
+    clearScope(popped.scope);
+  }
+
+  // 2. The native SDKs (sentry-cocoa / sentry-java) share a *single* native
+  //    scope, but JS has many Scope objects (global, isolation, withScope, …).
+  //    Every `Scope#setContext` / `Scope#setTag` we just made in step 1 fired
+  //    the `scopeSync.ts` hook and overwrote the native scope's `turbo_module`
+  //    context — even if the global top of the stack still lives on a
+  //    *different* JS scope. Without this second sync, a crash that follows a
+  //    cross-scope pop would land in native without the active TurboModule
+  //    attribution, even though the global stack still has an in-flight call.
   //
-  // When scopes interleave on the stack (e.g. [A@s1, B@s2, C@s1] and we pop
-  // C), the immediate stack top is *not* the right thing to look at: there may
-  // still be a deeper frame holding `popped.scope` whose context we'd wipe by
-  // calling `clearScope`. Walk the stack from the top down and re-sync onto
-  // the newest remaining frame on `popped.scope`; only clear if none is left.
-  if (popped) {
-    let remainingOnSameScope: InternalCall | undefined;
-    for (let i = stack.length - 1; i >= 0; i--) {
-      const frame = stack[i];
-      if (frame && frame.scope === popped.scope) {
-        remainingOnSameScope = frame;
-        break;
-      }
-    }
-    if (remainingOnSameScope) {
-      syncToScope(remainingOnSameScope);
-    } else {
-      clearScope(popped.scope);
-    }
+  //    Re-sync the global stack top via *its* scope so native ends up holding
+  //    the correct active-call context. The intermediate native write in step 1
+  //    is wasted but unavoidable without bypassing the public Scope API.
+  const globalTop = stack[stack.length - 1];
+  if (globalTop && globalTop !== remainingOnSameScope) {
+    syncToScope(globalTop);
   }
 }
 
