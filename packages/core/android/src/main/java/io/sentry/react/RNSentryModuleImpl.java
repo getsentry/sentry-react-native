@@ -602,6 +602,7 @@ public class RNSentryModuleImpl {
               scope.setUser(userInstance);
             } catch (Exception e) {
               logger.log(SentryLevel.ERROR, "Failed to deserialize user from map.", e);
+              scope.setUser(null);
             }
           }
         });
