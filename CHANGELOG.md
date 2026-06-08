@@ -33,6 +33,9 @@
 - Bump CLI from v3.4.3 to v3.5.0 ([#6248](https://github.com/getsentry/sentry-react-native/pull/6248))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#350)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.3...3.5.0)
+- Bump Android SDK from v8.43.0 to v8.43.1 ([#6253](https://github.com/getsentry/sentry-react-native/pull/6253))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8431)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.0...8.43.1)
 
 ## 8.13.0
 
