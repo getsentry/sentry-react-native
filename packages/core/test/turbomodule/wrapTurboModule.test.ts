@@ -202,6 +202,35 @@ describe('wrapTurboModule', () => {
     expect(stackDuringCall[0]).toMatchObject({ name: 'HostObj', method: 'doStuff' });
   });
 
+  it('warns when methods are discovered but none could be wrapped (frozen module)', () => {
+    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+
+    const frozen = Object.freeze({ doStuff: () => 'ok' });
+
+    wrapTurboModule('Frozen', frozen);
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("'Frozen' has methods but none could be wrapped"),
+    );
+  });
+
+  it('does not leak a tracker frame when the result has a throwing `then` getter', () => {
+    const trap = Object.defineProperty({}, 'then', {
+      get() {
+        throw new Error('boom');
+      },
+    });
+    const module = {
+      weird: () => trap,
+    };
+
+    wrapTurboModule('Mod', module);
+
+    // Must not throw, must not leave a frame on the stack.
+    expect(() => module.weird()).not.toThrow();
+    expect(getTurboModuleCallStack()).toEqual([]);
+  });
+
   it('warns and bails out cleanly when no methods are discoverable', () => {
     const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
 

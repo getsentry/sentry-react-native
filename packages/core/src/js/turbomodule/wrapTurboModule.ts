@@ -117,6 +117,15 @@ export function wrapTurboModule<T extends object>(
   // should be allowed to retry.
   if (wrappedAny) {
     wrappedModules.add(module);
+  } else {
+    // We discovered methods but couldn't intercept any of them — e.g. the
+    // module is frozen, or every method is a read-only accessor. Surface this
+    // so the silent no-op is debuggable (the issue would otherwise look like
+    // "no crash context attached" with no obvious cause).
+    logger.warn(
+      `[TurboModuleTracker] '${name}' has methods but none could be wrapped — TurboModule context will not be attached. ` +
+        `This usually means the module is frozen or its methods are non-writable accessors.`,
+    );
   }
 
   return module;
@@ -148,6 +157,12 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
   if (!value || (typeof value !== 'object' && typeof value !== 'function')) {
     return false;
   }
-  const then = (value as { then?: unknown }).then;
-  return typeof then === 'function';
+  // A user-defined `then` getter could throw — don't let that escape into the
+  // wrapper (which would leak the in-flight tracker frame on top of the bug).
+  try {
+    const then = (value as { then?: unknown }).then;
+    return typeof then === 'function';
+  } catch {
+    return false;
+  }
 }

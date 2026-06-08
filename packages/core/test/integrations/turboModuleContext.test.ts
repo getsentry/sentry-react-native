@@ -30,8 +30,59 @@ describe('turboModuleContextIntegration', () => {
     turboModuleContextIntegration().setupOnce!();
 
     expect(wrapSpy).toHaveBeenCalledWith('RNSentry', fakeModule, {
-      skip: ['addListener', 'removeListeners'],
+      skip: [
+        'addListener',
+        'removeListeners',
+        'setContext',
+        'setTag',
+        'setExtra',
+        'setUser',
+        'addBreadcrumb',
+        'clearBreadcrumbs',
+        'setAttribute',
+        'setAttributes',
+        'removeAttribute',
+      ],
     });
+  });
+
+  it('does not wrap scope-sync methods on RNSentry (would recurse infinitely)', () => {
+    // Sanity check: every method `scopeSync.ts` forwards to NATIVE.* via
+    // RNSentry must be in the skip list, otherwise scope writes recurse.
+    const fakeModule = {
+      setContext: jest.fn(),
+      setTag: jest.fn(),
+      setExtra: jest.fn(),
+      setUser: jest.fn(),
+      addBreadcrumb: jest.fn(),
+      clearBreadcrumbs: jest.fn(),
+      setAttribute: jest.fn(),
+      setAttributes: jest.fn(),
+      removeAttribute: jest.fn(),
+      crash: jest.fn(),
+    };
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
+
+    turboModuleContextIntegration().setupOnce!();
+
+    // crash is wrapped (replaced), scope-sync methods are not (still the jest mocks).
+    expect(fakeModule.crash).not.toBe(jest.fn());
+    for (const method of [
+      'setContext',
+      'setTag',
+      'setExtra',
+      'setUser',
+      'addBreadcrumb',
+      'clearBreadcrumbs',
+      'setAttribute',
+      'setAttributes',
+      'removeAttribute',
+    ] as const) {
+      // jest mocks expose `_isMockFunction` — if the method is still the
+      // original mock, it's intact; if it were our wrapper, that property
+      // would be missing.
+      expect(fakeModule[method]._isMockFunction).toBe(true);
+    }
   });
 
   it('wraps additional modules supplied via options', () => {

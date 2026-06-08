@@ -16,9 +16,30 @@ export interface TurboModuleContextOptions {
   modules?: Array<{ name: string; module: object | null | undefined; skipMethods?: ReadonlyArray<string> }>;
 }
 
-// `addListener` / `removeListeners` are RN event-emitter stubs that fire on
-// every subscriber registration — tracking them would just churn the scope.
-const RNSENTRY_SKIP = ['addListener', 'removeListeners'] as const;
+// Methods on RNSentry that must NOT be tracked:
+//
+// - `addListener` / `removeListeners` are RN event-emitter stubs that fire on
+//   every subscriber registration — tracking them would just churn the scope.
+//
+// - The scope-sync methods (`setContext`, `setTag`, `setExtra`, `setUser`,
+//   `addBreadcrumb`, `clearBreadcrumbs`, `setAttribute`, `setAttributes`,
+//   `removeAttribute`) are called by our own `enableSyncToNative` hook every
+//   time anything writes to a JS Scope. Tracking them would cause infinite
+//   recursion: `pushTurboModuleCall` -> `scope.setContext` -> `NATIVE.setContext`
+//   -> `RNSentry.setContext` (wrapped) -> `pushTurboModuleCall` -> ... .
+const RNSENTRY_SKIP = [
+  'addListener',
+  'removeListeners',
+  'setContext',
+  'setTag',
+  'setExtra',
+  'setUser',
+  'addBreadcrumb',
+  'clearBreadcrumbs',
+  'setAttribute',
+  'setAttributes',
+  'removeAttribute',
+] as const;
 
 /**
  * Attaches the currently-executing TurboModule method to the Sentry scope so
