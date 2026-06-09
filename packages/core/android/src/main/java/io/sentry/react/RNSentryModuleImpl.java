@@ -53,7 +53,6 @@ import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
 import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.profilemeasurements.ProfileMeasurement;
 import io.sentry.profilemeasurements.ProfileMeasurementValue;
-import io.sentry.protocol.Geo;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.protocol.SentryId;
 import io.sentry.protocol.User;
@@ -62,6 +61,7 @@ import io.sentry.util.DebugMetaPropertiesApplier;
 import io.sentry.util.FileUtils;
 import io.sentry.util.JsonSerializationUtils;
 import io.sentry.util.LoadClass;
+import io.sentry.util.MapObjectReader;
 import io.sentry.vendor.Base64;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -575,60 +575,35 @@ public class RNSentryModuleImpl {
           if (userKeys == null && userDataKeys == null) {
             scope.setUser(null);
           } else {
-            User userInstance = new User();
+            try {
+              final MapObjectReader reader =
+                  new MapObjectReader(
+                      userKeys != null
+                          ? RNSentryBreadcrumb.toDeepHashMap(userKeys)
+                          : new HashMap<>());
+              final User userInstance = new User.Deserializer().deserialize(reader, logger);
 
-            if (userKeys != null) {
-              if (userKeys.hasKey("email")) {
-                userInstance.setEmail(userKeys.getString("email"));
-              }
+              if (userDataKeys != null) {
+                Map<String, String> userDataMap = new HashMap<>();
+                ReadableMapKeySetIterator it = userDataKeys.keySetIterator();
+                while (it.hasNextKey()) {
+                  String key = it.nextKey();
+                  String value = userDataKeys.getString(key);
 
-              if (userKeys.hasKey("id")) {
-                userInstance.setId(userKeys.getString("id"));
-              }
-
-              if (userKeys.hasKey("username")) {
-                userInstance.setUsername(userKeys.getString("username"));
-              }
-
-              if (userKeys.hasKey("ip_address")) {
-                userInstance.setIpAddress(userKeys.getString("ip_address"));
-              }
-
-              if (userKeys.hasKey("geo")) {
-                ReadableMap geoMap = userKeys.getMap("geo");
-                if (geoMap != null) {
-                  Geo geoData = new Geo();
-                  if (geoMap.hasKey("city")) {
-                    geoData.setCity(geoMap.getString("city"));
+                  // other is ConcurrentHashMap and can't have null values
+                  if (value != null) {
+                    userDataMap.put(key, value);
                   }
-                  if (geoMap.hasKey("country_code")) {
-                    geoData.setCountryCode(geoMap.getString("country_code"));
-                  }
-                  if (geoMap.hasKey("region")) {
-                    geoData.setRegion(geoMap.getString("region"));
-                  }
-                  userInstance.setGeo(geoData);
                 }
-              }
-            }
 
-            if (userDataKeys != null) {
-              Map<String, String> userDataMap = new HashMap<>();
-              ReadableMapKeySetIterator it = userDataKeys.keySetIterator();
-              while (it.hasNextKey()) {
-                String key = it.nextKey();
-                String value = userDataKeys.getString(key);
-
-                // other is ConcurrentHashMap and can't have null values
-                if (value != null) {
-                  userDataMap.put(key, value);
-                }
+                userInstance.setData(userDataMap);
               }
 
-              userInstance.setData(userDataMap);
+              scope.setUser(userInstance);
+            } catch (Exception e) {
+              logger.log(SentryLevel.ERROR, "Failed to deserialize user from map.", e);
+              scope.setUser(null);
             }
-
-            scope.setUser(userInstance);
           }
         });
   }
@@ -636,7 +611,7 @@ public class RNSentryModuleImpl {
   public void addBreadcrumb(final ReadableMap breadcrumb) {
     Sentry.configureScope(
         scope -> {
-          scope.addBreadcrumb(RNSentryBreadcrumb.fromMap(breadcrumb));
+          scope.addBreadcrumb(RNSentryBreadcrumb.fromMap(breadcrumb, logger));
 
           final @Nullable String screen = RNSentryBreadcrumb.getCurrentScreenFrom(breadcrumb);
           if (screen != null) {

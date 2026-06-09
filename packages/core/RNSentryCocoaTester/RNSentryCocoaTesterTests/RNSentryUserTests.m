@@ -50,17 +50,17 @@
 
 - (void)testEmptyUser
 {
-    SentryUser *expected = [[SentryUser alloc] init];
-    [expected setData:@{ }];
-
     SentryUser *actual = [RNSentry userFrom:@{ } otherUserKeys:@{ }];
-    XCTAssertTrue([actual isEqualToUser:expected]);
+    XCTAssertNotNil(actual);
+    XCTAssertNil(actual.userId);
+    XCTAssertNil(actual.email);
+    XCTAssertNil(actual.username);
+    XCTAssertNil(actual.ipAddress);
+    XCTAssertEqualObjects(actual.data, @{ });
 }
 
 - (void)testInvalidUser
 {
-    SentryUser *expected = [[SentryUser alloc] init];
-
     SentryUser *actual = [RNSentry userFrom:@{
         @"id" : @123,
         @"ip_address" : @ { },
@@ -69,14 +69,16 @@
     }
                               otherUserKeys:nil];
 
-    XCTAssertTrue([actual isEqualToUser:expected]);
+    // initWithDictionary: ignores non-string values for known string fields
+    XCTAssertNotNil(actual);
+    XCTAssertNil(actual.userId);
+    XCTAssertNil(actual.email);
+    XCTAssertNil(actual.username);
+    XCTAssertNil(actual.ipAddress);
 }
 
 - (void)testPartiallyInvalidUser
 {
-    SentryUser *expected = [[SentryUser alloc] init];
-    [expected setUserId:@"123"];
-
     SentryUser *actual = [RNSentry userFrom:@{
         @"id" : @"123",
         @"ip_address" : @ { },
@@ -85,13 +87,15 @@
     }
                               otherUserKeys:nil];
 
-    XCTAssertTrue([actual isEqualToUser:expected]);
+    XCTAssertNotNil(actual);
+    XCTAssertEqualObjects(actual.userId, @"123");
+    XCTAssertNil(actual.email);
+    XCTAssertNil(actual.username);
+    XCTAssertNil(actual.ipAddress);
 }
 
 - (void)testNullValuesUser
 {
-    SentryUser *expected = [[SentryUser alloc] init];
-
     SentryUser *actual = [RNSentry userFrom:@{
         @"id" : [NSNull null],
         @"ip_address" : [NSNull null],
@@ -100,7 +104,12 @@
     }
                               otherUserKeys:nil];
 
-    XCTAssertTrue([actual isEqualToUser:expected]);
+    // initWithDictionary: ignores non-string values for known string fields
+    XCTAssertNotNil(actual);
+    XCTAssertNil(actual.userId);
+    XCTAssertNil(actual.email);
+    XCTAssertNil(actual.username);
+    XCTAssertNil(actual.ipAddress);
 }
 
 - (void)testUserWithGeo

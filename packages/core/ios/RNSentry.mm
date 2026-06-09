@@ -27,6 +27,10 @@
 #import <Sentry/SentryGeo.h>
 #import <Sentry/SentryUser.h>
 
+@interface SentryUser ()
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary;
+@end
+
 // This guard prevents importing Hermes in JSC apps
 #if SENTRY_PROFILING_ENABLED
 #    import <hermes/hermes.h>
@@ -654,24 +658,9 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
 {
     // we can safely ignore userDataKeys since if original JS user was null userKeys will be null
     if ([userKeys isKindOfClass:NSDictionary.class]) {
-        SentryUser *userInstance = [[SentryUser alloc] init];
-
-        id userId = [userKeys valueForKey:@"id"];
-        if ([userId isKindOfClass:NSString.class]) {
-            [userInstance setUserId:userId];
-        }
-        id ipAddress = [userKeys valueForKey:@"ip_address"];
-        if ([ipAddress isKindOfClass:NSString.class]) {
-            [userInstance setIpAddress:ipAddress];
-        }
-        id email = [userKeys valueForKey:@"email"];
-        if ([email isKindOfClass:NSString.class]) {
-            [userInstance setEmail:email];
-        }
-        id username = [userKeys valueForKey:@"username"];
-        if ([username isKindOfClass:NSString.class]) {
-            [userInstance setUsername:username];
-        }
+        NSMutableDictionary *filteredKeys = [userKeys mutableCopy];
+        [filteredKeys removeObjectForKey:@"geo"];
+        SentryUser *userInstance = [[SentryUser alloc] initWithDictionary:filteredKeys];
 
         id geo = [userKeys valueForKey:@"geo"];
         if ([geo isKindOfClass:NSDictionary.class]) {

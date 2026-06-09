@@ -1,8 +1,12 @@
 package io.sentry.react;
 
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import io.sentry.Breadcrumb;
+import io.sentry.ILogger;
 import io.sentry.SentryLevel;
+import io.sentry.util.MapObjectReader;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,59 +40,41 @@ public final class RNSentryBreadcrumb {
   }
 
   @NotNull
-  public static Breadcrumb fromMap(ReadableMap from) {
-    final @NotNull Breadcrumb breadcrumb = new Breadcrumb();
+  public static Breadcrumb fromMap(ReadableMap from, @NotNull ILogger logger) {
+    try {
+      final @NotNull MapObjectReader reader = new MapObjectReader(toDeepHashMap(from));
+      final @NotNull Breadcrumb breadcrumb =
+          new Breadcrumb.Deserializer().deserialize(reader, logger);
 
-    if (from.hasKey("message")) {
-      breadcrumb.setMessage(from.getString("message"));
-    }
-
-    if (from.hasKey("type")) {
-      breadcrumb.setType(from.getString("type"));
-    }
-
-    if (from.hasKey("category")) {
-      breadcrumb.setCategory(from.getString("category"));
-    }
-
-    if (from.hasKey("origin")) {
-      breadcrumb.setOrigin(from.getString("origin"));
-    } else {
-      breadcrumb.setOrigin("react-native");
-    }
-
-    if (from.hasKey("level")) {
-      switch (from.getString("level")) {
-        case "fatal":
-          breadcrumb.setLevel(SentryLevel.FATAL);
-          break;
-        case "warning":
-          breadcrumb.setLevel(SentryLevel.WARNING);
-          break;
-        case "debug":
-          breadcrumb.setLevel(SentryLevel.DEBUG);
-          break;
-        case "error":
-          breadcrumb.setLevel(SentryLevel.ERROR);
-          break;
-        case "info":
-        default:
-          breadcrumb.setLevel(SentryLevel.INFO);
-          break;
+      if (breadcrumb.getLevel() == null) {
+        breadcrumb.setLevel(SentryLevel.INFO);
       }
-    }
+      if (breadcrumb.getOrigin() == null) {
+        breadcrumb.setOrigin("react-native");
+      }
 
-    if (from.hasKey("data")) {
-      final ReadableMap data = from.getMap("data");
-      for (final Map.Entry<String, Object> entry : data.toHashMap().entrySet()) {
-        final Object value = entry.getValue();
-        // data is ConcurrentHashMap and can't have null values
-        if (value != null) {
-          breadcrumb.setData(entry.getKey(), entry.getValue());
+      return breadcrumb;
+    } catch (Exception e) {
+      logger.log(SentryLevel.ERROR, "Failed to deserialize breadcrumb from map.", e);
+      final Breadcrumb fallback = new Breadcrumb();
+      fallback.setOrigin("react-native");
+      return fallback;
+    }
+  }
+
+  @NotNull
+  static Map<String, Object> toDeepHashMap(@NotNull ReadableMap from) {
+    final Map<String, Object> map = from.toHashMap();
+    final ReadableMapKeySetIterator iterator = from.keySetIterator();
+    while (iterator.hasNextKey()) {
+      final String key = iterator.nextKey();
+      if (from.getType(key) == ReadableType.Map) {
+        final ReadableMap nested = from.getMap(key);
+        if (nested != null) {
+          map.put(key, toDeepHashMap(nested));
         }
       }
     }
-
-    return breadcrumb;
+    return map;
   }
 }
