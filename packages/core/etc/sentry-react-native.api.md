@@ -145,7 +145,7 @@ export const appRegistryIntegration: () => Integration & {
 //
 // @public
 export const appStartIntegration: (input?: {
-    standalone?: boolean | undefined;
+    standalone?: boolean;
 }) => AppStartIntegration;
 
 export { Breadcrumb }
@@ -335,7 +335,7 @@ export { FeedbackForm as FeedbackWidget }
 export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
     buttonOptions?: FeedbackButtonProps;
     screenshotButtonOptions?: ScreenshotButtonProps;
-    colorScheme?: 'system' | 'light' | 'dark';
+    colorScheme?: "system" | "light" | "dark";
     themeLight?: Partial<FeedbackFormTheme>;
     themeDark?: Partial<FeedbackFormTheme>;
     enableShakeToReport?: boolean;
@@ -746,15 +746,14 @@ export { Stacktrace }
 
 // @public
 export const stallTrackingIntegration: (input?: {
-    minimumStallThresholdMs?: number | undefined;
+    minimumStallThresholdMs?: number;
 }) => Integration;
 
+// Warning: (ae-forgotten-export) The symbol "defaultIdleOptions" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export const startIdleNavigationSpan: (startSpanOption: StartSpanOptions, input?: Partial<{
-    idleTimeout: number;
-    finalTimeout: number;
-}> & {
-    isAppRestart?: boolean | undefined;
+export const startIdleNavigationSpan: (startSpanOption: StartSpanOptions, input?: Partial<typeof defaultIdleOptions> & {
+    isAppRestart?: boolean;
 }) => Span | undefined;
 
 // @public
