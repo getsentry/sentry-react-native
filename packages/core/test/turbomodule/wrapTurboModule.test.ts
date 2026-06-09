@@ -209,9 +209,7 @@ describe('wrapTurboModule', () => {
 
     wrapTurboModule('Frozen', frozen);
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("'Frozen' has methods but none could be wrapped"),
-    );
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("'Frozen' has methods but none could be wrapped"));
   });
 
   it('still calls the original method when the tracker push throws (native bridge error)', () => {

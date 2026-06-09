@@ -226,9 +226,9 @@ describe('turboModuleTracker', () => {
     });
 
     const before = getTurboModuleCallStack().length;
-    expect(() =>
-      pushTurboModuleCall({ name: 'X', method: 'y', kind: 'sync', scope: failingScope }),
-    ).toThrow('native bridge boom');
+    expect(() => pushTurboModuleCall({ name: 'X', method: 'y', kind: 'sync', scope: failingScope })).toThrow(
+      'native bridge boom',
+    );
     // Stack is unchanged — the failed push didn't leak a frame.
     expect(getTurboModuleCallStack().length).toBe(before);
   });
