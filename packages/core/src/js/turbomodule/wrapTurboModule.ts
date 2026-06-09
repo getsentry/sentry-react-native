@@ -74,32 +74,42 @@ export function wrapTurboModule<T extends object>(
     const originalFn = original as (...a: unknown[]) => unknown;
 
     const wrapper = function sentryTurboModuleWrapper(this: unknown, ...args: unknown[]): unknown {
+      // The instrumentation must never break the user's call — every tracker
+      // interaction is isolated so a failure inside Sentry only drops the
+      // attribution data, never the real TurboModule invocation.
+      //
       // We don't know yet whether `original` is sync or async — start optimistic
       // as sync, relabel to 'async' if the result turns out to be thenable.
-      const callId = pushTurboModuleCall({ name, method: key, kind: 'sync' });
+      let callId: number | undefined;
+      try {
+        callId = pushTurboModuleCall({ name, method: key, kind: 'sync' });
+      } catch (e) {
+        logger.warn(`[TurboModuleTracker] push failed for ${name}.${key}: ${String(e)}`);
+      }
+
       let result: unknown;
       try {
         result = originalFn.apply(this, args);
       } catch (e) {
-        popTurboModuleCall(callId);
+        safePop(callId, name, key);
         throw e;
       }
 
       if (isThenable(result)) {
-        relabelTurboModuleCallKind(callId, 'async');
+        safeRelabel(callId, 'async', name, key);
         return (result as Promise<unknown>).then(
           value => {
-            popTurboModuleCall(callId);
+            safePop(callId, name, key);
             return value;
           },
           err => {
-            popTurboModuleCall(callId);
+            safePop(callId, name, key);
             throw err;
           },
         );
       }
 
-      popTurboModuleCall(callId);
+      safePop(callId, name, key);
       return result;
     };
 
@@ -151,6 +161,28 @@ function collectMethodNames(module: object): string[] {
     current = Object.getPrototypeOf(current) as object | null;
   }
   return Array.from(seen);
+}
+
+function safePop(callId: number | undefined, name: string, method: string): void {
+  if (callId === undefined) {
+    return;
+  }
+  try {
+    popTurboModuleCall(callId);
+  } catch (e) {
+    logger.warn(`[TurboModuleTracker] pop failed for ${name}.${method}: ${String(e)}`);
+  }
+}
+
+function safeRelabel(callId: number | undefined, kind: 'sync' | 'async', name: string, method: string): void {
+  if (callId === undefined) {
+    return;
+  }
+  try {
+    relabelTurboModuleCallKind(callId, kind);
+  } catch (e) {
+    logger.warn(`[TurboModuleTracker] relabel failed for ${name}.${method}: ${String(e)}`);
+  }
 }
 
 function isThenable(value: unknown): value is PromiseLike<unknown> {

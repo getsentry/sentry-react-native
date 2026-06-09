@@ -99,8 +99,16 @@ export function pushTurboModuleCall(args: {
     scope: args.scope ?? getCurrentScope(),
   };
 
+  // Atomic push: if `syncToScope` throws (e.g. a scope-sync hook calls into a
+  // native bridge that rejects with `_NativeClientError`), roll back the stack
+  // push so we don't leak a frame.
   stack.push(call);
-  syncToScope(call);
+  try {
+    syncToScope(call);
+  } catch (e) {
+    stack.pop();
+    throw e;
+  }
   return call.callId;
 }
 

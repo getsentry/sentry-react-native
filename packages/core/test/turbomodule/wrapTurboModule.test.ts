@@ -214,6 +214,53 @@ describe('wrapTurboModule', () => {
     );
   });
 
+  it('still calls the original method when the tracker push throws (native bridge error)', () => {
+    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+    // Simulate a scope-sync hook that calls into a native bridge which throws.
+    jest.spyOn(scope, 'setContext').mockImplementation(() => {
+      throw new Error('NATIVE.setContext boom');
+    });
+
+    const originalFn = jest.fn(() => 'real-result');
+    const module = { doStuff: originalFn };
+
+    wrapTurboModule('Mod', module);
+
+    // The user's call must still complete with the original return value
+    // — Sentry's instrumentation can never break the wrapped TurboModule.
+    const result = module.doStuff();
+
+    expect(result).toBe('real-result');
+    expect(originalFn).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('push failed for Mod.doStuff'));
+    // And the failed push left no leaked frame on the tracker.
+    expect(getTurboModuleCallStack()).toEqual([]);
+  });
+
+  it('still calls the original method when the tracker pop throws', () => {
+    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+
+    const originalFn = jest.fn(() => 42);
+    const module = { doStuff: originalFn };
+
+    wrapTurboModule('Mod', module);
+
+    // Make `setContext` throw only on the pop's restore/clear path. We do this
+    // by letting push succeed, then breaking setContext before the pop fires.
+    let setContextCalls = 0;
+    jest.spyOn(scope, 'setContext').mockImplementation(() => {
+      setContextCalls++;
+      if (setContextCalls > 1) {
+        throw new Error('clear boom');
+      }
+      return scope;
+    });
+
+    expect(() => module.doStuff()).not.toThrow();
+    expect(originalFn).toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('pop failed for Mod.doStuff'));
+  });
+
   it('does not leak a tracker frame when the result has a throwing `then` getter', () => {
     const trap = Object.defineProperty({}, 'then', {
       get() {

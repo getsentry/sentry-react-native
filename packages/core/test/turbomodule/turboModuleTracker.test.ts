@@ -219,6 +219,20 @@ describe('turboModuleTracker', () => {
     expect(relabelTurboModuleCallKind(9999, 'async')).toBe(false);
   });
 
+  it('rolls back the stack push if syncToScope throws (atomic push)', () => {
+    const failingScope = new Scope();
+    jest.spyOn(failingScope, 'setContext').mockImplementation(() => {
+      throw new Error('native bridge boom');
+    });
+
+    const before = getTurboModuleCallStack().length;
+    expect(() =>
+      pushTurboModuleCall({ name: 'X', method: 'y', kind: 'sync', scope: failingScope }),
+    ).toThrow('native bridge boom');
+    // Stack is unchanged — the failed push didn't leak a frame.
+    expect(getTurboModuleCallStack().length).toBe(before);
+  });
+
   it('assigns monotonically increasing call ids', () => {
     const a = pushTurboModuleCall({ name: 'M', method: 'a', kind: 'sync', scope });
     const b = pushTurboModuleCall({ name: 'M', method: 'b', kind: 'sync', scope });
