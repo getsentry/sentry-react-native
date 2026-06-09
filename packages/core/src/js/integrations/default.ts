@@ -41,6 +41,7 @@ import {
   spotlightIntegration,
   stallTrackingIntegration,
   timeToDisplayIntegration,
+  turboModuleContextIntegration,
   userInteractionIntegration,
   viewHierarchyIntegration,
 } from './exports';
@@ -173,6 +174,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   }
 
   integrations.push(primitiveTagIntegration());
+
+  if (options.enableNative) {
+    // Attribute native crashes to the active TurboModule method (see #6163).
+    integrations.push(turboModuleContextIntegration());
+  }
 
   return integrations;
 }
