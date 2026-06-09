@@ -16,7 +16,7 @@ describe('pendingDeepLink', () => {
 
   it('returns the most recently stored URL with a receive timestamp', () => {
     const before = Date.now();
-    setPendingDeepLink('myapp://profile/123');
+    setPendingDeepLink('myapp://profile/123', 'warm-open');
     const after = Date.now();
 
     const pending = consumePendingDeepLink(1_000);
@@ -26,14 +26,14 @@ describe('pendingDeepLink', () => {
   });
 
   it('clears the value after a single consume', () => {
-    setPendingDeepLink('myapp://a');
+    setPendingDeepLink('myapp://a', 'warm-open');
     expect(consumePendingDeepLink(1_000)?.url).toBe('myapp://a');
     expect(consumePendingDeepLink(1_000)).toBeUndefined();
   });
 
   it('overwrites a previous pending value', () => {
-    setPendingDeepLink('myapp://old');
-    setPendingDeepLink('myapp://new');
+    setPendingDeepLink('myapp://old', 'warm-open');
+    setPendingDeepLink('myapp://new', 'warm-open');
     expect(consumePendingDeepLink(1_000)?.url).toBe('myapp://new');
   });
 
@@ -41,7 +41,7 @@ describe('pendingDeepLink', () => {
     const originalNow = Date.now;
     const baseNow = originalNow();
     Date.now = (): number => baseNow;
-    setPendingDeepLink('myapp://stale');
+    setPendingDeepLink('myapp://stale', 'warm-open');
     Date.now = (): number => baseNow + 5_000;
 
     try {
@@ -55,7 +55,7 @@ describe('pendingDeepLink', () => {
   });
 
   it('clearPendingDeepLink removes the value without returning it', () => {
-    setPendingDeepLink('myapp://x');
+    setPendingDeepLink('myapp://x', 'warm-open');
     clearPendingDeepLink();
     expect(consumePendingDeepLink(1_000)).toBeUndefined();
   });
@@ -68,8 +68,8 @@ describe('pendingDeepLink', () => {
         return false;
       });
 
-      setPendingDeepLink('myapp://a');
-      setPendingDeepLink('myapp://b');
+      setPendingDeepLink('myapp://a', 'warm-open');
+      setPendingDeepLink('myapp://b', 'warm-open');
 
       expect(received.map(r => r.url)).toEqual(['myapp://a', 'myapp://b']);
       expect(received[0]?.receivedAtMs).toBeGreaterThan(0);
@@ -77,14 +77,14 @@ describe('pendingDeepLink', () => {
 
     it('skips storage when the listener returns true (already consumed)', () => {
       setPendingDeepLinkListener(() => true);
-      setPendingDeepLink('myapp://consumed-by-listener');
+      setPendingDeepLink('myapp://consumed-by-listener', 'warm-open');
 
       expect(consumePendingDeepLink(1_000)).toBeUndefined();
     });
 
     it('falls through to storage when the listener returns false', () => {
       setPendingDeepLinkListener(() => false);
-      setPendingDeepLink('myapp://stored');
+      setPendingDeepLink('myapp://stored', 'warm-open');
 
       expect(consumePendingDeepLink(1_000)?.url).toBe('myapp://stored');
     });
@@ -94,7 +94,7 @@ describe('pendingDeepLink', () => {
       setPendingDeepLinkListener(fn);
       setPendingDeepLinkListener(undefined);
 
-      setPendingDeepLink('myapp://x');
+      setPendingDeepLink('myapp://x', 'warm-open');
       expect(fn).not.toHaveBeenCalled();
       expect(consumePendingDeepLink(1_000)?.url).toBe('myapp://x');
     });
@@ -104,7 +104,7 @@ describe('pendingDeepLink', () => {
       setPendingDeepLinkListener(fn);
       clearPendingDeepLink();
 
-      setPendingDeepLink('myapp://x');
+      setPendingDeepLink('myapp://x', 'warm-open');
       expect(fn).not.toHaveBeenCalled();
     });
   });

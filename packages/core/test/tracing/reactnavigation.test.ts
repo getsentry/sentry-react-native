@@ -317,7 +317,7 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
-      setPendingDeepLink('myapp://profile/123?token=secret');
+      setPendingDeepLink('myapp://profile/123?token=secret', 'warm-open');
       mockNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers();
 
@@ -337,7 +337,7 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient({ sendDefaultPii: true });
       jest.runOnlyPendingTimers();
 
-      setPendingDeepLink('myapp://profile/123?token=secret');
+      setPendingDeepLink('myapp://profile/123?token=secret', 'warm-open');
       mockNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers();
 
@@ -369,7 +369,7 @@ describe('ReactNavigationInstrumentation', () => {
       const originalNow = Date.now;
       const baseNow = originalNow();
       Date.now = (): number => baseNow;
-      setPendingDeepLink('myapp://stale');
+      setPendingDeepLink('myapp://stale', 'warm-open');
       Date.now = (): number => baseNow + 5_000;
 
       try {
@@ -384,29 +384,94 @@ describe('ReactNavigationInstrumentation', () => {
       }
     });
 
-    test('deep-link hand-off | late arrival: link received between state change and idle end tags the active span', async () => {
-      // Reproduces Cursor bugbot's "late deep link never tags span" finding.
-      // Expo Router may auto-handle `Linking.getInitialURL()` and finish the
-      // initial navigation before our integration's own `getInitialURL()`
-      // chain resolves. The synchronous listener must still attribute the
-      // link to the in-flight (or just-mounted, still-recording) span.
+    test('deep-link hand-off | cold-start late arrival tags the initial finalized nav span while still recording', async () => {
+      // Reproduces Cursor bugbot's "late deep link never tags span" finding
+      // for the Expo Router cold-start case: Expo Router auto-handles
+      // `Linking.getInitialURL()` and the initial route mounts BEFORE our
+      // integration's own `getInitialURL()` chain resolves. The synchronous
+      // listener must attribute the link to the just-mounted-but-still-
+      // recording initial nav span.
       setupTestClient();
-      jest.runOnlyPendingTimers(); // Flush the init transaction
+      // Do NOT flush the init transaction — we want the initial nav span to
+      // still be inside its idle window when the cold-start link arrives.
 
-      // Dispatch + state change — the span has now "mounted its route" but is
-      // still recording (idle timer hasn't fired). `latestNavigationSpan` has
-      // been cleared but `lastIdleNavSpan` still references the live span.
-      mockNavigation.navigateToNewScreen();
+      // Simulate the initial route mount (Expo Router would do this on
+      // container mount, before our deeplink integration sees the URL).
+      mockNavigation.finishAppStartNavigation();
 
-      // Link arrives LATE, after the state change handler has already run.
-      setPendingDeepLink('myapp://profile/123');
+      // Cold-start link arrives LATE.
+      setPendingDeepLink('myapp://profile/123', 'cold-start');
 
-      jest.runOnlyPendingTimers(); // Flush the navigation transaction
+      jest.runOnlyPendingTimers(); // Flush the transaction.
       await client.flush();
 
       const data = client.event?.contexts?.trace?.data ?? {};
       expect(data['navigation.trigger']).toBe('deeplink');
       expect(data['deeplink.url']).toBe('myapp://profile/<id>');
+
+      clearPendingDeepLink();
+    });
+
+    test('deep-link hand-off | warm-open never tags the previous navigation span', async () => {
+      // Reproduces Warden bot's "warm-open deep link can be consumed by a
+      // stale prior navigation span" finding. A warm-open link must NEVER
+      // attach to an already-finalized previous navigation — even if that
+      // span is still inside its idle window. It must wait in the pending
+      // slot for the navigation it actually triggers.
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction.
+
+      // User navigates to screen A. State change finalizes the span, but it
+      // keeps recording until idle timeout.
+      mockNavigation.navigateToNewScreen();
+
+      // Warm-open link arrives WHILE spanA is still recording.
+      setPendingDeepLink('myapp://profile/456', 'warm-open');
+
+      // The next dispatch is the navigation actually triggered by the link.
+      // Done synchronously so the staleness-window timer does not advance
+      // fake `Date.now()` past `routeChangeTimeoutMs`.
+      mockNavigation.navigateToSecondScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      // spanB (the link-triggered navigation) gets the deeplink attributes.
+      const spanBEvent = client.eventQueue.find(e => e.transaction === 'Second Screen');
+      expect(spanBEvent?.contexts?.trace?.data?.['navigation.trigger']).toBe('deeplink');
+      expect(spanBEvent?.contexts?.trace?.data?.['deeplink.url']).toBe('myapp://profile/<id>');
+
+      // spanA (the *previous* navigation, still recording when the link
+      // arrived) MUST NOT carry the deeplink trigger.
+      const spanAEvent = client.eventQueue.find(e => e.transaction === 'New Screen');
+      expect(spanAEvent?.contexts?.trace?.data?.['navigation.trigger']).toBeUndefined();
+      expect(spanAEvent?.contexts?.trace?.data?.['deeplink.url']).toBeUndefined();
+
+      clearPendingDeepLink();
+    });
+
+    test('deep-link hand-off | second link while a span is already tagged falls through to the pending slot', async () => {
+      // Reproduces Cursor bugbot's "late listener drops subsequent URLs"
+      // finding. If `tagSpanWithDeepLink` skips tagging (span already tagged),
+      // the listener must return false so the URL is stored for the next nav
+      // rather than being silently dropped.
+      setupTestClient();
+      // Do NOT flush — keep the initial span recording.
+
+      mockNavigation.finishAppStartNavigation();
+      setPendingDeepLink('myapp://first', 'cold-start');
+      // First link tagged the initial finalized span. A second link arriving
+      // immediately after must NOT be lost — the listener should report
+      // "not consumed" so the value is stored.
+      setPendingDeepLink('myapp://second', 'cold-start');
+
+      // Synchronously dispatch the next navigation so the pending value is
+      // consumed before the staleness-window timer advances fake time.
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const spanBEvent = client.eventQueue.find(e => e.transaction === 'New Screen');
+      expect(spanBEvent?.contexts?.trace?.data?.['deeplink.url']).toBe('myapp://second');
 
       clearPendingDeepLink();
     });
@@ -420,7 +485,7 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
-      setPendingDeepLink('myapp://profile/123');
+      setPendingDeepLink('myapp://profile/123', 'warm-open');
 
       // First dispatch never produces a state change. The next dispatch will
       // discard it synchronously (the "a transaction was detected that turned
@@ -449,7 +514,7 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
-      setPendingDeepLink('myapp://initial');
+      setPendingDeepLink('myapp://initial', 'warm-open');
       mockNavigation.navigateToInitialScreen(); // same key as the just-flushed init
       jest.runOnlyPendingTimers();
       await client.flush();
@@ -471,8 +536,8 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient();
       jest.runOnlyPendingTimers(); // Flush the init transaction
 
-      mockNavigation.dispatchToNewScreen();
-      setPendingDeepLink('myapp://profile/123');
+      mockNavigation.emitNavigationWithoutStateChange();
+      setPendingDeepLink('myapp://profile/123', 'cold-start');
       mockNavigation.completeStateChangeToNewScreen();
       jest.runOnlyPendingTimers();
 
@@ -489,7 +554,7 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient();
       jest.runOnlyPendingTimers();
 
-      setPendingDeepLink('myapp://profile/123');
+      setPendingDeepLink('myapp://profile/123', 'warm-open');
       mockNavigation.navigateToNewScreen();
       jest.runOnlyPendingTimers();
       await client.flush();

@@ -18,11 +18,25 @@
  *    slot is left empty — otherwise the link falls through to the slot.
  */
 
+/**
+ * How the deep link reached the integration:
+ * - `cold-start` — from `Linking.getInitialURL()`. The app may have been
+ *   launched by the link; the *initial* navigation is plausibly its target,
+ *   so retroactive attribution to an already-mounted initial span is allowed.
+ * - `warm-open` — from the `'url'` event while the app was running. The
+ *   triggered navigation has not happened yet, so the URL must wait in the
+ *   pending slot — retroactively tagging the *previous* navigation would
+ *   attribute the link to the wrong span.
+ */
+export type DeepLinkSource = 'cold-start' | 'warm-open';
+
 export interface PendingDeepLink {
   /** Raw URL as received from React Native's `Linking` API. */
   url: string;
   /** Wall-clock timestamp (ms since epoch) when the URL was received. */
   receivedAtMs: number;
+  /** How the link arrived — governs retroactive attribution rules. */
+  source: DeepLinkSource;
 }
 
 /**
@@ -43,8 +57,8 @@ let listener: PendingDeepLinkListener | undefined;
  * Overwrites any previous unconsumed pending value — only the latest link
  * matters for correlation with the next navigation.
  */
-export function setPendingDeepLink(url: string): void {
-  const value: PendingDeepLink = { url, receivedAtMs: Date.now() };
+export function setPendingDeepLink(url: string, source: DeepLinkSource): void {
+  const value: PendingDeepLink = { url, receivedAtMs: Date.now(), source };
   if (listener?.(value)) {
     return;
   }
