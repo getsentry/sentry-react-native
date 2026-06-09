@@ -32,9 +32,9 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.53.1 to v10.56.0 ([#6222](https://github.com/getsentry/sentry-react-native/pull/6222), [#6249](https://github.com/getsentry/sentry-react-native/pull/6249))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10560)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.53.1...10.56.0)
+- Bump JavaScript SDK from v10.53.1 to v10.57.0 ([#6222](https://github.com/getsentry/sentry-react-native/pull/6222), [#6249](https://github.com/getsentry/sentry-react-native/pull/6249), [#6265](https://github.com/getsentry/sentry-react-native/pull/6265))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10570)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.53.1...10.57.0)
 - Bump CLI from v3.4.3 to v3.5.0 ([#6248](https://github.com/getsentry/sentry-react-native/pull/6248))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#350)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.4.3...3.5.0)
