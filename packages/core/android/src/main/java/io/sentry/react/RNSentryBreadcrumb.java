@@ -5,7 +5,6 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import io.sentry.Breadcrumb;
 import io.sentry.ILogger;
-import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import io.sentry.util.MapObjectReader;
 import java.util.Map;
@@ -41,8 +40,7 @@ public final class RNSentryBreadcrumb {
   }
 
   @NotNull
-  public static Breadcrumb fromMap(ReadableMap from) {
-    final @NotNull ILogger logger = Sentry.getCurrentScopes().getOptions().getLogger();
+  public static Breadcrumb fromMap(ReadableMap from, @NotNull ILogger logger) {
     try {
       final @NotNull MapObjectReader reader = new MapObjectReader(toDeepHashMap(from));
       final @NotNull Breadcrumb breadcrumb =

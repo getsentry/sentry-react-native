@@ -611,7 +611,7 @@ public class RNSentryModuleImpl {
   public void addBreadcrumb(final ReadableMap breadcrumb) {
     Sentry.configureScope(
         scope -> {
-          scope.addBreadcrumb(RNSentryBreadcrumb.fromMap(breadcrumb));
+          scope.addBreadcrumb(RNSentryBreadcrumb.fromMap(breadcrumb, logger));
 
           final @Nullable String screen = RNSentryBreadcrumb.getCurrentScreenFrom(breadcrumb);
           if (screen != null) {

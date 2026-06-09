@@ -1,6 +1,7 @@
 package io.sentry.rnsentryandroidtester
 
 import com.facebook.react.bridge.JavaOnlyMap
+import io.sentry.ILogger
 import io.sentry.SentryLevel
 import io.sentry.react.RNSentryBreadcrumb
 import junit.framework.TestCase.assertEquals
@@ -8,9 +9,12 @@ import junit.framework.TestCase.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito
 
 @RunWith(JUnit4::class)
 class RNSentryBreadcrumbTest {
+    private val logger = Mockito.mock(ILogger::class.java)
+
     @Test
     fun generatesSentryBreadcrumbFromMap() {
         val testData =
@@ -33,7 +37,7 @@ class RNSentryBreadcrumbTest {
                 "data",
                 testData,
             )
-        val actual = RNSentryBreadcrumb.fromMap(map)
+        val actual = RNSentryBreadcrumb.fromMap(map, logger)
         assertEquals(SentryLevel.ERROR, actual.level)
         assertEquals("testCategory", actual.category)
         assertEquals("testOrigin", actual.origin)
@@ -49,7 +53,7 @@ class RNSentryBreadcrumbTest {
                 "message",
                 "testMessage",
             )
-        val actual = RNSentryBreadcrumb.fromMap(map)
+        val actual = RNSentryBreadcrumb.fromMap(map, logger)
         assertEquals(SentryLevel.INFO, actual.level)
     }
 
@@ -60,7 +64,7 @@ class RNSentryBreadcrumbTest {
                 "message",
                 "testMessage",
             )
-        val actual = RNSentryBreadcrumb.fromMap(map)
+        val actual = RNSentryBreadcrumb.fromMap(map, logger)
         assertNotNull(actual.timestamp)
     }
 
@@ -71,7 +75,7 @@ class RNSentryBreadcrumbTest {
                 "message",
                 "testMessage",
             )
-        val actual = RNSentryBreadcrumb.fromMap(map)
+        val actual = RNSentryBreadcrumb.fromMap(map, logger)
         assertEquals("testMessage", actual.message)
         assertEquals("react-native", actual.origin)
     }
