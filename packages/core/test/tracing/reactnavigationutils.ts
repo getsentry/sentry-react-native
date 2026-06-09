@@ -82,6 +82,18 @@ export function createMockNavigationAndAttachTo(sut: ReturnType<typeof reactNavi
     emitNavigationWithoutStateChange: () => {
       mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
     },
+    /** Dispatches a NAVIGATE action targeting "New Screen" without changing route state. */
+    dispatchToNewScreen: () => {
+      mockedNavigationContained.listeners['__unsafe_action__'](navigationAction);
+    },
+    /** Completes the route transition to "New Screen" by firing the state listener. */
+    completeStateChangeToNewScreen: () => {
+      mockedNavigationContained.currentRoute = {
+        key: 'new_screen',
+        name: 'New Screen',
+      };
+      mockedNavigationContained.listeners['state']({});
+    },
     emitWithoutStateChange: (action: UnsafeAction) => {
       mockedNavigationContained.listeners['__unsafe_action__'](action);
     },

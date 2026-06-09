@@ -14,6 +14,7 @@ import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
+import { clearPendingDeepLink, setPendingDeepLink } from '../../src/js/tracing/pendingDeepLink';
 import {
   clearPendingExpoRouterNavigation,
   setPendingExpoRouterNavigation,
@@ -310,6 +311,118 @@ describe('ReactNavigationInstrumentation', () => {
       await client.flush();
 
       expect(client.event?.contexts?.trace?.data?.['navigation.method']).toBeUndefined();
+    });
+
+    test('deep-link hand-off | attaches trigger + sanitized URL on warm open', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      setPendingDeepLink('myapp://profile/123?token=secret');
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const data = client.event?.contexts?.trace?.data ?? {};
+      expect(data['navigation.trigger']).toBe('deeplink');
+      // sendDefaultPii defaults to false → query stripped, numeric id replaced.
+      expect(data['deeplink.url']).toBe('myapp://profile/<id>');
+      expect(typeof data['deeplink.received_at']).toBe('number');
+      expect(data['deeplink.received_at']).toBeGreaterThanOrEqual(0);
+
+      clearPendingDeepLink();
+    });
+
+    test('deep-link hand-off | keeps raw URL when sendDefaultPii is enabled', async () => {
+      setupTestClient({ sendDefaultPii: true });
+      jest.runOnlyPendingTimers();
+
+      setPendingDeepLink('myapp://profile/123?token=secret');
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.contexts?.trace?.data?.['deeplink.url']).toBe('myapp://profile/123?token=secret');
+
+      clearPendingDeepLink();
+    });
+
+    test('deep-link hand-off | does not attach when no deep link is pending', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers();
+
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const data = client.event?.contexts?.trace?.data ?? {};
+      expect(data['navigation.trigger']).toBeUndefined();
+      expect(data['deeplink.url']).toBeUndefined();
+    });
+
+    test('deep-link hand-off | drops a deep link older than routeChangeTimeoutMs', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers();
+
+      // Forge an expired pending value (routeChangeTimeoutMs defaults to 1000ms).
+      const originalNow = Date.now;
+      const baseNow = originalNow();
+      Date.now = (): number => baseNow;
+      setPendingDeepLink('myapp://stale');
+      Date.now = (): number => baseNow + 5_000;
+
+      try {
+        mockNavigation.navigateToNewScreen();
+        jest.runOnlyPendingTimers();
+        await client.flush();
+
+        expect(client.event?.contexts?.trace?.data?.['navigation.trigger']).toBeUndefined();
+      } finally {
+        Date.now = originalNow;
+        clearPendingDeepLink();
+      }
+    });
+
+    test('deep-link hand-off | cold start: link arriving after span starts but before state change still attaches', async () => {
+      // Simulates cold start: the React Navigation idle span is started in
+      // `afterAllSetup`, then `Linking.getInitialURL()` resolves a microtask
+      // later, then the route state finally changes. We model this by
+      // emitting the dispatch (which creates the span), THEN setting the
+      // pending deep link, THEN letting the state change fire.
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      mockNavigation.dispatchToNewScreen();
+      setPendingDeepLink('myapp://profile/123');
+      mockNavigation.completeStateChangeToNewScreen();
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      const data = client.event?.contexts?.trace?.data ?? {};
+      expect(data['navigation.trigger']).toBe('deeplink');
+      expect(data['deeplink.url']).toBe('myapp://profile/<id>');
+
+      clearPendingDeepLink();
+    });
+
+    test('deep-link hand-off | consumes the pending value exactly once', async () => {
+      setupTestClient();
+      jest.runOnlyPendingTimers();
+
+      setPendingDeepLink('myapp://profile/123');
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+      expect(client.event?.contexts?.trace?.data?.['navigation.trigger']).toBe('deeplink');
+
+      // The next navigation must not inherit the deep-link attribution.
+      mockNavigation.navigateToSecondScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+      expect(client.event?.contexts?.trace?.data?.['navigation.trigger']).toBeUndefined();
+      expect(client.event?.contexts?.trace?.data?.['deeplink.url']).toBeUndefined();
     });
 
     test('drains the pending value even when the listener short-circuits (no leak onto the next nav)', async () => {

@@ -10,6 +10,7 @@
 
 ### Features
 
+- Correlate deep links with the navigation transaction they trigger. The next idle navigation span started within `routeChangeTimeoutMs` of a deep link arrival is tagged with `navigation.trigger: 'deeplink'`, `deeplink.url` (sanitized, respects `sendDefaultPii`), and `deeplink.received_at` (ms gap between URL received and navigation dispatched). Covers both cold start (`Linking.getInitialURL()`) and warm open (`'url'` event) paths ([#6159](https://github.com/getsentry/sentry-react-native/issues/6159))
 - Add memory, CPU, and frame measurements to Android profiling ([#6250](https://github.com/getsentry/sentry-react-native/pull/6250))
 - Add `enableAutoConsoleLogs` option to opt out of automatic `console.*` capture while keeping `enableLogs: true` for manual `Sentry.logger.*` calls ([#6235](https://github.com/getsentry/sentry-react-native/pull/6235))
 - Instrument Expo Router `push`, `replace`, `navigate`, `back`, and `dismiss` (in addition to `prefetch`) with breadcrumbs and spans, and tag the resulting idle navigation span with the initiating `navigation.method` ([#6221](https://github.com/getsentry/sentry-react-native/pull/6221))

@@ -2,6 +2,7 @@ import type { IntegrationFn } from '@sentry/core';
 
 import { addBreadcrumb, defineIntegration, getClient } from '@sentry/core';
 
+import { setPendingDeepLink } from '../tracing/pendingDeepLink';
 import { sanitizeUrl } from '../tracing/utils';
 
 export const INTEGRATION_NAME = 'DeepLink';
@@ -21,7 +22,14 @@ interface RNLinking {
  *
  * Only replaces segments that look like identifiers (all digits, UUIDs, or hex strings).
  */
-function sanitizeDeepLinkUrl(url: string): string {
+/**
+ * Replaces dynamic path segments (UUID-like or numeric values) with a placeholder
+ * to avoid capturing PII in path segments when `sendDefaultPii` is off.
+ *
+ * Exported so the navigation integration can apply the same sanitization when
+ * attaching a deep link URL to a navigation span.
+ */
+export function sanitizeDeepLinkUrl(url: string): string {
   const stripped = sanitizeUrl(url);
 
   // Split off the scheme+authority (e.g. "myapp://host") so the regex
@@ -55,7 +63,13 @@ function getBreadcrumbUrl(url: string): string {
   return sendDefaultPii ? url : sanitizeDeepLinkUrl(url);
 }
 
-function addDeepLinkBreadcrumb(url: string): void {
+function recordDeepLink(url: string): void {
+  // Hand off to the navigation integration so the next idle navigation span
+  // can attribute itself to this deep link. Always stores the raw URL —
+  // sanitization (if any) happens at attach time, based on the client's
+  // `sendDefaultPii` option at that moment.
+  setPendingDeepLink(url);
+
   const breadcrumbUrl = getBreadcrumbUrl(url);
   addBreadcrumb({
     category: 'deeplink',
@@ -87,7 +101,7 @@ const _deeplinkIntegration: IntegrationFn = () => {
         .getInitialURL()
         .then((url: string | null) => {
           if (url) {
-            addDeepLinkBreadcrumb(url);
+            recordDeepLink(url);
           }
         })
         .catch(() => {
@@ -97,7 +111,7 @@ const _deeplinkIntegration: IntegrationFn = () => {
       // Warm open: deep link received while app is running
       subscription = linking.addEventListener('url', (event: { url: string }) => {
         if (event?.url) {
-          addDeepLinkBreadcrumb(event.url);
+          recordDeepLink(event.url);
         }
       });
 

@@ -18,6 +18,7 @@ import type { UnsafeAction } from '../vendor/react-navigation/types';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
+import { sanitizeDeepLinkUrl } from '../integrations/deeplink';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
@@ -27,6 +28,7 @@ import {
   markRootSpanForDiscard,
 } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
+import { consumePendingDeepLink } from './pendingDeepLink';
 import { consumePendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
@@ -230,6 +232,7 @@ export const reactNavigationIntegration = ({
   let latestNavigationSpan: Span | undefined;
   let latestNavigationSpanNameCustomized: boolean = false;
   let navigationProcessingSpan: Span | undefined;
+  let deepLinkAppliedToLatestSpan: boolean = false;
 
   let initialStateHandled: boolean = false;
   let isSetupComplete: boolean = false;
@@ -463,6 +466,15 @@ export const reactNavigationIntegration = ({
     if (pendingExpoRouter && latestNavigationSpan) {
       latestNavigationSpan.setAttribute('navigation.method', pendingExpoRouter.method);
     }
+
+    // Try to attribute this span to a recently received deep link. Covers the
+    // warm-open case (link arrives → navigation dispatches). The cold-start
+    // case is handled again in `updateLatestNavigationSpanWithCurrentRoute`
+    // because `Linking.getInitialURL()` may resolve after this point.
+    deepLinkAppliedToLatestSpan = false;
+    if (latestNavigationSpan) {
+      deepLinkAppliedToLatestSpan = applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
+    }
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
@@ -555,6 +567,13 @@ export const reactNavigationIntegration = ({
       routeName = getPathFromState(navigationState) || route.name;
     }
 
+    // Cold-start fallback: if the deep link arrived *after* the idle navigation
+    // span was started (e.g. `getInitialURL()` resolved post-`afterAllSetup`),
+    // try again now that the route has mounted.
+    if (!deepLinkAppliedToLatestSpan) {
+      deepLinkAppliedToLatestSpan = applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
+    }
+
     navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${routeName} mounted`);
     navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
     navigationProcessingSpan?.end(stateChangedTimestamp);
@@ -600,6 +619,7 @@ export const reactNavigationIntegration = ({
     }
     // Clear the latest transaction as it has been handled.
     latestNavigationSpan = undefined;
+    deepLinkAppliedToLatestSpan = false;
   };
 
   /** Pushes a recent route key, and removes earlier routes when there is greater than the max length */
@@ -624,6 +644,7 @@ export const reactNavigationIntegration = ({
     if (navigationProcessingSpan) {
       navigationProcessingSpan = undefined;
     }
+    deepLinkAppliedToLatestSpan = false;
   };
 
   const clearStateChangeTimeout = (): void => {
@@ -671,6 +692,30 @@ interface NavigationContainer {
   addListener: (type: string, listener: (event?: unknown) => void) => void;
   getCurrentRoute: () => NavigationRoute;
   getState: () => NavigationState | undefined;
+}
+
+/**
+ * Attempts to consume the pending deep link and attach it to the given span.
+ *
+ * Returns `true` when a deep link was consumed (and the span was annotated),
+ * `false` otherwise. Callers may invoke this multiple times against the same
+ * span — once the pending value has been consumed it will not be re-applied.
+ */
+function applyPendingDeepLinkToSpan(span: Span, maxAgeMs: number): boolean {
+  const pending = consumePendingDeepLink(maxAgeMs);
+  if (!pending) {
+    return false;
+  }
+
+  const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
+  const url = sendDefaultPii ? pending.url : sanitizeDeepLinkUrl(pending.url);
+
+  span.setAttributes({
+    'navigation.trigger': 'deeplink',
+    'deeplink.url': url,
+    'deeplink.received_at': Math.max(0, Date.now() - pending.receivedAtMs),
+  });
+  return true;
 }
 
 /**
