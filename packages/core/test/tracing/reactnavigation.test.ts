@@ -327,8 +327,8 @@ describe('ReactNavigationInstrumentation', () => {
       expect(data['navigation.trigger']).toBe('deeplink');
       // sendDefaultPii defaults to false → query stripped, numeric id replaced.
       expect(data['deeplink.url']).toBe('myapp://profile/<id>');
-      expect(typeof data['deeplink.received_at']).toBe('number');
-      expect(data['deeplink.received_at']).toBeGreaterThanOrEqual(0);
+      expect(typeof data['deeplink.dispatch_delay_ms']).toBe('number');
+      expect(data['deeplink.dispatch_delay_ms']).toBeGreaterThanOrEqual(0);
 
       clearPendingDeepLink();
     });
@@ -382,6 +382,84 @@ describe('ReactNavigationInstrumentation', () => {
         Date.now = originalNow;
         clearPendingDeepLink();
       }
+    });
+
+    test('deep-link hand-off | late arrival: link received between state change and idle end tags the active span', async () => {
+      // Reproduces Cursor bugbot's "late deep link never tags span" finding.
+      // Expo Router may auto-handle `Linking.getInitialURL()` and finish the
+      // initial navigation before our integration's own `getInitialURL()`
+      // chain resolves. The synchronous listener must still attribute the
+      // link to the in-flight (or just-mounted, still-recording) span.
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      // Dispatch + state change — the span has now "mounted its route" but is
+      // still recording (idle timer hasn't fired). `latestNavigationSpan` has
+      // been cleared but `lastIdleNavSpan` still references the live span.
+      mockNavigation.navigateToNewScreen();
+
+      // Link arrives LATE, after the state change handler has already run.
+      setPendingDeepLink('myapp://profile/123');
+
+      jest.runOnlyPendingTimers(); // Flush the navigation transaction
+      await client.flush();
+
+      const data = client.event?.contexts?.trace?.data ?? {};
+      expect(data['navigation.trigger']).toBe('deeplink');
+      expect(data['deeplink.url']).toBe('myapp://profile/<id>');
+
+      clearPendingDeepLink();
+    });
+
+    test('deep-link hand-off | discarded dispatch does not consume the pending link', async () => {
+      // Reproduces Cursor bugbot's "early consume loses pending link" finding.
+      // A dispatch may turn out to be a noop (no state change → timeout →
+      // discard). The pending link must survive that discard so the *next*
+      // real navigation — the one actually caused by the link — still gets
+      // attributed.
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      setPendingDeepLink('myapp://profile/123');
+
+      // First dispatch never produces a state change. The next dispatch will
+      // discard it synchronously (the "a transaction was detected that turned
+      // out to be a noop" branch), exercising the discard path *without*
+      // advancing fake time past the staleness window.
+      mockNavigation.emitCancelledNavigation();
+
+      // Second dispatch is the real navigation. It must still pick up the link.
+      mockNavigation.navigateToNewScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const data = client.event?.contexts?.trace?.data ?? {};
+      expect(data['navigation.trigger']).toBe('deeplink');
+      expect(data['deeplink.url']).toBe('myapp://profile/<id>');
+
+      clearPendingDeepLink();
+    });
+
+    test('deep-link hand-off | same-route state change still attributes the link', async () => {
+      // Reproduces Cursor bugbot's "same-route path skips deeplink retry"
+      // finding. Deep-linking to the screen you're already on is a legitimate
+      // case — the dispatch still happens and an idle span still starts, so
+      // the link must be attached even when the resulting route key matches
+      // the previous one.
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction
+
+      setPendingDeepLink('myapp://initial');
+      mockNavigation.navigateToInitialScreen(); // same key as the just-flushed init
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const data = client.event?.contexts?.trace?.data ?? {};
+      // We don't care which event captures it (the same-route branch ends the
+      // span via the idle path), but the attribute MUST be present.
+      expect(data['navigation.trigger']).toBe('deeplink');
+
+      clearPendingDeepLink();
     });
 
     test('deep-link hand-off | cold start: link arriving after span starts but before state change still attaches', async () => {

@@ -1,4 +1,9 @@
-import { clearPendingDeepLink, consumePendingDeepLink, setPendingDeepLink } from '../../src/js/tracing/pendingDeepLink';
+import {
+  clearPendingDeepLink,
+  consumePendingDeepLink,
+  setPendingDeepLink,
+  setPendingDeepLinkListener,
+} from '../../src/js/tracing/pendingDeepLink';
 
 describe('pendingDeepLink', () => {
   afterEach(() => {
@@ -53,5 +58,54 @@ describe('pendingDeepLink', () => {
     setPendingDeepLink('myapp://x');
     clearPendingDeepLink();
     expect(consumePendingDeepLink(1_000)).toBeUndefined();
+  });
+
+  describe('listener', () => {
+    it('is invoked synchronously on every set, with url + timestamp', () => {
+      const received: Array<{ url: string; receivedAtMs: number }> = [];
+      setPendingDeepLinkListener(link => {
+        received.push({ url: link.url, receivedAtMs: link.receivedAtMs });
+        return false;
+      });
+
+      setPendingDeepLink('myapp://a');
+      setPendingDeepLink('myapp://b');
+
+      expect(received.map(r => r.url)).toEqual(['myapp://a', 'myapp://b']);
+      expect(received[0]?.receivedAtMs).toBeGreaterThan(0);
+    });
+
+    it('skips storage when the listener returns true (already consumed)', () => {
+      setPendingDeepLinkListener(() => true);
+      setPendingDeepLink('myapp://consumed-by-listener');
+
+      expect(consumePendingDeepLink(1_000)).toBeUndefined();
+    });
+
+    it('falls through to storage when the listener returns false', () => {
+      setPendingDeepLinkListener(() => false);
+      setPendingDeepLink('myapp://stored');
+
+      expect(consumePendingDeepLink(1_000)?.url).toBe('myapp://stored');
+    });
+
+    it('can be unregistered with undefined', () => {
+      const fn = jest.fn().mockReturnValue(true);
+      setPendingDeepLinkListener(fn);
+      setPendingDeepLinkListener(undefined);
+
+      setPendingDeepLink('myapp://x');
+      expect(fn).not.toHaveBeenCalled();
+      expect(consumePendingDeepLink(1_000)?.url).toBe('myapp://x');
+    });
+
+    it('clearPendingDeepLink also removes the listener', () => {
+      const fn = jest.fn().mockReturnValue(true);
+      setPendingDeepLinkListener(fn);
+      clearPendingDeepLink();
+
+      setPendingDeepLink('myapp://x');
+      expect(fn).not.toHaveBeenCalled();
+    });
   });
 });
