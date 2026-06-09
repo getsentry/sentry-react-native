@@ -32,9 +32,10 @@ RN_PROJECT_ROOT="${SENTRY_PROJECT_ROOT:-${PROJECT_DIR}/..}"
 [ -z "$SOURCEMAP_FILE" ] && export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"
 
 if [ -z "$SENTRY_CLI_EXECUTABLE" ]; then
-  # Try standard resolution safely
+  # Resolve from @sentry/react-native so package managers with isolated dependencies
+  # can find the transitive @sentry/cli dependency.
   RESOLVED_PATH=$(
-    "$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json'))" 2>/dev/null
+    "$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/cli/package.json', { paths: [require.resolve('@sentry/react-native/package.json')] }))" 2>/dev/null
   ) || true
   if [ -n "$RESOLVED_PATH" ]; then
     SENTRY_CLI_PACKAGE_PATH="$RESOLVED_PATH/bin/sentry-cli"

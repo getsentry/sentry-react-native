@@ -201,8 +201,13 @@ fun resolveSentryCliPackagePath(reactRoot: File): String {
     var resolvedCliPath: File? = null
     try {
         val process =
-            ProcessBuilder(listOf("node", "--print", "require.resolve('@sentry/cli/package.json')"))
-                .directory(rootDir)
+            ProcessBuilder(
+                listOf(
+                    "node",
+                    "--print",
+                    "require.resolve('@sentry/cli/package.json', { paths: [require.resolve('@sentry/react-native/package.json')] })",
+                ),
+            ).directory(rootDir)
                 .start()
         val output =
             process.inputStream
