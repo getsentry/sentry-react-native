@@ -354,6 +354,9 @@ export { functionToStringIntegration }
 
 export { getActiveSpan }
 
+// @public
+export function getActiveTurboModuleCall(): TurboModuleCall | undefined;
+
 export { getClient }
 
 // Warning: (ae-forgotten-export) The symbol "ReactNativeTracingIntegration" needs to be exported by the entry point index.d.ts
@@ -377,6 +380,9 @@ export { getIsolationScope }
 export function getReactNativeTracingIntegration(client: Client): ReactNativeTracingIntegration | undefined;
 
 export { getRootSpan }
+
+// @public
+export function getTurboModuleCallStack(): TurboModuleCall[];
 
 // Warning: (ae-forgotten-export) The symbol "GlobalErrorBoundaryState" needs to be exported by the entry point index.d.ts
 //
@@ -531,9 +537,20 @@ export { OpenAiOptions }
 export function pauseAppHangTracking(): void;
 
 // @public
+export function popTurboModuleCall(callId: number): void;
+
+// @public
 export const primitiveTagIntegration: () => Integration;
 
 export { Profiler }
+
+// @public
+export function pushTurboModuleCall(args: {
+    name: string;
+    method: string;
+    kind: 'sync' | 'async';
+    scope?: Scope;
+}): number;
 
 // Warning: (ae-forgotten-export) The symbol "ReactNativeClientOptions" needs to be exported by the entry point index.d.ts
 //
@@ -808,6 +825,27 @@ export class TouchEventBoundary extends React_2.Component<TouchEventBoundaryProp
 
 export { TransactionEvent }
 
+// @public
+export interface TurboModuleCall {
+    callId: number;
+    kind: 'sync' | 'async';
+    method: string;
+    name: string;
+    startedAtMs: number;
+}
+
+// @public
+export const turboModuleContextIntegration: (options?: TurboModuleContextOptions) => Integration;
+
+// @public (undocumented)
+export interface TurboModuleContextOptions {
+    modules?: Array<{
+        name: string;
+        module: object | null | undefined;
+        skipMethods?: ReadonlyArray<string>;
+    }>;
+}
+
 // @public (undocumented)
 export const Unmask: HostComponent<ViewProps> | React_2.ComponentType<ViewProps>;
 
@@ -851,6 +889,11 @@ export function wrapExpoImage<T extends ExpoImage>(imageClass: T): T;
 
 // @public
 export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
+
+// @public
+export function wrapTurboModule<T extends object>(name: string, module: T | null | undefined, options?: {
+    skip?: ReadonlyArray<string>;
+}): T | null | undefined;
 
 // Warnings were encountered during analysis:
 //

@@ -26,6 +26,8 @@ export { appRegistryIntegration } from './appRegistry';
 export { timeToDisplayIntegration } from '../tracing/integrations/timeToDisplayIntegration';
 export { breadcrumbsIntegration } from './breadcrumbs';
 export { primitiveTagIntegration } from './primitiveTagIntegration';
+export { turboModuleContextIntegration } from './turboModuleContext';
+export type { TurboModuleContextOptions } from './turboModuleContext';
 export { logEnricherIntegration } from './logEnricherIntegration';
 export { graphqlIntegration } from './graphql';
 export { supabaseIntegration } from './supabase';
