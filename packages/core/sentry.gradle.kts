@@ -173,8 +173,7 @@ fun resolveSentryCliPackagePath(reactRoot: File): String {
                     "--print",
                     "require.resolve('@sentry/cli/package.json', { paths: [require.resolve('@sentry/react-native/package.json')] })",
                 ),
-            )
-                .directory(rootDir)
+            ).directory(rootDir)
                 .start()
         val output =
             process.inputStream
