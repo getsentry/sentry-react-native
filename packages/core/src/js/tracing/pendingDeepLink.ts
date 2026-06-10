@@ -37,6 +37,14 @@ export interface PendingDeepLink {
   receivedAtMs: number;
   /** How the link arrived — governs retroactive attribution rules. */
   source: DeepLinkSource;
+  /**
+   * Monotonic sequence number shared with `nextEventSeq()`. The navigation
+   * integration tags every dispatched nav span with a seq from the same
+   * sequence — a warm-open link must only consume the slot for spans whose
+   * seq is strictly greater than the link's, i.e. were dispatched *after* the
+   * link arrived.
+   */
+  seq: number;
 }
 
 /**
@@ -48,6 +56,16 @@ export type PendingDeepLinkListener = (link: PendingDeepLink) => boolean;
 
 let pending: PendingDeepLink | undefined;
 let listener: PendingDeepLinkListener | undefined;
+let seqCounter = 0;
+
+/**
+ * Returns the next value in the shared monotonic sequence. Used by the
+ * navigation integration to stamp each dispatched nav span, so consumers can
+ * tell whether a pending link arrived before or after a given dispatch.
+ */
+export function nextEventSeq(): number {
+  return ++seqCounter;
+}
 
 /**
  * Stores the most recently received deep link URL together with the current
@@ -58,11 +76,32 @@ let listener: PendingDeepLinkListener | undefined;
  * matters for correlation with the next navigation.
  */
 export function setPendingDeepLink(url: string, source: DeepLinkSource): void {
-  const value: PendingDeepLink = { url, receivedAtMs: Date.now(), source };
+  const value: PendingDeepLink = {
+    url,
+    receivedAtMs: Date.now(),
+    source,
+    seq: nextEventSeq(),
+  };
   if (listener?.(value)) {
     return;
   }
   pending = value;
+}
+
+/**
+ * Returns the pending deep link without clearing the slot, applying the same
+ * staleness check as {@link consumePendingDeepLink}. A stale value is dropped
+ * (so subsequent calls do not return it) but no fresh value is returned.
+ */
+export function peekPendingDeepLink(maxAgeMs: number): PendingDeepLink | undefined {
+  if (!pending) {
+    return undefined;
+  }
+  if (Date.now() - pending.receivedAtMs > maxAgeMs) {
+    pending = undefined;
+    return undefined;
+  }
+  return pending;
 }
 
 /**
@@ -91,8 +130,9 @@ export function setPendingDeepLinkListener(fn: PendingDeepLinkListener | undefin
   listener = fn;
 }
 
-/** Test helper — clears the pending value and listener without consuming them. */
+/** Test helper — clears the pending value, listener, and sequence counter. */
 export function clearPendingDeepLink(): void {
   pending = undefined;
   listener = undefined;
+  seqCounter = 0;
 }

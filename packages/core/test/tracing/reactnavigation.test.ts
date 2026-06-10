@@ -412,6 +412,41 @@ describe('ReactNavigationInstrumentation', () => {
       clearPendingDeepLink();
     });
 
+    test('deep-link hand-off | warm-open never tags an unrelated in-flight span (dispatched but not yet finalized)', async () => {
+      // Reproduces Cursor bugbot's "warm-open tags unrelated in-flight span"
+      // finding. If the user has just dispatched an unrelated navigation
+      // (state change pending) and a warm-open link arrives before the link
+      // handler has run, the listener must NOT attach the link to the
+      // in-flight span — it belongs to the (yet-to-be-dispatched)
+      // link-triggered navigation that follows.
+      setupTestClient();
+      jest.runOnlyPendingTimers(); // Flush the init transaction.
+
+      // Unrelated dispatch — `latestNavigationSpan` is now set, state change
+      // has not fired yet.
+      mockNavigation.emitNavigationWithoutStateChange();
+
+      // Warm-open link arrives mid-flight.
+      setPendingDeepLink('myapp://profile/789', 'warm-open');
+
+      // The unrelated dispatch finalizes (different route, not the link's).
+      mockNavigation.completeStateChangeToNewScreen();
+      // The actual link-triggered navigation follows.
+      mockNavigation.navigateToSecondScreen();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      // The unrelated nav must NOT carry the deeplink trigger.
+      const newScreen = client.eventQueue.find(e => e.transaction === 'New Screen');
+      expect(newScreen?.contexts?.trace?.data?.['navigation.trigger']).toBeUndefined();
+      // The link-triggered nav must carry it.
+      const secondScreen = client.eventQueue.find(e => e.transaction === 'Second Screen');
+      expect(secondScreen?.contexts?.trace?.data?.['navigation.trigger']).toBe('deeplink');
+      expect(secondScreen?.contexts?.trace?.data?.['deeplink.url']).toBe('myapp://profile/<id>');
+
+      clearPendingDeepLink();
+    });
+
     test('deep-link hand-off | warm-open never tags the previous navigation span', async () => {
       // Reproduces Warden bot's "warm-open deep link can be consumed by a
       // stale prior navigation span" finding. A warm-open link must NEVER
