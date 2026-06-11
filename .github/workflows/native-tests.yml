@@ -32,10 +32,15 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   test-ios:
-    name: ios
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    name: ios on ${{matrix.runner_provider}}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_ios == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
@@ -51,7 +56,22 @@ jobs:
       - name: Install SDK JS Dependencies
         run: yarn install
 
+      - uses: actions/cache@v4
+        name: Cache Ruby
+        with:
+          path: |
+            ~/.rbenv/versions
+            ~/.rbenv/cache
+          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - name: Install Ruby (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        run: |
+          brew upgrade ruby-build
+          rbenv install -s
+
       - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
+        if: matrix.runner_provider != 'bitrise'
         with:
           ruby-version: '3.3.0'
         env:

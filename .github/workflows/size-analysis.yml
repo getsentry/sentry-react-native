@@ -91,9 +91,14 @@ jobs:
 
   ios:
     needs: [ready-to-merge-gate]
-    name: iOS Size Analysis
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    name: iOS Size Analysis on ${{matrix.runner_provider}}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        runner_provider: ['cirrus', 'bitrise']
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -108,7 +113,24 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
+      - uses: actions/cache@v4
+        name: Cache Ruby
+        with:
+          path: |
+            ~/.rbenv/versions
+            ~/.rbenv/cache
+          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - name: Install Ruby (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          brew upgrade ruby-build
+          rbenv install -s
+          bundle install
+
       - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
+        if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
           ruby-version: '3.3.0'
@@ -171,5 +193,5 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: size-analysis-ios-logs
+          name: size-analysis-ios-${{ matrix.runner_provider }}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/xcodebuild-size-analysis.log
