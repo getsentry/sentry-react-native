@@ -75,7 +75,7 @@ export interface MobileReplayOptions {
    * Enabling this flag will reduce the amount of time it takes to render each frame of the session replay on the main thread, therefore reducing
    * interruptions and visual lag.
    *
-   * - Note: This flag can only be used together with `enableExperimentalViewRenderer` with up to 20% faster render times.
+   * - Note: This flag only has an effect when `enableViewRendererV2` is enabled, with up to 20% faster render times.
    * - Experiment: This is an experimental feature and is therefore disabled by default.
    *
    * @default false
