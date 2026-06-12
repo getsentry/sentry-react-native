@@ -15,9 +15,11 @@ import {
 } from '@sentry/core';
 
 import type { UnsafeAction } from '../vendor/react-navigation/types';
+import type { PendingDeepLink } from './pendingDeepLink';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
 
 import { getAppRegistryIntegration } from '../integrations/appRegistry';
+import { sanitizeDeepLinkUrl } from '../integrations/deeplink';
 import { isSentrySpan } from '../utils/span';
 import { RN_GLOBAL_OBJ } from '../utils/worldwide';
 import { NATIVE } from '../wrapper';
@@ -27,6 +29,12 @@ import {
   markRootSpanForDiscard,
 } from './onSpanEndUtils';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from './origin';
+import {
+  consumePendingDeepLink,
+  nextEventSeq,
+  peekPendingDeepLink,
+  setPendingDeepLinkListener,
+} from './pendingDeepLink';
 import { consumePendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
 import { getReactNativeTracingIntegration } from './reactnativetracing';
 import { SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, SEMANTIC_ATTRIBUTE_SENTRY_SOURCE } from './semanticAttributes';
@@ -230,6 +238,88 @@ export const reactNavigationIntegration = ({
   let latestNavigationSpan: Span | undefined;
   let latestNavigationSpanNameCustomized: boolean = false;
   let navigationProcessingSpan: Span | undefined;
+  /**
+   * The first nav span that successfully completed a state change — i.e. the
+   * span that mounted the app's initial route. Used (and only used) by the
+   * deep-link listener as a retroactive attribution target for `cold-start`
+   * links that arrive after that state change but before the span's idle
+   * timeout fires. This is the Expo-Router-auto-handled-cold-start case.
+   *
+   * Never updated after the first successful state change — a `cold-start`
+   * link must never retroactively tag a span the user navigated to later.
+   * `warm-open` links bypass this entirely and always wait in the pending
+   * slot for the next dispatched navigation.
+   */
+  let initialFinalizedNavSpan: Span | undefined;
+
+  /**
+   * Monotonic dispatch sequence per span, drawn from the shared `nextEventSeq`
+   * counter. Used to reject warm-open links that arrived *before* a dispatch —
+   * such links cannot have caused that dispatch, so the span must not be
+   * tagged with them.
+   */
+  const spanDispatchSeq = new WeakMap<Span, number>();
+
+  /**
+   * Attempts to attach the pending deep link to the given span.
+   *
+   * Warm-open links only attach to spans dispatched *after* the link was
+   * received. This prevents an unrelated, already-in-flight navigation from
+   * being tagged when a deep link arrives mid-dispatch but is actually the
+   * trigger of a subsequent navigation.
+   *
+   * Cold-start links attach unconditionally — retroactive attribution to the
+   * initial nav span is the whole point of that source.
+   *
+   * Rejected warm-open links are left in the slot to be picked up by the next
+   * eligible span.
+   */
+  const applyPendingDeepLinkToSpan = (span: Span, maxAgeMs: number): void => {
+    const pending = peekPendingDeepLink(maxAgeMs);
+    if (!pending) {
+      return;
+    }
+    if (pending.source === 'warm-open') {
+      const spanSeq = spanDispatchSeq.get(span);
+      if (spanSeq === undefined || spanSeq <= pending.seq) {
+        // Span was dispatched before (or at the same tick as) the link arrived
+        // — it cannot be the navigation the link triggered. Leave the link in
+        // the slot for the next eligible span.
+        return;
+      }
+    }
+    consumePendingDeepLink(maxAgeMs);
+    tagSpanWithDeepLink(span, pending);
+  };
+
+  /**
+   * Synchronous listener invoked the moment a deep link is recorded. Returns
+   * `true` only when the link was actually attached to a span — in that case
+   * the pendingDeepLink module skips storing the value. Returns `false` to let
+   * the link fall through to the pending slot for the next dispatched nav.
+   *
+   * Only `cold-start` links may retroactively tag an existing span. The
+   * realistic warm-open flow is "`'url'` event → user handler synchronously
+   * calls `navigation.navigate`": at listener invocation time no link-driven
+   * dispatch has happened yet, so any span we could reach belongs to an
+   * unrelated, prior navigation.
+   */
+  const handleLateDeepLink = (link: PendingDeepLink): boolean => {
+    if (link.source !== 'cold-start') {
+      return false;
+    }
+    // Prefer an in-flight span (dispatch happened, state change pending).
+    if (latestNavigationSpan && isSpanRecording(latestNavigationSpan)) {
+      return tagSpanWithDeepLink(latestNavigationSpan, link);
+    }
+    // Fallback: the initial nav span may have already mounted its route but
+    // still be recording within its idle window (e.g. Expo Router auto-handled
+    // the link before our own `getInitialURL()` chain resolved).
+    if (initialFinalizedNavSpan && isSpanRecording(initialFinalizedNavSpan)) {
+      return tagSpanWithDeepLink(initialFinalizedNavSpan, link);
+    }
+    return false;
+  };
 
   let initialStateHandled: boolean = false;
   let isSetupComplete: boolean = false;
@@ -253,6 +343,14 @@ export const reactNavigationIntegration = ({
         idleTimeout: tracing.options.idleTimeoutMs,
       };
     }
+
+    // Listen for deep links as they arrive so we can attribute a span that has
+    // already mounted its route but not yet ended (e.g. Expo Router auto-handled
+    // the link before our integration's `getInitialURL()` chain resolved).
+    setPendingDeepLinkListener(handleLateDeepLink);
+    client.on('close', () => {
+      setPendingDeepLinkListener(undefined);
+    });
 
     if (initialStateHandled) {
       // We create an initial state here to ensure a transaction gets created before the first route mounts.
@@ -463,6 +561,18 @@ export const reactNavigationIntegration = ({
     if (pendingExpoRouter && latestNavigationSpan) {
       latestNavigationSpan.setAttribute('navigation.method', pendingExpoRouter.method);
     }
+
+    // Stamp the span with a monotonic sequence so the deep-link consumer can
+    // determine whether a pending link arrived before or after this dispatch.
+    if (latestNavigationSpan) {
+      spanDispatchSeq.set(latestNavigationSpan, nextEventSeq());
+    }
+
+    // We deliberately do NOT consume the pending deep link here — if this span
+    // is later discarded (noop / timeout / empty route), a still-fresh pending
+    // value must remain available for the next nav. The pending value is
+    // consumed once a span actually mounts its route (see
+    // `updateLatestNavigationSpanWithCurrentRoute`).
     if (ignoreEmptyBackNavigationTransactions) {
       ignoreEmptyBackNavigation(getClient(), latestNavigationSpan);
     }
@@ -519,6 +629,11 @@ export const reactNavigationIntegration = ({
 
     if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
+      // Even a same-route state change is a legitimate destination for a
+      // deep link (e.g. deep-linking to the screen you're already on). Make
+      // sure the pending link still gets attributed before we drop the span
+      // reference.
+      applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
       pushRecentRouteKey(route.key);
       latestRoute = route;
 
@@ -553,6 +668,18 @@ export const reactNavigationIntegration = ({
     } else if (useFullPathsForNavigationRoutes) {
       const navigationState = navigationContainer.getState();
       routeName = getPathFromState(navigationState) || route.name;
+    }
+
+    // Consume any pending deep link and attach it to this span. Done here
+    // (after route info is known) so the link is only attributed to a span
+    // that actually mounted a route — not one that was later discarded.
+    applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
+
+    // Capture the first finalized nav span for the cold-start late-arrival
+    // fallback. Set exactly once, then frozen — a cold-start link must never
+    // retroactively tag a navigation the user performed later.
+    if (!initialFinalizedNavSpan) {
+      initialFinalizedNavSpan = latestNavigationSpan;
     }
 
     navigationProcessingSpan?.updateName(`Navigation dispatch to screen ${routeName} mounted`);
@@ -671,6 +798,43 @@ interface NavigationContainer {
   addListener: (type: string, listener: (event?: unknown) => void) => void;
   getCurrentRoute: () => NavigationRoute;
   getState: () => NavigationState | undefined;
+}
+
+/**
+ * Per-span guard against double-tagging deep-link attributes. Shared between
+ * the synchronous listener path (late arrival) and the post-state-change path.
+ */
+const taggedDeepLinkSpans = new WeakSet<Span>();
+
+/**
+ * Annotates the given span with deep-link attributes if it has not already
+ * been annotated. Returns `true` when the span was newly tagged, `false` when
+ * it was already tagged (so callers can decide whether to keep the link
+ * around for another span).
+ */
+function tagSpanWithDeepLink(span: Span, link: PendingDeepLink): boolean {
+  if (taggedDeepLinkSpans.has(span)) {
+    return false;
+  }
+  taggedDeepLinkSpans.add(span);
+
+  const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
+  const url = sendDefaultPii ? link.url : sanitizeDeepLinkUrl(link.url);
+
+  span.setAttributes({
+    'navigation.trigger': 'deeplink',
+    'deeplink.url': url,
+    // Duration between URL receipt and the moment the span is annotated —
+    // approximates the gap between "link received" and "navigation dispatched
+    // / handled".
+    'deeplink.dispatch_delay_ms': Math.max(0, Date.now() - link.receivedAtMs),
+  });
+  return true;
+}
+
+/** Returns true if the span is still recording (has not been ended). */
+function isSpanRecording(span: Span): boolean {
+  return spanToJSON(span).timestamp === undefined;
 }
 
 /**
