@@ -173,7 +173,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
-  checkSentryJsSdkVersionMismatch();
+  if (__DEV__) {
+    checkSentryJsSdkVersionMismatch();
+  }
 
   if (isExpoGo()) {
     debug.log('Offline caching, native errors features are not available in Expo Go.');

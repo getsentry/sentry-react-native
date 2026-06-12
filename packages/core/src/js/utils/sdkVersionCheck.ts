@@ -1,10 +1,6 @@
 import { debug, getMainCarrier, SDK_VERSION as CORE_SDK_VERSION } from '@sentry/core';
 
 export function checkSentryJsSdkVersionMismatch(): void {
-  if (!__DEV__) {
-    return;
-  }
-
   try {
     const carrier = getMainCarrier();
     const sentryCarrier = carrier.__SENTRY__;

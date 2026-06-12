@@ -62,21 +62,6 @@ describe('checkSentryJsSdkVersionMismatch', () => {
     expect(mockDebugWarn).not.toHaveBeenCalled();
   });
 
-  it('does not warn in production builds', () => {
-    // @ts-expect-error -- __DEV__ is a RN global
-    globalThis.__DEV__ = false;
-    try {
-      mockCarrier.__SENTRY__ = { '10.0.0': {}, '9.0.0': {} };
-
-      checkSentryJsSdkVersionMismatch();
-
-      expect(mockDebugWarn).not.toHaveBeenCalled();
-    } finally {
-      // @ts-expect-error -- __DEV__ is a RN global
-      globalThis.__DEV__ = true;
-    }
-  });
-
   it('does not throw on unexpected errors', () => {
     Object.defineProperty(mockCarrier, '__SENTRY__', {
       get() {
