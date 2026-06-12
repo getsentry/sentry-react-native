@@ -12,6 +12,12 @@
 
 - Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.16.1 to v9.17.1 ([#6272](https://github.com/getsentry/sentry-react-native/pull/6272))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9171)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.16.1...9.17.1)
+
 ## 8.14.0
 
 ### Features
