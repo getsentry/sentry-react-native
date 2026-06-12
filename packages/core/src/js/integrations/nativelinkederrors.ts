@@ -50,13 +50,15 @@ function preprocessEvent(event: Event, hint: EventHint | undefined, client: Clie
   }
 
   const parser = client.getOptions().stackParser;
+  const originalException = hint.originalException as ExtendedError;
 
-  const { exceptions: linkedErrors, debugImages } = walkErrorTree(
-    parser,
-    limit,
-    hint.originalException as ExtendedError,
-    key,
-  );
+  const { exceptions: linkedErrors, debugImages } = walkErrorTree(parser, limit, originalException, key);
+
+  const nativeStackAndroidException = exceptionFromNativeStackAndroid(originalException);
+  if (nativeStackAndroidException && linkedErrors.length + 1 < limit) {
+    linkedErrors.push(nativeStackAndroidException);
+  }
+
   event.exception.values = [...event.exception.values, ...linkedErrors];
 
   event.debug_meta = event.debug_meta || {};
@@ -146,19 +148,67 @@ function exceptionFromJavaStackElements(javaThrowable: {
     value: javaThrowable.message,
     stacktrace: {
       frames: javaThrowable.stackElements
-        .map(
-          stackElement =>
-            <StackFrame>{
-              platform: 'java',
-              module: stackElement.className,
-              filename: stackElement.fileName,
-              lineno: stackElement.lineNumber >= 0 ? stackElement.lineNumber : undefined,
-              function: stackElement.methodName,
-              in_app: nativePackage !== null && stackElement.className.startsWith(nativePackage) ? true : undefined,
-            },
+        .map(stackElement =>
+          javaStackFrame(
+            stackElement.className,
+            stackElement.fileName,
+            stackElement.methodName,
+            stackElement.lineNumber,
+            nativePackage,
+          ),
         )
         .reverse(),
     },
+  };
+}
+
+/**
+ * Converts the `nativeStackAndroid` frames attached to errors from rejected promises
+ * (`Promise.reject(code, message, throwable, userInfo)`, see Android's `PromiseImpl.java`) to a SentryException.
+ */
+function exceptionFromNativeStackAndroid(error: ExtendedError): Exception | undefined {
+  const nativeStackAndroid = error.nativeStackAndroid as
+    | {
+        class: string;
+        file: string;
+        lineNumber: number;
+        methodName: string;
+      }[]
+    | undefined;
+
+  if (!Array.isArray(nativeStackAndroid) || nativeStackAndroid.length === 0) {
+    return undefined;
+  }
+
+  const nativePackage = fetchNativePackage();
+  return {
+    type: error.name,
+    value: error.message,
+    stacktrace: {
+      frames: nativeStackAndroid
+        .map(frame => javaStackFrame(frame.class, frame.file, frame.methodName, frame.lineNumber, nativePackage))
+        .reverse(),
+    },
+  };
+}
+
+/**
+ * Converts a Java stack trace element to a Sentry stack frame.
+ */
+function javaStackFrame(
+  className: string,
+  fileName: string,
+  methodName: string,
+  lineNumber: number,
+  nativePackage: string | null,
+): StackFrame {
+  return {
+    platform: 'java',
+    module: className,
+    filename: fileName,
+    lineno: lineNumber >= 0 ? lineNumber : undefined,
+    function: methodName,
+    in_app: nativePackage !== null && className.startsWith(nativePackage) ? true : undefined,
   };
 }
 

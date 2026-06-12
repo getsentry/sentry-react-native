@@ -16,6 +16,7 @@
   - Note: Expo Router span/breadcrumb attributes that may contain user identifiers (`route.href`, `route.params`, and concrete pathnames derived from string hrefs such as `/users/42`) are now gated behind `sendDefaultPii`. When `sendDefaultPii` is off (the default), prefetch spans for string hrefs use `route.name: 'unknown'` and omit `route.href`. Templated object hrefs (e.g. `{ pathname: '/users/[id]' }`) are unaffected.
 - Warn when Gradle resolves `sentry-android` to a version incompatible with the SDK ([#6238](https://github.com/getsentry/sentry-react-native/pull/6238))
 - Attach the active TurboModule method to native crash reports as `contexts.turbo_module` + `turbo_module.name` / `turbo_module.method` tags ([#6227](https://github.com/getsentry/sentry-react-native/pull/6227))
+- Add `nativeStackAndroid` support to `NativeLinkedErrors`, capturing the JVM stack trace of rejected native module promises as a linked exception ([#3257](https://github.com/getsentry/sentry-react-native/issues/3257))
 
 ### Fixes
 
