@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
+
 ## 8.14.0
 
 ### Features
@@ -17,7 +23,6 @@
   - Note: Expo Router span/breadcrumb attributes that may contain user identifiers (`route.href`, `route.params`, and concrete pathnames derived from string hrefs such as `/users/42`) are now gated behind `sendDefaultPii`. When `sendDefaultPii` is off (the default), prefetch spans for string hrefs use `route.name: 'unknown'` and omit `route.href`. Templated object hrefs (e.g. `{ pathname: '/users/[id]' }`) are unaffected.
 - Warn when Gradle resolves `sentry-android` to a version incompatible with the SDK ([#6238](https://github.com/getsentry/sentry-react-native/pull/6238))
 - Attach the active TurboModule method to native crash reports as `contexts.turbo_module` + `turbo_module.name` / `turbo_module.method` tags ([#6227](https://github.com/getsentry/sentry-react-native/pull/6227))
-- Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
 
 ### Fixes
 
