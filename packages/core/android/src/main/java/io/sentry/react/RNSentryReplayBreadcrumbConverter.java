@@ -175,6 +175,12 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     if (breadcrumb.getData("response_body_size") instanceof Double) {
       data.put("responseBodySize", breadcrumb.getData("response_body_size"));
     }
+    if (breadcrumb.getData("request") instanceof Map) {
+      data.put("request", breadcrumb.getData("request"));
+    }
+    if (breadcrumb.getData("response") instanceof Map) {
+      data.put("response", breadcrumb.getData("response"));
+    }
 
     final RRWebSpanEvent rrWebSpanEvent = new RRWebSpanEvent();
     rrWebSpanEvent.setOp("resource.http");
