@@ -14,6 +14,9 @@
 
 ### Dependencies
 
+- Bump Android SDK from v8.43.1 to v8.43.2 ([#6273](https://github.com/getsentry/sentry-react-native/pull/6273))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8432)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.1...8.43.2)
 - Bump Cocoa SDK from v9.16.1 to v9.17.1 ([#6272](https://github.com/getsentry/sentry-react-native/pull/6272))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9171)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.16.1...9.17.1)
