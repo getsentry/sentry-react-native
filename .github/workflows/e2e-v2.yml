@@ -14,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.6.0'
+  MAESTRO_VERSION: '2.6.1'
   IOS_DEVICE: 'iPhone 17'
   IOS_VERSION: '>=18.0'
 
@@ -113,7 +113,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
-      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
+      - uses: ruby/setup-ruby@89f90524b88a01fe6e0b732220432cc6142926af # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           ruby-version: '3.3.0'
@@ -229,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.71.19', '0.85.1']
+        rn-version: ['0.71.19', '0.86.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -240,9 +240,9 @@ jobs:
           - platform: ios
             rn-version: '0.71.19'
             runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
-          # Use Xcode 26 for newer RN versions (0.83.0)
+          # Use Xcode 26 for newer RN versions
           - platform: ios
-            rn-version: '0.85.1'
+            rn-version: '0.86.0'
             runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
@@ -264,11 +264,6 @@ jobs:
             ios-use-frameworks: 'dynamic'
           # exclude new rn architecture and dynamic frameworks
           - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic'
-          # exclude RN 0.82.1 with dynamic frameworks due to React Native circular dependency bug
-          # https://github.com/facebook/react-native/issues/54267
-          - rn-version: '0.82.1'
-            platform: 'ios'
             ios-use-frameworks: 'dynamic'
 
     steps:
@@ -348,7 +343,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
-      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
+      - uses: ruby/setup-ruby@89f90524b88a01fe6e0b732220432cc6142926af # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           ruby-version: '3.3.0'
@@ -387,7 +382,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.85.1']
+        rn-version: ['0.86.0']
         rn-architecture: ['legacy', 'new']
         platform: ['android', 'ios']
         build-type: ['production']
@@ -395,7 +390,7 @@ jobs:
         engine: ['hermes']
         include:
           - platform: ios
-            rn-version: '0.85.1'
+            rn-version: '0.86.0'
             runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
           - platform: android
             runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]

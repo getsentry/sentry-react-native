@@ -208,6 +208,14 @@ const ErrorsScreen = (_props: Props) => {
               }}
             />
             <Button
+              title="Reject Promise with Native Stack"
+              onPress={() => {
+                CrashModule.rejectWithNativeStack().catch((e: Error) => {
+                  Sentry.captureException(e);
+                });
+              }}
+            />
+            <Button
               title="Enable Crash on Start"
               onPress={() => {
                 TestControlModule?.enableCrashOnStart()
