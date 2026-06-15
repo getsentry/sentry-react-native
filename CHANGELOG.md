@@ -12,6 +12,12 @@
 
 - Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
 
+### Dependencies
+
+- Bump Android SDK from v8.43.1 to v8.43.2 ([#6273](https://github.com/getsentry/sentry-react-native/pull/6273))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8432)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.1...8.43.2)
+
 ## 8.14.0
 
 ### Features
