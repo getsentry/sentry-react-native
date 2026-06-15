@@ -176,6 +176,28 @@ describe('xhrUtils', () => {
       expect((breadcrumb.data?.response as { body?: string }).body).toBeUndefined();
     });
 
+    it('marks Blob and ArrayBuffer request bodies as unparseable instead of stringifying to {}', () => {
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
+        allowUrls: ['api.example.com'],
+        denyUrls: [],
+        captureBodies: true,
+        requestHeaders: [],
+        responseHeaders: [],
+      });
+
+      const blobBreadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      enrich(blobBreadcrumb, { ...getValidXhrHint(), input: new Blob(['binary']) });
+      const blobRequest = blobBreadcrumb.data?.request as { body?: string; _meta?: { warnings: string[] } };
+      expect(blobRequest.body).toBeUndefined();
+      expect(blobRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
+
+      const bufferBreadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      enrich(bufferBreadcrumb, { ...getValidXhrHint(), input: new ArrayBuffer(16) });
+      const bufferRequest = bufferBreadcrumb.data?.request as { body?: string; _meta?: { warnings: string[] } };
+      expect(bufferRequest.body).toBeUndefined();
+      expect(bufferRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
+    });
+
     it('truncates bodies that exceed the size cap', () => {
       const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
         allowUrls: ['api.example.com'],
