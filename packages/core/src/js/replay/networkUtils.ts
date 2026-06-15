@@ -141,8 +141,9 @@ export function getBodyString(body: unknown): NetworkBody | undefined {
       bodyStr = body.toString();
     } else if (body instanceof FormData) {
       bodyStr = _serializeFormData(body);
-    } else if (body instanceof Blob || body instanceof ArrayBuffer) {
-      // Binary payloads can't be safely inlined as text; record the type but skip the body.
+    } else if (body instanceof Blob || body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
+      // Binary payloads (Blob, ArrayBuffer, typed arrays like Uint8Array)
+      // can't be safely inlined as text; record the type but skip the body.
       return { _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } };
     } else if (typeof body === 'object') {
       // Last-ditch attempt: try to JSON-stringify plain objects (e.g. xhr.response with responseType='json')

@@ -209,7 +209,7 @@ describe('xhrUtils', () => {
       expect((breadcrumb.data?.response as { body?: string }).body).toBeUndefined();
     });
 
-    it('marks Blob and ArrayBuffer request bodies as unparseable instead of stringifying to {}', () => {
+    it('marks binary request bodies (Blob, ArrayBuffer, typed arrays) as unparseable instead of stringifying to {}', () => {
       const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
         allowUrls: ['api.example.com'],
         denyUrls: [],
@@ -229,6 +229,18 @@ describe('xhrUtils', () => {
       const bufferRequest = bufferBreadcrumb.data?.request as { body?: string; _meta?: { warnings: string[] } };
       expect(bufferRequest.body).toBeUndefined();
       expect(bufferRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
+
+      const typedArrayBreadcrumb: Breadcrumb = {
+        category: 'xhr',
+        data: { url: 'https://api.example.com/users' },
+      };
+      enrich(typedArrayBreadcrumb, { ...getValidXhrHint(), input: new Uint8Array([1, 2, 3]) });
+      const typedArrayRequest = typedArrayBreadcrumb.data?.request as {
+        body?: string;
+        _meta?: { warnings: string[] };
+      };
+      expect(typedArrayRequest.body).toBeUndefined();
+      expect(typedArrayRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
     });
 
     it('truncates bodies that exceed the size cap', () => {
