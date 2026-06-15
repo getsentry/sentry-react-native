@@ -622,6 +622,11 @@ describe('metroconfig', () => {
     describe.each([
       ['./integrations/mcp-server/index.js'],
       ['./integrations/http/index.js'],
+      ['./integrations/express.js'],
+      ['./integrations/postgresjs.js'],
+      ['./integrations/requestdata.js'],
+      ['./integrations/consola.js'],
+      ['./integrations/spanStreaming.js'],
       ['./tracing/openai/index.js'],
       ['./tracing/anthropic-ai/index.js'],
       ['./tracing/google-genai/index.js'],
