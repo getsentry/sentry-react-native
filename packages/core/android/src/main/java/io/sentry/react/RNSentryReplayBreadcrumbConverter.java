@@ -175,11 +175,13 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     if (breadcrumb.getData("response_body_size") instanceof Double) {
       data.put("responseBodySize", breadcrumb.getData("response_body_size"));
     }
-    if (breadcrumb.getData("request") instanceof Map) {
-      data.put("request", breadcrumb.getData("request"));
+    final Map<Object, Object> requestSide = sanitizeNetworkSide(breadcrumb.getData("request"));
+    if (!requestSide.isEmpty()) {
+      data.put("request", requestSide);
     }
-    if (breadcrumb.getData("response") instanceof Map) {
-      data.put("response", breadcrumb.getData("response"));
+    final Map<Object, Object> responseSide = sanitizeNetworkSide(breadcrumb.getData("response"));
+    if (!responseSide.isEmpty()) {
+      data.put("response", responseSide);
     }
 
     final RRWebSpanEvent rrWebSpanEvent = new RRWebSpanEvent();
@@ -189,6 +191,21 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     rrWebSpanEvent.setDescription(url);
     rrWebSpanEvent.setData(data);
     return rrWebSpanEvent;
+  }
+
+  /**
+   * Copy a JS-emitted request/response side dict, dropping the JS-internal `_meta` warnings field
+   * so it does not leak into the native rrweb span event. Returns an empty map when the input is
+   * not a Map or has no remaining fields.
+   */
+  private @NotNull Map<Object, Object> sanitizeNetworkSide(final @Nullable Object raw) {
+    if (!(raw instanceof Map)) {
+      return new HashMap<>();
+    }
+    final Map<?, ?> source = (Map<?, ?>) raw;
+    final Map<Object, Object> out = new HashMap<>(source);
+    out.remove("_meta");
+    return out;
   }
 
   private void setRRWebEventDefaultsFrom(
