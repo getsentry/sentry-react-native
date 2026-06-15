@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add `nativeStackAndroid` support to `NativeLinkedErrors`, capturing the JVM stack trace of rejected native module promises as a linked exception ([#6278](https://github.com/getsentry/sentry-react-native/issues/6278))
+- Add `nativeStackAndroid` support to `NativeLinkedErrors`, capturing the JVM stack trace of rejected native module promises as a linked exception ([#6278](https://github.com/getsentry/sentry-react-native/pull/6278))
 
 - Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
 
