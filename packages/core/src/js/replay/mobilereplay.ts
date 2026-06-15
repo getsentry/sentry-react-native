@@ -181,12 +181,14 @@ export interface MobileReplayOptions {
 
   /**
    * If request and response bodies should be captured for URLs matched by
-   * `networkDetailAllowUrls`. When `false`, only headers are captured.
+   * `networkDetailAllowUrls`. When `false` (the default), only headers are
+   * captured for allow-listed URLs — opt in explicitly to record bodies, since
+   * they can contain sensitive payloads.
    *
    * Bodies are truncated at ~150 KB; truncated payloads include a
    * `MAX_BODY_SIZE_EXCEEDED` warning.
    *
-   * @default true
+   * @default false
    */
   networkCaptureBodies?: boolean;
 
@@ -220,7 +222,7 @@ const defaultOptions: MobileReplayOptions = {
   screenshotStrategy: 'pixelCopy',
   networkDetailAllowUrls: [],
   networkDetailDenyUrls: [],
-  networkCaptureBodies: true,
+  networkCaptureBodies: false,
   networkRequestHeaders: [],
   networkResponseHeaders: [],
 };
@@ -386,7 +388,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     const networkOptions: ResolvedNetworkOptions = {
       allowUrls: options.networkDetailAllowUrls ?? [],
       denyUrls: options.networkDetailDenyUrls ?? [],
-      captureBodies: options.networkCaptureBodies ?? true,
+      captureBodies: options.networkCaptureBodies ?? false,
       requestHeaders: options.networkRequestHeaders ?? [],
       responseHeaders: options.networkResponseHeaders ?? [],
     };
