@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Remove manual geo handling in iOS user deserialization, now handled natively by sentry-cocoa ([#6289](https://github.com/getsentry/sentry-react-native/pull/6289))
+
 ### Features
 
 - Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
