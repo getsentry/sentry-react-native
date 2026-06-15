@@ -11,7 +11,7 @@
 ### Features
 
 - Add `nativeStackAndroid` support to `NativeLinkedErrors`, capturing the JVM stack trace of rejected native module promises as a linked exception ([#6278](https://github.com/getsentry/sentry-react-native/pull/6278))
-- Record XHR request/response bodies and headers in Mobile Session Replay. Opt in via `mobileReplayIntegration` with `networkDetailAllowUrls` (and optional `networkDetailDenyUrls`, `networkCaptureBodies`, `networkRequestHeaders`, `networkResponseHeaders`). Authorization-like headers are always stripped, bodies are capped at ~150 KB. Covers XHR-based clients like `axios`; fetch will follow ([#XXXX](https://github.com/getsentry/sentry-react-native/issues/XXXX))
+- Record XHR request/response bodies and headers in Mobile Session Replay. Opt in via `mobileReplayIntegration` with `networkDetailAllowUrls` (and optional `networkDetailDenyUrls`, `networkCaptureBodies`, `networkRequestHeaders`, `networkResponseHeaders`). Authorization-like headers are always stripped, bodies are capped at ~150 KB. Covers XHR-based clients like `axios`; fetch will follow ([#6288](https://github.com/getsentry/sentry-react-native/issues/6288))
 - Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
 
 ### Dependencies
