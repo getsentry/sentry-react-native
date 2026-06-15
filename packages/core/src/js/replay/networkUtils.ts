@@ -76,14 +76,21 @@ export interface ResolvedNetworkOptions {
   responseHeaders: string[];
 }
 
-/** Check if a URL matches any pattern in the list. Strings use substring match; RegExp uses .test(). */
+/**
+ * Check if a URL matches any pattern in the list. Strings use substring match
+ * (empty strings are ignored to avoid matching everything by accident);
+ * RegExp uses `.test()` with `lastIndex` reset so global-flag patterns are
+ * stateless across calls.
+ */
 function _urlMatches(url: string, patterns: (string | RegExp)[]): boolean {
   for (const pattern of patterns) {
     if (typeof pattern === 'string') {
-      if (url.indexOf(pattern) !== -1) {
+      if (pattern.length > 0 && url.indexOf(pattern) !== -1) {
         return true;
       }
     } else if (pattern instanceof RegExp) {
+      // Reset lastIndex to make /g and /y patterns idempotent across calls.
+      pattern.lastIndex = 0;
       if (pattern.test(url)) {
         return true;
       }

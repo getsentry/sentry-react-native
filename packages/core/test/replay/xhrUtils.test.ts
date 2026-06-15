@@ -137,6 +137,39 @@ describe('xhrUtils', () => {
       expect(breadcrumb.data?.response).toBeUndefined();
     });
 
+    it('ignores empty-string allow patterns instead of matching every URL', () => {
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
+        allowUrls: ['', 'api.other.com'],
+        denyUrls: [],
+        captureBodies: true,
+        requestHeaders: [],
+        responseHeaders: [],
+      });
+
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      enrich(breadcrumb, getValidXhrHint());
+
+      expect(breadcrumb.data?.request).toBeUndefined();
+      expect(breadcrumb.data?.response).toBeUndefined();
+    });
+
+    it('handles global-flag RegExp patterns idempotently across calls', () => {
+      const globalPattern = /api\.example\.com/g;
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
+        allowUrls: [globalPattern],
+        denyUrls: [],
+        captureBodies: true,
+        requestHeaders: [],
+        responseHeaders: [],
+      });
+
+      for (let i = 0; i < 3; i += 1) {
+        const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+        enrich(breadcrumb, getValidXhrHint());
+        expect(breadcrumb.data?.request).toBeDefined();
+      }
+    });
+
     it('honours RegExp patterns in allow/deny lists', () => {
       const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
         allowUrls: [/^https:\/\/api\.example\.com\//],
