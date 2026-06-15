@@ -72,6 +72,14 @@ public class SamplePackage implements ReactPackage {
             promise.resolve(42);
           }
 
+          @ReactMethod
+          public void rejectWithNativeStack(Promise promise) {
+            promise.reject(
+                "ERROR",
+                "Rejected with native stack",
+                new RuntimeException("CrashModule.rejectWithNativeStack()"));
+          }
+
           private void crashNow() {
             throw new RuntimeException("CrashModule.crashNow()");
           }
