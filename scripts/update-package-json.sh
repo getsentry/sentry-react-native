@@ -27,7 +27,6 @@ set-version)
     if [[ "$version" == "$tagPrefix"* ]]; then
         version="${version:${#tagPrefix}}"
     fi
-
     for i in ${!packages[@]}; do
         list+="${packages[$i]}@$version "
     done
