@@ -166,17 +166,18 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     if (breadcrumb.getData("method") instanceof String) {
       data.put("method", breadcrumb.getData("method"));
     }
-    if (breadcrumb.getData("status_code") instanceof Double) {
-      final Double statusCode = (Double) breadcrumb.getData("status_code");
+    // Accept any Number subtype (Double/Long/Integer) — the RN bridge does not guarantee Double.
+    if (breadcrumb.getData("status_code") instanceof Number) {
+      final int statusCode = ((Number) breadcrumb.getData("status_code")).intValue();
       if (statusCode > 0) {
-        data.put("statusCode", statusCode.intValue());
+        data.put("statusCode", statusCode);
       }
     }
-    if (breadcrumb.getData("request_body_size") instanceof Double) {
-      data.put("requestBodySize", breadcrumb.getData("request_body_size"));
+    if (breadcrumb.getData("request_body_size") instanceof Number) {
+      data.put("requestBodySize", ((Number) breadcrumb.getData("request_body_size")).doubleValue());
     }
-    if (breadcrumb.getData("response_body_size") instanceof Double) {
-      data.put("responseBodySize", breadcrumb.getData("response_body_size"));
+    if (breadcrumb.getData("response_body_size") instanceof Number) {
+      data.put("responseBodySize", ((Number) breadcrumb.getData("response_body_size")).doubleValue());
     }
     final Map<Object, Object> requestSide = sanitizeNetworkSide(breadcrumb.getData("request"));
     if (!requestSide.isEmpty()) {

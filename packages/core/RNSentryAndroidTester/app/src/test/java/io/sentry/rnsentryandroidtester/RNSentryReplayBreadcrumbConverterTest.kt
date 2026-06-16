@@ -291,19 +291,27 @@ class RNSentryReplayBreadcrumbConverterTest {
     }
 
     @Test
-    fun convertNetworkBreadcrumbAcceptsNonDoubleNumberTimestamps() {
+    fun convertNetworkBreadcrumbAcceptsNonDoubleNumberFields() {
         val converter = RNSentryReplayBreadcrumbConverter()
         val testBreadcrumb = Breadcrumb()
         testBreadcrumb.category = "xhr"
         testBreadcrumb.setData("url", "https://api.example.com/users")
-        // RN bridge may surface timestamps as Long/Integer rather than Double;
-        // the converter must not throw ClassCastException.
+        // RN bridge may surface numeric breadcrumb data as Long/Integer rather than
+        // Double; the converter must accept all Number subtypes without crashing or
+        // silently dropping the field.
         testBreadcrumb.setData("start_timestamp", 1_000L)
         testBreadcrumb.setData("end_timestamp", 2_000)
+        testBreadcrumb.setData("status_code", 201L)
+        testBreadcrumb.setData("request_body_size", 42)
+        testBreadcrumb.setData("response_body_size", 100L)
 
         val actual = converter.convertNetworkBreadcrumb(testBreadcrumb) as RRWebSpanEvent
         assertEquals(1.0, actual.startTimestamp, 0.001)
         assertEquals(2.0, actual.endTimestamp, 0.001)
+        val data = actual.data!!
+        assertEquals(201, data["statusCode"])
+        assertEquals(42.0, data["requestBodySize"])
+        assertEquals(100.0, data["responseBodySize"])
     }
 
     @Test
