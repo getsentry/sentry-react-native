@@ -144,13 +144,16 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
   @TestOnly
   public @Nullable RRWebEvent convertNetworkBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+    // Use Number.doubleValue() rather than a direct (Double) cast: the RN bridge can
+    // surface timestamps as Long/Integer, which pass `instanceof Number` but would
+    // throw `ClassCastException` on a direct cast to Double.
     final Double startTimestamp =
         breadcrumb.getData("start_timestamp") instanceof Number
-            ? (Double) breadcrumb.getData("start_timestamp")
+            ? ((Number) breadcrumb.getData("start_timestamp")).doubleValue()
             : null;
     final Double endTimestamp =
         breadcrumb.getData("end_timestamp") instanceof Number
-            ? (Double) breadcrumb.getData("end_timestamp")
+            ? ((Number) breadcrumb.getData("end_timestamp")).doubleValue()
             : null;
     final String url =
         breadcrumb.getData("url") instanceof String ? (String) breadcrumb.getData("url") : null;

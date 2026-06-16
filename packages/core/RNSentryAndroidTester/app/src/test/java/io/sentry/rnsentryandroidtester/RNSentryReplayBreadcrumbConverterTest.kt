@@ -291,6 +291,22 @@ class RNSentryReplayBreadcrumbConverterTest {
     }
 
     @Test
+    fun convertNetworkBreadcrumbAcceptsNonDoubleNumberTimestamps() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.category = "xhr"
+        testBreadcrumb.setData("url", "https://api.example.com/users")
+        // RN bridge may surface timestamps as Long/Integer rather than Double;
+        // the converter must not throw ClassCastException.
+        testBreadcrumb.setData("start_timestamp", 1_000L)
+        testBreadcrumb.setData("end_timestamp", 2_000)
+
+        val actual = converter.convertNetworkBreadcrumb(testBreadcrumb) as RRWebSpanEvent
+        assertEquals(1.0, actual.startTimestamp, 0.001)
+        assertEquals(2.0, actual.endTimestamp, 0.001)
+    }
+
+    @Test
     fun convertNetworkBreadcrumbDropsSideThatIsEmptyAfterMetaStrip() {
         val converter = RNSentryReplayBreadcrumbConverter()
         val testBreadcrumb = Breadcrumb()
