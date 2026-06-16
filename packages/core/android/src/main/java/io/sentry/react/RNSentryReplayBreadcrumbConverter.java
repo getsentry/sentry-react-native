@@ -177,7 +177,8 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
       data.put("requestBodySize", ((Number) breadcrumb.getData("request_body_size")).doubleValue());
     }
     if (breadcrumb.getData("response_body_size") instanceof Number) {
-      data.put("responseBodySize", ((Number) breadcrumb.getData("response_body_size")).doubleValue());
+      data.put(
+          "responseBodySize", ((Number) breadcrumb.getData("response_body_size")).doubleValue());
     }
     final Map<Object, Object> requestSide = sanitizeNetworkSide(breadcrumb.getData("request"));
     if (!requestSide.isEmpty()) {

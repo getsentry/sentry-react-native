@@ -294,8 +294,8 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         let payload = eventData["payload"] as! [String: Any?]
         let data = payload["data"] as! [String: Any?]
 
-        XCTAssertNil(data["request"] ?? nil, "empty-after-strip request side must be omitted")
-        XCTAssertNil(data["response"] ?? nil, "non-dict response side must be omitted")
+        XCTAssertNil(data["request"], "empty-after-strip request side must be omitted")
+        XCTAssertNil(data["response"], "non-dict response side must be omitted")
     }
 
     private func assertRRWebBreadcrumbDefaults(actual: [String: Any?]) {
