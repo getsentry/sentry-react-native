@@ -10653,13 +10653,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry-internal/eslint-plugin-sdk@npm:10.57.0":
-  version: 10.57.0
-  resolution: "@sentry-internal/eslint-plugin-sdk@npm:10.57.0"
-  checksum: a2261fd210e440ef26ee5a35f4e91142ed4bb5a9cb6d3c753ce11f1fc99c9b0f038f681a888393d826b87fd47b434680a84dad743aee745d33f38d2d75944b4f
-  languageName: node
-  linkType: hard
-
 "@sentry-internal/feedback@npm:10.57.0":
   version: 10.57.0
   resolution: "@sentry-internal/feedback@npm:10.57.0"
@@ -10686,15 +10679,6 @@ __metadata:
     "@sentry-internal/browser-utils": 10.57.0
     "@sentry/core": 10.57.0
   checksum: fc31514d0cec2301c0b9db348925b6188877a9e85b37063760ed717e7ab6b76f39f141e34e678b7ce07993abfd20ca0ef1b250129393fad244ae076c49ee9306
-  languageName: node
-  linkType: hard
-
-"@sentry-internal/typescript@npm:10.57.0":
-  version: 10.57.0
-  resolution: "@sentry-internal/typescript@npm:10.57.0"
-  peerDependencies:
-    typescript: ~5.8.0
-  checksum: 3c0870b4f26827ee9d105aedc1359f1d4ee62ab85802325fe46a93eef90232e9b47e6540ce01387f2c8c6bfc6e9acf365f19ffe362a3a79ad47d820d62e4bcb8
   languageName: node
   linkType: hard
 
@@ -10827,6 +10811,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/eslint-plugin-sdk@npm:10.58.0":
+  version: 10.58.0
+  resolution: "@sentry/eslint-plugin-sdk@npm:10.58.0"
+  checksum: 0b4ddbca6daa1d458ddb239cef8054963349b3f2c149acd099d7068c75e6a31c5e0d85d6f6fae637c16a868f77ee0e39caa3767875e4c3c7739c46d93c6e169e
+  languageName: node
+  linkType: hard
+
 "@sentry/expo-upload-sourcemaps@workspace:*, @sentry/expo-upload-sourcemaps@workspace:packages/expo-upload-sourcemaps":
   version: 0.0.0-use.local
   resolution: "@sentry/expo-upload-sourcemaps@workspace:packages/expo-upload-sourcemaps"
@@ -10932,14 +10923,14 @@ __metadata:
     "@microsoft/api-extractor": ^7.58.7
     "@mswjs/interceptors": ^0.25.15
     "@react-native/babel-preset": 0.80.0
-    "@sentry-internal/eslint-plugin-sdk": 10.57.0
-    "@sentry-internal/typescript": 10.57.0
     "@sentry/babel-plugin-component-annotate": 5.3.0
     "@sentry/browser": 10.57.0
     "@sentry/cli": 3.5.0
     "@sentry/core": 10.57.0
+    "@sentry/eslint-plugin-sdk": 10.58.0
     "@sentry/expo-upload-sourcemaps": "workspace:*"
     "@sentry/react": 10.57.0
+    "@sentry/typescript": 10.58.0
     "@sentry/wizard": 6.12.0
     "@testing-library/react-native": ^13.2.2
     "@types/jest": ^29.5.13
@@ -10994,6 +10985,15 @@ __metadata:
   peerDependencies:
     react: ^16.14.0 || 17.x || 18.x || 19.x
   checksum: 462702df6dd60aad858544032d4d62260762d1d9ba3bbbe79e5f663027dc930ce3131b3824fee808b81a0aebe36571c61d08061daa86f0c16a51326b6222f74d
+  languageName: node
+  linkType: hard
+
+"@sentry/typescript@npm:10.58.0":
+  version: 10.58.0
+  resolution: "@sentry/typescript@npm:10.58.0"
+  peerDependencies:
+    typescript: ~5.8.0
+  checksum: a04992765b02a25c1616b9d7d92ee997fa463000a983b4ff47cfed48ed4cef41263f42ebe6a6a759956798a45a0a8068d1f5d831862cc20f836e17a79d5d06d3
   languageName: node
   linkType: hard
 
