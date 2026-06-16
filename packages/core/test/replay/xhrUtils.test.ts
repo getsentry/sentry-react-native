@@ -243,6 +243,32 @@ describe('xhrUtils', () => {
       expect(typedArrayRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
     });
 
+    it('stringifies primitive JSON responses (number, boolean) instead of marking them unparseable', () => {
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
+        allowUrls: ['api.example.com'],
+        denyUrls: [],
+        captureBodies: true,
+        requestHeaders: [],
+        responseHeaders: [],
+      });
+
+      const numberBreadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      const numberHint = getValidXhrHint();
+      numberHint.xhr.response = 42 as unknown as { ok: boolean };
+      enrich(numberBreadcrumb, numberHint);
+      const numberResponse = numberBreadcrumb.data?.response as { body?: string; _meta?: unknown };
+      expect(numberResponse.body).toBe('42');
+      expect(numberResponse._meta).toBeUndefined();
+
+      const boolBreadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      const boolHint = getValidXhrHint();
+      boolHint.xhr.response = true as unknown as { ok: boolean };
+      enrich(boolBreadcrumb, boolHint);
+      const boolResponse = boolBreadcrumb.data?.response as { body?: string; _meta?: unknown };
+      expect(boolResponse.body).toBe('true');
+      expect(boolResponse._meta).toBeUndefined();
+    });
+
     it('truncates bodies that exceed the size cap', () => {
       const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
         allowUrls: ['api.example.com'],

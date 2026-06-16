@@ -137,6 +137,9 @@ export function getBodyString(body: unknown): NetworkBody | undefined {
 
     if (typeof body === 'string') {
       bodyStr = body;
+    } else if (typeof body === 'number' || typeof body === 'boolean') {
+      // JSON primitives (e.g. `xhr.response` with responseType='json' returning `42` or `true`)
+      bodyStr = String(body);
     } else if (body instanceof URLSearchParams) {
       bodyStr = body.toString();
     } else if (body instanceof FormData) {
