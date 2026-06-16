@@ -144,13 +144,16 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
 
   @TestOnly
   public @Nullable RRWebEvent convertNetworkBreadcrumb(final @NotNull Breadcrumb breadcrumb) {
+    // Use Number.doubleValue() rather than a direct (Double) cast: the RN bridge can
+    // surface timestamps as Long/Integer, which pass `instanceof Number` but would
+    // throw `ClassCastException` on a direct cast to Double.
     final Double startTimestamp =
         breadcrumb.getData("start_timestamp") instanceof Number
-            ? (Double) breadcrumb.getData("start_timestamp")
+            ? ((Number) breadcrumb.getData("start_timestamp")).doubleValue()
             : null;
     final Double endTimestamp =
         breadcrumb.getData("end_timestamp") instanceof Number
-            ? (Double) breadcrumb.getData("end_timestamp")
+            ? ((Number) breadcrumb.getData("end_timestamp")).doubleValue()
             : null;
     final String url =
         breadcrumb.getData("url") instanceof String ? (String) breadcrumb.getData("url") : null;
@@ -163,17 +166,26 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     if (breadcrumb.getData("method") instanceof String) {
       data.put("method", breadcrumb.getData("method"));
     }
-    if (breadcrumb.getData("status_code") instanceof Double) {
-      final Double statusCode = (Double) breadcrumb.getData("status_code");
+    // Accept any Number subtype (Double/Long/Integer) — the RN bridge does not guarantee Double.
+    if (breadcrumb.getData("status_code") instanceof Number) {
+      final int statusCode = ((Number) breadcrumb.getData("status_code")).intValue();
       if (statusCode > 0) {
-        data.put("statusCode", statusCode.intValue());
+        data.put("statusCode", statusCode);
       }
     }
-    if (breadcrumb.getData("request_body_size") instanceof Double) {
-      data.put("requestBodySize", breadcrumb.getData("request_body_size"));
+    if (breadcrumb.getData("request_body_size") instanceof Number) {
+      data.put("requestBodySize", ((Number) breadcrumb.getData("request_body_size")).doubleValue());
     }
-    if (breadcrumb.getData("response_body_size") instanceof Double) {
-      data.put("responseBodySize", breadcrumb.getData("response_body_size"));
+    if (breadcrumb.getData("response_body_size") instanceof Number) {
+      data.put("responseBodySize", ((Number) breadcrumb.getData("response_body_size")).doubleValue());
+    }
+    final Map<Object, Object> requestSide = sanitizeNetworkSide(breadcrumb.getData("request"));
+    if (!requestSide.isEmpty()) {
+      data.put("request", requestSide);
+    }
+    final Map<Object, Object> responseSide = sanitizeNetworkSide(breadcrumb.getData("response"));
+    if (!responseSide.isEmpty()) {
+      data.put("response", responseSide);
     }
 
     final RRWebSpanEvent rrWebSpanEvent = new RRWebSpanEvent();
@@ -183,6 +195,21 @@ public final class RNSentryReplayBreadcrumbConverter extends DefaultReplayBreadc
     rrWebSpanEvent.setDescription(url);
     rrWebSpanEvent.setData(data);
     return rrWebSpanEvent;
+  }
+
+  /**
+   * Copy a JS-emitted request/response side dict, dropping the JS-internal `_meta` warnings field
+   * so it does not leak into the native rrweb span event. Returns an empty map when the input is
+   * not a Map or has no remaining fields.
+   */
+  private @NotNull Map<Object, Object> sanitizeNetworkSide(final @Nullable Object raw) {
+    if (!(raw instanceof Map)) {
+      return new HashMap<>();
+    }
+    final Map<?, ?> source = (Map<?, ?>) raw;
+    final Map<Object, Object> out = new HashMap<>(source);
+    out.remove("_meta");
+    return out;
   }
 
   private void setRRWebEventDefaultsFrom(
