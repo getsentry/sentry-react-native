@@ -232,6 +232,72 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         XCTAssertEqual(actual, "label5(element5, file5) > label4(file4) > label3(element3) > label2")
     }
 
+    func testConvertNetworkBreadcrumbForwardsBodyAndHeadersAndStripsMeta() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.category = "xhr"
+        testBreadcrumb.data = [
+            "url": "https://api.example.com/users",
+            "method": "POST",
+            "start_timestamp": NSNumber(value: 1_000.0),
+            "end_timestamp": NSNumber(value: 2_000.0),
+            "request": [
+                "body": "{\"hello\":\"world\"}",
+                "headers": ["content-type": "application/json"],
+                "_meta": ["warnings": ["MAX_BODY_SIZE_EXCEEDED"]]
+            ],
+            "response": [
+                "body": "[UNPARSEABLE_BODY_TYPE]",
+                "_meta": ["warnings": ["UNPARSEABLE_BODY_TYPE"]]
+            ]
+        ]
+
+        let actual = converter.convert(from: testBreadcrumb)
+        XCTAssertNotNil(actual)
+        let event = actual!.serialize()
+        let eventData = event["data"] as! [String: Any?]
+        let payload = eventData["payload"] as! [String: Any?]
+        let data = payload["data"] as! [String: Any?]
+
+        let request = data["request"] as! [String: Any]
+        XCTAssertEqual("{\"hello\":\"world\"}", request["body"] as! String)
+        XCTAssertEqual(["content-type": "application/json"], request["headers"] as! [String: String])
+        XCTAssertNil(request["_meta"], "_meta must be stripped before forwarding to native rrweb")
+
+        let response = data["response"] as! [String: Any]
+        XCTAssertEqual("[UNPARSEABLE_BODY_TYPE]", response["body"] as! String)
+        XCTAssertNil(response["_meta"])
+    }
+
+    func testConvertNetworkBreadcrumbDropsSideThatIsEmptyAfterMetaStrip() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.category = "xhr"
+        testBreadcrumb.data = [
+            "url": "https://api.example.com/users",
+            "start_timestamp": NSNumber(value: 1_000.0),
+            "end_timestamp": NSNumber(value: 2_000.0),
+            // Request side contains only `_meta` — once stripped, nothing remains.
+            "request": [
+                "_meta": ["warnings": ["UNPARSEABLE_BODY_TYPE"]]
+            ],
+            // Response side is not a dict — should also be dropped.
+            "response": "not-a-dict"
+        ]
+
+        let actual = converter.convert(from: testBreadcrumb)
+        XCTAssertNotNil(actual)
+        let event = actual!.serialize()
+        let eventData = event["data"] as! [String: Any?]
+        let payload = eventData["payload"] as! [String: Any?]
+        let data = payload["data"] as! [String: Any?]
+
+        XCTAssertNil(data["request"] ?? nil, "empty-after-strip request side must be omitted")
+        XCTAssertNil(data["response"] ?? nil, "non-dict response side must be omitted")
+    }
+
     private func assertRRWebBreadcrumbDefaults(actual: [String: Any?]) {
         let data = actual["data"] as! [String: Any?]
         let payload = data["payload"] as! [String: Any?]
