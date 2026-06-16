@@ -720,6 +720,7 @@ describe('metroconfig', () => {
     const browserBarrelImports = [
       { moduleName: './feedbackSync.js', shouldBeEmpty: true },
       { moduleName: './feedbackAsync.js', shouldBeEmpty: true },
+      { moduleName: '@sentry/feedback', shouldBeEmpty: true },
       { moduleName: '@sentry-internal/feedback', shouldBeEmpty: true },
       { moduleName: '@sentry-internal/replay', shouldBeEmpty: false },
       { moduleName: '@sentry-internal/replay-canvas', shouldBeEmpty: false },
