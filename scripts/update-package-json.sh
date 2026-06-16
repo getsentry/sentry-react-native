@@ -27,6 +27,18 @@ set-version)
     if [[ "$version" == "$tagPrefix"* ]]; then
         version="${version:${#tagPrefix}}"
     fi
+
+    # Apply package renames (old:new) in package.json before upgrading
+    if [[ ${renames+x} && ${#renames[@]} -gt 0 ]]; then
+        for rename in "${renames[@]}"; do
+            oldPkg="${rename%%:*}"
+            newPkg="${rename##*:}"
+            find "${monorepoRoot}/packages" -name "package.json" -exec \
+                sed -i.bak "s|\"${oldPkg}\"|\"${newPkg}\"|g" {} +
+            find "${monorepoRoot}/packages" -name "package.json.bak" -delete
+        done
+    fi
+
     for i in ${!packages[@]}; do
         list+="${packages[$i]}@$version "
     done
