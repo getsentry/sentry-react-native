@@ -9,35 +9,49 @@ const createSectionWarning = (title, content, icon = '❌') => {
   return `### ${icon} ${title}\n\n${content}\n`;
 };
 
-/**
- * Fetches the SDK version from gradle.properties in the gradle plugin GitHub repo.
- * The file contains a line like: sdk_version = X.Y.Z
- */
-function fetchBundledSentryAndroidVersion(gradlePluginVersion) {
+function fetchFileContent(url) {
   return new Promise((resolve, reject) => {
-    const url = `https://raw.githubusercontent.com/getsentry/sentry-android-gradle-plugin/${gradlePluginVersion}/plugin-build/gradle.properties`;
-
     https
       .get(url, res => {
         if (res.statusCode !== 200) {
-          reject(new Error(`Could not fetch gradle.properties for version ${gradlePluginVersion}`));
+          reject(new Error(`HTTP ${res.statusCode} for ${url}`));
           return;
         }
 
         let data = '';
         res.on('data', chunk => (data += chunk));
-        res.on('end', () => {
-          // Look for: sdk_version = X.Y.Z
-          const versionMatch = data.match(/sdk_version\s*=\s*(\S+)/);
-          if (versionMatch) {
-            resolve(versionMatch[1]);
-          } else {
-            reject(new Error(`Could not find sdk_version in gradle.properties`));
-          }
-        });
+        res.on('end', () => resolve(data));
       })
       .on('error', reject);
   });
+}
+
+/**
+ * Fetches the SDK version from the gradle plugin GitHub repo.
+ *
+ * Checks gradle.properties first (sdk_version = X.Y.Z, pre-6.10.0),
+ * then falls back to gradle/libs.versions.toml (sentry = "X.Y.Z", 6.10.0+).
+ */
+function fetchBundledSentryAndroidVersion(gradlePluginVersion) {
+  const base = `https://raw.githubusercontent.com/getsentry/sentry-android-gradle-plugin/${gradlePluginVersion}`;
+
+  return fetchFileContent(`${base}/plugin-build/gradle.properties`)
+    .then(data => {
+      const match = data.match(/sdk_version\s*=\s*(\S+)/);
+      if (match) {
+        return match[1];
+      }
+      throw new Error('sdk_version not found');
+    })
+    .catch(() =>
+      fetchFileContent(`${base}/gradle/libs.versions.toml`).then(data => {
+        const match = data.match(/^sentry\s*=\s*"([^"]+)"/m);
+        if (match) {
+          return match[1];
+        }
+        throw new Error(`Could not find sentry-android version for gradle plugin ${gradlePluginVersion}`);
+      }),
+    );
 }
 
 module.exports = async function ({ fail, warn, __, ___, danger }) {
