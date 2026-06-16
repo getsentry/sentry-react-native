@@ -22,7 +22,7 @@ interface NetworkBreadcrumbSide {
 const DEFAULT_NETWORK_OPTIONS: ResolvedNetworkOptions = {
   allowUrls: [],
   denyUrls: [],
-  captureBodies: true,
+  captureBodies: false,
   requestHeaders: [],
   responseHeaders: [],
 };
@@ -138,6 +138,14 @@ function _toBreadcrumbSide(
   }
   if (body?._meta) {
     side._meta = body._meta;
+    // Native converters strip `_meta` before forwarding the side to the rrweb
+    // span (the native replay SDKs don't know about it). Materialize a
+    // placeholder `body` whenever we have a warning but no concrete body so
+    // the signal (e.g. UNPARSEABLE_BODY_TYPE) still surfaces in Session
+    // Replay instead of being silently dropped natively.
+    if (side.body === undefined) {
+      side.body = `[${body._meta.warnings.join(', ')}]`;
+    }
   }
   return Object.keys(side).length > 0 ? side : undefined;
 }

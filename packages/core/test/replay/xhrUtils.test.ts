@@ -209,7 +209,7 @@ describe('xhrUtils', () => {
       expect((breadcrumb.data?.response as { body?: string }).body).toBeUndefined();
     });
 
-    it('marks binary request bodies (Blob, ArrayBuffer, typed arrays) as unparseable instead of stringifying to {}', () => {
+    it('marks binary request bodies (Blob, ArrayBuffer, typed arrays) as unparseable with a placeholder body so the side survives the native _meta strip', () => {
       const enrich = makeEnrichXhrBreadcrumbsForMobileReplay({
         allowUrls: ['api.example.com'],
         denyUrls: [],
@@ -221,13 +221,13 @@ describe('xhrUtils', () => {
       const blobBreadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
       enrich(blobBreadcrumb, { ...getValidXhrHint(), input: new Blob(['binary']) });
       const blobRequest = blobBreadcrumb.data?.request as { body?: string; _meta?: { warnings: string[] } };
-      expect(blobRequest.body).toBeUndefined();
+      expect(blobRequest.body).toBe('[UNPARSEABLE_BODY_TYPE]');
       expect(blobRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
 
       const bufferBreadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
       enrich(bufferBreadcrumb, { ...getValidXhrHint(), input: new ArrayBuffer(16) });
       const bufferRequest = bufferBreadcrumb.data?.request as { body?: string; _meta?: { warnings: string[] } };
-      expect(bufferRequest.body).toBeUndefined();
+      expect(bufferRequest.body).toBe('[UNPARSEABLE_BODY_TYPE]');
       expect(bufferRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
 
       const typedArrayBreadcrumb: Breadcrumb = {
@@ -239,7 +239,7 @@ describe('xhrUtils', () => {
         body?: string;
         _meta?: { warnings: string[] };
       };
-      expect(typedArrayRequest.body).toBeUndefined();
+      expect(typedArrayRequest.body).toBe('[UNPARSEABLE_BODY_TYPE]');
       expect(typedArrayRequest._meta?.warnings).toEqual(['UNPARSEABLE_BODY_TYPE']);
     });
 
