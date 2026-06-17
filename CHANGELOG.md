@@ -14,6 +14,10 @@
 - Record XHR request/response headers and (optionally) bodies in Mobile Session Replay. Opt in via `mobileReplayIntegration` with `networkDetailAllowUrls` to capture headers; set `networkCaptureBodies: true` to also capture bodies. Other options: `networkDetailDenyUrls`, `networkRequestHeaders`, `networkResponseHeaders`. Authorization-like headers are always stripped, bodies are capped at ~150 KB. Covers XHR-based clients like `axios`; fetch will follow. See [Network Details](https://docs.sentry.io/platforms/react-native/session-replay/#network-details) for details. ([#6288](https://github.com/getsentry/sentry-react-native/pull/6288))
 - Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
 
+### Fixes
+
+- Fix user `geo` being dropped from the native scope by forwarding it as a structured object instead of a JSON string ([#6309](https://github.com/getsentry/sentry-react-native/pull/6309))
+
 ### Dependencies
 
 - Bump Android SDK from v8.43.1 to v8.43.2 ([#6273](https://github.com/getsentry/sentry-react-native/pull/6273))
