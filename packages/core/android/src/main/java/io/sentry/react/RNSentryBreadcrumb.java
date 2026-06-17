@@ -4,9 +4,11 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import io.sentry.Breadcrumb;
+import io.sentry.DateUtils;
 import io.sentry.ILogger;
 import io.sentry.SentryLevel;
 import io.sentry.util.MapObjectReader;
+import java.util.Date;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +44,18 @@ public final class RNSentryBreadcrumb {
   @NotNull
   public static Breadcrumb fromMap(ReadableMap from, @NotNull ILogger logger) {
     try {
-      final @NotNull MapObjectReader reader = new MapObjectReader(toDeepHashMap(from));
+      final @NotNull Map<String, Object> map = toDeepHashMap(from);
+
+      // The JS SDK stamps `timestamp` as a number (epoch seconds), which arrives over the bridge as
+      // a Double. The native Breadcrumb deserializer expects an ISO-8601 string, so normalize it
+      // before deserializing to avoid a ClassCastException.
+      final @Nullable Object timestamp = map.get("timestamp");
+      if (timestamp instanceof Number) {
+        final long millis = (long) (((Number) timestamp).doubleValue() * 1000);
+        map.put("timestamp", DateUtils.getTimestamp(new Date(millis)));
+      }
+
+      final @NotNull MapObjectReader reader = new MapObjectReader(map);
       final @NotNull Breadcrumb breadcrumb =
           new Breadcrumb.Deserializer().deserialize(reader, logger);
 
