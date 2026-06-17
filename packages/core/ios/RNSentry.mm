@@ -58,9 +58,35 @@
 #import "RNSentryStart.h"
 #import "RNSentryVersion.h"
 #import "SentrySDKWrapper.h"
+
+// TurboModule perf logger — only available on New Architecture, but we always
+// include the header so the `Sentry_SetTurboModuleTrackingEnabled` toggle
+// compiles on Old Arch too (it's a no-op there).
+#import "../cpp/SentryTurboModulePerfLogger.h"
 #import "SentryScreenFramesWrapper.h"
 
 static bool hasFetchedAppStart;
+
+// Install the TurboModule perf logger as early as possible. The `+load` method
+// on `RNSentry` itself is reserved by `RCT_EXPORT_MODULE()` (which generates
+// its own `+load` to register the module with React Native), so we host the
+// install hook on a separate dummy class. Both `+load`s run before any module
+// instantiation, so the order between them does not matter — we just need
+// ours to fire before `RCTBridge` / `RCTHost` create their first TurboModule.
+//
+// The install is idempotent (the controller short-circuits on subsequent
+// calls) and free when the `enableTurboModuleTracking` runtime flag is off,
+// which is the default. On Old Architecture this compiles to a no-op
+// installer.
+@interface RNSentryTurboModulePerfLoggerInstaller : NSObject
+@end
+
+@implementation RNSentryTurboModulePerfLoggerInstaller
++ (void)load
+{
+    Sentry_InstallTurboModulePerfLogger();
+}
+@end
 
 @implementation RNSentry {
     bool hasListeners;
@@ -138,6 +164,11 @@ static bool hasFetchedAppStart;
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
 
+    // `enableTurboModuleTracking` is consumed by `initNativeSdk` before this
+    // dict reaches sentry-cocoa; strip so it does not leak into
+    // SentryOptions (which would not know what to do with it).
+    [mutableOptions removeObjectForKey:@"enableTurboModuleTracking"];
+
     [self trySetIgnoreErrors:mutableOptions];
 
     return mutableOptions;
@@ -148,6 +179,15 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSMutableDictionary *mutableOptions = [self prepareOptions:options];
+
+    // Toggle the TurboModule perf-logger sink based on the JS option. The
+    // logger itself is already installed (see +load); this just decides
+    // whether forwarded callbacks reach the Sentry sink.
+    id enableTurboModuleTracking = [options objectForKey:@"enableTurboModuleTracking"];
+    if ([enableTurboModuleTracking isKindOfClass:[NSNumber class]]) {
+        Sentry_SetTurboModuleTrackingEnabled([(NSNumber *)enableTurboModuleTracking boolValue] ? 1 : 0);
+    }
+
     NSError *error = nil;
     [RNSentryStart startWithOptions:mutableOptions error:&error];
     if (error != nil) {

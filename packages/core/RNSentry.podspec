@@ -41,7 +41,11 @@ Pod::Spec.new do |s|
 
   s.preserve_paths = '*.js'
 
-  s.source_files = 'ios/**/*.{h,m,mm}'
+  # `cpp/` holds platform-agnostic C++ used by both iOS and Android. On iOS it
+  # is pulled in here; on Android it is compiled by the dedicated CMake target
+  # in `android/CMakeLists.txt`. The files are guarded with
+  # `RCT_NEW_ARCH_ENABLED` so they compile to empty TUs on Old Arch.
+  s.source_files = 'ios/**/*.{h,m,mm}', 'cpp/**/*.{h,cpp}'
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
   s.compiler_flags = other_cflags

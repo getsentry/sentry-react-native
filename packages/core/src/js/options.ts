@@ -289,6 +289,26 @@ export interface BaseReactNativeOptions {
   enableStallTracking?: boolean;
 
   /**
+   * Install Sentry's native `TurboModulePerfLogger` and forward every Turbo
+   * Module lifecycle callback (`moduleCreate*`, sync/async method call
+   * start/end/fail, execution start/end/fail) to the higher-level Sentry
+   * instrumentation (crash attribution, per-module spans, aggregated stats).
+   *
+   * Only takes effect on React Native New Architecture. On Old Architecture
+   * this option is a no-op.
+   *
+   * The native perf logger is always installed at SDK load time so we never
+   * miss the earliest module-create events; this flag only gates whether
+   * forwarded callbacks actually reach the Sentry sink. Off by default
+   * because the higher-level features building on top of this hook ship in
+   * follow-up releases.
+   *
+   * @default false
+   * @experimental
+   */
+  enableTurboModuleTracking?: boolean;
+
+  /**
    * Trace User Interaction events like touch and gestures.
    *
    * @default false

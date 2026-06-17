@@ -192,6 +192,14 @@ public class RNSentryModuleImpl {
     // Set the React context for the logger so it can forward logs to JS
     rnLogger.setReactContext(this.reactApplicationContext);
 
+    // Toggle the TurboModule perf-logger sink based on the JS option. The
+    // logger itself is already installed (see `RNSentryPackage`'s static
+    // initializer + `libsentry-tm-perf-logger.so` JNI hook); this just gates
+    // whether forwarded callbacks reach the Sentry sink. No-op on Old Arch.
+    if (rnOptions.hasKey("enableTurboModuleTracking")) {
+      RNSentryTurboModulePerfTracker.setEnabled(rnOptions.getBoolean("enableTurboModuleTracking"));
+    }
+
     RNSentryStart.startWithOptions(
         getApplicationContext(),
         rnOptions,
