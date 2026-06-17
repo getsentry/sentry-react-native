@@ -6,6 +6,26 @@ def isNewArchitectureEnabled() {
     return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
 }
 
+// Locate the consuming app's `react-native` install. ReactAndroid's prefab
+// AAR exposes `<ReactCommon/TurboModulePerfLogger.h>` but not the
+// `<reactperflogger/NativeModulePerfLogger.h>` it transitively `#include`s,
+// so we add the source tree's `ReactCommon/reactperflogger` to the include
+// path manually. The resolution mirrors `react-native-reanimated`'s helper:
+// first honour an explicit `REACT_NATIVE_NODE_MODULES_DIR` override, then
+// fall back to `node --print require.resolve(...)` which works in monorepos
+// where react-native may be hoisted above the consumer's `node_modules`.
+def resolveReactNativeDir() {
+    def override = safeExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
+    if (override != null) {
+        return file(override)
+    }
+    def resolved = providers.exec {
+        workingDir = rootDir
+        commandLine("node", "--print", "require.resolve('react-native/package.json')")
+    }.standardOutput.asText.get().trim()
+    return file(resolved).parentFile
+}
+
 apply plugin: 'com.android.library'
 if (isNewArchitectureEnabled()) {
     apply plugin: 'com.facebook.react'
@@ -26,6 +46,22 @@ android {
         }
     }
 
+    // `libsentry-tm-perf-logger.so` installs Sentry's TurboModule perf logger
+    // at JNI load time. It depends on React Native's `reactnative` prefab
+    // (which only ships when the New Architecture is enabled), so we wire
+    // CMake + prefab in only under New Arch. On Old Arch the .so is never
+    // built and `RNSentryPackage` catches the missing-library error.
+    if (isNewArchitectureEnabled()) {
+        buildFeatures {
+            prefab true
+        }
+        externalNativeBuild {
+            cmake {
+                path "CMakeLists.txt"
+            }
+        }
+    }
+
     defaultConfig {
         minSdkVersion safeExtGet('minSdkVersion', 21)
         targetSdkVersion safeExtGet('targetSdkVersion', 31)
@@ -39,6 +75,17 @@ android {
             targetCompatibility JavaVersion.VERSION_1_8
         }
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+
+        if (isNewArchitectureEnabled()) {
+            def reactNativeDir = resolveReactNativeDir()
+            externalNativeBuild {
+                cmake {
+                    cppFlags "-std=c++20", "-fexceptions", "-frtti", "-DRCT_NEW_ARCH_ENABLED=1"
+                    arguments "-DANDROID_STL=c++_shared",
+                              "-DREACT_NATIVE_DIR=${reactNativeDir.absolutePath}"
+                }
+            }
+        }
     }
 
     sourceSets {

@@ -1,5 +1,6 @@
 package io.sentry.react;
 
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.facebook.react.TurboReactPackage;
@@ -19,6 +20,27 @@ import java.util.Map;
 public class RNSentryPackage extends TurboReactPackage {
 
   private static final boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
+
+  static {
+    // Load `libsentry-tm-perf-logger.so` as early as possible — its
+    // `JNI_OnLoad` installs Sentry's `facebook::react::NativeModulePerfLogger`
+    // into React Native so the SDK observes every TurboModule lifecycle event.
+    //
+    // The library is only built under New Architecture (see `build.gradle` and
+    // `CMakeLists.txt`). On Old Architecture there is no TurboModule perf
+    // logger to install, so a missing `.so` is expected and we swallow the
+    // `UnsatisfiedLinkError` instead of crashing the host.
+    try {
+      System.loadLibrary("sentry-tm-perf-logger");
+    } catch (UnsatisfiedLinkError e) {
+      // Expected on Old Arch and on hosts that strip Sentry's native
+      // libraries; the SDK keeps working with only Java-side instrumentation.
+      Log.i(
+          "RNSentry",
+          "libsentry-tm-perf-logger.so not loaded; TurboModule perf tracking unavailable: "
+              + e.getMessage());
+    }
+  }
 
   @Nullable
   @Override
