@@ -16,7 +16,7 @@
 
 ### Fixes
 
-- Fix Android `ClassCastException` when syncing breadcrumbs with a numeric timestamp to the native scope ([#6306](https://github.com/getsentry/sentry-react-native/issues/6306))
+- Fix Android `ClassCastException` when syncing breadcrumbs with a numeric timestamp to the native scope ([#6308](https://github.com/getsentry/sentry-react-native/pull/6308))
 
 ### Dependencies
 
