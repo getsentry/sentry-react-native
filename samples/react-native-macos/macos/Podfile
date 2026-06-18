@@ -1,10 +1,9 @@
 require_relative '../node_modules/react-native-macos/scripts/react_native_pods'
-require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
 prepare_react_native_project!
 
 target 'sentry-react-native-sample-macOS' do
-  platform :macos, '12.0'
+  platform :macos, '14.0'
   use_native_modules!
 
   # Flags change depending on the env values.
