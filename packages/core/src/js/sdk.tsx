@@ -26,6 +26,7 @@ import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
 import { _appLoaded } from './tracing/integrations/appStart';
+import { useBase64Polyfill } from './transports/base64Polyfill';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
@@ -74,6 +75,7 @@ export function init(passedOptions: ReactNativeOptions): void {
     userOptions.enableNative === undefined || userOptions.enableNative ? NATIVE.isNativeAvailable() : false;
 
   useEncodePolyfill();
+  useBase64Polyfill();
   if (enableNative) {
     enableSyncToNative(getGlobalScope());
     enableSyncToNative(getIsolationScope());
