@@ -10931,8 +10931,11 @@ __metadata:
     expo: ">=49.0.0"
     react: ">=17.0.0"
     react-native: ">=0.65.0"
+    react-native-quick-base64: ">=3.0.0"
   peerDependenciesMeta:
     expo:
+      optional: true
+    react-native-quick-base64:
       optional: true
   bin:
     sentry-eas-build-on-complete: scripts/eas-build-hook.js

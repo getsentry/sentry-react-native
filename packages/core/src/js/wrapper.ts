@@ -30,11 +30,11 @@ import type { MobileReplayOptions } from './replay/mobilereplay';
 import type { RequiredKeysUser } from './user';
 
 import { isHardCrash } from './misc';
+import { encodeToBase64 } from './utils/base64';
 import { encodeUTF8 } from './utils/encode';
 import { isTurboModuleEnabled } from './utils/environment';
 import { convertToNormalizedObject } from './utils/normalize';
 import { ReactNativeLibraries } from './utils/rnlibraries';
-import { base64StringFromByteArray } from './vendor';
 import { SDK_VERSION } from './version';
 
 /**
@@ -231,7 +231,7 @@ export const NATIVE: SentryNativeWrapper = {
       envelopeBytes = newBytes;
     }
 
-    await RNSentry.captureEnvelope(base64StringFromByteArray(envelopeBytes), { hardCrashed });
+    await RNSentry.captureEnvelope(encodeToBase64(envelopeBytes), { hardCrashed });
   },
 
   /**
