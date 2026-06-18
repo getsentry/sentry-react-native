@@ -50,7 +50,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  sentry_cocoa_version = '9.17.1'
+  sentry_cocoa_version = '9.18.0'
 
   # Opt-in to consuming sentry-cocoa via Swift Package Manager.
   # When `SENTRY_USE_SPM=1` is set, RNSentry pulls `Sentry` from the
