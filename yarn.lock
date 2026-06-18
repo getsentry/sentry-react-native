@@ -11355,7 +11355,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.2.64, @types/react@npm:^18.2.65":
+"@types/react@npm:*, @types/react@npm:^18.2.65":
   version: 18.3.4
   resolution: "@types/react@npm:18.3.4"
   dependencies:
@@ -11389,6 +11389,15 @@ __metadata:
   dependencies:
     csstype: ^3.2.2
   checksum: ddd330292abf2dc2cfa65188e1c5f67cc6e90f8d8ffb088f753a38db9d123f942c23d324a6b7e8027ff04f22b395492150f54b9b520b6cbec1e8841e669f2c19
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^19.1.4":
+  version: 19.2.17
+  resolution: "@types/react@npm:19.2.17"
+  dependencies:
+    csstype: ^3.2.2
+  checksum: 9704dc2001b6bcc32efc6e3fe144e18c411d5ee8a5c8dfe572535e44bd300424c4e7bddc9314299eeec28efb547816368b5c9851c93a3082e8ad1265786f3d31
   languageName: node
   linkType: hard
 
@@ -27533,15 +27542,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.3.1":
-  version: 18.3.1
-  resolution: "react@npm:18.3.1"
-  dependencies:
-    loose-envify: ^1.1.0
-  checksum: a27bcfa8ff7c15a1e50244ad0d0c1cb2ad4375eeffefd266a64889beea6f6b64c4966c9b37d14ee32d6c9fcd5aa6ba183b6988167ab4d127d13e7cb5b386a376
-  languageName: node
-  linkType: hard
-
 "react@npm:19.1.0":
   version: 19.1.0
   resolution: "react@npm:19.1.0"
@@ -28786,7 +28786,7 @@ __metadata:
     "@sentry/core": 10.58.0
     "@sentry/react-native": 8.15.0
     "@types/node": ^20.9.3
-    "@types/react": ^18.2.64
+    "@types/react": ^19.1.4
     appium: 3.2.2
     appium-uiautomator2-driver: 7.0.0
     appium-xcuitest-driver: 10.32.1
@@ -28794,7 +28794,7 @@ __metadata:
     jest: ^29.7.0
     minimist: 1.2.8
     p-retry: 6.2.0
-    react: 18.3.1
+    react: 19.2.3
     react-native: 0.86.0
     react-native-launch-arguments: ^4.0.2
     semver: 7.6.3
