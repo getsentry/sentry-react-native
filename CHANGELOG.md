@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix user `geo` being dropped from the native scope by forwarding it as a structured object instead of a JSON string ([#6309](https://github.com/getsentry/sentry-react-native/pull/6309))
+
+## 8.15.0
+
 ### Features
 
 - Add `nativeStackAndroid` support to `NativeLinkedErrors`, capturing the JVM stack trace of rejected native module promises as a linked exception ([#6278](https://github.com/getsentry/sentry-react-native/pull/6278))
@@ -16,16 +22,16 @@
 
 ### Fixes
 
-- Fix user `geo` being dropped from the native scope by forwarding it as a structured object instead of a JSON string ([#6309](https://github.com/getsentry/sentry-react-native/pull/6309))
+- Fix Android `ClassCastException` when syncing breadcrumbs with a numeric timestamp to the native scope ([#6308](https://github.com/getsentry/sentry-react-native/pull/6308))
 
 ### Dependencies
 
-- Bump Android SDK from v8.43.1 to v8.43.2 ([#6273](https://github.com/getsentry/sentry-react-native/pull/6273))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8432)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.1...8.43.2)
-- Bump Cocoa SDK from v9.16.1 to v9.17.1 ([#6272](https://github.com/getsentry/sentry-react-native/pull/6272))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9171)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.16.1...9.17.1)
+- Bump Android SDK from v8.43.1 to v8.44.0 ([#6273](https://github.com/getsentry/sentry-react-native/pull/6273), [#6310](https://github.com/getsentry/sentry-react-native/pull/6310))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8440)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.1...8.44.0)
+- Bump Cocoa SDK from v9.16.1 to v9.18.0 ([#6272](https://github.com/getsentry/sentry-react-native/pull/6272), [#6311](https://github.com/getsentry/sentry-react-native/pull/6311))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9180)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.16.1...9.18.0)
 - Bump JavaScript SDK from v10.57.0 to v10.58.0 ([#6296](https://github.com/getsentry/sentry-react-native/pull/6296))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10580)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.57.0...10.58.0)
