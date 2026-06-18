@@ -1,6 +1,7 @@
 package io.sentry.react;
 
 import android.util.Log;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Thin Java façade over the native runtime flag installed by
@@ -48,4 +49,14 @@ public final class RNSentryTurboModulePerfTracker {
   }
 
   private static native void nativeSetEnabled(boolean enabled);
+
+  @TestOnly
+  public static boolean isNativeUnavailableForTests() {
+    return nativeUnavailable;
+  }
+
+  @TestOnly
+  public static void resetNativeUnavailableForTests() {
+    nativeUnavailable = false;
+  }
 }
