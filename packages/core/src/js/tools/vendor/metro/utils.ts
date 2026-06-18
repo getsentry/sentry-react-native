@@ -115,12 +115,12 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
   return (entryPoint, preModules, graph, options) => {
     // baseJSBundle assigns IDs to modules in a consistent order
     let bundle = baseJSBundle(entryPoint, preModules, graph, options);
-    if (options.sentryBundleCallback && !graph.transformOptions.hot) {
+    if (options.sentryBundleCallback && !graph.transformOptions.dev) {
       bundle = options.sentryBundleCallback(bundle);
     }
     const { code } = bundleToString(bundle);
-    if (graph.transformOptions.hot) {
-      // Hot means running in dev server, sourcemaps are generated on demand
+    if (graph.transformOptions.dev) {
+      // Dev means running in dev server, sourcemaps are generated on demand
       return code;
     }
 
