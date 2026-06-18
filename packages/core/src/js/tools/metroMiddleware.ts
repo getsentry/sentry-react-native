@@ -149,7 +149,7 @@ export const withSentryMiddleware = (config: InputConfigT): InputConfigT => {
   const allowedRoots = [projectRoot, ...watchFolders];
 
   const originalEnhanceMiddleware = config.server.enhanceMiddleware;
-  // @ts-expect-error enhanceMiddleware is typed read only
+  // @ts-expect-error enhanceMiddleware is typed read only in metro 0.84+
   config.server.enhanceMiddleware = (middleware: Middleware, server: unknown) => {
     const sentryMiddleware = createSentryMetroMiddleware(middleware, allowedRoots);
     return originalEnhanceMiddleware ? originalEnhanceMiddleware(sentryMiddleware, server) : sentryMiddleware;

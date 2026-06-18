@@ -64,7 +64,7 @@ export function withSentryOptionsFromFile(config: MetroConfig, optionsFile: stri
     });
   }
 
-  // @ts-expect-error customSerializer is typed read only
+  // @ts-expect-error customSerializer is typed read only in metro 0.84+
   config.serializer.customSerializer = sentryOptionsSerializer;
   return config;
 }
