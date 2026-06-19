@@ -12,6 +12,12 @@
 
 - Fix user `geo` being dropped from the native scope by forwarding it as a structured object instead of a JSON string ([#6309](https://github.com/getsentry/sentry-react-native/pull/6309))
 
+## 8.15.1
+
+### Fixes
+
+- Fix Android Gradle source map upload being silently skipped on some occasions ([#6320](https://github.com/getsentry/sentry-react-native/pull/6320))
+
 ## 8.15.0
 
 ### Features
