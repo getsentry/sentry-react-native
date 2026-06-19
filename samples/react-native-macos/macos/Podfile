@@ -1,5 +1,7 @@
 require_relative '../node_modules/react-native-macos/scripts/react_native_pods'
 
+ENV['REACT_NATIVE_NODE_MODULES_DIR'] ||= File.expand_path('../node_modules/react-native-macos', __dir__)
+
 prepare_react_native_project!
 
 target 'sentry-react-native-sample-macOS' do
