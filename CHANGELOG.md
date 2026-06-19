@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Fix Android Gradle source map upload being silently skipped on some occasions ([#6319](https://github.com/getsentry/sentry-react-native/issues/6319))
+- Fix Android Gradle source map upload being silently skipped on some occasions ([#6320](https://github.com/getsentry/sentry-react-native/pull/6320))
 
 ## 8.15.0
 
