@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Remove unused `React/RCTTextView.h` import that broke iOS builds on React Native 0.87, where the header was removed as part of the legacy architecture cleanup ([#6322](https://github.com/getsentry/sentry-react-native/pull/6322))
+
 ## 8.15.1
 
 ### Fixes
