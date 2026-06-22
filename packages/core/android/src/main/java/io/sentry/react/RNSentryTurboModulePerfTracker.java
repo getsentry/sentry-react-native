@@ -69,26 +69,43 @@ public final class RNSentryTurboModulePerfTracker {
   /**
    * Attempts {@code System.loadLibrary} once and remembers the outcome. Returns {@code true} when
    * the library is (or just became) available, {@code false} when it could not be loaded.
+   *
+   * <p>Synchronized so concurrent first callers block on the in-progress load instead of racing
+   * past it and hitting a phantom {@code UnsatisfiedLinkError} on {@code nativeSetEnabled} — which
+   * would then latch the tracker into a permanent no-op state for the lifetime of the process. The
+   * synchronization cost is paid at most a few times per process: once the load completes, every
+   * subsequent caller short-circuits on the early {@code libraryLoadAttempted} check before
+   * entering the monitor.
    */
   private static boolean ensureNativeLibraryLoaded() {
-    if (!libraryLoadAttempted.compareAndSet(false, true)) {
-      // Another caller already tried. The outcome is encoded in `nativeUnavailable`.
+    if (libraryLoadAttempted.get()) {
       return !nativeUnavailable.get();
     }
-    try {
-      System.loadLibrary(LIB_NAME);
-      return true;
-    } catch (UnsatisfiedLinkError e) {
-      // Expected on Old Arch and on hosts that strip Sentry's native libraries; the SDK keeps
-      // working with only Java-side instrumentation.
-      nativeUnavailable.set(true);
-      Log.i(
-          TAG,
-          "lib"
-              + LIB_NAME
-              + ".so not loaded; TurboModule perf tracking unavailable: "
-              + e.getMessage());
-      return false;
+    synchronized (RNSentryTurboModulePerfTracker.class) {
+      // Re-check under the monitor in case another thread completed the load while we were
+      // queued for the lock.
+      if (libraryLoadAttempted.get()) {
+        return !nativeUnavailable.get();
+      }
+      try {
+        System.loadLibrary(LIB_NAME);
+        // Set the attempted flag last so any reader that observes it also sees the matching
+        // `nativeUnavailable` state established above.
+        libraryLoadAttempted.set(true);
+        return true;
+      } catch (UnsatisfiedLinkError e) {
+        // Expected on Old Arch and on hosts that strip Sentry's native libraries; the SDK keeps
+        // working with only Java-side instrumentation.
+        nativeUnavailable.set(true);
+        libraryLoadAttempted.set(true);
+        Log.i(
+            TAG,
+            "lib"
+                + LIB_NAME
+                + ".so not loaded; TurboModule perf tracking unavailable: "
+                + e.getMessage());
+        return false;
+      }
     }
   }
 
