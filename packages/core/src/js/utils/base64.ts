@@ -9,9 +9,8 @@ let resolved = false;
 
 /**
  * Resolves the base64 encoder once. If the optional peer dependency
- * `react-native-quick-base64` is installed, its native JSI encoder is used
- * (~10x faster than the pure-JS fallback). Otherwise the bundled JS encoder
- * from `vendor/base64-js` is used.
+ * `react-native-quick-base64` is installed, its native JSI encoder is used.
+ * Otherwise the bundled JS encoder from `vendor/base64-js` is used.
  *
  * The resolution is cached so the require cost is paid at most once.
  */
@@ -26,6 +25,9 @@ function resolveEncoder(): FromByteArray {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
     const quickBase64 = require('react-native-quick-base64') as { fromByteArray?: FromByteArray };
     if (quickBase64 && typeof quickBase64.fromByteArray === 'function') {
+      // Probe the native binding so that a broken native module falls through
+      // to the JS encoder instead of throwing on every envelope.
+      quickBase64.fromByteArray(new Uint8Array([0]));
       cachedEncoder = quickBase64.fromByteArray;
       debug.log('Using react-native-quick-base64 for envelope encoding.');
       return cachedEncoder;
