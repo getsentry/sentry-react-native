@@ -67,6 +67,22 @@ class RNSentryTurboModulePerfTrackerTest {
     }
 
     @Test
+    fun setEnabledFalseDoesNotLoadNativeLibrary() {
+        // The lazy-load contract: hosts that never opt in to
+        // `enableTurboModuleTracking` pay no shared-library cost. A bare
+        // `initNativeSdk` with the option absent or `false` calls
+        // `setEnabled(false)` from Java, and we expect this NOT to attempt
+        // `System.loadLibrary`. The proxy for "did we attempt the load?" is
+        // the `nativeUnavailable` latch — in the test JVM the load would
+        // fail, so if it ran we would see the latch tripped.
+        RNSentryTurboModulePerfTracker.setEnabled(false)
+        assertFalse(
+            "setEnabled(false) on a fresh tracker must not attempt to load the native library",
+            RNSentryTurboModulePerfTracker.isNativeUnavailableForTests(),
+        )
+    }
+
+    @Test
     fun resetClearsTheLatch() {
         RNSentryTurboModulePerfTracker.setEnabled(true)
         assertTrue(RNSentryTurboModulePerfTracker.isNativeUnavailableForTests())

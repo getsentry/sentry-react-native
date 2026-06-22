@@ -53,6 +53,15 @@ public final class RNSentryTurboModulePerfTracker {
     if (nativeUnavailable.get()) {
       return;
     }
+    // If we are disabling and the library has not yet been loaded, there is
+    // nothing to disable: the native flag's default is already `false`.
+    // Loading the library only to flip it to its default would break the lazy
+    // load contract ("hosts that never opt in pay no native library cost")
+    // and reintroduce the cost on every `initNativeSdk` call regardless of
+    // whether the user opted in.
+    if (!enabled && !libraryLoadAttempted.get()) {
+      return;
+    }
     if (!ensureNativeLibraryLoaded()) {
       return;
     }
