@@ -4,6 +4,9 @@
   "exclude": ["node_modules"],
   "compilerOptions": {
     "baseUrl": ".",
+    // @sentry/typescript@10.59.0 base config sets `moduleResolution: bundler`, which is
+    // incompatible with `module: CommonJS` below. Pin classic node resolution.
+    "moduleResolution": "node",
     "paths": {
       "metro": ["./node_modules/metro/src/index"]
     },
