@@ -189,6 +189,12 @@ SentryTurboModulePerfController::install() noexcept
 void
 SentryTurboModulePerfController::setEnabled(bool enabled) noexcept
 {
+    // Publish the new flag *before* installing the logger so any callback RN
+    // fires synchronously from inside `enableLogging()` already sees
+    // `isEnabled() == true` and reaches the sink instead of being dropped by
+    // the fast-path. On disable, order does not matter — we never uninstall.
+    enabled_.store(enabled, std::memory_order_release);
+
     // Enabling tracking lazily installs the logger. This avoids evicting any
     // pre-existing `NativeModulePerfLogger` (Metro, other SDKs, host-app
     // instrumentation) when the user has not opted in to TurboModule tracking,
@@ -196,7 +202,6 @@ SentryTurboModulePerfController::setEnabled(bool enabled) noexcept
     if (enabled) {
         install();
     }
-    enabled_.store(enabled, std::memory_order_release);
 }
 
 void
