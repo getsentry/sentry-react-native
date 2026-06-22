@@ -56,7 +56,10 @@ target_link_libraries(
         ReactAndroid::reactnative
 )
 
-# Strip symbols in release builds to keep the AAR small.
-target_link_options(sentry-tm-perf-logger PRIVATE
-    "$<$<CONFIG:Release>:-Wl,--strip-all>"
-)
+# Note: we deliberately do NOT pass `-Wl,--strip-all` (or similar) here.
+# Android Gradle Plugin's `StripDebugSymbolsTask` already strips the .so for
+# the packaged APK while preserving the unstripped artefact under
+# `intermediates/merged_native_libs/.../obj`, which the Sentry Gradle plugin
+# uploads for crash symbolication. Stripping at link time would erase DWARF
+# before AGP can copy it, leaving any crash inside this library
+# unsymbolicated in production.
