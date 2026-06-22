@@ -40,11 +40,12 @@ namespace {
         // one screen and any divergence between RN's API and ours surfaces as
         // a compile error rather than a silent drop.
         //
-        // Each forwarder uses the lock-free `sinkRaw()` accessor instead of
-        // the owning `sink()` shared_ptr getter so a TurboModule sync method
-        // call — which fires on the JS thread — does not acquire a mutex on
-        // its critical path. The sink lifetime contract documented on
-        // `SentryTurboModulePerfController::setSink` keeps this safe.
+        // Each forwarder uses the owning `sink()` accessor: it acquires the
+        // sink mutex, copies the `shared_ptr`, and releases the lock before
+        // invoking the sink. That keeps the sink alive for the duration of
+        // the call regardless of a concurrent `setSink`. The mutex cost is
+        // only paid when `isEnabled()` returns true — when tracking is off
+        // (the default), the early return runs after a single atomic load.
 #    define SENTRY_FORWARD0(name)                                                                  \
         void name() override                                                                       \
         {                                                                                          \
@@ -52,7 +53,7 @@ namespace {
             if (!c.isEnabled()) {                                                                  \
                 return;                                                                            \
             }                                                                                      \
-            if (auto *sink = c.sinkRaw()) {                                                        \
+            if (auto sink = c.sink()) {                                                            \
                 sink->name();                                                                      \
             }                                                                                      \
         }
@@ -64,7 +65,7 @@ namespace {
             if (!c.isEnabled()) {                                                                  \
                 return;                                                                            \
             }                                                                                      \
-            if (auto *sink = c.sinkRaw()) {                                                        \
+            if (auto sink = c.sink()) {                                                            \
                 sink->name(arg1Name);                                                              \
             }                                                                                      \
         }
@@ -76,7 +77,7 @@ namespace {
             if (!c.isEnabled()) {                                                                  \
                 return;                                                                            \
             }                                                                                      \
-            if (auto *sink = c.sinkRaw()) {                                                        \
+            if (auto sink = c.sink()) {                                                            \
                 sink->name(n1, n2);                                                                \
             }                                                                                      \
         }
@@ -88,7 +89,7 @@ namespace {
             if (!c.isEnabled()) {                                                                  \
                 return;                                                                            \
             }                                                                                      \
-            if (auto *sink = c.sinkRaw()) {                                                        \
+            if (auto sink = c.sink()) {                                                            \
                 sink->name(n1, n2, n3);                                                            \
             }                                                                                      \
         }
@@ -213,28 +214,15 @@ SentryTurboModulePerfController::setEnabled(bool enabled) noexcept
 void
 SentryTurboModulePerfController::setSink(std::shared_ptr<ISentryTurboModulePerfSink> sink) noexcept
 {
-    // Hold the mutex while we mutate both the owning `shared_ptr` and the
-    // hot-path raw pointer so any concurrent `sink()` reader observes a
-    // consistent pair. The raw pointer is published *after* the owning
-    // reference under release ordering so a reader that observes the new
-    // pointer also observes the new owning ref it points into.
     std::lock_guard<std::mutex> lock(sink_mutex_);
-    ISentryTurboModulePerfSink *raw = sink.get();
-    sink_owner_ = std::move(sink);
-    sink_cache_.store(raw, std::memory_order_release);
+    sink_ = std::move(sink);
 }
 
 std::shared_ptr<ISentryTurboModulePerfSink>
 SentryTurboModulePerfController::sink() const noexcept
 {
     std::lock_guard<std::mutex> lock(sink_mutex_);
-    return sink_owner_;
-}
-
-ISentryTurboModulePerfSink *
-SentryTurboModulePerfController::sinkRaw() const noexcept
-{
-    return sink_cache_.load(std::memory_order_acquire);
+    return sink_;
 }
 
 bool

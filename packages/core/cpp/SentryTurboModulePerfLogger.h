@@ -61,33 +61,17 @@ public:
     void install() noexcept;
 
     /// Swap the sink that receives forwarded callbacks. Pass `nullptr` to detach.
-    /// Thread-safe — takes the sink mutex to mirror the owning `shared_ptr` and
-    /// the hot-path raw pointer atomically.
-    ///
-    /// Lifetime contract: a sink installed via `setSink(s)` MUST remain valid
-    /// until either the controller is destroyed or a subsequent `setSink` call
-    /// has completed. Concretely — once the controller is enabled and a sink
-    /// is installed, callers must not destroy the sink (i.e. drop the last
-    /// `shared_ptr` reference to it elsewhere) while the controller may still
-    /// dispatch into it. In practice the SDK installs the sink once at init
-    /// and keeps it alive for the lifetime of the process, which is the case
-    /// this contract is tuned for; the hot path therefore reads the sink via
-    /// a lock-free atomic raw pointer for zero overhead per TurboModule call.
+    /// Thread-safe via `sink_mutex_`.
     void setSink(std::shared_ptr<ISentryTurboModulePerfSink> sink) noexcept;
 
     /// Read the currently installed sink, or `nullptr` if none. The returned
-    /// `shared_ptr` is captured atomically (under the sink mutex) so the caller
-    /// holds an owning reference even if a concurrent `setSink` swaps the sink.
-    /// Used by tests and by external code that needs strong-ownership semantics;
-    /// the perf-logger forwarder uses the lock-free `sinkRaw()` path instead.
+    /// `shared_ptr` is captured atomically (under the sink mutex) so the
+    /// caller holds an owning reference even if a concurrent `setSink` swaps
+    /// or detaches the sink while a callback is in flight. The forwarder
+    /// invokes this on every TurboModule callback that survives the
+    /// `isEnabled()` early-return; the mutex cost is therefore paid only
+    /// when tracking is opted in, never on the default-off path.
     std::shared_ptr<ISentryTurboModulePerfSink> sink() const noexcept;
-
-    /// Hot-path read: returns the currently installed sink as a raw pointer
-    /// without acquiring any lock. The pointer is only valid for the duration
-    /// of a single TurboModule callback, and only safe under the lifetime
-    /// contract documented on `setSink`. Returns `nullptr` when no sink is
-    /// installed.
-    ISentryTurboModulePerfSink *sinkRaw() const noexcept;
 
     /// Runtime enable / disable. Defaults to `false`. When `false`, the logger
     /// fast-paths every callback to a single atomic load — no virtual dispatch,
@@ -102,22 +86,17 @@ private:
     std::atomic<bool> installed_ { false };
     std::atomic<bool> enabled_ { false };
 
-    // Sink storage uses a two-level design:
-    //  - `sink_owner_` holds the owning `shared_ptr` and is protected by
-    //    `sink_mutex_`. Mutated by `setSink`; read by `sink()` for callers
-    //    that need strong-ownership semantics (tests, introspection).
-    //  - `sink_cache_` is a lock-free atomic raw pointer mirror used by the
-    //    hot path (`sinkRaw()`). It lets every forwarded TurboModule callback
-    //    read the sink without acquiring a mutex, which the sink interface
-    //    explicitly requires of the forwarder.
-    //
-    // The atomic-shared_ptr variants are either C++20 (`std::atomic<std::shared_ptr<T>>`)
-    // or deprecated free functions (`std::atomic_load(std::shared_ptr*)`); the
-    // mutex+atomic-raw-pointer combo gives us lock-free reads on the hot path
-    // without requiring C++20 across every supported RN toolchain.
+    // Sink storage. The owning `shared_ptr` is mutated by `setSink` and read
+    // by `sink()` under `sink_mutex_`. We considered a lock-free atomic raw
+    // pointer mirror for the hot path, but that introduces a use-after-free
+    // hazard when `setSink` drops the previous owning reference while a
+    // forwarder callback still holds the raw pointer. The mutex variant is
+    // ~50–80 ns per callback (one atomic + lock + `shared_ptr` copy) and
+    // only fires when `isEnabled()` returns true — i.e. only when the user
+    // has explicitly opted in via `enableTurboModuleTracking`. The default-off
+    // path stays at one atomic load.
     mutable std::mutex sink_mutex_;
-    std::shared_ptr<ISentryTurboModulePerfSink> sink_owner_;
-    std::atomic<ISentryTurboModulePerfSink *> sink_cache_ { nullptr };
+    std::shared_ptr<ISentryTurboModulePerfSink> sink_;
 };
 
 } // namespace sentry::reactnative
