@@ -36,63 +36,73 @@ namespace sentry::reactnative {
 /// Pointers passed in (`moduleName`, `methodName`) are owned by React Native;
 /// the sink may inspect them during the call but MUST NOT retain them past it.
 class ISentryTurboModulePerfSink {
- public:
-  virtual ~ISentryTurboModulePerfSink() = default;
+public:
+    virtual ~ISentryTurboModulePerfSink() = default;
 
-  // ---- Module data / create (iOS NativeModule two-phase, Android single phase)
-  virtual void moduleDataCreateStart(const char* moduleName, int32_t id) = 0;
-  virtual void moduleDataCreateEnd(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateStart(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateCacheHit(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateConstructStart(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateConstructEnd(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateSetUpStart(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateSetUpEnd(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateEnd(const char* moduleName, int32_t id) = 0;
-  virtual void moduleCreateFail(const char* moduleName, int32_t id) = 0;
+    // ---- Module data / create (iOS NativeModule two-phase, Android single phase)
+    virtual void moduleDataCreateStart(const char *moduleName, int32_t id) = 0;
+    virtual void moduleDataCreateEnd(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateStart(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateCacheHit(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateConstructStart(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateConstructEnd(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateSetUpStart(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateSetUpEnd(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateEnd(const char *moduleName, int32_t id) = 0;
+    virtual void moduleCreateFail(const char *moduleName, int32_t id) = 0;
 
-  // ---- JS require timings (separate from create — they bracket the `require()` call itself)
-  virtual void moduleJSRequireBeginningStart(const char* moduleName) = 0;
-  virtual void moduleJSRequireBeginningCacheHit(const char* moduleName) = 0;
-  virtual void moduleJSRequireBeginningEnd(const char* moduleName) = 0;
-  virtual void moduleJSRequireBeginningFail(const char* moduleName) = 0;
-  virtual void moduleJSRequireEndingStart(const char* moduleName) = 0;
-  virtual void moduleJSRequireEndingEnd(const char* moduleName) = 0;
-  virtual void moduleJSRequireEndingFail(const char* moduleName) = 0;
+    // ---- JS require timings (separate from create — they bracket the `require()` call itself)
+    virtual void moduleJSRequireBeginningStart(const char *moduleName) = 0;
+    virtual void moduleJSRequireBeginningCacheHit(const char *moduleName) = 0;
+    virtual void moduleJSRequireBeginningEnd(const char *moduleName) = 0;
+    virtual void moduleJSRequireBeginningFail(const char *moduleName) = 0;
+    virtual void moduleJSRequireEndingStart(const char *moduleName) = 0;
+    virtual void moduleJSRequireEndingEnd(const char *moduleName) = 0;
+    virtual void moduleJSRequireEndingFail(const char *moduleName) = 0;
 
-  // ---- Sync method calls (blocking from JS)
-  virtual void syncMethodCallStart(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallArgConversionStart(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallArgConversionEnd(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallExecutionStart(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallExecutionEnd(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallReturnConversionStart(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallReturnConversionEnd(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallEnd(const char* moduleName, const char* methodName) = 0;
-  virtual void syncMethodCallFail(const char* moduleName, const char* methodName) = 0;
+    // ---- Sync method calls (blocking from JS)
+    virtual void syncMethodCallStart(const char *moduleName, const char *methodName) = 0;
+    virtual void syncMethodCallArgConversionStart(const char *moduleName, const char *methodName)
+        = 0;
+    virtual void syncMethodCallArgConversionEnd(const char *moduleName, const char *methodName) = 0;
+    virtual void syncMethodCallExecutionStart(const char *moduleName, const char *methodName) = 0;
+    virtual void syncMethodCallExecutionEnd(const char *moduleName, const char *methodName) = 0;
+    virtual void syncMethodCallReturnConversionStart(const char *moduleName, const char *methodName)
+        = 0;
+    virtual void syncMethodCallReturnConversionEnd(const char *moduleName, const char *methodName)
+        = 0;
+    virtual void syncMethodCallEnd(const char *moduleName, const char *methodName) = 0;
+    virtual void syncMethodCallFail(const char *moduleName, const char *methodName) = 0;
 
-  // ---- Async method calls (Promise-returning from JS)
-  //
-  // The async surface is split into two halves:
-  //  - The "call" half fires on the JS thread (`asyncMethodCall{Start,Dispatch,End,Fail}`).
-  //  - The "execution" half fires on the native module's executor when the
-  //    queued call actually runs (`asyncMethodCallExecution{Start,End,Fail}`),
-  //    carrying an `id` to correlate the two halves.
-  virtual void asyncMethodCallStart(const char* moduleName, const char* methodName) = 0;
-  virtual void asyncMethodCallArgConversionStart(const char* moduleName, const char* methodName) = 0;
-  virtual void asyncMethodCallArgConversionEnd(const char* moduleName, const char* methodName) = 0;
-  virtual void asyncMethodCallDispatch(const char* moduleName, const char* methodName) = 0;
-  virtual void asyncMethodCallEnd(const char* moduleName, const char* methodName) = 0;
-  virtual void asyncMethodCallFail(const char* moduleName, const char* methodName) = 0;
+    // ---- Async method calls (Promise-returning from JS)
+    //
+    // The async surface is split into two halves:
+    //  - The "call" half fires on the JS thread (`asyncMethodCall{Start,Dispatch,End,Fail}`).
+    //  - The "execution" half fires on the native module's executor when the
+    //    queued call actually runs (`asyncMethodCallExecution{Start,End,Fail}`),
+    //    carrying an `id` to correlate the two halves.
+    virtual void asyncMethodCallStart(const char *moduleName, const char *methodName) = 0;
+    virtual void asyncMethodCallArgConversionStart(const char *moduleName, const char *methodName)
+        = 0;
+    virtual void asyncMethodCallArgConversionEnd(const char *moduleName, const char *methodName)
+        = 0;
+    virtual void asyncMethodCallDispatch(const char *moduleName, const char *methodName) = 0;
+    virtual void asyncMethodCallEnd(const char *moduleName, const char *methodName) = 0;
+    virtual void asyncMethodCallFail(const char *moduleName, const char *methodName) = 0;
 
-  virtual void asyncMethodCallBatchPreprocessStart() = 0;
-  virtual void asyncMethodCallBatchPreprocessEnd(int batchSize) = 0;
+    virtual void asyncMethodCallBatchPreprocessStart() = 0;
+    virtual void asyncMethodCallBatchPreprocessEnd(int batchSize) = 0;
 
-  virtual void asyncMethodCallExecutionStart(const char* moduleName, const char* methodName, int32_t id) = 0;
-  virtual void asyncMethodCallExecutionArgConversionStart(const char* moduleName, const char* methodName, int32_t id) = 0;
-  virtual void asyncMethodCallExecutionArgConversionEnd(const char* moduleName, const char* methodName, int32_t id) = 0;
-  virtual void asyncMethodCallExecutionEnd(const char* moduleName, const char* methodName, int32_t id) = 0;
-  virtual void asyncMethodCallExecutionFail(const char* moduleName, const char* methodName, int32_t id) = 0;
+    virtual void asyncMethodCallExecutionStart(
+        const char *moduleName, const char *methodName, int32_t id) = 0;
+    virtual void asyncMethodCallExecutionArgConversionStart(
+        const char *moduleName, const char *methodName, int32_t id) = 0;
+    virtual void asyncMethodCallExecutionArgConversionEnd(
+        const char *moduleName, const char *methodName, int32_t id) = 0;
+    virtual void asyncMethodCallExecutionEnd(
+        const char *moduleName, const char *methodName, int32_t id) = 0;
+    virtual void asyncMethodCallExecutionFail(
+        const char *moduleName, const char *methodName, int32_t id) = 0;
 };
 
-}  // namespace sentry::reactnative
+} // namespace sentry::reactnative

@@ -66,27 +66,6 @@
 
 static bool hasFetchedAppStart;
 
-// Install the TurboModule perf logger as early as possible. The `+load` method
-// on `RNSentry` itself is reserved by `RCT_EXPORT_MODULE()` (which generates
-// its own `+load` to register the module with React Native), so we host the
-// install hook on a separate dummy class. Both `+load`s run before any module
-// instantiation, so the order between them does not matter — we just need
-// ours to fire before `RCTBridge` / `RCTHost` create their first TurboModule.
-//
-// The install is idempotent (the controller short-circuits on subsequent
-// calls) and free when the `enableTurboModuleTracking` runtime flag is off,
-// which is the default. On Old Architecture this compiles to a no-op
-// installer.
-@interface RNSentryTurboModulePerfLoggerInstaller : NSObject
-@end
-
-@implementation RNSentryTurboModulePerfLoggerInstaller
-+ (void)load
-{
-    Sentry_InstallTurboModulePerfLogger();
-}
-@end
-
 @implementation RNSentry {
     bool hasListeners;
     bool _shakeDetectionEnabled;
@@ -184,7 +163,8 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     // whether forwarded callbacks reach the Sentry sink.
     id enableTurboModuleTracking = [options objectForKey:@"enableTurboModuleTracking"];
     if ([enableTurboModuleTracking isKindOfClass:[NSNumber class]]) {
-        Sentry_SetTurboModuleTrackingEnabled([(NSNumber *)enableTurboModuleTracking boolValue] ? 1 : 0);
+        Sentry_SetTurboModuleTrackingEnabled(
+            [(NSNumber *)enableTurboModuleTracking boolValue] ? 1 : 0);
     }
 
     NSError *error = nil;

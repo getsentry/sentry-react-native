@@ -43,66 +43,71 @@ class SentryTurboModulePerfLogger;
 /// as a C-linkage symbol so the JNI side can call it from `JNI_OnLoad`
 /// without dragging the C++ ABI through the JNI boundary).
 class SentryTurboModulePerfController {
- public:
-  /// Returns the process-wide controller instance. The controller owns the
-  /// installed logger and the active sink.
-  static SentryTurboModulePerfController& instance() noexcept;
+public:
+    /// Returns the process-wide controller instance. The controller owns the
+    /// installed logger and the active sink.
+    static SentryTurboModulePerfController &instance() noexcept;
 
-  /// Idempotent install. The first call constructs a `SentryTurboModulePerfLogger`
-  /// and hands it to RN via `facebook::react::TurboModulePerfLogger::enableLogging`.
-  /// Subsequent calls are no-ops — this matters on iOS, where the SDK can be
-  /// re-initialised by tests and on Android where the JNI library may be loaded
-  /// more than once across the lifetime of a host process.
-  void install() noexcept;
+    /// Idempotent install. The first call constructs a `SentryTurboModulePerfLogger`
+    /// and hands it to RN via `facebook::react::TurboModulePerfLogger::enableLogging`.
+    /// Subsequent calls are no-ops — this matters on iOS, where the SDK can be
+    /// re-initialised by tests and on Android where the JNI library may be loaded
+    /// more than once across the lifetime of a host process.
+    ///
+    /// Note: `setEnabled(true)` calls this lazily, so most consumers do not need
+    /// to invoke `install()` directly. Calling it explicitly is only useful when
+    /// a host wants to claim the perf logger slot before any other component
+    /// (Metro, another SDK) gets a chance to install its own.
+    void install() noexcept;
 
-  /// Swap the sink that receives forwarded callbacks. Pass `nullptr` to detach.
-  /// Thread-safe; uses an atomic shared-pointer swap.
-  void setSink(std::shared_ptr<ISentryTurboModulePerfSink> sink) noexcept;
+    /// Swap the sink that receives forwarded callbacks. Pass `nullptr` to detach.
+    /// Thread-safe; uses an atomic shared-pointer swap.
+    void setSink(std::shared_ptr<ISentryTurboModulePerfSink> sink) noexcept;
 
-  /// Read the currently installed sink, or `nullptr` if none. The returned
-  /// pointer is captured at the moment of call and remains valid for the
-  /// caller's reference count even if a concurrent `setSink` swaps the sink.
-  std::shared_ptr<ISentryTurboModulePerfSink> sink() const noexcept;
+    /// Read the currently installed sink, or `nullptr` if none. The returned
+    /// pointer is captured at the moment of call and remains valid for the
+    /// caller's reference count even if a concurrent `setSink` swaps the sink.
+    std::shared_ptr<ISentryTurboModulePerfSink> sink() const noexcept;
 
-  /// Runtime enable / disable. Defaults to `false`. When `false`, the logger
-  /// fast-paths every callback to a single atomic load — no virtual dispatch,
-  /// no sink lookup. This is the gate the public `enableTurboModuleTracking`
-  /// JS option toggles.
-  void setEnabled(bool enabled) noexcept;
-  bool isEnabled() const noexcept;
+    /// Runtime enable / disable. Defaults to `false`. When `false`, the logger
+    /// fast-paths every callback to a single atomic load — no virtual dispatch,
+    /// no sink lookup. This is the gate the public `enableTurboModuleTracking`
+    /// JS option toggles.
+    void setEnabled(bool enabled) noexcept;
+    bool isEnabled() const noexcept;
 
- private:
-  SentryTurboModulePerfController() noexcept = default;
+private:
+    SentryTurboModulePerfController() noexcept = default;
 
-  std::atomic<bool> installed_{false};
-  std::atomic<bool> enabled_{false};
+    std::atomic<bool> installed_ { false };
+    std::atomic<bool> enabled_ { false };
 
-  // Sink storage. We use a raw mutex + shared_ptr rather than
-  // `std::atomic<std::shared_ptr<...>>` because the latter is C++20 and not
-  // available on the older toolchains some downstream RN setups still use.
-  mutable std::mutex sink_mutex_;
-  std::shared_ptr<ISentryTurboModulePerfSink> sink_;
+    // Sink storage. We use a raw mutex + shared_ptr rather than
+    // `std::atomic<std::shared_ptr<...>>` because the latter is C++20 and not
+    // available on the older toolchains some downstream RN setups still use.
+    mutable std::mutex sink_mutex_;
+    std::shared_ptr<ISentryTurboModulePerfSink> sink_;
 };
 
-}  // namespace sentry::reactnative
+} // namespace sentry::reactnative
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/// One-call installer. Safe to call multiple times.
-///
-/// - On iOS we call this from `RNSentry`'s init path so the logger is in place
-///   before the bridge starts creating modules.
-/// - On Android we call this from `JNI_OnLoad` inside `libsentry-tm-perf-logger.so`,
-///   which is loaded by `RNSentryPackage`'s static initializer.
+/// One-call installer. Safe to call multiple times. The default flow does not
+/// invoke this directly — `Sentry_SetTurboModuleTrackingEnabled(1)` lazily
+/// installs the logger on first enable. Provided for hosts that want to claim
+/// the perf-logger slot eagerly before any other component does.
 void Sentry_InstallTurboModulePerfLogger(void);
 
-/// Runtime flag toggled from JS via `RNSentry.enableTurboModuleTracking`. The
-/// underlying logger is always installed (so we don't miss the early lifecycle
-/// events); this gate just decides whether forwarded callbacks reach the sink.
+/// Runtime flag toggled from JS via `RNSentry.enableTurboModuleTracking`.
+/// On first transition to `enabled = 1` this also installs the underlying
+/// `NativeModulePerfLogger` into React Native; before that point the perf-logger
+/// slot is left untouched so we never evict another component's logger while
+/// tracking is off.
 void Sentry_SetTurboModuleTrackingEnabled(int enabled);
 
 #ifdef __cplusplus
-}  // extern "C"
+} // extern "C"
 #endif

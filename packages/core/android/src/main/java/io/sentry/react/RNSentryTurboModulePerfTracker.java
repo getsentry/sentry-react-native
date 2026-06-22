@@ -1,20 +1,20 @@
 package io.sentry.react;
 
 import android.util.Log;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.TestOnly;
 
 /**
- * Thin Java façade over the native runtime flag installed by
- * {@code libsentry-tm-perf-logger.so}.
+ * Thin Java façade over the native runtime flag installed by {@code libsentry-tm-perf-logger.so}.
  *
  * <p>The native library is only built when the consuming app is using React Native's New
  * Architecture (see {@code CMakeLists.txt} and {@code build.gradle}). On Old Architecture the
- * underlying {@code .so} is not packaged, so the first call to {@link #setEnabled(boolean)} hits
- * an {@link UnsatisfiedLinkError} which we swallow — TurboModule perf tracking is a no-op there.
+ * underlying {@code .so} is not packaged, so the first call to {@link #setEnabled(boolean)} hits an
+ * {@link UnsatisfiedLinkError} which we swallow — TurboModule perf tracking is a no-op there.
  *
- * <p>We deliberately keep the linkage check lazy (try-catch on first invocation) instead of
- * probing at class load time so that the SDK's {@code initNativeSdk} call path stays the single
- * source of truth for whether tracking is on.
+ * <p>We deliberately keep the linkage check lazy (try-catch on first invocation) instead of probing
+ * at class load time so that the SDK's {@code initNativeSdk} call path stays the single source of
+ * truth for whether tracking is on.
  */
 public final class RNSentryTurboModulePerfTracker {
 
@@ -23,9 +23,10 @@ public final class RNSentryTurboModulePerfTracker {
   /**
    * Remembers whether we have already discovered the native symbol to be missing. After the first
    * UnsatisfiedLinkError we stop trying — there is no scenario where the link suddenly succeeds
-   * within the same process lifetime.
+   * within the same process lifetime. Using `AtomicBoolean` instead of `volatile` to satisfy the
+   * project-wide PMD rule (`AvoidUsingVolatile`).
    */
-  private static volatile boolean nativeUnavailable = false;
+  private static final AtomicBoolean nativeUnavailable = new AtomicBoolean(false);
 
   private RNSentryTurboModulePerfTracker() {}
 
@@ -35,13 +36,13 @@ public final class RNSentryTurboModulePerfTracker {
    * {@code true} the callback is forwarded to whichever sink is currently installed in C++.
    */
   public static void setEnabled(boolean enabled) {
-    if (nativeUnavailable) {
+    if (nativeUnavailable.get()) {
       return;
     }
     try {
       nativeSetEnabled(enabled);
     } catch (UnsatisfiedLinkError e) {
-      nativeUnavailable = true;
+      nativeUnavailable.set(true);
       Log.i(
           TAG,
           "TurboModule perf-logger native symbol not found; tracking disabled: " + e.getMessage());
@@ -52,11 +53,11 @@ public final class RNSentryTurboModulePerfTracker {
 
   @TestOnly
   public static boolean isNativeUnavailableForTests() {
-    return nativeUnavailable;
+    return nativeUnavailable.get();
   }
 
   @TestOnly
   public static void resetNativeUnavailableForTests() {
-    nativeUnavailable = false;
+    nativeUnavailable.set(false);
   }
 }

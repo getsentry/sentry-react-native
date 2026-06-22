@@ -28,61 +28,187 @@ namespace {
 /// counters here — the goal is to verify that the controller actually routes
 /// events to the installed sink, not to exhaustively cover every RN callback.
 class RecordingSink : public ISentryTurboModulePerfSink {
- public:
-  std::atomic<int> moduleCreateStartCalls{0};
-  std::atomic<int> syncMethodCallStartCalls{0};
+public:
+    std::atomic<int> moduleCreateStartCalls { 0 };
+    std::atomic<int> syncMethodCallStartCalls { 0 };
 
-  void moduleDataCreateStart(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleDataCreateEnd(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleCreateStart(const char* /*moduleName*/, int32_t /*id*/) override {
-    moduleCreateStartCalls.fetch_add(1, std::memory_order_relaxed);
-  }
-  void moduleCreateCacheHit(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleCreateConstructStart(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleCreateConstructEnd(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleCreateSetUpStart(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleCreateSetUpEnd(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleCreateEnd(const char* /*moduleName*/, int32_t /*id*/) override {}
-  void moduleCreateFail(const char* /*moduleName*/, int32_t /*id*/) override {}
+    void
+    moduleDataCreateStart(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleDataCreateEnd(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleCreateStart(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+        moduleCreateStartCalls.fetch_add(1, std::memory_order_relaxed);
+    }
+    void
+    moduleCreateCacheHit(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleCreateConstructStart(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleCreateConstructEnd(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleCreateSetUpStart(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleCreateSetUpEnd(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleCreateEnd(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    moduleCreateFail(const char * /*moduleName*/, int32_t /*id*/) override
+    {
+    }
 
-  void moduleJSRequireBeginningStart(const char* /*moduleName*/) override {}
-  void moduleJSRequireBeginningCacheHit(const char* /*moduleName*/) override {}
-  void moduleJSRequireBeginningEnd(const char* /*moduleName*/) override {}
-  void moduleJSRequireBeginningFail(const char* /*moduleName*/) override {}
-  void moduleJSRequireEndingStart(const char* /*moduleName*/) override {}
-  void moduleJSRequireEndingEnd(const char* /*moduleName*/) override {}
-  void moduleJSRequireEndingFail(const char* /*moduleName*/) override {}
+    void
+    moduleJSRequireBeginningStart(const char * /*moduleName*/) override
+    {
+    }
+    void
+    moduleJSRequireBeginningCacheHit(const char * /*moduleName*/) override
+    {
+    }
+    void
+    moduleJSRequireBeginningEnd(const char * /*moduleName*/) override
+    {
+    }
+    void
+    moduleJSRequireBeginningFail(const char * /*moduleName*/) override
+    {
+    }
+    void
+    moduleJSRequireEndingStart(const char * /*moduleName*/) override
+    {
+    }
+    void
+    moduleJSRequireEndingEnd(const char * /*moduleName*/) override
+    {
+    }
+    void
+    moduleJSRequireEndingFail(const char * /*moduleName*/) override
+    {
+    }
 
-  void syncMethodCallStart(const char* /*moduleName*/, const char* /*methodName*/) override {
-    syncMethodCallStartCalls.fetch_add(1, std::memory_order_relaxed);
-  }
-  void syncMethodCallArgConversionStart(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void syncMethodCallArgConversionEnd(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void syncMethodCallExecutionStart(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void syncMethodCallExecutionEnd(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void syncMethodCallReturnConversionStart(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void syncMethodCallReturnConversionEnd(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void syncMethodCallEnd(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void syncMethodCallFail(const char* /*moduleName*/, const char* /*methodName*/) override {}
+    void
+    syncMethodCallStart(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+        syncMethodCallStartCalls.fetch_add(1, std::memory_order_relaxed);
+    }
+    void
+    syncMethodCallArgConversionStart(
+        const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    syncMethodCallArgConversionEnd(
+        const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    syncMethodCallExecutionStart(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    syncMethodCallExecutionEnd(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    syncMethodCallReturnConversionStart(
+        const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    syncMethodCallReturnConversionEnd(
+        const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    syncMethodCallEnd(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    syncMethodCallFail(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
 
-  void asyncMethodCallStart(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void asyncMethodCallArgConversionStart(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void asyncMethodCallArgConversionEnd(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void asyncMethodCallDispatch(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void asyncMethodCallEnd(const char* /*moduleName*/, const char* /*methodName*/) override {}
-  void asyncMethodCallFail(const char* /*moduleName*/, const char* /*methodName*/) override {}
+    void
+    asyncMethodCallStart(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    asyncMethodCallArgConversionStart(
+        const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    asyncMethodCallArgConversionEnd(
+        const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    asyncMethodCallDispatch(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    asyncMethodCallEnd(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
+    void
+    asyncMethodCallFail(const char * /*moduleName*/, const char * /*methodName*/) override
+    {
+    }
 
-  void asyncMethodCallBatchPreprocessStart() override {}
-  void asyncMethodCallBatchPreprocessEnd(int /*batchSize*/) override {}
+    void
+    asyncMethodCallBatchPreprocessStart() override
+    {
+    }
+    void
+    asyncMethodCallBatchPreprocessEnd(int /*batchSize*/) override
+    {
+    }
 
-  void asyncMethodCallExecutionStart(const char* /*moduleName*/, const char* /*methodName*/, int32_t /*id*/) override {}
-  void asyncMethodCallExecutionArgConversionStart(const char* /*moduleName*/, const char* /*methodName*/, int32_t /*id*/) override {}
-  void asyncMethodCallExecutionArgConversionEnd(const char* /*moduleName*/, const char* /*methodName*/, int32_t /*id*/) override {}
-  void asyncMethodCallExecutionEnd(const char* /*moduleName*/, const char* /*methodName*/, int32_t /*id*/) override {}
-  void asyncMethodCallExecutionFail(const char* /*moduleName*/, const char* /*methodName*/, int32_t /*id*/) override {}
+    void
+    asyncMethodCallExecutionStart(
+        const char * /*moduleName*/, const char * /*methodName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    asyncMethodCallExecutionArgConversionStart(
+        const char * /*moduleName*/, const char * /*methodName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    asyncMethodCallExecutionArgConversionEnd(
+        const char * /*moduleName*/, const char * /*methodName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    asyncMethodCallExecutionEnd(
+        const char * /*moduleName*/, const char * /*methodName*/, int32_t /*id*/) override
+    {
+    }
+    void
+    asyncMethodCallExecutionFail(
+        const char * /*moduleName*/, const char * /*methodName*/, int32_t /*id*/) override
+    {
+    }
 };
 
-}  // namespace
+} // namespace
 
 @interface RNSentryTurboModulePerfControllerTests : XCTestCase
 @end
@@ -157,6 +283,39 @@ class RecordingSink : public ISentryTurboModulePerfSink {
     XCTAssertTrue(true);
 }
 
+- (void)testSetEnabledFalseDoesNotInstall
+{
+    // The first part of the lazy-install contract: while tracking is off we
+    // never claim the perf-logger slot from React Native. Calling
+    // `setEnabled(false)` from a freshly reset controller must keep the
+    // enabled flag at `false` and must not have any other observable effect.
+    // (Direct introspection of "is the logger currently registered with RN?"
+    // is not exposed by `facebook::react::TurboModulePerfLogger`; we cover
+    // this contractually by verifying the flag and relying on the explicit
+    // install path for the install-side coverage.)
+    SentryTurboModulePerfController::instance().setEnabled(false);
+    XCTAssertFalse(SentryTurboModulePerfController::instance().isEnabled());
+}
+
+- (void)testSetEnabledTrueIsLazyInstallAndSticky
+{
+    // The second part of the lazy-install contract: `setEnabled(true)`
+    // installs the logger and any further toggle keeps it installed (we never
+    // "un-install" by handing RN back its previous logger — the perf-logger
+    // API does not support that, so a one-way ratchet is the only correct
+    // model). What we verify here is that the toggle reaches the controller
+    // safely from both the typed setter and the C entry point, and that the
+    // enabled flag tracks the latest call regardless of install state.
+    SentryTurboModulePerfController::instance().setEnabled(true);
+    XCTAssertTrue(SentryTurboModulePerfController::instance().isEnabled());
+
+    SentryTurboModulePerfController::instance().setEnabled(false);
+    XCTAssertFalse(SentryTurboModulePerfController::instance().isEnabled());
+
+    Sentry_SetTurboModuleTrackingEnabled(1);
+    XCTAssertTrue(SentryTurboModulePerfController::instance().isEnabled());
+}
+
 @end
 
 // NOTE: end-to-end forwarding (RN's `TurboModulePerfLogger::moduleCreateStart`
@@ -165,4 +324,3 @@ class RecordingSink : public ISentryTurboModulePerfSink {
 // that other tests in this bundle may have already touched; verifying it in
 // isolation requires hooks we deliberately did not add to the production
 // surface. The follow-up sink PRs exercise the path via integration tests.
-

@@ -16,10 +16,11 @@ import org.robolectric.RobolectricTestRunner
  * `libsentry-tm-perf-logger.so`, so any call into the native method must throw
  * `UnsatisfiedLinkError`. The tracker is expected to swallow that error and
  * flip an internal latch so subsequent calls short-circuit without retrying.
+ *
+ * Uses Robolectric so the `android.util.Log` call inside the tracker's `catch`
+ * branch resolves to a real implementation instead of the default-not-mocked
+ * stub the bare JUnit4 runner exposes.
  */
-// Robolectric runner so the `android.util.Log` call inside the tracker's
-// `catch` branch resolves to a real implementation instead of the
-// default-not-mocked stub the bare JUnit4 runner exposes.
 @RunWith(RobolectricTestRunner::class)
 class RNSentryTurboModulePerfTrackerTest {
     @Before

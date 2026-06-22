@@ -39,22 +39,31 @@ android {
         namespace = "io.sentry.react"
     }
 
+    // A single `buildFeatures { ... }` block per Android extension scope: the
+    // Gradle DSL replaces (not merges) prior blocks, so splitting `buildConfig`
+    // and `prefab` into two siblings would silently drop the first one. See
+    // https://issuetracker.google.com/issues/247711031 for the corresponding
+    // AGP gotcha.
     def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-    if (agpVersion.tokenize('.')[0].toInteger() >= 8) {
+    def needsBuildConfig = agpVersion.tokenize('.')[0].toInteger() >= 8
+    def needsPrefab = isNewArchitectureEnabled()
+    if (needsBuildConfig || needsPrefab) {
         buildFeatures {
-            buildConfig = true
+            if (needsBuildConfig) {
+                buildConfig = true
+            }
+            if (needsPrefab) {
+                // `libsentry-tm-perf-logger.so` links against React Native's
+                // `reactnative` prefab, which only ships when the New
+                // Architecture is enabled.
+                prefab true
+            }
         }
     }
 
-    // `libsentry-tm-perf-logger.so` installs Sentry's TurboModule perf logger
-    // at JNI load time. It depends on React Native's `reactnative` prefab
-    // (which only ships when the New Architecture is enabled), so we wire
-    // CMake + prefab in only under New Arch. On Old Arch the .so is never
+    // CMake is also gated on New Architecture: on Old Arch the .so is never
     // built and `RNSentryPackage` catches the missing-library error.
     if (isNewArchitectureEnabled()) {
-        buildFeatures {
-            prefab true
-        }
         externalNativeBuild {
             cmake {
                 path "CMakeLists.txt"
