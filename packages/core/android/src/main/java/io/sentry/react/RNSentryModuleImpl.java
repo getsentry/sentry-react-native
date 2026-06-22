@@ -193,15 +193,21 @@ public class RNSentryModuleImpl {
     // Set the React context for the logger so it can forward logs to JS
     rnLogger.setReactContext(this.reactApplicationContext);
 
-    RNSentryStart.startWithOptions(
-        getApplicationContext(),
-        rnOptions,
-        getCurrentActivity(),
-        options -> {
-          // Use our custom logger that forwards to JS
-          options.setLogger(rnLogger);
-        },
-        logger);
+    try {
+      RNSentryStart.startWithOptions(
+          getApplicationContext(),
+          rnOptions,
+          getCurrentActivity(),
+          options -> {
+            // Use our custom logger that forwards to JS
+            options.setLogger(rnLogger);
+          },
+          logger);
+    } catch (Throwable e) { // NOPMD - mirror iOS reject-on-failure behavior
+      logger.log(SentryLevel.ERROR, "Failed to initialize Sentry Android SDK", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+      return;
+    }
 
     // Toggle the TurboModule perf-logger sink based on the JS option. The
     // sink lazy-installs the native `NativeModulePerfLogger` on first enable;
