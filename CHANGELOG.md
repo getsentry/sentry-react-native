@@ -14,6 +14,9 @@
 
 ### Dependencies
 
+- Bump JavaScript SDK from v10.58.0 to v10.59.0 ([#6321](https://github.com/getsentry/sentry-react-native/pull/6321))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10590)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.58.0...10.59.0)
 - Bump Android SDK from v8.44.0 to v8.44.1 ([#6323](https://github.com/getsentry/sentry-react-native/pull/6323))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8441)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.44.0...8.44.1)
