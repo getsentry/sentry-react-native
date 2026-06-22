@@ -23,6 +23,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -192,14 +193,6 @@ public class RNSentryModuleImpl {
     // Set the React context for the logger so it can forward logs to JS
     rnLogger.setReactContext(this.reactApplicationContext);
 
-    // Toggle the TurboModule perf-logger sink based on the JS option. The
-    // logger itself is already installed (see `RNSentryPackage`'s static
-    // initializer + `libsentry-tm-perf-logger.so` JNI hook); this just gates
-    // whether forwarded callbacks reach the Sentry sink. No-op on Old Arch.
-    if (rnOptions.hasKey("enableTurboModuleTracking")) {
-      RNSentryTurboModulePerfTracker.setEnabled(rnOptions.getBoolean("enableTurboModuleTracking"));
-    }
-
     RNSentryStart.startWithOptions(
         getApplicationContext(),
         rnOptions,
@@ -209,6 +202,20 @@ public class RNSentryModuleImpl {
           options.setLogger(rnLogger);
         },
         logger);
+
+    // Toggle the TurboModule perf-logger sink based on the JS option. The
+    // sink lazy-installs the native `NativeModulePerfLogger` on first enable;
+    // we therefore want this to run only after the native SDK has started
+    // successfully — otherwise we'd claim React Native's perf-logger slot
+    // while no Sentry SDK is around to consume the data.
+    //
+    // The explicit `ReadableType.Boolean` check guards against JS passing a
+    // non-boolean (number, string, null) for the option, which would crash
+    // `getBoolean` with `UnexpectedNativeTypeException`.
+    if (rnOptions.hasKey("enableTurboModuleTracking")
+        && rnOptions.getType("enableTurboModuleTracking") == ReadableType.Boolean) {
+      RNSentryTurboModulePerfTracker.setEnabled(rnOptions.getBoolean("enableTurboModuleTracking"));
+    }
 
     promise.resolve(true);
   }

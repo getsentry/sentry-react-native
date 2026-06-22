@@ -158,20 +158,22 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
 {
     NSMutableDictionary *mutableOptions = [self prepareOptions:options];
 
-    // Toggle the TurboModule perf-logger sink based on the JS option. The
-    // logger itself is already installed (see +load); this just decides
-    // whether forwarded callbacks reach the Sentry sink.
-    id enableTurboModuleTracking = [options objectForKey:@"enableTurboModuleTracking"];
-    if ([enableTurboModuleTracking isKindOfClass:[NSNumber class]]) {
-        Sentry_SetTurboModuleTrackingEnabled(
-            [(NSNumber *)enableTurboModuleTracking boolValue] ? 1 : 0);
-    }
-
     NSError *error = nil;
     [RNSentryStart startWithOptions:mutableOptions error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
+    }
+
+    // Toggle the TurboModule perf-logger sink based on the JS option. Only
+    // do this after the native SDK has started successfully — otherwise a
+    // rejected `initNativeSdk` would still leave tracking on (and would
+    // claim the perf-logger slot via lazy install) while no SDK is around to
+    // receive the data.
+    id enableTurboModuleTracking = [options objectForKey:@"enableTurboModuleTracking"];
+    if ([enableTurboModuleTracking isKindOfClass:[NSNumber class]]) {
+        Sentry_SetTurboModuleTrackingEnabled(
+            [(NSNumber *)enableTurboModuleTracking boolValue] ? 1 : 0);
     }
 
     // RNSentryStart.startWithOptions already handles:
