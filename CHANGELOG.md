@@ -12,6 +12,12 @@
 
 - Remove unused `React/RCTTextView.h` import that broke iOS builds on React Native 0.87, where the header was removed as part of the legacy architecture cleanup ([#6322](https://github.com/getsentry/sentry-react-native/pull/6322))
 
+### Dependencies
+
+- Bump Android SDK from v8.44.0 to v8.44.1 ([#6323](https://github.com/getsentry/sentry-react-native/pull/6323))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8441)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.44.0...8.44.1)
+
 ## 8.15.1
 
 ### Fixes
