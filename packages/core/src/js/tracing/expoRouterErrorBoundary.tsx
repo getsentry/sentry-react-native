@@ -68,11 +68,13 @@ export function wrapRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
       if (!error || reportedErrors.has(error)) {
         return;
       }
-      reportedErrors.add(error);
       // Defensive: a failure inside Sentry instrumentation must never prevent
-      // Expo Router's fallback UI from rendering or break the host app.
+      // Expo Router's fallback UI from rendering or break the host app. We
+      // only mark the error as reported on success, so a transient failure
+      // does not permanently suppress the capture for this error instance.
       try {
         reportRouterBoundaryError(error);
+        reportedErrors.add(error);
       } catch (e) {
         logger.error(
           `[wrapRouterErrorBoundary] Failed to report boundary error: ${e instanceof Error ? e.message : String(e)}`,

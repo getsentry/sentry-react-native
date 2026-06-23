@@ -190,6 +190,18 @@ describe('wrapRouterErrorBoundary', () => {
     expect(getByTestId('fallback').props.children).toBe('boom');
   });
 
+  it('retries capture on the next render after a transient reporting failure', () => {
+    mockCaptureException.mockImplementationOnce(() => {
+      throw new Error('sentry boom');
+    });
+    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const err = new Error('boom');
+    const first = render(<Wrapped error={err} retry={jest.fn()} />);
+    first.unmount();
+    render(<Wrapped error={err} retry={jest.fn()} />);
+    expect(mockCaptureException).toHaveBeenCalledTimes(2);
+  });
+
   it('still works when expo-router store is not reachable', () => {
     mockRouteInfoValue = undefined;
     const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
