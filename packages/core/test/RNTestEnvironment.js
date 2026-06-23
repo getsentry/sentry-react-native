@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-const ReactNativeEnv = require('react-native/jest/react-native-env');
+const ReactNativeEnv = require('@react-native/jest-preset/jest/react-native-env');
 
 // Extends the `react-native` preset's test environment but drops the `react-native` export
 // condition. Since v10.58.0 the JS SDK packages expose a `react-native` condition pointing at

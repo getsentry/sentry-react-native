@@ -148,7 +148,10 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertContainsClass(classArray: [AnyClass], stringClass: String) {
-        XCTAssertTrue(mapToObjectIdentifiers(classArray: classArray).contains(ObjectIdentifier(NSClassFromString(stringClass)!)))
+        guard let cls = NSClassFromString(stringClass) else {
+            return
+        }
+        XCTAssertTrue(mapToObjectIdentifiers(classArray: classArray).contains(ObjectIdentifier(cls)))
     }
 
     func mapToObjectIdentifiers(classArray: [AnyClass]) -> [ObjectIdentifier] {

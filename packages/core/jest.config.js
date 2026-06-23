@@ -1,6 +1,6 @@
 module.exports = {
   collectCoverage: true,
-  preset: 'react-native',
+  preset: '@react-native/jest-preset',
   setupFilesAfterEnv: ['jest-extended/all', '<rootDir>/test/mockConsole.ts'],
   globals: {
     __DEV__: true,

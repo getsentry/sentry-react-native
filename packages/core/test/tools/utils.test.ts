@@ -1,6 +1,6 @@
 import type { Module } from 'metro';
 
-import * as countLines from 'metro/private/lib/countLines';
+import countLines from 'metro/private/lib/countLines';
 
 import type { VirtualJSOutput } from '../../src/js/tools/utils';
 

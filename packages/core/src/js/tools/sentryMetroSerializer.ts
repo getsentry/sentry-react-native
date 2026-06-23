@@ -57,7 +57,7 @@ export function unstableBeforeAssetSerializationDebugIdPlugin({
 export const createSentryMetroSerializer = (customSerializer?: MetroSerializer): MetroSerializer => {
   const serializer = customSerializer || createDefaultMetroSerializer();
   return async function (entryPoint, preModules, graph, options) {
-    if (graph.transformOptions.hot) {
+    if ('hot' in graph.transformOptions ? graph.transformOptions.hot : graph.transformOptions.dev) {
       return serializer(entryPoint, preModules, graph, options);
     }
 
