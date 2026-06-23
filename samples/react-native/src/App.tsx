@@ -171,6 +171,13 @@ Sentry.init({
   // Note that options from JS are not passed to the native SDKs when initialized manually
   autoInitializeNativeSdk: shouldUseAutoStart(),
   enableMetrics: true,
+  // Opt in to the experimental TurboModule perf logger so any native crash
+  // happening inside a TurboModule call gets `contexts.turbo_module` and the
+  // `turbo_module.name` / `turbo_module.method` tags attached to the event.
+  // Trigger it by tapping the "Native Crash" button on the Errors tab — the
+  // resulting crash report will be tagged with `RNSentry.nativeCrash`.
+  // No-op on the Old Architecture.
+  enableTurboModuleTracking: true,
 });
 
 function BottomTabsNavigator() {
