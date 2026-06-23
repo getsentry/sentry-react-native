@@ -9,6 +9,7 @@ import {
   getRootSpan,
   logger,
   SPAN_STATUS_ERROR,
+  spanToJSON,
 } from '@sentry/core';
 import * as React from 'react';
 
@@ -143,7 +144,7 @@ function markActiveNavigationSpanErrored(): void {
     return;
   }
   const root = getRootSpan(active);
-  const origin = (root as { attributes?: Record<string, unknown> })?.attributes?.['sentry.origin'];
+  const origin = spanToJSON(root).origin;
   if (typeof origin !== 'string' || !origin.startsWith('auto.navigation.')) {
     return;
   }

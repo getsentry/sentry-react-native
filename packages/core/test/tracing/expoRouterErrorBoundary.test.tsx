@@ -9,7 +9,7 @@ const mockCaptureException = jest.fn();
 const mockAddBreadcrumb = jest.fn();
 const mockAddExceptionMechanism = jest.fn();
 let mockSendDefaultPii = false;
-let mockActiveSpan: { setStatus: jest.Mock; attributes: Record<string, unknown> } | undefined;
+let mockActiveSpan: { setStatus: jest.Mock; __origin?: string } | undefined;
 
 jest.mock('@sentry/core', () => {
   const actual = jest.requireActual('@sentry/core');
@@ -21,6 +21,7 @@ jest.mock('@sentry/core', () => {
     getClient: () => ({ getOptions: () => ({ sendDefaultPii: mockSendDefaultPii }) }),
     getActiveSpan: () => mockActiveSpan,
     getRootSpan: (span: unknown) => span,
+    spanToJSON: (span: { __origin?: string } | undefined) => ({ origin: span?.__origin }),
   };
 });
 
@@ -150,7 +151,7 @@ describe('wrapRouterErrorBoundary', () => {
   it('marks the active navigation span as errored', () => {
     mockActiveSpan = {
       setStatus: jest.fn(),
-      attributes: { 'sentry.origin': 'auto.navigation.expo_router' },
+      __origin: 'auto.navigation.expo_router',
     };
     const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
@@ -164,7 +165,7 @@ describe('wrapRouterErrorBoundary', () => {
   it('does not touch user-owned spans (non-navigation origin)', () => {
     mockActiveSpan = {
       setStatus: jest.fn(),
-      attributes: { 'sentry.origin': 'manual' },
+      __origin: 'manual',
     };
     const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
