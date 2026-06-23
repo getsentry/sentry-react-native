@@ -48,8 +48,16 @@ public final class RNSentryTurboModulePerfTracker {
    * <p>The first invocation lazily loads {@code libsentry-tm-perf-logger.so}; subsequent calls
    * reuse the already-loaded library. A missing {@code .so} (Old Architecture, stripped binary)
    * permanently latches the tracker into a no-op state.
+   *
+   * <p>{@code synchronized} so the {@code !enabled && !libraryLoadAttempted} short-circuit and the
+   * lazy {@code System.loadLibrary} run under the same monitor. Without this, a thread calling
+   * {@code setEnabled(false)} concurrently with another thread already loading the library could
+   * observe {@code libraryLoadAttempted == false}, return early, and leave tracking latched on
+   * after the loader finishes — the opposite of what the caller asked for. The lock is contended
+   * only on the first few calls before the library finishes loading; {@code setEnabled} is invoked
+   * once per {@code initNativeSdk} so the overhead is negligible.
    */
-  public static void setEnabled(boolean enabled) {
+  public static synchronized void setEnabled(boolean enabled) {
     if (nativeUnavailable.get()) {
       return;
     }
