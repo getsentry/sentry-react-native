@@ -7,11 +7,21 @@ import {
   getActiveSpan,
   getClient,
   getRootSpan,
+  logger,
   SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import * as React from 'react';
 
 import { getCurrentExpoRouterRouteInfo } from './expoRouterStore';
+
+/**
+ * Errors we have already reported. Module-scoped (rather than a per-instance
+ * `useRef`) so that an unmount → remount cycle with the same error instance —
+ * which can happen when a parent caches the error or React re-creates the
+ * boundary — does not produce a duplicate event. Using a `WeakSet` lets the
+ * entries be garbage-collected once nothing else references the error.
+ */
+const reportedErrors: WeakSet<object> = new WeakSet();
 
 /**
  * The minimal shape of Expo Router's per-route `ErrorBoundary` props.
@@ -48,15 +58,25 @@ export function wrapRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
   OriginalErrorBoundary: React.ComponentType<P>,
 ): React.ComponentType<P> {
   const Wrapped: React.FC<P> = props => {
-    // Track the last error instance we reported so a re-render with the same
-    // error does not produce a duplicate event. Resets when `retry()` clears
-    // the error and React unmounts the boundary.
-    const reportedErrorRef = React.useRef<unknown>(null);
-
-    if (reportedErrorRef.current !== props.error && props.error) {
-      reportedErrorRef.current = props.error;
-      reportRouterBoundaryError(props.error);
-    }
+    // Reporting is intentionally done in `useEffect` (commit phase) rather than
+    // during render: render must be pure, and in Concurrent Mode an in-progress
+    // render can be discarded — we only want to report errors that React
+    // actually commits to the screen. Dedup is module-scoped so it survives
+    // remounts of the boundary with the same error instance.
+    const { error } = props;
+    React.useEffect(() => {
+      if (!error || reportedErrors.has(error)) {
+        return;
+      }
+      reportedErrors.add(error);
+      // Defensive: a failure inside Sentry instrumentation must never prevent
+      // Expo Router's fallback UI from rendering or break the host app.
+      try {
+        reportRouterBoundaryError(error);
+      } catch (e) {
+        logger.error('[wrapRouterErrorBoundary] Failed to report boundary error', e);
+      }
+    }, [error]);
 
     return <OriginalErrorBoundary {...props} />;
   };

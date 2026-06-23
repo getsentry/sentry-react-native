@@ -172,6 +172,24 @@ describe('wrapRouterErrorBoundary', () => {
     expect(mockActiveSpan.setStatus).not.toHaveBeenCalled();
   });
 
+  it('does not re-report the same error across an unmount/remount cycle', () => {
+    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const err = new Error('boom');
+    const first = render(<Wrapped error={err} retry={jest.fn()} />);
+    first.unmount();
+    render(<Wrapped error={err} retry={jest.fn()} />);
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
+  });
+
+  it('still renders the fallback when Sentry instrumentation throws', () => {
+    mockCaptureException.mockImplementationOnce(() => {
+      throw new Error('sentry boom');
+    });
+    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const { getByTestId } = render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
+    expect(getByTestId('fallback').props.children).toBe('boom');
+  });
+
   it('still works when expo-router store is not reachable', () => {
     mockRouteInfoValue = undefined;
     const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
