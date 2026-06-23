@@ -17,10 +17,20 @@ const loggerErrorSpy = jest.spyOn(logger, 'error');
 const customSerializerMock = jest.fn();
 let mockedPreModules: Module[] = [];
 
+const originalEnv = process.env;
+
 describe('Sentry Options Serializer', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockedPreModules = createMockedPreModules();
+    process.env = { ...originalEnv };
+    delete process.env.SENTRY_ENVIRONMENT;
+    delete process.env.SENTRY_RELEASE;
+    delete process.env.SENTRY_DIST;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   afterAll(() => {
@@ -100,6 +110,61 @@ describe('Sentry Options Serializer', () => {
     );
     expect(mockedPreModules.at(-1).getSource().toString()).toEqual(mockedPreModules.at(-1).output[0].data.code);
     expect(loggerDebugSpy).toHaveBeenCalledWith(expect.stringContaining('options added to the bundle'));
+  });
+
+  test.each([
+    ['SENTRY_ENVIRONMENT', 'environment', 'staging'],
+    ['SENTRY_RELEASE', 'release', 'my-app@1.2.3'],
+    ['SENTRY_DIST', 'dist', '42'],
+  ])('overrides %s from the environment variable into the bundled options', (envKey, optionKey, envValue) => {
+    process.env[envKey] = envValue;
+    (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ environment: 'production', other: 'value' }));
+
+    const emitted = getEmittedOptions();
+
+    expect(emitted[optionKey]).toEqual(envValue);
+    expect(emitted.other).toEqual('value');
+  });
+
+  test('overrides all of environment, release and dist at once', () => {
+    process.env.SENTRY_ENVIRONMENT = 'staging';
+    process.env.SENTRY_RELEASE = 'my-app@1.2.3';
+    process.env.SENTRY_DIST = '42';
+    (fs.readFileSync as jest.Mock).mockReturnValue(
+      JSON.stringify({ environment: 'production', release: 'old', dist: '1' }),
+    );
+
+    expect(getEmittedOptions()).toEqual(
+      expect.objectContaining({ environment: 'staging', release: 'my-app@1.2.3', dist: '42' }),
+    );
+  });
+
+  test('does not override when env variable is an empty string', () => {
+    process.env.SENTRY_ENVIRONMENT = '';
+    (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ environment: 'production' }));
+
+    expect(getEmittedOptions().environment).toEqual('production');
+  });
+
+  test('keeps file value when env variable is not set', () => {
+    (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify({ environment: 'production' }));
+
+    expect(getEmittedOptions().environment).toEqual('production');
+  });
+
+  test('does not throw when file content is valid JSON but not an object and env override is set', () => {
+    process.env.SENTRY_ENVIRONMENT = 'staging';
+    (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify('not-an-object'));
+
+    const config = {
+      projectRoot: '/test',
+      serializer: { customSerializer: customSerializerMock },
+    };
+
+    expect(() =>
+      withSentryOptionsFromFile(config, true).serializer?.customSerializer(null, mockedPreModules, null, null),
+    ).not.toThrow();
+    expect(mockedPreModules.at(-1)?.output[0].data.code).toEqual('var __SENTRY_OPTIONS__="not-an-object";');
   });
 
   test('logs error and does not add module when file does not exist', () => {
@@ -237,6 +302,24 @@ describe('Sentry Options Serializer', () => {
     expect(fs.readFileSync).toHaveBeenCalledWith('/absolute/path.json', expect.anything());
   });
 });
+
+function getEmittedOptions(): Record<string, unknown> {
+  const config = {
+    projectRoot: '/test',
+    serializer: {
+      customSerializer: customSerializerMock,
+    },
+  };
+
+  withSentryOptionsFromFile(config, true).serializer?.customSerializer(null, mockedPreModules, null, null);
+
+  const code = mockedPreModules.at(-1)?.output[0].data.code as string;
+  const match = code.match(/^var __SENTRY_OPTIONS__=(.*);$/);
+  if (!match) {
+    throw new Error(`Unexpected emitted options code: ${code}`);
+  }
+  return JSON.parse(match[1]);
+}
 
 function createMockedPreModules(): Module[] {
   return [createMinimalModule()];
