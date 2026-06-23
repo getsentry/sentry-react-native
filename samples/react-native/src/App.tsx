@@ -175,7 +175,7 @@ Sentry.init({
   // happening inside a TurboModule call gets `contexts.turbo_module` and the
   // `turbo_module.name` / `turbo_module.method` tags attached to the event.
   // Trigger it by tapping the "Native Crash" button on the Errors tab — the
-  // resulting crash report will be tagged with `RNSentry.nativeCrash`.
+  // resulting crash report will be tagged with `RNSentry.crash`.
   // No-op on the Old Architecture.
   enableTurboModuleTracking: true,
 });
