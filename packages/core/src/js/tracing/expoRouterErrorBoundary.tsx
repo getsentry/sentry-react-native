@@ -74,7 +74,9 @@ export function wrapRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
       try {
         reportRouterBoundaryError(error);
       } catch (e) {
-        logger.error('[wrapRouterErrorBoundary] Failed to report boundary error', e);
+        logger.error(
+          `[wrapRouterErrorBoundary] Failed to report boundary error: ${e instanceof Error ? e.message : String(e)}`,
+        );
       }
     }, [error]);
 
