@@ -2,7 +2,6 @@
 #import "RNSentryReplayBreadcrumbConverterHelper.h"
 #import "RNSentryReplayQuality.h"
 #import "RNSentryVersion.h"
-#import "React/RCTTextView.h"
 #import "Replay/RNSentryReplayMask.h"
 #import "Replay/RNSentryReplayUnmask.h"
 #import <Sentry/PrivateSentrySDKOnly.h>

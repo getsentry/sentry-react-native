@@ -12,6 +12,10 @@
   ],
   "exclude": ["node_modules"],
   "compilerOptions": {
+    // @sentry/typescript@10.59.0 switched its base config to `moduleResolution: bundler`,
+    // which honors `react-native`'s exports map and fails to resolve subpaths like
+    // `react-native/types`. Pin classic node resolution to keep these imports working.
+    "moduleResolution": "node",
     "paths": {
       "metro": ["./node_modules/metro/src/index"]
     },

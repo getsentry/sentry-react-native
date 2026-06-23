@@ -927,11 +927,11 @@ describe('Tests Native Wrapper', () => {
           id: '123',
           email: 'test@example.com',
           username: 'testuser',
-          geo: JSON.stringify({
+          geo: {
             city: 'San Francisco',
             country_code: 'US',
             region: 'California',
-          }),
+          },
         },
         {
           customField: 'customValue',
@@ -951,10 +951,10 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: '123',
-          geo: JSON.stringify({
+          geo: {
             city: 'New York',
             country_code: 'US',
-          }),
+          },
         },
         {},
       );
@@ -969,7 +969,7 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setUser).toHaveBeenCalledWith(
         {
           id: '123',
-          geo: '{}',
+          geo: {},
         },
         {},
       );
