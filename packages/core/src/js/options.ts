@@ -297,11 +297,14 @@ export interface BaseReactNativeOptions {
    * Only takes effect on React Native New Architecture. On Old Architecture
    * this option is a no-op.
    *
-   * The native perf logger is always installed at SDK load time so we never
-   * miss the earliest module-create events; this flag only gates whether
-   * forwarded callbacks actually reach the Sentry sink. Off by default
-   * because the higher-level features building on top of this hook ship in
-   * follow-up releases.
+   * The native perf logger is installed lazily on the first opt-in: while
+   * this flag is off (the default), Sentry never claims React Native's
+   * `NativeModulePerfLogger` slot and incurs no native-library mapping
+   * cost. The first `initNativeSdk` call with `enableTurboModuleTracking:
+   * true` loads the native library, installs the logger, and starts
+   * forwarding callbacks to the Sentry sink. Off by default because the
+   * higher-level features building on top of this hook ship in follow-up
+   * releases.
    *
    * @default false
    * @experimental

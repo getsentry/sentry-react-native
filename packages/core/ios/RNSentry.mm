@@ -170,11 +170,16 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     // rejected `initNativeSdk` would still leave tracking on (and would
     // claim the perf-logger slot via lazy install) while no SDK is around to
     // receive the data.
+    //
+    // Always reconcile to a concrete boolean (defaulting to `0`) so a
+    // re-init that omits the key cannot leave a previous opt-in latched on:
+    // the native controller is process-wide and not reset by closeNativeSdk.
+    // `setEnabled(false)` is cheap and never triggers the lazy install, so
+    // the RN perf-logger slot stays untouched while the option is off.
     id enableTurboModuleTracking = [options objectForKey:@"enableTurboModuleTracking"];
-    if ([enableTurboModuleTracking isKindOfClass:[NSNumber class]]) {
-        Sentry_SetTurboModuleTrackingEnabled(
-            [(NSNumber *)enableTurboModuleTracking boolValue] ? 1 : 0);
-    }
+    BOOL turboModuleTrackingEnabled = [enableTurboModuleTracking isKindOfClass:[NSNumber class]] &&
+        [(NSNumber *)enableTurboModuleTracking boolValue];
+    Sentry_SetTurboModuleTrackingEnabled(turboModuleTrackingEnabled ? 1 : 0);
 
     // RNSentryStart.startWithOptions already handles:
     // - Session tracking notification (SentryHybridSdkDidBecomeActive)

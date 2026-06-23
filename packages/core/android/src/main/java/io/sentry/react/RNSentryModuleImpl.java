@@ -215,13 +215,17 @@ public class RNSentryModuleImpl {
     // successfully — otherwise we'd claim React Native's perf-logger slot
     // while no Sentry SDK is around to consume the data.
     //
+    // Always reconcile to a concrete boolean (defaulting to `false`) so a
+    // re-init that omits the key cannot leave a previous opt-in latched on:
+    // the native controller is process-wide and not reset by closeNativeSdk.
     // The explicit `ReadableType.Boolean` check guards against JS passing a
-    // non-boolean (number, string, null) for the option, which would crash
-    // `getBoolean` with `UnexpectedNativeTypeException`.
-    if (rnOptions.hasKey("enableTurboModuleTracking")
-        && rnOptions.getType("enableTurboModuleTracking") == ReadableType.Boolean) {
-      RNSentryTurboModulePerfTracker.setEnabled(rnOptions.getBoolean("enableTurboModuleTracking"));
-    }
+    // non-boolean (number, string, null), which would crash `getBoolean`
+    // with `UnexpectedNativeTypeException`.
+    final boolean enableTurboModuleTracking =
+        rnOptions.hasKey("enableTurboModuleTracking")
+            && rnOptions.getType("enableTurboModuleTracking") == ReadableType.Boolean
+            && rnOptions.getBoolean("enableTurboModuleTracking");
+    RNSentryTurboModulePerfTracker.setEnabled(enableTurboModuleTracking);
 
     promise.resolve(true);
   }
