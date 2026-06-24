@@ -364,9 +364,11 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - name: Override asdf nodejs version (Bitrise)
+      - name: Remove asdf nodejs plugin (Bitrise)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
-        run: echo "ASDF_NODEJS_VERSION=$(node -v | sed 's/^v//')" >> "$GITHUB_ENV"
+        run: |
+          asdf plugin remove nodejs || true
+          corepack enable
 
       - name: Install Ninja
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
