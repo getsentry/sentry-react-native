@@ -340,6 +340,107 @@ describe('NativeLinkedErrors', () => {
     );
   });
 
+  it('adds android nativeStackAndroid from a rejected promise to the event', async () => {
+    const actualEvent = await executeIntegrationFor(
+      {
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Captured exception',
+              stacktrace: {
+                frames: [
+                  {
+                    colno: 17,
+                    filename: 'app:///Pressability.js',
+                    function: '_performTransitionSideEffects',
+                  },
+                ],
+              },
+              mechanism: {
+                type: 'generic',
+                handled: true,
+              },
+            },
+          ],
+        },
+      },
+      {
+        originalException: createNewError({
+          message: 'Java error message.',
+          name: 'java.lang.RuntimeException',
+          stack:
+            'java.lang.RuntimeException: Java error message.\n' +
+            'at onPress (index.bundle:75:33)\n' +
+            'at _performTransitionSideEffects (index.bundle:65919:22)',
+          nativeStackAndroid: [
+            {
+              class: 'mock.native.bundle.id.Crash',
+              file: 'Crash.kt',
+              lineNumber: 10,
+              methodName: 'getDataCrash',
+            },
+            {
+              class: 'com.facebook.jni.NativeRunnable',
+              file: 'NativeRunnable.java',
+              lineNumber: 2,
+              methodName: 'run',
+            },
+          ],
+        }),
+      },
+    );
+
+    expect(actualEvent).toEqual(
+      expect.objectContaining(<Partial<Event>>{
+        exception: {
+          values: [
+            {
+              type: 'Error',
+              value: 'Captured exception',
+              stacktrace: {
+                frames: [
+                  {
+                    colno: 17,
+                    filename: 'app:///Pressability.js',
+                    function: '_performTransitionSideEffects',
+                  },
+                ],
+              },
+              mechanism: {
+                type: 'generic',
+                handled: true,
+              },
+            },
+            {
+              type: 'java.lang.RuntimeException',
+              value: 'Java error message.',
+              stacktrace: {
+                frames: [
+                  expect.objectContaining({
+                    platform: 'java',
+                    module: 'com.facebook.jni.NativeRunnable',
+                    filename: 'NativeRunnable.java',
+                    lineno: 2,
+                    function: 'run',
+                  }),
+                  expect.objectContaining({
+                    platform: 'java',
+                    module: 'mock.native.bundle.id.Crash',
+                    filename: 'Crash.kt',
+                    lineno: 10,
+                    function: 'getDataCrash',
+                    in_app: true,
+                  }),
+                ],
+              },
+            },
+          ],
+        },
+      }),
+    );
+  });
+
   it('handles events with a string cause', async () => {
     const actualEvent = await executeIntegrationFor(
       {
@@ -390,12 +491,21 @@ function executeIntegrationFor(mockedEvent: Event, mockedHint: EventHint): Event
   return mockedEvent;
 }
 
-function createNewError(from: { message: string; name?: string; stack?: string; cause?: unknown }): ExtendedError {
+function createNewError(from: {
+  message: string;
+  name?: string;
+  stack?: string;
+  cause?: unknown;
+  nativeStackAndroid?: unknown;
+}): ExtendedError {
   const error: ExtendedError = new Error(from.message);
   if (from.name) {
     error.name = from.name;
   }
   error.stack = from.stack;
   error.cause = from.cause;
+  if (from.nativeStackAndroid) {
+    error.nativeStackAndroid = from.nativeStackAndroid;
+  }
   return error;
 }

@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 import javax.inject.Inject
 
-val expectedSentryAndroidVersion = "8.43.1"
+val expectedSentryAndroidVersion = "8.44.1"
 
 val sentryVersionCheckWarned = AtomicBoolean(false)
 project.configurations.configureEach {
@@ -253,19 +253,25 @@ fun extractBundleTaskArguments(
     val jsSourceMapsDir = (props["jsSourceMapsDir"] as? org.gradle.api.provider.Provider<*>)?.orNull
     val jsIntermediateSourceMapsDir = (props["jsIntermediateSourceMapsDir"] as? org.gradle.api.provider.Provider<*>)?.orNull
 
+    // React Native's BundleHermesCTask declares `jsIntermediateSourceMapsDir` as a `RegularFileProperty`
+    // (and other versions may do the same for the bundle/sourcemap dirs) even though they hold a
+    // directory path, so accept both `Directory` and `RegularFile` here.
     val bundleDirFile =
         when (jsBundleDir) {
             is org.gradle.api.file.Directory -> jsBundleDir.asFile
+            is org.gradle.api.file.RegularFile -> jsBundleDir.asFile
             else -> return BundleTaskArgs(null, null, null, null)
         }
     val sourcemapsDirFile =
         when (jsSourceMapsDir) {
             is org.gradle.api.file.Directory -> jsSourceMapsDir.asFile
+            is org.gradle.api.file.RegularFile -> jsSourceMapsDir.asFile
             else -> return BundleTaskArgs(null, null, null, null)
         }
     val intermediateSourcemapsDirFile =
         when (jsIntermediateSourceMapsDir) {
             is org.gradle.api.file.Directory -> jsIntermediateSourceMapsDir.asFile
+            is org.gradle.api.file.RegularFile -> jsIntermediateSourceMapsDir.asFile
             else -> return BundleTaskArgs(null, null, null, null)
         }
 

@@ -2,11 +2,13 @@ import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint, Inte
 
 import { debug } from '@sentry/core';
 
+import type { ResolvedNetworkOptions } from './networkUtils';
+
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
 import { NATIVE } from '../wrapper';
-import { enrichXhrBreadcrumbsForMobileReplay } from './xhrUtils';
+import { makeEnrichXhrBreadcrumbsForMobileReplay } from './xhrUtils';
 
 export const MOBILE_REPLAY_INTEGRATION_NAME = 'MobileReplay';
 
@@ -75,7 +77,7 @@ export interface MobileReplayOptions {
    * Enabling this flag will reduce the amount of time it takes to render each frame of the session replay on the main thread, therefore reducing
    * interruptions and visual lag.
    *
-   * - Note: This flag can only be used together with `enableExperimentalViewRenderer` with up to 20% faster render times.
+   * - Note: This flag only has an effect when `enableViewRendererV2` is enabled, with up to 20% faster render times.
    * - Experiment: This is an experimental feature and is therefore disabled by default.
    *
    * @default false
@@ -148,6 +150,66 @@ export interface MobileReplayOptions {
    * @returns `false` to skip capturing a replay for this error, `true` or `undefined` to proceed with sampling
    */
   beforeErrorSampling?: (event: Event, hint: EventHint) => boolean;
+
+  /**
+   * List of URLs (string match or RegExp) for which request and response details
+   * (headers and, when `networkCaptureBodies` is true, bodies) are captured and
+   * surfaced in the Replay network tab.
+   *
+   * String matches use substring matching; RegExp must match via `.test(url)`.
+   * Bodies are only captured for URLs that match `networkDetailAllowUrls` and
+   * do not match `networkDetailDenyUrls`.
+   *
+   * Authorization-like headers (`authorization`, `cookie`, `set-cookie`,
+   * `x-api-key`, `x-auth-token`, `proxy-authorization`) are always stripped.
+   *
+   * Currently only XHR requests are supported (this covers `axios` and similar
+   * libraries). Fetch body capture will be added in a follow-up.
+   *
+   * @default []
+   */
+  networkDetailAllowUrls?: (string | RegExp)[];
+
+  /**
+   * URLs (string match or RegExp) to exclude from network detail capture even
+   * if they match `networkDetailAllowUrls`. Use this to prevent capturing
+   * details for known-sensitive endpoints.
+   *
+   * @default []
+   */
+  networkDetailDenyUrls?: (string | RegExp)[];
+
+  /**
+   * If request and response bodies should be captured for URLs matched by
+   * `networkDetailAllowUrls`. When `false` (the default), only headers are
+   * captured for allow-listed URLs — opt in explicitly to record bodies, since
+   * they can contain sensitive payloads.
+   *
+   * Bodies are truncated at ~150 KB; truncated payloads include a
+   * `MAX_BODY_SIZE_EXCEEDED` warning.
+   *
+   * @default false
+   */
+  networkCaptureBodies?: boolean;
+
+  /**
+   * Additional request headers (case-insensitive names) to capture for matched
+   * URLs in addition to the defaults (`content-type`, `content-length`, `accept`).
+   *
+   * Note: only headers explicitly set on the `XMLHttpRequest` via
+   * `setRequestHeader` are observable; browser-managed headers are not.
+   *
+   * @default []
+   */
+  networkRequestHeaders?: string[];
+
+  /**
+   * Additional response headers (case-insensitive names) to capture for matched
+   * URLs in addition to the defaults (`content-type`, `content-length`, `accept`).
+   *
+   * @default []
+   */
+  networkResponseHeaders?: string[];
 }
 
 const defaultOptions: MobileReplayOptions = {
@@ -158,6 +220,11 @@ const defaultOptions: MobileReplayOptions = {
   enableViewRendererV2: true,
   enableFastViewRendering: false,
   screenshotStrategy: 'pixelCopy',
+  networkDetailAllowUrls: [],
+  networkDetailDenyUrls: [],
+  networkCaptureBodies: false,
+  networkRequestHeaders: [],
+  networkResponseHeaders: [],
 };
 
 function mergeOptions(initOptions: Partial<MobileReplayOptions>): MobileReplayOptions {
@@ -318,7 +385,14 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       }
     });
 
-    client.on('beforeAddBreadcrumb', enrichXhrBreadcrumbsForMobileReplay);
+    const networkOptions: ResolvedNetworkOptions = {
+      allowUrls: options.networkDetailAllowUrls ?? [],
+      denyUrls: options.networkDetailDenyUrls ?? [],
+      captureBodies: options.networkCaptureBodies ?? false,
+      requestHeaders: options.networkRequestHeaders ?? [],
+      responseHeaders: options.networkResponseHeaders ?? [],
+    };
+    client.on('beforeAddBreadcrumb', makeEnrichXhrBreadcrumbsForMobileReplay(networkOptions));
 
     // Wrap beforeSend to run processEvent after user's beforeSend
     const clientOptions = client.getOptions();

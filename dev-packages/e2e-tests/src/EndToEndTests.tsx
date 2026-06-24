@@ -4,7 +4,7 @@ import { Text, View } from 'react-native';
 
 const E2E_TESTS_READY_TEXT = 'E2E Tests Ready';
 
-const EndToEndTestsScreen = (): JSX.Element => {
+const EndToEndTestsScreen = (): React.JSX.Element => {
   const [isReady, setIsReady] = React.useState(false);
   const [eventId, setEventId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');

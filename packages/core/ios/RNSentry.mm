@@ -24,7 +24,6 @@
 #import <Sentry/SentryDebugMeta.h>
 #import <Sentry/SentryEvent.h>
 #import <Sentry/SentryException.h>
-#import <Sentry/SentryGeo.h>
 #import <Sentry/SentryUser.h>
 
 @interface SentryUser ()
@@ -658,32 +657,7 @@ RCT_EXPORT_METHOD(setUser : (NSDictionary *)userKeys otherUserKeys : (NSDictiona
 {
     // we can safely ignore userDataKeys since if original JS user was null userKeys will be null
     if ([userKeys isKindOfClass:NSDictionary.class]) {
-        NSMutableDictionary *filteredKeys = [userKeys mutableCopy];
-        [filteredKeys removeObjectForKey:@"geo"];
-        SentryUser *userInstance = [[SentryUser alloc] initWithDictionary:filteredKeys];
-
-        id geo = [userKeys valueForKey:@"geo"];
-        if ([geo isKindOfClass:NSDictionary.class]) {
-            NSDictionary *geoDict = (NSDictionary *)geo;
-            SentryGeo *sentryGeo = [SentryGeo alloc];
-
-            id city = [geoDict valueForKey:@"city"];
-            if ([city isKindOfClass:NSString.class]) {
-                [sentryGeo setCity:city];
-            }
-
-            id countryCode = [geoDict valueForKey:@"country_code"];
-            if ([countryCode isKindOfClass:NSString.class]) {
-                [sentryGeo setCountryCode:countryCode];
-            }
-
-            id region = [geoDict valueForKey:@"region"];
-            if ([region isKindOfClass:NSString.class]) {
-                [sentryGeo setRegion:region];
-            }
-
-            [userInstance setGeo:sentryGeo];
-        }
+        SentryUser *userInstance = [[SentryUser alloc] initWithDictionary:userKeys];
 
         if ([userDataKeys isKindOfClass:NSDictionary.class]) {
             [userInstance setData:userDataKeys];

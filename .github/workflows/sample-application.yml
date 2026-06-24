@@ -13,15 +13,15 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.6.0'
+  MAESTRO_VERSION: "2.6.1"
   MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000 # Increase timeout from default 30s to 180s for CI stability
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
   REACT_NATIVE_SAMPLE_PATH: samples/react-native
-  IOS_DEVICE: 'iPhone 16'
-  IOS_VERSION: '>=18.0'
-  ANDROID_API_LEVEL: '30'
+  IOS_DEVICE: "iPhone 16"
+  IOS_VERSION: ">=18.0"
+  ANDROID_API_LEVEL: "30"
 
 jobs:
   ready-to-merge-gate:
@@ -54,16 +54,16 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['new']
-        ios-use-frameworks: ['no-frameworks']
-        build-type: ['dev', 'production']
-        runner_provider: ['cirrus', 'bitrise']
+        rn-architecture: ["new"]
+        ios-use-frameworks: ["no-frameworks"]
+        build-type: ["dev", "production"]
+        runner_provider: ["cirrus", "bitrise"]
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Enable Corepack
         run: corepack enable
@@ -72,7 +72,7 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - uses: actions/cache@v4
@@ -91,11 +91,11 @@ jobs:
           rbenv install -s
           bundle install
 
-      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
+      - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-          ruby-version: '3.3.0' # based on what is used in the sample
+          ruby-version: "3.3.0" # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
@@ -164,14 +164,14 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_android == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['new']
-        build-type: ['dev', 'production']
+        rn-architecture: ["new"]
+        build-type: ["dev", "production"]
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Enable Corepack (NPM)
         run: npm i -g corepack
@@ -180,16 +180,16 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+      - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       - name: Gradle cache
-        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
       - name: Install SDK Dependencies
         run: yarn install
@@ -241,14 +241,14 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        build-type: ['dev', 'production']
-        runner_provider: ['cirrus', 'bitrise']
+        build-type: ["dev", "production"]
+        runner_provider: ["cirrus", "bitrise"]
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Enable Corepack
         run: corepack enable
@@ -257,7 +257,7 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - uses: actions/cache@v4
@@ -276,11 +276,11 @@ jobs:
           rbenv install -s
           bundle install
 
-      - uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1
+      - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: samples/react-native-macos
-          ruby-version: '3.3.0' # based on what is used in the sample
+          ruby-version: "3.3.0" # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
@@ -340,9 +340,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner_provider: ['cirrus', 'bitrise']
+        runner_provider: ["cirrus", "bitrise"]
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -366,7 +366,7 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - name: Install JS Dependencies
@@ -422,7 +422,7 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_android == 'true')
       }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install Maestro
         uses: dniHze/maestro-test-action@bda8a93211c86d0a05b7a4597c5ad134566fbde4 # pin@v1.0.0
@@ -448,7 +448,7 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - name: Install JS Dependencies
@@ -474,7 +474,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           disable-spellchecker: true
-          target: 'aosp_atd'
+          target: "aosp_atd"
           channel: canary # Necessary for ATDs
           disk-size: 4096M
           emulator-options: >

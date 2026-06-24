@@ -31,6 +31,7 @@ import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/na
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
 import { getDefaultRelease } from './utils/release';
 import { safeFactory, safeTracesSampler } from './utils/safe';
+import { checkSentryJsSdkVersionMismatch } from './utils/sdkVersionCheck';
 import { RN_GLOBAL_OBJ } from './utils/worldwide';
 import { NATIVE } from './wrapper';
 
@@ -172,6 +173,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
+  if (__DEV__) {
+    checkSentryJsSdkVersionMismatch();
+  }
 
   if (isExpoGo()) {
     debug.log('Offline caching, native errors features are not available in Expo Go.');

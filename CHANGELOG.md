@@ -6,6 +6,56 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Apply `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE` and `SENTRY_DIST` build-time overrides to the JS bundled options to match the native SDKs ([#6330](https://github.com/getsentry/sentry-react-native/pull/6330))
+- Fix user `geo` being dropped from the native scope by forwarding it as a structured object instead of a JSON string ([#6309](https://github.com/getsentry/sentry-react-native/pull/6309))
+- Remove unused `React/RCTTextView.h` import that broke iOS builds on React Native 0.87, where the header was removed as part of the legacy architecture cleanup ([#6322](https://github.com/getsentry/sentry-react-native/pull/6322))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.58.0 to v10.60.0 ([#6321](https://github.com/getsentry/sentry-react-native/pull/6321), [#6332](https://github.com/getsentry/sentry-react-native/pull/6332))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10600)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.58.0...10.60.0)
+- Bump Android SDK from v8.44.0 to v8.44.1 ([#6323](https://github.com/getsentry/sentry-react-native/pull/6323))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8441)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.44.0...8.44.1)
+
+## 8.15.1
+
+### Fixes
+
+- Fix Android Gradle source map upload being silently skipped on some occasions ([#6320](https://github.com/getsentry/sentry-react-native/pull/6320))
+
+## 8.15.0
+
+### Features
+
+- Add `nativeStackAndroid` support to `NativeLinkedErrors`, capturing the JVM stack trace of rejected native module promises as a linked exception ([#6278](https://github.com/getsentry/sentry-react-native/pull/6278))
+- Record XHR request/response headers and (optionally) bodies in Mobile Session Replay. Opt in via `mobileReplayIntegration` with `networkDetailAllowUrls` to capture headers; set `networkCaptureBodies: true` to also capture bodies. Other options: `networkDetailDenyUrls`, `networkRequestHeaders`, `networkResponseHeaders`. Authorization-like headers are always stripped, bodies are capped at ~150 KB. Covers XHR-based clients like `axios`; fetch will follow. See [Network Details](https://docs.sentry.io/platforms/react-native/session-replay/#network-details) for details. ([#6288](https://github.com/getsentry/sentry-react-native/pull/6288))
+- Warn during dev builds when multiple versions of Sentry JS SDK are detected ([#6269](https://github.com/getsentry/sentry-react-native/pull/6269))
+
+### Fixes
+
+- Fix Android `ClassCastException` when syncing breadcrumbs with a numeric timestamp to the native scope ([#6308](https://github.com/getsentry/sentry-react-native/pull/6308))
+
+### Dependencies
+
+- Bump Android SDK from v8.43.1 to v8.44.0 ([#6273](https://github.com/getsentry/sentry-react-native/pull/6273), [#6310](https://github.com/getsentry/sentry-react-native/pull/6310))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8440)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.1...8.44.0)
+- Bump Cocoa SDK from v9.16.1 to v9.18.0 ([#6272](https://github.com/getsentry/sentry-react-native/pull/6272), [#6311](https://github.com/getsentry/sentry-react-native/pull/6311))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9180)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.16.1...9.18.0)
+- Bump JavaScript SDK from v10.57.0 to v10.58.0 ([#6296](https://github.com/getsentry/sentry-react-native/pull/6296))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10580)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.57.0...10.58.0)
+- Bump CLI from v3.5.0 to v3.5.1 ([#6305](https://github.com/getsentry/sentry-react-native/pull/6305))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#351)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.0...3.5.1)
+
 ## 8.14.0
 
 ### Features

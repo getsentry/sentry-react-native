@@ -4,8 +4,11 @@ import io.sentry.Breadcrumb
 import io.sentry.SentryLevel
 import io.sentry.react.RNSentryReplayBreadcrumbConverter
 import io.sentry.rrweb.RRWebBreadcrumbEvent
+import io.sentry.rrweb.RRWebSpanEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -245,6 +248,93 @@ class RNSentryReplayBreadcrumbConverterTest {
                 ),
             )
         assertEquals("label5(element5, file5) > label4(file4) > label3(element3) > label2", actual)
+    }
+
+    @Test
+    fun convertNetworkBreadcrumbForwardsBodyAndHeadersAndStripsMeta() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.category = "xhr"
+        testBreadcrumb.setData("url", "https://api.example.com/users")
+        testBreadcrumb.setData("method", "POST")
+        testBreadcrumb.setData("start_timestamp", 1_000.0)
+        testBreadcrumb.setData("end_timestamp", 2_000.0)
+        testBreadcrumb.setData(
+            "request",
+            mapOf(
+                "body" to "{\"hello\":\"world\"}",
+                "headers" to mapOf("content-type" to "application/json"),
+                "_meta" to mapOf("warnings" to listOf("MAX_BODY_SIZE_EXCEEDED")),
+            ),
+        )
+        testBreadcrumb.setData(
+            "response",
+            mapOf(
+                "body" to "[UNPARSEABLE_BODY_TYPE]",
+                "_meta" to mapOf("warnings" to listOf("UNPARSEABLE_BODY_TYPE")),
+            ),
+        )
+
+        val actual = converter.convertNetworkBreadcrumb(testBreadcrumb) as RRWebSpanEvent
+        val data = actual.data!!
+
+        @Suppress("UNCHECKED_CAST")
+        val request = data["request"] as Map<Any, Any>
+        assertEquals("{\"hello\":\"world\"}", request["body"])
+        assertEquals(mapOf("content-type" to "application/json"), request["headers"])
+        assertNull("_meta must be stripped before forwarding to native rrweb", request["_meta"])
+
+        @Suppress("UNCHECKED_CAST")
+        val response = data["response"] as Map<Any, Any>
+        assertEquals("[UNPARSEABLE_BODY_TYPE]", response["body"])
+        assertNull(response["_meta"])
+    }
+
+    @Test
+    fun convertNetworkBreadcrumbAcceptsNonDoubleNumberFields() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.category = "xhr"
+        testBreadcrumb.setData("url", "https://api.example.com/users")
+        // RN bridge may surface numeric breadcrumb data as Long/Integer rather than
+        // Double; the converter must accept all Number subtypes without crashing or
+        // silently dropping the field.
+        testBreadcrumb.setData("start_timestamp", 1_000L)
+        testBreadcrumb.setData("end_timestamp", 2_000)
+        testBreadcrumb.setData("status_code", 201L)
+        testBreadcrumb.setData("request_body_size", 42)
+        testBreadcrumb.setData("response_body_size", 100L)
+
+        val actual = converter.convertNetworkBreadcrumb(testBreadcrumb) as RRWebSpanEvent
+        assertEquals(1.0, actual.startTimestamp, 0.001)
+        assertEquals(2.0, actual.endTimestamp, 0.001)
+        val data = actual.data!!
+        assertEquals(201, data["statusCode"])
+        assertEquals(42.0, data["requestBodySize"])
+        assertEquals(100.0, data["responseBodySize"])
+    }
+
+    @Test
+    fun convertNetworkBreadcrumbDropsSideThatIsEmptyAfterMetaStrip() {
+        val converter = RNSentryReplayBreadcrumbConverter()
+        val testBreadcrumb = Breadcrumb()
+        testBreadcrumb.category = "xhr"
+        testBreadcrumb.setData("url", "https://api.example.com/users")
+        testBreadcrumb.setData("start_timestamp", 1_000.0)
+        testBreadcrumb.setData("end_timestamp", 2_000.0)
+        // Request side contains only `_meta` — once stripped, nothing remains.
+        testBreadcrumb.setData(
+            "request",
+            mapOf("_meta" to mapOf("warnings" to listOf("UNPARSEABLE_BODY_TYPE"))),
+        )
+        // Response side is not a map (or missing) — should also be dropped.
+        testBreadcrumb.setData("response", "not-a-map")
+
+        val actual = converter.convertNetworkBreadcrumb(testBreadcrumb) as RRWebSpanEvent
+        val data = actual.data!!
+
+        assertTrue("empty-after-strip request side must be omitted", !data.containsKey("request"))
+        assertTrue("non-map response side must be omitted", !data.containsKey("response"))
     }
 
     private fun assertRRWebBreadcrumbDefaults(actual: RRWebBreadcrumbEvent) {

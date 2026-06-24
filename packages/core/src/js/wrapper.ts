@@ -449,8 +449,8 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     // separate and serialize all non-default user keys.
-    let userKeys = null;
-    let userDataKeys = null;
+    let userKeys: { [key: string]: unknown } | null = null;
+    let userDataKeys: { [key: string]: string } | null = null;
     if (user) {
       const { id, ip_address, email, username, geo, ...otherKeys } = user;
       const requiredUser: RequiredKeysUser = {
@@ -461,6 +461,14 @@ export const NATIVE: SentryNativeWrapper = {
         geo,
       };
       userKeys = this._serializeObject(requiredUser);
+      // `geo` is a structured object that the native SDKs deserialize from a
+      // nested map. `_serializeObject` JSON-stringifies it like the scalar keys,
+      // which breaks native deserialization and drops the entire user, so
+      // overwrite it with the object. See
+      // https://github.com/getsentry/sentry-react-native/issues/6306
+      if (geo !== undefined) {
+        userKeys.geo = geo;
+      }
       userDataKeys = this._serializeObject(otherKeys);
     }
 

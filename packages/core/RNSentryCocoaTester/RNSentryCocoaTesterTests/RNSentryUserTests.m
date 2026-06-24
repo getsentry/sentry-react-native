@@ -172,13 +172,11 @@
 
 - (void)testUserWithInvalidGeo
 {
-    SentryUser *expected = [[SentryUser alloc] init];
-    [expected setUserId:@"123"];
-
     SentryUser *actual = [RNSentry userFrom:@{ @"id" : @"123", @"geo" : @"invalid_geo_data" }
                               otherUserKeys:nil];
 
-    XCTAssertTrue([actual isEqualToUser:expected]);
+    XCTAssertEqualObjects(actual.userId, @"123");
+    XCTAssertNil(actual.geo);
 }
 
 @end

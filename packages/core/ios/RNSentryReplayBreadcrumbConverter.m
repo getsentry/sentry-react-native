@@ -179,6 +179,14 @@
     if ([breadcrumb.data[@"response_body_size"] isKindOfClass:[NSNumber class]]) {
         data[@"responseBodySize"] = breadcrumb.data[@"response_body_size"];
     }
+    NSDictionary *requestSide = [self sanitizeNetworkSide:breadcrumb.data[@"request"]];
+    if (requestSide != nil) {
+        data[@"request"] = requestSide;
+    }
+    NSDictionary *responseSide = [self sanitizeNetworkSide:breadcrumb.data[@"response"]];
+    if (responseSide != nil) {
+        data[@"response"] = responseSide;
+    }
 
     return [SentrySessionReplayHybridSDK
         createNetworkBreadcrumbWithTimestamp:[NSDate
@@ -192,6 +200,18 @@
                                    operation:@"resource.http"
                                  description:url
                                         data:data];
+}
+
+// Copy a JS-emitted request/response side dict, dropping the JS-internal `_meta`
+// warnings field so it does not leak into the native rrweb span event.
+- (NSDictionary *_Nullable)sanitizeNetworkSide:(id _Nullable)raw
+{
+    if (![raw isKindOfClass:[NSDictionary class]]) {
+        return nil;
+    }
+    NSMutableDictionary *out = [(NSDictionary *)raw mutableCopy];
+    [out removeObjectForKey:@"_meta"];
+    return out.count > 0 ? [out copy] : nil;
 }
 
 @end

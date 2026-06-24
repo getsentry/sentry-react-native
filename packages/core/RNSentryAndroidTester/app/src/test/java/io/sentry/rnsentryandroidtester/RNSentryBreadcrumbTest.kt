@@ -69,6 +69,21 @@ class RNSentryBreadcrumbTest {
     }
 
     @Test
+    fun parsesNumericTimestampWithoutDiscardingBreadcrumb() {
+        // The JS SDK stamps `timestamp` as a number (epoch seconds), which arrives over the bridge
+        // as a Double. The native deserializer expects an ISO-8601 string, so without normalization
+        // this throws a ClassCastException and the whole breadcrumb is discarded (see #6306).
+        val map = JavaOnlyMap()
+        map.putString("message", "testMessage")
+        map.putDouble("timestamp", 1_700_000_000.5)
+        val actual = RNSentryBreadcrumb.fromMap(map, logger)
+        assertEquals("testMessage", actual.message)
+        assertEquals("react-native", actual.origin)
+        assertNotNull(actual.timestamp)
+        assertEquals(1_700_000_000_500L, actual.timestamp.time)
+    }
+
+    @Test
     fun reactNativeForMissingOrigin() {
         val map =
             JavaOnlyMap.of(

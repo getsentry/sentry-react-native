@@ -1,5 +1,7 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 
+ENV['RCT_USE_PREBUILT_RNCORE'] = '0'
+
 platform :ios, '15.1'
 
 target 'RNSentryCocoaTesterTests' do
@@ -10,27 +12,24 @@ target 'RNSentryCocoaTesterTests' do
   pod 'OCMock', '3.9.1'
 
   post_install do |installer|
-    set_react_native_path(installer)
-  end
-end
+    react_native_post_install(installer)
 
-def extract_projects(installer)
-  return installer.aggregate_targets
-      .map{ |t| t.user_project }
-      .uniq{ |p| p.path }
-      .push(installer.pods_project)
-end
-
-def set_react_native_path(installer)
-  # https://github.com/facebook/react-native/blob/9cc6f007ba1cf112466ccf685c0ef918bba69dd7/packages/react-native/scripts/react_native_pods.rb#L378
-  Pod::UI.puts("Setting REACT_NATIVE_PATH build settings")
-
-  projects = extract_projects(installer)
-
-  projects.each do |project|
-    project.build_configurations.each do |config|
-      config.build_settings["REACT_NATIVE_PATH"] = '${PODS_ROOT}/../../node_modules/react-native'
+    # React-timing pod in RN 0.86 is missing PrivacyInfo.xcprivacy
+    timing_privacy = File.join(__dir__, '..', 'node_modules', 'react-native', 'ReactCommon', 'react', 'timing', 'PrivacyInfo.xcprivacy')
+    unless File.exist?(timing_privacy)
+      File.write(timing_privacy, <<~PLIST)
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>NSPrivacyCollectedDataTypes</key>
+          <array/>
+          <key>NSPrivacyTracking</key>
+          <false/>
+        </dict>
+        </plist>
+      PLIST
     end
-    project.save()
   end
 end
+

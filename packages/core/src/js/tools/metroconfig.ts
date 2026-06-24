@@ -437,7 +437,7 @@ export function withSentryFramesCollapsed(config: MetroConfig): MetroConfig {
 
   const customizeFrame = (frame: MetroFrame): MetroCustomizeFrameReturnValue => {
     const originalOrSentryCustomizeFrame = (
-      originalCustomization: MetroCustomizeFrame | undefined,
+      originalCustomization: MetroCustomizeFrame | null | undefined,
     ): MetroCustomizeFrame => ({
       ...originalCustomization,
       collapse: originalCustomization?.collapse || collapseSentryInternalFrames(frame),
