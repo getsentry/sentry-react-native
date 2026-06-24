@@ -44,7 +44,8 @@ jobs:
         if: matrix.runner_provider == 'bitrise'
         working-directory: samples/react-native
         run: |
-          asdf install ruby
+          asdf install ruby 3.3.0
+          asdf global ruby 3.3.0
           bundle install
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
