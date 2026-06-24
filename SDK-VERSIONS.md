@@ -12,6 +12,7 @@ To manually update the table with the current version, run `./scripts/update-sdk
 
 | React Native SDK | Android SDK | Cocoa SDK | JavaScript SDK |
 | ---------------- | ----------- | --------- | -------------- |
+| [8.14.1](https://github.com/getsentry/sentry-react-native/releases/tag/8.14.1) | [8.43.3](https://github.com/getsentry/sentry-java/releases/tag/8.43.3) | [9.16.1](https://github.com/getsentry/sentry-cocoa/releases/tag/9.16.1) | [10.57.0](https://github.com/getsentry/sentry-javascript/releases/tag/10.57.0) |
 | [8.14.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.14.0) | [8.43.1](https://github.com/getsentry/sentry-java/releases/tag/8.43.1) | [9.16.1](https://github.com/getsentry/sentry-cocoa/releases/tag/9.16.1) | [10.57.0](https://github.com/getsentry/sentry-javascript/releases/tag/10.57.0) |
 | [8.13.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.13.0) | [8.43.0](https://github.com/getsentry/sentry-java/releases/tag/8.43.0) | [9.15.0](https://github.com/getsentry/sentry-cocoa/releases/tag/9.15.0) | [10.53.1](https://github.com/getsentry/sentry-javascript/releases/tag/10.53.1) |
 | [8.12.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.12.0) | [8.42.0](https://github.com/getsentry/sentry-java/releases/tag/8.42.0) | [9.13.0](https://github.com/getsentry/sentry-cocoa/releases/tag/9.13.0) | [10.53.1](https://github.com/getsentry/sentry-javascript/releases/tag/10.53.1) |
