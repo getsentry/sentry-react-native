@@ -83,7 +83,18 @@ public:
 private:
     SentryTurboModulePerfController() noexcept = default;
 
+    // `installAttempted_` is sticky-true after the first `install()` call,
+    // regardless of outcome — we never retry the install (see the comment
+    // in `install()` for the race rationale). `installed_` is only set to
+    // `true` if `enableLogging` succeeded, so callers can tell whether the
+    // perf logger actually made it into RN.
+    std::atomic<bool> installAttempted_ { false };
     std::atomic<bool> installed_ { false };
+
+    // `enabled_` carries the user's most recent intent. `isEnabled()` ANDs
+    // it with `installed_` so a JS opt-in that lost a race against a failed
+    // install does not appear active when the sink will never receive
+    // anything.
     std::atomic<bool> enabled_ { false };
 
     // Sink storage. The owning `shared_ptr` is mutated by `setSink` and read

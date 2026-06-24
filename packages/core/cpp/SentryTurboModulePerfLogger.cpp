@@ -182,34 +182,35 @@ void
 SentryTurboModulePerfController::install() noexcept
 {
 #if SENTRY_TM_PERF_LOGGER_AVAILABLE
-    // `compare_exchange_strong` makes the install idempotent across competing
-    // threads: only the first caller transitions `installed_` from `false` to
-    // `true`, and only that caller hands the logger off to React Native.
+    // `compare_exchange_strong` on `installAttempted_` makes the install
+    // idempotent across competing threads and ensures sticky "tried once,
+    // never again" semantics. We split that flag from the actual
+    // `installed_` success bit so callers can tell the difference between
+    // "install ran and succeeded" and "install ran and failed".
     //
-    // We deliberately do NOT roll back `installed_` if `enableLogging`
-    // throws. An earlier revision did, with the intent of letting a later
-    // caller retry under memory pressure. That introduced a race: a
-    // concurrent thread observing `installed_ == true` would skip its own
-    // install attempt, then the originating thread would roll the flag
-    // back to `false`, ending up in a state where every caller thinks
-    // someone else handled the install but nobody actually did. Sticky
-    // "install attempted" semantics close the race and are an acceptable
-    // trade-off: a failed install during the user opt-in path leaves
-    // tracking off for the rest of the process lifetime, which is strictly
-    // better than a silent half-installed state.
+    // Sticky "attempted" semantics close a race that an earlier revision
+    // had with a roll-back-on-failure pattern: a concurrent thread that
+    // observed the brief "true" window would skip its own install attempt,
+    // then the originating thread would roll the flag back, ending up in a
+    // state where every caller thought someone else handled the install
+    // but nobody actually did. A failed install during the user opt-in
+    // path therefore leaves tracking off for the rest of the process
+    // lifetime; the JS-side `isEnabled()` reflects that accurately.
     bool expected = false;
-    if (!installed_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
+    if (!installAttempted_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
         return;
     }
     // `std::make_unique` can throw `std::bad_alloc` and the third-party
     // `enableLogging` makes no exception guarantees. We are declared
     // `noexcept`, so any escape here would call `std::terminate` and bring
-    // down the host app. Swallow instead and leave the controller in the
-    // "install attempted" state per the comment above.
+    // down the host app. Catch and leave `installed_` false so subsequent
+    // `setEnabled(true)` calls observe the failure and do not report
+    // `isEnabled() == true` while no perf logger is actually wired up.
     try {
         facebook::react::TurboModulePerfLogger::enableLogging(std::make_unique<ForwardingLogger>());
+        installed_.store(true, std::memory_order_release);
     } catch (...) {
-        // intentionally empty — see rationale above
+        // intentionally empty — `installed_` stays `false`
     }
 #endif
 }
@@ -217,9 +218,9 @@ SentryTurboModulePerfController::install() noexcept
 void
 SentryTurboModulePerfController::setEnabled(bool enabled) noexcept
 {
-    // Publish the new flag *before* installing the logger so any callback RN
-    // fires synchronously from inside `enableLogging()` already sees
-    // `isEnabled() == true` and reaches the sink instead of being dropped by
+    // Publish the user's intent before installing so any callback RN fires
+    // synchronously from inside `enableLogging()` already sees
+    // `enabled_ == true` and reaches the sink instead of being dropped by
     // the fast-path. On disable, order does not matter — we never uninstall.
     enabled_.store(enabled, std::memory_order_release);
 
@@ -230,6 +231,18 @@ SentryTurboModulePerfController::setEnabled(bool enabled) noexcept
     if (enabled) {
         install();
     }
+}
+
+bool
+SentryTurboModulePerfController::isEnabled() const noexcept
+{
+    // Tracking is operational only when the user has opted in AND the
+    // underlying perf logger is actually registered with React Native. If
+    // an install attempt failed (e.g. `std::bad_alloc`), `installed_`
+    // stays `false` and we honestly report `isEnabled() == false` even
+    // when the user requested tracking on. That keeps tests and downstream
+    // consumers from believing data is flowing when no logger is wired up.
+    return enabled_.load(std::memory_order_acquire) && installed_.load(std::memory_order_acquire);
 }
 
 void
@@ -244,12 +257,6 @@ SentryTurboModulePerfController::sink() const noexcept
 {
     std::lock_guard<std::mutex> lock(sink_mutex_);
     return sink_;
-}
-
-bool
-SentryTurboModulePerfController::isEnabled() const noexcept
-{
-    return enabled_.load(std::memory_order_acquire);
 }
 
 } // namespace sentry::reactnative
