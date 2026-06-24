@@ -78,9 +78,7 @@ jobs:
       - name: Setup asdf Node.js (Bitrise)
         if: matrix.runner_provider == 'bitrise'
         run: |
-          NODE_VERSION=$(node -v | sed 's/^v//')
-          asdf install nodejs "$NODE_VERSION" || true
-          asdf global nodejs "$NODE_VERSION"
+          asdf global nodejs system
           corepack enable
 
       - uses: actions/cache@v4
@@ -278,9 +276,7 @@ jobs:
       - name: Setup asdf Node.js (Bitrise)
         if: matrix.runner_provider == 'bitrise'
         run: |
-          NODE_VERSION=$(node -v | sed 's/^v//')
-          asdf install nodejs "$NODE_VERSION" || true
-          asdf global nodejs "$NODE_VERSION"
+          asdf global nodejs system
           corepack enable
 
       - uses: actions/cache@v4
@@ -403,9 +399,7 @@ jobs:
       - name: Setup asdf Node.js (Bitrise)
         if: matrix.runner_provider == 'bitrise'
         run: |
-          NODE_VERSION=$(node -v | sed 's/^v//')
-          asdf install nodejs "$NODE_VERSION" || true
-          asdf global nodejs "$NODE_VERSION"
+          asdf global nodejs system
           corepack enable
 
       - name: Install JS Dependencies
