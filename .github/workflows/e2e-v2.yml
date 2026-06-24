@@ -126,21 +126,34 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
+      - name: Setup asdf Node.js (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
+        run: |
+          NODE_VERSION=$(node -v | sed 's/^v//')
+          asdf install nodejs "$NODE_VERSION" || true
+          asdf set --home nodejs "$NODE_VERSION"
+          corepack enable
+
       - uses: actions/cache@v4
         name: Cache Ruby
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
         with:
           path: |
             ~/.rbenv/versions
             ~/.rbenv/cache
           key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
 
+      - uses: actions/cache@v4
+        name: Cache Ruby (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
+        with:
+          path: ~/.asdf/installs/ruby
+          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
       - name: Install Ruby (Bitrise)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
         run: |
-          brew upgrade ruby-build
-          rbenv install -s
-          echo "$(rbenv root)/shims" >> "$GITHUB_PATH"
+          asdf install ruby
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
@@ -365,10 +378,12 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - name: Remove asdf nodejs plugin (Bitrise)
+      - name: Setup asdf Node.js (Bitrise)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
         run: |
-          asdf plugin remove nodejs || true
+          NODE_VERSION=$(node -v | sed 's/^v//')
+          asdf install nodejs "$NODE_VERSION" || true
+          asdf set --home nodejs "$NODE_VERSION"
           corepack enable
 
       - name: Install Ninja
@@ -400,19 +415,24 @@ jobs:
 
       - uses: actions/cache@v4
         name: Cache Ruby
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
         with:
           path: |
             ~/.rbenv/versions
             ~/.rbenv/cache
           key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
 
+      - uses: actions/cache@v4
+        name: Cache Ruby (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
+        with:
+          path: ~/.asdf/installs/ruby
+          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
       - name: Install Ruby (Bitrise)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
         run: |
-          brew upgrade ruby-build
-          rbenv install -s
-          echo "$(rbenv root)/shims" >> "$GITHUB_PATH"
+          asdf install ruby
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
@@ -531,6 +551,14 @@ jobs:
           node-version: 20
           cache: "yarn"
           cache-dependency-path: yarn.lock
+
+      - name: Setup asdf Node.js (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
+        run: |
+          NODE_VERSION=$(node -v | sed 's/^v//')
+          asdf install nodejs "$NODE_VERSION" || true
+          asdf set --home nodejs "$NODE_VERSION"
+          corepack enable
 
       - name: Install Ninja
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
