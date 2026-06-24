@@ -189,7 +189,18 @@ SentryTurboModulePerfController::install() noexcept
     if (!installed_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
         return;
     }
-    facebook::react::TurboModulePerfLogger::enableLogging(std::make_unique<ForwardingLogger>());
+    // `std::make_unique` can throw `std::bad_alloc` and the third-party
+    // `enableLogging` makes no exception guarantees. We are declared
+    // `noexcept`, so any escape here would call `std::terminate` and bring
+    // down the host app. Swallow instead: roll back the `installed_` latch
+    // so a future caller can retry once memory pressure (or whatever caused
+    // the failure) clears, and leave the SDK running with tracking off.
+    try {
+        facebook::react::TurboModulePerfLogger::enableLogging(
+            std::make_unique<ForwardingLogger>());
+    } catch (...) {
+        installed_.store(false, std::memory_order_release);
+    }
 #endif
 }
 
