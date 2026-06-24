@@ -84,6 +84,32 @@ static bool hasFetchedAppStart;
     return NO;
 }
 
+// Strict type match for the JS `enableTurboModuleTracking` option — we only
+// honour a real boolean. Android requires `ReadableType.Boolean`, and this
+// helper enforces the same cross-platform contract: a JS numeric `1` must
+// NOT enable tracking.
+//
+// `CFBooleanGetTypeID` is the canonical, toll-free-bridged way to
+// distinguish `@YES` from `@1`. Comparing `[num objCType]` against
+// `@encode(BOOL)` does NOT work on 64-bit iOS: `BOOL` is `typedef bool`
+// there, so `@encode(BOOL)` is `"B"`, but every `NSNumber` created from a
+// boolean (including everything crossing the RN bridge) always reports
+// `objCType == "c"` for historical compatibility. An earlier revision had
+// that bug — the `strcmp` check never matched and tracking was a no-op on
+// every modern iOS device. Centralising the check behind one method keeps
+// the trap from coming back.
++ (BOOL)turboModuleTrackingEnabledFromOptions:(NSDictionary *)options
+{
+    id value = [options objectForKey:@"enableTurboModuleTracking"];
+    if (![value isKindOfClass:[NSNumber class]]) {
+        return NO;
+    }
+    if (CFGetTypeID((__bridge CFTypeRef)value) != CFBooleanGetTypeID()) {
+        return NO;
+    }
+    return [(NSNumber *)value boolValue];
+}
+
 - (instancetype)init
 {
     if (self = [super init]) {
@@ -176,18 +202,8 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     // the native controller is process-wide and not reset by closeNativeSdk.
     // `setEnabled(false)` is cheap and never triggers the lazy install, so
     // the RN perf-logger slot stays untouched while the option is off.
-    // Strict type match — we only honour a real BOOL here. Android requires
-    // `ReadableType.Boolean` and we want the same cross-platform contract:
-    // a JS numeric `1` should NOT enable tracking. JS booleans cross the RN
-    // bridge as `NSNumber` with `objCType == "c"` (signed char, the BOOL
-    // encoding); JS numbers come through as `NSNumber` with `"i"` / `"d"`
-    // and would slip past a plain `isKindOfClass:[NSNumber class]` check.
-    id enableTurboModuleTracking = [options objectForKey:@"enableTurboModuleTracking"];
-    BOOL turboModuleTrackingIsBool = [enableTurboModuleTracking isKindOfClass:[NSNumber class]]
-        && strcmp([(NSNumber *)enableTurboModuleTracking objCType], @encode(BOOL)) == 0;
-    BOOL turboModuleTrackingEnabled
-        = turboModuleTrackingIsBool && [(NSNumber *)enableTurboModuleTracking boolValue];
-    Sentry_SetTurboModuleTrackingEnabled(turboModuleTrackingEnabled ? 1 : 0);
+    Sentry_SetTurboModuleTrackingEnabled(
+        [RNSentry turboModuleTrackingEnabledFromOptions:options] ? 1 : 0);
 
     // RNSentryStart.startWithOptions already handles:
     // - Session tracking notification (SentryHybridSdkDidBecomeActive)

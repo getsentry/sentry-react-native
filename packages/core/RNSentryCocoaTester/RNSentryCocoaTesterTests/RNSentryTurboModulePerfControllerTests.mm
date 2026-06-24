@@ -18,6 +18,8 @@
 
 #import "../../cpp/SentryTurboModulePerfLogger.h"
 #import "../../cpp/SentryTurboModulePerfSink.h"
+#import "RNSentry+Test.h"
+#import <RNSentry/RNSentry.h>
 
 using sentry::reactnative::ISentryTurboModulePerfSink;
 using sentry::reactnative::SentryTurboModulePerfController;
@@ -314,6 +316,60 @@ public:
 
     Sentry_SetTurboModuleTrackingEnabled(1);
     XCTAssertTrue(SentryTurboModulePerfController::instance().isEnabled());
+}
+
+#pragma mark - Option parsing
+
+// Regression coverage for the bug where `strcmp(objCType, @encode(BOOL))`
+// never matched on 64-bit iOS because `BOOL` is `bool` (encode "B") while
+// boolean NSNumbers report objCType "c". A JS `true` MUST enable tracking;
+// a numeric `1` MUST NOT.
+
+// Dictionary literals are hoisted into locals because XCTAssertTrue/False
+// expand into a `catch (T)` clause in ObjC++ and the parser otherwise gets
+// confused by the comma inside `@{ key : value, }`.
+
+- (void)testTurboModuleTrackingEnabledFromOptionsAcceptsTrueBool
+{
+    NSDictionary *options = @{ @"enableTurboModuleTracking" : @YES };
+    XCTAssertTrue([RNSentry turboModuleTrackingEnabledFromOptions:options]);
+}
+
+- (void)testTurboModuleTrackingEnabledFromOptionsRejectsFalseBool
+{
+    NSDictionary *options = @{ @"enableTurboModuleTracking" : @NO };
+    XCTAssertFalse([RNSentry turboModuleTrackingEnabledFromOptions:options]);
+}
+
+- (void)testTurboModuleTrackingEnabledFromOptionsRejectsNumericOne
+{
+    // Cross-platform parity with Android's `ReadableType.Boolean` check —
+    // a JS numeric `1` must not slip through as a truthy boolean here.
+    NSDictionary *options = @{ @"enableTurboModuleTracking" : @1 };
+    XCTAssertFalse([RNSentry turboModuleTrackingEnabledFromOptions:options]);
+}
+
+- (void)testTurboModuleTrackingEnabledFromOptionsRejectsNumericZero
+{
+    NSDictionary *options = @{ @"enableTurboModuleTracking" : @0 };
+    XCTAssertFalse([RNSentry turboModuleTrackingEnabledFromOptions:options]);
+}
+
+- (void)testTurboModuleTrackingEnabledFromOptionsRejectsString
+{
+    NSDictionary *options = @{ @"enableTurboModuleTracking" : @"true" };
+    XCTAssertFalse([RNSentry turboModuleTrackingEnabledFromOptions:options]);
+}
+
+- (void)testTurboModuleTrackingEnabledFromOptionsRejectsMissingKey
+{
+    XCTAssertFalse([RNSentry turboModuleTrackingEnabledFromOptions:@{ }]);
+}
+
+- (void)testTurboModuleTrackingEnabledFromOptionsRejectsNSNull
+{
+    NSDictionary *options = @{ @"enableTurboModuleTracking" : [NSNull null] };
+    XCTAssertFalse([RNSentry turboModuleTrackingEnabledFromOptions:options]);
 }
 
 @end
