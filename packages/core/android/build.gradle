@@ -62,11 +62,16 @@ android {
     }
 
     // CMake is also gated on New Architecture: on Old Arch the .so is never
-    // built and `RNSentryPackage` catches the missing-library error.
+    // built and `RNSentryPackage` catches the missing-library error. The
+    // CMakeLists.txt lives under `src/main/jni/` (not the module root) so
+    // AGP's auto-detection cannot find it on Old Arch — if it did, the
+    // configure step would try to link `ReactAndroid::reactnative` which
+    // only ships with the New Architecture prefab AAR (this is the failure
+    // mode antonis hit on the RN 0.71.19 legacy matrix entry).
     if (isNewArchitectureEnabled()) {
         externalNativeBuild {
             cmake {
-                path "CMakeLists.txt"
+                path "src/main/jni/CMakeLists.txt"
             }
         }
     }

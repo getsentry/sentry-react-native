@@ -185,6 +185,18 @@ SentryTurboModulePerfController::install() noexcept
     // `compare_exchange_strong` makes the install idempotent across competing
     // threads: only the first caller transitions `installed_` from `false` to
     // `true`, and only that caller hands the logger off to React Native.
+    //
+    // We deliberately do NOT roll back `installed_` if `enableLogging`
+    // throws. An earlier revision did, with the intent of letting a later
+    // caller retry under memory pressure. That introduced a race: a
+    // concurrent thread observing `installed_ == true` would skip its own
+    // install attempt, then the originating thread would roll the flag
+    // back to `false`, ending up in a state where every caller thinks
+    // someone else handled the install but nobody actually did. Sticky
+    // "install attempted" semantics close the race and are an acceptable
+    // trade-off: a failed install during the user opt-in path leaves
+    // tracking off for the rest of the process lifetime, which is strictly
+    // better than a silent half-installed state.
     bool expected = false;
     if (!installed_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
         return;
@@ -192,13 +204,12 @@ SentryTurboModulePerfController::install() noexcept
     // `std::make_unique` can throw `std::bad_alloc` and the third-party
     // `enableLogging` makes no exception guarantees. We are declared
     // `noexcept`, so any escape here would call `std::terminate` and bring
-    // down the host app. Swallow instead: roll back the `installed_` latch
-    // so a future caller can retry once memory pressure (or whatever caused
-    // the failure) clears, and leave the SDK running with tracking off.
+    // down the host app. Swallow instead and leave the controller in the
+    // "install attempted" state per the comment above.
     try {
         facebook::react::TurboModulePerfLogger::enableLogging(std::make_unique<ForwardingLogger>());
     } catch (...) {
-        installed_.store(false, std::memory_order_release);
+        // intentionally empty — see rationale above
     }
 #endif
 }

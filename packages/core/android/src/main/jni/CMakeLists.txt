@@ -7,8 +7,13 @@
 # This CMake target is wired up only when the consuming app is built with
 # React Native's New Architecture (the only mode where `TurboModulePerfLogger`
 # exists). The gradle script in `build.gradle` enables `externalNativeBuild`
-# and `buildFeatures { prefab true }` exclusively when `newArchEnabled` is set,
-# so this file is never invoked under Old Arch.
+# and `buildFeatures { prefab true }` exclusively when `newArchEnabled` is
+# set, so this file is never invoked under Old Arch. The file lives under
+# `src/main/jni/` (rather than the module root) so AGP's CMakeLists
+# auto-detection cannot pick it up on Old Arch builds where the gradle
+# `externalNativeBuild` block is intentionally absent — a stray
+# auto-detection there would attempt to link against `ReactAndroid::reactnative`,
+# which only ships in the New Architecture prefab AAR.
 
 cmake_minimum_required(VERSION 3.13)
 project(sentry-tm-perf-logger CXX)
@@ -17,18 +22,19 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Build the shared library from the shared C++ source (also compiled into
-# `RNSentry.framework` on iOS) plus the Android-specific JNI hook.
+# `RNSentry.framework` on iOS) plus the Android-specific JNI hook. Paths
+# are relative to this file: `<module>/src/main/jni/`.
 add_library(
     sentry-tm-perf-logger
     SHARED
-    ../cpp/SentryTurboModulePerfLogger.cpp
-    src/main/jni/OnLoad.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp/SentryTurboModulePerfLogger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OnLoad.cpp
 )
 
 target_include_directories(
     sentry-tm-perf-logger
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp
         # ReactAndroid's prefab exposes <ReactCommon/TurboModulePerfLogger.h>
         # but not the <reactperflogger/NativeModulePerfLogger.h> it
         # transitively pulls in. Add the source tree's reactperflogger dir to

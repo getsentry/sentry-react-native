@@ -225,7 +225,19 @@ public class RNSentryModuleImpl {
         rnOptions.hasKey("enableTurboModuleTracking")
             && rnOptions.getType("enableTurboModuleTracking") == ReadableType.Boolean
             && rnOptions.getBoolean("enableTurboModuleTracking");
-    RNSentryTurboModulePerfTracker.setEnabled(enableTurboModuleTracking);
+    // Defensive: the tracker only catches `UnsatisfiedLinkError` itself, but
+    // `System.loadLibrary` can also raise `SecurityException` and the native
+    // method could throw arbitrary `RuntimeException`. An uncaught exception
+    // here would skip `promise.resolve(true)` and leave the JS-side
+    // `initNativeSdk` promise pending forever. The SDK has already started
+    // successfully by this point, so treat any tracking-toggle failure as
+    // non-fatal and just log it.
+    try {
+      RNSentryTurboModulePerfTracker.setEnabled(enableTurboModuleTracking);
+    } catch (Throwable t) { // NOPMD - tracking is best-effort, must not break init
+      logger.log(
+          SentryLevel.WARNING, "Failed to toggle TurboModule perf tracking: " + t.getMessage());
+    }
 
     promise.resolve(true);
   }
