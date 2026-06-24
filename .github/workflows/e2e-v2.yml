@@ -364,6 +364,10 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
+      - name: Remove asdf nodejs shims (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
+        run: rm -f ~/.asdf/shims/node ~/.asdf/shims/npm ~/.asdf/shims/npx ~/.asdf/shims/yarn ~/.asdf/shims/corepack
+
       - name: Install Ninja
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: sudo apt-get update && sudo apt-get install -y ninja-build
