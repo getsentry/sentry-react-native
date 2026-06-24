@@ -80,7 +80,7 @@ jobs:
         run: |
           NODE_VERSION=$(node -v | sed 's/^v//')
           asdf install nodejs "$NODE_VERSION" || true
-          asdf set --home nodejs "$NODE_VERSION"
+          asdf global nodejs "$NODE_VERSION"
           corepack enable
 
       - uses: actions/cache@v4
@@ -280,7 +280,7 @@ jobs:
         run: |
           NODE_VERSION=$(node -v | sed 's/^v//')
           asdf install nodejs "$NODE_VERSION" || true
-          asdf set --home nodejs "$NODE_VERSION"
+          asdf global nodejs "$NODE_VERSION"
           corepack enable
 
       - uses: actions/cache@v4
@@ -304,7 +304,7 @@ jobs:
         working-directory: samples/react-native-macos
         run: |
           asdf install ruby 3.3.0
-          asdf set ruby 3.3.0
+          asdf local ruby 3.3.0
           bundle install
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
@@ -405,7 +405,7 @@ jobs:
         run: |
           NODE_VERSION=$(node -v | sed 's/^v//')
           asdf install nodejs "$NODE_VERSION" || true
-          asdf set --home nodejs "$NODE_VERSION"
+          asdf global nodejs "$NODE_VERSION"
           corepack enable
 
       - name: Install JS Dependencies

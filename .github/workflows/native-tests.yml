@@ -58,7 +58,7 @@ jobs:
         run: |
           NODE_VERSION=$(node -v | sed 's/^v//')
           asdf install nodejs "$NODE_VERSION" || true
-          asdf set --home nodejs "$NODE_VERSION"
+          asdf global nodejs "$NODE_VERSION"
           corepack enable
 
       - name: Install SDK JS Dependencies
