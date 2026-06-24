@@ -140,6 +140,7 @@ jobs:
         run: |
           brew upgrade ruby-build
           rbenv install -s
+          echo "$(rbenv root)/shims" >> "$GITHUB_PATH"
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
@@ -411,6 +412,7 @@ jobs:
         run: |
           brew upgrade ruby-build
           rbenv install -s
+          echo "$(rbenv root)/shims" >> "$GITHUB_PATH"
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
