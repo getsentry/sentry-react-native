@@ -220,6 +220,19 @@ describe('Tests the SDK functionality', () => {
         });
         expect(usedOptions()?.environment).toBe(undefined);
       });
+
+      it('uses environment from __SENTRY_OPTIONS__ instead of the default when not set in init', () => {
+        (getDefaultEnvironment as jest.Mock).mockImplementation(() => 'production');
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {
+          environment: 'staging',
+        };
+        try {
+          init({});
+          expect(usedOptions()?.environment).toBe('staging');
+        } finally {
+          delete RN_GLOBAL_OBJ.__SENTRY_OPTIONS__;
+        }
+      });
     });
 
     describe('release', () => {

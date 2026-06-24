@@ -90,6 +90,8 @@ function createSentryOptionsModule(filePath: string): Module<VirtualJSOutput> | 
     return null;
   }
 
+  applySentryOptionsEnvOverrides(parsedContent);
+
   const minifiedContent = JSON.stringify(parsedContent);
   const optionsCode = `var __SENTRY_OPTIONS__=${minifiedContent};`;
 
@@ -110,4 +112,33 @@ function createSentryOptionsModule(filePath: string): Module<VirtualJSOutput> | 
       },
     ],
   };
+}
+
+/**
+ * Applies the `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE` and `SENTRY_DIST` build-time overrides to the
+ * options bundled into the JS (`__SENTRY_OPTIONS__`).
+ *
+ * The native build steps (`sentry-xcode.sh`, `sentry.gradle.kts`) already apply these env variables
+ * to the native copy of `sentry.options.json`. Without mirroring them here, the native SDK (which owns
+ * release health sessions on mobile) and the JS layer can end up with a different `environment`,
+ * `release` or `dist`, splitting session and event data across releases/environments.
+ */
+function applySentryOptionsEnvOverrides(options: Record<string, unknown>): void {
+  // The options file is expected to contain a JSON object. Guard against valid-but-unexpected JSON
+  // (e.g. a primitive or `null`), where assigning a property would throw in strict mode.
+  if (typeof options !== 'object' || options === null) {
+    return;
+  }
+  if (process.env.SENTRY_ENVIRONMENT) {
+    options.environment = process.env.SENTRY_ENVIRONMENT;
+    logger.debug(`[@sentry/react-native/metro] Overriding 'environment' from SENTRY_ENVIRONMENT environment variable`);
+  }
+  if (process.env.SENTRY_RELEASE) {
+    options.release = process.env.SENTRY_RELEASE;
+    logger.debug(`[@sentry/react-native/metro] Overriding 'release' from SENTRY_RELEASE environment variable`);
+  }
+  if (process.env.SENTRY_DIST) {
+    options.dist = process.env.SENTRY_DIST;
+    logger.debug(`[@sentry/react-native/metro] Overriding 'dist' from SENTRY_DIST environment variable`);
+  }
 }
