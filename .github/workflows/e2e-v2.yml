@@ -364,9 +364,9 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - name: Remove asdf nodejs shims (Bitrise)
+      - name: Override asdf nodejs version (Bitrise)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
-        run: rm -f ~/.asdf/shims/node ~/.asdf/shims/npm ~/.asdf/shims/npx ~/.asdf/shims/yarn ~/.asdf/shims/corepack
+        run: echo "ASDF_NODEJS_VERSION=$(node -v | sed 's/^v//')" >> "$GITHUB_ENV"
 
       - name: Install Ninja
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
