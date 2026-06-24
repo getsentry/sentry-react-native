@@ -196,8 +196,7 @@ SentryTurboModulePerfController::install() noexcept
     // so a future caller can retry once memory pressure (or whatever caused
     // the failure) clears, and leave the SDK running with tracking off.
     try {
-        facebook::react::TurboModulePerfLogger::enableLogging(
-            std::make_unique<ForwardingLogger>());
+        facebook::react::TurboModulePerfLogger::enableLogging(std::make_unique<ForwardingLogger>());
     } catch (...) {
         installed_.store(false, std::memory_order_release);
     }
