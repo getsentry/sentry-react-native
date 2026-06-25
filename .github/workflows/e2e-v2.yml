@@ -126,6 +126,13 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
+      - uses: actions/cache@v4
+        name: Cache Gradle Wrapper
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        with:
+          path: ~/.gradle/wrapper/dists
+          key: gradle-wrapper-${{ hashFiles('packages/core/android/replay-stubs/gradle/wrapper/gradle-wrapper.properties') }}
+
       - name: Setup asdf Node.js (Bitrise)
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
         run: |
@@ -397,6 +404,13 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
+      - uses: actions/cache@v4
+        name: Cache Gradle Wrapper
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        with:
+          path: ~/.gradle/wrapper/dists
+          key: gradle-wrapper-${{ hashFiles('packages/core/android/replay-stubs/gradle/wrapper/gradle-wrapper.properties') }}
+
       - name: Setup Global Tools
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: |
@@ -569,6 +583,13 @@ jobs:
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+
+      - uses: actions/cache@v4
+        name: Cache Gradle Wrapper
+        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        with:
+          path: ~/.gradle/wrapper/dists
+          key: gradle-wrapper-${{ hashFiles('packages/core/android/replay-stubs/gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Setup KVM
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}

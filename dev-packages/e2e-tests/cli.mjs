@@ -108,7 +108,7 @@ function patchBoostIfNeeded(rnVersion, patchScriptsDir) {
 // Build and publish the SDK - we only need to do this once in CI.
 // Locally, we may want to get updates from the latest build so do it on every app build.
 if (actions.includes('create') || (env.CI === undefined && actions.includes('build'))) {
-  execSync(`yarn build`, { stdio: 'inherit', cwd: workspaceRootDir, env: env });
+  execSync(`yarn build`, { stdio: 'inherit', cwd: workspaceRootDir, env: { ...env, PLATFORM: platform } });
   execSync(`yalc publish --private`, { stdio: 'inherit', cwd: e2eDir, env: env });
   execSync(`yalc publish`, { stdio: 'inherit', cwd: expoUploadSourcemapsPackageDir, env: env });
   execSync(`yalc publish`, { stdio: 'inherit', cwd: corePackageDir, env: env });
