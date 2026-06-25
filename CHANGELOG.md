@@ -30,6 +30,10 @@
 - Fix user `geo` being dropped from the native scope by forwarding it as a structured object instead of a JSON string ([#6309](https://github.com/getsentry/sentry-react-native/pull/6309))
 - Remove unused `React/RCTTextView.h` import that broke iOS builds on React Native 0.87, where the header was removed as part of the legacy architecture cleanup ([#6322](https://github.com/getsentry/sentry-react-native/pull/6322))
 
+### Internal
+
+- Hide the `dataCollection` option until it is fully supported in React Native. It is exposed by `@sentry/core` but is not yet honored by the native SDKs (iOS/Android) nor by the RN-specific `sendDefaultPii` gates, so setting it would silently have no effect. Use `sendDefaultPii` instead. ([#6345](https://github.com/getsentry/sentry-react-native/pull/6345))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.58.0 to v10.60.0 ([#6321](https://github.com/getsentry/sentry-react-native/pull/6321), [#6332](https://github.com/getsentry/sentry-react-native/pull/6332))

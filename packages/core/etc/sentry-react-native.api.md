@@ -599,7 +599,7 @@ export const reactNativeNavigationIntegration: (input: ReactNativeNavigationOpti
 // Warning: (ae-forgotten-export) The symbol "BaseReactNativeOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
-export interface ReactNativeOptions extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>, BaseReactNativeOptions {
+export interface ReactNativeOptions extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection'>, BaseReactNativeOptions {
 }
 
 // Warning: (ae-forgotten-export) The symbol "ReactNativeTracingOptions" needs to be exported by the entry point index.d.ts
