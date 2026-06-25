@@ -52,7 +52,7 @@ android {
     }
 }
 
-def sentryAndroidVersion = '8.44.1'
+def sentryAndroidVersion = '8.45.0'
 
 dependencies {
     compileOnly files('libs/replay-stubs.jar')
