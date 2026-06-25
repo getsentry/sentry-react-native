@@ -14,9 +14,9 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.6.1'
-  IOS_DEVICE: 'iPhone 17'
-  IOS_VERSION: '>=18.0'
+  MAESTRO_VERSION: "2.6.1"
+  IOS_DEVICE: "iPhone 17"
+  IOS_VERSION: ">=18.0"
 
 jobs:
   ready-to-merge-gate:
@@ -39,28 +39,41 @@ jobs:
     uses: ./.github/workflows/skip-ci-noauth.yml
     secrets: inherit
   metrics:
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || matrix.runs-on }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     needs: [diff_check, detect-changes, auth_token_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       # we want that the matrix keeps running, default is to cancel them if it fails.
       fail-fast: false
       # Limit parallel jobs to avoid hitting Sauce Labs concurrency limits (max 3 sessions)
       max-parallel: 2
       matrix:
-        rn-architecture: ['legacy', 'new']
+        rn-architecture: ["legacy", "new"]
         platform: ["ios", "android"]
+        runner_provider: ["cirrus", "bitrise"]
         include:
           - platform: ios
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+            runs-on:
+              [
+                "ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0",
+                "runner_group_id:10",
+              ]
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+            runs-on:
+              [
+                "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04",
+                "runner_group_id:10",
+              ]
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
+        exclude:
+          - platform: android
+            runner_provider: bitrise
     steps:
       - name: Check if platform is needed
         id: platform-check
@@ -96,7 +109,7 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - name: Install Ninja
@@ -106,17 +119,45 @@ jobs:
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
-      - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+      - name: Setup asdf Node.js (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
+        run: |
+          asdf global nodejs system
+          corepack enable
+
+      - uses: actions/cache@v4
+        name: Cache Ruby
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
         with:
-          ruby-version: '3.3.0'
+          path: |
+            ~/.rbenv/versions
+            ~/.rbenv/cache
+          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - uses: actions/cache@v4
+        name: Cache Ruby (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
+        with:
+          path: ~/.asdf/installs/ruby
+          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - name: Install Ruby (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
+        run: |
+          asdf install ruby 3.3.0
+          asdf local ruby 3.3.0
+
+      - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
+        with:
+          ruby-version: "3.3.0"
 
       - name: Install Global Dependencies
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -215,8 +256,9 @@ jobs:
           sauce-key: ${{ secrets.SAUCE_ACCESS_KEY }}
 
   react-native-build:
-    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    runs-on: ${{ matrix.runs-on }}
+    name: Build RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }} on ${{matrix.runner_provider}}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON(format('["bitrise_pool_name:{0}"]', matrix.macos_version)) || matrix.runs-on }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     needs: [diff_check, detect-changes, auth_token_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') }}
     env:
@@ -225,46 +267,65 @@ jobs:
       USE_FRAMEWORKS: ${{ matrix.ios-use-frameworks }}
       PRODUCTION: ${{ matrix.build-type == 'production' && '1' || '0' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.rn-architecture == 'new' && '1' || '0' }}
-      SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+      SENTRY_DISABLE_AUTO_UPLOAD: "false"
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.71.19', '0.86.0']
-        rn-architecture: ['legacy', 'new']
-        platform: ['android', 'ios']
-        build-type: ['production']
-        ios-use-frameworks: ['no', 'static', 'dynamic']
-        engine: ['hermes']
+        rn-version: ["0.71.19", "0.86.0"]
+        rn-architecture: ["legacy", "new"]
+        platform: ["android", "ios"]
+        build-type: ["production"]
+        ios-use-frameworks: ["no", "static", "dynamic"]
+        engine: ["hermes"]
+        runner_provider: ["cirrus", "bitrise"]
         include:
           # Use Xcode 16 for older RN versions
           - platform: ios
-            rn-version: '0.71.19'
-            runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
+            rn-version: "0.71.19"
+            runs-on:
+              [
+                "ghcr.io/cirruslabs/macos-sequoia-xcode:16.4",
+                "runner_group_id:10",
+              ]
+            macos_version: "sequoia"
           # Use Xcode 26 for newer RN versions
           - platform: ios
-            rn-version: '0.86.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+            rn-version: "0.86.0"
+            runs-on:
+              [
+                "ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0",
+                "runner_group_id:10",
+              ]
+            macos_version: tahoe
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+            runs-on:
+              [
+                "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04",
+                "runner_group_id:10",
+              ]
+            macos_version: none
         exclude:
           # exclude all rn versions lower than 0.80.0 for new architecture
-          - rn-version: '0.71.19'
-            rn-architecture: 'new'
+          - rn-version: "0.71.19"
+            rn-architecture: "new"
           # exlude old rn version for use frameworks builds (to minimalize the matrix)
-          - rn-version: '0.71.19'
-            platform: 'ios'
-            ios-use-frameworks: 'static'
-          - rn-version: '0.71.19'
-            platform: 'ios'
-            ios-use-frameworks: 'dynamic'
+          - rn-version: "0.71.19"
+            platform: "ios"
+            ios-use-frameworks: "static"
+          - rn-version: "0.71.19"
+            platform: "ios"
+            ios-use-frameworks: "dynamic"
           # use frameworks is ios only feature
-          - platform: 'android'
-            ios-use-frameworks: 'static'
-          - platform: 'android'
-            ios-use-frameworks: 'dynamic'
+          - platform: "android"
+            ios-use-frameworks: "static"
+          - platform: "android"
+            ios-use-frameworks: "dynamic"
           # exclude new rn architecture and dynamic frameworks
-          - rn-architecture: 'new'
-            ios-use-frameworks: 'dynamic'
+          - rn-architecture: "new"
+            ios-use-frameworks: "dynamic"
+          # only run bitrise for macOS (iOS) jobs
+          - platform: "android"
+            runner_provider: "bitrise"
 
     steps:
       - name: Check if platform is needed
@@ -313,8 +374,14 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
+
+      - name: Setup asdf Node.js (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
+        run: |
+          asdf global nodejs system
+          corepack enable
 
       - name: Install Ninja
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -323,8 +390,8 @@ jobs:
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -343,10 +410,32 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
-      - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
+      - uses: actions/cache@v4
+        name: Cache Ruby
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
         with:
-          ruby-version: '3.3.0'
+          path: |
+            ~/.rbenv/versions
+            ~/.rbenv/cache
+          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - uses: actions/cache@v4
+        name: Cache Ruby (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
+        with:
+          path: ~/.asdf/installs/ruby
+          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - name: Install Ruby (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
+        run: |
+          asdf install ruby 3.3.0
+          asdf local ruby 3.3.0
+
+      - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
+        with:
+          ruby-version: "3.3.0"
 
       - name: Setup Plain RN ${{ matrix.rn-version }} App
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -360,7 +449,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.build-type == 'production' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${{ matrix.runner_provider }}-app-package
           path: dev-packages/e2e-tests/RnDiffApp.ap*
           retention-days: 1
 
@@ -368,32 +457,45 @@ jobs:
         if: ${{ always() && steps.platform-check.outputs.skip != 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}
+          name: rn-build-logs-${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${{ matrix.runner_provider }}
           path: dev-packages/e2e-tests/react-native-versions/${{ matrix.rn-version }}/RnDiffApp/ios/*.log
 
   react-native-test:
     name:
       Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
-      matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+      matrix.build-type }} ${{ matrix.ios-use-frameworks }} on ${{matrix.runner_provider}}
     needs: [react-native-build, diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
 
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || matrix.runs-on }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ['0.86.0']
-        rn-architecture: ['legacy', 'new']
-        platform: ['android', 'ios']
-        build-type: ['production']
-        ios-use-frameworks: ['no'] # test only no frameworks
-        engine: ['hermes']
+        rn-version: ["0.86.0"]
+        rn-architecture: ["legacy", "new"]
+        platform: ["android", "ios"]
+        build-type: ["production"]
+        ios-use-frameworks: ["no"] # test only no frameworks
+        engine: ["hermes"]
+        runner_provider: ["cirrus", "bitrise"]
         include:
           - platform: ios
-            rn-version: '0.86.0'
-            runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+            rn-version: "0.86.0"
+            runs-on:
+              [
+                "ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0",
+                "runner_group_id:10",
+              ]
           - platform: android
-            runs-on: ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+            runs-on:
+              [
+                "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04",
+                "runner_group_id:10",
+              ]
+        exclude:
+          - platform: android
+            runner_provider: bitrise
 
     steps:
       - name: Check if platform is needed
@@ -433,7 +535,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.build-type == 'production' }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${{ matrix.runner_provider }}-app-package
           path: dev-packages/e2e-tests
 
       - name: Enable Corepack
@@ -445,8 +547,14 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
+
+      - name: Setup asdf Node.js (Bitrise)
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
+        run: |
+          asdf global nodejs system
+          corepack enable
 
       - name: Install Ninja
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -455,8 +563,8 @@ jobs:
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -486,7 +594,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           disable-spellchecker: true
-          target: 'google_apis'
+          target: "google_apis"
           emulator-options: >
             -no-window
             -no-snapshot-save
@@ -533,6 +641,6 @@ jobs:
         if: ${{ always() && steps.platform-check.outputs.skip != 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${{ matrix.runner_provider }}-logs
           path: |
             ./dev-packages/e2e-tests/maestro-logs

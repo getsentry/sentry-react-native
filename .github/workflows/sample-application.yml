@@ -13,15 +13,15 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.6.1'
+  MAESTRO_VERSION: "2.6.1"
   MAESTRO_DRIVER_STARTUP_TIMEOUT: 180000 # Increase timeout from default 30s to 180s for CI stability
   RN_SENTRY_POD_NAME: RNSentry
   IOS_APP_ARCHIVE_PATH: sentry-react-native-sample.app.zip
   ANDROID_APP_ARCHIVE_PATH: sentry-react-native-sample.apk.zip
   REACT_NATIVE_SAMPLE_PATH: samples/react-native
-  IOS_DEVICE: 'iPhone 16'
-  IOS_VERSION: '>=18.0'
-  ANDROID_API_LEVEL: '30'
+  IOS_DEVICE: "iPhone 16"
+  IOS_VERSION: ">=18.0"
+  ANDROID_API_LEVEL: "30"
 
 jobs:
   ready-to-merge-gate:
@@ -43,8 +43,9 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   build-ios:
-    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }} on ${{matrix.runner_provider}}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -53,13 +54,14 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['new']
-        ios-use-frameworks: ['no-frameworks']
-        build-type: ['dev', 'production']
+        rn-architecture: ["new"]
+        ios-use-frameworks: ["no-frameworks"]
+        build-type: ["dev", "production"]
+        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -70,13 +72,44 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
+      - name: Setup asdf Node.js (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        run: |
+          asdf global nodejs system
+          corepack enable
+
+      - uses: actions/cache@v4
+        name: Cache Ruby
+        if: matrix.runner_provider != 'bitrise'
+        with:
+          path: |
+            ~/.rbenv/versions
+            ~/.rbenv/cache
+          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - uses: actions/cache@v4
+        name: Cache Ruby (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        with:
+          path: ~/.asdf/installs/ruby
+          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - name: Install Ruby (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
+        run: |
+          asdf install ruby 3.3.0
+          asdf local ruby 3.3.0
+          bundle install
+
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
+        if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-          ruby-version: '3.3.0' # based on what is used in the sample
+          ruby-version: "3.3.0" # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
@@ -123,7 +156,7 @@ jobs:
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios-${{ matrix.runner_provider }}
           path: ${{ env.IOS_APP_ARCHIVE_PATH }}
           retention-days: 1
 
@@ -131,7 +164,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
+          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.runner_provider }}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
 
   build-android:
@@ -145,12 +178,12 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_android == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        rn-architecture: ['new']
-        build-type: ['dev', 'production']
+        rn-architecture: ["new"]
+        build-type: ["dev", "production"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -161,13 +194,13 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
@@ -211,8 +244,9 @@ jobs:
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/*.log
 
   build-macos:
-    name: Build legacy macos ${{ matrix.build-type }}
-    runs-on: ["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]
+    name: Build legacy macos ${{ matrix.build-type }} on ${{matrix.runner_provider}}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:sequoia"]') || fromJSON('["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]') }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -221,11 +255,12 @@ jobs:
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        build-type: ['dev', 'production']
+        build-type: ["dev", "production"]
+        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -236,13 +271,44 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
+      - name: Setup asdf Node.js (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        run: |
+          asdf global nodejs system
+          corepack enable
+
+      - uses: actions/cache@v4
+        name: Cache Ruby
+        if: matrix.runner_provider != 'bitrise'
+        with:
+          path: |
+            ~/.rbenv/versions
+            ~/.rbenv/cache
+          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - uses: actions/cache@v4
+        name: Cache Ruby (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        with:
+          path: ~/.asdf/installs/ruby
+          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
+
+      - name: Install Ruby (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        working-directory: samples/react-native-macos
+        run: |
+          asdf install ruby 3.3.0
+          asdf local ruby 3.3.0
+          bundle install
+
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
+        if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: samples/react-native-macos
-          ruby-version: '3.3.0' # based on what is used in the sample
+          ruby-version: "3.3.0" # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
@@ -285,12 +351,13 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
+          name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-${{ matrix.runner_provider }}-logs
           path: samples/react-native-macos/macos/*.log
 
   test-ios:
-    name: Test ios production REV2
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    name: Test ios production REV2 on ${{matrix.runner_provider}}
+    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
+    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
     needs: [diff_check, detect-changes, build-ios]
     if: >-
       ${{
@@ -298,6 +365,10 @@ jobs:
         && needs.detect-changes.outputs.needs_sample_react_native == 'true'
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -309,7 +380,7 @@ jobs:
       - name: Download iOS App Archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: sample-rn-new-production-no-frameworks-ios
+          name: sample-rn-new-production-no-frameworks-ios-${{ matrix.runner_provider }}
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Unzip iOS App Archive
@@ -323,8 +394,14 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
+
+      - name: Setup asdf Node.js (Bitrise)
+        if: matrix.runner_provider == 'bitrise'
+        run: |
+          asdf global nodejs system
+          corepack enable
 
       - name: Install JS Dependencies
         run: yarn install
@@ -405,7 +482,7 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - name: Install JS Dependencies
@@ -431,7 +508,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           disable-spellchecker: true
-          target: 'aosp_atd'
+          target: "aosp_atd"
           channel: canary # Necessary for ATDs
           disk-size: 4096M
           emulator-options: >
