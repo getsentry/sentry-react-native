@@ -243,7 +243,9 @@ export function withSentryBabelTransformer(
   }
 
   setSentryBabelTransformerOptions({
-    ...(typeof annotateReactComponents === 'object' ? { annotateReactComponents } : {}),
+    ...(annotateReactComponents
+      ? { annotateReactComponents: typeof annotateReactComponents === 'object' ? annotateReactComponents : {} }
+      : {}),
     autoWrapExpoRouterErrorBoundary,
   });
 

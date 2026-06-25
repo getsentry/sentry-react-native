@@ -100,7 +100,9 @@ export function createSentryBabelTransformer(): BabelTransformer {
   const transform: BabelTransformer['transform'] = (...args) => {
     const transformerArgs = args[0];
 
-    addSentryComponentAnnotatePlugin(transformerArgs, options?.annotateReactComponents);
+    if (options?.annotateReactComponents !== undefined) {
+      addSentryComponentAnnotatePlugin(transformerArgs, options.annotateReactComponents);
+    }
     if (options?.autoWrapExpoRouterErrorBoundary) {
       addSentryExpoRouterAutoWrapPlugin(transformerArgs);
     }
