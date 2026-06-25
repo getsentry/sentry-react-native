@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
 
-import { wrapRouterErrorBoundary } from '../../src/js/tracing/expoRouterErrorBoundary';
+import { wrapExpoRouterErrorBoundary } from '../../src/js/tracing/expoRouterErrorBoundary';
 
 const mockCaptureException = jest.fn();
 const mockAddBreadcrumb = jest.fn();
@@ -66,7 +66,7 @@ function runScope(): {
   return { tags, contexts, processors };
 }
 
-describe('wrapRouterErrorBoundary', () => {
+describe('wrapExpoRouterErrorBoundary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSendDefaultPii = false;
@@ -75,13 +75,13 @@ describe('wrapRouterErrorBoundary', () => {
   });
 
   it('renders the wrapped ErrorBoundary with the original props', () => {
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     const { getByTestId } = render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
     expect(getByTestId('fallback').props.children).toBe('boom');
   });
 
   it('captures the error to Sentry once per error instance', () => {
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     const err = new Error('boom');
     const { rerender } = render(<Wrapped error={err} retry={jest.fn()} />);
     rerender(<Wrapped error={err} retry={jest.fn()} />);
@@ -90,14 +90,14 @@ describe('wrapRouterErrorBoundary', () => {
   });
 
   it('re-captures when a new error instance arrives', () => {
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     const { rerender } = render(<Wrapped error={new Error('a')} retry={jest.fn()} />);
     rerender(<Wrapped error={new Error('b')} retry={jest.fn()} />);
     expect(mockCaptureException).toHaveBeenCalledTimes(2);
   });
 
   it('attaches route context with templated path only when sendDefaultPii is off', () => {
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
 
     const { tags, contexts } = runScope();
@@ -110,7 +110,7 @@ describe('wrapRouterErrorBoundary', () => {
 
   it('includes concrete path and params when sendDefaultPii is on', () => {
     mockSendDefaultPii = true;
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
 
     const { contexts } = runScope();
@@ -123,7 +123,7 @@ describe('wrapRouterErrorBoundary', () => {
   });
 
   it('adds a breadcrumb with the templated route name', () => {
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
 
     expect(mockAddBreadcrumb).toHaveBeenCalledWith({
@@ -136,7 +136,7 @@ describe('wrapRouterErrorBoundary', () => {
   });
 
   it('tags the exception with an expo_router_error_boundary mechanism', () => {
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
 
     const { processors } = runScope();
@@ -153,7 +153,7 @@ describe('wrapRouterErrorBoundary', () => {
       setStatus: jest.fn(),
       __origin: 'auto.navigation.expo_router',
     };
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
 
     expect(mockActiveSpan.setStatus).toHaveBeenCalledWith({
@@ -167,14 +167,14 @@ describe('wrapRouterErrorBoundary', () => {
       setStatus: jest.fn(),
       __origin: 'manual',
     };
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
 
     expect(mockActiveSpan.setStatus).not.toHaveBeenCalled();
   });
 
   it('does not re-report the same error across an unmount/remount cycle', () => {
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     const err = new Error('boom');
     const first = render(<Wrapped error={err} retry={jest.fn()} />);
     first.unmount();
@@ -186,7 +186,7 @@ describe('wrapRouterErrorBoundary', () => {
     mockCaptureException.mockImplementationOnce(() => {
       throw new Error('sentry boom');
     });
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     const { getByTestId } = render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
     expect(getByTestId('fallback').props.children).toBe('boom');
   });
@@ -195,7 +195,7 @@ describe('wrapRouterErrorBoundary', () => {
     mockCaptureException.mockImplementationOnce(() => {
       throw new Error('sentry boom');
     });
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     const err = new Error('boom');
     const first = render(<Wrapped error={err} retry={jest.fn()} />);
     first.unmount();
@@ -205,7 +205,7 @@ describe('wrapRouterErrorBoundary', () => {
 
   it('still works when expo-router store is not reachable', () => {
     mockRouteInfoValue = undefined;
-    const Wrapped = wrapRouterErrorBoundary(OriginalErrorBoundary);
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
 
     const { tags, contexts } = runScope();

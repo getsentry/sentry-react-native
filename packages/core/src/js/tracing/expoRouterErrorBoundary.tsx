@@ -54,8 +54,14 @@ export interface ExpoRouterErrorBoundaryProps {
  *
  * @example
  * ```ts
- * // app/_layout.tsx\n * import { ErrorBoundary as ExpoErrorBoundary } from 'expo-router';\n * import * as Sentry from '@sentry/react-native';\n *\n * export const ErrorBoundary = Sentry.wrapRouterErrorBoundary(ExpoErrorBoundary);\n * ```\n */
-export function wrapRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
+ * // app/_layout.tsx
+ * import { ErrorBoundary as ExpoErrorBoundary } from 'expo-router';
+ * import * as Sentry from '@sentry/react-native';
+ *
+ * export const ErrorBoundary = Sentry.wrapExpoRouterErrorBoundary(ExpoErrorBoundary);
+ * ```
+ */
+export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
   OriginalErrorBoundary: React.ComponentType<P>,
 ): React.ComponentType<P> {
   const Wrapped: React.FC<P> = props => {
@@ -78,7 +84,7 @@ export function wrapRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
         reportedErrors.add(error);
       } catch (e) {
         logger.error(
-          `[wrapRouterErrorBoundary] Failed to report boundary error: ${e instanceof Error ? e.message : String(e)}`,
+          `[wrapExpoRouterErrorBoundary] Failed to report boundary error: ${e instanceof Error ? e.message : String(e)}`,
         );
       }
     }, [error]);
@@ -86,7 +92,7 @@ export function wrapRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
     return <OriginalErrorBoundary {...props} />;
   };
 
-  Wrapped.displayName = `wrapRouterErrorBoundary(${
+  Wrapped.displayName = `wrapExpoRouterErrorBoundary(${
     OriginalErrorBoundary.displayName || OriginalErrorBoundary.name || 'ErrorBoundary'
   })`;
 

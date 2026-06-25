@@ -4,7 +4,7 @@
  * Used by:
  *  - {@link expoRouterIntegration} to attach the current route to the idle
  *    navigation span via {@link RouteOverride}.
- *  - {@link wrapRouterErrorBoundary} to attach the current route to errors
+ *  - {@link wrapExpoRouterErrorBoundary} to attach the current route to errors
  *    surfaced through Expo Router's per-route `ErrorBoundary`.
  */
 

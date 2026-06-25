@@ -134,7 +134,7 @@ export {
   createTimeToInitialDisplay,
   wrapExpoRouter,
   expoRouterIntegration,
-  wrapRouterErrorBoundary,
+  wrapExpoRouterErrorBoundary,
   wrapExpoImage,
   wrapExpoAsset,
 } from './tracing';

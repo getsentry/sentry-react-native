@@ -12,7 +12,7 @@ import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 
 // Wrap Expo Router's per-route ErrorBoundary so render-phase errors that hit
 // the fallback UI are captured by Sentry with route context attached.
-export const ErrorBoundary = Sentry.wrapRouterErrorBoundary(ExpoErrorBoundary);
+export const ErrorBoundary = Sentry.wrapExpoRouterErrorBoundary(ExpoErrorBoundary);
 
 LogBox.ignoreAllLogs();
 

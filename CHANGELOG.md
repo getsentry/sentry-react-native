@@ -10,7 +10,19 @@
 
 ### Features
 
-- Capture errors that hit Expo Router's per-route `ErrorBoundary`. Wrap the boundary with `Sentry.wrapRouterErrorBoundary(ErrorBoundary)` in your route file to capture render-phase errors with route context (`route.name`, `route.path`, `route.params`), tag the in-flight navigation transaction as errored, and emit a breadcrumb. Concrete paths and params are gated behind `sendDefaultPii` ([#6318](https://github.com/getsentry/sentry-react-native/pull/6318))
+- Capture errors that hit Expo Router's per-route `ErrorBoundary` ([#6318](https://github.com/getsentry/sentry-react-native/pull/6318))
+
+  Wrap the boundary with `Sentry.wrapExpoRouterErrorBoundary` in your route file:
+
+  ```ts
+  // app/_layout.tsx
+  import { ErrorBoundary as ExpoErrorBoundary } from 'expo-router';
+  import * as Sentry from '@sentry/react-native';
+
+  export const ErrorBoundary = Sentry.wrapExpoRouterErrorBoundary(ExpoErrorBoundary);
+  ```
+
+  Render-phase errors that reach the boundary are captured with route context (`route.name`, `route.path`, `route.params`), the in-flight navigation transaction is tagged as errored, and a breadcrumb is emitted. Concrete paths and params are gated behind `sendDefaultPii`.
 
 ### Fixes
 

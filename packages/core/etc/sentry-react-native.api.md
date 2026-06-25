@@ -899,7 +899,7 @@ export function wrapExpoImage<T extends ExpoImage>(imageClass: T): T;
 export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
 
 // @public
-export function wrapRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(OriginalErrorBoundary: React_2.ComponentType<P>): React_2.ComponentType<P>;
+export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(OriginalErrorBoundary: React_2.ComponentType<P>): React_2.ComponentType<P>;
 
 // @public
 export function wrapTurboModule<T extends object>(name: string, module: T | null | undefined, options?: {
