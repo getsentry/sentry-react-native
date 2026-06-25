@@ -39,8 +39,7 @@ jobs:
     uses: ./.github/workflows/skip-ci-noauth.yml
     secrets: inherit
   metrics:
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || matrix.runs-on }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, detect-changes, auth_token_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.auth_token_check.outputs.skip_ci != 'true' && !startsWith(github.ref, 'refs/heads/release/') }}
     env:
@@ -53,14 +52,9 @@ jobs:
       matrix:
         rn-architecture: ["legacy", "new"]
         platform: ["ios", "android"]
-        runner_provider: ["cirrus", "bitrise"]
         include:
           - platform: ios
-            runs-on:
-              [
-                "ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0",
-                "runner_group_id:10",
-              ]
+            runs-on: macos-26-xlarge
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
@@ -71,9 +65,6 @@ jobs:
               ]
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
-        exclude:
-          - platform: android
-            runner_provider: bitrise
     steps:
       - name: Check if platform is needed
         id: platform-check
@@ -126,36 +117,8 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
-      - name: Setup asdf Node.js (Bitrise)
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
-        run: |
-          asdf global nodejs system
-          corepack enable
-
-      - uses: actions/cache@v4
-        name: Cache Ruby
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
-        with:
-          path: |
-            ~/.rbenv/versions
-            ~/.rbenv/cache
-          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - uses: actions/cache@v4
-        name: Cache Ruby (Bitrise)
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
-        with:
-          path: ~/.asdf/installs/ruby
-          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - name: Install Ruby (Bitrise)
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider == 'bitrise' }}
-        run: |
-          asdf install ruby 3.3.0
-          asdf local ruby 3.3.0
-
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' && matrix.runner_provider != 'bitrise' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           ruby-version: "3.3.0"
 
