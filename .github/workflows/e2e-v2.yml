@@ -170,6 +170,8 @@ jobs:
       - name: Build SDK
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn build
+        env:
+          PLATFORM: ${{ matrix.platform }}
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
