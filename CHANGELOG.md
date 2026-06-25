@@ -6,11 +6,16 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 8.16.0
+## Unreleased
 
 ### Features
 
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
+
+## 8.16.0
+
+### Features
+
 - Capture errors that hit Expo Router's per-route `ErrorBoundary` ([#6318](https://github.com/getsentry/sentry-react-native/pull/6318))
 
   Wrap the boundary with `Sentry.wrapExpoRouterErrorBoundary` in your route file:
