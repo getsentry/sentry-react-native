@@ -512,11 +512,16 @@ export interface ReactNativeTransportOptions extends BrowserTransportOptions {
  * @see ReactNativeFrontend for more information.
  */
 
+// `dataCollection` is omitted until the option is fully supported in React Native. It is exposed by
+// `@sentry/core` but is not yet honored by the native SDKs (iOS/Android) nor by the RN-specific
+// `sendDefaultPii` gates (e.g. IP inference, deep links, navigation params). Use `sendDefaultPii`
+// instead.
 export interface ReactNativeOptions
-  extends Omit<Options<ReactNativeTransportOptions>, '_experiments'>, BaseReactNativeOptions {}
+  extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection'>, BaseReactNativeOptions {}
 
 export interface ReactNativeClientOptions
-  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments'>, BaseReactNativeOptions {}
+  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments' | 'dataCollection'>,
+    BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {
   /** Props for the root React profiler */
