@@ -134,11 +134,12 @@ export {
   createTimeToInitialDisplay,
   wrapExpoRouter,
   expoRouterIntegration,
+  wrapExpoRouterErrorBoundary,
   wrapExpoImage,
   wrapExpoAsset,
 } from './tracing';
 
-export type { TimeToDisplayProps, ExpoRouter, ExpoImage, ExpoAsset } from './tracing';
+export type { TimeToDisplayProps, ExpoRouter, ExpoRouterErrorBoundaryProps, ExpoImage, ExpoAsset } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
 

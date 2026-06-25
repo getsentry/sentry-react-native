@@ -285,6 +285,14 @@ export interface ExpoRouter {
     replace?: (...args: unknown[]) => void;
 }
 
+// @public
+export interface ExpoRouterErrorBoundaryProps {
+    // (undocumented)
+    error: Error;
+    // (undocumented)
+    retry: () => Promise<void>;
+}
+
 // Warning: (ae-forgotten-export) The symbol "ExpoRouterIntegrationOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -889,6 +897,9 @@ export function wrapExpoImage<T extends ExpoImage>(imageClass: T): T;
 
 // @public
 export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
+
+// @public
+export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(OriginalErrorBoundary: React_2.ComponentType<P>): React_2.ComponentType<P>;
 
 // @public
 export function wrapTurboModule<T extends object>(name: string, module: T | null | undefined, options?: {

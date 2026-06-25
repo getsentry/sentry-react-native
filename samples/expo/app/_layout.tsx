@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import * as ImagePicker from 'expo-image-picker';
-import { SplashScreen, Stack } from 'expo-router';
+import { ErrorBoundary as ExpoErrorBoundary, SplashScreen, Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-navigation';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
@@ -10,10 +10,9 @@ import { useColorScheme } from '@/components/useColorScheme';
 
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+// Wrap Expo Router's per-route ErrorBoundary so render-phase errors that hit
+// the fallback UI are captured by Sentry with route context attached.
+export const ErrorBoundary = Sentry.wrapExpoRouterErrorBoundary(ExpoErrorBoundary);
 
 LogBox.ignoreAllLogs();
 

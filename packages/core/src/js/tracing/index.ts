@@ -14,6 +14,9 @@ export type { ExpoRouter } from './expoRouter';
 
 export { expoRouterIntegration } from './expoRouterIntegration';
 
+export { wrapExpoRouterErrorBoundary } from './expoRouterErrorBoundary';
+export type { ExpoRouterErrorBoundaryProps } from './expoRouterErrorBoundary';
+
 export { wrapExpoImage } from './expoImage';
 export type { ExpoImage } from './expoImage';
 
