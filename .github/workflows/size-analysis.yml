@@ -92,7 +92,7 @@ jobs:
   ios:
     needs: [ready-to-merge-gate]
     name: iOS Size Analysis
-    runs-on: macos-26
+    runs-on: macos-26-xlarge
     timeout-minutes: 45
 
     steps:
