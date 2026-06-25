@@ -10,6 +10,7 @@
 
 ### Features
 
+- Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing.
 - Capture errors that hit Expo Router's per-route `ErrorBoundary` ([#6318](https://github.com/getsentry/sentry-react-native/pull/6318))
 
   Wrap the boundary with `Sentry.wrapExpoRouterErrorBoundary` in your route file:
