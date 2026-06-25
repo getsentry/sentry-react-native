@@ -85,7 +85,7 @@ export interface SentryMetroConfigOptions {
    * wrapped boundary instead. Files that already import
    * `wrapExpoRouterErrorBoundary` are left untouched.
    *
-   * @default false for `withSentryConfig`, true for `getSentryExpoConfig`
+   * @default false
    */
   autoWrapExpoRouterErrorBoundary?: boolean;
 }
@@ -169,7 +169,7 @@ export function getSentryExpoConfig(
   });
 
   let newConfig = withSentryFramesCollapsed(config);
-  const autoWrapExpoRouterErrorBoundary = options.autoWrapExpoRouterErrorBoundary ?? true;
+  const autoWrapExpoRouterErrorBoundary = options.autoWrapExpoRouterErrorBoundary ?? false;
   if (options.annotateReactComponents || autoWrapExpoRouterErrorBoundary) {
     newConfig = withSentryBabelTransformer(
       newConfig,

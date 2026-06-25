@@ -12,6 +12,9 @@ const config = getSentryExpoConfig(__dirname, {
   annotateReactComponents: {
     ignoredComponents: ['BottomTabsNavigator'],
   },
+  // Auto-wrap `export { ErrorBoundary } from 'expo-router'` so the Expo Router
+  // per-route boundary is captured by Sentry without route-file edits.
+  autoWrapExpoRouterErrorBoundary: true,
 });
 
 module.exports = withMonorepo(config);

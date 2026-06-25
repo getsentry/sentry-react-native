@@ -10,9 +10,10 @@ import { useColorScheme } from '@/components/useColorScheme';
 
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 
-// Re-export Expo Router's per-route ErrorBoundary. `getSentryExpoConfig` auto
-// wraps it at build time with `Sentry.wrapExpoRouterErrorBoundary` so
-// render-phase errors that hit the fallback are captured with route context.
+// Re-export Expo Router's per-route ErrorBoundary. The Sentry Babel plugin
+// (enabled via `autoWrapExpoRouterErrorBoundary: true` in `metro.config.js`)
+// rewrites this at build time into a `Sentry.wrapExpoRouterErrorBoundary`
+// call so render-phase errors that hit the fallback are captured.
 export { ErrorBoundary } from 'expo-router';
 
 LogBox.ignoreAllLogs();

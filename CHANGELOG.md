@@ -11,6 +11,20 @@
 ### Features
 
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
+- Opt-in build-time auto-wrap for Expo Router's per-route `ErrorBoundary` ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
+
+  Enable `autoWrapExpoRouterErrorBoundary: true` in `getSentryExpoConfig` (or `withSentryConfig`) and the Sentry Babel plugin rewrites `export { ErrorBoundary } from 'expo-router'` into a `wrapExpoRouterErrorBoundary` call at build time — no route-file edits needed:
+
+  ```js
+  // metro.config.js
+  module.exports = getSentryExpoConfig(__dirname, {
+    autoWrapExpoRouterErrorBoundary: true,
+  });
+  ```
+
+### Fixes
+
+- The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
 ### Dependencies
 
@@ -35,9 +49,6 @@
   ```
 
   Render-phase errors that reach the boundary are captured with route context (`route.name`, `route.path`, `route.params`), the in-flight navigation transaction is tagged as errored, and a breadcrumb is emitted. Concrete paths and params are gated behind `sendDefaultPii`.
-- Auto-wrap Expo Router's `ErrorBoundary` re-exports at build time
-
-  `getSentryExpoConfig` now ships a Babel plugin that rewrites `export { ErrorBoundary } from 'expo-router'` into a wrapped re-export, so the boundary is auto-instrumented without changing your route files. Opt out with `autoWrapExpoRouterErrorBoundary: false`. For non-Expo Metro setups, `withSentryConfig` exposes the same option (off by default).
 
 ### Fixes
 
