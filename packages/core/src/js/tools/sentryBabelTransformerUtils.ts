@@ -4,12 +4,15 @@ import * as process from 'process';
 
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
+import sentryExpoRouterAutoWrapBabelPlugin from './sentryExpoRouterAutoWrapBabelPlugin';
+
 export type SentryBabelTransformerOptions = {
   annotateReactComponents?: {
     ignoredComponents?: string[];
     autoInjectSentryLabel?: boolean;
     textComponentNames?: string[];
   };
+  autoWrapExpoRouterErrorBoundary?: boolean;
 };
 
 export const SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH = 'SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH';
@@ -98,6 +101,9 @@ export function createSentryBabelTransformer(): BabelTransformer {
     const transformerArgs = args[0];
 
     addSentryComponentAnnotatePlugin(transformerArgs, options?.annotateReactComponents);
+    if (options?.autoWrapExpoRouterErrorBoundary) {
+      addSentryExpoRouterAutoWrapPlugin(transformerArgs);
+    }
 
     return defaultTransformer.transform(...args);
   };
@@ -123,4 +129,14 @@ function addSentryComponentAnnotatePlugin(
     };
     args.plugins.push([componentAnnotatePlugin, pluginOptions]);
   }
+}
+
+function addSentryExpoRouterAutoWrapPlugin(args: BabelTransformerArgs | undefined): void {
+  if (!args || typeof args.filename !== 'string' || !Array.isArray(args.plugins)) {
+    return undefined;
+  }
+  if (args.filename.includes('node_modules')) {
+    return undefined;
+  }
+  args.plugins.push([sentryExpoRouterAutoWrapBabelPlugin, {}]);
 }

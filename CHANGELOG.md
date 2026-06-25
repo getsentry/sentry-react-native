@@ -35,6 +35,9 @@
   ```
 
   Render-phase errors that reach the boundary are captured with route context (`route.name`, `route.path`, `route.params`), the in-flight navigation transaction is tagged as errored, and a breadcrumb is emitted. Concrete paths and params are gated behind `sendDefaultPii`.
+- Auto-wrap Expo Router's `ErrorBoundary` re-exports at build time
+
+  `getSentryExpoConfig` now ships a Babel plugin that rewrites `export { ErrorBoundary } from 'expo-router'` into a wrapped re-export, so the boundary is auto-instrumented without changing your route files. Opt out with `autoWrapExpoRouterErrorBoundary: false`. For non-Expo Metro setups, `withSentryConfig` exposes the same option (off by default).
 
 ### Fixes
 
