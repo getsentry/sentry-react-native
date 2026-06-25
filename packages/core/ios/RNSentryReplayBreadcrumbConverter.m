@@ -69,8 +69,12 @@
         return nil;
     }
 
-    NSMutableArray *path = [breadcrumb.data valueForKey:@"path"];
-    NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:path];
+    id maybePath = [breadcrumb.data valueForKey:@"path"];
+    if (![maybePath isKindOfClass:[NSArray class]]) {
+        return nil;
+    }
+
+    NSString *message = [RNSentryReplayBreadcrumbConverter getTouchPathMessageFrom:maybePath];
 
     return [SentrySessionReplayHybridSDK createBreadcrumbwithTimestamp:breadcrumb.timestamp
                                                               category:@"ui.tap"
@@ -112,10 +116,11 @@
 
     NSMutableString *message = [[NSMutableString alloc] init];
     for (NSInteger i = MIN(3, pathCount - 1); i >= 0; i--) {
-        NSDictionary *item = [path objectAtIndex:i];
-        if (item == nil) {
-            return nil; // There should be no nil (undefined) from JS, but to be safe we check it
-                        // here
+        id item = [path objectAtIndex:i];
+        if (![item isKindOfClass:[NSDictionary class]]) {
+            return nil; // There should be no nil (undefined) or non-dictionary entry from JS, but
+                        // to be safe we check it here. See
+                        // https://github.com/getsentry/sentry-react-native/issues/6342
         }
 
         id name = [item objectForKey:@"name"];
