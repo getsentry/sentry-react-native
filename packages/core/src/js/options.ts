@@ -520,7 +520,8 @@ export interface ReactNativeOptions
   extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection'>, BaseReactNativeOptions {}
 
 export interface ReactNativeClientOptions
-  extends Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments' | 'dataCollection'>,
+  extends
+    Omit<ClientOptions<ReactNativeTransportOptions>, 'tunnel' | '_experiments' | 'dataCollection'>,
     BaseReactNativeOptions {}
 
 export interface ReactNativeWrapperOptions {
