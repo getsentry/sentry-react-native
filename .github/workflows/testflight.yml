@@ -13,44 +13,14 @@ jobs:
     uses: ./.github/workflows/skip-ci.yml
 
   upload_to_testflight:
-    name: Build and Upload React Native Sample to Testflight on ${{matrix.runner_provider}}
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    name: Build and Upload React Native Sample to Testflight
+    runs-on: macos-26
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        # Only run on Cirrus for now, because we would upload twice to Testflight with the same build number
-        runner_provider: ["cirrus"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: actions/cache@v4
-        name: Cache Ruby
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          path: |
-            ~/.rbenv/versions
-            ~/.rbenv/cache
-          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - uses: actions/cache@v4
-        name: Cache Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        with:
-          path: ~/.asdf/installs/ruby
-          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - name: Install Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        working-directory: samples/react-native
-        run: |
-          asdf install ruby 3.3.0
-          asdf local ruby 3.3.0
-          bundle install
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
-        if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: samples/react-native
           ruby-version: "3.3.0" # based on what is used in the sample
@@ -63,12 +33,6 @@ jobs:
           node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
-
-      - name: Setup asdf Node.js (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        run: |
-          asdf global nodejs system
-          corepack enable
 
       - name: Install Dependencies
         run: |
@@ -111,6 +75,6 @@ jobs:
       - name: Upload Xcode Archive
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: sentry-react-native-sample-xcode-archive-for-testflight-${{ matrix.runner_provider }}
+          name: sentry-react-native-sample-xcode-archive-for-testflight
           path: samples/react-native/sentryreactnativesample.xcarchive
           retention-days: 1
