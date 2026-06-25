@@ -15,4 +15,17 @@ describe('encodeToBase64', () => {
     }
     expect(encodeToBase64(bytes)).toBe(Buffer.from(bytes).toString('base64'));
   });
+
+  test('falls back to the JS encoder when `btoa` is unavailable', () => {
+    const originalBtoa = (globalThis as { btoa?: unknown }).btoa;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).btoa;
+    try {
+      // "sentry" => "c2VudHJ5"
+      expect(encodeToBase64(new Uint8Array([0x73, 0x65, 0x6e, 0x74, 0x72, 0x79]))).toBe('c2VudHJ5');
+    } finally {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).btoa = originalBtoa;
+    }
+  });
 });
