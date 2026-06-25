@@ -117,13 +117,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
           distribution: "adopt"
 
       - name: Gradle cache
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
       - name: Setup asdf Node.js (Bitrise)
@@ -388,13 +388,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
           distribution: "adopt"
 
       - name: Gradle cache
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
       - name: Setup Global Tools
@@ -561,13 +561,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
           distribution: "adopt"
 
       - name: Gradle cache
-        if: ${{ steps.platform-check.outputs.skip != 'true' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
 
       - name: Setup KVM
