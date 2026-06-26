@@ -74,6 +74,20 @@ export interface SentryMetroConfigOptions {
    * @default '{projectRoot}/sentry.options.json'
    */
   optionsFile?: string | boolean;
+  /**
+   * Auto-wrap Expo Router's per-route `ErrorBoundary` re-exports with
+   * `Sentry.wrapExpoRouterErrorBoundary` at build time so render-phase errors
+   * that hit the fallback are captured without requiring the user to change
+   * their route files.
+   *
+   * Detects `export { ErrorBoundary } from 'expo-router'` (and aliased
+   * variants) in non-`node_modules` files and rewrites them to import the
+   * wrapped boundary instead. Files that already import
+   * `wrapExpoRouterErrorBoundary` are left untouched.
+   *
+   * @default false
+   */
+  autoWrapExpoRouterErrorBoundary?: boolean;
 }
 
 export interface SentryExpoConfigOptions {
@@ -104,6 +118,7 @@ export function withSentryConfig(
     includeWebFeedback = true,
     enableSourceContextInDevelopment = true,
     optionsFile = true,
+    autoWrapExpoRouterErrorBoundary = false,
   }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
@@ -112,8 +127,8 @@ export function withSentryConfig(
 
   newConfig = withSentryDebugId(newConfig);
   newConfig = withSentryFramesCollapsed(newConfig);
-  if (annotateReactComponents) {
-    newConfig = withSentryBabelTransformer(newConfig, annotateReactComponents);
+  if (annotateReactComponents || autoWrapExpoRouterErrorBoundary) {
+    newConfig = withSentryBabelTransformer(newConfig, annotateReactComponents, autoWrapExpoRouterErrorBoundary);
   }
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
@@ -154,8 +169,13 @@ export function getSentryExpoConfig(
   });
 
   let newConfig = withSentryFramesCollapsed(config);
-  if (options.annotateReactComponents) {
-    newConfig = withSentryBabelTransformer(newConfig, options.annotateReactComponents);
+  const autoWrapExpoRouterErrorBoundary = options.autoWrapExpoRouterErrorBoundary ?? false;
+  if (options.annotateReactComponents || autoWrapExpoRouterErrorBoundary) {
+    newConfig = withSentryBabelTransformer(
+      newConfig,
+      options.annotateReactComponents ?? false,
+      autoWrapExpoRouterErrorBoundary,
+    );
   }
 
   if (options.includeWebReplay === false) {
@@ -202,8 +222,9 @@ function loadExpoMetroConfigModule(): {
 export function withSentryBabelTransformer(
   config: MetroConfig,
   annotateReactComponents:
-    | true
+    | boolean
     | { ignoredComponents?: string[]; autoInjectSentryLabel?: boolean; textComponentNames?: string[] },
+  autoWrapExpoRouterErrorBoundary: boolean = false,
 ): MetroConfig {
   const defaultBabelTransformerPath = config.transformer?.babelTransformerPath;
   debug.log('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
@@ -221,11 +242,12 @@ export function withSentryBabelTransformer(
     setSentryDefaultBabelTransformerPathEnv(defaultBabelTransformerPath);
   }
 
-  if (typeof annotateReactComponents === 'object') {
-    setSentryBabelTransformerOptions({
-      annotateReactComponents,
-    });
-  }
+  setSentryBabelTransformerOptions({
+    ...(annotateReactComponents
+      ? { annotateReactComponents: typeof annotateReactComponents === 'object' ? annotateReactComponents : {} }
+      : {}),
+    autoWrapExpoRouterErrorBoundary,
+  });
 
   return {
     ...config,

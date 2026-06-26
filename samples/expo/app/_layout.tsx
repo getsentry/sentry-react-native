@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import { isRunningInExpoGo } from 'expo';
 import * as ImagePicker from 'expo-image-picker';
-import { ErrorBoundary as ExpoErrorBoundary, SplashScreen, Stack } from 'expo-router';
+import { SplashScreen, Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-navigation';
 import { useEffect } from 'react';
 import { LogBox } from 'react-native';
@@ -10,9 +10,11 @@ import { useColorScheme } from '@/components/useColorScheme';
 
 import { SENTRY_INTERNAL_DSN } from '../utils/dsn';
 
-// Wrap Expo Router's per-route ErrorBoundary so render-phase errors that hit
-// the fallback UI are captured by Sentry with route context attached.
-export const ErrorBoundary = Sentry.wrapExpoRouterErrorBoundary(ExpoErrorBoundary);
+// Re-export Expo Router's per-route ErrorBoundary. The Sentry Babel plugin
+// (enabled via `autoWrapExpoRouterErrorBoundary: true` in `metro.config.js`)
+// rewrites this at build time into a `Sentry.wrapExpoRouterErrorBoundary`
+// call so render-phase errors that hit the fallback are captured.
+export { ErrorBoundary } from 'expo-router';
 
 LogBox.ignoreAllLogs();
 

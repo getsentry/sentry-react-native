@@ -11,6 +11,20 @@
 ### Features
 
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
+- Opt-in build-time auto-wrap for Expo Router's per-route `ErrorBoundary` ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
+
+  Enable `autoWrapExpoRouterErrorBoundary: true` in `getSentryExpoConfig` (or `withSentryConfig`) and the Sentry Babel plugin rewrites `export { ErrorBoundary } from 'expo-router'` into a `wrapExpoRouterErrorBoundary` call at build time — no route-file edits needed:
+
+  ```js
+  // metro.config.js
+  module.exports = getSentryExpoConfig(__dirname, {
+    autoWrapExpoRouterErrorBoundary: true,
+  });
+  ```
+
+### Fixes
+
+- The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
 ### Dependencies
 

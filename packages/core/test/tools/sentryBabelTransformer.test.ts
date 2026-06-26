@@ -31,6 +31,10 @@ describe('SentryBabelTransformer', () => {
   });
 
   test('transform calls the original transformer with the annotation plugin', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      annotateReactComponents: {},
+    });
+
     createSentryBabelTransformer().transform?.({
       filename: '/project/file',
       options: {
@@ -53,6 +57,10 @@ describe('SentryBabelTransformer', () => {
   });
 
   test('transform adds plugin with autoInjectSentryLabel enabled by default', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      annotateReactComponents: {},
+    });
+
     createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
 
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
@@ -142,21 +150,31 @@ describe('SentryBabelTransformer', () => {
     );
   });
 
-  test('degrades gracefully if options can not be parsed, transform adds plugin with defaults', () => {
+  test('degrades gracefully if options can not be parsed, transform skips opt-in plugins', () => {
     process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = 'invalid json';
 
     createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
 
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
-    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plugins: expect.arrayContaining([
-          [
-            expect.objectContaining({ name: 'componentNameAnnotatePlugin' }),
-            expect.objectContaining({ autoInjectSentryLabel: true }),
-          ],
-        ]),
-      }),
+    // When persisted options are unparseable, opt-in Babel plugins must not be
+    // silently injected — we cannot tell what the user asked for.
+    const calledArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
+    expect(calledArgs.plugins).not.toEqual(
+      expect.arrayContaining([[expect.objectContaining({ name: 'componentNameAnnotatePlugin' }), expect.anything()]]),
+    );
+  });
+
+  test('does not add the annotation plugin when only autoWrapExpoRouterErrorBoundary is enabled', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      autoWrapExpoRouterErrorBoundary: true,
+    });
+
+    createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
+
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
+    const calledArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
+    expect(calledArgs.plugins).not.toEqual(
+      expect.arrayContaining([[expect.objectContaining({ name: 'componentNameAnnotatePlugin' }), expect.anything()]]),
     );
   });
 
