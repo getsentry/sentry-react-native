@@ -112,6 +112,14 @@ describe('sentryExpoRouterAutoWrapBabelPlugin', () => {
     expect(occurrences).toBe(1);
   });
 
+  it("preserves a leading 'use client' directive", () => {
+    // Helper imports must not be hoisted above the directive prologue, or
+    // Expo Web / RSC tooling will stop treating the file as a client module.
+    const src = `'use client';\nexport { ErrorBoundary } from 'expo-router';`;
+    const out = transform(src);
+    expect(out.trimStart()).toMatch(/^['"]use client['"];/);
+  });
+
   it('skips files inside node_modules', () => {
     const out = transform(`export { ErrorBoundary } from 'expo-router';`, '/proj/node_modules/expo-router/build/x.js');
     expect(out).not.toContain('@sentry/react-native');

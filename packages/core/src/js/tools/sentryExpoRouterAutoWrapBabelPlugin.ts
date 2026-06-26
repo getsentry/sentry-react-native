@@ -106,7 +106,13 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
           t.exportNamedDeclaration(null, [t.exportSpecifier(t.cloneNode(wrappedLocal), t.identifier(exportedName))]),
         ];
 
-        const remainingSpecifiers = node.specifiers.filter((_, i) => i !== boundarySpecifierIndex);
+        const remainingSpecifiers = node.specifiers
+          .filter((_, i) => i !== boundarySpecifierIndex)
+          // Clone the reused specifier nodes so we don't share AST nodes
+          // between the original `path.node` (about to be replaced) and the
+          // new export declaration — Babel docs warn that reusing nodes can
+          // corrupt the scope cache.
+          .map(s => t.cloneNode(s));
         if (remainingSpecifiers.length > 0) {
           replacements.push(t.exportNamedDeclaration(null, remainingSpecifiers, t.cloneNode(node.source)));
         }
