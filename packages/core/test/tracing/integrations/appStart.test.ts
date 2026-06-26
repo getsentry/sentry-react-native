@@ -114,6 +114,39 @@ describe('App Start Integration', () => {
       );
     });
 
+    // Byte-level lock on the opt-in standalone `app.start` (Span V2) cold event. Guards the V2
+    // encoding (op `app.start`, name `App Start`, `app.vitals.start.*` attributes, no legacy
+    // per-type span or `app_start_*` measurement) against accidental regressions. Only dynamic
+    // ids/timestamps are matched.
+    it('matches the locked standalone (opt-in) cold app start event', async () => {
+      // Reset module-level state so the snapshot is hermetic and order-independent.
+      _clearAppStartEndData();
+      _clearRootComponentCreationTimestampMs();
+      mockAppStart({ cold: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent as unknown).toMatchSnapshot({
+        event_id: expect.any(String),
+        start_timestamp: expect.any(Number),
+        timestamp: expect.any(Number),
+        contexts: {
+          trace: {
+            span_id: expect.any(String),
+            trace_id: expect.any(String),
+          },
+        },
+        spans: [
+          {
+            span_id: expect.any(String),
+            parent_span_id: expect.any(String),
+            trace_id: expect.any(String),
+            start_timestamp: expect.any(Number),
+            timestamp: expect.any(Number),
+          },
+        ],
+      });
+    });
+
     it('Does not add any spans or measurements when App Start Span is longer than threshold', async () => {
       set__DEV__(false);
       mockTooLongAppStart();
@@ -989,6 +1022,35 @@ describe('App Start Integration', () => {
 
       const secondEvent = await integration.processEvent(getMinimalTransactionEvent(), {}, client);
       expect(secondEvent).toStrictEqual(getMinimalTransactionEvent());
+    });
+
+    // Byte-level lock on the default (non-opt-in) cold app start event. This snapshot was
+    // generated against the pre-change SDK and must remain identical after the standalone
+    // changes — proving the default path is unaffected. Only inherently dynamic ids/timestamps
+    // are matched; every op, description, span, measurement, and data key is locked.
+    it('matches the locked default (non-standalone) cold app start event', async () => {
+      // Reset module-level state so the snapshot is hermetic and order-independent.
+      _clearAppStartEndData();
+      _clearRootComponentCreationTimestampMs();
+      mockAppStart({ cold: true });
+      const actualEvent = await processEvent(getMinimalTransactionEvent());
+      expect(actualEvent as unknown).toMatchSnapshot({
+        start_timestamp: expect.any(Number),
+        spans: [
+          {},
+          {
+            span_id: expect.any(String),
+            start_timestamp: expect.any(Number),
+            timestamp: expect.any(Number),
+          },
+          {
+            span_id: expect.any(String),
+            parent_span_id: expect.any(String),
+            start_timestamp: expect.any(Number),
+            timestamp: expect.any(Number),
+          },
+        ],
+      });
     });
 
     it('Does not add app start span when marked as fetched from the native layer', async () => {
