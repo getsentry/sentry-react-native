@@ -549,9 +549,15 @@ export const appStartIntegration = ({
       return;
     }
 
+    // The age check guards against attaching a stale app start to a much-later navigation
+    // transaction. It is meaningless for standalone, where the transaction *is* the app start
+    // and `event.start_timestamp` still reflects the span creation time at this point (it is
+    // corrected to the native app start time further below). Applying it to standalone would
+    // discard valid app starts on slow devices, so skip it there — the duration check below
+    // still filters genuinely bogus (too long) app starts.
     const isAppStartWithinBounds =
       !!event.start_timestamp && appStartTimestampMs >= event.start_timestamp * 1_000 - MAX_APP_START_AGE_MS;
-    if (!__DEV__ && !isAppStartWithinBounds) {
+    if (!standalone && !__DEV__ && !isAppStartWithinBounds) {
       debug.warn('[AppStart] App start timestamp is too far in the past to be used for app start span.');
       appStartDataFlushed = true;
       return;

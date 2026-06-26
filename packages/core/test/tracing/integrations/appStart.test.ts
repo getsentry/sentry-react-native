@@ -165,12 +165,24 @@ describe('App Start Integration', () => {
       );
     });
 
-    it('Does not add App Start Span older than threshold', async () => {
+    // The age threshold (`MAX_APP_START_AGE_MS`) only makes sense for the non-standalone path,
+    // where app start is attached to a later navigation transaction. For standalone the
+    // transaction *is* the app start, and at the bounds check `event.start_timestamp` still holds
+    // the span creation time (corrected to the native app start time afterwards). On slow devices
+    // that gap can exceed the threshold, so the age check is skipped for standalone — a valid
+    // (short-duration) app start must still be sent in production builds.
+    it('Sends standalone app start whose timestamp is older than the age threshold (slow device)', async () => {
       set__DEV__(false);
-      mockTooOldAppStart();
+      const [timeOriginMilliseconds, appStartTimeMilliseconds, appStartDurationMilliseconds] = mockTooOldAppStart();
 
       const actualEvent = await captureStandAloneAppStart();
-      expect(actualEvent).toStrictEqual(undefined);
+      expect(actualEvent).toEqual(
+        expectEventWithStandaloneWarmAppStart(actualEvent, {
+          timeOriginMilliseconds,
+          appStartTimeMilliseconds,
+          appStartDurationMilliseconds,
+        }),
+      );
     });
 
     it('Does add App Start Span older than threshold in development builds', async () => {
