@@ -25,12 +25,17 @@ import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../uti
 import { NATIVE } from '../../wrapper';
 import { getRootSpanDiscardReason, getTransactionEventDiscardReason } from '../onSpanEndUtils';
 import {
+  APP_START as APP_START_OP,
   APP_START_COLD as APP_START_COLD_OP,
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
 import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../origin';
-import { SEMANTIC_ATTRIBUTE_SENTRY_OP } from '../semanticAttributes';
+import {
+  SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE,
+  SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+} from '../semanticAttributes';
 import { setMainThreadInfo } from '../span';
 import { createChildSpanJSON, createSpanJSON, getBundleStartTimestampMs } from '../utils';
 
@@ -436,7 +441,7 @@ export const appStartIntegration = ({
     const span = startInactiveSpan({
       forceTransaction: true,
       name: APP_START_TX_NAME,
-      op: UI_LOAD_OP,
+      op: APP_START_OP,
     });
     if (span instanceof SentryNonRecordingSpan) {
       // Tracing is disabled or the transaction was sampled
@@ -453,8 +458,11 @@ export const appStartIntegration = ({
     }
 
     await attachAppStartToTransactionEvent(event);
-    if (!event.spans || event.spans.length === 0) {
-      // No spans were added to the transaction, so we don't need to send it
+    // App start data is carried as Span V2 attributes on the root transaction, so the standalone
+    // transaction is meaningful even without breakdown child spans. If attachment was skipped
+    // (e.g. already flushed, or native data unavailable) the vitals attribute is absent — skip send.
+    if (event.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] === undefined) {
+      debug.log('[AppStart] No app start data attached to the standalone transaction. Skipping send.');
       return;
     }
 
@@ -571,21 +579,27 @@ export const appStartIntegration = ({
 
     appStartDataFlushed = true;
 
-    event.contexts.trace.data = event.contexts.trace.data || {};
-    event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_OP] = UI_LOAD_OP;
-    event.contexts.trace.op = UI_LOAD_OP;
-
     const origin = isRecordedAppStartEndTimestampMsManual ? SPAN_ORIGIN_MANUAL_APP_START : SPAN_ORIGIN_AUTO_APP_START;
+    // Standalone uses the Span V2 `app.start` op; non-standalone keeps the legacy `ui.load` op
+    // on the carrier navigation transaction.
+    const traceOp = standalone ? APP_START_OP : UI_LOAD_OP;
+
+    event.contexts.trace.data = event.contexts.trace.data || {};
+    event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_OP] = traceOp;
+    event.contexts.trace.op = traceOp;
     event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN] = origin;
     event.contexts.trace.origin = origin;
 
     const appStartTimestampSeconds = appStartTimestampMs / 1000;
+    const appStartEndTimestampSeconds = appStartEndTimestampMs / 1000;
     event.start_timestamp = appStartTimestampSeconds;
 
     event.spans = event.spans || [];
     /** event.spans reference */
     const children: SpanJSON[] = event.spans;
 
+    // Re-anchor the screen-load display spans to the process/app start time. These are only
+    // present on the non-standalone `ui.load` transaction; a no-op for the standalone `app.start`.
     const maybeTtidSpan = children.find(({ op }) => op === 'ui.load.initial_display');
     if (maybeTtidSpan) {
       maybeTtidSpan.start_timestamp = appStartTimestampSeconds;
@@ -598,7 +612,6 @@ export const appStartIntegration = ({
       setSpanDurationAsMeasurementOnTransactionEvent(event, 'time_to_full_display', maybeTtfdSpan);
     }
 
-    const appStartEndTimestampSeconds = appStartEndTimestampMs / 1000;
     if (event.timestamp && event.timestamp < appStartEndTimestampSeconds) {
       debug.log(
         '[AppStart] Transaction event timestamp is before app start end. Adjusting transaction event timestamp.',
@@ -606,19 +619,48 @@ export const appStartIntegration = ({
       event.timestamp = appStartEndTimestampSeconds;
     }
 
-    const op = appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP;
-    const appStartSpanJSON: SpanJSON = createSpanJSON({
-      op,
-      description: appStart.type === 'cold' ? 'Cold Start' : 'Warm Start',
-      start_timestamp: appStartTimestampSeconds,
-      timestamp: appStartEndTimestampSeconds,
-      trace_id: event.contexts.trace.trace_id,
-      parent_span_id: event.contexts.trace.span_id,
-      origin,
-    });
+    // Parent of the app start breakdown spans (JS bundle execution, native init):
+    // - Standalone (Span V2): the root `app.start` transaction itself, carrying the app start
+    //   vitals as attributes. No legacy per-type span or `app_start_*` measurement is emitted —
+    //   Relay backfills the V1 encoding from these attributes.
+    // - Non-standalone (legacy V1): a dedicated `app.start.cold`/`app.start.warm` child span plus
+    //   the `app_start_*` measurement, attached to the `ui.load` navigation transaction.
+    let breakdownParent: SpanJSON;
+    if (standalone) {
+      // Bound the standalone transaction exactly to the app start window.
+      event.timestamp = appStartEndTimestampSeconds;
+      event.contexts.trace.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] = appStartDurationMs;
+      event.contexts.trace.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE] = appStart.type;
+
+      // Synthetic parent referencing the root transaction span, so breakdown spans attach
+      // directly under it. `data` is shared with the root trace context so frame data lands
+      // on the root span.
+      breakdownParent = {
+        status: 'ok',
+        description: APP_START_TX_NAME,
+        op: traceOp,
+        origin,
+        span_id: event.contexts.trace.span_id,
+        trace_id: event.contexts.trace.trace_id,
+        parent_span_id: event.contexts.trace.parent_span_id,
+        start_timestamp: appStartTimestampSeconds,
+        timestamp: appStartEndTimestampSeconds,
+        data: event.contexts.trace.data,
+      };
+    } else {
+      breakdownParent = createSpanJSON({
+        op: appStart.type === 'cold' ? APP_START_COLD_OP : APP_START_WARM_OP,
+        description: appStart.type === 'cold' ? 'Cold Start' : 'Warm Start',
+        start_timestamp: appStartTimestampSeconds,
+        timestamp: appStartEndTimestampSeconds,
+        trace_id: event.contexts.trace.trace_id,
+        parent_span_id: event.contexts.trace.span_id,
+        origin,
+      });
+    }
 
     if (appStartEndData?.endFrames) {
-      attachFrameDataToSpan(appStartSpanJSON, appStartEndData.endFrames);
+      attachFrameDataToSpan(breakdownParent, appStartEndData.endFrames);
 
       try {
         const framesDelay = await Promise.race([
@@ -626,36 +668,40 @@ export const appStartIntegration = ({
           new Promise<null>(resolve => setTimeout(() => resolve(null), 2_000)),
         ]);
         if (framesDelay != null) {
-          appStartSpanJSON.data = appStartSpanJSON.data || {};
-          appStartSpanJSON.data['frames.delay'] = framesDelay;
+          breakdownParent.data = breakdownParent.data || {};
+          breakdownParent.data['frames.delay'] = framesDelay;
         }
       } catch (error) {
         debug.log('[AppStart] Error while fetching frames delay for app start span.', error);
       }
     }
 
-    const jsExecutionSpanJSON = createJSExecutionStartSpan(appStartSpanJSON, rootComponentCreationTimestampMs);
+    const jsExecutionSpanJSON = createJSExecutionStartSpan(breakdownParent, rootComponentCreationTimestampMs);
 
     const appStartSpans = [
-      appStartSpanJSON,
+      // In standalone mode the parent IS the root transaction, so it is not pushed as a child
+      // span; only its breakdown children are added.
+      ...(standalone ? [] : [breakdownParent]),
       ...(jsExecutionSpanJSON ? [jsExecutionSpanJSON] : []),
-      ...convertNativeSpansToSpanJSON(appStartSpanJSON, appStart.spans),
+      ...convertNativeSpansToSpanJSON(breakdownParent, appStart.spans),
     ];
 
     children.push(...appStartSpans);
     debug.log('[AppStart] Added app start spans to transaction event.', JSON.stringify(appStartSpans, undefined, 2));
 
-    const measurementKey = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
-    const measurementValue = {
-      value: appStartDurationMs,
-      unit: 'millisecond',
-    };
-    event.measurements = event.measurements || {};
-    event.measurements[measurementKey] = measurementValue;
-    debug.log(
-      '[AppStart] Added app start measurement to transaction event.',
-      JSON.stringify(measurementValue, undefined, 2),
-    );
+    if (!standalone) {
+      const measurementKey = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
+      const measurementValue = {
+        value: appStartDurationMs,
+        unit: 'millisecond',
+      };
+      event.measurements = event.measurements || {};
+      event.measurements[measurementKey] = measurementValue;
+      debug.log(
+        '[AppStart] Added app start measurement to transaction event.',
+        JSON.stringify(measurementValue, undefined, 2),
+      );
+    }
   }
 
   const resetAppStartDataFlushed = (): void => {
