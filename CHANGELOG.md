@@ -12,6 +12,12 @@
 
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
 
+### Dependencies
+
+- Bump Android SDK from v8.45.0 to v8.46.0 ([#6357](https://github.com/getsentry/sentry-react-native/pull/6357))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8460)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.45.0...8.46.0)
+
 ## 8.16.0
 
 ### Features
