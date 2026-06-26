@@ -92,6 +92,18 @@
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#351)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.0...3.5.1)
 
+## 8.14.1
+
+### Fixes
+
+- Fix Android Gradle source map upload being silently skipped on some occasions ([#6320](https://github.com/getsentry/sentry-react-native/pull/6320))
+
+### Dependencies
+
+- Bump Android SDK from v8.43.1 to v8.43.3 ([#6334](https://github.com/getsentry/sentry-react-native/pull/6334))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8433)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.1...8.43.3)
+
 ## 8.14.0
 
 ### Features
