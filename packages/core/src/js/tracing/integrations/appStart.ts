@@ -643,7 +643,9 @@ export const appStartIntegration = ({
       setSpanDurationAsMeasurementOnTransactionEvent(event, 'time_to_full_display', maybeTtfdSpan);
     }
 
-    if (event.timestamp && event.timestamp < appStartEndTimestampSeconds) {
+    // Non-standalone only: extend the carrier transaction to cover the app start window if it ended
+    // earlier. Standalone sets its end timestamp explicitly below.
+    if (!standalone && event.timestamp && event.timestamp < appStartEndTimestampSeconds) {
       debug.log(
         '[AppStart] Transaction event timestamp is before app start end. Adjusting transaction event timestamp.',
       );
@@ -663,19 +665,15 @@ export const appStartIntegration = ({
       event.contexts.trace.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] = appStartDurationMs;
       event.contexts.trace.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE] = appStart.type;
 
-      // Synthetic parent referencing the root transaction span, so breakdown spans attach
-      // directly under it. `data` is shared with the root trace context so frame data lands
-      // on the root span.
+      // Minimal parent referencing the root transaction span, so the breakdown spans attach
+      // directly under it (the helpers only read op/origin/span_id/trace_id/start_timestamp).
+      // `data` is shared with the root trace context so frame data lands on the root span.
       breakdownParent = {
-        status: 'ok',
-        description: APP_START_TX_NAME,
         op: traceOp,
         origin,
         span_id: event.contexts.trace.span_id,
         trace_id: event.contexts.trace.trace_id,
-        parent_span_id: event.contexts.trace.parent_span_id,
         start_timestamp: appStartTimestampSeconds,
-        timestamp: appStartEndTimestampSeconds,
         data: event.contexts.trace.data,
       };
     } else {
