@@ -43,9 +43,8 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   build-ios:
-    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }} on ${{matrix.runner_provider}}
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    runs-on: macos-26-xlarge
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -61,7 +60,6 @@ jobs:
         rn-architecture: ["new"]
         ios-use-frameworks: ["no-frameworks"]
         build-type: ["dev", "production"]
-        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -75,38 +73,7 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - name: Setup asdf Node.js (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        run: |
-          asdf global nodejs system
-          corepack enable
-
-      - uses: actions/cache@v4
-        name: Cache Ruby
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          path: |
-            ~/.rbenv/versions
-            ~/.rbenv/cache
-          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - uses: actions/cache@v4
-        name: Cache Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        with:
-          path: ~/.asdf/installs/ruby
-          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - name: Install Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: |
-          asdf install ruby 3.3.0
-          asdf local ruby 3.3.0
-          bundle install
-
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
-        if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
           ruby-version: "3.3.0" # based on what is used in the sample
@@ -156,7 +123,7 @@ jobs:
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios-${{ matrix.runner_provider }}
+          name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios
           path: ${{ env.IOS_APP_ARCHIVE_PATH }}
           retention-days: 1
 
@@ -164,7 +131,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.runner_provider }}-logs
+          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
 
   build-android:
@@ -244,9 +211,8 @@ jobs:
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android/*.log
 
   build-macos:
-    name: Build legacy macos ${{ matrix.build-type }} on ${{matrix.runner_provider}}
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:sequoia"]') || fromJSON('["ghcr.io/cirruslabs/macos-sequoia-xcode:16.4", "runner_group_id:10"]') }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    name: Build legacy macos ${{ matrix.build-type }}
+    runs-on: macos-15-xlarge
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -260,7 +226,6 @@ jobs:
       fail-fast: false
       matrix:
         build-type: ["dev", "production"]
-        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -274,38 +239,7 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - name: Setup asdf Node.js (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        run: |
-          asdf global nodejs system
-          corepack enable
-
-      - uses: actions/cache@v4
-        name: Cache Ruby
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          path: |
-            ~/.rbenv/versions
-            ~/.rbenv/cache
-          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - uses: actions/cache@v4
-        name: Cache Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        with:
-          path: ~/.asdf/installs/ruby
-          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - name: Install Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        working-directory: samples/react-native-macos
-        run: |
-          asdf install ruby 3.3.0
-          asdf local ruby 3.3.0
-          bundle install
-
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
-        if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: samples/react-native-macos
           ruby-version: "3.3.0" # based on what is used in the sample
@@ -351,7 +285,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-${{ matrix.runner_provider }}-logs
+          name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
           path: samples/react-native-macos/macos/*.log
 
   test-ios:
@@ -380,7 +314,7 @@ jobs:
       - name: Download iOS App Archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: sample-rn-new-production-no-frameworks-ios-${{ matrix.runner_provider }}
+          name: sample-rn-new-production-no-frameworks-ios
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
 
       - name: Unzip iOS App Archive
