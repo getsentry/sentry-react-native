@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#5839](https://github.com/getsentry/sentry-react-native/issues/5839))
+- Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
 
 ### Dependencies
