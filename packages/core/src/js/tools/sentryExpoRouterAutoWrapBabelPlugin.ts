@@ -69,28 +69,39 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
           ? boundarySpecifier.exported.name
           : boundarySpecifier.exported.value;
 
-        // Build the replacement nodes.
-        const originalImport = t.importDeclaration(
-          [t.importSpecifier(t.identifier(ORIGINAL_BOUNDARY_LOCAL), t.identifier(BOUNDARY_EXPORT))],
-          t.stringLiteral(EXPO_ROUTER_PACKAGE),
-        );
-        const wrapImport = t.importDeclaration(
-          [t.importSpecifier(t.identifier(WRAP_FN_LOCAL), t.identifier('wrapExpoRouterErrorBoundary'))],
-          t.stringLiteral(SENTRY_PACKAGE),
-        );
-        const wrappedExport = t.exportNamedDeclaration(
-          t.variableDeclaration('const', [
-            t.variableDeclarator(
-              t.identifier(exportedName),
-              t.callExpression(t.identifier(WRAP_FN_LOCAL), [t.identifier(ORIGINAL_BOUNDARY_LOCAL)]),
+        // Emit the two helper imports only on the first wrap in this file.
+        // Multiple `export { ErrorBoundary } from 'expo-router'` declarations
+        // in the same file would otherwise inject duplicate module bindings,
+        // which is illegal in ES modules.
+        const HELPERS_KEY = 'sentryAutoWrapHelpersInjected';
+        const helpersAlreadyInjected = state.get(HELPERS_KEY) === true;
+        const replacements: BabelTypes.Statement[] = [];
+        if (!helpersAlreadyInjected) {
+          replacements.push(
+            t.importDeclaration(
+              [t.importSpecifier(t.identifier(ORIGINAL_BOUNDARY_LOCAL), t.identifier(BOUNDARY_EXPORT))],
+              t.stringLiteral(EXPO_ROUTER_PACKAGE),
             ),
-          ]),
-          [],
+            t.importDeclaration(
+              [t.importSpecifier(t.identifier(WRAP_FN_LOCAL), t.identifier('wrapExpoRouterErrorBoundary'))],
+              t.stringLiteral(SENTRY_PACKAGE),
+            ),
+          );
+          state.set(HELPERS_KEY, true);
+        }
+        replacements.push(
+          t.exportNamedDeclaration(
+            t.variableDeclaration('const', [
+              t.variableDeclarator(
+                t.identifier(exportedName),
+                t.callExpression(t.identifier(WRAP_FN_LOCAL), [t.identifier(ORIGINAL_BOUNDARY_LOCAL)]),
+              ),
+            ]),
+            [],
+          ),
         );
 
         const remainingSpecifiers = node.specifiers.filter((_, i) => i !== boundarySpecifierIndex);
-
-        const replacements: BabelTypes.Statement[] = [originalImport, wrapImport, wrappedExport];
         if (remainingSpecifiers.length > 0) {
           replacements.push(t.exportNamedDeclaration(null, remainingSpecifiers, t.cloneNode(node.source)));
         }

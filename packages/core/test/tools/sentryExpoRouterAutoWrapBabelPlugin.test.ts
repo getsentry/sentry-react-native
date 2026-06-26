@@ -51,10 +51,18 @@ describe('sentryExpoRouterAutoWrapBabelPlugin', () => {
   it('wraps every ErrorBoundary re-export when several appear in the same file', () => {
     const src = `export { ErrorBoundary } from 'expo-router';\nexport { ErrorBoundary as Other } from 'expo-router';`;
     const out = transform(src);
-    const occurrences = out.match(/__sentryWrapExpoRouterErrorBoundary\(/g)?.length ?? 0;
-    expect(occurrences).toBe(2);
+    const wrapCalls = out.match(/__sentryWrapExpoRouterErrorBoundary\(/g)?.length ?? 0;
+    expect(wrapCalls).toBe(2);
     expect(out).toMatch(/export const ErrorBoundary = __sentryWrapExpoRouterErrorBoundary/);
     expect(out).toMatch(/export const Other = __sentryWrapExpoRouterErrorBoundary/);
+    // Helper imports must be emitted exactly once per file — duplicates are
+    // an ES module syntax error.
+    const expoImports =
+      out.match(/import\s*\{\s*ErrorBoundary as __sentryOriginalExpoErrorBoundary\s*\}/g)?.length ?? 0;
+    const sentryImports =
+      out.match(/import\s*\{\s*wrapExpoRouterErrorBoundary as __sentryWrapExpoRouterErrorBoundary\s*\}/g)?.length ?? 0;
+    expect(expoImports).toBe(1);
+    expect(sentryImports).toBe(1);
   });
 
   it('is idempotent — running the plugin twice does not double-wrap', () => {
