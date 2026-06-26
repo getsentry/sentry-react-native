@@ -90,16 +90,20 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
           state.set(HELPERS_KEY, true);
         }
 
+        // Generate a unique local binding for the wrapped boundary instead of
+        // declaring `const <exportedName> = ...` directly. That avoids clashing
+        // with an existing top-level binding of the same name in the file
+        // (e.g. `import { ErrorBoundary } from 'expo-router'` used elsewhere)
+        // which would otherwise produce a duplicate-binding compile error.
+        const wrappedLocal = path.scope.generateUidIdentifier(`wrapped${exportedName}`);
         const replacements: BabelTypes.Statement[] = [
-          t.exportNamedDeclaration(
-            t.variableDeclaration('const', [
-              t.variableDeclarator(
-                t.identifier(exportedName),
-                t.callExpression(t.identifier(WRAP_FN_LOCAL), [t.identifier(ORIGINAL_BOUNDARY_LOCAL)]),
-              ),
-            ]),
-            [],
-          ),
+          t.variableDeclaration('const', [
+            t.variableDeclarator(
+              wrappedLocal,
+              t.callExpression(t.identifier(WRAP_FN_LOCAL), [t.identifier(ORIGINAL_BOUNDARY_LOCAL)]),
+            ),
+          ]),
+          t.exportNamedDeclaration(null, [t.exportSpecifier(t.cloneNode(wrappedLocal), t.identifier(exportedName))]),
         ];
 
         const remainingSpecifiers = node.specifiers.filter((_, i) => i !== boundarySpecifierIndex);

@@ -21,24 +21,37 @@ describe('sentryExpoRouterAutoWrapBabelPlugin', () => {
     expect(out).toMatch(
       /import\s*\{\s*wrapExpoRouterErrorBoundary as __sentryWrapExpoRouterErrorBoundary\s*\}\s*from\s*['"]@sentry\/react-native['"]/,
     );
-    expect(out).toContain(
-      `export const ErrorBoundary = __sentryWrapExpoRouterErrorBoundary(__sentryOriginalExpoErrorBoundary)`,
+    expect(out).toMatch(
+      /const\s+_wrappedErrorBoundary\w*\s*=\s*__sentryWrapExpoRouterErrorBoundary\(__sentryOriginalExpoErrorBoundary\)/,
     );
+    expect(out).toMatch(/export\s*\{\s*_wrappedErrorBoundary\w*\s+as\s+ErrorBoundary\s*\}/);
   });
 
   it('preserves the user-chosen name on aliased re-exports', () => {
     const out = transform(`export { ErrorBoundary as RouteErrorBoundary } from 'expo-router';`);
-    expect(out).toContain(
-      `export const RouteErrorBoundary = __sentryWrapExpoRouterErrorBoundary(__sentryOriginalExpoErrorBoundary)`,
-    );
+    expect(out).toMatch(/export\s*\{\s*_wrappedRouteErrorBoundary\w*\s+as\s+RouteErrorBoundary\s*\}/);
   });
 
   it('keeps sibling specifiers untouched on mixed re-exports', () => {
     const out = transform(`export { ErrorBoundary, Stack } from 'expo-router';`);
-    expect(out).toContain(
-      `export const ErrorBoundary = __sentryWrapExpoRouterErrorBoundary(__sentryOriginalExpoErrorBoundary)`,
-    );
+    expect(out).toMatch(/export\s*\{\s*_wrappedErrorBoundary\w*\s+as\s+ErrorBoundary\s*\}/);
     expect(out).toMatch(/export\s*\{\s*Stack\s*\}\s*from\s*['"]expo-router['"]/);
+  });
+
+  it('does not clash with an existing local `ErrorBoundary` binding in the same file', () => {
+    // The user uses ErrorBoundary locally AND re-exports it for Expo Router.
+    // Declaring `export const ErrorBoundary = ...` would duplicate the binding
+    // introduced by the existing `import { ErrorBoundary }` line and fail to
+    // compile. The wrapped value must use a unique local instead.
+    const src = [
+      `import { ErrorBoundary } from 'expo-router';`,
+      `const Local = ErrorBoundary;`,
+      `export { ErrorBoundary } from 'expo-router';`,
+    ].join('\n');
+    const out = transform(src);
+    // The wrapped value uses a fresh uid — no second `const ErrorBoundary =` is emitted.
+    expect(out).not.toMatch(/const\s+ErrorBoundary\s*=/);
+    expect(out).toMatch(/export\s*\{\s*_wrappedErrorBoundary\w*\s+as\s+ErrorBoundary\s*\}/);
   });
 
   it('hoists helper imports to the top of the file, never mid-file', () => {
@@ -80,8 +93,8 @@ describe('sentryExpoRouterAutoWrapBabelPlugin', () => {
     const out = transform(src);
     const wrapCalls = out.match(/__sentryWrapExpoRouterErrorBoundary\(/g)?.length ?? 0;
     expect(wrapCalls).toBe(2);
-    expect(out).toMatch(/export const ErrorBoundary = __sentryWrapExpoRouterErrorBoundary/);
-    expect(out).toMatch(/export const Other = __sentryWrapExpoRouterErrorBoundary/);
+    expect(out).toMatch(/export\s*\{\s*_wrappedErrorBoundary\w*\s+as\s+ErrorBoundary\s*\}/);
+    expect(out).toMatch(/export\s*\{\s*_wrappedOther\w*\s+as\s+Other\s*\}/);
     // Helper imports must be emitted exactly once per file — duplicates are
     // an ES module syntax error.
     const expoImports =
