@@ -41,6 +41,33 @@ describe('sentryExpoRouterAutoWrapBabelPlugin', () => {
     expect(out).toMatch(/export\s*\{\s*Stack\s*\}\s*from\s*['"]expo-router['"]/);
   });
 
+  it('hoists helper imports to the top of the file, never mid-file', () => {
+    // A common shape: imports + non-import statements + the boundary re-export.
+    // Mid-file `import` declarations are invalid in strict ESM environments
+    // (e.g. Hermes), so the helpers must be pushed up to the imports block.
+    const src = [
+      `import { Stack } from 'expo-router';`,
+      `const greeting = 'hi';`,
+      `export { ErrorBoundary } from 'expo-router';`,
+    ].join('\n');
+    const out = transform(src);
+    const lines = out
+      .split('\n')
+      .map(l => l.trim())
+      .filter(Boolean);
+    const firstNonImport = lines.findIndex(l => !l.startsWith('import'));
+    const helperLineIndexes = lines
+      .map((l, i) =>
+        (l.includes('__sentryOriginalExpoErrorBoundary') || l.includes('__sentryWrapExpoRouterErrorBoundary')) &&
+        l.startsWith('import')
+          ? i
+          : -1,
+      )
+      .filter(i => i !== -1);
+    expect(helperLineIndexes.length).toBe(2);
+    helperLineIndexes.forEach(i => expect(i).toBeLessThan(firstNonImport));
+  });
+
   it('leaves unrelated re-exports alone', () => {
     const src = `export { Stack } from 'expo-router';\nexport { foo } from 'other-pkg';`;
     const out = transform(src);

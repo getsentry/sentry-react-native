@@ -69,15 +69,15 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
           ? boundarySpecifier.exported.name
           : boundarySpecifier.exported.value;
 
-        // Emit the two helper imports only on the first wrap in this file.
-        // Multiple `export { ErrorBoundary } from 'expo-router'` declarations
-        // in the same file would otherwise inject duplicate module bindings,
-        // which is illegal in ES modules.
+        // Hoist the two helper imports to the top of the Program body so
+        // they sit alongside the file's other `import` declarations rather
+        // than landing mid-file. Some toolchains (e.g. Hermes) are strict
+        // about import placement, and mid-file imports are also harder to
+        // read. Inject once per file so a second wrap reuses the bindings.
         const HELPERS_KEY = 'sentryAutoWrapHelpersInjected';
-        const helpersAlreadyInjected = state.get(HELPERS_KEY) === true;
-        const replacements: BabelTypes.Statement[] = [];
-        if (!helpersAlreadyInjected) {
-          replacements.push(
+        if (state.get(HELPERS_KEY) !== true) {
+          const program = path.scope.getProgramParent().path as NodePath<BabelTypes.Program>;
+          program.unshiftContainer('body', [
             t.importDeclaration(
               [t.importSpecifier(t.identifier(ORIGINAL_BOUNDARY_LOCAL), t.identifier(BOUNDARY_EXPORT))],
               t.stringLiteral(EXPO_ROUTER_PACKAGE),
@@ -86,10 +86,11 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
               [t.importSpecifier(t.identifier(WRAP_FN_LOCAL), t.identifier('wrapExpoRouterErrorBoundary'))],
               t.stringLiteral(SENTRY_PACKAGE),
             ),
-          );
+          ]);
           state.set(HELPERS_KEY, true);
         }
-        replacements.push(
+
+        const replacements: BabelTypes.Statement[] = [
           t.exportNamedDeclaration(
             t.variableDeclaration('const', [
               t.variableDeclarator(
@@ -99,7 +100,7 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
             ]),
             [],
           ),
-        );
+        ];
 
         const remainingSpecifiers = node.specifiers.filter((_, i) => i !== boundarySpecifierIndex);
         if (remainingSpecifiers.length > 0) {
