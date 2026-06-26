@@ -294,7 +294,7 @@ export interface BaseReactNativeOptions {
    * start/end/fail, execution start/end/fail) to the higher-level Sentry
    * instrumentation (crash attribution, per-module spans, aggregated stats).
    *
-   * Only takes effect on React Native New Architecture. On Old Architecture
+   * Only takes effect on React Native 0.75+ New Architecture. On Old Architecture
    * this option is a no-op.
    *
    * The native perf logger is installed lazily on the first opt-in: while
