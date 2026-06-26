@@ -1456,6 +1456,44 @@ describe('appLoaded() standalone mode', () => {
     expect(autoEvent?.start_timestamp).toBeCloseTo(appStartTimeMilliseconds / 1000, 1);
   });
 
+  it('does not send a second standalone transaction when appLoaded() arrives after the deferred auto-capture fired', async () => {
+    jest.useFakeTimers();
+
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    mockAppStart({ cold: true });
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const standaloneClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(standaloneClient);
+    integration.setup(standaloneClient);
+    standaloneClient.addIntegration(integration);
+
+    // Auto-capture defers the send.
+    const autoTimeSeconds = Date.now() / 1000;
+    mockFunction(timestampInSeconds).mockReturnValue(autoTimeSeconds);
+    await _captureAppStart({ isManual: false });
+    expect(standaloneClient.eventQueue.length).toBe(0);
+
+    // The deferred macrotask fires first — transaction #1 is sent.
+    jest.runAllTimers();
+    jest.useRealTimers();
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(standaloneClient.eventQueue.length).toBe(1);
+
+    // appLoaded() arrives later (a separate macrotask). The cancel is a no-op since the deferred
+    // already fired, so without the idempotency guard this would send a duplicate.
+    await _appLoaded();
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(standaloneClient.eventQueue.length).toBe(1);
+  });
+
   it('allows auto-capture again after isAppLoadedManuallyInvoked is reset', async () => {
     getCurrentScope().clear();
     getIsolationScope().clear();

@@ -300,6 +300,10 @@ export const appStartIntegration = ({
   let firstStartedActiveRootSpan: Span | undefined = undefined;
   let cachedNativeAppStart: NativeAppStartResponse | null | undefined = undefined;
   let deferredStandaloneTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+  // Whether a standalone `app.start` transaction has already been sent for this app run.
+  // Guards against a duplicate send when `appLoaded()` arrives after the deferred auto-capture
+  // has already fired (the cancel-based dedup only works while the deferred send is still pending).
+  let standaloneAppStartSent = false;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -329,6 +333,7 @@ export const appStartIntegration = ({
         firstStartedActiveRootSpan = undefined;
         isAppLoadedManuallyInvoked = false;
         cachedNativeAppStart = undefined;
+        standaloneAppStartSent = false;
         if (deferredStandaloneTimeout !== undefined) {
           clearTimeout(deferredStandaloneTimeout);
           deferredStandaloneTimeout = undefined;
@@ -421,6 +426,13 @@ export const appStartIntegration = ({
       return;
     }
 
+    if (standaloneAppStartSent) {
+      // A standalone transaction was already sent for this app run (e.g. the deferred auto-capture
+      // fired before a late appLoaded() call). Don't send a duplicate.
+      debug.log('[AppStart] Standalone app start transaction already sent. Skipping.');
+      return;
+    }
+
     debug.log('[AppStart] App start tracking standalone root span (transaction).');
 
     if (!appStartEndData?.endFrames && NATIVE.enableNative) {
@@ -468,6 +480,7 @@ export const appStartIntegration = ({
 
     const scope = getCapturedScopesOnSpan(span).scope || getCurrentScope();
     scope.captureEvent(event);
+    standaloneAppStartSent = true;
   }
 
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
