@@ -25,8 +25,9 @@ import type { NodePath, PluginObj, PluginPass, types as BabelTypes } from '@babe
  * `export { ErrorBoundary, Stack } from 'expo-router'` keep the non-boundary
  * specifiers in place.
  *
- * The transform is idempotent: a file that has already been transformed
- * (recognised by the marker import) is left alone on subsequent runs.
+ * The transform is structurally idempotent: after the rewrite the re-export
+ * is no longer an `export ... from 'expo-router'`, so a second pass over the
+ * same file finds nothing to transform.
  *
  * Files inside `node_modules` are never transformed.
  */
@@ -48,13 +49,6 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
       ExportNamedDeclaration(path: NodePath<BabelTypes.ExportNamedDeclaration>, state: PluginPass) {
         const node = path.node;
         if (!node.source || node.source.value !== EXPO_ROUTER_PACKAGE) {
-          return;
-        }
-
-        // Idempotency: if we've already injected the wrap import in this file,
-        // don't re-transform any re-exports below it.
-        const program = path.findParent(p => p.isProgram()) as NodePath<BabelTypes.Program> | null;
-        if (program && hasMarkerImport(t, program)) {
           return;
         }
 
@@ -105,15 +99,4 @@ export default function sentryExpoRouterAutoWrapBabelPlugin({ types: t }: BabelA
       },
     },
   };
-}
-
-function hasMarkerImport(t: typeof BabelTypes, program: NodePath<BabelTypes.Program>): boolean {
-  return program.node.body.some(stmt => {
-    if (!t.isImportDeclaration(stmt) || stmt.source.value !== SENTRY_PACKAGE) {
-      return false;
-    }
-    return stmt.specifiers.some(
-      s => t.isImportSpecifier(s) && t.isIdentifier(s.local) && s.local.name === WRAP_FN_LOCAL,
-    );
-  });
 }

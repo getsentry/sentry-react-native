@@ -48,6 +48,15 @@ describe('sentryExpoRouterAutoWrapBabelPlugin', () => {
     expect(out).not.toContain('@sentry/react-native');
   });
 
+  it('wraps every ErrorBoundary re-export when several appear in the same file', () => {
+    const src = `export { ErrorBoundary } from 'expo-router';\nexport { ErrorBoundary as Other } from 'expo-router';`;
+    const out = transform(src);
+    const occurrences = out.match(/__sentryWrapExpoRouterErrorBoundary\(/g)?.length ?? 0;
+    expect(occurrences).toBe(2);
+    expect(out).toMatch(/export const ErrorBoundary = __sentryWrapExpoRouterErrorBoundary/);
+    expect(out).toMatch(/export const Other = __sentryWrapExpoRouterErrorBoundary/);
+  });
+
   it('is idempotent — running the plugin twice does not double-wrap', () => {
     const first = transform(`export { ErrorBoundary } from 'expo-router';`);
     const second = transform(first);
