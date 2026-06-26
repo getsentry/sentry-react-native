@@ -1494,6 +1494,60 @@ describe('appLoaded() standalone mode', () => {
     expect(standaloneClient.eventQueue.length).toBe(1);
   });
 
+  it('does not send a second standalone transaction when appLoaded() races an in-flight capture', async () => {
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+    // Reset module-level state so the test is hermetic (clears isAppLoadedManuallyInvoked so
+    // appLoaded() actually runs its capture, and any leaked app start end data).
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+
+    const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+    // Pin the clock so appLoaded()'s app-start-end stays within bounds of the native app start.
+    mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000);
+
+    // Gate the native app start fetch so the first capture stays in flight (suspended at an
+    // await) while appLoaded() races in.
+    let releaseFetch: () => void = () => {};
+    const gate = new Promise<void>(resolve => {
+      releaseFetch = resolve;
+    });
+    const gatedResponse: NativeAppStartResponse = {
+      type: 'cold',
+      app_start_timestamp_ms: appStartTimeMilliseconds,
+      has_fetched: false,
+      spans: [],
+    };
+    mockFunction(NATIVE.fetchNativeAppStart).mockReturnValue(gate.then(() => gatedResponse));
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const standaloneClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(standaloneClient);
+    integration.setup(standaloneClient);
+    standaloneClient.addIntegration(integration);
+
+    // First capture starts and suspends awaiting the gated native fetch.
+    const firstCapture = integration.captureStandaloneAppStart();
+    // appLoaded() races in while the first capture is still in flight.
+    const appLoadedCall = _appLoaded();
+
+    // Flush microtasks/macrotasks: the racing appLoaded() capture must observe the in-flight
+    // guard and bail. The first capture is still gated, so nothing has been sent yet.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(standaloneClient.eventQueue.length).toBe(0);
+
+    // Release the gate and let both calls settle — only the first capture sends.
+    releaseFetch();
+    await Promise.all([firstCapture, appLoadedCall]);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(standaloneClient.eventQueue.length).toBe(1);
+  });
+
   it('allows auto-capture again after isAppLoadedManuallyInvoked is reset', async () => {
     getCurrentScope().clear();
     getIsolationScope().clear();

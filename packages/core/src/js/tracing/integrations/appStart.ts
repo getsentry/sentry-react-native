@@ -304,6 +304,11 @@ export const appStartIntegration = ({
   // Guards against a duplicate send when `appLoaded()` arrives after the deferred auto-capture
   // has already fired (the cancel-based dedup only works while the deferred send is still pending).
   let standaloneAppStartSent = false;
+  // Whether a standalone capture is currently in flight. `captureStandaloneAppStart` awaits native
+  // work before it sets `standaloneAppStartSent`, so without this an `appLoaded()` call racing an
+  // in-flight deferred capture could pass the guard and emit a second transaction. Set synchronously
+  // at entry (no `await` before it) so the check-and-set is atomic in the single-threaded JS model.
+  let standaloneCaptureInProgress = false;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -426,61 +431,68 @@ export const appStartIntegration = ({
       return;
     }
 
-    if (standaloneAppStartSent) {
-      // A standalone transaction was already sent for this app run (e.g. the deferred auto-capture
-      // fired before a late appLoaded() call). Don't send a duplicate.
-      debug.log('[AppStart] Standalone app start transaction already sent. Skipping.');
+    if (standaloneAppStartSent || standaloneCaptureInProgress) {
+      // A standalone transaction was already sent for this app run, or a capture is already in
+      // flight (e.g. the deferred auto-capture is awaiting native work when a late appLoaded()
+      // arrives). Either way, don't start a second send.
+      debug.log('[AppStart] Standalone app start capture already sent or in progress. Skipping.');
       return;
     }
 
-    debug.log('[AppStart] App start tracking standalone root span (transaction).');
+    // Marked synchronously (no await before this point) so a racing appLoaded() observes it.
+    standaloneCaptureInProgress = true;
+    try {
+      debug.log('[AppStart] App start tracking standalone root span (transaction).');
 
-    if (!appStartEndData?.endFrames && NATIVE.enableNative) {
-      try {
-        const endFrames = await NATIVE.fetchNativeFrames();
-        debug.log('[AppStart] Captured end frames for standalone app start.', endFrames);
+      if (!appStartEndData?.endFrames && NATIVE.enableNative) {
+        try {
+          const endFrames = await NATIVE.fetchNativeFrames();
+          debug.log('[AppStart] Captured end frames for standalone app start.', endFrames);
 
-        const currentTimestamp = appStartEndData?.timestampMs || timestampInSeconds() * 1000;
-        _setAppStartEndData({
-          timestampMs: currentTimestamp,
-          endFrames,
-        });
-      } catch (error) {
-        debug.log('[AppStart] Failed to capture frames for standalone app start.', error);
+          const currentTimestamp = appStartEndData?.timestampMs || timestampInSeconds() * 1000;
+          _setAppStartEndData({
+            timestampMs: currentTimestamp,
+            endFrames,
+          });
+        } catch (error) {
+          debug.log('[AppStart] Failed to capture frames for standalone app start.', error);
+        }
       }
+
+      const span = startInactiveSpan({
+        forceTransaction: true,
+        name: APP_START_TX_NAME,
+        op: APP_START_OP,
+      });
+      if (span instanceof SentryNonRecordingSpan) {
+        // Tracing is disabled or the transaction was sampled
+        return;
+      }
+
+      setEndTimeValue(span, timestampInSeconds());
+      _client.emit('spanEnd', span);
+
+      const event = convertSpanToTransaction(span);
+      if (!event) {
+        debug.warn('[AppStart] Failed to convert App Start span to transaction.');
+        return;
+      }
+
+      await attachAppStartToTransactionEvent(event);
+      // App start data is carried as Span V2 attributes on the root transaction, so the standalone
+      // transaction is meaningful even without breakdown child spans. If attachment was skipped
+      // (e.g. already flushed, or native data unavailable) the vitals attribute is absent — skip send.
+      if (event.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] === undefined) {
+        debug.log('[AppStart] No app start data attached to the standalone transaction. Skipping send.');
+        return;
+      }
+
+      const scope = getCapturedScopesOnSpan(span).scope || getCurrentScope();
+      scope.captureEvent(event);
+      standaloneAppStartSent = true;
+    } finally {
+      standaloneCaptureInProgress = false;
     }
-
-    const span = startInactiveSpan({
-      forceTransaction: true,
-      name: APP_START_TX_NAME,
-      op: APP_START_OP,
-    });
-    if (span instanceof SentryNonRecordingSpan) {
-      // Tracing is disabled or the transaction was sampled
-      return;
-    }
-
-    setEndTimeValue(span, timestampInSeconds());
-    _client.emit('spanEnd', span);
-
-    const event = convertSpanToTransaction(span);
-    if (!event) {
-      debug.warn('[AppStart] Failed to convert App Start span to transaction.');
-      return;
-    }
-
-    await attachAppStartToTransactionEvent(event);
-    // App start data is carried as Span V2 attributes on the root transaction, so the standalone
-    // transaction is meaningful even without breakdown child spans. If attachment was skipped
-    // (e.g. already flushed, or native data unavailable) the vitals attribute is absent — skip send.
-    if (event.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] === undefined) {
-      debug.log('[AppStart] No app start data attached to the standalone transaction. Skipping send.');
-      return;
-    }
-
-    const scope = getCapturedScopesOnSpan(span).scope || getCurrentScope();
-    scope.captureEvent(event);
-    standaloneAppStartSent = true;
   }
 
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
