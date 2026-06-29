@@ -1548,6 +1548,46 @@ describe('appLoaded() standalone mode', () => {
     expect(standaloneClient.eventQueue.length).toBe(1);
   });
 
+  it('captures once per run and re-captures for a new run after runApplication', async () => {
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+
+    const { mockedOnRunApplication } = mockAppRegistryIntegration();
+    mockAppStart({ cold: true });
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const standaloneClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(standaloneClient);
+    integration.setup(standaloneClient);
+    integration.afterAllSetup(standaloneClient);
+
+    // Run 1 captures the standalone transaction.
+    await integration.captureStandaloneAppStart();
+    expect(standaloneClient.event?.contexts?.trace?.op).toBe(APP_START_OP);
+
+    // A second capture for the same run is skipped (at most one per run).
+    standaloneClient.event = undefined;
+    await integration.captureStandaloneAppStart();
+    expect(standaloneClient.event).toBeUndefined();
+
+    // runApplication marks a new app run and resets the guard.
+    const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+    runApplicationCallback();
+
+    // Run 2 captures again.
+    _clearAppStartEndData();
+    mockAppStart({ cold: false });
+    await integration.captureStandaloneAppStart();
+    expect(standaloneClient.event?.contexts?.trace?.op).toBe(APP_START_OP);
+  });
+
   it('allows auto-capture again after isAppLoadedManuallyInvoked is reset', async () => {
     getCurrentScope().clear();
     getIsolationScope().clear();

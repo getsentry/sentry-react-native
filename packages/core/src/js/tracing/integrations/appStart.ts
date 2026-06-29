@@ -43,7 +43,6 @@ const INTEGRATION_NAME = 'AppStart';
 
 export type AppStartIntegration = Integration & {
   captureStandaloneAppStart: () => Promise<void>;
-  resetAppStartDataFlushed: () => void;
   cancelDeferredStandaloneCapture: () => void;
   scheduleDeferredStandaloneCapture: () => void;
 };
@@ -120,12 +119,11 @@ export async function _appLoaded(): Promise<void> {
 
   const integration = client.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME);
   if (integration) {
-    // Cancel any deferred standalone send from auto-capture — we'll send our own
-    // with the correct manual timestamp instead of sending two transactions.
+    // appLoaded() overrides the auto-detected end timestamp by cancelling the deferred standalone
+    // send (if it hasn't fired yet) and sending a single transaction with the manual timestamp.
+    // If the deferred send already fired, the standalone capture is already done, so the call
+    // below bails — we keep the auto timestamp rather than emitting a duplicate.
     integration.cancelDeferredStandaloneCapture();
-    // In standalone mode, auto-capture may have already flushed the transaction.
-    // Reset the flag so captureStandaloneAppStart can re-send with the manual timestamp.
-    integration.resetAppStartDataFlushed();
     await integration.captureStandaloneAppStart();
   }
 }
@@ -300,15 +298,11 @@ export const appStartIntegration = ({
   let firstStartedActiveRootSpan: Span | undefined = undefined;
   let cachedNativeAppStart: NativeAppStartResponse | null | undefined = undefined;
   let deferredStandaloneTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
-  // Whether a standalone `app.start` transaction has already been sent for this app run.
-  // Guards against a duplicate send when `appLoaded()` arrives after the deferred auto-capture
-  // has already fired (the cancel-based dedup only works while the deferred send is still pending).
-  let standaloneAppStartSent = false;
-  // Whether a standalone capture is currently in flight. `captureStandaloneAppStart` awaits native
-  // work before it sets `standaloneAppStartSent`, so without this an `appLoaded()` call racing an
-  // in-flight deferred capture could pass the guard and emit a second transaction. Set synchronously
-  // at entry (no `await` before it) so the check-and-set is atomic in the single-threaded JS model.
-  let standaloneCaptureInProgress = false;
+  // Ensures at most one standalone `app.start` transaction per app run. Set synchronously at the
+  // start of `captureStandaloneAppStart` (before any `await`), so a second trigger for the same run
+  // — a late `appLoaded()`, or one racing the in-flight deferred auto-capture — observes it and
+  // bails. Reset on `runApplication` so the next app run captures again.
+  let standaloneAppStartCaptured = false;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -331,14 +325,19 @@ export const appStartIntegration = ({
     // TODO: automatically set standalone based on the presence of the native layer navigation integration
 
     getAppRegistryIntegration(client)?.onRunApplication(() => {
-      if (appStartDataFlushed) {
-        debug.log('[AppStartIntegration] Resetting app start data flushed flag based on runApplication call.');
+      // Reset once the current run's app start has begun capturing (flushed, or a standalone capture
+      // started) so a remount / hot reload starts fresh for the new run. The initial runApplication
+      // (root mount) fires before the first capture starts, so both are false then and we correctly
+      // wait. For the non-standalone path `standaloneAppStartCaptured` is always false, so this
+      // reduces to the original `appStartDataFlushed` check.
+      if (appStartDataFlushed || standaloneAppStartCaptured) {
+        debug.log('[AppStartIntegration] Resetting app start state based on runApplication call.');
         appStartDataFlushed = false;
         firstStartedActiveRootSpanId = undefined;
         firstStartedActiveRootSpan = undefined;
         isAppLoadedManuallyInvoked = false;
         cachedNativeAppStart = undefined;
-        standaloneAppStartSent = false;
+        standaloneAppStartCaptured = false;
         if (deferredStandaloneTimeout !== undefined) {
           clearTimeout(deferredStandaloneTimeout);
           deferredStandaloneTimeout = undefined;
@@ -431,68 +430,63 @@ export const appStartIntegration = ({
       return;
     }
 
-    if (standaloneAppStartSent || standaloneCaptureInProgress) {
-      // A standalone transaction was already sent for this app run, or a capture is already in
-      // flight (e.g. the deferred auto-capture is awaiting native work when a late appLoaded()
-      // arrives). Either way, don't start a second send.
-      debug.log('[AppStart] Standalone app start capture already sent or in progress. Skipping.');
+    if (standaloneAppStartCaptured) {
+      // At most one standalone transaction per app run. Set synchronously below, so a second
+      // trigger for the same run — a late appLoaded(), or one racing the in-flight deferred
+      // auto-capture — bails here instead of emitting a duplicate.
+      debug.log('[AppStart] Standalone app start already captured for this app run. Skipping.');
+      return;
+    }
+    // Claimed synchronously (no await before this point) so a racing trigger observes it.
+    standaloneAppStartCaptured = true;
+
+    debug.log('[AppStart] App start tracking standalone root span (transaction).');
+
+    if (!appStartEndData?.endFrames && NATIVE.enableNative) {
+      try {
+        const endFrames = await NATIVE.fetchNativeFrames();
+        debug.log('[AppStart] Captured end frames for standalone app start.', endFrames);
+
+        const currentTimestamp = appStartEndData?.timestampMs || timestampInSeconds() * 1000;
+        _setAppStartEndData({
+          timestampMs: currentTimestamp,
+          endFrames,
+        });
+      } catch (error) {
+        debug.log('[AppStart] Failed to capture frames for standalone app start.', error);
+      }
+    }
+
+    const span = startInactiveSpan({
+      forceTransaction: true,
+      name: APP_START_TX_NAME,
+      op: APP_START_OP,
+    });
+    if (span instanceof SentryNonRecordingSpan) {
+      // Tracing is disabled or the transaction was sampled
       return;
     }
 
-    // Marked synchronously (no await before this point) so a racing appLoaded() observes it.
-    standaloneCaptureInProgress = true;
-    try {
-      debug.log('[AppStart] App start tracking standalone root span (transaction).');
+    setEndTimeValue(span, timestampInSeconds());
+    _client.emit('spanEnd', span);
 
-      if (!appStartEndData?.endFrames && NATIVE.enableNative) {
-        try {
-          const endFrames = await NATIVE.fetchNativeFrames();
-          debug.log('[AppStart] Captured end frames for standalone app start.', endFrames);
-
-          const currentTimestamp = appStartEndData?.timestampMs || timestampInSeconds() * 1000;
-          _setAppStartEndData({
-            timestampMs: currentTimestamp,
-            endFrames,
-          });
-        } catch (error) {
-          debug.log('[AppStart] Failed to capture frames for standalone app start.', error);
-        }
-      }
-
-      const span = startInactiveSpan({
-        forceTransaction: true,
-        name: APP_START_TX_NAME,
-        op: APP_START_OP,
-      });
-      if (span instanceof SentryNonRecordingSpan) {
-        // Tracing is disabled or the transaction was sampled
-        return;
-      }
-
-      setEndTimeValue(span, timestampInSeconds());
-      _client.emit('spanEnd', span);
-
-      const event = convertSpanToTransaction(span);
-      if (!event) {
-        debug.warn('[AppStart] Failed to convert App Start span to transaction.');
-        return;
-      }
-
-      await attachAppStartToTransactionEvent(event);
-      // App start data is carried as Span V2 attributes on the root transaction, so the standalone
-      // transaction is meaningful even without breakdown child spans. If attachment was skipped
-      // (e.g. already flushed, or native data unavailable) the vitals attribute is absent — skip send.
-      if (event.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] === undefined) {
-        debug.log('[AppStart] No app start data attached to the standalone transaction. Skipping send.');
-        return;
-      }
-
-      const scope = getCapturedScopesOnSpan(span).scope || getCurrentScope();
-      scope.captureEvent(event);
-      standaloneAppStartSent = true;
-    } finally {
-      standaloneCaptureInProgress = false;
+    const event = convertSpanToTransaction(span);
+    if (!event) {
+      debug.warn('[AppStart] Failed to convert App Start span to transaction.');
+      return;
     }
+
+    await attachAppStartToTransactionEvent(event);
+    // App start data is carried as Span V2 attributes on the root transaction, so the standalone
+    // transaction is meaningful even without breakdown child spans. If attachment was skipped
+    // (e.g. already flushed, or native data unavailable) the vitals attribute is absent — skip send.
+    if (event.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] === undefined) {
+      debug.log('[AppStart] No app start data attached to the standalone transaction. Skipping send.');
+      return;
+    }
+
+    const scope = getCapturedScopesOnSpan(span).scope || getCurrentScope();
+    scope.captureEvent(event);
   }
 
   async function attachAppStartToTransactionEvent(event: TransactionEvent): Promise<void> {
@@ -733,10 +727,6 @@ export const appStartIntegration = ({
     }
   }
 
-  const resetAppStartDataFlushed = (): void => {
-    appStartDataFlushed = false;
-  };
-
   const cancelDeferredStandaloneCapture = (): void => {
     if (deferredStandaloneTimeout !== undefined) {
       clearTimeout(deferredStandaloneTimeout);
@@ -762,7 +752,6 @@ export const appStartIntegration = ({
     afterAllSetup,
     processEvent,
     captureStandaloneAppStart,
-    resetAppStartDataFlushed,
     cancelDeferredStandaloneCapture,
     scheduleDeferredStandaloneCapture,
     setFirstStartedActiveRootSpanId,
