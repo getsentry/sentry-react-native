@@ -1,4 +1,4 @@
-import { Scope } from '@sentry/core';
+import { getIsolationScope, Scope } from '@sentry/core';
 
 import {
   _resetTurboModuleTracker,
@@ -183,6 +183,29 @@ describe('turboModuleTracker', () => {
     expect(scopeB.getScopeData().tags['turbo_module.method']).toBe('b');
 
     popTurboModuleCall(b);
+  });
+
+  it('defaults to the isolation scope so writes propagate via enableSyncToNative', () => {
+    // Regression test: previously defaulted to `getCurrentScope()`, which can
+    // return a forked scope that is neither global nor isolation. Only global
+    // and isolation are wired up to `enableSyncToNative`, so writes to a
+    // forked current scope never reach the native SDKs — and native crashes
+    // captured during a TurboModule call lose the `turbo_module` attribution.
+    const isolation = getIsolationScope();
+    isolation.clear();
+
+    const id = pushTurboModuleCall({ name: 'RNSentry', method: 'crash', kind: 'sync' });
+
+    expect(isolation.getScopeData().contexts.turbo_module).toMatchObject({
+      name: 'RNSentry',
+      method: 'crash',
+      call_id: id,
+    });
+    expect(isolation.getScopeData().tags['turbo_module.name']).toBe('RNSentry');
+    expect(isolation.getScopeData().tags['turbo_module.method']).toBe('crash');
+
+    popTurboModuleCall(id);
+    isolation.clear();
   });
 
   it('is a no-op when popping an unknown id', () => {

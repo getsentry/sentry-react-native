@@ -20,6 +20,12 @@ public class RNSentryPackage extends TurboReactPackage {
 
   private static final boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
 
+  // `libsentry-tm-perf-logger.so` is loaded lazily inside
+  // `RNSentryTurboModulePerfTracker.setEnabled(true)`, not from this class's
+  // static initializer. That way hosts that do not opt in to
+  // `enableTurboModuleTracking` never pay the (small but non-zero) cost of
+  // mapping a shared library they will never call into.
+
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
