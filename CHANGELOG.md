@@ -23,6 +23,10 @@
   });
   ```
 
+### Changes
+
+- Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults ([#6372](https://github.com/getsentry/sentry-react-native/pull/6372))
+
 ### Fixes
 
 - The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
@@ -56,10 +60,6 @@
   ```
 
   Render-phase errors that reach the boundary are captured with route context (`route.name`, `route.path`, `route.params`), the in-flight navigation transaction is tagged as errored, and a breadcrumb is emitted. Concrete paths and params are gated behind `sendDefaultPii`.
-
-### Changes
-
-- Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults. Bodies are still only recorded for URLs explicitly listed in `networkDetailAllowUrls` (empty by default); the previous opt-in step is now part of the allow-list, not a separate flag. Set `networkCaptureBodies: false` to keep header-only capture for allow-listed URLs. ([#6372](https://github.com/getsentry/sentry-react-native/pull/6372))
 
 ### Fixes
 
