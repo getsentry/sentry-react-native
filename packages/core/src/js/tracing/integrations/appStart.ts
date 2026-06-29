@@ -31,7 +31,9 @@ import {
   UI_LOAD as UI_LOAD_OP,
 } from '../ops';
 import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../origin';
+import { getCurrentReactNativeTracingIntegration } from '../reactnativetracing';
 import {
+  SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN,
   SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE,
   SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
@@ -658,6 +660,15 @@ export const appStartIntegration = ({
       event.timestamp = appStartEndTimestampSeconds;
       event.contexts.trace.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE] = appStartDurationMs;
       event.contexts.trace.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE] = appStart.type;
+
+      // Screen shown when app start completes. Unlike the non-standalone `ui.load` transaction
+      // (whose name is the screen, which Relay backfills from), the standalone transaction is named
+      // `App Start`, so we set the screen explicitly. Sourced from the current route tracked by the
+      // tracing integration; omitted when no route has been registered yet at capture time.
+      const screen = getCurrentReactNativeTracingIntegration()?.state.currentRoute;
+      if (screen) {
+        event.contexts.trace.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN] = screen;
+      }
 
       // Minimal parent referencing the root transaction span, so the breakdown spans attach
       // directly under it (the helpers only read op/origin/span_id/trace_id/start_timestamp).

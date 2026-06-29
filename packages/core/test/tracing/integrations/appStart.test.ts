@@ -36,7 +36,9 @@ import {
   setRootComponentCreationTimestampMs,
 } from '../../../src/js/tracing/integrations/appStart';
 import { SPAN_ORIGIN_AUTO_APP_START, SPAN_ORIGIN_MANUAL_APP_START } from '../../../src/js/tracing/origin';
+import * as ReactNativeTracing from '../../../src/js/tracing/reactnativetracing';
 import {
+  SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN,
   SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE,
   SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE,
 } from '../../../src/js/tracing/semanticAttributes';
@@ -145,6 +147,32 @@ describe('App Start Integration', () => {
           },
         ],
       });
+    });
+
+    it('sets app.vitals.start.screen from the current route', async () => {
+      const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+      const screenSpy = jest
+        .spyOn(ReactNativeTracing, 'getCurrentReactNativeTracingIntegration')
+        .mockReturnValue({ state: { currentRoute: 'HomeScreen' } } as ReturnType<
+          typeof ReactNativeTracing.getCurrentReactNativeTracingIntegration
+        >);
+
+      try {
+        const actualEvent = await captureStandAloneAppStart();
+        expect(actualEvent).toEqual(
+          expectEventWithStandaloneColdAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
+        );
+        expect(actualEvent?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN]).toBe('HomeScreen');
+      } finally {
+        screenSpy.mockRestore();
+      }
+    });
+
+    it('omits app.vitals.start.screen when no route has been registered', async () => {
+      mockAppStart({ cold: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+      expect(actualEvent?.contexts?.trace?.data).not.toHaveProperty(SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN);
     });
 
     it('Does not add any spans or measurements when App Start Span is longer than threshold', async () => {
