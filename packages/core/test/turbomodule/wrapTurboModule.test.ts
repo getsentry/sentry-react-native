@@ -12,6 +12,13 @@ describe('wrapTurboModule', () => {
     _resetTurboModuleTracker();
     _resetWrappedModules();
     scope = new Scope();
+    // `pushTurboModuleCall` defaults to `getIsolationScope()` (see commit
+    // `fix(turbomodule): Default TM tracker to isolation scope for native sync`),
+    // so the tracker writes context/tags onto whichever scope this returns.
+    // We also mock `getCurrentScope` for any code in the wrapper that may
+    // read it directly, to keep the test deterministic regardless of
+    // `@sentry/core`'s async-context strategy in the test environment.
+    jest.spyOn(SentryCore, 'getIsolationScope').mockReturnValue(scope);
     jest.spyOn(SentryCore, 'getCurrentScope').mockReturnValue(scope);
   });
 

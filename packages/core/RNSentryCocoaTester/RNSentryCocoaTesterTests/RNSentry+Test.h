@@ -7,6 +7,8 @@
 
 + (BOOL)captureReplayWithReturnValue;
 
++ (BOOL)turboModuleTrackingEnabledFromOptions:(NSDictionary *)options;
+
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
 + (BOOL)isPathUnderAllowedRootsForTesting:(NSString *)path;
 #endif

@@ -62,7 +62,7 @@ jobs:
       - name: Install SDK JS Dependencies
         run: yarn install
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         name: Cache Ruby
         if: matrix.runner_provider != 'bitrise'
         with:
@@ -71,7 +71,7 @@ jobs:
             ~/.rbenv/cache
           key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         name: Cache Ruby (Bitrise)
         if: matrix.runner_provider == 'bitrise'
         with:
