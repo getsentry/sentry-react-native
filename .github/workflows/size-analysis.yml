@@ -91,15 +91,9 @@ jobs:
 
   ios:
     needs: [ready-to-merge-gate]
-    name: iOS Size Analysis on ${{matrix.runner_provider}}
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    name: iOS Size Analysis
+    runs-on: macos-26-xlarge
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        # Only run on Cirrus for now, because we would upload twice to Sentry
-        runner_provider: ["cirrus"]
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -114,38 +108,7 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - name: Setup asdf Node.js (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        run: |
-          asdf global nodejs system
-          corepack enable
-
-      - uses: actions/cache@v4
-        name: Cache Ruby
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          path: |
-            ~/.rbenv/versions
-            ~/.rbenv/cache
-          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - uses: actions/cache@v4
-        name: Cache Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        with:
-          path: ~/.asdf/installs/ruby
-          key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - name: Install Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
-        working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-        run: |
-          asdf install ruby 3.3.0
-          asdf local ruby 3.3.0
-          bundle install
-
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
-        if: matrix.runner_provider != 'bitrise'
         with:
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
           ruby-version: "3.3.0"
@@ -208,5 +171,5 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: size-analysis-ios-${{ matrix.runner_provider }}-logs
+          name: size-analysis-ios-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/xcodebuild-size-analysis.log

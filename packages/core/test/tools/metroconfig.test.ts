@@ -160,6 +160,7 @@ describe('metroconfig', () => {
           annotateReactComponents: {
             ignoredComponents: ['MyCustomComponent'],
           },
+          autoWrapExpoRouterErrorBoundary: false,
         }),
       );
     });
