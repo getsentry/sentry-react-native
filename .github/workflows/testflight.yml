@@ -6,7 +6,7 @@ on:
 
   pull_request:
     paths:
-      - '.github/workflows/testflight.yml'
+      - ".github/workflows/testflight.yml"
 
 jobs:
   diff_check:
@@ -14,15 +14,16 @@ jobs:
 
   upload_to_testflight:
     name: Build and Upload React Native Sample to Testflight
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    runs-on: macos-26-xlarge
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         with:
           working-directory: samples/react-native
-          ruby-version: '3.3.0' # based on what is used in the sample
+          ruby-version: "3.3.0" # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
       - run: corepack enable
@@ -30,8 +31,9 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
+
       - name: Install Dependencies
         run: |
           yarn install

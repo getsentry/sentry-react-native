@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-expo-sample",
-  "version": "8.15.1",
+  "version": "8.16.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -23,8 +23,8 @@
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
-    "@sentry/core": "10.60.0",
-    "@sentry/react-native": "8.15.1",
+    "@sentry/core": "10.62.0",
+    "@sentry/react-native": "8.16.0",
     "@types/react": "~19.2.10",
     "expo": "^56.0.0",
     "expo-constants": "~56.0.15",

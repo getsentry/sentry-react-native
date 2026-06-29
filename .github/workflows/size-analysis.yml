@@ -5,15 +5,15 @@ on:
     branches:
       - main
     paths:
-      - 'packages/**'
-      - 'samples/react-native/**'
-      - '.github/workflows/size-analysis.yml'
+      - "packages/**"
+      - "samples/react-native/**"
+      - ".github/workflows/size-analysis.yml"
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
-      - 'packages/**'
-      - 'samples/react-native/**'
-      - '.github/workflows/size-analysis.yml'
+      - "packages/**"
+      - "samples/react-native/**"
+      - ".github/workflows/size-analysis.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -50,13 +50,13 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
@@ -70,8 +70,8 @@ jobs:
       - name: Build Android App Bundle (Release)
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/android
         env:
-          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
-          RN_ARCHITECTURE: 'new'
+          SENTRY_DISABLE_AUTO_UPLOAD: "true"
+          RN_ARCHITECTURE: "new"
         run: |
           perl -i -pe's/newArchEnabled=false/newArchEnabled=true/g' gradle.properties
           ./gradlew :app:bundleRelease -PreactNativeArchitectures=arm64-v8a
@@ -92,7 +92,7 @@ jobs:
   ios:
     needs: [ready-to-merge-gate]
     name: iOS Size Analysis
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    runs-on: macos-26-xlarge
     timeout-minutes: 45
 
     steps:
@@ -105,13 +105,13 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 22
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         with:
           working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
-          ruby-version: '3.3.0'
+          ruby-version: "3.3.0"
           bundler-cache: true
           cache-version: 1
 
@@ -134,7 +134,7 @@ jobs:
       - name: Build iOS XCArchive
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios
         env:
-          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+          SENTRY_DISABLE_AUTO_UPLOAD: "true"
           # Fix for Xcode 26+ with MetalToolchain
           TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
         run: |

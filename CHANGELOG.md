@@ -10,6 +10,39 @@
 
 ### Features
 
+- Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
+- Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
+- Opt-in build-time auto-wrap for Expo Router's per-route `ErrorBoundary` ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
+
+  Enable `autoWrapExpoRouterErrorBoundary: true` in `getSentryExpoConfig` (or `withSentryConfig`) and the Sentry Babel plugin rewrites `export { ErrorBoundary } from 'expo-router'` into a `wrapExpoRouterErrorBoundary` call at build time — no route-file edits needed:
+
+  ```js
+  // metro.config.js
+  module.exports = getSentryExpoConfig(__dirname, {
+    autoWrapExpoRouterErrorBoundary: true,
+  });
+  ```
+
+### Fixes
+
+- The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
+
+### Dependencies
+
+- Bump Android SDK from v8.45.0 to v8.46.0 ([#6357](https://github.com/getsentry/sentry-react-native/pull/6357))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8460)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.45.0...8.46.0)
+- Bump JavaScript SDK from v10.61.0 to v10.62.0 ([#6361](https://github.com/getsentry/sentry-react-native/pull/6361))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10620)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.61.0...10.62.0)
+- Bump CLI from v3.5.1 to v3.6.0 ([#6362](https://github.com/getsentry/sentry-react-native/pull/6362))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#360)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.1...3.6.0)
+
+## 8.16.0
+
+### Features
+
 - Capture errors that hit Expo Router's per-route `ErrorBoundary` ([#6318](https://github.com/getsentry/sentry-react-native/pull/6318))
 
   Wrap the boundary with `Sentry.wrapExpoRouterErrorBoundary` in your route file:
@@ -30,6 +63,7 @@
 
 ### Fixes
 
+- Fix fatal `NSInvalidArgumentException` crash in `RNSentryReplayBreadcrumbConverter` when a touch breadcrumb path contains a non-dictionary element ([#6346](https://github.com/getsentry/sentry-react-native/pull/6346))
 - Apply `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE` and `SENTRY_DIST` build-time overrides to the JS bundled options to match the native SDKs ([#6330](https://github.com/getsentry/sentry-react-native/pull/6330))
 - Fix user `geo` being dropped from the native scope by forwarding it as a structured object instead of a JSON string ([#6309](https://github.com/getsentry/sentry-react-native/pull/6309))
 - Remove unused `React/RCTTextView.h` import that broke iOS builds on React Native 0.87, where the header was removed as part of the legacy architecture cleanup ([#6322](https://github.com/getsentry/sentry-react-native/pull/6322))
@@ -40,9 +74,9 @@
 
 ### Dependencies
 
-- Bump JavaScript SDK from v10.58.0 to v10.60.0 ([#6321](https://github.com/getsentry/sentry-react-native/pull/6321), [#6332](https://github.com/getsentry/sentry-react-native/pull/6332))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10600)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.58.0...10.60.0)
+- Bump JavaScript SDK from v10.58.0 to v10.61.0 ([#6321](https://github.com/getsentry/sentry-react-native/pull/6321), [#6332](https://github.com/getsentry/sentry-react-native/pull/6332), [#6349](https://github.com/getsentry/sentry-react-native/pull/6349))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10610)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.58.0...10.61.0)
 - Bump Android SDK from v8.44.0 to v8.45.0 ([#6323](https://github.com/getsentry/sentry-react-native/pull/6323), [#6344](https://github.com/getsentry/sentry-react-native/pull/6344))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8450)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.44.0...8.45.0)
@@ -82,6 +116,18 @@
 - Bump CLI from v3.5.0 to v3.5.1 ([#6305](https://github.com/getsentry/sentry-react-native/pull/6305))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#351)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.0...3.5.1)
+
+## 8.14.1
+
+### Fixes
+
+- Fix Android Gradle source map upload being silently skipped on some occasions ([#6320](https://github.com/getsentry/sentry-react-native/pull/6320))
+
+### Dependencies
+
+- Bump Android SDK from v8.43.1 to v8.43.3 ([#6334](https://github.com/getsentry/sentry-react-native/pull/6334))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8433)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.1...8.43.3)
 
 ## 8.14.0
 

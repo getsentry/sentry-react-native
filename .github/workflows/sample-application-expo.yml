@@ -36,7 +36,7 @@ jobs:
 
   build-ios:
     name: Build ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    runs-on: ["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]
+    runs-on: macos-26-xlarge
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -45,12 +45,12 @@ jobs:
         && (needs.detect-changes.outputs.sample_expo == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        ios-use-frameworks: ['no-frameworks', 'dynamic-frameworks']
-        build-type: ['dev', 'production']
+        ios-use-frameworks: ["no-frameworks", "dynamic-frameworks"]
+        build-type: ["dev", "production"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -61,13 +61,13 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         with:
           working-directory: samples/expo
-          ruby-version: '3.3.0' # based on what is used in the sample
+          ruby-version: "3.3.0" # based on what is used in the sample
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 1 # cache the installed gems
 
@@ -143,11 +143,11 @@ jobs:
         && (needs.detect-changes.outputs.sample_expo == 'true' || needs.detect-changes.outputs.needs_android == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     strategy:
       fail-fast: false
       matrix:
-        build-type: ['dev', 'production']
+        build-type: ["dev", "production"]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -158,13 +158,13 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
         with:
-          java-version: '17'
-          distribution: 'adopt'
+          java-version: "17"
+          distribution: "adopt"
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
@@ -212,7 +212,7 @@ jobs:
         && (needs.detect-changes.outputs.sample_expo == 'true' || needs.detect-changes.outputs.needs_web == 'true')
       }}
     env:
-      SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -223,7 +223,7 @@ jobs:
         with:
           package-manager-cache: false
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
           cache-dependency-path: yarn.lock
 
       - name: Install SDK Dependencies

@@ -6,6 +6,77 @@ def isNewArchitectureEnabled() {
     return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
 }
 
+// `libsentry-tm-perf-logger.so` links against React Native's `reactnative`
+// prefab target, which only ships in the `ReactAndroid` prefab AAR shipped
+// with RN 0.75 and newer. On older RN releases the target does not exist
+// and a `find_package(ReactAndroid)` call would fail the CMake configure
+// step before we ever get to the build. Gate the native build on the host
+// app's `react-native` version so older legacy-arch matrix entries that
+// (intentionally or not) end up with `newArchEnabled=true` do not pull in
+// our CMake target.
+def isReactNativePrefabAvailable() {
+    if (!isNewArchitectureEnabled()) {
+        return false
+    }
+    try {
+        def reactNativeDir = resolveReactNativeDir()
+        def packageJson = new File(reactNativeDir, "package.json")
+        if (!packageJson.exists()) {
+            return false
+        }
+        def version = new groovy.json.JsonSlurper().parse(packageJson).version as String
+        def parts = version.tokenize(".")
+        if (parts.size() < 2) {
+            return false
+        }
+        def major = parts[0].toInteger()
+        def minor = parts[1].toInteger()
+        // RN 0.75+ ships the `ReactAndroid::reactnative` prefab. Anything
+        // earlier is a legacy-only target as far as our native code is
+        // concerned.
+        return major > 0 || minor >= 75
+    } catch (Exception ignored) {
+        return false
+    }
+}
+
+// Locate the consuming app's `react-native` install. ReactAndroid's prefab
+// AAR exposes `<ReactCommon/TurboModulePerfLogger.h>` but not the
+// `<reactperflogger/NativeModulePerfLogger.h>` it transitively `#include`s,
+// so we add the source tree's `ReactCommon/reactperflogger` to the include
+// path manually. The resolution mirrors `react-native-reanimated`'s helper:
+// first honour an explicit `REACT_NATIVE_NODE_MODULES_DIR` override, then
+// fall back to `node --print require.resolve(...)` which works in monorepos
+// where react-native may be hoisted above the consumer's `node_modules`.
+def resolveReactNativeDir() {
+    def override = safeExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
+    if (override != null) {
+        return file(override)
+    }
+    // Fall back to a `node --print require.resolve(...)` lookup. The exec
+    // happens at gradle configure time, which means it will throw
+    // unconditionally if `node` is not on the host's PATH (e.g. on CI
+    // images that haven't installed Node, or developers building Android
+    // without a JS toolchain). Catch and rethrow with a clear message
+    // pointing at the `REACT_NATIVE_NODE_MODULES_DIR` ext property the
+    // host project can set to skip the lookup entirely.
+    try {
+        def resolved = providers.exec {
+            workingDir = rootDir
+            commandLine("node", "--print", "require.resolve('react-native/package.json')")
+        }.standardOutput.asText.get().trim()
+        return file(resolved).parentFile
+    } catch (Exception e) {
+        throw new GradleException(
+            "[@sentry/react-native] Could not locate react-native via `node`. " +
+            "Either install Node and ensure it is on PATH, or set the project " +
+            "extension property `REACT_NATIVE_NODE_MODULES_DIR` (in your root " +
+            "`build.gradle`) to the absolute path of your react-native install. " +
+            "Underlying error: ${e.message}",
+            e)
+    }
+}
+
 apply plugin: 'com.android.library'
 if (isNewArchitectureEnabled()) {
     apply plugin: 'com.facebook.react'
@@ -19,10 +90,39 @@ android {
         namespace = "io.sentry.react"
     }
 
+    // A single `buildFeatures { ... }` block per Android extension scope: the
+    // Gradle DSL replaces (not merges) prior blocks, so splitting `buildConfig`
+    // and `prefab` into two siblings would silently drop the first one. See
+    // https://issuetracker.google.com/issues/247711031 for the corresponding
+    // AGP gotcha.
     def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-    if (agpVersion.tokenize('.')[0].toInteger() >= 8) {
+    def needsBuildConfig = agpVersion.tokenize('.')[0].toInteger() >= 8
+    def needsPrefab = isReactNativePrefabAvailable()
+    if (needsBuildConfig || needsPrefab) {
         buildFeatures {
-            buildConfig = true
+            if (needsBuildConfig) {
+                buildConfig = true
+            }
+            if (needsPrefab) {
+                // `libsentry-tm-perf-logger.so` links against React Native's
+                // `reactnative` prefab, which only ships when the New
+                // Architecture is enabled.
+                prefab true
+            }
+        }
+    }
+
+    // CMake is gated on the same prefab-availability heuristic as `prefab`
+    // above: on RN < 0.75 the `ReactAndroid::reactnative` target does not
+    // exist and `find_package(ReactAndroid)` would fail the configure step
+    // even when `newArchEnabled=true` is set in the host's gradle.properties.
+    // The CMakeLists.txt lives under `src/main/jni/` (not the module root)
+    // so AGP's auto-detection cannot find it when this block is absent.
+    if (isReactNativePrefabAvailable()) {
+        externalNativeBuild {
+            cmake {
+                path "src/main/jni/CMakeLists.txt"
+            }
         }
     }
 
@@ -39,6 +139,17 @@ android {
             targetCompatibility JavaVersion.VERSION_1_8
         }
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+
+        if (isReactNativePrefabAvailable()) {
+            def reactNativeDir = resolveReactNativeDir()
+            externalNativeBuild {
+                cmake {
+                    cppFlags "-std=c++20", "-fexceptions", "-frtti", "-DRCT_NEW_ARCH_ENABLED=1"
+                    arguments "-DANDROID_STL=c++_shared",
+                              "-DREACT_NATIVE_DIR=${reactNativeDir.absolutePath}"
+                }
+            }
+        }
     }
 
     sourceSets {
@@ -52,7 +163,7 @@ android {
     }
 }
 
-def sentryAndroidVersion = '8.45.0'
+def sentryAndroidVersion = '8.46.0'
 
 dependencies {
     compileOnly files('libs/replay-stubs.jar')

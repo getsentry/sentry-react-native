@@ -206,6 +206,53 @@ final class RNSentryReplayBreadcrumbConverterTests: XCTestCase {
         XCTAssertEqual(actual, nil)
     }
 
+    // Reproduces https://github.com/getsentry/sentry-react-native/issues/6342
+    // A non-dictionary element in the path (e.g. an NSString) must not crash with
+    // `-[__NSCFString objectForKey:]: unrecognized selector sent to instance`.
+    func testTouchMessageReturnsNilOnNonDictionaryPathElement() throws {
+        let testPath: [Any?] = ["not-a-dictionary"]
+        let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
+        XCTAssertEqual(actual, nil)
+    }
+
+    func testTouchMessageReturnsNilWhenAnyPathElementIsNotADictionary() throws {
+        let testPath: [Any?] = [
+            ["name": "name1"],
+            "not-a-dictionary",
+            ["name": "name3"]
+        ]
+        let actual = RNSentryReplayBreadcrumbConverter.getTouchPathMessage(from: testPath as [Any])
+        XCTAssertEqual(actual, nil)
+    }
+
+    func testConvertTouchBreadcrumbWithNonDictionaryPathElementDoesNotCrash() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.level = .info
+        testBreadcrumb.type = "user"
+        testBreadcrumb.category = "touch"
+        testBreadcrumb.data = [
+            "path": ["not-a-dictionary"]
+        ]
+        // Must not raise NSInvalidArgumentException.
+        _ = converter.convert(from: testBreadcrumb)
+    }
+
+    func testConvertTouchBreadcrumbWithNonArrayPathDoesNotCrash() {
+        let converter = RNSentryReplayBreadcrumbConverter()
+        let testBreadcrumb = Breadcrumb()
+        testBreadcrumb.timestamp = Date()
+        testBreadcrumb.level = .info
+        testBreadcrumb.type = "user"
+        testBreadcrumb.category = "touch"
+        testBreadcrumb.data = [
+            "path": "not-an-array"
+        ]
+        // Must not raise (NSString does not respond to `count`/`objectAtIndex:`).
+        _ = converter.convert(from: testBreadcrumb)
+    }
+
     func testTouchMessageReturnsMessageOnValidPathExample1() throws {
         let testPath: [Any?] = [
             ["label": "label0"],
