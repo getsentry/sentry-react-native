@@ -23,6 +23,10 @@
   });
   ```
 
+### Changes
+
+- Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults ([#6372](https://github.com/getsentry/sentry-react-native/pull/6372))
+
 ### Fixes
 
 - The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
