@@ -43,7 +43,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Prepare release
-        uses: getsentry/craft@acdb88019720182caf57293360d7cdc8db9e75ac # v2
+        uses: getsentry/craft@e724996ca4ee2ce84dc035eb407d4d6a4ecf8395 # v2
         env:
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         with:
