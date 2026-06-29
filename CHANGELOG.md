@@ -11,6 +11,7 @@
 ### Features
 
 - Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
+- Set `app.vitals.start.screen` on the standalone `app.start` transaction from the current route ([#6369](https://github.com/getsentry/sentry-react-native/pull/6369))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
 - Opt-in build-time auto-wrap for Expo Router's per-route `ErrorBoundary` ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
