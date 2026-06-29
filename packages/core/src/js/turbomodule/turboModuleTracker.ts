@@ -1,6 +1,6 @@
 import type { Scope } from '@sentry/core';
 
-import { getCurrentScope } from '@sentry/core';
+import { getIsolationScope } from '@sentry/core';
 
 /**
  * Describes a single TurboModule method invocation currently in flight.
@@ -20,10 +20,15 @@ export interface TurboModuleCall {
 
 interface InternalCall extends TurboModuleCall {
   /**
-   * Scope captured at push time. We pin it so that an async call which spans a
-   * scope switch (`withScope`, isolation-scope swaps, …) pops the *same* scope
-   * it pushed onto — otherwise we'd clear `turbo_module` on the wrong scope and
-   * leave stale data on the original.
+   * Scope the call's context+tags were written to. Defaults to the isolation
+   * scope because that's the one {@link enableSyncToNative} hooks: writes to
+   * any other scope (e.g. a forked current scope inside `withScope`) update
+   * JS-side state only and never reach sentry-cocoa / sentry-java, so a
+   * native crash captured during the call would lose the attribution.
+   *
+   * Pinned at push time so an async call that spans a scope switch pops the
+   * *same* scope it pushed onto — otherwise we'd clear `turbo_module` on the
+   * wrong scope and leave stale data on the original.
    */
   scope: Scope;
 }
@@ -96,7 +101,12 @@ export function pushTurboModuleCall(args: {
     kind: args.kind,
     startedAtMs: Date.now(),
     callId: nextCallId++,
-    scope: args.scope ?? getCurrentScope(),
+    // Default to the isolation scope: it's the one wired up to
+    // `enableSyncToNative`, so writes here propagate to the native SDKs and
+    // get serialised into crash reports. `getCurrentScope()` would be wrong
+    // here — it can return a forked scope (per async-context strategy) that
+    // sentry-cocoa / sentry-java never sees.
+    scope: args.scope ?? getIsolationScope(),
   };
 
   // Atomic push: if `syncToScope` throws (e.g. a scope-sync hook calls into a

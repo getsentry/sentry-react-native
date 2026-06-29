@@ -23,6 +23,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -192,15 +193,51 @@ public class RNSentryModuleImpl {
     // Set the React context for the logger so it can forward logs to JS
     rnLogger.setReactContext(this.reactApplicationContext);
 
-    RNSentryStart.startWithOptions(
-        getApplicationContext(),
-        rnOptions,
-        getCurrentActivity(),
-        options -> {
-          // Use our custom logger that forwards to JS
-          options.setLogger(rnLogger);
-        },
-        logger);
+    try {
+      RNSentryStart.startWithOptions(
+          getApplicationContext(),
+          rnOptions,
+          getCurrentActivity(),
+          options -> {
+            // Use our custom logger that forwards to JS
+            options.setLogger(rnLogger);
+          },
+          logger);
+    } catch (Throwable e) { // NOPMD - mirror iOS reject-on-failure behavior
+      logger.log(SentryLevel.ERROR, "Failed to initialize Sentry Android SDK", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+      return;
+    }
+
+    // Toggle the TurboModule perf-logger sink based on the JS option. The
+    // sink lazy-installs the native `NativeModulePerfLogger` on first enable;
+    // we therefore want this to run only after the native SDK has started
+    // successfully — otherwise we'd claim React Native's perf-logger slot
+    // while no Sentry SDK is around to consume the data.
+    //
+    // Always reconcile to a concrete boolean (defaulting to `false`) so a
+    // re-init that omits the key cannot leave a previous opt-in latched on:
+    // the native controller is process-wide and not reset by closeNativeSdk.
+    // The explicit `ReadableType.Boolean` check guards against JS passing a
+    // non-boolean (number, string, null), which would crash `getBoolean`
+    // with `UnexpectedNativeTypeException`.
+    final boolean enableTurboModuleTracking =
+        rnOptions.hasKey("enableTurboModuleTracking")
+            && rnOptions.getType("enableTurboModuleTracking") == ReadableType.Boolean
+            && rnOptions.getBoolean("enableTurboModuleTracking");
+    // Defensive: the tracker only catches `UnsatisfiedLinkError` itself, but
+    // `System.loadLibrary` can also raise `SecurityException` and the native
+    // method could throw arbitrary `RuntimeException`. An uncaught exception
+    // here would skip `promise.resolve(true)` and leave the JS-side
+    // `initNativeSdk` promise pending forever. The SDK has already started
+    // successfully by this point, so treat any tracking-toggle failure as
+    // non-fatal and just log it.
+    try {
+      RNSentryTurboModulePerfTracker.setEnabled(enableTurboModuleTracking);
+    } catch (Throwable t) { // NOPMD - tracking is best-effort, must not break init
+      logger.log(
+          SentryLevel.WARNING, "Failed to toggle TurboModule perf tracking: " + t.getMessage());
+    }
 
     promise.resolve(true);
   }
