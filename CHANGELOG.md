@@ -12,12 +12,32 @@
 
 - Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
+- Opt-in build-time auto-wrap for Expo Router's per-route `ErrorBoundary` ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
+
+  Enable `autoWrapExpoRouterErrorBoundary: true` in `getSentryExpoConfig` (or `withSentryConfig`) and the Sentry Babel plugin rewrites `export { ErrorBoundary } from 'expo-router'` into a `wrapExpoRouterErrorBoundary` call at build time — no route-file edits needed:
+
+  ```js
+  // metro.config.js
+  module.exports = getSentryExpoConfig(__dirname, {
+    autoWrapExpoRouterErrorBoundary: true,
+  });
+  ```
+
+### Fixes
+
+- The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
 ### Dependencies
 
 - Bump Android SDK from v8.45.0 to v8.46.0 ([#6357](https://github.com/getsentry/sentry-react-native/pull/6357))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8460)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.45.0...8.46.0)
+- Bump JavaScript SDK from v10.61.0 to v10.62.0 ([#6361](https://github.com/getsentry/sentry-react-native/pull/6361))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10620)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.61.0...10.62.0)
+- Bump CLI from v3.5.1 to v3.6.0 ([#6362](https://github.com/getsentry/sentry-react-native/pull/6362))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#360)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.1...3.6.0)
 
 ## 8.16.0
 
