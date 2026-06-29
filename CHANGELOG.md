@@ -25,6 +25,7 @@
 
 ### Fixes
 
+- Forward Session Replay network detail options (`networkDetailAllowUrls`, `networkDetailDenyUrls`, `networkCaptureBodies`, `networkRequestHeaders`, `networkResponseHeaders`) to the native SDKs so the rrweb options event signals the frontend to render captured request/response bodies and headers. `RegExp` allow/deny patterns are forwarded as their string source since they can't cross the native bridge; JS-side matching still uses the original `RegExp` ([#TBD](https://github.com/getsentry/sentry-react-native/pull/TBD))
 - The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
 ### Dependencies

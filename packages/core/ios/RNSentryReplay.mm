@@ -40,6 +40,14 @@
         @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
         @"includedViewClasses" : includedViewClasses ?: [NSNull null],
         @"excludedViewClasses" : excludedViewClasses ?: [NSNull null],
+        // Forwarded so the native SDK emits the rrweb options event that tells the
+        // frontend to render captured request/response details. Network detail
+        // capture itself happens in the JS layer for React Native.
+        @"networkDetailAllowUrls" : replayOptions[@"networkDetailAllowUrls"] ?: [NSNull null],
+        @"networkDetailDenyUrls" : replayOptions[@"networkDetailDenyUrls"] ?: [NSNull null],
+        @"networkCaptureBodies" : replayOptions[@"networkCaptureBodies"] ?: [NSNull null],
+        @"networkRequestHeaders" : replayOptions[@"networkRequestHeaders"] ?: [NSNull null],
+        @"networkResponseHeaders" : replayOptions[@"networkResponseHeaders"] ?: [NSNull null],
         @"sdkInfo" :
             @ { @"name" : REACT_NATIVE_SDK_NAME, @"version" : REACT_NATIVE_SDK_PACKAGE_VERSION }
     }

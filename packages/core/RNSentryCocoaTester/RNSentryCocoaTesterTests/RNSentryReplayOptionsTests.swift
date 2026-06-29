@@ -1,6 +1,9 @@
 import Sentry
 import XCTest
 
+// File length grows as replay option coverage is added; lint runs with `--strict`.
+// swiftlint:disable file_length
+
 final class RNSentryReplayOptions: XCTestCase {
 
     func testOptionsWithoutExperimentalAreIgnored() {
@@ -47,8 +50,48 @@ final class RNSentryReplayOptions: XCTestCase {
         assertAllDefaultReplayOptionsAreNotNil(replayOptions: sessionReplay)
     }
 
+    func testNetworkDetailOptionsAreForwardedToReplayOptions() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [
+                "networkDetailAllowUrls": ["https://api.example.com"],
+                "networkDetailDenyUrls": ["https://api.example.com/auth"],
+                "networkCaptureBodies": true,
+                "networkRequestHeaders": ["X-My-Header"],
+                "networkResponseHeaders": ["X-Response-Header"]
+            ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+        let actualOptions = try! PrivateSentrySDKOnly.options(with: optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.sessionReplay.networkDetailAllowUrls.count, 1)
+        XCTAssertEqual(actualOptions.sessionReplay.networkDetailDenyUrls.count, 1)
+        XCTAssertTrue(actualOptions.sessionReplay.networkCaptureBodies)
+        XCTAssertTrue(actualOptions.sessionReplay.networkRequestHeaders.contains("X-My-Header"))
+        XCTAssertTrue(actualOptions.sessionReplay.networkResponseHeaders.contains("X-Response-Header"))
+    }
+
+    func testNetworkCaptureBodiesCanBeDisabled() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [
+                "networkDetailAllowUrls": ["https://api.example.com"],
+                "networkCaptureBodies": false
+            ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+        let actualOptions = try! PrivateSentrySDKOnly.options(with: optionsDict as! [String: Any])
+
+        XCTAssertEqual(actualOptions.sessionReplay.networkDetailAllowUrls.count, 1)
+        XCTAssertFalse(actualOptions.sessionReplay.networkCaptureBodies)
+    }
+
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 11)
+        XCTAssertEqual(replayOptions.count, 16)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["maskAllImages"])
@@ -60,6 +103,11 @@ final class RNSentryReplayOptions: XCTestCase {
         XCTAssertNotNil(replayOptions["quality"])
         XCTAssertNotNil(replayOptions["includedViewClasses"])
         XCTAssertNotNil(replayOptions["excludedViewClasses"])
+        XCTAssertNotNil(replayOptions["networkDetailAllowUrls"])
+        XCTAssertNotNil(replayOptions["networkDetailDenyUrls"])
+        XCTAssertNotNil(replayOptions["networkCaptureBodies"])
+        XCTAssertNotNil(replayOptions["networkRequestHeaders"])
+        XCTAssertNotNil(replayOptions["networkResponseHeaders"])
     }
 
     func testSessionSampleRate() {
