@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
 - Opt-in build-time auto-wrap for Expo Router's per-route `ErrorBoundary` ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
