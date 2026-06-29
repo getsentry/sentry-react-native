@@ -57,6 +57,11 @@
 #import "RNSentryStart.h"
 #import "RNSentryVersion.h"
 #import "SentrySDKWrapper.h"
+
+// TurboModule perf logger — only available on New Architecture, but we always
+// include the header so the `Sentry_SetTurboModuleTrackingEnabled` toggle
+// compiles on Old Arch too (it's a no-op there).
+#import "../cpp/SentryTurboModulePerfLogger.h"
 #import "SentryScreenFramesWrapper.h"
 
 static bool hasFetchedAppStart;
@@ -77,6 +82,32 @@ static bool hasFetchedAppStart;
 + (BOOL)requiresMainQueueSetup
 {
     return NO;
+}
+
+// Strict type match for the JS `enableTurboModuleTracking` option — we only
+// honour a real boolean. Android requires `ReadableType.Boolean`, and this
+// helper enforces the same cross-platform contract: a JS numeric `1` must
+// NOT enable tracking.
+//
+// `CFBooleanGetTypeID` is the canonical, toll-free-bridged way to
+// distinguish `@YES` from `@1`. Comparing `[num objCType]` against
+// `@encode(BOOL)` does NOT work on 64-bit iOS: `BOOL` is `typedef bool`
+// there, so `@encode(BOOL)` is `"B"`, but every `NSNumber` created from a
+// boolean (including everything crossing the RN bridge) always reports
+// `objCType == "c"` for historical compatibility. An earlier revision had
+// that bug — the `strcmp` check never matched and tracking was a no-op on
+// every modern iOS device. Centralising the check behind one method keeps
+// the trap from coming back.
++ (BOOL)turboModuleTrackingEnabledFromOptions:(NSDictionary *)options
+{
+    id value = [options objectForKey:@"enableTurboModuleTracking"];
+    if (![value isKindOfClass:[NSNumber class]]) {
+        return NO;
+    }
+    if (CFGetTypeID((__bridge CFTypeRef)value) != CFBooleanGetTypeID()) {
+        return NO;
+    }
+    return [(NSNumber *)value boolValue];
 }
 
 - (instancetype)init
@@ -137,6 +168,11 @@ static bool hasFetchedAppStart;
     [mutableOptions removeObjectForKey:@"tracesSampler"];
     [mutableOptions removeObjectForKey:@"enableTracing"];
 
+    // `enableTurboModuleTracking` is consumed by `initNativeSdk` before this
+    // dict reaches sentry-cocoa; strip so it does not leak into
+    // SentryOptions (which would not know what to do with it).
+    [mutableOptions removeObjectForKey:@"enableTurboModuleTracking"];
+
     [self trySetIgnoreErrors:mutableOptions];
 
     return mutableOptions;
@@ -147,12 +183,27 @@ RCT_EXPORT_METHOD(initNativeSdk : (NSDictionary *_Nonnull)options resolve : (
     RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
     NSMutableDictionary *mutableOptions = [self prepareOptions:options];
+
     NSError *error = nil;
     [RNSentryStart startWithOptions:mutableOptions error:&error];
     if (error != nil) {
         reject(@"SentryReactNative", error.localizedDescription, error);
         return;
     }
+
+    // Toggle the TurboModule perf-logger sink based on the JS option. Only
+    // do this after the native SDK has started successfully — otherwise a
+    // rejected `initNativeSdk` would still leave tracking on (and would
+    // claim the perf-logger slot via lazy install) while no SDK is around to
+    // receive the data.
+    //
+    // Always reconcile to a concrete boolean (defaulting to `0`) so a
+    // re-init that omits the key cannot leave a previous opt-in latched on:
+    // the native controller is process-wide and not reset by closeNativeSdk.
+    // `setEnabled(false)` is cheap and never triggers the lazy install, so
+    // the RN perf-logger slot stays untouched while the option is off.
+    Sentry_SetTurboModuleTrackingEnabled(
+        [RNSentry turboModuleTrackingEnabledFromOptions:options] ? 1 : 0);
 
     // RNSentryStart.startWithOptions already handles:
     // - Session tracking notification (SentryHybridSdkDidBecomeActive)
