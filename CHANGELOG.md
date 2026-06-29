@@ -26,7 +26,7 @@
 
 ### Changes
 
-- Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults. Bodies are still only recorded for URLs explicitly listed in `networkDetailAllowUrls` (empty by default); the previous opt-in step is now part of the allow-list, not a separate flag. Set `networkCaptureBodies: false` to keep header-only capture for allow-listed URLs. ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults. Bodies are still only recorded for URLs explicitly listed in `networkDetailAllowUrls` (empty by default); the previous opt-in step is now part of the allow-list, not a separate flag. Set `networkCaptureBodies: false` to keep header-only capture for allow-listed URLs. ([#6372](https://github.com/getsentry/sentry-react-native/pull/6372))
 
 ### Fixes
 
