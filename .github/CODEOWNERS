@@ -1,1 +1,4 @@
 *       @alwx @antonis @lucas-zimerman
+
+# Public API surface — auto-request a mobile SDK team review on API changes
+/packages/core/etc/sentry-react-native.api.md @getsentry/team-mobile
