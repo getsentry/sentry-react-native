@@ -1,4 +1,5 @@
 #import "SentrySDKWrapper.h"
+#import "RNSentry-Swift.h"
 @import Sentry;
 
 @implementation SentrySDKWrapper
@@ -35,12 +36,12 @@
 
 + (BOOL)debug
 {
-    return PrivateSentrySDKOnly.options.debug;
+    return RNSentryInternal.options.debug;
 }
 
 + (NSString *)releaseName
 {
-    return PrivateSentrySDKOnly.options.releaseName;
+    return RNSentryInternal.options.releaseName;
 }
 
 @end

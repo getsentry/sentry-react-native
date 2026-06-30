@@ -1,10 +1,10 @@
 #import "RNSentryReplay.h"
+#import "RNSentry-Swift.h"
 #import "RNSentryReplayBreadcrumbConverterHelper.h"
 #import "RNSentryReplayQuality.h"
 #import "RNSentryVersion.h"
 #import "Replay/RNSentryReplayMask.h"
 #import "Replay/RNSentryReplayUnmask.h"
-#import <Sentry/PrivateSentrySDKOnly.h>
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
 
@@ -76,8 +76,8 @@
 {
     // We can't import RNSentryReplayMask.h here because it's Objective-C++
     // To avoid typos, we test the class existence in the tests
-    [PrivateSentrySDKOnly setRedactContainerClass:[RNSentryReplay getMaskClass]];
-    [PrivateSentrySDKOnly setIgnoreContainerClass:[RNSentryReplay getUnmaskClass]];
+    [RNSentryInternal setReplayRedactContainerClass:[RNSentryReplay getMaskClass]];
+    [RNSentryInternal setReplayIgnoreContainerClass:[RNSentryReplay getUnmaskClass]];
     [RNSentryReplayBreadcrumbConverterHelper configureSessionReplayWithConverter];
 }
 
