@@ -10,6 +10,23 @@
 
 ### Features
 
+- Aggregate TurboModule call counts + latency per `(module, method, kind)` and flush them on transaction finish and on a lazy periodic timer ([#6377](https://github.com/getsentry/sentry-react-native/pull/6377))
+
+  Counters land on the finishing transaction as a synthetic `turbo_modules.aggregate` child span (per-call breakdown in span attributes) plus headline measurements on the root span (`turbo_modules.call_count`, `turbo_modules.error_count`, `turbo_modules.total_ms`, `turbo_modules.top_module_ms`). Long-running sessions without transactions emit a periodic info-level event (default every 30s, only when there's data).
+
+  ```ts
+  Sentry.init({
+    integrations: [
+      Sentry.turboModuleContextIntegration({
+        // optional knobs (defaults shown):
+        enableAggregateStats: true,
+        aggregateFlushIntervalMs: 30_000,
+        ignoreTurboModules: ['RNSentry'],
+      }),
+    ],
+  });
+  ```
+
 - Expose top-level `Sentry.setAttribute` and `Sentry.setAttributes` APIs ([#6354](https://github.com/getsentry/sentry-react-native/pull/6354)).
 - Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
