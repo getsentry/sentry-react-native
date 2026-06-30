@@ -2,31 +2,17 @@
 
 #if SENTRY_HAS_UIKIT
 
+#    import "RNSentry-Swift.h"
 #    import "RNSentryDependencyContainer.h"
 #    import "RNSentryFramesTrackerListener.h"
-#    if __has_include(<Sentry/SentrySwizzle.h>)
-#        import <Sentry/SentrySwizzle.h>
-#    else
-#        import "SentrySwizzle.h"
-#    endif
-@import Sentry;
 
 @implementation RNSentryRNSScreen
 
 + (void)swizzleViewDidAppear
 {
-    Class rnsscreenclass = NSClassFromString(@"RNSScreen");
-    if (rnsscreenclass == nil) {
-        return;
-    }
-
-    SEL selector = NSSelectorFromString(@"viewDidAppear:");
-    SentrySwizzleInstanceMethod(rnsscreenclass, selector, SentrySWReturnType(void),
-        SentrySWArguments(BOOL animated), SentrySWReplacement({
-            [[[RNSentryDependencyContainer sharedInstance] framesTrackerListener] startListening];
-            SentrySWCallOriginal(animated);
-        }),
-        SentrySwizzleModeOncePerClass, (void *)selector);
+    [RNSentryInternal swizzleRNSScreenViewDidAppearWithHook:^{
+        [[[RNSentryDependencyContainer sharedInstance] framesTrackerListener] startListening];
+    }];
 }
 
 @end

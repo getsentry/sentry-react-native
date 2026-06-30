@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Internal
+
+- Migrate iOS code from the deprecated `PrivateSentrySDKOnly` SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6370](https://github.com/getsentry/sentry-react-native/issues/6370))
+
+## 8.16.0
+
 ### Features
 
 - Expose top-level `Sentry.setAttribute` and `Sentry.setAttributes` APIs ([#6354](https://github.com/getsentry/sentry-react-native/pull/6354)).

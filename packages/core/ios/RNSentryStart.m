@@ -3,7 +3,7 @@
 #import "RNSentryReplay.h"
 #import "RNSentryVersion.h"
 
-#import <Sentry/PrivateSentrySDKOnly.h>
+#import "RNSentry-Swift.h"
 #import <Sentry/Sentry.h>
 @import Sentry;
 
@@ -31,14 +31,14 @@
 
 + (void)startWithOptions:(SentryOptions *)options jsSdkVersion:(NSString *_Nullable)jsSdkVersion
 {
-    NSString *sdkVersion = [PrivateSentrySDKOnly getSdkVersionString];
-    [PrivateSentrySDKOnly setSdkName:NATIVE_SDK_NAME andVersionString:sdkVersion];
-    [PrivateSentrySDKOnly addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
-                                version:REACT_NATIVE_SDK_PACKAGE_VERSION];
+    NSString *sdkVersion = [RNSentryInternal sdkVersionString];
+    [RNSentryInternal setSdkName:NATIVE_SDK_NAME version:sdkVersion];
+    [RNSentryInternal addSdkPackage:REACT_NATIVE_SDK_PACKAGE_NAME
+                            version:REACT_NATIVE_SDK_PACKAGE_VERSION];
 
     if (jsSdkVersion != nil && ![jsSdkVersion isEqualToString:REACT_NATIVE_SDK_PACKAGE_VERSION]) {
         NSString *otaPackageName = [REACT_NATIVE_SDK_PACKAGE_NAME stringByAppendingString:@":ota"];
-        [PrivateSentrySDKOnly addSdkPackage:otaPackageName version:jsSdkVersion];
+        [RNSentryInternal addSdkPackage:otaPackageName version:jsSdkVersion];
     }
 
     [SentrySDK startWithOptions:options];
@@ -62,8 +62,8 @@
     [RNSentryReplay updateOptions:mutableOptions];
 #endif
 
-    SentryOptions *sentryOptions = [PrivateSentrySDKOnly optionsWithDictionary:mutableOptions
-                                                              didFailWithError:errorPointer];
+    SentryOptions *sentryOptions = [RNSentryInternal optionsFromDictionary:mutableOptions
+                                                                     error:errorPointer];
     if (*errorPointer != nil) {
         return nil;
     }
@@ -237,12 +237,11 @@
     // App Start Hybrid mode doesn't wait for didFinishLaunchNotification and the
     // didBecomeVisibleNotification as they will be missed when auto initializing from JS
     // App Start measurements are created right after the tracking starts
-    PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = options.enableAutoPerformanceTracing;
+    RNSentryInternal.appStartMeasurementHybridSDKMode = options.enableAutoPerformanceTracing;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     // Frames Tracking Hybrid Mode ensures tracking
     // is enabled without tracing enabled in the native SDK
-    PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode
-        = options.enableAutoPerformanceTracing;
+    RNSentryInternal.framesTrackingMeasurementHybridSDKMode = options.enableAutoPerformanceTracing;
 #endif
 }
 
@@ -301,8 +300,8 @@ static bool sentHybridSdkDidBecomeActive = NO;
     // If the app is active/in foreground, and we have not sent the SentryHybridSdkDidBecomeActive
     // notification, send it.
     if (appIsActive && !sentHybridSdkDidBecomeActive
-        && (PrivateSentrySDKOnly.options.enableAutoSessionTracking
-            || PrivateSentrySDKOnly.options.enableWatchdogTerminationTracking)) {
+        && (RNSentryInternal.options.enableAutoSessionTracking
+            || RNSentryInternal.options.enableWatchdogTerminationTracking)) {
         // Updates Native App State Manager
         // https://github.com/getsentry/sentry-cocoa/blob/888a145b144b8077e03151a886520f332e47e297/Sources/Sentry/SentryAppStateManager.m#L136
         // Triggers Session Tracker

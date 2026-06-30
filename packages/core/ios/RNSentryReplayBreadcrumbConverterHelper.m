@@ -1,6 +1,7 @@
 #import "RNSentryReplayBreadcrumbConverterHelper.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
+#    import "RNSentry-Swift.h"
 #    import "RNSentryReplayBreadcrumbConverter.h"
 
 @implementation RNSentryReplayBreadcrumbConverterHelper
@@ -9,7 +10,7 @@
 {
     RNSentryReplayBreadcrumbConverter *breadcrumbConverter =
         [[RNSentryReplayBreadcrumbConverter alloc] init];
-    [PrivateSentrySDKOnly configureSessionReplayWith:breadcrumbConverter screenshotProvider:nil];
+    [RNSentryInternal configureReplayWithBreadcrumbConverter:breadcrumbConverter];
 }
 
 @end
