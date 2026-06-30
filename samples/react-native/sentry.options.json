@@ -14,5 +14,8 @@
   "profilesSampleRate": 1,
   "replaysSessionSampleRate": 1,
   "replaysOnErrorSampleRate": 1,
-  "spotlight": true
+  "spotlight": true,
+  "mobileReplayOptions": {
+    "networkDetailAllowUrls": ["https://api.spaceflightnewsapi.net"]
+  }
 }

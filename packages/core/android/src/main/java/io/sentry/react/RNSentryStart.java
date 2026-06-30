@@ -26,6 +26,8 @@ import io.sentry.react.replay.RNSentryReplayMask;
 import io.sentry.react.replay.RNSentryReplayUnmask;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -446,10 +448,50 @@ final class RNSentryStart {
       }
     }
 
+    // Forward network detail options so the native SDK emits the rrweb options event
+    // that tells the frontend to render captured request/response details. Network
+    // detail capture itself happens in the JS layer for React Native.
+    if (rnMobileReplayOptions.hasKey("networkDetailAllowUrls")) {
+      androidReplayOptions.setNetworkDetailAllowUrls(
+          toStringList(rnMobileReplayOptions.getArray("networkDetailAllowUrls")));
+    }
+    if (rnMobileReplayOptions.hasKey("networkDetailDenyUrls")) {
+      androidReplayOptions.setNetworkDetailDenyUrls(
+          toStringList(rnMobileReplayOptions.getArray("networkDetailDenyUrls")));
+    }
+    if (rnMobileReplayOptions.hasKey("networkCaptureBodies")) {
+      androidReplayOptions.setNetworkCaptureBodies(
+          rnMobileReplayOptions.getBoolean("networkCaptureBodies"));
+    }
+    if (rnMobileReplayOptions.hasKey("networkRequestHeaders")) {
+      androidReplayOptions.setNetworkRequestHeaders(
+          toStringList(rnMobileReplayOptions.getArray("networkRequestHeaders")));
+    }
+    if (rnMobileReplayOptions.hasKey("networkResponseHeaders")) {
+      androidReplayOptions.setNetworkResponseHeaders(
+          toStringList(rnMobileReplayOptions.getArray("networkResponseHeaders")));
+    }
+
     androidReplayOptions.setMaskViewContainerClass(RNSentryReplayMask.class.getName());
     androidReplayOptions.setUnmaskViewContainerClass(RNSentryReplayUnmask.class.getName());
 
     return androidReplayOptions;
+  }
+
+  private static List<String> toStringList(@Nullable ReadableArray array) {
+    final List<String> result = new ArrayList<>();
+    if (array == null) {
+      return result;
+    }
+    for (int i = 0; i < array.size(); i++) {
+      if (array.getType(i) == ReadableType.String) {
+        final String value = array.getString(i);
+        if (value != null) {
+          result.add(value);
+        }
+      }
+    }
+    return result;
   }
 
   private static void setEventOriginTag(SentryEvent event) {

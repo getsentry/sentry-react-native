@@ -30,6 +30,7 @@
 
 ### Fixes
 
+- Forward Session Replay network detail options to the native SDKs so network request and response bodies are displayed ([#6373](https://github.com/getsentry/sentry-react-native/pull/6373))
 - The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
 ### Dependencies
