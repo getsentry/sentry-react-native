@@ -27,6 +27,9 @@
 ### Changes
 
 - Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults ([#6372](https://github.com/getsentry/sentry-react-native/pull/6372))
+- Consume `sentry-cocoa` via Swift Package Manager by default on React Native >= 0.75 ([#5780](https://github.com/getsentry/sentry-react-native/issues/5780))
+
+  On RN 0.75+, `pod install` now pulls Sentry as a pre-built binary xcframework through the SPM helper exposed by `react_native_pods.rb`, instead of building Sentry from source as a CocoaPod. On older React Native versions the SPM helper is unavailable and RNSentry transparently falls back to the CocoaPods source build. Override with `SENTRY_USE_SPM=0` to force CocoaPods, or `SENTRY_USE_SPM=1` to require SPM.
 
 ### Fixes
 

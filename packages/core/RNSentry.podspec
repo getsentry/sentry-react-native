@@ -56,20 +56,30 @@ Pod::Spec.new do |s|
 
   sentry_cocoa_version = '9.19.0'
 
-  # Opt-in to consuming sentry-cocoa via Swift Package Manager.
-  # When `SENTRY_USE_SPM=1` is set, RNSentry pulls `Sentry` from the
-  # sentry-cocoa SPM package as a binary xcframework instead of from
-  # the Sentry CocoaPods source build. Defaults to CocoaPods consumption
-  # for backward compatibility with the full RN version range we support.
+  # Consume sentry-cocoa via Swift Package Manager by default.
   #
-  # Requires React Native >= 0.75 because the SPM helper
-  # (`react-native/scripts/cocoapods/spm.rb`) is loaded transitively from
-  # the Podfile via `react_native_pods.rb`.
-  if ENV['SENTRY_USE_SPM'] == '1'
-    unless defined?(SPM) && SPM.respond_to?(:dependency)
+  # On React Native >= 0.75, RNSentry pulls `Sentry` from the sentry-cocoa SPM
+  # package (a pre-built binary xcframework). On older RN, the SPM helper
+  # (`react-native/scripts/cocoapods/spm.rb`) is not available and we
+  # transparently fall back to the Sentry CocoaPods source build.
+  #
+  # Override the choice with the `SENTRY_USE_SPM` environment variable:
+  #   * `SENTRY_USE_SPM=0` — force CocoaPods consumption even on RN >= 0.75.
+  #   * `SENTRY_USE_SPM=1` — force SPM (errors if the helper is unavailable).
+  spm_helper_available = defined?(SPM) && SPM.respond_to?(:dependency)
+  env_use_spm = ENV['SENTRY_USE_SPM']
+  use_spm = case env_use_spm
+            when '1' then true
+            when '0' then false
+            else supports_spm(rn_version) && spm_helper_available
+            end
+
+  if use_spm
+    unless spm_helper_available
       raise 'SENTRY_USE_SPM=1 is set but the SPM helper is not loaded. ' \
-            'This requires React Native >= 0.75 and a Podfile that imports ' \
-            'react_native_pods.rb.'
+            'This requires React Native >= 0.75 and a Podfile that loads ' \
+            '`react_native_pods.rb`. Either upgrade React Native, or set ' \
+            'SENTRY_USE_SPM=0 to fall back to the Sentry CocoaPods build.'
     end
     SPM.dependency(s,
       url: 'https://github.com/getsentry/sentry-cocoa',
