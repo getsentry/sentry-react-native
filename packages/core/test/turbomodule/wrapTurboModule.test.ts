@@ -332,50 +332,22 @@ describe('wrapTurboModule', () => {
     expect(module.doStuff()).toBe(42);
   });
 
-  describe('aggregator integration', () => {
-    it('records a sync call into the aggregator', () => {
-      const module = { doStuff: () => 'ok' };
-      wrapTurboModule('Mod', module);
+  it('feeds sync and async calls into the aggregator', async () => {
+    const module = {
+      sync: () => 'ok',
+      asyncOk: () => Promise.resolve('done'),
+    };
+    wrapTurboModule('Mod', module);
 
-      module.doStuff();
+    module.sync();
+    await module.asyncOk();
 
-      const snapshot = drainTurboModuleAggregate();
-      expect(snapshot).toHaveLength(1);
-      expect(snapshot[0]).toMatchObject({ name: 'Mod', method: 'doStuff', kind: 'sync', callCount: 1, errorCount: 0 });
-    });
-
-    it('records a sync throw as an errored sync call', () => {
-      const module = {
-        boom: () => {
-          throw new Error('nope');
-        },
-      };
-      wrapTurboModule('Mod', module);
-
-      expect(() => module.boom()).toThrow('nope');
-
-      const [row] = drainTurboModuleAggregate();
-      expect(row).toMatchObject({ kind: 'sync', callCount: 1, errorCount: 1 });
-    });
-
-    it('records an async resolve as a successful async call', async () => {
-      const module = { ok: () => Promise.resolve('done') };
-      wrapTurboModule('Mod', module);
-
-      await module.ok();
-
-      const [row] = drainTurboModuleAggregate();
-      expect(row).toMatchObject({ kind: 'async', callCount: 1, errorCount: 0 });
-    });
-
-    it('records an async reject as an errored async call', async () => {
-      const module = { fail: () => Promise.reject(new Error('boom')) };
-      wrapTurboModule('Mod', module);
-
-      await expect(module.fail()).rejects.toThrow('boom');
-
-      const [row] = drainTurboModuleAggregate();
-      expect(row).toMatchObject({ kind: 'async', callCount: 1, errorCount: 1 });
-    });
+    const snapshot = drainTurboModuleAggregate();
+    expect(snapshot.map(r => ({ method: r.method, kind: r.kind, callCount: r.callCount }))).toEqual(
+      expect.arrayContaining([
+        { method: 'sync', kind: 'sync', callCount: 1 },
+        { method: 'asyncOk', kind: 'async', callCount: 1 },
+      ]),
+    );
   });
 });

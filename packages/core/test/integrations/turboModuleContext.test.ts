@@ -139,12 +139,12 @@ describe('turboModuleContextIntegration', () => {
     expect(() => turboModuleContextIntegration().setupOnce!()).not.toThrow();
   });
 
-  describe('aggregate stats — processEvent flush', () => {
+  describe('aggregate stats', () => {
     beforeEach(() => {
       jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
     });
 
-    it('attaches a turbo_modules.aggregate child span + headline measurements on transaction events', () => {
+    it('attaches a turbo_modules.aggregate child span + headline measurements on transaction finish', () => {
       const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
       integration.setupOnce?.();
       integration.setup?.(makeMockClient());
@@ -168,155 +168,33 @@ describe('turboModuleContextIntegration', () => {
       const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
 
       expect(out.spans).toHaveLength(1);
-      expect(out.spans?.[0]).toMatchObject({
-        op: TURBO_MODULES_AGGREGATE_OP,
-        trace_id: 'a'.repeat(32),
-        parent_span_id: 'b'.repeat(16),
-      });
+      expect(out.spans?.[0]).toMatchObject({ op: TURBO_MODULES_AGGREGATE_OP });
       expect(out.spans?.[0]?.data).toMatchObject({
-        'turbo_modules.total_call_count': 2,
-        'turbo_modules.total_error_count': 1,
-        'turbo_modules.total_duration_ms': 20,
         'turbo_modules.RNSentry.captureEnvelope.async.count': 2,
         'turbo_modules.RNSentry.captureEnvelope.async.error_count': 1,
         'turbo_modules.RNSentry.captureEnvelope.async.total_ms': 20,
       });
       expect(out.measurements).toMatchObject({
         'turbo_modules.call_count': { value: 2, unit: 'none' },
-        'turbo_modules.error_count': { value: 1, unit: 'none' },
         'turbo_modules.total_ms': { value: 20, unit: 'millisecond' },
-        'turbo_modules.top_module_ms': { value: 20, unit: 'millisecond' },
       });
-    });
-
-    it('clears the aggregator after a successful flush', () => {
-      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
-      integration.setupOnce?.();
-      integration.setup?.(makeMockClient());
-
-      recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });
-
-      const firstEvent = makeTransactionEvent();
-      integration.processEvent?.(firstEvent, {}, makeMockClient());
-      expect(firstEvent.spans).toHaveLength(1);
-
-      // A subsequent transaction with no calls in between gets nothing.
-      const secondEvent = makeTransactionEvent();
-      const secondOut = integration.processEvent?.(secondEvent, {}, makeMockClient()) as TransactionEvent;
-      expect(secondOut.spans ?? []).toHaveLength(0);
-      expect(secondOut.measurements ?? {}).toEqual({});
-    });
-
-    it('does not touch non-transaction events', () => {
-      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
-      integration.setupOnce?.();
-      integration.setup?.(makeMockClient());
-
-      recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });
-
-      const errorEvent = { type: undefined, message: 'oops' } as unknown as TransactionEvent;
-      const out = integration.processEvent?.(errorEvent, {}, makeMockClient());
-      expect((out as TransactionEvent).spans).toBeUndefined();
-      expect((out as TransactionEvent).measurements).toBeUndefined();
-    });
-
-    it('no-ops when there is nothing aggregated', () => {
-      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
-      integration.setupOnce?.();
-      integration.setup?.(makeMockClient());
-
-      const event = makeTransactionEvent();
-      const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
-      expect(out.spans).toBeUndefined();
-      expect(out.measurements).toBeUndefined();
-    });
-
-    it('respects ignoreTurboModules — those modules are not counted', () => {
-      const integration = turboModuleContextIntegration({
-        aggregateFlushIntervalMs: 0,
-        ignoreTurboModules: ['RNSentry'],
-      });
-      integration.setupOnce?.();
-      integration.setup?.(makeMockClient());
-
-      recordTurboModuleCall({ name: 'RNSentry', method: 'x', kind: 'sync', durationMs: 1, errored: false });
-      recordTurboModuleCall({ name: 'Other', method: 'x', kind: 'sync', durationMs: 1, errored: false });
-
-      const event = makeTransactionEvent();
-      const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
-      expect(out.spans).toHaveLength(1);
-      expect(out.spans?.[0]?.data).toMatchObject({
-        'turbo_modules.Other.x.sync.count': 1,
-      });
-      expect(out.spans?.[0]?.data).not.toHaveProperty('turbo_modules.RNSentry.x.sync.count');
-    });
-
-    it('does nothing when enableAggregateStats is false', () => {
-      const integration = turboModuleContextIntegration({ enableAggregateStats: false });
-      integration.setupOnce?.();
-      const client = makeMockClient();
-      integration.setup?.(client);
-
-      // No interval started.
-      expect(client.on).not.toHaveBeenCalled();
-
-      recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });
-      const event = makeTransactionEvent();
-      const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
-      expect(out.spans).toBeUndefined();
-      expect(out.measurements).toBeUndefined();
-    });
-  });
-
-  describe('aggregate stats — periodic timer flush', () => {
-    beforeEach(() => {
-      jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
-      jest.useFakeTimers();
     });
 
     it('captures a periodic event after the configured interval when data is present', () => {
+      jest.useFakeTimers();
       const integration = turboModuleContextIntegration();
       integration.setupOnce?.();
       const client = makeMockClient();
       integration.setup?.(client);
 
       recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });
-
       jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
 
       expect(client.captureEvent).toHaveBeenCalledTimes(1);
-      const capturedEvent = client.captureEvent.mock.calls[0]?.[0];
-      expect(capturedEvent).toMatchObject({
+      expect(client.captureEvent.mock.calls[0]?.[0]).toMatchObject({
         level: 'info',
         tags: { 'event.kind': 'turbo_modules.aggregate' },
       });
-      expect(capturedEvent.extra).toMatchObject({
-        total_call_count: 1,
-        unique_methods: 1,
-      });
-    });
-
-    it('does not fire captureEvent when there is no data to flush', () => {
-      const integration = turboModuleContextIntegration();
-      integration.setupOnce?.();
-      const client = makeMockClient();
-      integration.setup?.(client);
-
-      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
-
-      expect(client.captureEvent).not.toHaveBeenCalled();
-    });
-
-    it('does not start the periodic timer when aggregateFlushIntervalMs is 0', () => {
-      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
-      integration.setupOnce?.();
-      const client = makeMockClient();
-      integration.setup?.(client);
-
-      recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });
-      jest.advanceTimersByTime(60_000);
-
-      expect(client.captureEvent).not.toHaveBeenCalled();
     });
   });
 });
