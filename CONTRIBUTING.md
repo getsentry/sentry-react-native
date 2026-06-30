@@ -230,3 +230,8 @@ includeBuild('../../../../sentry-android-gradle-plugin/plugin-build') {
 
 5. The build command will wait for the debugger connection, go to the Android Studio and select the newly created `Remote JVM Debug` configuration and click `Debug`.
 6. The build process will stop on active breakpoint.
+
+
+# AI Use
+
+You are welcome to use whatever tools you prefer for making a contribution. However, any changes you propose have to be reviewed and tested by you, a human, first, before you submit a pull request with them for the Sentry team to review. If we feel like that did not happen, we will close the PR outright. For example, we will not review visibly AI-generated PRs from an agent instructed to look for and "fix" open issues in the repo. This aligns with our SDK principle: [every line has an owner](https://develop.sentry.dev/sdk/getting-started/principles/#every-line-has-an-owner).

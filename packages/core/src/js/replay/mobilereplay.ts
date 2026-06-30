@@ -166,6 +166,11 @@ export interface MobileReplayOptions {
    * Currently only XHR requests are supported (this covers `axios` and similar
    * libraries). Fetch body capture will be added in a follow-up.
    *
+   * Note: `RegExp` patterns are matched in JavaScript for request enrichment, but
+   * only their string source is forwarded to the native SDKs (a `RegExp` can't
+   * cross the native bridge). The native side uses these forwarded values only to
+   * signal the Sentry frontend that captured details should be rendered.
+   *
    * @default []
    */
   networkDetailAllowUrls?: (string | RegExp)[];
@@ -181,14 +186,18 @@ export interface MobileReplayOptions {
 
   /**
    * If request and response bodies should be captured for URLs matched by
-   * `networkDetailAllowUrls`. When `false` (the default), only headers are
-   * captured for allow-listed URLs — opt in explicitly to record bodies, since
-   * they can contain sensitive payloads.
+   * `networkDetailAllowUrls`. Enabled by default — set to `false` to capture
+   * only headers for allow-listed URLs when you cannot tolerate body payloads
+   * being recorded.
    *
    * Bodies are truncated at ~150 KB; truncated payloads include a
-   * `MAX_BODY_SIZE_EXCEEDED` warning.
+   * `MAX_BODY_SIZE_EXCEEDED` warning. URLs only enter the capture path after
+   * being explicitly allow-listed via `networkDetailAllowUrls`, so the
+   * default-on behaviour does not implicitly capture every request body.
    *
-   * @default false
+   * Aligned with the iOS and Android native SDK defaults.
+   *
+   * @default true
    */
   networkCaptureBodies?: boolean;
 
@@ -222,7 +231,7 @@ const defaultOptions: MobileReplayOptions = {
   screenshotStrategy: 'pixelCopy',
   networkDetailAllowUrls: [],
   networkDetailDenyUrls: [],
-  networkCaptureBodies: false,
+  networkCaptureBodies: true,
   networkRequestHeaders: [],
   networkResponseHeaders: [],
 };
@@ -244,6 +253,23 @@ type MobileReplayIntegration = Integration & {
   options: MobileReplayOptions;
   getReplayId: () => string | null;
 };
+
+/**
+ * Network detail allow/deny lists accept `RegExp` in JS, but the native bridge
+ * can only serialize strings (a `RegExp` becomes `{}` when crossing the bridge).
+ *
+ * Convert `RegExp` entries to their `source` string so the native SDK can
+ * populate its `SentryReplayOptions`, which is what emits the rrweb options
+ * event that tells the Sentry frontend to render captured request/response
+ * details. The JS-side matching in `xhrUtils` keeps using the original
+ * `RegExp` values, so this normalization only affects native signaling.
+ */
+export function serializeNetworkDetailUrlsForNative(urls: (string | RegExp)[] | undefined): string[] {
+  if (!urls) {
+    return [];
+  }
+  return urls.map(url => (typeof url === 'string' ? url : url.source)).filter(url => url.length > 0);
+}
 
 /**
  * The Mobile Replay Integration, let's you adjust the default mobile replay options.
@@ -388,7 +414,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     const networkOptions: ResolvedNetworkOptions = {
       allowUrls: options.networkDetailAllowUrls ?? [],
       denyUrls: options.networkDetailDenyUrls ?? [],
-      captureBodies: options.networkCaptureBodies ?? false,
+      captureBodies: options.networkCaptureBodies ?? true,
       requestHeaders: options.networkRequestHeaders ?? [],
       responseHeaders: options.networkResponseHeaders ?? [],
     };

@@ -439,6 +439,11 @@ jobs:
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # pin@v2.37.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
+          # Pin the emulator binary: canary 37.1.6.0 (build 15726199) broke emulator
+          # networking (no egress to 10.0.2.2 mock server or external internet), which
+          # makes the whole E2E suite time out. 37.1.5.0 (build 15679343) is the last
+          # known-good build. Remove once a fixed canary emulator ships.
+          emulator-build: 15679343
           force-avd-creation: false
           disable-animations: true
           disable-spellchecker: true

@@ -12,6 +12,7 @@
 
 - Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
 - Set `app.vitals.start.screen` on the standalone `app.start` transaction from the current route ([#6369](https://github.com/getsentry/sentry-react-native/pull/6369))
+- Expose top-level `Sentry.setAttribute` and `Sentry.setAttributes` APIs ([#6354](https://github.com/getsentry/sentry-react-native/pull/6354)).
 - Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
 - Opt-in build-time auto-wrap for Expo Router's per-route `ErrorBoundary` ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
@@ -25,8 +26,13 @@
   });
   ```
 
+### Changes
+
+- Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults ([#6372](https://github.com/getsentry/sentry-react-native/pull/6372))
+
 ### Fixes
 
+- Forward Session Replay network detail options to the native SDKs so network request and response bodies are displayed ([#6373](https://github.com/getsentry/sentry-react-native/pull/6373))
 - The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
 ### Dependencies
