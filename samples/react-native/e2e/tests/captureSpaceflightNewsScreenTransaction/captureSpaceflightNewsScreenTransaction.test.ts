@@ -111,7 +111,10 @@ describe('Capture Spaceflight News Screen Transaction', () => {
         breadcrumbs: expect.arrayContaining([
           expect.objectContaining({
             category: 'xhr',
-            data: {
+            // `objectContaining` so the assertion tolerates the optional
+            // network detail fields (`request`/`response`) added when the URL
+            // is allow-listed via `networkDetailAllowUrls`.
+            data: expect.objectContaining({
               end_timestamp: expect.any(Number),
               method: 'GET',
               response_body_size: expect.any(Number),
@@ -120,7 +123,7 @@ describe('Capture Spaceflight News Screen Transaction', () => {
               url: expect.stringContaining(
                 'api.spaceflightnewsapi.net/v4/articles',
               ),
-            },
+            }),
             level: 'info',
             timestamp: expect.any(Number),
             type: 'http',

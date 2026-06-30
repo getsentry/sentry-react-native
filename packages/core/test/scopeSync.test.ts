@@ -226,7 +226,7 @@ describe('ScopeSync', () => {
     it('setAttribute', () => {
       expect(SentryCore.getIsolationScope().setAttribute).not.toBe(setAttributeScopeSpy);
 
-      SentryCore.getIsolationScope().setAttribute('session_id', 'abc123');
+      SentryCore.setAttribute('session_id', 'abc123');
       expect(NATIVE.setAttribute).toHaveBeenCalledExactlyOnceWith('session_id', 'abc123');
       expect(setAttributeScopeSpy).toHaveBeenCalledExactlyOnceWith('session_id', 'abc123');
     });
@@ -249,7 +249,7 @@ describe('ScopeSync', () => {
     it('setAttributes', () => {
       expect(SentryCore.getIsolationScope().setAttributes).not.toBe(setAttributesScopeSpy);
 
-      SentryCore.getIsolationScope().setAttributes({
+      SentryCore.setAttributes({
         session_type: 'test',
         request_count: 42,
         is_admin: true,

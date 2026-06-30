@@ -1,6 +1,7 @@
 package io.sentry.react
 
 import android.app.Activity
+import com.facebook.react.bridge.JavaOnlyArray
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.common.JavascriptException
 import io.sentry.Breadcrumb
@@ -311,5 +312,96 @@ class RNSentryStartTest {
         RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         assertFalse("Tombstone should be disabled by default", options.isTombstoneEnabled)
+    }
+
+    @Test
+    fun `network detail replay options are forwarded to the native replay options`() {
+        val mobileReplayOptions =
+            JavaOnlyMap.of(
+                "networkDetailAllowUrls",
+                JavaOnlyArray.of("https://api.example.com"),
+                "networkDetailDenyUrls",
+                JavaOnlyArray.of("https://api.example.com/auth"),
+                "networkCaptureBodies",
+                true,
+                "networkRequestHeaders",
+                JavaOnlyArray.of("X-My-Header"),
+                "networkResponseHeaders",
+                JavaOnlyArray.of("X-Response-Header"),
+            )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "dsn",
+                "https://abc@def.ingest.sentry.io/1234567",
+                "replaysOnErrorSampleRate",
+                0.75,
+                "mobileReplayOptions",
+                mobileReplayOptions,
+            )
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        val replay = options.sessionReplay
+        assertEquals(listOf("https://api.example.com"), replay.networkDetailAllowUrls)
+        assertEquals(listOf("https://api.example.com/auth"), replay.networkDetailDenyUrls)
+        assertTrue(replay.isNetworkCaptureBodies)
+        assertTrue(replay.networkRequestHeaders.contains("X-My-Header"))
+        assertTrue(replay.networkResponseHeaders.contains("X-Response-Header"))
+    }
+
+    @Test
+    fun `networkCaptureBodies can be disabled via mobileReplayOptions`() {
+        val mobileReplayOptions =
+            JavaOnlyMap.of(
+                "networkDetailAllowUrls",
+                JavaOnlyArray.of("https://api.example.com"),
+                "networkCaptureBodies",
+                false,
+            )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "dsn",
+                "https://abc@def.ingest.sentry.io/1234567",
+                "replaysOnErrorSampleRate",
+                0.75,
+                "mobileReplayOptions",
+                mobileReplayOptions,
+            )
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        val replay = options.sessionReplay
+        assertEquals(listOf("https://api.example.com"), replay.networkDetailAllowUrls)
+        assertFalse(replay.isNetworkCaptureBodies)
+    }
+
+    @Test
+    fun `RegExp-sourced network detail urls forwarded as strings are kept`() {
+        // The JS layer serializes RegExp patterns to their source string before
+        // crossing the bridge; the native side stores them as plain strings.
+        val mobileReplayOptions =
+            JavaOnlyMap.of(
+                "networkDetailAllowUrls",
+                JavaOnlyArray.of("^https://api\\.example\\.com/.*"),
+            )
+        val rnOptions =
+            JavaOnlyMap.of(
+                "dsn",
+                "https://abc@def.ingest.sentry.io/1234567",
+                "replaysOnErrorSampleRate",
+                0.75,
+                "mobileReplayOptions",
+                mobileReplayOptions,
+            )
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals(
+            listOf("^https://api\\.example\\.com/.*"),
+            options.sessionReplay.networkDetailAllowUrls,
+        )
     }
 }

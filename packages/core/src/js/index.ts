@@ -24,6 +24,8 @@ export {
   captureFeedback,
   captureMessage,
   Scope,
+  setAttribute,
+  setAttributes,
   setContext,
   setExtra,
   setExtras,

@@ -83,6 +83,8 @@ import { rewriteFramesIntegration } from '@sentry/react';
 import { Scope } from '@sentry/core';
 import { SdkInfo } from '@sentry/core';
 import { SendFeedbackParams } from '@sentry/core';
+import { setAttribute } from '@sentry/core';
+import { setAttributes } from '@sentry/core';
 import { setContext } from '@sentry/core';
 import { setCurrentClient } from '@sentry/core';
 import { setExtra } from '@sentry/core';
@@ -710,6 +712,10 @@ export interface SentryNavigationContainerProps {
 // @public
 export function sentryTraceGesture<GestureT>(
 label: string, gesture: GestureT): GestureT;
+
+export { setAttribute }
+
+export { setAttributes }
 
 export { setContext }
 

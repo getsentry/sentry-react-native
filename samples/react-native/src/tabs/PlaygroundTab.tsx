@@ -85,6 +85,26 @@ export default function getPlaygroundTab() {
                     }}
                   />
                   <Separator />
+                  <Button
+                    title="Replay Network Detail (XHR)"
+                    onPress={() => {
+                      const xhr = new XMLHttpRequest();
+                      xhr.open(
+                        'GET',
+                        'https://api.spaceflightnewsapi.net/v4/articles/?limit=1',
+                      );
+                      xhr.setRequestHeader('X-My-Header', 'sentry-replay-test');
+                      xhr.onload = () =>
+                        console.log(
+                          'Replay network detail XHR done:',
+                          xhr.status,
+                        );
+                      xhr.onerror = () =>
+                        console.log('Replay network detail XHR failed');
+                      xhr.send();
+                    }}
+                  />
+                  <Separator />
                   <Text>Custom Mask:</Text>
                   <View>
                     <Sentry.Unmask>

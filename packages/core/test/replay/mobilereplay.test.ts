@@ -2,7 +2,7 @@ import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint } fro
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { mobileReplayIntegration } from '../../src/js/replay/mobilereplay';
+import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
 
@@ -745,5 +745,36 @@ describe('Mobile Replay Integration', () => {
       expect(id2).toBe(cachedReplayId);
       expect(id3).toBe(cachedReplayId);
     });
+  });
+});
+
+describe('serializeNetworkDetailUrlsForNative', () => {
+  it('returns an empty array when urls are undefined', () => {
+    expect(serializeNetworkDetailUrlsForNative(undefined)).toEqual([]);
+  });
+
+  it('passes through string patterns unchanged', () => {
+    expect(serializeNetworkDetailUrlsForNative(['https://api.example.com', 'cdn.example.com'])).toEqual([
+      'https://api.example.com',
+      'cdn.example.com',
+    ]);
+  });
+
+  it('converts RegExp patterns to their source string', () => {
+    expect(serializeNetworkDetailUrlsForNative([/^https:\/\/api\./, /\/auth\//])).toEqual([
+      '^https:\\/\\/api\\.',
+      '\\/auth\\/',
+    ]);
+  });
+
+  it('handles mixed string and RegExp entries', () => {
+    expect(serializeNetworkDetailUrlsForNative(['api.example.com', /^https:\/\/cdn\./])).toEqual([
+      'api.example.com',
+      '^https:\\/\\/cdn\\.',
+    ]);
+  });
+
+  it('drops empty string entries', () => {
+    expect(serializeNetworkDetailUrlsForNative(['', 'api.example.com'])).toEqual(['api.example.com']);
   });
 });
