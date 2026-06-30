@@ -40,3 +40,12 @@ end
 def is_new_hermes_runtime(rn_version)
   return (rn_version[:major] >= 1 || (rn_version[:major] == 0 && rn_version[:minor] >= 81))
 end
+
+# React Native >= 0.75 transitively loads `react-native/scripts/cocoapods/spm.rb`
+# via `react_native_pods.rb`, which exposes the `SPM` helper that the RNSentry
+# podspec uses to pull `sentry-cocoa` as a Swift Package binary xcframework.
+# Below 0.75 the helper is unavailable and we fall back to consuming Sentry as
+# a regular CocoaPods source build.
+def supports_spm(rn_version)
+  return (rn_version[:major] >= 1 || (rn_version[:major] == 0 && rn_version[:minor] >= 75))
+end
