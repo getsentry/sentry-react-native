@@ -9,6 +9,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   setCurrentClient,
+  spanToJSON,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -22,6 +23,7 @@ import {
 import {
   APP_START as APP_START_OP,
   APP_START_COLD as APP_START_COLD_OP,
+  APP_START_EXTENDED as APP_START_EXTENDED_OP,
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD,
 } from '../../../src/js/tracing';
@@ -1183,6 +1185,139 @@ describe('App Start Integration', () => {
       const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
       expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
     });
+  });
+});
+
+describe('Extended App Start', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockReactNativeBundleExecutionStartTimestamp();
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+  });
+
+  afterEach(() => {
+    clearReactNativeBundleExecutionStartTimestamp();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+  });
+
+  const setupStandaloneIntegration = (
+    standalone = true,
+  ): { integration: AppStartIntegrationTest; client: TestClient } => {
+    const integration = appStartIntegration({ standalone }) as AppStartIntegrationTest;
+    const client = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(client);
+    integration.setup(client);
+    return { integration, client };
+  };
+
+  it('creates an extended app start span and finalizes it with a measurement on finish', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const extendedSpan = integration.getExtendedAppStartSpan();
+    expect(spanToJSON(extendedSpan).op).toBe(APP_START_EXTENDED_OP);
+
+    const child = startInactiveSpan({ parentSpan: extendedSpan, op: 'app.init', name: 'load config' });
+    child.end();
+
+    await integration.finishExtendedAppStart();
+
+    const event = client.event as TransactionEvent;
+    expect(event?.contexts?.trace?.op).toBe(APP_START_OP);
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeDefined();
+
+    const extended = event?.spans?.find(s => s.op === APP_START_EXTENDED_OP);
+    expect(extended).toBeDefined();
+    const childSpan = event?.spans?.find(s => s.description === 'load config');
+    expect(childSpan).toBeDefined();
+    expect(childSpan?.parent_span_id).toBe(extended?.span_id);
+  });
+
+  it('trims the transaction end to the last child span', async () => {
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const childEndSeconds = timeOriginMilliseconds / 1000 + 2; // 2s after the default app start end
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'late',
+    });
+    child.end(childEndSeconds);
+
+    await integration.finishExtendedAppStart();
+
+    const event = client.event as TransactionEvent;
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 1);
+  });
+
+  it('getExtendedAppStartSpan returns a no-op span when not extending', () => {
+    mockAppStart({ cold: true });
+    const { integration } = setupStandaloneIntegration();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+  });
+
+  it('extendAppStart is a no-op when standalone tracing is disabled', () => {
+    mockAppStart({ cold: true });
+    const { integration } = setupStandaloneIntegration(false);
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+  });
+
+  it('extendAppStart is first-wins on repeat calls', () => {
+    mockAppStart({ cold: true });
+    const { integration } = setupStandaloneIntegration();
+    integration.extendAppStart();
+    const first = integration.getExtendedAppStartSpan();
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan()).toBe(first);
+  });
+
+  it('finishExtendedAppStart is a no-op when there is no extension', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    await integration.finishExtendedAppStart();
+    expect(client.event).toBeUndefined();
+  });
+
+  it('finishExtendedAppStart only finalizes once', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    integration.extendAppStart();
+
+    await integration.finishExtendedAppStart();
+    expect(client.eventQueue.length).toBe(1);
+
+    await integration.finishExtendedAppStart();
+    expect(client.eventQueue.length).toBe(1);
+  });
+
+  it('finalizes without a measurement when the deadline is reached', async () => {
+    jest.useFakeTimers();
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    // Deadline fires (finishExtendedAppStart never called).
+    jest.advanceTimersByTime(30_000);
+    jest.useRealTimers();
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    expect(client.eventQueue.length).toBe(1);
+    const event = client.eventQueue[0] as TransactionEvent;
+    expect(event?.contexts?.trace?.op).toBe(APP_START_OP);
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeUndefined();
   });
 });
 
