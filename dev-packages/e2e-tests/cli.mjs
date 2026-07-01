@@ -185,6 +185,14 @@ if (actions.includes('create')) {
     env: env,
   });
 
+  // Replace the dead OSSRH snapshots repo hardcoded by older RN Gradle plugins
+  // (oss.sonatype.org is EOL and intermittently 504s, breaking dependency resolution).
+  execSync(`${patchScriptsDir}/rn.patch.gradle.plugin.repo.js --app-dir .`, {
+    stdio: 'inherit',
+    cwd: appDir,
+    env: env,
+  });
+
   // Patch the app
   execSync(`patch --verbose --strip=0 --force --ignore-whitespace --fuzz 4 < ${patchScriptsDir}/rn.patch`, {
     stdio: 'inherit',
