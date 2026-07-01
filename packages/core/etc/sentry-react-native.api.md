@@ -215,7 +215,9 @@ export const debugSymbolicatorIntegration: () => Integration;
 export { dedupeIntegration }
 
 // @public
-export const deeplinkIntegration: (...args: any[]) => Integration;
+export const deeplinkIntegration: (...args: any[]) => Integration & {
+    name: string;
+};
 
 // @public
 export const deviceContextIntegration: () => Integration;
