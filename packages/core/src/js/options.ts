@@ -405,6 +405,25 @@ export interface BaseReactNativeOptions {
      * @deprecated Use `profilingOptions` instead. This option will be removed in the next major version.
      */
     androidProfilingOptions?: ProfilingOptions;
+
+    /**
+     * Sends app start as a dedicated standalone `app.start` transaction instead of
+     * attaching app start data to the first navigation (`ui.load`) transaction.
+     *
+     * This decouples app start data from the navigation transaction lifecycle, so it
+     * is no longer lost when no qualifying navigation transaction is sent. The standalone
+     * transaction uses op `app.start`, name `App Start`, and the span attributes
+     * `app.vitals.start.value` (duration) and `app.vitals.start.type` (`cold` / `warm`).
+     *
+     * Note: the standalone transaction still respects `tracesSampleRate`. A dedicated
+     * app start sample rate is not yet available.
+     *
+     * Requires `enableAppStartTracking` and performance monitoring to be enabled.
+     *
+     * @experimental
+     * @default false
+     */
+    enableStandaloneAppStartTracing?: boolean;
   };
 
   /**
