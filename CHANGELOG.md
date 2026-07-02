@@ -11,6 +11,7 @@
 ### Features
 
 - Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
+- Set `app.vitals.start.screen` on the standalone `app.start` transaction from the current route ([#6369](https://github.com/getsentry/sentry-react-native/pull/6369))
 - Expose top-level `Sentry.setAttribute` and `Sentry.setAttributes` APIs ([#6354](https://github.com/getsentry/sentry-react-native/pull/6354)).
 - Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
@@ -41,9 +42,9 @@
 
 ### Dependencies
 
-- Bump Android SDK from v8.45.0 to v8.46.0 ([#6357](https://github.com/getsentry/sentry-react-native/pull/6357))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8460)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.45.0...8.46.0)
+- Bump Android SDK from v8.45.0 to v8.47.0 ([#6357](https://github.com/getsentry/sentry-react-native/pull/6357), [#6391](https://github.com/getsentry/sentry-react-native/pull/6391))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8470)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.45.0...8.47.0)
 - Bump JavaScript SDK from v10.61.0 to v10.63.0 ([#6361](https://github.com/getsentry/sentry-react-native/pull/6361), [#6388](https://github.com/getsentry/sentry-react-native/pull/6388))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10630)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.61.0...10.63.0)

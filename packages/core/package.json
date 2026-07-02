@@ -89,7 +89,7 @@
     "@react-native/jest-preset": "0.86.0",
     "@sentry/eslint-plugin-sdk": "10.63.0",
     "@sentry/typescript": "10.63.0",
-    "@sentry/wizard": "6.12.0",
+    "@sentry/wizard": "6.13.0",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.9.3",
