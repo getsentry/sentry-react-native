@@ -54,7 +54,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  sentry_cocoa_version = '9.19.0'
+  sentry_cocoa_version = '9.19.1'
 
   # Consume sentry-cocoa via Swift Package Manager by default.
   #

@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
 - Expose top-level `Sentry.setAttribute` and `Sentry.setAttributes` APIs ([#6354](https://github.com/getsentry/sentry-react-native/pull/6354)).
 - Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
@@ -49,6 +50,9 @@
 - Bump CLI from v3.5.1 to v3.6.0 ([#6362](https://github.com/getsentry/sentry-react-native/pull/6362))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#360)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.1...3.6.0)
+- Bump Cocoa SDK from v9.19.0 to v9.19.1 ([#6389](https://github.com/getsentry/sentry-react-native/pull/6389))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9191)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.19.0...9.19.1)
 
 ## 8.16.0
 

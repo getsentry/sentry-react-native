@@ -1,0 +1,119 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App Start Integration App Start Attached to the First Root Span matches the locked default (non-standalone) cold app start event 1`] = `
+{
+  "contexts": {
+    "trace": {
+      "data": {
+        "sentry.op": "ui.load",
+        "sentry.origin": "auto.app.start",
+      },
+      "op": "ui.load",
+      "origin": "auto.app.start",
+      "span_id": "123",
+      "trace_id": "456",
+    },
+  },
+  "measurements": {
+    "app_start_cold": {
+      "unit": "millisecond",
+      "value": 100,
+    },
+  },
+  "spans": [
+    {
+      "data": {},
+      "description": "Test",
+      "op": "test",
+      "span_id": "123",
+      "start_timestamp": 100,
+      "timestamp": 200,
+      "trace_id": "456",
+    },
+    {
+      "data": {
+        "sentry.op": "app.start.cold",
+        "sentry.origin": "auto.app.start",
+      },
+      "description": "Cold Start",
+      "op": "app.start.cold",
+      "origin": "auto.app.start",
+      "parent_span_id": "123",
+      "span_id": Any<String>,
+      "start_timestamp": Any<Number>,
+      "status": "ok",
+      "timestamp": Any<Number>,
+      "trace_id": "456",
+    },
+    {
+      "data": {
+        "sentry.op": "app.start.cold",
+        "sentry.origin": "auto.app.start",
+      },
+      "description": "JS Bundle Execution Start",
+      "op": "app.start.cold",
+      "origin": "auto.app.start",
+      "parent_span_id": Any<String>,
+      "span_id": Any<String>,
+      "start_timestamp": Any<Number>,
+      "status": "ok",
+      "timestamp": Any<Number>,
+      "trace_id": "456",
+    },
+  ],
+  "start_timestamp": Any<Number>,
+  "type": "transaction",
+}
+`;
+
+exports[`App Start Integration Standalone App Start matches the locked standalone (opt-in) cold app start event 1`] = `
+{
+  "breadcrumbs": undefined,
+  "contexts": {
+    "trace": {
+      "data": {
+        "app.vitals.start.type": "cold",
+        "app.vitals.start.value": 100,
+        "sentry.op": "app.start",
+        "sentry.origin": "auto.app.start",
+        "sentry.sample_rate": 1,
+        "sentry.source": "custom",
+      },
+      "links": undefined,
+      "op": "app.start",
+      "origin": "auto.app.start",
+      "parent_span_id": undefined,
+      "span_id": Any<String>,
+      "status": undefined,
+      "trace_id": Any<String>,
+    },
+  },
+  "environment": "production",
+  "event_id": Any<String>,
+  "request": undefined,
+  "spans": [
+    {
+      "data": {
+        "sentry.op": "app.start",
+        "sentry.origin": "auto.app.start",
+      },
+      "description": "JS Bundle Execution Start",
+      "op": "app.start",
+      "origin": "auto.app.start",
+      "parent_span_id": Any<String>,
+      "span_id": Any<String>,
+      "start_timestamp": Any<Number>,
+      "status": "ok",
+      "timestamp": Any<Number>,
+      "trace_id": Any<String>,
+    },
+  ],
+  "start_timestamp": Any<Number>,
+  "timestamp": Any<Number>,
+  "transaction": "App Start",
+  "transaction_info": {
+    "source": "custom",
+  },
+  "type": "transaction",
+}
+`;
