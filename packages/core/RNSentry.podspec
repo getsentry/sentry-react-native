@@ -69,7 +69,15 @@ Pod::Spec.new do |s|
   #
   # Set `SENTRY_USE_XCFRAMEWORK=0` to fall back to the source-built
   # `Sentry` CocoaPod (e.g. for offline builds behind a restrictive proxy).
+  #
+  # `SENTRY_USE_SPM` was the name in earlier drafts of this PR; honor it as a
+  # deprecated alias so CI or local envs still exporting `SENTRY_USE_SPM=0`
+  # don't silently take the new xcframework path.
   env_use_xcframework = ENV['SENTRY_USE_XCFRAMEWORK']
+  if env_use_xcframework.nil? && !ENV['SENTRY_USE_SPM'].nil?
+    Pod::UI.warn '[Sentry] SENTRY_USE_SPM is deprecated; use SENTRY_USE_XCFRAMEWORK instead.' if defined?(Pod::UI)
+    env_use_xcframework = ENV['SENTRY_USE_SPM']
+  end
   use_xcframework = case env_use_xcframework
                     when '0' then false
                     else true
