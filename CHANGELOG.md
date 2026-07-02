@@ -6,6 +6,16 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Changes
+
+- Consume `sentry-cocoa` as a prebuilt xcframework by default on iOS ([#6381](https://github.com/getsentry/sentry-react-native/pull/6381))
+
+  **Warning**
+
+  **This may be a breaking change for some setups.** `pod install` now downloads `Sentry.xcframework` from sentry-cocoa's GitHub release (SHA256-verified) and vendors it, instead of building Sentry from source as a CocoaPod. If your iOS build breaks after upgrading (e.g. when another pod also depends on the `Sentry` CocoaPod), or if your `pod install` environment cannot reach `github.com`, set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior.
+
 ## 8.17.2
 
 ### Fixes
@@ -48,11 +58,6 @@
 ### Changes
 
 - Default `mobileReplayIntegration({ networkCaptureBodies })` to `true`, matching the iOS and Android native SDK defaults ([#6372](https://github.com/getsentry/sentry-react-native/pull/6372))
-- Consume `sentry-cocoa` as a prebuilt xcframework by default on iOS ([#6381](https://github.com/getsentry/sentry-react-native/pull/6381))
-
-  **Warning**
-
-  **This may be a breaking change for some setups.** `pod install` now downloads `Sentry.xcframework` from sentry-cocoa's GitHub release (SHA256-verified) and vendors it, instead of building Sentry from source as a CocoaPod. If your iOS build breaks after upgrading (e.g. when another pod also depends on the `Sentry` CocoaPod), or if your `pod install` environment cannot reach `github.com`, set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior.
 
 ### Fixes
 
