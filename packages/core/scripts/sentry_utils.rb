@@ -50,7 +50,13 @@ require 'fileutils'
 # sentry-cocoa version we ship a prebuilt xcframework for.
 SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS = {
   '9.19.1' => {
-    'Sentry-Dynamic' => '7d0fb876a35b40ef942d36cd43dcab0ee16d2874d5cc7cc668e8e01e0c83db2a',
+    # `Sentry.xcframework.zip` — the static product. Its enclosing xcframework
+    # name matches the framework name inside (both `Sentry`), which CocoaPods
+    # requires to generate `-framework Sentry` correctly and to resolve the
+    # `Sentry` module. `Sentry-Dynamic.xcframework` would ship the same
+    # `Sentry.framework` inside but under a mismatched enclosing name, so
+    # CocoaPods generates `-framework Sentry-Dynamic` and fails at link.
+    'Sentry' => 'd6d545af17e49851cda2747b0f45cde78ce08ea37709dde5a956c6b4671224e8',
   },
 }.freeze
 
@@ -64,7 +70,7 @@ SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS = {
 # Consuming sentry-cocoa this way (vs. through Xcode's SPM integration)
 # avoids the Xcode 16/26 archive bug where a signed SPM binary xcframework's
 # `Signatures/*.signature` file collides during the archive step.
-def ensure_sentry_xcframework(version, product = 'Sentry-Dynamic')
+def ensure_sentry_xcframework(version, product = 'Sentry')
   vendor_dir = File.expand_path('../ios/Vendor', __dir__)
   target_dir = File.join(vendor_dir, "#{product}.xcframework")
   return target_dir if File.directory?(target_dir)
