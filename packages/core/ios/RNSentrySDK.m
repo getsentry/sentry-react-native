@@ -1,6 +1,6 @@
 #import "RNSentrySDK.h"
+#import "RNSentry-Swift.h"
 #import "RNSentryStart.h"
-#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/Sentry.h>
 
 static NSString *SENTRY_OPTIONS_RESOURCE_NAME = @"sentry.options";
@@ -60,7 +60,7 @@ static NSString *SENTRY_OPTIONS_RESOURCE_TYPE = @"json";
     if (options == nil) {
         // Fallback in case that options file could not be parsed.
         NSError *fallbackError = nil;
-        options = [PrivateSentrySDKOnly optionsWithDictionary:@{ } didFailWithError:&fallbackError];
+        options = [RNSentryInternal optionsFromDictionary:@{ } error:&fallbackError];
         if (fallbackError != nil) {
             NSLog(@"[RNSentry] Failed to create fallback options with error: %@",
                 fallbackError.localizedDescription);
