@@ -8,7 +8,8 @@ export function ExternalLink(props: Omit<React.ComponentProps<typeof Link>, 'hre
     <Link
       target="_blank"
       {...props}
-      href={props.href}
+      // expo-router 57 tightened `href` to typed routes; this wrapper is for arbitrary external URLs.
+      href={props.href as React.ComponentProps<typeof Link>['href']}
       onPress={e => {
         if (Platform.OS !== 'web') {
           // Prevent the default behavior of linking to the default browser on native.

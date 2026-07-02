@@ -182,7 +182,7 @@ jobs:
       - name: Build Android App
         working-directory: samples/expo/android
         env:
-          # Increase memory for Expo SDK 55 lint tasks
+          # Increase memory for Expo SDK 57 lint tasks
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
