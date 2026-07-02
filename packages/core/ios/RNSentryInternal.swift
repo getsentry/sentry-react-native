@@ -96,6 +96,13 @@ import Foundation
 
     // MARK: - Screenshot / view hierarchy / screen
 
+    // sentry-cocoa's `SentryInternalScreen/Screenshot/ViewHierarchyApi` are all
+    // gated to `(os(iOS) || os(tvOS)) && !SENTRY_NO_UI_FRAMEWORK`. On visionOS
+    // the new API surface is intentionally absent — so `setCurrentScreen` is a
+    // no-op there, unlike the deprecated `PrivateSentrySDKOnly.setCurrentScreen`
+    // (which worked under `SENTRY_UIKIT_AVAILABLE`, i.e. also on visionOS).
+    // Callers on visionOS lose the current-screen breadcrumb enrichment as a
+    // result; this matches the direction of sentry-cocoa's new hybrid API.
     #if os(iOS) || os(tvOS)
     @_spi(Private) @objc public static var captureScreenshots: [Data]? {
         SentrySDK.internal.screenshot.capture()
@@ -153,7 +160,13 @@ import Foundation
 
     // MARK: - Swizzle
 
-    #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
+    // `SentryInternalSwizzleApi` in sentry-cocoa has no platform gating.
+    // We enable the wrapper on every UIKit-capable platform (iOS/tvOS/visionOS
+    // — matching `SENTRY_UIKIT_AVAILABLE`, which is what `SENTRY_HAS_UIKIT`
+    // resolves to in the RNSentry.mm caller). `os(iOS)` in Swift already
+    // covers Mac Catalyst, so no separate `targetEnvironment(macCatalyst)` is
+    // needed.
+    #if os(iOS) || os(tvOS) || os(visionOS)
     /// Stable identity for the `RNSScreen.viewDidAppear:` swizzle so the underlying
     /// `oncePerClass` bookkeeping in sentry-cocoa can dedupe re-entries.
     private static var rnsScreenViewDidAppearKey: UInt8 = 0
