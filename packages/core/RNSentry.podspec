@@ -45,7 +45,11 @@ Pod::Spec.new do |s|
   # is pulled in here; on Android it is compiled by the dedicated CMake target
   # in `android/CMakeLists.txt`. The files are guarded with
   # `RCT_NEW_ARCH_ENABLED` so they compile to empty TUs on Old Arch.
-  s.source_files = 'ios/**/*.{h,m,mm}', 'cpp/**/*.{h,cpp}'
+  # `.swift` is here for `RNSentrySwiftLinkStub.swift`, which forces Xcode
+  # to link the Swift runtime compatibility libs required by our vendored
+  # Sentry.xcframework static Swift library.
+  s.source_files = 'ios/**/*.{h,m,mm,swift}', 'cpp/**/*.{h,cpp}'
+  s.swift_versions = ['5.5']
   s.exclude_files = 'ios/Vendor/**/*'
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
@@ -96,32 +100,25 @@ Pod::Spec.new do |s|
     # and fail with "unsupported Swift architecture". New slices in future
     # sentry-cocoa releases are picked up automatically at pod-install.
     #
-    # `pod_target_xcconfig` covers RNSentry's own compile phase — inside
-    # a pod's xcconfig, `${PODS_TARGET_SRCROOT}` resolves to the pod
-    # source directory (`packages/core/` here). `user_target_xcconfig`
-    # covers the host app target so app code writing `#import <Sentry/…>`
-    # (e.g. `SentryNativeInitializer.m`) also finds the framework. The
-    # aggregate/user xcconfig doesn't define `PODS_TARGET_SRCROOT`, so
-    # for that target we resolve the path via `${PODS_ROOT}/..` +
-    # `node_modules/@sentry/react-native`, which is where RN's
-    # auto-linking places the SDK.
-    pod_search_paths = {}
-    user_search_paths = {}
+    # Point the search paths at the pod-install-time absolute path to the
+    # xcframework. `${PODS_TARGET_SRCROOT}` is only defined in per-pod
+    # xcconfigs, not in aggregate/user-target xcconfigs, and a
+    # `${PODS_ROOT}`-relative fallback works for one Podfile layout but
+    # breaks for another (e.g. the RN sample apps put node_modules at a
+    # different depth from RNSentryCocoaTester). Using the absolute path
+    # avoids the layout-detection dance — the path is regenerated on
+    # every `pod install`, so it's not something anyone commits.
+    xcframework_search_paths = {}
     sentry_xcframework_slices_by_sdk(sentry_xcframework_dir).each do |sdk, slice_ids|
-      pod_paths = slice_ids.map do |slice|
-        %("${PODS_TARGET_SRCROOT}/ios/Vendor/Sentry.xcframework/#{slice}")
+      paths = slice_ids.map do |slice|
+        %("#{File.join(sentry_xcframework_dir, slice)}")
       end
-      user_paths = slice_ids.map do |slice|
-        %("${PODS_ROOT}/../../node_modules/@sentry/react-native/ios/Vendor/Sentry.xcframework/#{slice}")
-      end
-      pod_search_paths["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] =
-        (['$(inherited)'] + pod_paths).join(' ')
-      user_search_paths["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] =
-        (['$(inherited)'] + user_paths).join(' ')
+      xcframework_search_paths["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] =
+        (['$(inherited)'] + paths).join(' ')
     end
 
-    pod_target_xcconfig.merge!(pod_search_paths)
-    s.user_target_xcconfig = user_search_paths
+    pod_target_xcconfig.merge!(xcframework_search_paths)
+    s.user_target_xcconfig = xcframework_search_paths
   else
     s.dependency 'Sentry', sentry_cocoa_version
   end
