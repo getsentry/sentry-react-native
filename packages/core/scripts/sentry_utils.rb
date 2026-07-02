@@ -41,11 +41,62 @@ def is_new_hermes_runtime(rn_version)
   return (rn_version[:major] >= 1 || (rn_version[:major] == 0 && rn_version[:minor] >= 81))
 end
 
-# React Native >= 0.75 transitively loads `react-native/scripts/cocoapods/spm.rb`
-# via `react_native_pods.rb`, which exposes the `SPM` helper that the RNSentry
-# podspec uses to pull `sentry-cocoa` as a Swift Package binary xcframework.
-# Below 0.75 the helper is unavailable and we fall back to consuming Sentry as
-# a regular CocoaPods source build.
-def supports_spm(rn_version)
-  return (rn_version[:major] >= 1 || (rn_version[:major] == 0 && rn_version[:minor] >= 75))
+require 'digest'
+require 'fileutils'
+
+# SHA256 checksums of `<product>.xcframework.zip` assets published in
+# sentry-cocoa GitHub releases (same value as the SPM binary target checksum
+# in sentry-cocoa's `Package.swift`). Register the checksum for each
+# sentry-cocoa version we ship a prebuilt xcframework for.
+SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS = {
+  '9.19.1' => {
+    'Sentry-Dynamic' => '7d0fb876a35b40ef942d36cd43dcab0ee16d2874d5cc7cc668e8e01e0c83db2a',
+  },
+}.freeze
+
+# Ensures `<sdk_root>/ios/Vendor/<product>.xcframework` exists.
+#
+# On first invocation, downloads the prebuilt xcframework zip from
+# sentry-cocoa's GitHub release, verifies its SHA256 checksum against
+# `SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS`, and extracts it. Subsequent
+# invocations are no-ops.
+#
+# Consuming sentry-cocoa this way (vs. through Xcode's SPM integration)
+# avoids the Xcode 16/26 archive bug where a signed SPM binary xcframework's
+# `Signatures/*.signature` file collides during the archive step.
+def ensure_sentry_xcframework(version, product = 'Sentry-Dynamic')
+  vendor_dir = File.expand_path('../ios/Vendor', __dir__)
+  target_dir = File.join(vendor_dir, "#{product}.xcframework")
+  return target_dir if File.directory?(target_dir)
+
+  expected_checksum = SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS.dig(version, product)
+  unless expected_checksum
+    raise "sentry-cocoa xcframework checksum not registered for #{product} " \
+          "#{version}. Add it to SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS in " \
+          "packages/core/scripts/sentry_utils.rb after bumping the version."
+  end
+
+  FileUtils.mkdir_p(vendor_dir)
+  zip_path = File.join(vendor_dir, "#{product}.xcframework.zip")
+  url = "https://github.com/getsentry/sentry-cocoa/releases/download/" \
+        "#{version}/#{product}.xcframework.zip"
+
+  Pod::UI.puts "[Sentry] Downloading #{product} #{version} from GitHub Releases…" if defined?(Pod::UI)
+  unless system('curl', '-sSfL', '-o', zip_path, url)
+    raise "Failed to download #{url}"
+  end
+
+  actual_checksum = Digest::SHA256.file(zip_path).hexdigest
+  unless actual_checksum == expected_checksum
+    FileUtils.rm_f(zip_path)
+    raise "Checksum mismatch for #{product} #{version}: expected " \
+          "#{expected_checksum}, got #{actual_checksum}"
+  end
+
+  unless system('unzip', '-q', '-o', zip_path, '-d', vendor_dir)
+    raise "Failed to extract #{zip_path}"
+  end
+  FileUtils.rm_f(zip_path)
+
+  target_dir
 end
