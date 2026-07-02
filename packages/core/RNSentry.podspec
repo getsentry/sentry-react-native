@@ -86,6 +86,14 @@ Pod::Spec.new do |s|
   if use_xcframework
     ensure_sentry_xcframework(sentry_cocoa_version, 'Sentry')
     s.vendored_frameworks = 'ios/Vendor/Sentry.xcframework'
+    # `s.vendored_frameworks` alone doesn't always propagate a framework
+    # search path to the pod's own compile phase for a vendored xcframework,
+    # so RNSentry.mm fails to resolve `#import <Sentry/…>`. Force the search
+    # path via pod_target_xcconfig — `${PODS_TARGET_SRCROOT}` resolves to
+    # the pod's source directory (i.e. `packages/core/`) at build time.
+    s.pod_target_xcconfig.merge!(
+      'FRAMEWORK_SEARCH_PATHS' => '$(inherited) "${PODS_TARGET_SRCROOT}/ios/Vendor"'
+    )
   else
     s.dependency 'Sentry', sentry_cocoa_version
   end
