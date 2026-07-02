@@ -51,7 +51,7 @@ Pod::Spec.new do |s|
 
   s.compiler_flags = other_cflags
 
-  s.pod_target_xcconfig = {
+  pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES'
   }
 
@@ -88,12 +88,11 @@ Pod::Spec.new do |s|
     s.vendored_frameworks = 'ios/Vendor/Sentry.xcframework'
     # `s.vendored_frameworks` alone doesn't always propagate a framework
     # search path to the pod's own compile phase for a vendored xcframework,
-    # so RNSentry.mm fails to resolve `#import <Sentry/…>`. Force the search
-    # path via pod_target_xcconfig — `${PODS_TARGET_SRCROOT}` resolves to
-    # the pod's source directory (i.e. `packages/core/`) at build time.
-    s.pod_target_xcconfig.merge!(
-      'FRAMEWORK_SEARCH_PATHS' => '$(inherited) "${PODS_TARGET_SRCROOT}/ios/Vendor"'
-    )
+    # so RNSentry.mm fails to resolve `#import <Sentry/…>`. Add the search
+    # path explicitly — `${PODS_TARGET_SRCROOT}` resolves to the pod's
+    # source directory (i.e. `packages/core/`) at build time.
+    pod_target_xcconfig['FRAMEWORK_SEARCH_PATHS'] =
+      '$(inherited) "${PODS_TARGET_SRCROOT}/ios/Vendor"'
   else
     s.dependency 'Sentry', sentry_cocoa_version
   end
@@ -106,7 +105,7 @@ Pod::Spec.new do |s|
 
     if is_new_arch_enabled then
       # New Architecture on React Native 0.70 and older
-      s.pod_target_xcconfig.merge!({
+      pod_target_xcconfig.merge!({
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
       })
@@ -124,4 +123,6 @@ Pod::Spec.new do |s|
     s.dependency 'React-hermes'
     s.dependency 'hermes-engine'
   end
+
+  s.pod_target_xcconfig = pod_target_xcconfig
 end
