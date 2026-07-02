@@ -869,25 +869,18 @@ export const appStartIntegration = ({
   };
 
   /**
-   * Finalizes a held-open standalone `app.start` transaction (used by the extend flow): trims its
-   * end to the latest finished child floored at the default app start end, enriches it with app
-   * start data, and sends it. When `suppressMeasurement` is set (deadline path) the
-   * `app.vitals.start` attributes are removed so we never emit a bogus ~30s app start, while the
-   * transaction itself is still captured.
+   * Finalizes a held-open standalone `app.start` transaction (used by the extend flow): sets its
+   * end to the already-computed `trimmedEndMs`, enriches it with app start data, and sends it. When
+   * `suppressMeasurement` is set (deadline path) the `app.vitals.start` attributes are removed so we
+   * never emit a bogus ~30s app start, while the transaction itself is still captured.
    */
   async function finalizeStandaloneAppStart(
     span: Span,
-    { suppressMeasurement = false }: { suppressMeasurement?: boolean } = {},
+    { suppressMeasurement = false, trimmedEndMs = 0 }: { suppressMeasurement?: boolean; trimmedEndMs?: number } = {},
   ): Promise<void> {
     if (!_client) {
       return;
     }
-
-    // Trim the transaction end to the latest finished child, floored at the default app start end —
-    // extending can only push the end later, never make it shorter than a non-extended app start.
-    const defaultEndMs = appStartEndData?.timestampMs || getBundleStartTimestampMs();
-    const latestChildEndSeconds = getLatestChildSpanEndTimestamp(span);
-    const trimmedEndMs = Math.max(latestChildEndSeconds ? latestChildEndSeconds * 1000 : 0, defaultEndMs || 0);
 
     setEndTimeValue(span, (trimmedEndMs || timestampInSeconds() * 1000) / 1000);
     _client.emit('spanEnd', span);
@@ -925,16 +918,40 @@ export const appStartIntegration = ({
     }
 
     finishOpenExtendedChildren(deadlineExceeded ? 'deadline_exceeded' : 'cancelled');
+
+    let extendedEndSeconds: number | undefined;
     if (deadlineExceeded) {
+      // Deadline: keep the full window up to the deadline (diagnostic — the measurement is
+      // suppressed) by ending the wrapper span at the current time.
       extendedAppStartSpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
+      extendedAppStartSpan.end();
+      extendedEndSeconds = spanToJSON(extendedAppStartSpan).timestamp;
+    } else {
+      // Explicit finish: trim the end to the latest finished child of the extended span (the user's
+      // instrumented work), floored at the default app start end so extending never shortens a
+      // normal app start, and at the wrapper's own start so its duration stays non-negative. The
+      // wrapper span itself is excluded — it is computed before ending the wrapper, so its
+      // finalization-time end doesn't pin the measurement to the `finishExtendedAppStart()` call.
+      const defaultEndMs = appStartEndData?.timestampMs || getBundleStartTimestampMs() || 0;
+      const extendedStartMs = (spanToJSON(extendedAppStartSpan).start_timestamp || 0) * 1000;
+      const latestChildEndSeconds = getLatestChildSpanEndTimestamp(extendedAppStartSpan);
+      const trimmedEndMs = Math.max(
+        latestChildEndSeconds ? latestChildEndSeconds * 1000 : 0,
+        defaultEndMs,
+        extendedStartMs,
+      );
+      extendedEndSeconds = trimmedEndMs ? trimmedEndMs / 1000 : timestampInSeconds();
+      extendedAppStartSpan.end(extendedEndSeconds);
     }
-    extendedAppStartSpan.end();
 
     const spanToFinalize = openStandaloneAppStartSpan;
     extendedAppStartSpan = undefined;
     openStandaloneAppStartSpan = undefined;
 
-    await finalizeStandaloneAppStart(spanToFinalize, { suppressMeasurement: deadlineExceeded });
+    await finalizeStandaloneAppStart(spanToFinalize, {
+      suppressMeasurement: deadlineExceeded,
+      trimmedEndMs: extendedEndSeconds ? extendedEndSeconds * 1000 : 0,
+    });
   };
 
   const extendAppStart = (): void => {

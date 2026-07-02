@@ -1262,6 +1262,30 @@ describe('Extended App Start', () => {
     expect(event?.timestamp).toBeCloseTo(childEndSeconds, 1);
   });
 
+  it('trims the end to the last child, not the finishExtendedAppStart() call time', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'work',
+    });
+    child.end();
+    const childEndSeconds = spanToJSON(child).timestamp as number;
+
+    // A gap between the last child finishing and the app declaring itself ready.
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await integration.finishExtendedAppStart();
+
+    const event = client.event as TransactionEvent;
+    // The transaction (and the wrapper span) end at the last child, not ~100ms later at finish().
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 2);
+    const wrapper = event?.spans?.find(s => s.op === APP_START_EXTENDED_OP);
+    expect(wrapper?.timestamp).toBeCloseTo(childEndSeconds, 2);
+  });
+
   it('getExtendedAppStartSpan returns a no-op span when not extending', () => {
     mockAppStart({ cold: true });
     const { integration } = setupStandaloneIntegration();
