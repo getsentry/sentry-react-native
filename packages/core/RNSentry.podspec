@@ -46,6 +46,7 @@ Pod::Spec.new do |s|
   # in `android/CMakeLists.txt`. The files are guarded with
   # `RCT_NEW_ARCH_ENABLED` so they compile to empty TUs on Old Arch.
   s.source_files = 'ios/**/*.{h,m,mm}', 'cpp/**/*.{h,cpp}'
+  s.exclude_files = 'ios/Vendor/**/*'
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
   s.compiler_flags = other_cflags
@@ -56,42 +57,26 @@ Pod::Spec.new do |s|
 
   sentry_cocoa_version = '9.19.1'
 
-  # Consume sentry-cocoa via Swift Package Manager by default.
+  # Consume sentry-cocoa as a prebuilt `Sentry-Dynamic.xcframework` by default.
   #
-  # On React Native >= 0.75, RNSentry pulls `Sentry` from the sentry-cocoa SPM
-  # package (a pre-built binary xcframework). On older RN, the SPM helper
-  # (`react-native/scripts/cocoapods/spm.rb`) is not available and we
-  # transparently fall back to the Sentry CocoaPods source build.
+  # The xcframework is downloaded from sentry-cocoa's GitHub Release,
+  # SHA256-verified, and cached under `ios/Vendor/`. CocoaPods then embeds it
+  # via `s.vendored_frameworks`. This avoids compiling sentry-cocoa from
+  # source (fast install) and sidesteps the Xcode 16/26 archive bug that
+  # affects the same xcframework when it is consumed through Xcode's SPM
+  # integration (`Signatures/*.signature` collision during archive).
   #
-  # Override the choice with the `SENTRY_USE_SPM` environment variable:
-  #   * `SENTRY_USE_SPM=0` — force CocoaPods consumption even on RN >= 0.75.
-  #   * `SENTRY_USE_SPM=1` — force SPM (errors if the helper is unavailable).
-  spm_helper_available = defined?(SPM) && SPM.respond_to?(:dependency)
-  env_use_spm = ENV['SENTRY_USE_SPM']
-  use_spm = case env_use_spm
-            when '1' then true
-            when '0' then false
-            else supports_spm(rn_version) && spm_helper_available
-            end
+  # Set `SENTRY_USE_XCFRAMEWORK=0` to fall back to the source-built
+  # `Sentry` CocoaPod (e.g. for offline builds behind a restrictive proxy).
+  env_use_xcframework = ENV['SENTRY_USE_XCFRAMEWORK']
+  use_xcframework = case env_use_xcframework
+                    when '0' then false
+                    else true
+                    end
 
-  if use_spm
-    unless spm_helper_available
-      raise 'SENTRY_USE_SPM=1 is set but the SPM helper is not loaded. ' \
-            'This requires React Native >= 0.75 and a Podfile that loads ' \
-            '`react_native_pods.rb`. Either upgrade React Native, or set ' \
-            'SENTRY_USE_SPM=0 to fall back to the Sentry CocoaPods build.'
-    end
-    # Use the `Sentry-Dynamic` SPM product (dynamic xcframework). The static
-    # `Sentry` product ships a signed xcframework whose `Signatures/` entry
-    # collides during `xcodebuild archive` on Xcode 16/26, failing with
-    # `"Sentry.xcframework-ios.signature" couldn't be copied to "Signatures"
-    # because an item with the same name already exists`. The dynamic product
-    # avoids the copy path that triggers the collision.
-    SPM.dependency(s,
-      url: 'https://github.com/getsentry/sentry-cocoa',
-      requirement: { kind: 'exactVersion', version: sentry_cocoa_version },
-      products: ['Sentry-Dynamic']
-    )
+  if use_xcframework
+    ensure_sentry_xcframework(sentry_cocoa_version, 'Sentry-Dynamic')
+    s.vendored_frameworks = 'ios/Vendor/Sentry-Dynamic.xcframework'
   else
     s.dependency 'Sentry', sentry_cocoa_version
   end
