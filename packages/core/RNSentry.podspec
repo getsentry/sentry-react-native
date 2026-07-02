@@ -57,14 +57,15 @@ Pod::Spec.new do |s|
 
   sentry_cocoa_version = '9.19.1'
 
-  # Consume sentry-cocoa as a prebuilt `Sentry-Dynamic.xcframework` by default.
+  # Consume sentry-cocoa as a prebuilt `Sentry.xcframework` by default.
   #
   # The xcframework is downloaded from sentry-cocoa's GitHub Release,
-  # SHA256-verified, and cached under `ios/Vendor/`. CocoaPods then embeds it
+  # SHA256-verified, and cached under `ios/Vendor/`. CocoaPods then links it
   # via `s.vendored_frameworks`. This avoids compiling sentry-cocoa from
   # source (fast install) and sidesteps the Xcode 16/26 archive bug that
-  # affects the same xcframework when it is consumed through Xcode's SPM
-  # integration (`Signatures/*.signature` collision during archive).
+  # affects the same xcframework when consumed through Xcode's SPM
+  # integration (`Signatures/*.signature` collision during archive) — the
+  # CocoaPods embed path is a different pipeline and is not affected.
   #
   # Set `SENTRY_USE_XCFRAMEWORK=0` to fall back to the source-built
   # `Sentry` CocoaPod (e.g. for offline builds behind a restrictive proxy).
@@ -75,8 +76,8 @@ Pod::Spec.new do |s|
                     end
 
   if use_xcframework
-    ensure_sentry_xcframework(sentry_cocoa_version, 'Sentry-Dynamic')
-    s.vendored_frameworks = 'ios/Vendor/Sentry-Dynamic.xcframework'
+    ensure_sentry_xcframework(sentry_cocoa_version, 'Sentry')
+    s.vendored_frameworks = 'ios/Vendor/Sentry.xcframework'
   else
     s.dependency 'Sentry', sentry_cocoa_version
   end
