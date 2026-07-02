@@ -81,17 +81,16 @@ Pod::Spec.new do |s|
             '`react_native_pods.rb`. Either upgrade React Native, or set ' \
             'SENTRY_USE_SPM=0 to fall back to the Sentry CocoaPods build.'
     end
-    # Use the `SentrySPM` source-compile product. sentry-cocoa's binary
-    # products (`Sentry`, `Sentry-Dynamic`, ...) ship signed xcframeworks whose
-    # `Signatures/*.signature` file collides during `xcodebuild archive` on
-    # Xcode 16/26, failing with `"…-ios.signature" couldn't be copied to
-    # "Signatures" because an item with the same name already exists`.
-    # `SentrySPM` is compiled from source (no xcframework, no `Signatures/`),
-    # which sidesteps the archive collision entirely.
+    # Use the `Sentry-Dynamic` SPM product (dynamic xcframework). The static
+    # `Sentry` product ships a signed xcframework whose `Signatures/` entry
+    # collides during `xcodebuild archive` on Xcode 16/26, failing with
+    # `"Sentry.xcframework-ios.signature" couldn't be copied to "Signatures"
+    # because an item with the same name already exists`. The dynamic product
+    # avoids the copy path that triggers the collision.
     SPM.dependency(s,
       url: 'https://github.com/getsentry/sentry-cocoa',
       requirement: { kind: 'exactVersion', version: sentry_cocoa_version },
-      products: ['SentrySPM']
+      products: ['Sentry-Dynamic']
     )
   else
     s.dependency 'Sentry', sentry_cocoa_version
