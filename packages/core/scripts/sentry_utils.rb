@@ -125,17 +125,50 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
   target_dir
 end
 
-# Returns the list of slice directory names inside an xcframework bundle
-# (e.g. `ios-arm64`, `ios-arm64_x86_64-simulator`).
+# Returns a hash of `<xcconfig SDK name> => [slice_id, ...]` for the slice
+# directories inside an xcframework bundle.
 #
 # Xcode's `-F <dir>` does not descend into an `.xcframework` bundle at
 # search-path lookup time — it only sees `Sentry.xcframework` as a directory
-# and doesn't find `Sentry.framework` inside. Callers use this list to
-# enumerate every slice directory as a separate framework search path so
-# `#import <Sentry/…>` resolves for whichever platform/arch Xcode is
-# building for.
-def sentry_xcframework_slice_ids(xcframework_dir)
-  Dir.children(xcframework_dir).select do |name|
+# and doesn't find `Sentry.framework` inside. Callers use these groupings
+# to emit SDK-conditional `FRAMEWORK_SEARCH_PATHS[sdk=…*]` xcconfig entries
+# so each SDK build only sees its own slice — putting all slices under a
+# single unconditional search path lets Xcode's Swift module precompiler
+# stumble into an incompatible slice and fail with
+# "unsupported Swift architecture".
+#
+# Slice-name convention is stable across the xcframeworks Apple has ever
+# published:
+#   ios-*-simulator      -> iphonesimulator
+#   ios-*-maccatalyst    -> maccatalyst
+#   ios-…                -> iphoneos
+#   tvos-*-simulator     -> appletvsimulator
+#   tvos-…               -> appletvos
+#   watchos-*-simulator  -> watchsimulator
+#   watchos-…            -> watchos
+#   xros-*-simulator     -> xrsimulator
+#   xros-…               -> xros
+#   macos-…              -> macosx
+def sentry_xcframework_slices_by_sdk(xcframework_dir)
+  slice_ids = Dir.children(xcframework_dir).select do |name|
     File.directory?(File.join(xcframework_dir, name)) && name != '_CodeSignature'
   end.sort
+
+  slice_ids.each_with_object({}) do |slice, groups|
+    sdk = _sentry_sdk_for_slice(slice)
+    next unless sdk # unknown platform prefix — skip rather than mis-attach
+    (groups[sdk] ||= []) << slice
+  end
+end
+
+def _sentry_sdk_for_slice(slice_id)
+  return 'maccatalyst' if slice_id.include?('-maccatalyst')
+  simulator = slice_id.end_with?('-simulator')
+  case
+  when slice_id.start_with?('ios-')     then simulator ? 'iphonesimulator' : 'iphoneos'
+  when slice_id.start_with?('tvos-')    then simulator ? 'appletvsimulator' : 'appletvos'
+  when slice_id.start_with?('watchos-') then simulator ? 'watchsimulator' : 'watchos'
+  when slice_id.start_with?('xros-')    then simulator ? 'xrsimulator' : 'xros'
+  when slice_id.start_with?('macos-')   then 'macosx'
+  end
 end
