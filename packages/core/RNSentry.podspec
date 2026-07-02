@@ -84,15 +84,28 @@ Pod::Spec.new do |s|
                     end
 
   if use_xcframework
-    ensure_sentry_xcframework(sentry_cocoa_version, 'Sentry')
+    sentry_xcframework_dir = ensure_sentry_xcframework(sentry_cocoa_version, 'Sentry')
     s.vendored_frameworks = 'ios/Vendor/Sentry.xcframework'
-    # `s.vendored_frameworks` alone doesn't always propagate a framework
-    # search path to the pod's own compile phase for a vendored xcframework,
-    # so RNSentry.mm fails to resolve `#import <Sentry/…>`. Add the search
-    # path explicitly — `${PODS_TARGET_SRCROOT}` resolves to the pod's
-    # source directory (i.e. `packages/core/`) at build time.
+
+    # Xcode's `-F <dir>` doesn't descend into `.xcframework` bundles — it
+    # looks for `Sentry.framework` directly at the given path. Point search
+    # paths at every slice inside the xcframework so `#import <Sentry/…>`
+    # resolves for whichever platform/arch Xcode ends up building. The
+    # slice list is enumerated at pod-install time from the extracted
+    # xcframework, so newly-added slices in future sentry-cocoa releases
+    # (e.g. new visionOS variants) come along for free.
+    #
+    # `pod_target_xcconfig` covers RNSentry's own compile phase;
+    # `user_target_xcconfig` covers the host app target (any `#import
+    # <Sentry/…>` written directly in user code).
+    slice_paths = sentry_xcframework_slice_ids(sentry_xcframework_dir).map do |slice|
+      %("${PODS_TARGET_SRCROOT}/ios/Vendor/Sentry.xcframework/#{slice}")
+    end
     pod_target_xcconfig['FRAMEWORK_SEARCH_PATHS'] =
-      '$(inherited) "${PODS_TARGET_SRCROOT}/ios/Vendor"'
+      (['$(inherited)'] + slice_paths).join(' ')
+    s.user_target_xcconfig = {
+      'FRAMEWORK_SEARCH_PATHS' => pod_target_xcconfig['FRAMEWORK_SEARCH_PATHS'],
+    }
   else
     s.dependency 'Sentry', sentry_cocoa_version
   end
