@@ -9,6 +9,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   setCurrentClient,
+  spanToJSON,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -22,6 +23,7 @@ import {
 import {
   APP_START as APP_START_OP,
   APP_START_COLD as APP_START_COLD_OP,
+  APP_START_EXTENDED as APP_START_EXTENDED_OP,
   APP_START_WARM as APP_START_WARM_OP,
   UI_LOAD,
 } from '../../../src/js/tracing';
@@ -1183,6 +1185,361 @@ describe('App Start Integration', () => {
       const actualSecondEvent = await integration.processEvent(secondEvent, {}, client);
       expect((actualSecondEvent as TransactionEvent).measurements).toBeUndefined();
     });
+  });
+});
+
+describe('Extended App Start', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockReactNativeBundleExecutionStartTimestamp();
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+  });
+
+  afterEach(() => {
+    clearReactNativeBundleExecutionStartTimestamp();
+    _clearAppStartEndData();
+    _clearRootComponentCreationTimestampMs();
+  });
+
+  const setupStandaloneIntegration = (
+    standalone = true,
+  ): { integration: AppStartIntegrationTest; client: TestClient } => {
+    const integration = appStartIntegration({ standalone }) as AppStartIntegrationTest;
+    const client = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: 1.0,
+    });
+    setCurrentClient(client);
+    integration.setup(client);
+    return { integration, client };
+  };
+
+  it('creates an extended app start span and finalizes it with a measurement on finish', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const extendedSpan = integration.getExtendedAppStartSpan();
+    expect(spanToJSON(extendedSpan).op).toBe(APP_START_EXTENDED_OP);
+
+    const child = startInactiveSpan({ parentSpan: extendedSpan, op: 'app.init', name: 'load config' });
+    child.end();
+
+    await integration.finishExtendedAppStart();
+
+    const event = client.event as TransactionEvent;
+    expect(event?.contexts?.trace?.op).toBe(APP_START_OP);
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeDefined();
+
+    const extended = event?.spans?.find(s => s.op === APP_START_EXTENDED_OP);
+    expect(extended).toBeDefined();
+    const childSpan = event?.spans?.find(s => s.description === 'load config');
+    expect(childSpan).toBeDefined();
+    expect(childSpan?.parent_span_id).toBe(extended?.span_id);
+  });
+
+  it('trims the transaction end to the last child span', async () => {
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const childEndSeconds = timeOriginMilliseconds / 1000 + 2; // 2s after the default app start end
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'late',
+    });
+    child.end(childEndSeconds);
+
+    await integration.finishExtendedAppStart();
+
+    const event = client.event as TransactionEvent;
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 1);
+  });
+
+  it('trims the end to the last child, not the finishExtendedAppStart() call time', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'work',
+    });
+    child.end();
+    const childEndSeconds = spanToJSON(child).timestamp as number;
+
+    // A gap between the last child finishing and the app declaring itself ready.
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await integration.finishExtendedAppStart();
+
+    const event = client.event as TransactionEvent;
+    // The transaction (and the wrapper span) end at the last child, not ~100ms later at finish().
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 2);
+    const wrapper = event?.spans?.find(s => s.op === APP_START_EXTENDED_OP);
+    expect(wrapper?.timestamp).toBeCloseTo(childEndSeconds, 2);
+  });
+
+  it('getExtendedAppStartSpan returns a no-op span when not extending', () => {
+    mockAppStart({ cold: true });
+    const { integration } = setupStandaloneIntegration();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+  });
+
+  it('extendAppStart is a no-op when standalone tracing is disabled', () => {
+    mockAppStart({ cold: true });
+    const { integration } = setupStandaloneIntegration(false);
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+  });
+
+  it('extendAppStart is first-wins on repeat calls', () => {
+    mockAppStart({ cold: true });
+    const { integration } = setupStandaloneIntegration();
+    integration.extendAppStart();
+    const first = integration.getExtendedAppStartSpan();
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan()).toBe(first);
+  });
+
+  it('finishExtendedAppStart is a no-op when there is no extension', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    await integration.finishExtendedAppStart();
+    expect(client.event).toBeUndefined();
+  });
+
+  it('finishExtendedAppStart only finalizes once', async () => {
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    integration.extendAppStart();
+
+    await integration.finishExtendedAppStart();
+    expect(client.eventQueue.length).toBe(1);
+
+    await integration.finishExtendedAppStart();
+    expect(client.eventQueue.length).toBe(1);
+  });
+
+  it('finalizes without a measurement when the deadline is reached', async () => {
+    jest.useFakeTimers();
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    // Deadline fires (finishExtendedAppStart never called).
+    jest.advanceTimersByTime(30_000);
+    jest.useRealTimers();
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    expect(client.eventQueue.length).toBe(1);
+    const event = client.eventQueue[0] as TransactionEvent;
+    expect(event?.contexts?.trace?.op).toBe(APP_START_OP);
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeUndefined();
+  });
+
+  it('does not claim the run when the standalone transaction is not recording (falls back to normal capture)', async () => {
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000);
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const noTracingClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: undefined, // tracing disabled => startInactiveSpan returns SentryNonRecordingSpan
+    });
+    setCurrentClient(noTracingClient);
+    integration.setup(noTracingClient);
+    noTracingClient.addIntegration(integration);
+
+    // Tracing disabled: extend cannot open a recording transaction, so it must not claim the run.
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+
+    // The normal capture path is not blocked by a claimed-run guard: it proceeds past the per-run
+    // dedup check (logs "tracking standalone root span") rather than bailing "already captured".
+    const logSpy = jest.spyOn(debug, 'log');
+    await integration.captureStandaloneAppStart();
+    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('already captured for this app run'));
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('tracking standalone root span'));
+  });
+
+  it('drops an in-progress extension on runApplication remount and lets the new run capture', async () => {
+    const { mockedOnRunApplication } = mockAppRegistryIntegration();
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    integration.afterAllSetup(client); // registers the onRunApplication callback
+
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(true);
+
+    // Remount before finishExtendedAppStart()/deadline: the interrupted extension is dropped
+    // (never sent) and state is reset — no orphan, no send.
+    const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+    runApplicationCallback();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+    expect(client.eventQueue.length).toBe(0);
+
+    // The new run can still capture its own app start.
+    _clearAppStartEndData();
+    mockAppStart({ cold: true });
+    await integration.captureStandaloneAppStart();
+    expect(client.eventQueue.length).toBe(1);
+    expect(client.eventQueue[0]?.contexts?.trace?.op).toBe(APP_START_OP);
+  });
+
+  it('discards a finish still in flight when a new run starts, without blocking the new run', async () => {
+    const { mockedOnRunApplication } = mockAppRegistryIntegration();
+    const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000);
+
+    // Gate the native fetch so finishExtendedAppStart()'s finalize suspends inside attach.
+    let releaseFetch: () => void = () => {};
+    const gate = new Promise<void>(resolve => {
+      releaseFetch = resolve;
+    });
+    const gatedResponse: NativeAppStartResponse = {
+      type: 'cold',
+      app_start_timestamp_ms: appStartTimeMilliseconds,
+      has_fetched: false,
+      spans: [],
+    };
+    mockFunction(NATIVE.fetchNativeAppStart).mockReturnValue(gate.then(() => gatedResponse));
+
+    const { integration, client } = setupStandaloneIntegration();
+    integration.afterAllSetup(client);
+
+    integration.extendAppStart();
+    const finishPromise = integration.finishExtendedAppStart(); // suspends at the gated native fetch
+
+    // A new app run starts while the finalize is suspended awaiting native data.
+    const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+    runApplicationCallback();
+
+    // Releasing the fetch: the stale finalize must bail without sending or corrupting shared state.
+    releaseFetch();
+    await finishPromise;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(client.eventQueue.length).toBe(0);
+
+    // The new run captures its own app start — appStartDataFlushed was not left stuck at true.
+    _clearAppStartEndData();
+    const [newTimeOriginMs, newAppStartMs] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(newTimeOriginMs / 1000);
+    mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+      type: 'cold',
+      app_start_timestamp_ms: newAppStartMs,
+      has_fetched: false,
+      spans: [],
+    });
+    await integration.captureStandaloneAppStart();
+    expect(client.eventQueue.length).toBe(1);
+  });
+
+  it('does not send a stale transaction when a new run starts during the frames-delay await', async () => {
+    const { mockedOnRunApplication } = mockAppRegistryIntegration();
+    const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000);
+    // endFrames present so attach reaches the second await (fetchNativeFramesDelay).
+    _setAppStartEndData({
+      timestampMs: timeOriginMilliseconds,
+      endFrames: { totalFrames: 100, slowFrames: 1, frozenFrames: 0 },
+    });
+
+    // Gate the native fetch (first await) and the frames-delay fetch (second await) independently.
+    let releaseNative: () => void = () => {};
+    const nativeGate = new Promise<void>(resolve => {
+      releaseNative = resolve;
+    });
+    mockFunction(NATIVE.fetchNativeAppStart).mockReturnValue(
+      nativeGate.then(() => ({
+        type: 'cold',
+        app_start_timestamp_ms: appStartTimeMilliseconds,
+        has_fetched: false,
+        spans: [],
+      })),
+    );
+    let releaseDelay: () => void = () => {};
+    const delayGate = new Promise<void>(resolve => {
+      releaseDelay = resolve;
+    });
+    mockFunction(NATIVE.fetchNativeFramesDelay).mockReturnValue(delayGate.then(() => 0.25));
+
+    const { integration, client } = setupStandaloneIntegration();
+    integration.afterAllSetup(client);
+
+    integration.extendAppStart();
+    const child = startInactiveSpan({ parentSpan: integration.getExtendedAppStartSpan(), op: 'app.init', name: 'x' });
+    child.end();
+    const finishPromise = integration.finishExtendedAppStart();
+
+    // Let the first await pass the generation guard, then suspend at the frames-delay await.
+    releaseNative();
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // A new app run starts during the frames-delay await (after the first guard already passed).
+    const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+    runApplicationCallback();
+
+    releaseDelay();
+    await finishPromise;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(client.eventQueue.length).toBe(0);
+  });
+
+  it('does not drop an extended app start whose extended duration exceeds the 60s cap', async () => {
+    // The 60s sanity cap applies to the native app start window, not the (deadline-bounded)
+    // extension — a short native start extended past a minute must still be sent.
+    set__DEV__(false);
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const childEndSeconds = timeOriginMilliseconds / 1000 + 61; // extended total > 60s
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'very-late',
+    });
+    child.end(childEndSeconds);
+
+    await integration.finishExtendedAppStart();
+    set__DEV__(true);
+
+    expect(client.eventQueue.length).toBe(1);
+    const event = client.eventQueue[0] as TransactionEvent;
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeDefined();
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 1);
+  });
+
+  it('uses the extended end even when app start end data was never recorded (no wrap()/appLoaded())', async () => {
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    // Simulate no wrap()/appLoaded(): no recorded app start end, only the bundle start remains.
+    _clearAppStartEndData();
+
+    integration.extendAppStart();
+    const childEndSeconds = timeOriginMilliseconds / 1000 + 3;
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'late',
+    });
+    child.end(childEndSeconds);
+
+    await integration.finishExtendedAppStart();
+
+    // The transaction end reflects the extension, not the bundle-start fallback.
+    expect(client.eventQueue.length).toBe(1);
+    const event = client.eventQueue[0] as TransactionEvent;
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 1);
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeDefined();
   });
 });
 
