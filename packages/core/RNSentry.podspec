@@ -45,11 +45,24 @@ Pod::Spec.new do |s|
   # is pulled in here; on Android it is compiled by the dedicated CMake target
   # in `android/CMakeLists.txt`. The files are guarded with
   # `RCT_NEW_ARCH_ENABLED` so they compile to empty TUs on Old Arch.
-  # `.swift` is here for `RNSentrySwiftLinkStub.swift`, which forces Xcode
-  # to link the Swift runtime compatibility libs required by our vendored
-  # Sentry.xcframework static Swift library.
-  s.source_files = 'ios/**/*.{h,m,mm,swift}', 'cpp/**/*.{h,cpp}'
-  s.swift_versions = ['5.5']
+  #
+  # We include `.swift` (for `RNSentrySwiftLinkStub.swift`) only on RN >=
+  # 0.75. Adding a Swift file makes CocoaPods treat RNSentry as a Swift
+  # pod, which then requires modular headers from its ObjC dependencies
+  # (React-Core, React-hermes) — RN < 0.75 doesn't emit those, so
+  # `pod install` fails with:
+  #   "The Swift pod `RNSentry` depends upon `React-hermes`, which does
+  #    not define modules."
+  # The stub is only needed when linking Sentry.xcframework's Swift
+  # symbols into a dynamic framework anyway (RN 0.86+ `use_frameworks!
+  # :dynamic`), so gating on RN 0.75 is safe.
+  supports_swift_stub = rn_version[:major] >= 1 || (rn_version[:major] == 0 && rn_version[:minor] >= 75)
+  if supports_swift_stub
+    s.source_files = 'ios/**/*.{h,m,mm,swift}', 'cpp/**/*.{h,cpp}'
+    s.swift_versions = ['5.5']
+  else
+    s.source_files = 'ios/**/*.{h,m,mm}', 'cpp/**/*.{h,cpp}'
+  end
   s.exclude_files = 'ios/Vendor/**/*'
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
