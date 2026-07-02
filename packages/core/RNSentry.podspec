@@ -97,6 +97,11 @@ Pod::Spec.new do |s|
     s.dependency 'Sentry', sentry_cocoa_version
   end
 
+  # Assign before `install_modules_dependencies` so it can merge its
+  # RN-specific settings on top. Assigning after would clobber those and
+  # break header resolution across the pod.
+  s.pod_target_xcconfig = pod_target_xcconfig
+
   if defined? install_modules_dependencies
     # Default React Native dependencies for 0.71 and above (new and legacy architecture)
     install_modules_dependencies(s)
@@ -109,6 +114,9 @@ Pod::Spec.new do |s|
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
       })
+      # `install_modules_dependencies` is not defined on RN < 0.71 so re-assigning
+      # here is safe — nothing else has written to `s.pod_target_xcconfig` yet.
+      s.pod_target_xcconfig = pod_target_xcconfig
 
       s.dependency "React-RCTFabric" # Required for Fabric Components (like RCTViewComponentView)
       s.dependency "React-Codegen"
@@ -123,6 +131,4 @@ Pod::Spec.new do |s|
     s.dependency 'React-hermes'
     s.dependency 'hermes-engine'
   end
-
-  s.pod_target_xcconfig = pod_target_xcconfig
 end
