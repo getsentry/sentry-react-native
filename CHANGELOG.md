@@ -6,13 +6,18 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add experimental `extendAppStart`/`finishExtendedAppStart`/`getExtendedAppStartSpan` to extend the standalone app start window and instrument post-init work ([#6392](https://github.com/getsentry/sentry-react-native/pull/6392))
+
 ## 8.17.0
 
 ### Features
 
 - Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
 - Set `app.vitals.start.screen` on the standalone `app.start` transaction from the current route ([#6369](https://github.com/getsentry/sentry-react-native/pull/6369))
-- Add experimental `extendAppStart`/`finishExtendedAppStart`/`getExtendedAppStartSpan` to extend the standalone app start window and instrument post-init work ([#6392](https://github.com/getsentry/sentry-react-native/pull/6392))
 - Expose top-level `Sentry.setAttribute` and `Sentry.setAttributes` APIs ([#6354](https://github.com/getsentry/sentry-react-native/pull/6354)).
 - Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
