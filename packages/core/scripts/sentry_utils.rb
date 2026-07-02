@@ -73,7 +73,12 @@ SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS = {
 def ensure_sentry_xcframework(version, product = 'Sentry')
   vendor_dir = File.expand_path('../ios/Vendor', __dir__)
   target_dir = File.join(vendor_dir, "#{product}.xcframework")
-  return target_dir if File.directory?(target_dir)
+  # Treat the presence of `Info.plist` inside the xcframework as the "healthy"
+  # sentinel rather than just the directory existence. A directory without
+  # `Info.plist` most likely came from an interrupted `unzip` and would
+  # otherwise silently short-circuit re-download here.
+  target_manifest = File.join(target_dir, 'Info.plist')
+  return target_dir if File.file?(target_manifest)
 
   expected_checksum = SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS.dig(version, product)
   unless expected_checksum
@@ -82,6 +87,9 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
           "packages/core/scripts/sentry_utils.rb after bumping the version."
   end
 
+  # Wipe any stale partial extract from a previous interrupted run so we
+  # always start from a clean tree.
+  FileUtils.rm_rf(target_dir)
   FileUtils.mkdir_p(vendor_dir)
   zip_path = File.join(vendor_dir, "#{product}.xcframework.zip")
   url = "https://github.com/getsentry/sentry-cocoa/releases/download/" \
@@ -103,6 +111,16 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
     raise "Failed to extract #{zip_path}"
   end
   FileUtils.rm_f(zip_path)
+
+  # Guard against a release archive whose internal layout changed (e.g. a
+  # nested folder). Without this check, a wrong layout silently succeeds and
+  # then fails much later during `pod install` with a confusing "framework
+  # not found" error.
+  unless File.file?(target_manifest)
+    raise "Expected #{target_manifest} after extracting #{product}.xcframework.zip. " \
+          "The sentry-cocoa release archive layout may have changed — update " \
+          "the extraction logic in packages/core/scripts/sentry_utils.rb."
+  end
 
   target_dir
 end
