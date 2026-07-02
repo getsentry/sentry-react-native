@@ -124,3 +124,18 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
 
   target_dir
 end
+
+# Returns the list of slice directory names inside an xcframework bundle
+# (e.g. `ios-arm64`, `ios-arm64_x86_64-simulator`).
+#
+# Xcode's `-F <dir>` does not descend into an `.xcframework` bundle at
+# search-path lookup time — it only sees `Sentry.xcframework` as a directory
+# and doesn't find `Sentry.framework` inside. Callers use this list to
+# enumerate every slice directory as a separate framework search path so
+# `#import <Sentry/…>` resolves for whichever platform/arch Xcode is
+# building for.
+def sentry_xcframework_slice_ids(xcframework_dir)
+  Dir.children(xcframework_dir).select do |name|
+    File.directory?(File.join(xcframework_dir, name)) && name != '_CodeSignature'
+  end.sort
+end
