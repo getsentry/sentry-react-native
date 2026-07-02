@@ -88,24 +88,40 @@ Pod::Spec.new do |s|
     s.vendored_frameworks = 'ios/Vendor/Sentry.xcframework'
 
     # Xcode's `-F <dir>` doesn't descend into `.xcframework` bundles — it
-    # looks for `Sentry.framework` directly at the given path. Point search
-    # paths at every slice inside the xcframework so `#import <Sentry/…>`
-    # resolves for whichever platform/arch Xcode ends up building. The
-    # slice list is enumerated at pod-install time from the extracted
-    # xcframework, so newly-added slices in future sentry-cocoa releases
-    # (e.g. new visionOS variants) come along for free.
+    # looks for `Sentry.framework` directly at the given path. Point a
+    # separate framework search path at each slice, gated by the matching
+    # SDK selector so `#import <Sentry/…>` resolves against exactly one
+    # slice per build. An unconditional search-path list would let Xcode's
+    # Swift module precompiler stumble into a slice for a different arch
+    # and fail with "unsupported Swift architecture". New slices in future
+    # sentry-cocoa releases are picked up automatically at pod-install.
     #
-    # `pod_target_xcconfig` covers RNSentry's own compile phase;
-    # `user_target_xcconfig` covers the host app target (any `#import
-    # <Sentry/…>` written directly in user code).
-    slice_paths = sentry_xcframework_slice_ids(sentry_xcframework_dir).map do |slice|
-      %("${PODS_TARGET_SRCROOT}/ios/Vendor/Sentry.xcframework/#{slice}")
+    # `pod_target_xcconfig` covers RNSentry's own compile phase — inside
+    # a pod's xcconfig, `${PODS_TARGET_SRCROOT}` resolves to the pod
+    # source directory (`packages/core/` here). `user_target_xcconfig`
+    # covers the host app target so app code writing `#import <Sentry/…>`
+    # (e.g. `SentryNativeInitializer.m`) also finds the framework. The
+    # aggregate/user xcconfig doesn't define `PODS_TARGET_SRCROOT`, so
+    # for that target we resolve the path via `${PODS_ROOT}/..` +
+    # `node_modules/@sentry/react-native`, which is where RN's
+    # auto-linking places the SDK.
+    pod_search_paths = {}
+    user_search_paths = {}
+    sentry_xcframework_slices_by_sdk(sentry_xcframework_dir).each do |sdk, slice_ids|
+      pod_paths = slice_ids.map do |slice|
+        %("${PODS_TARGET_SRCROOT}/ios/Vendor/Sentry.xcframework/#{slice}")
+      end
+      user_paths = slice_ids.map do |slice|
+        %("${PODS_ROOT}/../../node_modules/@sentry/react-native/ios/Vendor/Sentry.xcframework/#{slice}")
+      end
+      pod_search_paths["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] =
+        (['$(inherited)'] + pod_paths).join(' ')
+      user_search_paths["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] =
+        (['$(inherited)'] + user_paths).join(' ')
     end
-    pod_target_xcconfig['FRAMEWORK_SEARCH_PATHS'] =
-      (['$(inherited)'] + slice_paths).join(' ')
-    s.user_target_xcconfig = {
-      'FRAMEWORK_SEARCH_PATHS' => pod_target_xcconfig['FRAMEWORK_SEARCH_PATHS'],
-    }
+
+    pod_target_xcconfig.merge!(pod_search_paths)
+    s.user_target_xcconfig = user_search_paths
   else
     s.dependency 'Sentry', sentry_cocoa_version
   end
