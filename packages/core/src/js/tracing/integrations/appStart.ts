@@ -366,6 +366,10 @@ export const appStartIntegration = ({
   let openStandaloneAppStartSpan: Span | undefined = undefined;
   let extendDeadlineTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
   let extendedAppStartFinalized = false;
+  // Incremented on every `runApplication` reset. Captured at the start of an app start attach so a
+  // finalize suspended at the native-data await can detect that a new app run began and bail instead
+  // of corrupting the new run's state.
+  let appStartRunGeneration = 0;
 
   const setup = (client: Client): void => {
     _client = client;
@@ -395,6 +399,10 @@ export const appStartIntegration = ({
       // reduces to the original `appStartDataFlushed` check.
       if (appStartDataFlushed || standaloneAppStartCaptured) {
         debug.log('[AppStartIntegration] Resetting app start state based on runApplication call.');
+        // Mark a new app run. Any standalone attach still suspended at the native-data await (e.g. an
+        // in-flight `finishExtendedAppStart()` from the previous run) detects the generation change
+        // when it resumes and bails without mutating the new run's state.
+        appStartRunGeneration += 1;
         appStartDataFlushed = false;
         firstStartedActiveRootSpanId = undefined;
         firstStartedActiveRootSpan = undefined;
@@ -561,8 +569,15 @@ export const appStartIntegration = ({
 
   async function attachAppStartToTransactionEvent(
     event: TransactionEvent,
-    { suppressMeasurement = false }: { suppressMeasurement?: boolean } = {},
+    {
+      suppressMeasurement = false,
+      extendedEndTimestampMs,
+    }: { suppressMeasurement?: boolean; extendedEndTimestampMs?: number } = {},
   ): Promise<boolean> {
+    // Snapshot the current app run. If a `runApplication` reset happens while we're awaiting native
+    // data below, the resumed call belongs to a stale run and must not touch the new run's state.
+    const generationAtStart = appStartRunGeneration;
+
     if (appStartDataFlushed) {
       // App start data is only relevant for the first transaction of the app run
       debug.log('[AppStart] App start data already flushed. Skipping.');
@@ -610,6 +625,13 @@ export const appStartIntegration = ({
     // NATIVE.fetchNativeAppStart() call would incorrectly bail out.
     const isCached = cachedNativeAppStart !== undefined;
     const appStart = isCached ? cachedNativeAppStart : await NATIVE.fetchNativeAppStart();
+    if (generationAtStart !== appStartRunGeneration) {
+      // A `runApplication` reset began a new app run while we awaited native data. Bail without
+      // mutating shared state (`cachedNativeAppStart`, `appStartDataFlushed`) so the new run can
+      // still capture its own app start.
+      debug.log('[AppStart] App run changed during app start attach. Discarding stale attach.');
+      return false;
+    }
     cachedNativeAppStart = appStart;
     if (!appStart) {
       debug.warn('[AppStart] Failed to retrieve the app start metrics from the native layer.');
@@ -632,14 +654,19 @@ export const appStartIntegration = ({
       return false;
     }
 
-    const appStartEndTimestampMs = appStartEndData?.timestampMs || getBundleStartTimestampMs();
-    if (!appStartEndTimestampMs) {
+    const originalAppStartEndTimestampMs = appStartEndData?.timestampMs || getBundleStartTimestampMs();
+    if (!originalAppStartEndTimestampMs) {
       debug.warn(
         '[AppStart] Javascript failed to record app start end. `_setAppStartEndData` was not called nor could the bundle start be found.',
       );
       appStartDataFlushed = true;
       return false;
     }
+    // When finalizing an *extended* app start the end is pushed past the native app start end. The
+    // extended end drives the measurement value and transaction timestamp; the 60s sanity cap below
+    // still applies to the original (native) window, so a legitimately extended start is never
+    // silently dropped just for being long.
+    const appStartEndTimestampMs = extendedEndTimestampMs || originalAppStartEndTimestampMs;
 
     // The age check guards against attaching a stale app start to a much-later navigation
     // transaction. It is meaningless for standalone, where the transaction *is* the app start
@@ -655,14 +682,14 @@ export const appStartIntegration = ({
       return false;
     }
 
-    const appStartDurationMs = appStartEndTimestampMs - appStartTimestampMs;
-    if (!__DEV__ && appStartDurationMs >= MAX_APP_START_DURATION_MS) {
+    if (!__DEV__ && originalAppStartEndTimestampMs - appStartTimestampMs >= MAX_APP_START_DURATION_MS) {
       // Dev builds can have long app start waiting over minute for the first bundle to be produced
       debug.warn('[AppStart] App start duration is over a minute long, not adding app start span.');
       appStartDataFlushed = true;
       return false;
     }
 
+    const appStartDurationMs = appStartEndTimestampMs - appStartTimestampMs;
     if (appStartDurationMs < 0) {
       // This can happen when MainActivity on Android is recreated,
       // and the app start end timestamp is not updated, for example
@@ -854,10 +881,6 @@ export const appStartIntegration = ({
     const defaultEndMs = appStartEndData?.timestampMs || getBundleStartTimestampMs();
     const latestChildEndSeconds = getLatestChildSpanEndTimestamp(span);
     const trimmedEndMs = Math.max(latestChildEndSeconds ? latestChildEndSeconds * 1000 : 0, defaultEndMs || 0);
-    if (appStartEndData && trimmedEndMs) {
-      // `attach` reads appStartEndData.timestampMs as the app start end for the measurement/timestamp.
-      appStartEndData.timestampMs = trimmedEndMs;
-    }
 
     setEndTimeValue(span, (trimmedEndMs || timestampInSeconds() * 1000) / 1000);
     _client.emit('spanEnd', span);
@@ -868,7 +891,10 @@ export const appStartIntegration = ({
       return;
     }
 
-    const attached = await attachAppStartToTransactionEvent(event, { suppressMeasurement });
+    const attached = await attachAppStartToTransactionEvent(event, {
+      suppressMeasurement,
+      extendedEndTimestampMs: trimmedEndMs || undefined,
+    });
     if (!attached) {
       debug.log('[AppStart] No app start data attached to the extended standalone transaction. Skipping send.');
       return;
@@ -923,20 +949,24 @@ export const appStartIntegration = ({
       return;
     }
 
-    // Take over the send: cancel the deferred auto-capture and claim the run so the normal capture
-    // path does not also finalize/send.
-    cancelDeferredStandaloneCapture();
-    standaloneAppStartCaptured = true;
-
     const rootSpan = startInactiveSpan({
       forceTransaction: true,
       name: APP_START_TX_NAME,
       op: APP_START_OP,
     });
     if (rootSpan instanceof SentryNonRecordingSpan) {
+      // Tracing is disabled or this app start was sampled out. Don't claim the run and leave the
+      // deferred auto-capture in place as a fallback — extending is a no-op here.
       debug.log('[AppStart] extendAppStart(): standalone app start transaction is not recording.');
       return;
     }
+
+    // Take over the send: cancel the deferred auto-capture and claim the run so the normal capture
+    // path does not also finalize/send. Only after we have a recording span, so a non-recording
+    // (sampled-out) run still falls back to the normal capture path.
+    cancelDeferredStandaloneCapture();
+    standaloneAppStartCaptured = true;
+
     openStandaloneAppStartSpan = rootSpan;
     extendedAppStartSpan = startInactiveSpan({
       parentSpan: rootSpan,

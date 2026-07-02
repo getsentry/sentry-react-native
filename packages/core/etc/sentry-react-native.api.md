@@ -215,9 +215,7 @@ export const debugSymbolicatorIntegration: () => Integration;
 export { dedupeIntegration }
 
 // @public
-export const deeplinkIntegration: (...args: any[]) => Integration & {
-    name: string;
-};
+export const deeplinkIntegration: (...args: any[]) => Integration;
 
 // @public
 export const deviceContextIntegration: () => Integration;
@@ -357,7 +355,7 @@ export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
 }) => FeedbackIntegration;
 
 // @public
-export function finishExtendedAppStart(): void;
+export function finishExtendedAppStart(): Promise<void>;
 
 // @public
 export function flush(): Promise<boolean>;

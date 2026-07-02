@@ -1319,6 +1319,153 @@ describe('Extended App Start', () => {
     expect(event?.contexts?.trace?.op).toBe(APP_START_OP);
     expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeUndefined();
   });
+
+  it('does not claim the run when the standalone transaction is not recording (falls back to normal capture)', async () => {
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000);
+
+    const integration = appStartIntegration({ standalone: true }) as AppStartIntegrationTest;
+    const noTracingClient = new TestClient({
+      ...getDefaultTestClientOptions(),
+      enableAppStartTracking: true,
+      tracesSampleRate: undefined, // tracing disabled => startInactiveSpan returns SentryNonRecordingSpan
+    });
+    setCurrentClient(noTracingClient);
+    integration.setup(noTracingClient);
+    noTracingClient.addIntegration(integration);
+
+    // Tracing disabled: extend cannot open a recording transaction, so it must not claim the run.
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+
+    // The normal capture path is not blocked by a claimed-run guard: it proceeds past the per-run
+    // dedup check (logs "tracking standalone root span") rather than bailing "already captured".
+    const logSpy = jest.spyOn(debug, 'log');
+    await integration.captureStandaloneAppStart();
+    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('already captured for this app run'));
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('tracking standalone root span'));
+  });
+
+  it('drops an in-progress extension on runApplication remount and lets the new run capture', async () => {
+    const { mockedOnRunApplication } = mockAppRegistryIntegration();
+    mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    integration.afterAllSetup(client); // registers the onRunApplication callback
+
+    integration.extendAppStart();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(true);
+
+    // Remount before finishExtendedAppStart()/deadline: the interrupted extension is dropped
+    // (never sent) and state is reset — no orphan, no send.
+    const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+    runApplicationCallback();
+    expect(integration.getExtendedAppStartSpan().isRecording()).toBe(false);
+    expect(client.eventQueue.length).toBe(0);
+
+    // The new run can still capture its own app start.
+    _clearAppStartEndData();
+    mockAppStart({ cold: true });
+    await integration.captureStandaloneAppStart();
+    expect(client.eventQueue.length).toBe(1);
+    expect(client.eventQueue[0]?.contexts?.trace?.op).toBe(APP_START_OP);
+  });
+
+  it('discards a finish still in flight when a new run starts, without blocking the new run', async () => {
+    const { mockedOnRunApplication } = mockAppRegistryIntegration();
+    const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000);
+
+    // Gate the native fetch so finishExtendedAppStart()'s finalize suspends inside attach.
+    let releaseFetch: () => void = () => {};
+    const gate = new Promise<void>(resolve => {
+      releaseFetch = resolve;
+    });
+    const gatedResponse: NativeAppStartResponse = {
+      type: 'cold',
+      app_start_timestamp_ms: appStartTimeMilliseconds,
+      has_fetched: false,
+      spans: [],
+    };
+    mockFunction(NATIVE.fetchNativeAppStart).mockReturnValue(gate.then(() => gatedResponse));
+
+    const { integration, client } = setupStandaloneIntegration();
+    integration.afterAllSetup(client);
+
+    integration.extendAppStart();
+    const finishPromise = integration.finishExtendedAppStart(); // suspends at the gated native fetch
+
+    // A new app run starts while the finalize is suspended awaiting native data.
+    const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+    runApplicationCallback();
+
+    // Releasing the fetch: the stale finalize must bail without sending or corrupting shared state.
+    releaseFetch();
+    await finishPromise;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(client.eventQueue.length).toBe(0);
+
+    // The new run captures its own app start — appStartDataFlushed was not left stuck at true.
+    _clearAppStartEndData();
+    const [newTimeOriginMs, newAppStartMs] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(newTimeOriginMs / 1000);
+    mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue({
+      type: 'cold',
+      app_start_timestamp_ms: newAppStartMs,
+      has_fetched: false,
+      spans: [],
+    });
+    await integration.captureStandaloneAppStart();
+    expect(client.eventQueue.length).toBe(1);
+  });
+
+  it('does not drop an extended app start whose extended duration exceeds the 60s cap', async () => {
+    // The 60s sanity cap applies to the native app start window, not the (deadline-bounded)
+    // extension — a short native start extended past a minute must still be sent.
+    set__DEV__(false);
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+
+    integration.extendAppStart();
+    const childEndSeconds = timeOriginMilliseconds / 1000 + 61; // extended total > 60s
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'very-late',
+    });
+    child.end(childEndSeconds);
+
+    await integration.finishExtendedAppStart();
+    set__DEV__(true);
+
+    expect(client.eventQueue.length).toBe(1);
+    const event = client.eventQueue[0] as TransactionEvent;
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeDefined();
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 1);
+  });
+
+  it('uses the extended end even when app start end data was never recorded (no wrap()/appLoaded())', async () => {
+    const [timeOriginMilliseconds] = mockAppStart({ cold: true });
+    const { integration, client } = setupStandaloneIntegration();
+    // Simulate no wrap()/appLoaded(): no recorded app start end, only the bundle start remains.
+    _clearAppStartEndData();
+
+    integration.extendAppStart();
+    const childEndSeconds = timeOriginMilliseconds / 1000 + 3;
+    const child = startInactiveSpan({
+      parentSpan: integration.getExtendedAppStartSpan(),
+      op: 'app.init',
+      name: 'late',
+    });
+    child.end(childEndSeconds);
+
+    await integration.finishExtendedAppStart();
+
+    // The transaction end reflects the extension, not the bundle-start fallback.
+    expect(client.eventQueue.length).toBe(1);
+    const event = client.eventQueue[0] as TransactionEvent;
+    expect(event?.timestamp).toBeCloseTo(childEndSeconds, 1);
+    expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeDefined();
+  });
 });
 
 describe('appLoaded() API', () => {

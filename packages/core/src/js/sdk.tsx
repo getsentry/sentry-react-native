@@ -301,13 +301,16 @@ export function getExtendedAppStartSpan(): Span {
 /**
  * Finishes the app start extension started with {@link extendAppStart}, finalizing the app start
  * transaction (its duration is trimmed to the last child span). No-ops if there is no active
- * extension. Equivalent to calling `.finish()` on the span returned by {@link getExtendedAppStartSpan}.
+ * extension.
+ *
+ * Returns a promise that resolves once the app start transaction has been captured. `await` it
+ * before {@link flush} (e.g. before a code-push/expo update) to make sure the app start data is
+ * queued.
  *
  * @experimental This API is subject to change in future versions.
  */
-export function finishExtendedAppStart(): void {
-  // oxlint-disable-next-line typescript-eslint(no-floating-promises)
-  _finishExtendedAppStart();
+export function finishExtendedAppStart(): Promise<void> {
+  return _finishExtendedAppStart();
 }
 
 /**
