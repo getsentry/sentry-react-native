@@ -840,6 +840,13 @@ export const appStartIntegration = ({
       );
     }
 
+    // Re-check after the frames-delay await above (up to ~2s): if a new app run started in the
+    // meantime, report failure so the caller doesn't send a stale standalone transaction.
+    if (generationAtStart !== appStartRunGeneration) {
+      debug.log('[AppStart] App run changed during app start attach. Discarding stale attach.');
+      return false;
+    }
+
     return true;
   }
 

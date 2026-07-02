@@ -1418,6 +1418,57 @@ describe('Extended App Start', () => {
     expect(client.eventQueue.length).toBe(1);
   });
 
+  it('does not send a stale transaction when a new run starts during the frames-delay await', async () => {
+    const { mockedOnRunApplication } = mockAppRegistryIntegration();
+    const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
+    mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000);
+    // endFrames present so attach reaches the second await (fetchNativeFramesDelay).
+    _setAppStartEndData({
+      timestampMs: timeOriginMilliseconds,
+      endFrames: { totalFrames: 100, slowFrames: 1, frozenFrames: 0 },
+    });
+
+    // Gate the native fetch (first await) and the frames-delay fetch (second await) independently.
+    let releaseNative: () => void = () => {};
+    const nativeGate = new Promise<void>(resolve => {
+      releaseNative = resolve;
+    });
+    mockFunction(NATIVE.fetchNativeAppStart).mockReturnValue(
+      nativeGate.then(() => ({
+        type: 'cold',
+        app_start_timestamp_ms: appStartTimeMilliseconds,
+        has_fetched: false,
+        spans: [],
+      })),
+    );
+    let releaseDelay: () => void = () => {};
+    const delayGate = new Promise<void>(resolve => {
+      releaseDelay = resolve;
+    });
+    mockFunction(NATIVE.fetchNativeFramesDelay).mockReturnValue(delayGate.then(() => 0.25));
+
+    const { integration, client } = setupStandaloneIntegration();
+    integration.afterAllSetup(client);
+
+    integration.extendAppStart();
+    const child = startInactiveSpan({ parentSpan: integration.getExtendedAppStartSpan(), op: 'app.init', name: 'x' });
+    child.end();
+    const finishPromise = integration.finishExtendedAppStart();
+
+    // Let the first await pass the generation guard, then suspend at the frames-delay await.
+    releaseNative();
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // A new app run starts during the frames-delay await (after the first guard already passed).
+    const runApplicationCallback = mockedOnRunApplication.mock.calls[0][0];
+    runApplicationCallback();
+
+    releaseDelay();
+    await finishPromise;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(client.eventQueue.length).toBe(0);
+  });
+
   it('does not drop an extended app start whose extended duration exceeds the 60s cap', async () => {
     // The 60s sanity cap applies to the native app start window, not the (deadline-bounded)
     // extension — a short native start extended past a minute must still be sent.
