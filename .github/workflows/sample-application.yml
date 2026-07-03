@@ -187,6 +187,9 @@ jobs:
           ./scripts/set-dsn-aos.mjs
           ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
+      - name: Check 16 KB native library alignment
+        run: ./scripts/check-android-16kb-alignment.sh ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk
+
       - name: Archive Android App
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
         run: |
