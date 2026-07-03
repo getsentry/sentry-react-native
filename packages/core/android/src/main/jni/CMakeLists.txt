@@ -62,6 +62,22 @@ target_link_libraries(
         ReactAndroid::reactnative
 )
 
+# Force 16 KB ELF LOAD-segment alignment. The NDK linker only defaults to a
+# 16 KB `max-page-size` from r28 onwards; RN 0.86 / Expo SDK 57 still build
+# with NDK 27, whose default is 4 KB. Every other `.so` bundled by RN/AGP is
+# already 16 KB aligned, so without this flag `libsentry-tm-perf-logger.so`
+# is the lone misaligned library and trips Android 15+'s 16 KB page-size
+# compatibility check (and Google Play's 16 KB requirement) for the whole
+# app — even for hosts that never opt in to `enableTurboModuleTracking`,
+# since the library is packaged whenever the New Architecture is enabled.
+# On NDK r28+ this option is a redundant no-op.
+# https://github.com/getsentry/sentry-react-native/issues/6394
+target_link_options(
+    sentry-tm-perf-logger
+    PRIVATE
+        "-Wl,-z,max-page-size=16384"
+)
+
 # Note: we deliberately do NOT pass `-Wl,--strip-all` (or similar) here.
 # Android Gradle Plugin's `StripDebugSymbolsTask` already strips the .so for
 # the packaged APK while preserving the unstripped artefact under
