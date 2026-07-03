@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Force 16 KB ELF alignment for `libsentry-tm-perf-logger.so` so it no longer breaks 16 KB page size compatibility on Android 15+ ([#6394](https://github.com/getsentry/sentry-react-native/issues/6394))
+
+  The native library added in 8.17.0 for Turbo Module performance tracking is built from source with the app's NDK. On NDK r27 and earlier the linker defaults to 4 KB segment alignment, leaving this library misaligned while every other bundled `.so` is already 16 KB aligned. This tripped Android's 16 KB page size compatibility check (and Google Play's 16 KB requirement) for New Architecture apps, even when `enableTurboModuleTracking` was not enabled. The CMake target now passes `-Wl,-z,max-page-size=16384` (a no-op on NDK r28+).
+
 ## 8.17.0
 
 ### Features
