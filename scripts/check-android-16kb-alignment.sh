@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Verifies every native library (`.so`) bundled inside an Android APK/AAB has
-# its ELF LOAD segments aligned to at least 16 KB (`p_align >= 0x4000`).
+# Verifies native libraries (`.so`) bundled inside an Android APK/AAB have
+# their ELF LOAD segments aligned to at least 16 KB (`p_align >= 0x4000`).
 #
 # Android 15+ devices with a 16 KB page size (and Google Play's 16 KB
 # requirement) reject apps that ship a `.so` aligned to only 4 KB. Libraries
@@ -9,7 +9,14 @@
 # guards against a regression like https://github.com/getsentry/sentry-react-native/issues/6394
 # where `libsentry-tm-perf-logger.so` shipped misaligned.
 #
-# Usage: scripts/check-android-16kb-alignment.sh <path-to-apk-or-aab>
+# By default every `.so` is checked. Pass a name filter (a regex matched
+# against each library's path) to restrict the check to the libraries this
+# repo actually controls — third-party/React Native libraries are aligned by
+# their own build (RN ships arm64 at 16 KB but x86 at 4 KB, so a whole-APK
+# check is not meaningful on the x86 builds CI produces).
+#
+# Usage: scripts/check-android-16kb-alignment.sh <path-to-apk-or-aab> [name-filter-regex]
+#   e.g. scripts/check-android-16kb-alignment.sh app.apk 'libsentry'
 #
 # `readelf` is resolved from (in order): $READELF, `llvm-readelf`, `readelf`.
 
@@ -18,8 +25,9 @@ set -euo pipefail
 REQUIRED_ALIGN=16384 # 16 KB, expressed in bytes
 
 apk="${1:-}"
+name_filter="${2:-}"
 if [[ -z "$apk" || ! -f "$apk" ]]; then
-  echo "usage: $0 <path-to-apk-or-aab>" >&2
+  echo "usage: $0 <path-to-apk-or-aab> [name-filter-regex]" >&2
   exit 2
 fi
 
@@ -43,9 +51,18 @@ trap 'rm -rf "$workdir"' EXIT
 unzip -qq -o "$apk" 'lib/*' 'base/lib/*' -d "$workdir" 2>/dev/null || true
 
 libs=()
-while IFS= read -r lib; do libs+=("$lib"); done < <(find "$workdir" -type f -name '*.so' | sort)
+while IFS= read -r lib; do
+  if [[ -n "$name_filter" && ! "$lib" =~ $name_filter ]]; then
+    continue
+  fi
+  libs+=("$lib")
+done < <(find "$workdir" -type f -name '*.so' | sort)
 if [[ ${#libs[@]} -eq 0 ]]; then
-  echo "error: no .so libraries found inside $apk" >&2
+  if [[ -n "$name_filter" ]]; then
+    echo "error: no .so libraries matching /$name_filter/ found inside $apk" >&2
+  else
+    echo "error: no .so libraries found inside $apk" >&2
+  fi
   exit 2
 fi
 

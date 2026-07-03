@@ -188,7 +188,11 @@ jobs:
           ./scripts/build-android.sh -PreactNativeArchitectures=x86
 
       - name: Check 16 KB native library alignment
-        run: ./scripts/check-android-16kb-alignment.sh ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk
+        # Only Sentry-owned libraries are checked: third-party/React Native
+        # libraries are aligned by their own build (RN ships arm64 at 16 KB but
+        # x86 at 4 KB, and CI builds x86), so a whole-APK check is not
+        # meaningful here. Guards against regressing #6394.
+        run: ./scripts/check-android-16kb-alignment.sh ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk 'libsentry'
 
       - name: Archive Android App
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
