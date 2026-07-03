@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Force 16 KB ELF alignment for `libsentry-tm-perf-logger.so` so it does not breaks 16 KB page size compatibility on Android 15+ ([#6396](https://github.com/getsentry/sentry-react-native/pull/6396))
+- Force 16 KB ELF alignment for `libsentry-tm-perf-logger.so` so it does not break 16 KB page size compatibility on Android 15+ ([#6396](https://github.com/getsentry/sentry-react-native/pull/6396))
 
 ## 8.17.0
 
