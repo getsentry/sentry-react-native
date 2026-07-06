@@ -91,9 +91,6 @@ node_modules.bak
 # API Extractor temp files
 /packages/core/temp/
 
-# sentry-cocoa xcframework downloaded at pod install time
-/packages/core/ios/Vendor/
-
 # Sentry React Native Monorepo
 /packages/core/README.md
 .env.sentry-build-plugin

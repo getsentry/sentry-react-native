@@ -63,7 +63,6 @@ Pod::Spec.new do |s|
   else
     s.source_files = 'ios/**/*.{h,m,mm}', 'cpp/**/*.{h,cpp}'
   end
-  s.exclude_files = 'ios/Vendor/**/*'
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
   s.compiler_flags = other_cflags
@@ -77,12 +76,14 @@ Pod::Spec.new do |s|
   # Consume sentry-cocoa as a prebuilt `Sentry.xcframework` by default.
   #
   # The xcframework is downloaded from sentry-cocoa's GitHub Release,
-  # SHA256-verified, and cached under `ios/Vendor/`. CocoaPods then links it
-  # via `s.vendored_frameworks`. This avoids compiling sentry-cocoa from
-  # source (fast install) and sidesteps the Xcode 16/26 archive bug that
-  # affects the same xcframework when consumed through Xcode's SPM
-  # integration (`Signatures/*.signature` collision during archive) — the
-  # CocoaPods embed path is a different pipeline and is not affected.
+  # SHA256-verified, and cached under `~/Library/Caches/sentry-react-native/
+  # xcframeworks/<version>/` (override with `SENTRY_XCFRAMEWORK_CACHE_DIR`).
+  # Slice paths are then wired into the pod and app target via
+  # `FRAMEWORK_SEARCH_PATHS` below. Consuming the xcframework this way
+  # avoids compiling sentry-cocoa from source (fast install) and
+  # sidesteps the Xcode 16/26 archive bug that affects the same
+  # xcframework when consumed through Xcode's SPM integration
+  # (`Signatures/*.signature` collision during archive).
   #
   # Set `SENTRY_USE_XCFRAMEWORK=0` to fall back to the source-built
   # `Sentry` CocoaPod (e.g. for offline builds behind a restrictive proxy).
@@ -102,7 +103,19 @@ Pod::Spec.new do |s|
 
   if use_xcframework
     sentry_xcframework_dir = ensure_sentry_xcframework(sentry_cocoa_version, 'Sentry')
-    s.vendored_frameworks = 'ios/Vendor/Sentry.xcframework'
+
+    # We deliberately do NOT set `s.vendored_frameworks` even though the
+    # xcframework is downloaded and referenced below. CocoaPods doesn't
+    # stage vendored xcframeworks for `path:` (development) pods anyway
+    # — it did nothing for us functionally — and pointing it at a path
+    # inside `node_modules/@sentry/react-native/ios/Vendor/` used to be
+    # actively harmful, because that path only existed when the SDK was
+    # cached into the package directory (broken under pnpm's isolated
+    # store / Yarn PnP where node_modules is read-only). Framework
+    # linking still happens: `@import Sentry;` in RNSentry.mm + user
+    # code triggers clang's `-fmodules-autolink`, which emits the
+    # `-framework Sentry` linker directive automatically once the
+    # module is discovered via `FRAMEWORK_SEARCH_PATHS` below.
 
     # Xcode's `-F <dir>` doesn't descend into `.xcframework` bundles — it
     # looks for `Sentry.framework` directly at the given path. Point a

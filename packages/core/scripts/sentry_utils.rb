@@ -83,18 +83,30 @@ SENTRY_XCFRAMEWORK_SLICES_BY_SDK = {
   'xrsimulator'      => %w[xros-arm64_x86_64-simulator],
 }.freeze
 
-# Ensures `<sdk_root>/ios/Vendor/<product>.xcframework` exists.
+# Ensures `<cache>/<version>/<product>.xcframework` exists.
 #
 # On first invocation, downloads the prebuilt xcframework zip from
 # sentry-cocoa's GitHub release, verifies its SHA256 checksum against
 # `SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS`, and extracts it. Subsequent
-# invocations are no-ops.
+# invocations are no-ops. Returns the absolute path to the extracted
+# xcframework, which callers pass to `FRAMEWORK_SEARCH_PATHS`.
+#
+# The cache lives under a user-writable directory (`~/Library/Caches/
+# sentry-react-native/xcframeworks/` on macOS by default; override with
+# `SENTRY_XCFRAMEWORK_CACHE_DIR`). Cannot live under the pod's own source
+# tree because pnpm's isolated store makes `node_modules/@sentry/
+# react-native/ios/` read-only, and `Yarn PnP` doesn't materialize the
+# package directory at all — writing there fails with `EACCES`.
+# Deduplicating cache across multiple RN projects on the same machine
+# is a nice side effect.
 #
 # Consuming sentry-cocoa this way (vs. through Xcode's SPM integration)
 # avoids the Xcode 16/26 archive bug where a signed SPM binary xcframework's
 # `Signatures/*.signature` file collides during the archive step.
 def ensure_sentry_xcframework(version, product = 'Sentry')
-  vendor_dir = File.expand_path('../ios/Vendor', __dir__)
+  cache_root = ENV['SENTRY_XCFRAMEWORK_CACHE_DIR'] ||
+               File.expand_path('~/Library/Caches/sentry-react-native/xcframeworks')
+  vendor_dir = File.join(cache_root, version)
   target_dir = File.join(vendor_dir, "#{product}.xcframework")
   # Treat the presence of `Info.plist` inside the xcframework as the "healthy"
   # sentinel rather than just the directory existence. A directory without
