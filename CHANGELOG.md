@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Changes
+
+- **visionOS:** breadcrumbs no longer include the current screen name. sentry-cocoa's new hybrid-SDK `SentryInternalScreenApi` (which replaces the deprecated `PrivateSentrySDKOnly.setCurrentScreen:`) is gated to iOS/tvOS only, so the bridge stubs the setter on visionOS. Other visionOS behaviour (frames tracking, RNSScreen swizzle) is unchanged.
+
 ### Internal
 
 - Migrate iOS code from the deprecated `PrivateSentrySDKOnly` SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6370](https://github.com/getsentry/sentry-react-native/issues/6370))
