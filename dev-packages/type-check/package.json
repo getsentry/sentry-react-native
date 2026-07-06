@@ -1,7 +1,7 @@
 {
   "name": "sentry-react-native-type-check",
   "private": true,
-  "version": "8.17.1",
+  "version": "8.18.0-alpha",
   "scripts": {
     "type-check": "./run-type-check.sh"
   }
