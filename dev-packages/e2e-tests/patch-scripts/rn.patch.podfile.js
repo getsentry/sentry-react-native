@@ -69,12 +69,17 @@ if (currentMatch) {
 // so ensure the Podfile requests modular headers globally.
 let modularPatched = false;
 if (!content.includes('use_modular_headers!')) {
-  content = content.replace(
+  const patched = content.replace(
     /prepare_react_native_project!\s*\n/,
     "prepare_react_native_project!\nuse_modular_headers!\n",
   );
-  modularPatched = true;
-  debug.log('Patching Podfile with use_modular_headers!');
+  if (patched !== content) {
+    content = patched;
+    modularPatched = true;
+    debug.log('Patching Podfile with use_modular_headers!');
+  } else {
+    debug.log('Warning: Could not find prepare_react_native_project! anchor to inject use_modular_headers!');
+  }
 }
 
 // Write the file if any changes were made
