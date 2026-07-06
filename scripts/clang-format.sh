@@ -64,7 +64,6 @@ cmd="find . -type f \( \
     -path \"**android/build/**\" -or \
     -path \"**.cxx/**\" -or \
     -path \"**build/generated/**\" -or \
-    -path \"**/DerivedData/**\" -or \
     -path \"**/Carthage/Checkouts/*\" -or \
     -path \"**/libs/**\" -or \
     -path \"**/.yalc/**\" -or \
