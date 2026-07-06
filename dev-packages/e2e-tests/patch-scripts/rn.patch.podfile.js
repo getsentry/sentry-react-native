@@ -63,8 +63,22 @@ if (currentMatch) {
   debug.log('Warning: Could not find platform :ios line to patch');
 }
 
+// RNSentry now contains Swift code (via the RNSentryInternal bridge over
+// SentrySDK.internal). CocoaPods refuses to integrate a Swift pod against
+// non-modular ObjC dependencies (e.g. React-hermes on older RN versions),
+// so ensure the Podfile requests modular headers globally.
+let modularPatched = false;
+if (!content.includes('use_modular_headers!')) {
+  content = content.replace(
+    /prepare_react_native_project!\s*\n/,
+    "prepare_react_native_project!\nuse_modular_headers!\n",
+  );
+  modularPatched = true;
+  debug.log('Patching Podfile with use_modular_headers!');
+}
+
 // Write the file if any changes were made
-if (shouldPatch || currentMatch) {
+if (shouldPatch || currentMatch || modularPatched) {
   fs.writeFileSync(args['pod-file'], content);
   debug.log('Podfile patched successfully!');
 } else {
