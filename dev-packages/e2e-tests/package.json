@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-e2e-tests",
-  "version": "8.17.2",
+  "version": "8.18.0-alpha.3",
   "private": true,
   "description": "Sentry React Native End to End Tests Library",
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
     "@babel/preset-env": "^7.25.3",
     "@babel/preset-typescript": "^7.18.6",
     "@sentry/core": "10.63.0",
-    "@sentry/react-native": "8.17.2",
+    "@sentry/react-native": "8.18.0-alpha.3",
     "@types/node": "^20.9.3",
     "@types/react": "^19.1.4",
     "appium": "3.2.2",
