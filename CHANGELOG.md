@@ -11,6 +11,7 @@
 ### Fixes
 
 - Fix Android New Architecture build failing to link `libsentry-tm-perf-logger.so` with an undefined `TurboModulePerfLogger::enableLogging` symbol on some setups (e.g. armeabi-v7a) ([#6406](https://github.com/getsentry/sentry-react-native/pull/6406))
+- Fix Android New Architecture build failing at CMake configure on React Native 0.75 by gating the `libsentry-tm-perf-logger.so` native build to RN 0.76+ ([#6407](https://github.com/getsentry/sentry-react-native/pull/6407))
 
 ## 8.17.1
 

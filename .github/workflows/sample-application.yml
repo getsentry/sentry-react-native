@@ -448,7 +448,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
-        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # pin@v2.37.0
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # pin@v2.38.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
           # Pin the emulator binary: canary 37.1.6.0 (build 15726199) broke emulator
