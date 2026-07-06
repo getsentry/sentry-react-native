@@ -7,11 +7,13 @@ def isNewArchitectureEnabled() {
 }
 
 // `libsentry-tm-perf-logger.so` links against React Native's `reactnative`
-// prefab target, which only ships in the `ReactAndroid` prefab AAR shipped
-// with RN 0.75 and newer. On older RN releases the target does not exist
-// and a `find_package(ReactAndroid)` call would fail the CMake configure
-// step before we ever get to the build. Gate the native build on the host
-// app's `react-native` version so older legacy-arch matrix entries that
+// prefab target. The merged `libreactnative.so` (exposed as the
+// `ReactAndroid::reactnative` prefab) only ships from RN 0.76 onward; on RN
+// 0.75 and earlier the native code is split across separate prefab modules
+// and `ReactAndroid::reactnative` does not exist, so `find_package(ReactAndroid)`
+// / `target_link_libraries(... ReactAndroid::reactnative)` would fail the CMake
+// configure step before we ever get to the build. Gate the native build on the
+// host app's `react-native` version so older legacy-arch matrix entries that
 // (intentionally or not) end up with `newArchEnabled=true` do not pull in
 // our CMake target.
 def isReactNativePrefabAvailable() {
@@ -31,10 +33,11 @@ def isReactNativePrefabAvailable() {
         }
         def major = parts[0].toInteger()
         def minor = parts[1].toInteger()
-        // RN 0.75+ ships the `ReactAndroid::reactnative` prefab. Anything
-        // earlier is a legacy-only target as far as our native code is
-        // concerned.
-        return major > 0 || minor >= 75
+        // RN 0.76+ ships the merged `ReactAndroid::reactnative` prefab.
+        // Anything earlier (incl. 0.75, which still splits the native code
+        // across separate prefab modules) has no such target as far as our
+        // native code is concerned.
+        return major > 0 || minor >= 76
     } catch (Exception ignored) {
         return false
     }
