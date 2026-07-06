@@ -1,6 +1,6 @@
 {
   "name": "TestAppPlain",
-  "version": "8.17.2",
+  "version": "8.18.0-alpha.3",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
