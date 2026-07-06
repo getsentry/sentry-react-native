@@ -683,6 +683,12 @@ RCT_EXPORT_METHOD(
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
     NSData *rawViewHierarchy = [RNSentryInternal captureViewHierarchy];
+    if (rawViewHierarchy == nil) {
+        // Propagate the capture failure to JS instead of a truthy `[]`, which
+        // would be treated as a successful (empty) attachment.
+        resolve(nil);
+        return;
+    }
 
     NSMutableArray *viewHierarchy = [NSMutableArray arrayWithCapacity:rawViewHierarchy.length];
     const char *bytes = (char *)[rawViewHierarchy bytes];
