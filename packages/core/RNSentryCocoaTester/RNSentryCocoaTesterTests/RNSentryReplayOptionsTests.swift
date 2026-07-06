@@ -1,4 +1,4 @@
-import Sentry
+@_spi(Private) import Sentry
 import XCTest
 
 // File length grows as replay option coverage is added; lint runs with `--strict`.

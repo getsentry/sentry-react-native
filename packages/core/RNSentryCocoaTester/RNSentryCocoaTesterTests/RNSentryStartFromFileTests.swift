@@ -1,4 +1,4 @@
-import Sentry
+@_spi(Private) import Sentry
 import XCTest
 
 final class RNSentryStartFromFileTests: XCTestCase {

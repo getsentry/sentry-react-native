@@ -82,8 +82,13 @@ import Foundation
 
     // MARK: - Envelope
 
-    @_spi(Private) @objc public static func envelope(fromData data: Data) -> SentryEnvelope? {
-        SentrySDK.internal.envelope.deserialize(from: data)
+    // Accepts `Data?` (nil-safe) rather than `Data` so the ObjC bridge boundary
+    // doesn't force-unwrap a nil `NSData*` from a failed base64 decode — that
+    // would crash before we ever get a chance to check the result. Matches the
+    // nil-tolerant behaviour of the deprecated `PrivateSentrySDKOnly.envelopeWithData:`.
+    @_spi(Private) @objc public static func envelope(fromData data: Data?) -> SentryEnvelope? {
+        guard let data = data else { return nil }
+        return SentrySDK.internal.envelope.deserialize(from: data)
     }
 
     @_spi(Private) @objc public static func capture(_ envelope: SentryEnvelope) {
