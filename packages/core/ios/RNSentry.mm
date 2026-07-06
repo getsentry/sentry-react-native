@@ -16,7 +16,11 @@
 #    define SENTRY_TARGET_PROFILING_SUPPORTED 0
 #endif
 
-#import "RNSentry-Swift.h"
+#if __has_include(<RNSentry/RNSentry-Swift.h>)
+#    import <RNSentry/RNSentry-Swift.h>
+#else
+#    import "RNSentry-Swift.h"
+#endif
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryId.h"
 #import <Sentry/SentryAppStartMeasurement.h>

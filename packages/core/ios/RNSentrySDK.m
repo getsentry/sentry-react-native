@@ -1,5 +1,9 @@
 #import "RNSentrySDK.h"
-#import "RNSentry-Swift.h"
+#if __has_include(<RNSentry/RNSentry-Swift.h>)
+#    import <RNSentry/RNSentry-Swift.h>
+#else
+#    import "RNSentry-Swift.h"
+#endif
 #import "RNSentryStart.h"
 #import <Sentry/Sentry.h>
 
