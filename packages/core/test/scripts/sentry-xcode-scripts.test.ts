@@ -455,6 +455,32 @@ describe('sentry-xcode.sh', () => {
     expect(result.stdout).toContain('skipping sourcemaps upload');
   });
 
+  it('skips upload for Debug configuration without invoking sentry-cli', () => {
+    const result = runScript({
+      CONFIGURATION: 'Debug',
+      // A failing sentry-cli would surface here if it were invoked; the Debug skip must run
+      // the React Native bundling step directly instead. See issue #6399.
+      MOCK_CLI_EXIT_CODE: '1',
+      MOCK_CLI_OUTPUT: 'An organization ID or slug is required',
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Skipping source maps upload for *Debug* configuration');
+    expect(result.stdout).toContain('Mock React Native bundle');
+    expect(result.stdout).not.toContain('An organization ID or slug is required');
+    expect(result.stdout).not.toContain('error: sentry-cli');
+  });
+
+  it('skips upload for debug configuration (case insensitive)', () => {
+    const result = runScript({
+      CONFIGURATION: 'debug',
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('Skipping source maps upload for *Debug* configuration');
+    expect(result.stdout).toContain('Mock React Native bundle');
+  });
+
   describe('SENTRY_PROJECT_ROOT override', () => {
     it('resolves SOURCEMAP_FILE relative to SENTRY_PROJECT_ROOT instead of PROJECT_DIR/..', () => {
       const customRoot = path.join(tempDir, 'monorepo-package');
