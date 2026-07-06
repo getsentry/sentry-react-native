@@ -12,6 +12,14 @@
 
 - Add experimental `extendAppStart`/`finishExtendedAppStart`/`getExtendedAppStartSpan` to extend the standalone app start window and instrument post-init work ([#6392](https://github.com/getsentry/sentry-react-native/pull/6392))
 
+### Changes
+
+- Consume `sentry-cocoa` as a prebuilt xcframework by default on iOS ([#6413](https://github.com/getsentry/sentry-react-native/pull/6413))
+
+  **Warning**
+
+  **This may be a breaking change for some setups.** `pod install` now downloads `Sentry.xcframework` from sentry-cocoa's GitHub release (SHA256-verified) and vendors it, instead of building Sentry from source as a CocoaPod. If your iOS build breaks after upgrading (e.g. when another pod also depends on the `Sentry` CocoaPod), or if your `pod install` environment cannot reach `github.com`, set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior.
+
 ### Fixes
 
 - Skip iOS source maps upload on `Debug` builds ([#6405](https://github.com/getsentry/sentry-react-native/pull/6405))

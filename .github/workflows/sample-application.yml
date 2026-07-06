@@ -43,7 +43,7 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   build-ios:
-    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }} ${{ matrix.sentry-consumption }}
     runs-on: macos-26-xlarge
     needs: [diff_check, detect-changes]
     if: >-
@@ -60,6 +60,16 @@ jobs:
         rn-architecture: ["new"]
         ios-use-frameworks: ["no-frameworks"]
         build-type: ["dev", "production"]
+        sentry-consumption: ["xcframework"]
+        # `xcframework` is the default: RNSentry vendors a prebuilt
+        # `Sentry-Dynamic.xcframework` downloaded from sentry-cocoa's release.
+        # Keep a single CocoaPods job to catch regressions in the source-build
+        # fallback (`SENTRY_USE_XCFRAMEWORK=0`).
+        include:
+          - rn-architecture: "new"
+            ios-use-frameworks: "no-frameworks"
+            build-type: "production"
+            sentry-consumption: "cocoapods"
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -95,6 +105,7 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && export ENABLE_NEW_ARCH=1 || export ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
+          [[ "${{ matrix.sentry-consumption }}" == "cocoapods" ]] && export SENTRY_USE_XCFRAMEWORK=0
 
           ./scripts/pod-install.sh
 
@@ -112,7 +123,10 @@ jobs:
           ./scripts/build-ios.sh
 
       - name: Archive iOS App
-        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        # Only upload from the xcframework job (the default consumption path)
+        # to avoid duplicate artifact names when the CocoaPods regression job
+        # runs.
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' && matrix.sentry-consumption == 'xcframework' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           zip -r \
@@ -120,7 +134,7 @@ jobs:
             sentryreactnativesample.app
 
       - name: Upload iOS APP
-        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' && matrix.sentry-consumption == 'xcframework' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios
@@ -131,7 +145,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
+          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.sentry-consumption }}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
 
   build-android:
