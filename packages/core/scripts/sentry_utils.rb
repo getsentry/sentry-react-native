@@ -43,21 +43,44 @@ end
 
 require 'digest'
 require 'fileutils'
+require 'open-uri'
 
 # SHA256 checksums of `<product>.xcframework.zip` assets published in
 # sentry-cocoa GitHub releases (same value as the SPM binary target checksum
 # in sentry-cocoa's `Package.swift`). Register the checksum for each
 # sentry-cocoa version we ship a prebuilt xcframework for.
+#
+# Kept in sync with `sentry_cocoa_version` in `RNSentry.podspec` by
+# `scripts/update-cocoa.sh set-version <new>`, which downloads the new
+# release archive, computes its SHA256, and rewrites the entry below.
 SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS = {
+  # `Sentry.xcframework.zip` — the static product. Its enclosing xcframework
+  # name matches the framework name inside (both `Sentry`), which CocoaPods
+  # requires to generate `-framework Sentry` correctly and to resolve the
+  # `Sentry` module. `Sentry-Dynamic.xcframework` would ship the same
+  # `Sentry.framework` inside but under a mismatched enclosing name, so
+  # CocoaPods generates `-framework Sentry-Dynamic` and fails at link.
   '9.19.1' => {
-    # `Sentry.xcframework.zip` — the static product. Its enclosing xcframework
-    # name matches the framework name inside (both `Sentry`), which CocoaPods
-    # requires to generate `-framework Sentry` correctly and to resolve the
-    # `Sentry` module. `Sentry-Dynamic.xcframework` would ship the same
-    # `Sentry.framework` inside but under a mismatched enclosing name, so
-    # CocoaPods generates `-framework Sentry-Dynamic` and fails at link.
     'Sentry' => 'd6d545af17e49851cda2747b0f45cde78ce08ea37709dde5a956c6b4671224e8',
   },
+}.freeze
+
+# Static map from xcframework slice directory name to the Xcode SDK selector
+# it should be attached to. `sentry-cocoa`'s `Sentry.xcframework` layout is
+# stable across releases — same slice names come out of every build — so we
+# hardcode the mapping rather than scanning the extracted bundle. Add a
+# new entry here if `sentry-cocoa` ever ships a new platform slice.
+SENTRY_XCFRAMEWORK_SLICES_BY_SDK = {
+  'iphoneos'         => %w[ios-arm64_arm64e],
+  'iphonesimulator'  => %w[ios-arm64_x86_64-simulator],
+  'maccatalyst'      => %w[ios-arm64_arm64e_x86_64-maccatalyst],
+  'macosx'           => %w[macos-arm64_arm64e_x86_64],
+  'appletvos'        => %w[tvos-arm64_arm64e],
+  'appletvsimulator' => %w[tvos-arm64_x86_64-simulator],
+  'watchos'          => %w[watchos-arm64_arm64_32_arm64e_armv7k],
+  'watchsimulator'   => %w[watchos-arm64_x86_64-simulator],
+  'xros'             => %w[xros-arm64_arm64e],
+  'xrsimulator'      => %w[xros-arm64_x86_64-simulator],
 }.freeze
 
 # Ensures `<sdk_root>/ios/Vendor/<product>.xcframework` exists.
@@ -96,8 +119,13 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
         "#{version}/#{product}.xcframework.zip"
 
   Pod::UI.puts "[Sentry] Downloading #{product} #{version} from GitHub Releases…" if defined?(Pod::UI)
-  unless system('curl', '-sSfL', '-o', zip_path, url)
-    raise "Failed to download #{url}"
+  begin
+    URI.open(url, redirect: true) do |remote|
+      File.open(zip_path, 'wb') { |f| IO.copy_stream(remote, f) }
+    end
+  rescue OpenURI::HTTPError, SocketError, StandardError => e
+    FileUtils.rm_f(zip_path)
+    raise "Failed to download #{url}: #{e.class}: #{e.message}"
   end
 
   actual_checksum = Digest::SHA256.file(zip_path).hexdigest
@@ -125,50 +153,3 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
   target_dir
 end
 
-# Returns a hash of `<xcconfig SDK name> => [slice_id, ...]` for the slice
-# directories inside an xcframework bundle.
-#
-# Xcode's `-F <dir>` does not descend into an `.xcframework` bundle at
-# search-path lookup time — it only sees `Sentry.xcframework` as a directory
-# and doesn't find `Sentry.framework` inside. Callers use these groupings
-# to emit SDK-conditional `FRAMEWORK_SEARCH_PATHS[sdk=…*]` xcconfig entries
-# so each SDK build only sees its own slice — putting all slices under a
-# single unconditional search path lets Xcode's Swift module precompiler
-# stumble into an incompatible slice and fail with
-# "unsupported Swift architecture".
-#
-# Slice-name convention is stable across the xcframeworks Apple has ever
-# published:
-#   ios-*-simulator      -> iphonesimulator
-#   ios-*-maccatalyst    -> maccatalyst
-#   ios-…                -> iphoneos
-#   tvos-*-simulator     -> appletvsimulator
-#   tvos-…               -> appletvos
-#   watchos-*-simulator  -> watchsimulator
-#   watchos-…            -> watchos
-#   xros-*-simulator     -> xrsimulator
-#   xros-…               -> xros
-#   macos-…              -> macosx
-def sentry_xcframework_slices_by_sdk(xcframework_dir)
-  slice_ids = Dir.children(xcframework_dir).select do |name|
-    File.directory?(File.join(xcframework_dir, name)) && name != '_CodeSignature'
-  end.sort
-
-  slice_ids.each_with_object({}) do |slice, groups|
-    sdk = _sentry_sdk_for_slice(slice)
-    next unless sdk # unknown platform prefix — skip rather than mis-attach
-    (groups[sdk] ||= []) << slice
-  end
-end
-
-def _sentry_sdk_for_slice(slice_id)
-  return 'maccatalyst' if slice_id.include?('-maccatalyst')
-  simulator = slice_id.end_with?('-simulator')
-  case
-  when slice_id.start_with?('ios-')     then simulator ? 'iphonesimulator' : 'iphoneos'
-  when slice_id.start_with?('tvos-')    then simulator ? 'appletvsimulator' : 'appletvos'
-  when slice_id.start_with?('watchos-') then simulator ? 'watchsimulator' : 'watchos'
-  when slice_id.start_with?('xros-')    then simulator ? 'xrsimulator' : 'xros'
-  when slice_id.start_with?('macos-')   then 'macosx'
-  end
-end
