@@ -110,8 +110,12 @@ Pod::Spec.new do |s|
     # SDK selector so `#import <Sentry/…>` resolves against exactly one
     # slice per build. An unconditional search-path list would let Xcode's
     # Swift module precompiler stumble into a slice for a different arch
-    # and fail with "unsupported Swift architecture". New slices in future
-    # sentry-cocoa releases are picked up automatically at pod-install.
+    # and fail with "unsupported Swift architecture".
+    #
+    # We hardcode the slice → SDK map in `SENTRY_XCFRAMEWORK_SLICES_BY_SDK`
+    # (see `sentry_utils.rb`) rather than scanning the extracted bundle —
+    # sentry-cocoa's `Sentry.xcframework` layout is stable across releases.
+    # Add a slice there if a future release ships one.
     #
     # Point the search paths at the pod-install-time absolute path to the
     # xcframework. `${PODS_TARGET_SRCROOT}` is only defined in per-pod
@@ -121,13 +125,9 @@ Pod::Spec.new do |s|
     # different depth from RNSentryCocoaTester). Using the absolute path
     # avoids the layout-detection dance — the path is regenerated on
     # every `pod install`, so it's not something anyone commits.
-    xcframework_search_paths = {}
-    sentry_xcframework_slices_by_sdk(sentry_xcframework_dir).each do |sdk, slice_ids|
-      paths = slice_ids.map do |slice|
-        %("#{File.join(sentry_xcframework_dir, slice)}")
-      end
-      xcframework_search_paths["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] =
-        (['$(inherited)'] + paths).join(' ')
+    xcframework_search_paths = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
+      paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_dir, slice)}") }
+      acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
     end
 
     pod_target_xcconfig.merge!(xcframework_search_paths)
