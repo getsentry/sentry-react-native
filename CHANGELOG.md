@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix Android New Architecture build failing at CMake configure on React Native 0.75 by gating the `libsentry-tm-perf-logger.so` native build to RN 0.76+ ([#6407](https://github.com/getsentry/sentry-react-native/pull/6407))
+
 ## 8.17.1
 
 ### Fixes
