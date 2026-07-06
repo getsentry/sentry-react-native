@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Skip iOS source maps upload on `Debug` builds ([#6399](https://github.com/getsentry/sentry-react-native/issues/6399))
+- Skip iOS source maps upload on `Debug` builds ([#6405](https://github.com/getsentry/sentry-react-native/pull/6405))
 
 ## 8.17.1
 
