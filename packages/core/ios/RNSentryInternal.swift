@@ -176,25 +176,29 @@ import Foundation
     @_spi(Private) @objc public static func swizzleRNSScreenViewDidAppear(hook: @escaping () -> Void) {
         guard let cls = NSClassFromString("RNSScreen") else { return }
         let selector = NSSelectorFromString("viewDidAppear:")
-        let keyPtr = withUnsafePointer(to: &rnsScreenViewDidAppearKey) {
-            UnsafeRawPointer($0)
-        }
 
-        _ = SentrySDK.internal.swizzle.instanceMethod(
-            selector,
-            in: cls,
-            mode: .oncePerClass,
-            key: keyPtr,
-            factory: { getOriginal in
-                let block: @convention(block) (AnyObject, ObjCBool) -> Void = { receiver, animated in
-                    hook()
-                    typealias OriginalIMP = @convention(c) (AnyObject, Selector, ObjCBool) -> Void
-                    let original = unsafeBitCast(getOriginal(), to: OriginalIMP.self)
-                    original(receiver, selector, animated)
+        // `withUnsafePointer(to:)` scopes the pointer's validity to the closure
+        // body. Perform the entire swizzle call inside so we never rely on the
+        // pointer surviving beyond the closure. The backing storage is a
+        // `static var`, so the address itself stays stable across calls —
+        // sentry-cocoa's `oncePerClass` bookkeeping continues to dedupe.
+        withUnsafePointer(to: &rnsScreenViewDidAppearKey) { keyPtr in
+            _ = SentrySDK.internal.swizzle.instanceMethod(
+                selector,
+                in: cls,
+                mode: .oncePerClass,
+                key: UnsafeRawPointer(keyPtr),
+                factory: { getOriginal in
+                    let block: @convention(block) (AnyObject, ObjCBool) -> Void = { receiver, animated in
+                        hook()
+                        typealias OriginalIMP = @convention(c) (AnyObject, Selector, ObjCBool) -> Void
+                        let original = unsafeBitCast(getOriginal(), to: OriginalIMP.self)
+                        original(receiver, selector, animated)
+                    }
+                    return block as AnyObject
                 }
-                return block as AnyObject
-            }
-        )
+            )
+        }
     }
     #else
     @_spi(Private) @objc public static func swizzleRNSScreenViewDidAppear(hook: @escaping () -> Void) {}
