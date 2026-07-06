@@ -185,7 +185,19 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
           ./scripts/set-dsn-aos.mjs
-          ./scripts/build-android.sh -PreactNativeArchitectures=x86
+          # Build all ABIs (not just x86) so armeabi-v7a and the 64-bit ABIs are
+          # exercised too. The Sentry perf-logger native library is compiled from
+          # source per ABI, and ABI-specific breakage has shipped before (#6394
+          # 16 KB alignment, #6398 armeabi-v7a link) precisely because CI only
+          # built x86. The 16 KB alignment check below then runs across every ABI.
+          ./scripts/build-android.sh -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+
+      - name: Check 16 KB native library alignment
+        # Only Sentry-owned libraries are checked: third-party/React Native
+        # libraries are aligned by their own build (RN ships arm64 at 16 KB but
+        # x86 at 4 KB, and CI builds x86), so a whole-APK check is not
+        # meaningful here. Guards against regressing #6394.
+        run: ./scripts/check-android-16kb-alignment.sh ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk 'libsentry'
 
       - name: Archive Android App
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
@@ -436,7 +448,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
-        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # pin@v2.37.0
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # pin@v2.38.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
           # Pin the emulator binary: canary 37.1.6.0 (build 15726199) broke emulator
