@@ -16,7 +16,16 @@
 
   **This may be a breaking change for some setups.** `pod install` now downloads `Sentry.xcframework` from sentry-cocoa's GitHub release (SHA256-verified) and vendors it, instead of building Sentry from source as a CocoaPod. If your iOS build breaks after upgrading (e.g. when another pod also depends on the `Sentry` CocoaPod), or if your `pod install` environment cannot reach `github.com`, set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior.
 
+## 8.17.1
+
+### Fixes
+
+- Force 16 KB ELF alignment for `libsentry-tm-perf-logger.so` so it does not break 16 KB page size compatibility on Android 15+ ([#6396](https://github.com/getsentry/sentry-react-native/pull/6396))
+
 ## 8.17.0
+
+> [!WARNING]
+> ⚠️ **Known Issue (Android):** Apps built with the New Architecture on `sentry-react-native` **8.17.0** bundle a native library (`libsentry-tm-perf-logger.so`) that is not 16 KB page aligned, which breaks [16 KB page size](https://developer.android.com/guide/practices/page-sizes) compatibility on Android 15+ (and fails Google Play's 16 KB requirement). See [#6394](https://github.com/getsentry/sentry-react-native/issues/6394). **Please use [8.17.1](https://github.com/getsentry/sentry-react-native/releases/tag/8.17.1)**.
 
 ### Features
 
