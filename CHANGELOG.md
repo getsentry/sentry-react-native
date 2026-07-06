@@ -15,6 +15,9 @@
 
 ## 8.17.1
 
+> [!WARNING]
+> ⚠️ **Known Issue (Android):** New Architecture builds on `sentry-react-native` **8.17.1** can fail to build `libsentry-tm-perf-logger.so` (subset-ABI builds such as `armeabi-v7a`/Expo, and React Native 0.75) ([#6398](https://github.com/getsentry/sentry-react-native/issues/6398)). **Please use [8.17.2](https://github.com/getsentry/sentry-react-native/releases/tag/8.17.2)**.
+
 ### Fixes
 
 - Force 16 KB ELF alignment for `libsentry-tm-perf-logger.so` so it does not break 16 KB page size compatibility on Android 15+ ([#6396](https://github.com/getsentry/sentry-react-native/pull/6396))
@@ -22,7 +25,7 @@
 ## 8.17.0
 
 > [!WARNING]
-> ⚠️ **Known Issue (Android):** Apps built with the New Architecture on `sentry-react-native` **8.17.0** bundle a native library (`libsentry-tm-perf-logger.so`) that is not 16 KB page aligned, which breaks [16 KB page size](https://developer.android.com/guide/practices/page-sizes) compatibility on Android 15+ (and fails Google Play's 16 KB requirement). See [#6394](https://github.com/getsentry/sentry-react-native/issues/6394). **Please use [8.17.1](https://github.com/getsentry/sentry-react-native/releases/tag/8.17.1)**.
+> ⚠️ **Known Issue (Android):** Apps built with the New Architecture on `sentry-react-native` **8.17.0** bundle a native library (`libsentry-tm-perf-logger.so`) that is not 16 KB page aligned, which breaks [16 KB page size](https://developer.android.com/guide/practices/page-sizes) compatibility on Android 15+ (and fails Google Play's 16 KB requirement). See [#6394](https://github.com/getsentry/sentry-react-native/issues/6394). **Please use [8.17.2](https://github.com/getsentry/sentry-react-native/releases/tag/8.17.2)**.
 
 ### Features
 
