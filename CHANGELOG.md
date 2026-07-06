@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix Android New Architecture build failing to link `libsentry-tm-perf-logger.so` with an undefined `TurboModulePerfLogger::enableLogging` symbol on some setups (e.g. armeabi-v7a) ([#6398](https://github.com/getsentry/sentry-react-native/issues/6398))
+
 ## 8.17.1
 
 ### Fixes
