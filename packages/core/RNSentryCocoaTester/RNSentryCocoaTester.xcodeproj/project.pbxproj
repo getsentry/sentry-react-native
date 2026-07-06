@@ -19,6 +19,7 @@
 		33F58AD02977037D008F60EA /* RNSentryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.m */; };
 		2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */; };
 		AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */; };
+		AB000123456789ABCDEF0002 /* RNSentryInternalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000123456789ABCDEF0001 /* RNSentryInternalTests.swift */; };
 		B4DEB41739F14AA38202D4D4 /* RNSentryUriValidationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */; };
 		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
 /* End PBXBuildFile section */
@@ -27,6 +28,7 @@
 		1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
 		330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryBreadcrumb.h; path = ../ios/RNSentryBreadcrumb.h; sourceTree = "<group>"; };
 		332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryReplayOptionsTests.swift; sourceTree = "<group>"; };
+		AB000123456789ABCDEF0001 /* RNSentryInternalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryInternalTests.swift; sourceTree = "<group>"; };
 		332D33482CDBDC7300547D76 /* RNSentry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentry.h; path = ../ios/RNSentry.h; sourceTree = SOURCE_ROOT; };
 		332D33492CDCC8E100547D76 /* RNSentryTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSentryTests.h; sourceTree = "<group>"; };
 		332D334A2CDCC8EB00547D76 /* RNSentryCocoaTesterTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentryCocoaTesterTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 				3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */,
 				332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */,
 				3380C6C32CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift */,
+				AB000123456789ABCDEF0001 /* RNSentryInternalTests.swift */,
 			);
 			path = RNSentryCocoaTesterTests;
 			sourceTree = "<group>";
@@ -273,6 +276,7 @@
 				33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */,
 				3380C6C42CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift in Sources */,
 				33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */,
+				AB000123456789ABCDEF0002 /* RNSentryInternalTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
