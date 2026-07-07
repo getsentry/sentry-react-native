@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Skip iOS source maps upload on `Debug` builds ([#6405](https://github.com/getsentry/sentry-react-native/pull/6405))
+
 ## 8.17.2
 
 ### Fixes

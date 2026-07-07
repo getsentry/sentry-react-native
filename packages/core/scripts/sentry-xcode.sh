@@ -65,7 +65,18 @@ REACT_NATIVE_XCODE_WITH_SENTRY="\"$SENTRY_CLI_EXECUTABLE\" react-native xcode $A
 
 exitCode=0
 
-if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
+if [ "$SENTRY_DISABLE_AUTO_UPLOAD" == true ]; then
+  echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
+  /bin/sh -c "$REACT_NATIVE_XCODE"
+elif echo "$CONFIGURATION" | grep -iq "debug"; then # case insensitive check for "debug"
+  # Skip the source maps upload for *Debug* configuration, matching the behavior of the
+  # native debug files upload (sentry-xcode-debug-files.sh) and the Android Gradle plugin.
+  # Local Debug builds should not require Sentry credentials. Still run the React Native
+  # bundling step so the build itself succeeds.
+  # See: https://github.com/getsentry/sentry-react-native/issues/6399
+  echo "Skipping source maps upload for *Debug* configuration"
+  /bin/sh -c "$REACT_NATIVE_XCODE"
+else
   # 'warning:' triggers a warning in Xcode, 'error:' triggers an error
   set +x +e # disable printing commands otherwise we might print `error:` by accident and allow continuing on error
   SENTRY_XCODE_COMMAND_OUTPUT=$(/bin/sh -c "\"$LOCAL_NODE_BINARY\" $REACT_NATIVE_XCODE_WITH_SENTRY" 2>&1)
@@ -82,9 +93,6 @@ if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
     fi
   fi
   set -x -e # re-enable
-else
-  echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
-  /bin/sh -c "$REACT_NATIVE_XCODE"
 fi
 
 [ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_RN_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json'))")
