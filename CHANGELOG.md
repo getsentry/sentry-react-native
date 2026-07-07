@@ -8,14 +8,6 @@
 
 ## Unreleased
 
-### Changes
-
-- **visionOS:** breadcrumbs no longer include the current screen name. sentry-cocoa's new hybrid-SDK `SentryInternalScreenApi` (which replaces the deprecated `PrivateSentrySDKOnly.setCurrentScreen:`) is gated to iOS/tvOS only, so the bridge stubs the setter on visionOS. Other visionOS behaviour (frames tracking, RNSScreen swizzle) is unchanged.
-
-### Internal
-
-- Migrate iOS code from the deprecated `PrivateSentrySDKOnly` SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6370](https://github.com/getsentry/sentry-react-native/issues/6370))
-
 ### Features
 
 - Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
@@ -23,6 +15,10 @@
 ### Fixes
 
 - Fix orphaned TTID/TTFD spans in the trace view ([#6437](https://github.com/getsentry/sentry-react-native/pull/6437))
+
+### Internal
+
+- Migrate iOS code from the deprecated `PrivateSentrySDKOnly` SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6380](https://github.com/getsentry/sentry-react-native/pull/6380))
 
 ## 8.18.0
 
@@ -37,6 +33,8 @@
   **Warning**
 
   **This may be a breaking change for some setups.** `pod install` now downloads `Sentry.xcframework` from sentry-cocoa's GitHub release (SHA256-verified) and vendors it, instead of building Sentry from source as a CocoaPod. If your iOS build breaks after upgrading (e.g. when another pod also depends on the `Sentry` CocoaPod), or if your `pod install` environment cannot reach `github.com`, set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior.
+- **iOS:** On React Native versions where `React-hermes` (or another RN pod) is not modularized by default (e.g. RN 0.71), add `use_modular_headers!` to your `ios/Podfile` above the `target` block. This is required because the `RNSentry` pod now contains Swift code (the new `RNSentryInternal` bridge over `SentrySDK.internal`) and CocoaPods refuses to integrate a Swift pod against non-modular ObjC dependencies. Newer React Native versions require no change ([#6370](https://github.com/getsentry/sentry-react-native/issues/6370)).
+- **visionOS:** breadcrumbs no longer include the current screen name. sentry-cocoa's new hybrid-SDK `SentryInternalScreenApi` (which replaces the deprecated `PrivateSentrySDKOnly.setCurrentScreen:`) is gated to iOS/tvOS only, so the bridge stubs the setter on visionOS. Other visionOS behaviour (frames tracking, RNSScreen swizzle) is unchanged ([#6370](https://github.com/getsentry/sentry-react-native/issues/6370)).
 
 ### Fixes
 
