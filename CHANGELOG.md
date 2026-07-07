@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add experimental `extendAppStart`/`finishExtendedAppStart`/`getExtendedAppStartSpan` to extend the standalone app start window and instrument post-init work ([#6392](https://github.com/getsentry/sentry-react-native/pull/6392))
+
 ### Fixes
 
 - Skip iOS source maps upload on `Debug` builds ([#6405](https://github.com/getsentry/sentry-react-native/pull/6405))

@@ -109,6 +109,9 @@ export {
   withScope,
   crashedLastRun,
   appLoaded,
+  extendAppStart,
+  getExtendedAppStartSpan,
+  finishExtendedAppStart,
   pauseAppHangTracking,
   resumeAppHangTracking,
 } from './sdk';

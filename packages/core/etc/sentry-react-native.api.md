@@ -305,6 +305,9 @@ export const expoRouterIntegration: (options?: ExpoRouterIntegrationOptions) => 
 // @public
 export const expoUpdatesListenerIntegration: () => Integration;
 
+// @public
+export function extendAppStart(): void;
+
 export { extraErrorDataIntegration }
 
 export { FeatureFlagsIntegration }
@@ -354,6 +357,9 @@ export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
 }) => FeedbackIntegration;
 
 // @public
+export function finishExtendedAppStart(): Promise<void>;
+
+// @public
 export function flush(): Promise<boolean>;
 
 // @public (undocumented)
@@ -383,6 +389,9 @@ export function getDataFromUri(uri: string): Promise<Uint8Array | null>;
 
 // @public
 export function getDefaultIdleNavigationSpanOptions(): StartSpanOptions;
+
+// @public
+export function getExtendedAppStartSpan(): Span;
 
 export { getGlobalScope }
 

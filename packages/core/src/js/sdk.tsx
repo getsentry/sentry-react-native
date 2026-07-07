@@ -1,5 +1,5 @@
 /* oxlint-disable eslint(complexity) */
-import type { Breadcrumb, BreadcrumbHint, Integration, Scope } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint, Integration, Scope, Span } from '@sentry/core';
 
 import {
   debug,
@@ -25,7 +25,12 @@ import { shouldEnableNativeNagger } from './options';
 import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
-import { _appLoaded } from './tracing/integrations/appStart';
+import {
+  _appLoaded,
+  _extendAppStart,
+  _finishExtendedAppStart,
+  _getExtendedAppStartSpan,
+} from './tracing/integrations/appStart';
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
@@ -248,6 +253,64 @@ export function nativeCrash(): void {
 export function appLoaded(): void {
   // oxlint-disable-next-line typescript-eslint(no-floating-promises)
   _appLoaded();
+}
+
+/**
+ * Extends the app start window so work done after initialization (remote config, session restore,
+ * splash screen dismissal, etc.) is included in the app start measurement. Call
+ * {@link finishExtendedAppStart} when the app is ready, or attach child spans via
+ * {@link getExtendedAppStartSpan} to break the extended work down.
+ *
+ * Requires standalone app start tracing (`_experiments.enableStandaloneAppStartTracing`). No-ops if
+ * the app start transaction was already created, if extend was already called, or if called before
+ * `Sentry.init()`.
+ *
+ * @experimental This API is subject to change in future versions.
+ *
+ * @example
+ * ```ts
+ * Sentry.extendAppStart();
+ * await initializeRemoteConfig();
+ * Sentry.finishExtendedAppStart();
+ * ```
+ */
+export function extendAppStart(): void {
+  _extendAppStart();
+}
+
+/**
+ * Returns the extended app start span for attaching child spans, or a no-op span when there is no
+ * active extension. Only meaningful between {@link extendAppStart} and {@link finishExtendedAppStart}.
+ *
+ * @experimental This API is subject to change in future versions.
+ *
+ * @example
+ * ```ts
+ * Sentry.extendAppStart();
+ * const parentSpan = Sentry.getExtendedAppStartSpan();
+ * const child = Sentry.startInactiveSpan({ parentSpan, op: 'app.init', name: 'fetch remote config' });
+ * await loadRemoteConfig();
+ * child.end();
+ * Sentry.finishExtendedAppStart();
+ * ```
+ */
+export function getExtendedAppStartSpan(): Span {
+  return _getExtendedAppStartSpan();
+}
+
+/**
+ * Finishes the app start extension started with {@link extendAppStart}, finalizing the app start
+ * transaction (its duration is trimmed to the last child span). No-ops if there is no active
+ * extension.
+ *
+ * Returns a promise that resolves once the app start transaction has been captured. `await` it
+ * before {@link flush} (e.g. before a code-push/expo update) to make sure the app start data is
+ * queued.
+ *
+ * @experimental This API is subject to change in future versions.
+ */
+export function finishExtendedAppStart(): Promise<void> {
+  return _finishExtendedAppStart();
 }
 
 /**
