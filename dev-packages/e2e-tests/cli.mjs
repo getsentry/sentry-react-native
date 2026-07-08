@@ -160,7 +160,18 @@ if (actions.includes('create')) {
   fs.writeFileSync(appPackageJsonPath, JSON.stringify(appPackageJson, null, 2) + '\n');
 
   // original yarnrc contains the exact yarn version which causes corepack to fail to install yarn v3
-  fs.writeFileSync(`${appDir}/.yarnrc.yml`, 'nodeLinker: node-modules', { encoding: 'utf-8' });
+  //
+  // yarn 4 auto-enables hardened mode on public-PR CI and quarantines any package
+  // newer than npmMinimalAgeGate (default 1 day). This ephemeral app installs
+  // freshly-published first-party @sentry/* packages from an empty lockfile, so a
+  // just-released SDK version (e.g. right after a JS SDK bump) would be quarantined
+  // and fail the install. Disable both — the release-age gate is inappropriate for a
+  // throwaway e2e test app.
+  fs.writeFileSync(
+    `${appDir}/.yarnrc.yml`,
+    'nodeLinker: node-modules\nenableHardenedMode: false\nnpmMinimalAgeGate: 0\n',
+    { encoding: 'utf-8' },
+  );
   // yarn v3 won't install dependencies in a sub project without a yarn.lock file present
   fs.writeFileSync(`${appDir}/yarn.lock`, '');
 
