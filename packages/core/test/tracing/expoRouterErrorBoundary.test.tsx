@@ -3,11 +3,16 @@ import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text } from 'react-native';
 
-import { wrapExpoRouterErrorBoundary } from '../../src/js/tracing/expoRouterErrorBoundary';
+import {
+  EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME,
+  wrapExpoRouterErrorBoundary,
+} from '../../src/js/tracing/expoRouterErrorBoundary';
 
 const mockCaptureException = jest.fn();
 const mockAddBreadcrumb = jest.fn();
 const mockAddExceptionMechanism = jest.fn();
+const mockAddIntegration = jest.fn();
+const mockGetIntegrationByName = jest.fn().mockReturnValue(undefined);
 let mockSendDefaultPii = false;
 let mockActiveSpan: { setStatus: jest.Mock; __origin?: string } | undefined;
 
@@ -18,7 +23,11 @@ jest.mock('@sentry/core', () => {
     captureException: (...args: unknown[]) => mockCaptureException(...args),
     addBreadcrumb: (...args: unknown[]) => mockAddBreadcrumb(...args),
     addExceptionMechanism: (...args: unknown[]) => mockAddExceptionMechanism(...args),
-    getClient: () => ({ getOptions: () => ({ sendDefaultPii: mockSendDefaultPii }) }),
+    getClient: () => ({
+      getOptions: () => ({ sendDefaultPii: mockSendDefaultPii }),
+      getIntegrationByName: mockGetIntegrationByName,
+      addIntegration: mockAddIntegration,
+    }),
     getActiveSpan: () => mockActiveSpan,
     getRootSpan: (span: unknown) => span,
     spanToJSON: (span: { __origin?: string } | undefined) => ({ origin: span?.__origin }),
@@ -78,6 +87,12 @@ describe('wrapExpoRouterErrorBoundary', () => {
     const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     const { getByTestId } = render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
     expect(getByTestId('fallback').props.children).toBe('boom');
+  });
+
+  it('registers the ExpoRouterErrorBoundary marker on mount', () => {
+    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
+    render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
+    expect(mockAddIntegration).toHaveBeenCalledWith({ name: EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME });
   });
 
   it('captures the error to Sentry once per error instance', () => {

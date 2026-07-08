@@ -13,7 +13,10 @@ import {
 } from '@sentry/core';
 import * as React from 'react';
 
+import { registerFeatureMarker } from '../utils/featureMarkers';
 import { getCurrentExpoRouterRouteInfo } from './expoRouterStore';
+
+export const EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME = 'ExpoRouterErrorBoundary';
 
 /**
  * Errors we have already reported. Module-scoped (rather than a per-instance
@@ -65,6 +68,10 @@ export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryPro
   OriginalErrorBoundary: React.ComponentType<P>,
 ): React.ComponentType<P> {
   const Wrapped: React.FC<P> = props => {
+    React.useEffect(() => {
+      registerFeatureMarker(EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME);
+    }, []);
+
     // Reporting is intentionally done in `useEffect` (commit phase) rather than
     // during render: render must be pure, and in Concurrent Mode an in-progress
     // render can be discarded — we only want to report errors that React
