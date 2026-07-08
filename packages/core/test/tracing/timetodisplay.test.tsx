@@ -31,6 +31,7 @@ import {
 } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import {
+  reportFullyDisplayed,
   startTimeToFullDisplaySpan,
   startTimeToInitialDisplaySpan,
   TimeToFullDisplay,
@@ -988,5 +989,163 @@ describe('Frame Data', () => {
 
       expect(firstSpanId).not.toEqual(secondSpanId);
     });
+  });
+});
+
+describe('reportFullyDisplayed', () => {
+  let client: TestClient;
+
+  beforeEach(() => {
+    clearMockedOnDrawReportedProps();
+    _resetTimeToDisplayCoordinator();
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    const options = getDefaultTestClientOptions({
+      tracesSampleRate: 1.0,
+    });
+    client = new TestClient({
+      ...options,
+      integrations: [...options.integrations, timeToDisplayIntegration()],
+    });
+    setCurrentClient(client);
+    client.init();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockWrapper.NATIVE.enableNative = true;
+  });
+
+  test('creates full display span with manual origin and measurement', async () => {
+    await startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      async (activeSpan: Span | undefined) => {
+        const ttidSpan = startTimeToInitialDisplaySpan();
+        render(<TimeToInitialDisplay record={true} />);
+
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
+
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
+
+        reportFullyDisplayed();
+
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan).toBeDefined();
+    expect(ttfdSpan!.op).toBe('ui.load.full_display');
+    expect(ttfdSpan!.status).toBe('ok');
+    expect(ttfdSpan!.timestamp).toBeDefined();
+    expect(ttfdSpan!.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]).toBe(SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
+    expectFullDisplayMeasurementOnSpan(client.event!);
+  });
+
+  test('defers full display when called before initial display with correct origin', async () => {
+    await startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      async (activeSpan: Span | undefined) => {
+        const ttidSpan = startTimeToInitialDisplaySpan();
+        render(<TimeToInitialDisplay record={true} />);
+
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        reportFullyDisplayed();
+
+        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
+
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan).toBeDefined();
+    expect(ttfdSpan!.op).toBe('ui.load.full_display');
+    expect(ttfdSpan!.status).toBe('ok');
+    expect(ttfdSpan!.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]).toBe(SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
+
+    const ttidSpanJSON = getInitialDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan!.timestamp).toEqual(ttidSpanJSON!.timestamp);
+
+    expectFullDisplayMeasurementOnSpan(client.event!);
+  });
+
+  test('does nothing without an active span', () => {
+    expect(() => reportFullyDisplayed()).not.toThrow();
+    expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining('No active span found'));
+  });
+
+  test('second call is ignored after span already ended', async () => {
+    await startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      async (activeSpan: Span | undefined) => {
+        const ttidSpan = startTimeToInitialDisplaySpan();
+        render(<TimeToInitialDisplay record={true} />);
+
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
+
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
+
+        reportFullyDisplayed();
+
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
+
+        reportFullyDisplayed();
+
+        for (let i = 0; i < 15; i++) {
+          await Promise.resolve();
+        }
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpans = client.event!.spans!.filter((s: SpanJSON) => s.op === 'ui.load.full_display');
+    expect(ttfdSpans).toHaveLength(1);
   });
 });

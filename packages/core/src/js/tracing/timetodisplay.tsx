@@ -41,9 +41,11 @@ const FRAME_DATA_CLEANUP_TIMEOUT_MS = 60_000;
 export const manualInitialDisplaySpans = new WeakMap<Span, true>();
 
 /**
- * Flag full display called before initial display for an active span.
+ * Stores deferred full display state when reportFullyDisplayed / updateFullDisplaySpan
+ * is called before TTID completes. Preserves the isAutoInstrumented flag so the
+ * correct span origin is applied when the deferred call fires.
  */
-const fullDisplayBeforeInitialDisplay = new WeakMap<Span, true>();
+const fullDisplayBeforeInitialDisplay = new WeakMap<Span, { isAutoInstrumented: boolean }>();
 
 interface FrameDataForSpan {
   startFrames: NativeFramesResponse | null;
@@ -391,10 +393,11 @@ export function updateInitialDisplaySpan(
       span.setStatus({ code: SPAN_STATUS_OK });
       debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp and frame data.`);
 
-      if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
+      const deferred = fullDisplayBeforeInitialDisplay.get(activeSpan);
+      if (deferred) {
         fullDisplayBeforeInitialDisplay.delete(activeSpan);
         debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
-        updateFullDisplaySpan(frameTimestampSeconds, span);
+        updateFullDisplaySpan(frameTimestampSeconds, span, deferred.isAutoInstrumented);
       }
 
       setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
@@ -404,17 +407,36 @@ export function updateInitialDisplaySpan(
       span.end(frameTimestampSeconds);
       span.setStatus({ code: SPAN_STATUS_OK });
 
-      if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
+      const deferred = fullDisplayBeforeInitialDisplay.get(activeSpan);
+      if (deferred) {
         fullDisplayBeforeInitialDisplay.delete(activeSpan);
         debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
-        updateFullDisplaySpan(frameTimestampSeconds, span);
+        updateFullDisplaySpan(frameTimestampSeconds, span, deferred.isAutoInstrumented);
       }
 
       setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
     });
 }
 
-function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
+/**
+ * Reports that the screen is fully displayed.
+ *
+ * Ends the TTFD span (`ui.load.full_display`) with the current timestamp.
+ * If called before TTID completes, the TTFD span is deferred until TTID ends.
+ * Subsequent calls are ignored once the span has ended.
+ *
+ * This is the imperative equivalent of the `<TimeToFullDisplay>` component,
+ * matching the cross-SDK `Sentry.reportFullyDisplayed()` API.
+ */
+export function reportFullyDisplayed(): void {
+  updateFullDisplaySpan(Date.now() / 1000, undefined, false);
+}
+
+function updateFullDisplaySpan(
+  frameTimestampSeconds: number,
+  passedInitialDisplaySpan?: Span,
+  isAutoInstrumented: boolean = true,
+): void {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
     debug.warn('[TimeToDisplay] No active span found to update ui.load.full_display in.');
@@ -426,7 +448,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     getSpanDescendants(activeSpan).find(span => spanToJSON(span).op === 'ui.load.initial_display');
   const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToJSON(existingInitialDisplaySpan).timestamp;
   if (!initialDisplayEndTimestamp) {
-    fullDisplayBeforeInitialDisplay.set(activeSpan, true);
+    fullDisplayBeforeInitialDisplay.set(activeSpan, { isAutoInstrumented });
     debug.warn(
       `[TimeToDisplay] Full display called before initial display for active span (${activeSpan.spanContext().spanId}).`,
     );
@@ -434,7 +456,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   }
 
   const span = startTimeToFullDisplaySpan({
-    isAutoInstrumented: true,
+    isAutoInstrumented,
   });
   if (!span) {
     debug.warn('[TimeToDisplay] No TimeToFullDisplay span found or created, possibly performance is disabled.');
