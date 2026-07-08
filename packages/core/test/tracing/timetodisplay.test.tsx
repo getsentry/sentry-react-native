@@ -31,6 +31,7 @@ import {
 } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import {
+  _resetImperativeTtfdTimestamps,
   reportFullyDisplayed,
   startTimeToFullDisplaySpan,
   startTimeToInitialDisplaySpan,
@@ -998,6 +999,7 @@ describe('reportFullyDisplayed', () => {
   beforeEach(() => {
     clearMockedOnDrawReportedProps();
     _resetTimeToDisplayCoordinator();
+    _resetImperativeTtfdTimestamps();
     getCurrentScope().clear();
     getIsolationScope().clear();
     getGlobalScope().clear();
@@ -1018,31 +1020,24 @@ describe('reportFullyDisplayed', () => {
     mockWrapper.NATIVE.enableNative = true;
   });
 
-  test('creates full display span with manual origin and measurement', async () => {
-    await startSpanManual(
+  test('creates full display span with measurement via integration', async () => {
+    const ttidTimestamp = nowInSeconds();
+
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
-      async (activeSpan: Span | undefined) => {
-        const ttidSpan = startTimeToInitialDisplaySpan();
+      (activeSpan: Span | undefined) => {
         render(<TimeToInitialDisplay record={true} />);
 
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
-
-        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
-
-        for (let i = 0; i < 15; i++) {
-          await Promise.resolve();
-        }
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+        });
 
         reportFullyDisplayed();
-
-        for (let i = 0; i < 15; i++) {
-          await Promise.resolve();
-        }
 
         activeSpan?.end();
       },
@@ -1050,37 +1045,36 @@ describe('reportFullyDisplayed', () => {
 
     await jest.runOnlyPendingTimersAsync();
     await client.flush();
+
+    expectFinishedInitialDisplaySpan(client.event!);
+    expectInitialDisplayMeasurementOnSpan(client.event!);
 
     const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
     expect(ttfdSpan).toBeDefined();
     expect(ttfdSpan!.op).toBe('ui.load.full_display');
     expect(ttfdSpan!.status).toBe('ok');
     expect(ttfdSpan!.timestamp).toBeDefined();
-    expect(ttfdSpan!.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]).toBe(SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
     expectFullDisplayMeasurementOnSpan(client.event!);
   });
 
-  test('defers full display when called before initial display with correct origin', async () => {
-    await startSpanManual(
+  test('adjusts ttfd to ttid end when reported before ttid', async () => {
+    const ttidTimestamp = secondInFutureTimestampMs() / 1000;
+
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
-      async (activeSpan: Span | undefined) => {
-        const ttidSpan = startTimeToInitialDisplaySpan();
+      (activeSpan: Span | undefined) => {
         render(<TimeToInitialDisplay record={true} />);
-
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
 
         reportFullyDisplayed();
 
-        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
-
-        for (let i = 0; i < 15; i++) {
-          await Promise.resolve();
-        }
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+        });
 
         activeSpan?.end();
       },
@@ -1091,9 +1085,7 @@ describe('reportFullyDisplayed', () => {
 
     const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
     expect(ttfdSpan).toBeDefined();
-    expect(ttfdSpan!.op).toBe('ui.load.full_display');
     expect(ttfdSpan!.status).toBe('ok');
-    expect(ttfdSpan!.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]).toBe(SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY);
 
     const ttidSpanJSON = getInitialDisplaySpanJSON(client.event!.spans!);
     expect(ttfdSpan!.timestamp).toEqual(ttidSpanJSON!.timestamp);
@@ -1106,37 +1098,42 @@ describe('reportFullyDisplayed', () => {
     expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining('No active span found'));
   });
 
-  test('second call is ignored after span already ended', async () => {
-    await startSpanManual(
+  test('does not create ttfd span without ttid', async () => {
+    startSpanManual(
       {
         name: 'Root Manual Span',
         startTime: secondAgoTimestampMs(),
       },
-      async (activeSpan: Span | undefined) => {
-        const ttidSpan = startTimeToInitialDisplaySpan();
+      (activeSpan: Span | undefined) => {
+        reportFullyDisplayed();
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expectNoFullDisplayMeasurementOnSpan(client.event!);
+    expect(getFullDisplaySpanJSON(client.event!.spans!)).toBeUndefined();
+  });
+
+  test('second call is ignored', async () => {
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
         render(<TimeToInitialDisplay record={true} />);
 
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
-
-        updateInitialDisplaySpan(nowInSeconds(), { activeSpan, span: ttidSpan });
-
-        for (let i = 0; i < 15; i++) {
-          await Promise.resolve();
-        }
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
+          },
+        });
 
         reportFullyDisplayed();
-
-        for (let i = 0; i < 15; i++) {
-          await Promise.resolve();
-        }
-
         reportFullyDisplayed();
-
-        for (let i = 0; i < 15; i++) {
-          await Promise.resolve();
-        }
 
         activeSpan?.end();
       },

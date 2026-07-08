@@ -8,6 +8,7 @@ import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISP
 import { getReactNavigationIntegration } from '../reactnavigation';
 import { SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN } from '../semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../span';
+import { _popImperativeTtfdTimestamp } from '../timetodisplay';
 import { clearSpan as clearTimeToDisplayCoordinatorSpan } from '../timeToDisplayCoordinator';
 import { getTimeToInitialDisplayFallback } from '../timeToDisplayFallback';
 import { createSpanJSON } from '../utils';
@@ -224,7 +225,8 @@ async function addTimeToFullDisplay({
   transactionStartTimestampSeconds: number;
   ttidSpan: SpanJSON | undefined;
 }): Promise<SpanJSON | undefined> {
-  const ttfdEndTimestampSeconds = await NATIVE.popTimeToDisplayFor(`ttfd-${rootSpanId}`);
+  const ttfdEndTimestampSeconds =
+    (await NATIVE.popTimeToDisplayFor(`ttfd-${rootSpanId}`)) ?? _popImperativeTtfdTimestamp(rootSpanId);
 
   if (!ttidSpan || !ttfdEndTimestampSeconds) {
     return undefined;

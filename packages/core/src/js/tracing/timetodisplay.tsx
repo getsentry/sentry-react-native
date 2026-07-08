@@ -41,11 +41,9 @@ const FRAME_DATA_CLEANUP_TIMEOUT_MS = 60_000;
 export const manualInitialDisplaySpans = new WeakMap<Span, true>();
 
 /**
- * Stores deferred full display state when reportFullyDisplayed / updateFullDisplaySpan
- * is called before TTID completes. Preserves the isAutoInstrumented flag so the
- * correct span origin is applied when the deferred call fires.
+ * Flag full display called before initial display for an active span.
  */
-const fullDisplayBeforeInitialDisplay = new WeakMap<Span, { isAutoInstrumented: boolean }>();
+const fullDisplayBeforeInitialDisplay = new WeakMap<Span, true>();
 
 interface FrameDataForSpan {
   startFrames: NativeFramesResponse | null;
@@ -393,11 +391,10 @@ export function updateInitialDisplaySpan(
       span.setStatus({ code: SPAN_STATUS_OK });
       debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp and frame data.`);
 
-      const deferred = fullDisplayBeforeInitialDisplay.get(activeSpan);
-      if (deferred) {
+      if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
         fullDisplayBeforeInitialDisplay.delete(activeSpan);
         debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
-        updateFullDisplaySpan(frameTimestampSeconds, span, deferred.isAutoInstrumented);
+        updateFullDisplaySpan(frameTimestampSeconds, span);
       }
 
       setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
@@ -407,11 +404,10 @@ export function updateInitialDisplaySpan(
       span.end(frameTimestampSeconds);
       span.setStatus({ code: SPAN_STATUS_OK });
 
-      const deferred = fullDisplayBeforeInitialDisplay.get(activeSpan);
-      if (deferred) {
+      if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
         fullDisplayBeforeInitialDisplay.delete(activeSpan);
         debug.log(`[TimeToDisplay] Updating full display with initial display (${span.spanContext().spanId}) end.`);
-        updateFullDisplaySpan(frameTimestampSeconds, span, deferred.isAutoInstrumented);
+        updateFullDisplaySpan(frameTimestampSeconds, span);
       }
 
       setSpanDurationAsMeasurementOnSpan('time_to_initial_display', span, activeSpan);
@@ -419,24 +415,49 @@ export function updateInitialDisplaySpan(
 }
 
 /**
+ * Timestamps stored by the imperative `reportFullyDisplayed()` API.
+ * Keyed by the active span's span_id at call time.
+ * Consumed by `timeToDisplayIntegration.processEvent`.
+ */
+const _imperativeTtfdTimestamps = new Map<string, number>();
+
+/**
  * Reports that the screen is fully displayed.
  *
- * Ends the TTFD span (`ui.load.full_display`) with the current timestamp.
- * If called before TTID completes, the TTFD span is deferred until TTID ends.
- * Subsequent calls are ignored once the span has ended.
+ * Stores the current timestamp so the Time to Display integration
+ * can create the TTFD span (`ui.load.full_display`) during event processing.
+ * If called before TTID completes, the integration adjusts the TTFD
+ * timestamp to the TTID end (per the cross-SDK spec).
+ * Subsequent calls for the same span are ignored.
  *
  * This is the imperative equivalent of the `<TimeToFullDisplay>` component,
  * matching the cross-SDK `Sentry.reportFullyDisplayed()` API.
  */
 export function reportFullyDisplayed(): void {
-  updateFullDisplaySpan(Date.now() / 1000, undefined, false);
+  const activeSpan = getActiveSpan();
+  if (!activeSpan) {
+    debug.warn('[TimeToDisplay] No active span found to report full display.');
+    return;
+  }
+  const spanId = spanToJSON(activeSpan).span_id;
+  if (spanId && !_imperativeTtfdTimestamps.has(spanId)) {
+    _imperativeTtfdTimestamps.set(spanId, Date.now() / 1000);
+  }
 }
 
-function updateFullDisplaySpan(
-  frameTimestampSeconds: number,
-  passedInitialDisplaySpan?: Span,
-  isAutoInstrumented: boolean = true,
-): void {
+export function _popImperativeTtfdTimestamp(spanId: string): number | undefined {
+  const ts = _imperativeTtfdTimestamps.get(spanId);
+  if (ts !== undefined) {
+    _imperativeTtfdTimestamps.delete(spanId);
+  }
+  return ts;
+}
+
+export function _resetImperativeTtfdTimestamps(): void {
+  _imperativeTtfdTimestamps.clear();
+}
+
+function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDisplaySpan?: Span): void {
   const activeSpan = getActiveSpan();
   if (!activeSpan) {
     debug.warn('[TimeToDisplay] No active span found to update ui.load.full_display in.');
@@ -448,7 +469,7 @@ function updateFullDisplaySpan(
     getSpanDescendants(activeSpan).find(span => spanToJSON(span).op === 'ui.load.initial_display');
   const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToJSON(existingInitialDisplaySpan).timestamp;
   if (!initialDisplayEndTimestamp) {
-    fullDisplayBeforeInitialDisplay.set(activeSpan, { isAutoInstrumented });
+    fullDisplayBeforeInitialDisplay.set(activeSpan, true);
     debug.warn(
       `[TimeToDisplay] Full display called before initial display for active span (${activeSpan.spanContext().spanId}).`,
     );
@@ -456,7 +477,7 @@ function updateFullDisplaySpan(
   }
 
   const span = startTimeToFullDisplaySpan({
-    isAutoInstrumented,
+    isAutoInstrumented: true,
   });
   if (!span) {
     debug.warn('[TimeToDisplay] No TimeToFullDisplay span found or created, possibly performance is disabled.');
