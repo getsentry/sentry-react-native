@@ -534,6 +534,50 @@ describe('Mobile Replay Integration', () => {
     });
   });
 
+  describe('network detail feature markers', () => {
+    let mockAddIntegration: jest.Mock;
+    let mockGetIntegrationByName: jest.Mock;
+    let markerClient: jest.Mocked<Client>;
+
+    beforeEach(() => {
+      mockAddIntegration = jest.fn();
+      mockGetIntegrationByName = jest.fn().mockReturnValue(undefined);
+      markerClient = {
+        on: jest.fn(),
+        getOptions: jest.fn(() => ({})),
+        getIntegrationByName: mockGetIntegrationByName,
+        addIntegration: mockAddIntegration,
+      } as unknown as jest.Mocked<Client>;
+    });
+
+    it('does not register network markers when networkDetailAllowUrls is empty', () => {
+      const integration = mobileReplayIntegration({ networkDetailAllowUrls: [] });
+      integration.setup?.(markerClient);
+
+      expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
+      expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+
+    it('registers both markers when networkDetailAllowUrls is set (bodies default true)', () => {
+      const integration = mobileReplayIntegration({ networkDetailAllowUrls: ['https://api.example.com'] });
+      integration.setup?.(markerClient);
+
+      expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
+      expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+
+    it('registers only the details marker when bodies are explicitly disabled', () => {
+      const integration = mobileReplayIntegration({
+        networkDetailAllowUrls: ['https://api.example.com'],
+        networkCaptureBodies: false,
+      });
+      integration.setup?.(markerClient);
+
+      expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
+      expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+  });
+
   describe('platform checks', () => {
     it('should return noop integration in Expo Go', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
