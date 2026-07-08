@@ -12,6 +12,7 @@ import {
   SPAN_STATUS_OK,
   spanToJSON,
   startInactiveSpan,
+  timestampInSeconds,
 } from '@sentry/core';
 import * as React from 'react';
 import { useEffect, useReducer, useRef, useState } from 'react';
@@ -417,10 +418,11 @@ export function updateInitialDisplaySpan(
 
 /**
  * Timestamps stored by the imperative `reportFullyDisplayed()` API.
- * Keyed by the active span's span_id at call time.
+ * Keyed by the root span's span_id at call time.
  * Consumed by `timeToDisplayIntegration.processEvent`.
  */
 const _imperativeTtfdTimestamps = new Map<string, number>();
+const MAX_IMPERATIVE_TTFD_ENTRIES = 50;
 
 /**
  * Reports that the screen is fully displayed.
@@ -443,7 +445,13 @@ export function reportFullyDisplayed(): void {
   const rootSpan = getRootSpan(activeSpan);
   const rootSpanId = spanToJSON(rootSpan).span_id;
   if (rootSpanId && !_imperativeTtfdTimestamps.has(rootSpanId)) {
-    _imperativeTtfdTimestamps.set(rootSpanId, Date.now() / 1000);
+    if (_imperativeTtfdTimestamps.size >= MAX_IMPERATIVE_TTFD_ENTRIES) {
+      const oldestKey = _imperativeTtfdTimestamps.keys().next().value;
+      if (oldestKey) {
+        _imperativeTtfdTimestamps.delete(oldestKey);
+      }
+    }
+    _imperativeTtfdTimestamps.set(rootSpanId, timestampInSeconds());
   }
 }
 
