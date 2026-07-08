@@ -46,6 +46,8 @@ import {
   viewHierarchyIntegration,
 } from './exports';
 
+const STANDALONE_APP_START_INTEGRATION_NAME = 'StandaloneAppStart';
+
 /**
  * Returns the default ReactNative integrations based on the current environment.
  *
@@ -114,6 +116,9 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   const hasTracingEnabled = typeof options.tracesSampleRate === 'number' || typeof options.tracesSampler === 'function';
   if (hasTracingEnabled && options.enableAppStartTracking && options.enableNative) {
     integrations.push(appStartIntegration({ standalone: !!options._experiments?.enableStandaloneAppStartTracing }));
+    if (options._experiments?.enableStandaloneAppStartTracing) {
+      integrations.push({ name: STANDALONE_APP_START_INTEGRATION_NAME });
+    }
   }
   const nativeFramesIntegrationInstance = createNativeFramesIntegrations(
     hasTracingEnabled && options.enableNativeFramesTracking && options.enableNative,
