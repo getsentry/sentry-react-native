@@ -5,6 +5,7 @@ import {
   debug,
   fill,
   getActiveSpan,
+  getRootSpan,
   getSpanDescendants,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SPAN_STATUS_ERROR,
@@ -439,9 +440,10 @@ export function reportFullyDisplayed(): void {
     debug.warn('[TimeToDisplay] No active span found to report full display.');
     return;
   }
-  const spanId = spanToJSON(activeSpan).span_id;
-  if (spanId && !_imperativeTtfdTimestamps.has(spanId)) {
-    _imperativeTtfdTimestamps.set(spanId, Date.now() / 1000);
+  const rootSpan = getRootSpan(activeSpan);
+  const rootSpanId = spanToJSON(rootSpan).span_id;
+  if (rootSpanId && !_imperativeTtfdTimestamps.has(rootSpanId)) {
+    _imperativeTtfdTimestamps.set(rootSpanId, Date.now() / 1000);
   }
 }
 

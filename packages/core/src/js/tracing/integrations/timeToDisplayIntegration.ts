@@ -236,6 +236,11 @@ async function addTimeToFullDisplay({
 
   let ttfdSpan = event.spans?.find(span => span.op === UI_LOAD_FULL_DISPLAY);
 
+  if (ttfdSpan && (ttfdSpan.status === undefined || ttfdSpan.status === 'ok')) {
+    debug.log(`[${INTEGRATION_NAME}] Ttfd span already exists and is ok.`, ttfdSpan);
+    return ttfdSpan;
+  }
+
   let ttfdAdjustedEndTimestampSeconds = ttfdEndTimestampSeconds;
   const ttfdIsBeforeTtid = ttidSpan.timestamp && ttfdEndTimestampSeconds < ttidSpan.timestamp;
   if (ttfdIsBeforeTtid && ttidSpan.timestamp) {

@@ -7,6 +7,7 @@ import {
   getIsolationScope,
   setCurrentClient,
   spanToJSON,
+  startSpan,
   startSpanManual,
 } from '@sentry/core';
 
@@ -1115,6 +1116,41 @@ describe('reportFullyDisplayed', () => {
 
     expectNoFullDisplayMeasurementOnSpan(client.event!);
     expect(getFullDisplaySpanJSON(client.event!.spans!)).toBeUndefined();
+  });
+
+  test('works when called inside a nested child span', async () => {
+    const ttidTimestamp = nowInSeconds();
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        render(<TimeToInitialDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+        });
+
+        startSpan({ name: 'child-span' }, () => {
+          reportFullyDisplayed();
+        });
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan).toBeDefined();
+    expect(ttfdSpan!.op).toBe('ui.load.full_display');
+    expect(ttfdSpan!.status).toBe('ok');
+    expectFullDisplayMeasurementOnSpan(client.event!);
   });
 
   test('second call is ignored', async () => {
