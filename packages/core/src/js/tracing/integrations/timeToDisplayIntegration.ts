@@ -225,8 +225,9 @@ async function addTimeToFullDisplay({
   transactionStartTimestampSeconds: number;
   ttidSpan: SpanJSON | undefined;
 }): Promise<SpanJSON | undefined> {
-  const ttfdEndTimestampSeconds =
-    (await NATIVE.popTimeToDisplayFor(`ttfd-${rootSpanId}`)) ?? _popImperativeTtfdTimestamp(rootSpanId);
+  const nativeTtfdTimestamp = await NATIVE.popTimeToDisplayFor(`ttfd-${rootSpanId}`);
+  const imperativeTtfdTimestamp = _popImperativeTtfdTimestamp(rootSpanId);
+  const ttfdEndTimestampSeconds = nativeTtfdTimestamp ?? imperativeTtfdTimestamp;
 
   if (!ttidSpan || !ttfdEndTimestampSeconds) {
     return undefined;
