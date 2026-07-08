@@ -199,12 +199,24 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
           ./scripts/set-dsn-aos.mjs
-          # Build all ABIs (not just x86) so armeabi-v7a and the 64-bit ABIs are
-          # exercised too. The Sentry perf-logger native library is compiled from
-          # source per ABI, and ABI-specific breakage has shipped before (#6394
-          # 16 KB alignment, #6398 armeabi-v7a link) precisely because CI only
-          # built x86. The 16 KB alignment check below then runs across every ABI.
-          ./scripts/build-android.sh -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+          # Split ABI coverage across the two matrix entries:
+          #   - `dev`        → subset (arm64-v8a only) so we can assert the module
+          #                    builds only the ABIs the app requested — the root
+          #                    cause of #6398 was hardcoded abiFilters ignoring
+          #                    `reactNativeArchitectures`.
+          #   - `production` → all four ABIs so the 16 KB alignment check below
+          #                    runs across every ABI (guards against #6394).
+          if [[ "${{ matrix.build-type }}" == "production" ]]; then
+            ./scripts/build-android.sh -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+          else
+            ./scripts/build-android.sh -PreactNativeArchitectures=arm64-v8a
+          fi
+
+      - name: Check libsentry-tm-perf-logger.so honors reactNativeArchitectures
+        if: ${{ matrix.build-type == 'dev' }}
+        # Asserts the module packaged our .so for exactly the subset the app
+        # requested — guards against regressing the #6398 root-cause fix.
+        run: ./scripts/check-tm-perf-logger-abi-subset.sh ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk 'arm64-v8a'
 
       - name: Check 16 KB native library alignment
         # Only Sentry-owned libraries are checked: third-party/React Native

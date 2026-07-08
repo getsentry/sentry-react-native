@@ -24,6 +24,12 @@
 
 - Skip iOS source maps upload on `Debug` builds ([#6405](https://github.com/getsentry/sentry-react-native/pull/6405))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.63.0 to v10.64.0 ([#6418](https://github.com/getsentry/sentry-react-native/pull/6418))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10640)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.63.0...10.64.0)
+
 ## 8.17.2
 
 ### Fixes
