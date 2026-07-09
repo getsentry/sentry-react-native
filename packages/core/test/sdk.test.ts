@@ -11,6 +11,7 @@ import { init, withScope } from '../src/js/sdk';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
 import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
+import { registerFeatureMarker } from '../src/js/utils/featureMarkers';
 import { RN_GLOBAL_OBJ } from '../src/js/utils/worldwide';
 import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
@@ -24,6 +25,9 @@ jest.mock('@sentry/core', () => ({
 }));
 jest.mock('../src/js/integrations/debugsymbolicatorutils', () => ({
   getDevServer: jest.fn(),
+}));
+jest.mock('../src/js/utils/featureMarkers', () => ({
+  registerFeatureMarker: jest.fn(),
 }));
 
 describe('Tests the SDK functionality', () => {
@@ -188,6 +192,18 @@ describe('Tests the SDK functionality', () => {
           autoInitializeNativeSdk: false,
         });
         expect(usedOptions()?.autoInitializeNativeSdk).toBe(false);
+      });
+
+      it('registers the CaptureAppStartErrors marker when __SENTRY_OPTIONS__ is set', () => {
+        RN_GLOBAL_OBJ.__SENTRY_OPTIONS__ = {};
+        init({});
+        expect(registerFeatureMarker).toHaveBeenCalledWith('CaptureAppStartErrors');
+      });
+
+      it('does not register the CaptureAppStartErrors marker without __SENTRY_OPTIONS__', () => {
+        delete RN_GLOBAL_OBJ.__SENTRY_OPTIONS__;
+        init({});
+        expect(registerFeatureMarker).not.toHaveBeenCalledWith('CaptureAppStartErrors');
       });
     });
 

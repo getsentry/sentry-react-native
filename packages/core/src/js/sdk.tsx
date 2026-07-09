@@ -34,11 +34,14 @@ import {
 import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
+import { registerFeatureMarker } from './utils/featureMarkers';
 import { getDefaultRelease } from './utils/release';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { checkSentryJsSdkVersionMismatch } from './utils/sdkVersionCheck';
 import { RN_GLOBAL_OBJ } from './utils/worldwide';
 import { NATIVE } from './wrapper';
+
+const CAPTURE_APP_START_ERRORS_INTEGRATION_NAME = 'CaptureAppStartErrors';
 
 const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableNativeCrashHandling: true,
@@ -189,6 +192,10 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   if (RN_GLOBAL_OBJ.__SENTRY_OPTIONS__) {
     debug.log('Sentry JS initialized with options from the options file.');
+    // Adoption marker for the "capture app-start errors" feature: shipping
+    // `sentry.options.json` is what opts users in (the Metro serializer bundles
+    // it into JS as `__SENTRY_OPTIONS__`, and native reads it before JS runs).
+    registerFeatureMarker(CAPTURE_APP_START_ERRORS_INTEGRATION_NAME);
   }
 }
 
