@@ -489,7 +489,12 @@ describe('ExpoUpdatesListener Integration', () => {
       const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
       mockStartInactiveSpan.mockReturnValueOnce(mockSpan as unknown as Span);
 
-      const result = handleSpanLifecycle({ ...baseContext }, { ...baseContext, isChecking: true }, undefined, undefined);
+      const result = handleSpanLifecycle(
+        { ...baseContext },
+        { ...baseContext, isChecking: true },
+        undefined,
+        undefined,
+      );
 
       expect(mockStartInactiveSpan).toHaveBeenCalledWith({
         name: 'expo-updates check',
@@ -625,12 +630,7 @@ describe('ExpoUpdatesListener Integration', () => {
         .mockReturnValueOnce(downloadMockSpan as unknown as Span);
 
       // Step 1: Start checking
-      let result = handleSpanLifecycle(
-        { ...baseContext },
-        { ...baseContext, isChecking: true },
-        undefined,
-        undefined,
-      );
+      let result = handleSpanLifecycle({ ...baseContext }, { ...baseContext, isChecking: true }, undefined, undefined);
       expect(result.checkSpan).toBe(checkMockSpan);
 
       // Step 2: Check complete, update available

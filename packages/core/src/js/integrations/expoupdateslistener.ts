@@ -10,6 +10,7 @@ import {
 } from '@sentry/core';
 
 import type { ReactNativeClient } from '../client';
+
 import { SPAN_ORIGIN_AUTO_EXPO_UPDATES } from '../tracing/origin';
 import { isExpo, isExpoGo } from '../utils/environment';
 
@@ -202,7 +203,6 @@ export function handleSpanLifecycle(
   let checkSpan = currentCheckSpan;
   let downloadSpan = currentDownloadSpan;
 
-  // Check span lifecycle
   if (!previous.isChecking && current.isChecking) {
     checkSpan = startInactiveSpan({
       name: 'expo-updates check',
@@ -211,19 +211,15 @@ export function handleSpanLifecycle(
       attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
     });
   } else if (previous.isChecking && !current.isChecking && checkSpan) {
-    if (current.checkError) {
-      checkSpan.setStatus({ code: SPAN_STATUS_ERROR, message: (current.checkError as Error).message || 'check_error' });
-    } else {
-      checkSpan.setStatus({ code: SPAN_STATUS_OK });
-      if (current.isUpdateAvailable && current.latestManifest?.id) {
-        checkSpan.setAttribute('expo.update.id', current.latestManifest.id);
-      }
-    }
-    checkSpan.end();
+    endSpanWithResult(
+      checkSpan,
+      current.checkError,
+      'check_error',
+      current.isUpdateAvailable ? current.latestManifest?.id : undefined,
+    );
     checkSpan = undefined;
   }
 
-  // Download span lifecycle
   if (!previous.isDownloading && current.isDownloading) {
     downloadSpan = startInactiveSpan({
       name: 'expo-updates download',
@@ -232,22 +228,33 @@ export function handleSpanLifecycle(
       attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
     });
   } else if (previous.isDownloading && !current.isDownloading && downloadSpan) {
-    if (current.downloadError) {
-      downloadSpan.setStatus({
-        code: SPAN_STATUS_ERROR,
-        message: (current.downloadError as Error).message || 'download_error',
-      });
-    } else {
-      downloadSpan.setStatus({ code: SPAN_STATUS_OK });
-      if (current.isUpdatePending && current.downloadedManifest?.id) {
-        downloadSpan.setAttribute('expo.update.id', current.downloadedManifest.id);
-      }
-    }
-    downloadSpan.end();
+    endSpanWithResult(
+      downloadSpan,
+      current.downloadError,
+      'download_error',
+      current.isUpdatePending ? current.downloadedManifest?.id : undefined,
+    );
     downloadSpan = undefined;
   }
 
   return { checkSpan, downloadSpan };
+}
+
+function endSpanWithResult(
+  span: Span,
+  error: Error | undefined,
+  fallbackMessage: string,
+  updateId: string | undefined,
+): void {
+  if (error) {
+    span.setStatus({ code: SPAN_STATUS_ERROR, message: error.message || fallbackMessage });
+  } else {
+    span.setStatus({ code: SPAN_STATUS_OK });
+    if (updateId) {
+      span.setAttribute('expo.update.id', updateId);
+    }
+  }
+  span.end();
 }
 
 /**
