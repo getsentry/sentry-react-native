@@ -141,7 +141,7 @@ async function addTimeToInitialDisplay({
   const manualDurationMs = (ttidEndTimestampSeconds - transactionStartTimestampSeconds) * 1000;
   const manualStatus = isDeadlineExceeded(manualDurationMs) ? 'deadline_exceeded' : 'ok';
 
-  if (ttidSpan?.status && ttidSpan.status !== 'ok') {
+  if (ttidSpan) {
     ttidSpan.status = manualStatus;
     ttidSpan.timestamp = ttidEndTimestampSeconds;
     debug.log(`[${INTEGRATION_NAME}] Updated existing ttid span.`, ttidSpan);

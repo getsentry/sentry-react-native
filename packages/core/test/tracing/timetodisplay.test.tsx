@@ -1153,6 +1153,46 @@ describe('reportFullyDisplayed', () => {
     expectFullDisplayMeasurementOnSpan(client.event!);
   });
 
+  test('does not create duplicate span when component and imperative API are both used', async () => {
+    const ttidTimestamp = nowInSeconds();
+    const ttfdTimestamp = nowInSeconds();
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        startTimeToInitialDisplaySpan();
+        startTimeToFullDisplaySpan();
+
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+          ttfd: {
+            [spanToJSON(activeSpan).span_id]: ttfdTimestamp,
+          },
+        });
+
+        reportFullyDisplayed();
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpans = client.event!.spans!.filter((s: SpanJSON) => s.op === 'ui.load.full_display');
+    expect(ttfdSpans).toHaveLength(1);
+    expect(ttfdSpans[0]!.status).toBe('ok');
+    expectFullDisplayMeasurementOnSpan(client.event!);
+  });
+
   test('second call is ignored', async () => {
     startSpanManual(
       {
