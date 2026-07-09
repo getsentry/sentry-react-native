@@ -14,6 +14,7 @@ import {
   handleSpanLifecycle,
   handleStateChange,
 } from '../../src/js/integrations/expoupdateslistener';
+import { SPAN_ORIGIN_AUTO_EXPO_UPDATES } from '../../src/js/tracing/origin';
 import * as environment from '../../src/js/utils/environment';
 import { setupTestClient } from '../mocks/client';
 
@@ -494,6 +495,7 @@ describe('ExpoUpdatesListener Integration', () => {
         name: 'expo-updates check',
         op: 'app.update.check',
         forceTransaction: true,
+        attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
       });
       expect(result.checkSpan).toBe(mockSpan);
     });
@@ -558,6 +560,7 @@ describe('ExpoUpdatesListener Integration', () => {
         name: 'expo-updates download',
         op: 'app.update.download',
         forceTransaction: true,
+        attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
       });
       expect(result.downloadSpan).toBe(mockSpan);
     });

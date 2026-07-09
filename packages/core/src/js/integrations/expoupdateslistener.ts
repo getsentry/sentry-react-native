@@ -10,7 +10,7 @@ import {
 } from '@sentry/core';
 
 import type { ReactNativeClient } from '../client';
-
+import { SPAN_ORIGIN_AUTO_EXPO_UPDATES } from '../tracing/origin';
 import { isExpo, isExpoGo } from '../utils/environment';
 
 const INTEGRATION_NAME = 'ExpoUpdatesListener';
@@ -208,6 +208,7 @@ export function handleSpanLifecycle(
       name: 'expo-updates check',
       op: 'app.update.check',
       forceTransaction: true,
+      attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
     });
   } else if (previous.isChecking && !current.isChecking && checkSpan) {
     if (current.checkError) {
@@ -228,6 +229,7 @@ export function handleSpanLifecycle(
       name: 'expo-updates download',
       op: 'app.update.download',
       forceTransaction: true,
+      attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
     });
   } else if (previous.isDownloading && !current.isDownloading && downloadSpan) {
     if (current.downloadError) {
