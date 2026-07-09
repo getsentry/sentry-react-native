@@ -6,12 +6,17 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
+
 ## 8.18.0
 
 ### Features
 
 - Add experimental `extendAppStart`/`finishExtendedAppStart`/`getExtendedAppStartSpan` to extend the standalone app start window and instrument post-init work ([#6392](https://github.com/getsentry/sentry-react-native/pull/6392))
-- Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
 
 ### Changes
 
