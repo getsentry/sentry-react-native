@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.18.0
 
 ### Features
 
@@ -30,6 +30,9 @@
 - Bump JavaScript SDK from v10.63.0 to v10.64.0 ([#6418](https://github.com/getsentry/sentry-react-native/pull/6418))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10640)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.63.0...10.64.0)
+- Bump Android SDK from v8.47.0 to v8.48.0 ([#6422](https://github.com/getsentry/sentry-react-native/pull/6422))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8480)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.47.0...8.48.0)
 
 ## 8.17.2
 
