@@ -256,7 +256,7 @@ async function addTimeToFullDisplay({
 
   const ttfdStatus = isDeadlineExceeded(durationMs) ? 'deadline_exceeded' : 'ok';
 
-  if (ttfdSpan?.status && ttfdSpan.status !== 'ok') {
+  if (ttfdSpan) {
     ttfdSpan.status = ttfdStatus;
     ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
     debug.log(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);
