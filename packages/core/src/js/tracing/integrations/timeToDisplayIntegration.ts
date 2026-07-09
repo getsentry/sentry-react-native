@@ -229,7 +229,7 @@ async function addTimeToFullDisplay({
   const imperativeTtfdTimestamp = _popImperativeTtfdTimestamp(rootSpanId);
   const ttfdEndTimestampSeconds = nativeTtfdTimestamp ?? imperativeTtfdTimestamp;
 
-  if (!ttidSpan || !ttfdEndTimestampSeconds) {
+  if (!ttidSpan) {
     return undefined;
   }
 
@@ -240,6 +240,10 @@ async function addTimeToFullDisplay({
   if (ttfdSpan && (ttfdSpan.status === undefined || ttfdSpan.status === 'ok') && !ttfdEndTimestampSeconds) {
     debug.log(`[${INTEGRATION_NAME}] Ttfd span already exists and is ok.`, ttfdSpan);
     return ttfdSpan;
+  }
+
+  if (!ttfdEndTimestampSeconds) {
+    return undefined;
   }
 
   let ttfdAdjustedEndTimestampSeconds = ttfdEndTimestampSeconds;
