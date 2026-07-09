@@ -116,9 +116,12 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   const hasTracingEnabled = typeof options.tracesSampleRate === 'number' || typeof options.tracesSampler === 'function';
   if (hasTracingEnabled && options.enableAppStartTracking && options.enableNative) {
     integrations.push(appStartIntegration({ standalone: !!options._experiments?.enableStandaloneAppStartTracing }));
-    if (options._experiments?.enableStandaloneAppStartTracing) {
-      integrations.push({ name: STANDALONE_APP_START_INTEGRATION_NAME });
-    }
+  }
+  // Registered outside the tracing/appStart/native gate: this is an adoption
+  // marker for the experiment flag itself, so it must reach errors-only
+  // projects and any config where tracing is disabled.
+  if (options._experiments?.enableStandaloneAppStartTracing) {
+    integrations.push({ name: STANDALONE_APP_START_INTEGRATION_NAME });
   }
   const nativeFramesIntegrationInstance = createNativeFramesIntegrations(
     hasTracingEnabled && options.enableNativeFramesTracking && options.enableNative,

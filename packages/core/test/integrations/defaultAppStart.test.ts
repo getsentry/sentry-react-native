@@ -56,4 +56,16 @@ describe('getDefaultIntegrations - standalone app start wiring', () => {
 
     expect(integrations.some(i => i.name === 'StandaloneAppStart')).toBe(false);
   });
+
+  it.each([
+    ['tracing disabled', { tracesSampleRate: undefined }],
+    ['app start tracking off', { enableAppStartTracking: false }],
+    ['native off', { enableNative: false }],
+  ])('includes the StandaloneAppStart marker when the flag is on and %s', (_label, overrides) => {
+    const integrations = getDefaultIntegrations(
+      createOptions({ ...overrides, _experiments: { enableStandaloneAppStartTracing: true } }),
+    );
+
+    expect(integrations.some(i => i.name === 'StandaloneAppStart')).toBe(true);
+  });
 });
