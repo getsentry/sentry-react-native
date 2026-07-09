@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add check and download timing spans to Expo Updates listener integration ([#6430](https://github.com/getsentry/sentry-react-native/pull/6430))
+
 ## 8.18.0
 
 ### Features
