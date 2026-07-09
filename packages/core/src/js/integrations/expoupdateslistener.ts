@@ -1,4 +1,13 @@
-import { addBreadcrumb, debug, type Integration, type SeverityLevel } from '@sentry/core';
+import {
+  addBreadcrumb,
+  debug,
+  type Integration,
+  type SeverityLevel,
+  type Span,
+  SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
+  startInactiveSpan,
+} from '@sentry/core';
 
 import type { ReactNativeClient } from '../client';
 
@@ -113,11 +122,13 @@ const STATE_TRANSITIONS: StateTransition[] = [
 
 /**
  * Listens to Expo Updates native state machine changes and records
- * breadcrumbs for meaningful transitions such as checking for updates,
- * downloading updates, errors, rollbacks, and restarts.
+ * breadcrumbs and spans for meaningful transitions such as checking
+ * for updates, downloading updates, errors, rollbacks, and restarts.
  */
 export const expoUpdatesListenerIntegration = (): Integration => {
   let subscription: UpdatesStateChangeSubscription | undefined;
+  let checkSpan: Span | undefined;
+  let downloadSpan: Span | undefined;
 
   function setup(client: ReactNativeClient): void {
     client.on('afterInit', () => {
@@ -131,9 +142,13 @@ export const expoUpdatesListenerIntegration = (): Integration => {
         return;
       }
 
-      // Remove any previous subscription to prevent duplicate breadcrumbs
+      // Clean up any previous state to prevent duplicates
       // if Sentry.init() is called multiple times.
       subscription?.remove();
+      endSpanAsCancelled(checkSpan);
+      checkSpan = undefined;
+      endSpanAsCancelled(downloadSpan);
+      downloadSpan = undefined;
 
       // Seed with the current state so that the first event does not
       // generate spurious breadcrumbs for already-truthy fields.
@@ -141,6 +156,9 @@ export const expoUpdatesListenerIntegration = (): Integration => {
 
       subscription = expoUpdates.addUpdatesStateChangeListener((event: UpdatesNativeStateChangeEvent) => {
         const ctx = event.context;
+        const spanResult = handleSpanLifecycle(previousContext, ctx, checkSpan, downloadSpan);
+        checkSpan = spanResult.checkSpan;
+        downloadSpan = spanResult.downloadSpan;
         handleStateChange(previousContext, ctx);
         previousContext = ctx;
       });
@@ -149,6 +167,10 @@ export const expoUpdatesListenerIntegration = (): Integration => {
     client.on('close', () => {
       subscription?.remove();
       subscription = undefined;
+      endSpanAsCancelled(checkSpan);
+      checkSpan = undefined;
+      endSpanAsCancelled(downloadSpan);
+      downloadSpan = undefined;
     });
   }
 
@@ -157,6 +179,74 @@ export const expoUpdatesListenerIntegration = (): Integration => {
     setup,
   };
 };
+
+function endSpanAsCancelled(span: Span | undefined): void {
+  if (span) {
+    span.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
+    span.end();
+  }
+}
+
+/**
+ * Manages span lifecycle for check and download operations.
+ * Starts spans when operations begin, ends them when they complete or fail.
+ *
+ * @internal Exposed for testing purposes
+ */
+export function handleSpanLifecycle(
+  previous: Partial<UpdatesNativeStateMachineContext>,
+  current: UpdatesNativeStateMachineContext,
+  currentCheckSpan: Span | undefined,
+  currentDownloadSpan: Span | undefined,
+): { checkSpan: Span | undefined; downloadSpan: Span | undefined } {
+  let checkSpan = currentCheckSpan;
+  let downloadSpan = currentDownloadSpan;
+
+  // Check span lifecycle
+  if (!previous.isChecking && current.isChecking) {
+    checkSpan = startInactiveSpan({
+      name: 'expo-updates check',
+      op: 'app.update.check',
+      forceTransaction: true,
+    });
+  } else if (previous.isChecking && !current.isChecking && checkSpan) {
+    if (current.checkError) {
+      checkSpan.setStatus({ code: SPAN_STATUS_ERROR, message: (current.checkError as Error).message || 'check_error' });
+    } else {
+      checkSpan.setStatus({ code: SPAN_STATUS_OK });
+      if (current.isUpdateAvailable && current.latestManifest?.id) {
+        checkSpan.setAttribute('expo.update.id', current.latestManifest.id);
+      }
+    }
+    checkSpan.end();
+    checkSpan = undefined;
+  }
+
+  // Download span lifecycle
+  if (!previous.isDownloading && current.isDownloading) {
+    downloadSpan = startInactiveSpan({
+      name: 'expo-updates download',
+      op: 'app.update.download',
+      forceTransaction: true,
+    });
+  } else if (previous.isDownloading && !current.isDownloading && downloadSpan) {
+    if (current.downloadError) {
+      downloadSpan.setStatus({
+        code: SPAN_STATUS_ERROR,
+        message: (current.downloadError as Error).message || 'download_error',
+      });
+    } else {
+      downloadSpan.setStatus({ code: SPAN_STATUS_OK });
+      if (current.isUpdatePending && current.downloadedManifest?.id) {
+        downloadSpan.setAttribute('expo.update.id', current.downloadedManifest.id);
+      }
+    }
+    downloadSpan.end();
+    downloadSpan = undefined;
+  }
+
+  return { checkSpan, downloadSpan };
+}
 
 /**
  * Compares previous and current state machine contexts and emits
