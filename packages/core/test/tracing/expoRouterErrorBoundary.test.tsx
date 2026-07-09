@@ -89,9 +89,8 @@ describe('wrapExpoRouterErrorBoundary', () => {
     expect(getByTestId('fallback').props.children).toBe('boom');
   });
 
-  it('registers the ExpoRouterErrorBoundary marker on mount', () => {
-    const Wrapped = wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
-    render(<Wrapped error={new Error('boom')} retry={jest.fn()} />);
+  it('registers the ExpoRouterErrorBoundary marker at wrap-call time (before any mount)', () => {
+    wrapExpoRouterErrorBoundary(OriginalErrorBoundary);
     expect(mockAddIntegration).toHaveBeenCalledWith({ name: EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME });
   });
 

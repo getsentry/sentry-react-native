@@ -67,11 +67,14 @@ export interface ExpoRouterErrorBoundaryProps {
 export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(
   OriginalErrorBoundary: React.ComponentType<P>,
 ): React.ComponentType<P> {
-  const Wrapped: React.FC<P> = props => {
-    React.useEffect(() => {
-      registerFeatureMarker(EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME);
-    }, []);
+  // Register at wrap-call time (module evaluation) so the marker fires as soon
+  // as the user's route file loads, not only when Expo Router actually renders
+  // the boundary on an error. No-op if `Sentry.init()` has not run yet; route
+  // files load lazily during navigation, so init has typically completed by
+  // then.
+  registerFeatureMarker(EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME);
 
+  const Wrapped: React.FC<P> = props => {
     // Reporting is intentionally done in `useEffect` (commit phase) rather than
     // during render: render must be pure, and in Concurrent Mode an in-progress
     // render can be discarded — we only want to report errors that React
