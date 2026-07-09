@@ -237,7 +237,7 @@ async function addTimeToFullDisplay({
 
   let ttfdSpan = event.spans?.find(span => span.op === UI_LOAD_FULL_DISPLAY);
 
-  if (ttfdSpan && (ttfdSpan.status === undefined || ttfdSpan.status === 'ok')) {
+  if (ttfdSpan && (ttfdSpan.status === undefined || ttfdSpan.status === 'ok') && !ttfdEndTimestampSeconds) {
     debug.log(`[${INTEGRATION_NAME}] Ttfd span already exists and is ok.`, ttfdSpan);
     return ttfdSpan;
   }
