@@ -537,6 +537,24 @@ export const reactNavigationIntegration = ({
       return;
     }
 
+    // A `POP_TO` whose target is the route we are already on is redundant. Expo
+    // Router issues one right after a `withAnchor` navigation purely to stamp
+    // `initial: false` onto the destination; it carries no navigation of its
+    // own. Creating an idle span for it produces a spurious duplicate
+    // transaction (#6434). We compare against React Navigation's raw current
+    // route name (not `latestRoute`, whose name may be rewritten by a route
+    // override provider such as Expo Router), which shares the payload's
+    // namespace.
+    if (useDispatchedActionData && navigationActionType === 'POP_TO' && dispatchedRouteName) {
+      const currentRouteName = navigationContainer?.getCurrentRoute()?.name;
+      if (currentRouteName && currentRouteName === dispatchedRouteName) {
+        debug.log(
+          `${INTEGRATION_NAME} POP_TO targets the current route ${dispatchedRouteName}, not starting navigation span.`,
+        );
+        return;
+      }
+    }
+
     if (latestNavigationSpan) {
       debug.log(`${INTEGRATION_NAME} A transaction was detected that turned out to be a noop, discarding.`);
       _discardLatestTransaction();
