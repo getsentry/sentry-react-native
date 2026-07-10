@@ -2,10 +2,11 @@ import * as Sentry from '@sentry/react-native';
 import { reloadAppAsync, isRunningInExpoGo } from 'expo';
 import * as DevClient from 'expo-dev-client';
 import { useRouter } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { useUpdates } from 'expo-updates';
 import * as WebBrowser from 'expo-web-browser';
 import React from 'react';
-import { Button, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Button, ScrollView, StyleSheet } from 'react-native';
 
 import { Text, View } from '@/components/Themed';
 import { setScopeProperties } from '@/utils/setScopeProperties';
@@ -180,6 +181,38 @@ export default function TabOneScreen() {
         </View>
         <View style={styles.buttonWrapper}>
           <Button title="Reload" onPress={() => reloadAppAsync()} />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Check for Updates"
+            onPress={async () => {
+              try {
+                const result = await Updates.checkForUpdateAsync();
+                if (result.isAvailable) {
+                  Alert.alert('Update Available', `Manifest ID: ${result.manifest?.id}`);
+                } else {
+                  Alert.alert('No Update', 'Already on the latest version.');
+                }
+              } catch (e) {
+                Alert.alert('Check Failed', String(e));
+              }
+            }}
+            disabled={isRunningInExpoGo()}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Download Update"
+            onPress={async () => {
+              try {
+                const result = await Updates.fetchUpdateAsync();
+                Alert.alert('Download Complete', `Update ID: ${result.manifest?.id}`);
+              } catch (e) {
+                Alert.alert('Download Failed', String(e));
+              }
+            }}
+            disabled={isRunningInExpoGo()}
+          />
         </View>
         <View style={styles.buttonWrapper}>
           <Button
