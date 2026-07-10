@@ -12,6 +12,10 @@
 
 - Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
 
+### Fixes
+
+- Fix `TypeError` when `showFeedbackForm`/`showFeedbackButton`/`showScreenshotButton` is called before `FeedbackFormProvider` mounts ([#6435](https://github.com/getsentry/sentry-react-native/pull/6435))
+
 ## 8.18.0
 
 ### Features
