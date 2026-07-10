@@ -634,6 +634,9 @@ export const reactNavigationIntegration: (input?: Partial<ReactNavigationIntegra
 };
 
 // @public
+export function reportFullyDisplayed(): void;
+
+// @public
 export function resumeAppHangTracking(): void;
 
 export { rewriteFramesIntegration }

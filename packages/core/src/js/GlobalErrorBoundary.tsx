@@ -7,6 +7,9 @@ import * as React from 'react';
 import type { GlobalErrorEvent } from './integrations/globalErrorBus';
 
 import { subscribeGlobalError } from './integrations/globalErrorBus';
+import { registerFeatureMarker } from './utils/featureMarkers';
+
+export const GLOBAL_ERROR_BOUNDARY_INTEGRATION_NAME = 'GlobalErrorBoundary';
 
 /**
  * Props for {@link GlobalErrorBoundary}. Extends the standard `ErrorBoundary`
@@ -74,6 +77,7 @@ export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProp
   private _latched = false;
 
   public componentDidMount(): void {
+    registerFeatureMarker(GLOBAL_ERROR_BOUNDARY_INTEGRATION_NAME);
     this._subscribe();
   }
 
