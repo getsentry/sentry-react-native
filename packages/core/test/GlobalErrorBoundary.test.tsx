@@ -1,15 +1,21 @@
 import * as SentryCore from '@sentry/core';
+import { getClient, setCurrentClient } from '@sentry/core';
 import * as SentryReact from '@sentry/react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
 
-import { GlobalErrorBoundary, withGlobalErrorBoundary } from '../src/js/GlobalErrorBoundary';
+import {
+  GLOBAL_ERROR_BOUNDARY_INTEGRATION_NAME,
+  GlobalErrorBoundary,
+  withGlobalErrorBoundary,
+} from '../src/js/GlobalErrorBoundary';
 import {
   _resetGlobalErrorBus,
   hasInterestedSubscribers,
   publishGlobalError,
 } from '../src/js/integrations/globalErrorBus';
+import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 
 function Fallback({ error, resetError }: { error: unknown; resetError: () => void }): React.ReactElement {
   return (
@@ -311,6 +317,28 @@ describe('GlobalErrorBoundary', () => {
       publishGlobalError({ error: new Error('hoc-boom'), isFatal: true, kind: 'onerror' });
     });
     expect(getByTestId('fallback').props.children.join('')).toBe('fallback:hoc-boom');
+  });
+});
+
+describe('GlobalErrorBoundary feature marker', () => {
+  beforeEach(() => {
+    _resetGlobalErrorBus();
+    setCurrentClient(new TestClient(getDefaultTestClientOptions()));
+    getClient()?.init();
+  });
+
+  test('registers the GlobalErrorBoundary marker on mount', () => {
+    expect(getClient()?.getIntegrationByName(GLOBAL_ERROR_BOUNDARY_INTEGRATION_NAME)).toBeUndefined();
+
+    render(
+      <GlobalErrorBoundary fallback={() => <Text>fb</Text>}>
+        <Text>x</Text>
+      </GlobalErrorBoundary>,
+    );
+
+    expect(getClient()?.getIntegrationByName(GLOBAL_ERROR_BOUNDARY_INTEGRATION_NAME)).toEqual({
+      name: GLOBAL_ERROR_BOUNDARY_INTEGRATION_NAME,
+    });
   });
 });
 
