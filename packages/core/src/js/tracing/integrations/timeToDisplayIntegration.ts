@@ -8,6 +8,7 @@ import { SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY, SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISP
 import { getReactNavigationIntegration } from '../reactnavigation';
 import { SEMANTIC_ATTRIBUTE_ROUTE_HAS_BEEN_SEEN } from '../semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../span';
+import { _popImperativeTtfdTimestamp } from '../timetodisplay';
 import { clearSpan as clearTimeToDisplayCoordinatorSpan } from '../timeToDisplayCoordinator';
 import { getTimeToInitialDisplayFallback } from '../timeToDisplayFallback';
 import { createSpanJSON } from '../utils';
@@ -140,7 +141,7 @@ async function addTimeToInitialDisplay({
   const manualDurationMs = (ttidEndTimestampSeconds - transactionStartTimestampSeconds) * 1000;
   const manualStatus = isDeadlineExceeded(manualDurationMs) ? 'deadline_exceeded' : 'ok';
 
-  if (ttidSpan?.status && ttidSpan.status !== 'ok') {
+  if (ttidSpan) {
     ttidSpan.status = manualStatus;
     ttidSpan.timestamp = ttidEndTimestampSeconds;
     debug.log(`[${INTEGRATION_NAME}] Updated existing ttid span.`, ttidSpan);
@@ -224,15 +225,26 @@ async function addTimeToFullDisplay({
   transactionStartTimestampSeconds: number;
   ttidSpan: SpanJSON | undefined;
 }): Promise<SpanJSON | undefined> {
-  const ttfdEndTimestampSeconds = await NATIVE.popTimeToDisplayFor(`ttfd-${rootSpanId}`);
+  const nativeTtfdTimestamp = await NATIVE.popTimeToDisplayFor(`ttfd-${rootSpanId}`);
+  const imperativeTtfdTimestamp = _popImperativeTtfdTimestamp(rootSpanId);
+  const ttfdEndTimestampSeconds = nativeTtfdTimestamp ?? imperativeTtfdTimestamp;
 
-  if (!ttidSpan || !ttfdEndTimestampSeconds) {
+  if (!ttidSpan) {
     return undefined;
   }
 
   event.spans = event.spans || [];
 
   let ttfdSpan = event.spans?.find(span => span.op === UI_LOAD_FULL_DISPLAY);
+
+  if (ttfdSpan && (ttfdSpan.status === undefined || ttfdSpan.status === 'ok') && !ttfdEndTimestampSeconds) {
+    debug.log(`[${INTEGRATION_NAME}] Ttfd span already exists and is ok.`, ttfdSpan);
+    return ttfdSpan;
+  }
+
+  if (!ttfdEndTimestampSeconds) {
+    return undefined;
+  }
 
   let ttfdAdjustedEndTimestampSeconds = ttfdEndTimestampSeconds;
   const ttfdIsBeforeTtid = ttidSpan.timestamp && ttfdEndTimestampSeconds < ttidSpan.timestamp;
@@ -244,7 +256,7 @@ async function addTimeToFullDisplay({
 
   const ttfdStatus = isDeadlineExceeded(durationMs) ? 'deadline_exceeded' : 'ok';
 
-  if (ttfdSpan?.status && ttfdSpan.status !== 'ok') {
+  if (ttfdSpan) {
     ttfdSpan.status = ttfdStatus;
     ttfdSpan.timestamp = ttfdAdjustedEndTimestampSeconds;
     debug.log(`[${INTEGRATION_NAME}] Updated existing ttfd span.`, ttfdSpan);

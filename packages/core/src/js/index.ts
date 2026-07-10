@@ -132,6 +132,7 @@ export {
   TimeToFullDisplay,
   startTimeToInitialDisplaySpan,
   startTimeToFullDisplaySpan,
+  reportFullyDisplayed,
   startIdleNavigationSpan,
   startIdleSpan,
   getDefaultIdleNavigationSpanOptions,
