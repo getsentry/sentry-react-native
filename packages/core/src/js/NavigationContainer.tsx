@@ -3,6 +3,9 @@ import * as React from 'react';
 
 import { getNavigationContainerComponent } from './reactNavigationImport';
 import { getReactNavigationIntegration } from './tracing/reactnavigation';
+import { registerFeatureMarker } from './utils/featureMarkers';
+
+export const NAVIGATION_CONTAINER_INTEGRATION_NAME = 'NavigationContainer';
 
 export type FontStyle = {
   fontFamily: string;
@@ -123,6 +126,10 @@ export const NavigationContainer = React.forwardRef<unknown, SentryNavigationCon
     },
     [forwardedRef],
   );
+
+  React.useEffect(() => {
+    registerFeatureMarker(NAVIGATION_CONTAINER_INTEGRATION_NAME);
+  }, []);
 
   const onReady = React.useCallback(() => {
     try {
