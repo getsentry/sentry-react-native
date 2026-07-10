@@ -32,6 +32,9 @@ import {
   _captureAppStart,
   _clearAppStartEndData,
   _clearRootComponentCreationTimestampMs,
+  _extendAppStart,
+  _finishExtendedAppStart,
+  _getExtendedAppStartSpan,
   _setAppStartEndData,
   _setRootComponentCreationTimestampMs,
   appStartIntegration,
@@ -1219,6 +1222,19 @@ describe('Extended App Start', () => {
     return { integration, client };
   };
 
+  it.each([
+    ['_extendAppStart', (): void => _extendAppStart()],
+    ['_getExtendedAppStartSpan', (): void => void _getExtendedAppStartSpan()],
+    ['_finishExtendedAppStart', async (): Promise<void> => _finishExtendedAppStart()],
+  ])('registers the ExtendedAppStart feature marker via %s', async (_name, call) => {
+    const { client } = setupStandaloneIntegration();
+    expect(client.getIntegrationByName('ExtendedAppStart')).toBeUndefined();
+
+    await call();
+
+    expect(client.getIntegrationByName('ExtendedAppStart')).toEqual({ name: 'ExtendedAppStart' });
+  });
+
   it('creates an extended app start span and finalizes it with a measurement on finish', async () => {
     mockAppStart({ cold: true });
     const { integration, client } = setupStandaloneIntegration();
@@ -1572,6 +1588,14 @@ describe('appLoaded() API', () => {
     integration.afterAllSetup(client);
     return integration;
   }
+
+  it('registers the AppLoaded feature marker on first call', async () => {
+    expect(client.getIntegrationByName('AppLoaded')).toBeUndefined();
+
+    await _appLoaded();
+
+    expect(client.getIntegrationByName('AppLoaded')).toEqual({ name: 'AppLoaded' });
+  });
 
   it('sets the app start end timestamp and marks it as manual', async () => {
     const appLoadedTimeSeconds = Date.now() / 1000;

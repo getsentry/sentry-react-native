@@ -24,6 +24,7 @@ import {
   APP_START_COLD as APP_START_COLD_MEASUREMENT,
   APP_START_WARM as APP_START_WARM_MEASUREMENT,
 } from '../../measurements';
+import { registerFeatureMarker } from '../../utils/featureMarkers';
 import { convertSpanToTransaction, isRootSpan, setEndTimeValue } from '../../utils/span';
 import { NATIVE } from '../../wrapper';
 import { getRootSpanDiscardReason, getTransactionEventDiscardReason } from '../onSpanEndUtils';
@@ -51,6 +52,8 @@ import {
 } from '../utils';
 
 const INTEGRATION_NAME = 'AppStart';
+const APP_LOADED_INTEGRATION_NAME = 'AppLoaded';
+const EXTENDED_APP_START_INTEGRATION_NAME = 'ExtendedAppStart';
 
 export type AppStartIntegration = Integration & {
   captureStandaloneAppStart: () => Promise<void>;
@@ -124,6 +127,7 @@ export async function _appLoaded(): Promise<void> {
     return;
   }
 
+  registerFeatureMarker(APP_LOADED_INTEGRATION_NAME);
   isAppLoadedManuallyInvoked = true;
 
   const timestampMs = timestampInSeconds() * 1000;
@@ -204,6 +208,7 @@ export async function _captureAppStart({ isManual }: { isManual: boolean }): Pro
  * @private
  */
 export function _extendAppStart(): void {
+  registerFeatureMarker(EXTENDED_APP_START_INTEGRATION_NAME);
   getClient()?.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.extendAppStart();
 }
 
@@ -214,6 +219,7 @@ export function _extendAppStart(): void {
  * @private
  */
 export function _getExtendedAppStartSpan(): Span {
+  registerFeatureMarker(EXTENDED_APP_START_INTEGRATION_NAME);
   return (
     getClient()?.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.getExtendedAppStartSpan() ??
     new SentryNonRecordingSpan()
@@ -227,6 +233,7 @@ export function _getExtendedAppStartSpan(): Span {
  * @private
  */
 export async function _finishExtendedAppStart(): Promise<void> {
+  registerFeatureMarker(EXTENDED_APP_START_INTEGRATION_NAME);
   await getClient()?.getIntegrationByName<AppStartIntegration>(INTEGRATION_NAME)?.finishExtendedAppStart();
 }
 
