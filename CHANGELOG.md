@@ -12,6 +12,10 @@
 
 - Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
 
+### Fixes
+
+- Fix iOS time-to-initial-display fallback spans reporting a spurious `deadline_exceeded` status and inflated duration ([#6433](https://github.com/getsentry/sentry-react-native/issues/6433))
+
 ## 8.18.0
 
 ### Features
