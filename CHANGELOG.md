@@ -14,7 +14,7 @@
 
 ### Fixes
 
-- Fix iOS time-to-initial-display fallback spans reporting a spurious `deadline_exceeded` status and inflated duration ([#6433](https://github.com/getsentry/sentry-react-native/issues/6433))
+- Fix iOS time-to-initial-display fallback spans reporting a spurious `deadline_exceeded` status and inflated duration ([#6438](https://github.com/getsentry/sentry-react-native/pull/6438))
 
 ## 8.18.0
 
