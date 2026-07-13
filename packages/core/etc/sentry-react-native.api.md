@@ -215,7 +215,9 @@ export const debugSymbolicatorIntegration: () => Integration;
 export { dedupeIntegration }
 
 // @public
-export const deeplinkIntegration: (...args: any[]) => Integration;
+export const deeplinkIntegration: (...args: any[]) => Integration & {
+    name: string;
+};
 
 // @public
 export const deviceContextIntegration: () => Integration;
@@ -303,6 +305,9 @@ export const expoRouterIntegration: (options?: ExpoRouterIntegrationOptions) => 
 // @public
 export const expoUpdatesListenerIntegration: () => Integration;
 
+// @public
+export function extendAppStart(): void;
+
 export { extraErrorDataIntegration }
 
 export { FeatureFlagsIntegration }
@@ -352,6 +357,9 @@ export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
 }) => FeedbackIntegration;
 
 // @public
+export function finishExtendedAppStart(): Promise<void>;
+
+// @public
 export function flush(): Promise<boolean>;
 
 // @public (undocumented)
@@ -381,6 +389,9 @@ export function getDataFromUri(uri: string): Promise<Uint8Array | null>;
 
 // @public
 export function getDefaultIdleNavigationSpanOptions(): StartSpanOptions;
+
+// @public
+export function getExtendedAppStartSpan(): Span;
 
 export { getGlobalScope }
 
@@ -621,6 +632,9 @@ export const reactNavigationIntegration: (input?: Partial<ReactNavigationIntegra
     _setRouteOverrideProvider: (provider: RouteOverrideProvider | undefined) => void;
     options: ReactNavigationIntegrationOptions;
 };
+
+// @public
+export function reportFullyDisplayed(): void;
 
 // @public
 export function resumeAppHangTracking(): void;

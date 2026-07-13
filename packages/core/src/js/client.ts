@@ -28,7 +28,7 @@ import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
 import { defaultNativeLogHandler, setupNativeLogListener } from './NativeLogListener';
-import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
+import { MOBILE_REPLAY_INTEGRATION_NAME, serializeNetworkDetailUrlsForNative } from './replay/mobilereplay';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
 import { mergeOutcomes } from './utils/outcome';
@@ -232,15 +232,25 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
       this._removeNativeLogListener = setupNativeLogListener(logHandler);
     }
 
+    const mobileReplay =
+      this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] &&
+      'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]
+        ? (this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] as ReturnType<typeof mobileReplayIntegration>)
+        : undefined;
+
     NATIVE.initNativeSdk({
       ...this._options,
       defaultSidecarUrl: getDefaultSidecarUrl(),
       devServerUrl: getDevServer()?.url || '',
-      mobileReplayOptions:
-        this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] &&
-        'options' in this._integrations[MOBILE_REPLAY_INTEGRATION_NAME]
-          ? (this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] as ReturnType<typeof mobileReplayIntegration>).options
-          : undefined,
+      mobileReplayOptions: mobileReplay
+        ? {
+            ...mobileReplay.options,
+            // RegExp patterns can't cross the bridge; forward string sources so the
+            // native SDK can emit the rrweb options event that drives frontend rendering.
+            networkDetailAllowUrls: serializeNetworkDetailUrlsForNative(mobileReplay.options.networkDetailAllowUrls),
+            networkDetailDenyUrls: serializeNetworkDetailUrlsForNative(mobileReplay.options.networkDetailDenyUrls),
+          }
+        : undefined,
       profilingOptions:
         this._options._experiments?.profilingOptions ?? this._options._experiments?.androidProfilingOptions,
     })

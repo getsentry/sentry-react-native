@@ -182,12 +182,16 @@ jobs:
       - name: Build Android App
         working-directory: samples/expo/android
         env:
-          # Increase memory for Expo SDK 55 lint tasks
+          # Increase memory for Expo SDK 57 lint tasks
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
-          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=x86
+          # Build all ABIs (not just x86): the Sentry perf-logger native library is
+          # compiled from source per ABI, and #6398 (armeabi-v7a link failure) was
+          # reported on an Expo build. Keeps ABI coverage consistent with the bare
+          # RN sample.
+          ./gradlew ":app:assemble$CONFIG" -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
 
       - name: Export Expo
         working-directory: samples/expo

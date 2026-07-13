@@ -93,6 +93,10 @@ Sentry.init({
         maskAllText: true,
         enableViewRendererV2: true,
         screenshotStrategy: 'canvas', // if you have strict PII requirements
+        // Capture request/response headers and bodies in the Replay network tab.
+        // Exercised by the Spaceflight News screen, which fetches from this host.
+        networkDetailAllowUrls: ['https://api.spaceflightnewsapi.net'],
+        networkCaptureBodies: true,
       }),
       Sentry.appStartIntegration({
         standalone: false,

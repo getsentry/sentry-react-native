@@ -160,7 +160,25 @@ if (actions.includes('create')) {
   fs.writeFileSync(appPackageJsonPath, JSON.stringify(appPackageJson, null, 2) + '\n');
 
   // original yarnrc contains the exact yarn version which causes corepack to fail to install yarn v3
-  fs.writeFileSync(`${appDir}/.yarnrc.yml`, 'nodeLinker: node-modules', { encoding: 'utf-8' });
+  fs.writeFileSync(`${appDir}/.yarnrc.yml`, 'nodeLinker: node-modules\n', { encoding: 'utf-8' });
+
+  // The generated app pins its own yarn version (varies by RN version: e.g. v3 for
+  // older RN, v4 for newer). yarn 4 quarantines any package newer than
+  // npmMinimalAgeGate (default 1 day) — and auto-enables that gate on public-PR CI —
+  // so a just-published first-party @sentry/* version (e.g. right after a JS SDK bump)
+  // resolved fresh from this app's empty lockfile fails the install. Disable the gate,
+  // but only when the app's yarn supports the setting: yarn 3 hard-errors on unknown
+  // settings, and it has no age gate to begin with. Probe support rather than guess a
+  // version threshold.
+  const appYarnSupportsAgeGate =
+    execSync(`yarn config npmMinimalAgeGate > /dev/null 2>&1; echo $?`, {
+      cwd: appDir,
+      env: env,
+      encoding: 'utf-8',
+    }).trim() === '0';
+  if (appYarnSupportsAgeGate) {
+    fs.appendFileSync(`${appDir}/.yarnrc.yml`, 'npmMinimalAgeGate: 0\n', { encoding: 'utf-8' });
+  }
   // yarn v3 won't install dependencies in a sub project without a yarn.lock file present
   fs.writeFileSync(`${appDir}/yarn.lock`, '');
 
@@ -180,6 +198,14 @@ if (actions.includes('create')) {
 
   // Patch react-native-launch-arguments for Gradle 9+ compatibility (Android) and React Native 0.84+ compatibility (iOS)
   execSync(`${patchScriptsDir}/rn.patch.launch-arguments.js --app-dir .`, {
+    stdio: 'inherit',
+    cwd: appDir,
+    env: env,
+  });
+
+  // Replace the dead OSSRH snapshots repo hardcoded by older RN Gradle plugins
+  // (oss.sonatype.org is EOL and intermittently 504s, breaking dependency resolution).
+  execSync(`${patchScriptsDir}/rn.patch.gradle.plugin.repo.js --app-dir .`, {
     stdio: 'inherit',
     cwd: appDir,
     env: env,

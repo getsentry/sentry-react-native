@@ -43,7 +43,7 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   build-ios:
-    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
+    name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }} ${{ matrix.sentry-consumption }}
     runs-on: macos-26-xlarge
     needs: [diff_check, detect-changes]
     if: >-
@@ -60,6 +60,16 @@ jobs:
         rn-architecture: ["new"]
         ios-use-frameworks: ["no-frameworks"]
         build-type: ["dev", "production"]
+        sentry-consumption: ["xcframework"]
+        # `xcframework` is the default: RNSentry vendors a prebuilt
+        # `Sentry-Dynamic.xcframework` downloaded from sentry-cocoa's release.
+        # Keep a single CocoaPods job to catch regressions in the source-build
+        # fallback (`SENTRY_USE_XCFRAMEWORK=0`).
+        include:
+          - rn-architecture: "new"
+            ios-use-frameworks: "no-frameworks"
+            build-type: "production"
+            sentry-consumption: "cocoapods"
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -95,6 +105,7 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && export ENABLE_NEW_ARCH=1 || export ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
+          [[ "${{ matrix.sentry-consumption }}" == "cocoapods" ]] && export SENTRY_USE_XCFRAMEWORK=0
 
           ./scripts/pod-install.sh
 
@@ -112,7 +123,10 @@ jobs:
           ./scripts/build-ios.sh
 
       - name: Archive iOS App
-        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        # Only upload from the xcframework job (the default consumption path)
+        # to avoid duplicate artifact names when the CocoaPods regression job
+        # runs.
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' && matrix.sentry-consumption == 'xcframework' }}
         working-directory: ${{ env.REACT_NATIVE_SAMPLE_PATH }}
         run: |
           zip -r \
@@ -120,7 +134,7 @@ jobs:
             sentryreactnativesample.app
 
       - name: Upload iOS APP
-        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' }}
+        if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' && matrix.ios-use-frameworks == 'no-frameworks' && matrix.sentry-consumption == 'xcframework' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: sample-rn-${{ matrix.rn-architecture }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-ios
@@ -131,7 +145,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-logs
+          name: build-sample-${{ matrix.rn-architecture }}-ios-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks}}-${{ matrix.sentry-consumption }}-logs
           path: ${{ env.REACT_NATIVE_SAMPLE_PATH }}/ios/*.log
 
   build-android:
@@ -185,7 +199,31 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='release' || export CONFIG='debug'
 
           ./scripts/set-dsn-aos.mjs
-          ./scripts/build-android.sh -PreactNativeArchitectures=x86
+          # Split ABI coverage across the two matrix entries:
+          #   - `dev`        → subset (arm64-v8a only) so we can assert the module
+          #                    builds only the ABIs the app requested — the root
+          #                    cause of #6398 was hardcoded abiFilters ignoring
+          #                    `reactNativeArchitectures`.
+          #   - `production` → all four ABIs so the 16 KB alignment check below
+          #                    runs across every ABI (guards against #6394).
+          if [[ "${{ matrix.build-type }}" == "production" ]]; then
+            ./scripts/build-android.sh -PreactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+          else
+            ./scripts/build-android.sh -PreactNativeArchitectures=arm64-v8a
+          fi
+
+      - name: Check libsentry-tm-perf-logger.so honors reactNativeArchitectures
+        if: ${{ matrix.build-type == 'dev' }}
+        # Asserts the module packaged our .so for exactly the subset the app
+        # requested — guards against regressing the #6398 root-cause fix.
+        run: ./scripts/check-tm-perf-logger-abi-subset.sh ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk 'arm64-v8a'
+
+      - name: Check 16 KB native library alignment
+        # Only Sentry-owned libraries are checked: third-party/React Native
+        # libraries are aligned by their own build (RN ships arm64 at 16 KB but
+        # x86 at 4 KB, and CI builds x86), so a whole-APK check is not
+        # meaningful here. Guards against regressing #6394.
+        run: ./scripts/check-android-16kb-alignment.sh ${{ env.REACT_NATIVE_SAMPLE_PATH }}/app.apk 'libsentry'
 
       - name: Archive Android App
         if: ${{ matrix.rn-architecture == 'new' && matrix.build-type == 'production' }}
@@ -436,9 +474,14 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run Android Tests on API ${{ env.ANDROID_API_LEVEL }}
-        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # pin@v2.37.0
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # pin@v2.38.0
         with:
           api-level: ${{ env.ANDROID_API_LEVEL }}
+          # Pin the emulator binary: canary 37.1.6.0 (build 15726199) broke emulator
+          # networking (no egress to 10.0.2.2 mock server or external internet), which
+          # makes the whole E2E suite time out. 37.1.5.0 (build 15679343) is the last
+          # known-good build. Remove once a fixed canary emulator ships.
+          emulator-build: 15679343
           force-avd-creation: false
           disable-animations: true
           disable-spellchecker: true

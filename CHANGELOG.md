@@ -27,6 +27,64 @@
   });
   ```
 
+- Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
+
+### Fixes
+
+- Fix orphaned TTID/TTFD spans in the trace view ([#6437](https://github.com/getsentry/sentry-react-native/pull/6437))
+
+## 8.18.0
+
+### Features
+
+- Add experimental `extendAppStart`/`finishExtendedAppStart`/`getExtendedAppStartSpan` to extend the standalone app start window and instrument post-init work ([#6392](https://github.com/getsentry/sentry-react-native/pull/6392))
+
+### Changes
+
+- Consume `sentry-cocoa` as a prebuilt xcframework by default on iOS ([#6413](https://github.com/getsentry/sentry-react-native/pull/6413))
+
+  **Warning**
+
+  **This may be a breaking change for some setups.** `pod install` now downloads `Sentry.xcframework` from sentry-cocoa's GitHub release (SHA256-verified) and vendors it, instead of building Sentry from source as a CocoaPod. If your iOS build breaks after upgrading (e.g. when another pod also depends on the `Sentry` CocoaPod), or if your `pod install` environment cannot reach `github.com`, set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior.
+
+### Fixes
+
+- Skip iOS source maps upload on `Debug` builds ([#6405](https://github.com/getsentry/sentry-react-native/pull/6405))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.63.0 to v10.64.0 ([#6418](https://github.com/getsentry/sentry-react-native/pull/6418))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10640)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.63.0...10.64.0)
+- Bump Android SDK from v8.47.0 to v8.48.0 ([#6422](https://github.com/getsentry/sentry-react-native/pull/6422))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8480)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.47.0...8.48.0)
+
+## 8.17.2
+
+### Fixes
+
+- Fix Android New Architecture build failing to link `libsentry-tm-perf-logger.so` with an undefined `TurboModulePerfLogger::enableLogging` symbol on some setups (e.g. armeabi-v7a) ([#6406](https://github.com/getsentry/sentry-react-native/pull/6406))
+- Fix Android New Architecture build failing at CMake configure on React Native 0.75 by gating the `libsentry-tm-perf-logger.so` native build to RN 0.76+ ([#6407](https://github.com/getsentry/sentry-react-native/pull/6407))
+
+## 8.17.1
+
+> [!WARNING]
+> ⚠️ **Known Issue (Android):** New Architecture builds on `sentry-react-native` **8.17.1** can fail to build `libsentry-tm-perf-logger.so` (subset-ABI builds such as `armeabi-v7a`/Expo, and React Native 0.75) ([#6398](https://github.com/getsentry/sentry-react-native/issues/6398)). **Please use [8.17.2](https://github.com/getsentry/sentry-react-native/releases/tag/8.17.2)**.
+
+### Fixes
+
+- Force 16 KB ELF alignment for `libsentry-tm-perf-logger.so` so it does not break 16 KB page size compatibility on Android 15+ ([#6396](https://github.com/getsentry/sentry-react-native/pull/6396))
+
+## 8.17.0
+
+> [!WARNING]
+> ⚠️ **Known Issue (Android):** Apps built with the New Architecture on `sentry-react-native` **8.17.0** bundle a native library (`libsentry-tm-perf-logger.so`) that is not 16 KB page aligned, which breaks [16 KB page size](https://developer.android.com/guide/practices/page-sizes) compatibility on Android 15+ (and fails Google Play's 16 KB requirement). See [#6394](https://github.com/getsentry/sentry-react-native/issues/6394). **Please use [8.17.2](https://github.com/getsentry/sentry-react-native/releases/tag/8.17.2)**.
+
+### Features
+
+- Add experimental `enableStandaloneAppStartTracing` to send app start as a standalone `app.start` transaction ([#6359](https://github.com/getsentry/sentry-react-native/pull/6359))
+- Set `app.vitals.start.screen` on the standalone `app.start` transaction from the current route ([#6369](https://github.com/getsentry/sentry-react-native/pull/6369))
 - Expose top-level `Sentry.setAttribute` and `Sentry.setAttributes` APIs ([#6354](https://github.com/getsentry/sentry-react-native/pull/6354)).
 - Add `enableTurboModuleTracking` opt-in experimental option to enable Turbo Module performance tracking in the New Architecture ([#6307](https://github.com/getsentry/sentry-react-native/pull/6307))
 - Use the runtime's native `btoa` for envelope base64 encoding when available, to improve `captureEnvelope` performance. Falls back to the bundled JS encoder if `btoa` is missing ([#6351](https://github.com/getsentry/sentry-react-native/pull/6351)).
@@ -47,19 +105,23 @@
 
 ### Fixes
 
+- Forward Session Replay network detail options to the native SDKs so network request and response bodies are displayed ([#6373](https://github.com/getsentry/sentry-react-native/pull/6373))
 - The Sentry Babel transformer no longer injects `@sentry/babel-plugin-component-annotate` unless `annotateReactComponents` is explicitly enabled ([#6347](https://github.com/getsentry/sentry-react-native/pull/6347))
 
 ### Dependencies
 
-- Bump Android SDK from v8.45.0 to v8.46.0 ([#6357](https://github.com/getsentry/sentry-react-native/pull/6357))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8460)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.45.0...8.46.0)
-- Bump JavaScript SDK from v10.61.0 to v10.62.0 ([#6361](https://github.com/getsentry/sentry-react-native/pull/6361))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10620)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.61.0...10.62.0)
+- Bump Android SDK from v8.45.0 to v8.47.0 ([#6357](https://github.com/getsentry/sentry-react-native/pull/6357), [#6391](https://github.com/getsentry/sentry-react-native/pull/6391))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8470)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.45.0...8.47.0)
+- Bump JavaScript SDK from v10.61.0 to v10.63.0 ([#6361](https://github.com/getsentry/sentry-react-native/pull/6361), [#6388](https://github.com/getsentry/sentry-react-native/pull/6388))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10630)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.61.0...10.63.0)
 - Bump CLI from v3.5.1 to v3.6.0 ([#6362](https://github.com/getsentry/sentry-react-native/pull/6362))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#360)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.1...3.6.0)
+- Bump Cocoa SDK from v9.19.0 to v9.19.1 ([#6389](https://github.com/getsentry/sentry-react-native/pull/6389))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9191)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.19.0...9.19.1)
 
 ## 8.16.0
 

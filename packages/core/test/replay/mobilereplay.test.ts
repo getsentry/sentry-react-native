@@ -2,7 +2,7 @@ import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint } fro
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { mobileReplayIntegration } from '../../src/js/replay/mobilereplay';
+import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
 
@@ -534,6 +534,50 @@ describe('Mobile Replay Integration', () => {
     });
   });
 
+  describe('network detail feature markers', () => {
+    let mockAddIntegration: jest.Mock;
+    let mockGetIntegrationByName: jest.Mock;
+    let markerClient: jest.Mocked<Client>;
+
+    beforeEach(() => {
+      mockAddIntegration = jest.fn();
+      mockGetIntegrationByName = jest.fn().mockReturnValue(undefined);
+      markerClient = {
+        on: jest.fn(),
+        getOptions: jest.fn(() => ({})),
+        getIntegrationByName: mockGetIntegrationByName,
+        addIntegration: mockAddIntegration,
+      } as unknown as jest.Mocked<Client>;
+    });
+
+    it('does not register network markers when networkDetailAllowUrls is empty', () => {
+      const integration = mobileReplayIntegration({ networkDetailAllowUrls: [] });
+      integration.setup?.(markerClient);
+
+      expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
+      expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+
+    it('registers both markers when networkDetailAllowUrls is set (bodies default true)', () => {
+      const integration = mobileReplayIntegration({ networkDetailAllowUrls: ['https://api.example.com'] });
+      integration.setup?.(markerClient);
+
+      expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
+      expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+
+    it('registers only the details marker when bodies are explicitly disabled', () => {
+      const integration = mobileReplayIntegration({
+        networkDetailAllowUrls: ['https://api.example.com'],
+        networkCaptureBodies: false,
+      });
+      integration.setup?.(markerClient);
+
+      expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
+      expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+  });
+
   describe('platform checks', () => {
     it('should return noop integration in Expo Go', () => {
       jest.spyOn(environment, 'isExpoGo').mockReturnValue(true);
@@ -745,5 +789,36 @@ describe('Mobile Replay Integration', () => {
       expect(id2).toBe(cachedReplayId);
       expect(id3).toBe(cachedReplayId);
     });
+  });
+});
+
+describe('serializeNetworkDetailUrlsForNative', () => {
+  it('returns an empty array when urls are undefined', () => {
+    expect(serializeNetworkDetailUrlsForNative(undefined)).toEqual([]);
+  });
+
+  it('passes through string patterns unchanged', () => {
+    expect(serializeNetworkDetailUrlsForNative(['https://api.example.com', 'cdn.example.com'])).toEqual([
+      'https://api.example.com',
+      'cdn.example.com',
+    ]);
+  });
+
+  it('converts RegExp patterns to their source string', () => {
+    expect(serializeNetworkDetailUrlsForNative([/^https:\/\/api\./, /\/auth\//])).toEqual([
+      '^https:\\/\\/api\\.',
+      '\\/auth\\/',
+    ]);
+  });
+
+  it('handles mixed string and RegExp entries', () => {
+    expect(serializeNetworkDetailUrlsForNative(['api.example.com', /^https:\/\/cdn\./])).toEqual([
+      'api.example.com',
+      '^https:\\/\\/cdn\\.',
+    ]);
+  });
+
+  it('drops empty string entries', () => {
+    expect(serializeNetworkDetailUrlsForNative(['', 'api.example.com'])).toEqual(['api.example.com']);
   });
 });
