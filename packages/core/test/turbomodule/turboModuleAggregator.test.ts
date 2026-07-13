@@ -1,8 +1,11 @@
 import {
   _resetTurboModuleAggregator,
+  beginSuppressFirstTurboModuleRecordCallback,
   drainTurboModuleAggregate,
+  endSuppressFirstTurboModuleRecordCallback,
   recordTurboModuleCall,
   setIgnoredTurboModules,
+  setOnFirstTurboModuleRecord,
 } from '../../src/js/turbomodule/turboModuleAggregator';
 
 describe('turboModuleAggregator', () => {
@@ -55,5 +58,25 @@ describe('turboModuleAggregator', () => {
 
     expect(snapshot).toHaveLength(1);
     expect(snapshot[0]?.name).toBe('Other');
+  });
+
+  it('does not fire the empty→non-empty callback while suppressed', () => {
+    const cb = jest.fn();
+    setOnFirstTurboModuleRecord(cb);
+
+    beginSuppressFirstTurboModuleRecordCallback();
+    recordTurboModuleCall({
+      name: 'RNSentry',
+      method: 'captureEnvelope',
+      kind: 'async',
+      durationMs: 1,
+      errored: false,
+    });
+    expect(cb).not.toHaveBeenCalled();
+
+    endSuppressFirstTurboModuleRecordCallback();
+    drainTurboModuleAggregate();
+    recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 });

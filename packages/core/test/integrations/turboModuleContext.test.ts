@@ -196,5 +196,40 @@ describe('turboModuleContextIntegration', () => {
         tags: { 'event.kind': 'turbo_modules.aggregate' },
       });
     });
+
+    it('does not re-arm the periodic flush when captureEvent triggers its own TurboModule record', () => {
+      // Reproduces the self-recursion: `flushPeriodicAggregate` calls
+      // `client.captureEvent`, whose transport ultimately calls the wrapped
+      // `RNSentry.captureEnvelope`. That call records back into the
+      // aggregator; without suppression the empty→non-empty transition
+      // re-arms the timer, and an idle session loops forever.
+      jest.useFakeTimers();
+      const integration = turboModuleContextIntegration();
+      integration.setupOnce?.();
+      const client = makeMockClient();
+      // Simulate the transport wiring: every captureEvent replays the
+      // TurboModule call the RN transport would have made.
+      client.captureEvent.mockImplementation(() => {
+        recordTurboModuleCall({
+          name: 'RNSentry',
+          method: 'captureEnvelope',
+          kind: 'async',
+          durationMs: 3,
+          errored: false,
+        });
+        return 'event-id';
+      });
+      integration.setup?.(client);
+
+      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
+      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
+      expect(client.captureEvent).toHaveBeenCalledTimes(1);
+
+      // Release the deferred suppression and let any additional timers run.
+      // If the self-noise had re-armed the flush, a second capture would land
+      // after another interval; the loop would then never terminate.
+      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS * 10);
+      expect(client.captureEvent).toHaveBeenCalledTimes(1);
+    });
   });
 });

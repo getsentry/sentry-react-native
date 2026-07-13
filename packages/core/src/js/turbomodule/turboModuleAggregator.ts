@@ -57,6 +57,10 @@ interface MutableAggregate extends TurboModuleAggregate {
 const aggregates = new Map<string, MutableAggregate>();
 const ignoredModules = new Set<string>();
 let onFirstRecordAfterEmpty: (() => void) | undefined;
+// Non-zero disables the empty→non-empty callback. The periodic flush uses
+// this to prevent the SDK's own transport call (which records itself into
+// the aggregator) from re-arming the timer in an idle session.
+let suppressFirstRecordCallbackDepth = 0;
 
 function makeKey(name: string, method: string, kind: TurboModuleCallKind): string {
   return `${name}|${method}|${kind}`;
@@ -150,13 +154,37 @@ export function recordTurboModuleCall(args: {
   // exists to satisfy `noUncheckedIndexedAccess`.
   entry.buckets[bucket] = (entry.buckets[bucket] ?? 0) + 1;
 
-  if (wasEmpty && onFirstRecordAfterEmpty) {
+  if (wasEmpty && onFirstRecordAfterEmpty && suppressFirstRecordCallbackDepth === 0) {
     // Don't let a misbehaving observer corrupt the aggregate.
     try {
       onFirstRecordAfterEmpty();
     } catch {
       // intentionally swallowed
     }
+  }
+}
+
+/**
+ * Opens a suppression scope: while at least one is open, the empty→non-empty
+ * callback registered via {@link setOnFirstTurboModuleRecord} is NOT invoked.
+ * Records still land in the aggregate as normal.
+ *
+ * Used by the periodic flush to break a self-recursion loop: the flush's own
+ * `captureEvent` call travels through `RNSentry.captureEnvelope`, which is a
+ * wrapped TurboModule call and would otherwise re-arm the flush timer forever
+ * in an otherwise-idle session.
+ */
+export function beginSuppressFirstTurboModuleRecordCallback(): void {
+  suppressFirstRecordCallbackDepth += 1;
+}
+
+/**
+ * Closes a suppression scope opened by
+ * {@link beginSuppressFirstTurboModuleRecordCallback}. Idempotent at zero.
+ */
+export function endSuppressFirstTurboModuleRecordCallback(): void {
+  if (suppressFirstRecordCallbackDepth > 0) {
+    suppressFirstRecordCallbackDepth -= 1;
   }
 }
 
@@ -215,4 +243,5 @@ export function _resetTurboModuleAggregator(): void {
   aggregates.clear();
   ignoredModules.clear();
   onFirstRecordAfterEmpty = undefined;
+  suppressFirstRecordCallbackDepth = 0;
 }

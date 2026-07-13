@@ -4,7 +4,9 @@ import { debug } from '@sentry/core';
 
 import { createSpanJSON } from '../tracing/utils';
 import {
+  beginSuppressFirstTurboModuleRecordCallback,
   drainTurboModuleAggregate,
+  endSuppressFirstTurboModuleRecordCallback,
   HISTOGRAM_BUCKET_LABELS,
   hasTurboModuleAggregateData,
   setIgnoredTurboModules,
@@ -263,6 +265,14 @@ function attachAggregateToTransactionEvent(event: TransactionEvent): void {
  * Emits the current aggregate as a custom Sentry event so long-running
  * sessions without a transaction still produce a signal. No-op when there's
  * nothing to flush.
+ *
+ * The `captureEvent` call travels through `RNSentry.captureEnvelope`, which
+ * is itself a wrapped TurboModule call. Without the suppression scope below,
+ * the resulting empty→non-empty transition on the aggregator would re-arm
+ * the flush timer indefinitely in an otherwise-idle session. The release is
+ * deferred to the next macrotask so the async record fired from the
+ * transport's `.then()` (after the native side resolves) also lands inside
+ * the suppression window.
  */
 function flushPeriodicAggregate(client: Client): void {
   if (!hasTurboModuleAggregateData()) {
@@ -272,20 +282,25 @@ function flushPeriodicAggregate(client: Client): void {
   const totals = summarise(snapshot);
   const topByTotalMs = [...snapshot].sort((a, b) => b.totalDurationMs - a.totalDurationMs);
 
-  client.captureEvent?.({
-    message: 'TurboModule aggregate (periodic)',
-    level: 'info',
-    tags: {
-      'event.kind': 'turbo_modules.aggregate',
-    },
-    extra: {
-      total_call_count: totals.callCount,
-      total_error_count: totals.errorCount,
-      total_duration_ms: roundMs(totals.totalDurationMs),
-      unique_methods: snapshot.length,
-      modules: topByTotalMs.slice(0, MAX_AGGREGATE_ATTRIBUTE_ROWS).map(serialiseRowAsObject),
-    },
-  });
+  beginSuppressFirstTurboModuleRecordCallback();
+  try {
+    client.captureEvent?.({
+      message: 'TurboModule aggregate (periodic)',
+      level: 'info',
+      tags: {
+        'event.kind': 'turbo_modules.aggregate',
+      },
+      extra: {
+        total_call_count: totals.callCount,
+        total_error_count: totals.errorCount,
+        total_duration_ms: roundMs(totals.totalDurationMs),
+        unique_methods: snapshot.length,
+        modules: topByTotalMs.slice(0, MAX_AGGREGATE_ATTRIBUTE_ROWS).map(serialiseRowAsObject),
+      },
+    });
+  } finally {
+    setTimeout(endSuppressFirstTurboModuleRecordCallback, 0);
+  }
 }
 
 function summarise(snapshot: ReadonlyArray<TurboModuleAggregate>): {

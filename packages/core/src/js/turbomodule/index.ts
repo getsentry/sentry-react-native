@@ -6,7 +6,9 @@ export {
 } from './turboModuleTracker';
 export type { TurboModuleCall, TurboModuleCallKind } from './turboModuleTracker';
 export {
+  beginSuppressFirstTurboModuleRecordCallback,
   drainTurboModuleAggregate,
+  endSuppressFirstTurboModuleRecordCallback,
   HISTOGRAM_BUCKET_LABELS,
   HISTOGRAM_BUCKETS_MS,
   hasTurboModuleAggregateData,
