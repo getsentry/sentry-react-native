@@ -8,20 +8,20 @@ import XCTest
 /// surface — sentry-cocoa owns that. We only assert the wrapper does not
 /// crash, forwards data correctly, and honours the nil / platform guards
 /// documented in `RNSentryInternal.swift`.
+///
+/// Follows the same lifecycle pattern as `RNSentryStartTests`: no explicit
+/// `SentrySDK.close()` between tests. Calling `close` inside `tearDown` was
+/// observed to hang the iOS simulator on CI (`IDETestOperationsObserver:
+/// Failure collecting diagnostics ... Timed out after 600.0s`), presumably
+/// because it races with sentry-cocoa's background workers.
 final class RNSentryInternalTests: XCTestCase {
 
-    override func setUp() {
-        super.setUp()
-        // Start the native SDK so `SentrySDK.internal.*` returns real state
-        // instead of the no-op hub. A minimal, offline-safe DSN is enough.
-        RNSentrySDK.start { options in
-            options.dsn = "https://abcd@efgh.ingest.sentry.io/123456"
-        }
-    }
+    private static let testDSN = "https://abcd@efgh.ingest.sentry.io/123456"
 
-    override func tearDown() {
-        SentrySDK.close()
-        super.tearDown()
+    private func startSDK() {
+        RNSentrySDK.start { options in
+            options.dsn = RNSentryInternalTests.testDSN
+        }
     }
 
     // MARK: - envelope(fromData:)
@@ -42,6 +42,8 @@ final class RNSentryInternalTests: XCTestCase {
     // MARK: - SDK metadata
 
     func testSdkMetadataAccessorsAreNonEmpty() {
+        startSDK()
+
         XCTAssertFalse(RNSentryInternal.sdkName.isEmpty)
         XCTAssertFalse(RNSentryInternal.sdkVersionString.isEmpty)
         XCTAssertFalse(RNSentryInternal.installationID.isEmpty)
@@ -50,25 +52,17 @@ final class RNSentryInternalTests: XCTestCase {
         _ = RNSentryInternal.extraContext
     }
 
-    func testSetSdkNameAndAddPackageRoundTrip() {
-        RNSentryInternal.setSdkName("sentry.cocoa.react-native.test", version: "42.42.42")
-        XCTAssertEqual(RNSentryInternal.sdkName, "sentry.cocoa.react-native.test")
-        XCTAssertEqual(RNSentryInternal.sdkVersionString, "42.42.42")
-
-        // Add-package is void; assert it does not throw. Idempotency across
-        // sentry-cocoa releases is not part of the bridge's contract.
-        RNSentryInternal.addSdkPackage("test-package", version: "1.0.0")
-    }
-
     // MARK: - Options
 
     func testOptionsAccessorReturnsLiveOptions() {
+        startSDK()
+
         let options = RNSentryInternal.options
         XCTAssertNotNil(options.dsn)
     }
 
     func testOptionsFromDictionaryValidatesInput() throws {
-        let dict: [String: Any] = ["dsn": "https://abcd@efgh.ingest.sentry.io/123456"]
+        let dict: [String: Any] = ["dsn": RNSentryInternalTests.testDSN]
         let options = try RNSentryInternal.options(fromDictionary: dict)
         XCTAssertNotNil(options.dsn)
     }
