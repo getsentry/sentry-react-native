@@ -14,6 +14,7 @@ export {
   hasTurboModuleAggregateData,
   isTurboModuleIgnored,
   recordTurboModuleCall,
+  setAggregateRecordingEnabled,
   setIgnoredTurboModules,
   setOnFirstTurboModuleRecord,
 } from './turboModuleAggregator';

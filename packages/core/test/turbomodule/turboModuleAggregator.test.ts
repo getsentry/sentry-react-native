@@ -3,7 +3,9 @@ import {
   beginSuppressFirstTurboModuleRecordCallback,
   drainTurboModuleAggregate,
   endSuppressFirstTurboModuleRecordCallback,
+  hasTurboModuleAggregateData,
   recordTurboModuleCall,
+  setAggregateRecordingEnabled,
   setIgnoredTurboModules,
   setOnFirstTurboModuleRecord,
 } from '../../src/js/turbomodule/turboModuleAggregator';
@@ -78,5 +80,29 @@ describe('turboModuleAggregator', () => {
     drainTurboModuleAggregate();
     recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
     expect(cb).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops all calls while recording is disabled and clears any existing entries', () => {
+    // Populate the map first, then disable — the disable path must also
+    // evict the existing entries so a subsequent enable/disable cycle
+    // doesn't resurface pre-disable data.
+    recordTurboModuleCall({ name: 'RNSentry', method: 'x', kind: 'sync', durationMs: 1, errored: false });
+    expect(hasTurboModuleAggregateData()).toBe(true);
+
+    setAggregateRecordingEnabled(false);
+    expect(hasTurboModuleAggregateData()).toBe(false);
+
+    // Further calls made while disabled must not accumulate — this is what
+    // the `enableAggregateStats: false` opt-out relies on to avoid a
+    // process-wide memory leak.
+    for (let i = 0; i < 100; i++) {
+      recordTurboModuleCall({ name: 'RNSentry', method: 'x', kind: 'sync', durationMs: 1, errored: false });
+    }
+    expect(hasTurboModuleAggregateData()).toBe(false);
+
+    // Re-enabling must restore normal behaviour.
+    setAggregateRecordingEnabled(true);
+    recordTurboModuleCall({ name: 'RNSentry', method: 'x', kind: 'sync', durationMs: 1, errored: false });
+    expect(hasTurboModuleAggregateData()).toBe(true);
   });
 });

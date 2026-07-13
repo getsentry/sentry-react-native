@@ -9,6 +9,7 @@ import {
   endSuppressFirstTurboModuleRecordCallback,
   HISTOGRAM_BUCKET_LABELS,
   hasTurboModuleAggregateData,
+  setAggregateRecordingEnabled,
   setIgnoredTurboModules,
   setOnFirstTurboModuleRecord,
   type TurboModuleAggregate,
@@ -143,6 +144,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods });
       }
 
+      setAggregateRecordingEnabled(enableAggregate);
       if (enableAggregate) {
         setIgnoredTurboModules(options.ignoreTurboModules);
       }

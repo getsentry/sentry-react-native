@@ -9,7 +9,11 @@ import {
   TURBO_MODULES_AGGREGATE_OP,
 } from '../../src/js/integrations/turboModuleContext';
 import * as turboModule from '../../src/js/turbomodule';
-import { _resetTurboModuleAggregator, recordTurboModuleCall } from '../../src/js/turbomodule/turboModuleAggregator';
+import {
+  _resetTurboModuleAggregator,
+  hasTurboModuleAggregateData,
+  recordTurboModuleCall,
+} from '../../src/js/turbomodule/turboModuleAggregator';
 import * as wrapper from '../../src/js/wrapper';
 
 function makeTransactionEvent(overrides: Partial<TransactionEvent> = {}): TransactionEvent {
@@ -195,6 +199,32 @@ describe('turboModuleContextIntegration', () => {
         level: 'info',
         tags: { 'event.kind': 'turbo_modules.aggregate' },
       });
+    });
+
+    it('does not accumulate aggregate entries when enableAggregateStats is disabled', () => {
+      // With aggregation off, wrapped TurboModule calls must not accumulate
+      // into the process-wide map — otherwise the opt-out would leak calls
+      // for the lifetime of the app (no drain path is armed).
+      const integration = turboModuleContextIntegration({ enableAggregateStats: false });
+      integration.setupOnce?.();
+      integration.setup?.(makeMockClient());
+
+      for (let i = 0; i < 50; i++) {
+        recordTurboModuleCall({
+          name: 'RNSentry',
+          method: 'captureEnvelope',
+          kind: 'async',
+          durationMs: 3,
+          errored: false,
+        });
+      }
+
+      expect(hasTurboModuleAggregateData()).toBe(false);
+
+      const event = makeTransactionEvent();
+      const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
+      expect(out.spans ?? []).toHaveLength(0);
+      expect(out.measurements ?? {}).toEqual({});
     });
 
     it('does not re-arm the periodic flush when captureEvent triggers its own TurboModule record', () => {

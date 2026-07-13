@@ -61,6 +61,10 @@ let onFirstRecordAfterEmpty: (() => void) | undefined;
 // this to prevent the SDK's own transport call (which records itself into
 // the aggregator) from re-arming the timer in an idle session.
 let suppressFirstRecordCallbackDepth = 0;
+// When `false`, `recordTurboModuleCall` is a no-op. The integration flips
+// this off when `enableAggregateStats: false` so wrapped TurboModule calls
+// don't accumulate into a map that nothing ever drains.
+let recordingEnabled = true;
 
 function makeKey(name: string, method: string, kind: TurboModuleCallKind): string {
   return `${name}|${method}|${kind}`;
@@ -117,6 +121,9 @@ export function recordTurboModuleCall(args: {
   durationMs: number;
   errored: boolean;
 }): void {
+  if (!recordingEnabled) {
+    return;
+  }
   if (ignoredModules.has(args.name)) {
     return;
   }
@@ -201,6 +208,21 @@ export function setOnFirstTurboModuleRecord(cb: (() => void) | undefined): void 
 }
 
 /**
+ * Master switch for the aggregator. When disabled, `recordTurboModuleCall`
+ * short-circuits and existing entries are cleared, so wrapped TurboModule
+ * calls can't accumulate into a map that nothing ever drains (e.g. when the
+ * integration was constructed with `enableAggregateStats: false`).
+ *
+ * Default: enabled.
+ */
+export function setAggregateRecordingEnabled(enabled: boolean): void {
+  recordingEnabled = enabled;
+  if (!enabled) {
+    aggregates.clear();
+  }
+}
+
+/**
  * Drains and returns the current aggregate, clearing the internal state.
  *
  * The returned array is a shallow copy: callers may freely mutate it (e.g.
@@ -244,4 +266,5 @@ export function _resetTurboModuleAggregator(): void {
   ignoredModules.clear();
   onFirstRecordAfterEmpty = undefined;
   suppressFirstRecordCallbackDepth = 0;
+  recordingEnabled = true;
 }
