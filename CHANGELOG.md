@@ -15,6 +15,7 @@
 ### Fixes
 
 - Fix iOS time-to-initial-display fallback spans reporting a spurious `deadline_exceeded` status and inflated duration ([#6438](https://github.com/getsentry/sentry-react-native/pull/6438))
+- Fix `TypeError` when `showFeedbackForm`/`showFeedbackButton`/`showScreenshotButton` is called before `FeedbackFormProvider` mounts ([#6435](https://github.com/getsentry/sentry-react-native/pull/6435))
 - Fix orphaned TTID/TTFD spans in the trace view ([#6437](https://github.com/getsentry/sentry-react-native/pull/6437))
 
 ## 8.18.0
