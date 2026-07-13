@@ -108,11 +108,13 @@ import Foundation
 
     // sentry-cocoa's `SentryInternalScreen/Screenshot/ViewHierarchyApi` are all
     // gated to `(os(iOS) || os(tvOS)) && !SENTRY_NO_UI_FRAMEWORK`. On visionOS
-    // the new API surface is intentionally absent — so `setCurrentScreen` is a
-    // no-op there, unlike the deprecated `PrivateSentrySDKOnly.setCurrentScreen`
-    // (which worked under `SENTRY_UIKIT_AVAILABLE`, i.e. also on visionOS).
-    // Callers on visionOS lose the current-screen breadcrumb enrichment as a
-    // result; this matches the direction of sentry-cocoa's new hybrid API.
+    // the new hybrid-SDK surface is intentionally absent, but the same
+    // functionality still lives on `PrivateSentrySDKOnly` (gated by
+    // `SENTRY_HAS_UIKIT`, which covers visionOS). Route the visionOS bridge
+    // through the deprecated SPI so we preserve pre-migration behaviour and
+    // keep this PR non-breaking. Remove the fallback once sentry-cocoa
+    // exposes these APIs on visionOS in the hybrid surface — or once cocoa
+    // drops `PrivateSentrySDKOnly` in a future major and forces our hand.
     #if os(iOS) || os(tvOS)
     @_spi(Private) @objc public static var captureScreenshots: [Data]? {
         SentrySDK.internal.screenshot.capture()
@@ -124,6 +126,18 @@ import Foundation
 
     @_spi(Private) @objc public static func setCurrentScreen(_ screenName: String?) {
         SentrySDK.internal.screen.setCurrent(screenName)
+    }
+    #elseif os(visionOS)
+    @_spi(Private) @objc public static var captureScreenshots: [Data]? {
+        PrivateSentrySDKOnly.captureScreenshots()
+    }
+
+    @_spi(Private) @objc public static var captureViewHierarchy: Data? {
+        PrivateSentrySDKOnly.captureViewHierarchy()
+    }
+
+    @_spi(Private) @objc public static func setCurrentScreen(_ screenName: String?) {
+        PrivateSentrySDKOnly.setCurrentScreen(screenName)
     }
     #else
     @_spi(Private) @objc public static var captureScreenshots: [Data]? { nil }
