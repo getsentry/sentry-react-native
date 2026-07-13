@@ -77,7 +77,12 @@ import Foundation
 
     @_spi(Private) @objc public static var isFramesTrackingRunning: Bool { false }
 
-    @_spi(Private) @objc public static var currentScreenFrames: SentryScreenFrames? { nil }
+    // `currentScreenFrames` is intentionally NOT declared on non-UIKit
+    // platforms: sentry-cocoa does not compile `SentryScreenFrames` there,
+    // so referencing it as a return type would fail to resolve. Every ObjC
+    // caller (`SentryScreenFramesWrapper.m`) is already gated to
+    // `TARGET_OS_IPHONE || TARGET_OS_MACCATALYST`, so no consumer needs the
+    // stub on macOS/watchOS.
     #endif
 
     // MARK: - Envelope
