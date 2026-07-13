@@ -12,6 +12,10 @@
 
 - Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
 
+### Fixes
+
+- Fix orphaned TTID/TTFD spans in the trace view ([#6437](https://github.com/getsentry/sentry-react-native/pull/6437))
+
 ## 8.18.0
 
 ### Features
