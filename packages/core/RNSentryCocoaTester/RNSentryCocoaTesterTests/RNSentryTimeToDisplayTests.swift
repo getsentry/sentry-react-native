@@ -30,6 +30,29 @@ final class RNSentryTimeToDisplayTests: XCTestCase {
         XCTAssertNotNil(newestEntry)
     }
 
+    func testGetTimeToDisplayResolvesWithNumberNotArray() {
+        let sut = RNSentryTimeToDisplay()
+        let expectation = self.expectation(description: "resolve block is called")
+        var resolvedValue: Any?
+
+        // `getTimeToDisplay:` is invoked with an `RCTPromiseResolveBlock` from the
+        // Promise-based `getNewScreenTimeToDisplay` bridge method, so it must resolve
+        // with a raw timestamp value and never wrap it in an array.
+        sut.getTimeToDisplay { value in
+            resolvedValue = value
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 5)
+
+        XCTAssertFalse(resolvedValue is [Any],
+                       "getTimeToDisplay must resolve with a scalar timestamp, not an array")
+        let number = try? XCTUnwrap(resolvedValue as? NSNumber,
+                                    "getTimeToDisplay must resolve with an NSNumber timestamp")
+        XCTAssertNotNil(number)
+        XCTAssertGreaterThan(number?.doubleValue ?? 0, 0)
+    }
+
     func testHandlesEarlyPoppedValues() {
         let maxSize = TIME_TO_DISPLAY_ENTRIES_MAX_SIZE + 1
         for i in 1...maxSize {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */; };
 		332D33472CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */; };
 		3339C4812D6625570088EB3A /* RNSentryUserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3339C4802D6625570088EB3A /* RNSentryUserTests.m */; };
 		336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */; };
@@ -17,7 +18,6 @@
 		33DEDFED2D8DC825006066E4 /* RNSentryOnDrawReporter+Test.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFEC2D8DC820006066E4 /* RNSentryOnDrawReporter+Test.mm */; };
 		33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */; };
 		33F58AD02977037D008F60EA /* RNSentryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.m */; };
-		2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */; };
 		AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */; };
 		B4DEB41739F14AA38202D4D4 /* RNSentryUriValidationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */; };
 		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
@@ -52,8 +52,8 @@
 		33F58ACF2977037D008F60EA /* RNSentryTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryTests.m; sourceTree = "<group>"; };
 		3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryUriValidationTests.m; sourceTree = "<group>"; };
 		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNSentryTurboModulePerfControllerTests.mm; sourceTree = "<group>"; };
 		E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
+		E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNSentryTurboModulePerfControllerTests.mm; sourceTree = "<group>"; };
 		F48F26542EA2A481008A185E /* RNSentryEmitNewFrameEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryEmitNewFrameEvent.h; path = ../ios/RNSentryEmitNewFrameEvent.h; sourceTree = SOURCE_ROOT; };
 		F48F26552EA2A4D4008A185E /* RNSentryFramesTrackerListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryFramesTrackerListener.h; path = ../ios/RNSentryFramesTrackerListener.h; sourceTree = SOURCE_ROOT; };
 		FADF868E2EBD053E00D6652D /* SentrySDKWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SentrySDKWrapper.h; path = ../ios/SentrySDKWrapper.h; sourceTree = SOURCE_ROOT; };
@@ -169,6 +169,7 @@
 				3360898929524164007C7730 /* Sources */,
 				BB7D14838753E6599863899B /* Frameworks */,
 				CC7959F3721CB3AD7CB6A047 /* [CP] Copy Pods Resources */,
+				2AA6DCCDB9B6D20211E939EC /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -214,6 +215,23 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		2AA6DCCDB9B6D20211E939EC /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		30F19D4E16BEEFEC68733838 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -334,14 +352,23 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					" ",
 				);
+				PODFILE_DIR = "$(SRCROOT)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
-				USE_HERMES = false;
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -393,13 +420,22 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					" ",
 				);
+				PODFILE_DIR = "$(SRCROOT)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
-				USE_HERMES = false;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

@@ -98,6 +98,20 @@ describe('React Navigation - TTID', () => {
       );
     });
 
+    test('automatic ttid span inherits trace_id and parent_span_id from the transaction', () => {
+      jest.runOnlyPendingTimers(); // Flush app start transaction
+
+      mockedNavigation.navigateToNewScreen();
+      mockAutomaticTimeToDisplay();
+      jest.runOnlyPendingTimers(); // Flush ttid transaction
+
+      const transaction = getLastTransaction(transportSendMock);
+      const ttidSpan = transaction.spans?.find(s => s.op === 'ui.load.initial_display');
+      expect(ttidSpan).toBeDefined();
+      expect(ttidSpan?.trace_id).toBe(transaction.contexts?.trace?.trace_id);
+      expect(ttidSpan?.parent_span_id).toBe(transaction.contexts?.trace?.span_id);
+    });
+
     test('should end ttid with measurements even when active span was removed from the scope', () => {
       jest.runOnlyPendingTimers(); // Flush app start transaction
 
