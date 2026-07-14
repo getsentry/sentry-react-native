@@ -7,8 +7,12 @@ import type { ResolvedNetworkOptions } from './networkUtils';
 import { isHardCrash } from '../misc';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
+import { registerFeatureMarker } from '../utils/featureMarkers';
 import { NATIVE } from '../wrapper';
 import { makeEnrichXhrBreadcrumbsForMobileReplay } from './xhrUtils';
+
+const MOBILE_REPLAY_NETWORK_DETAILS_INTEGRATION_NAME = 'MobileReplayNetworkDetails';
+const MOBILE_REPLAY_NETWORK_BODIES_INTEGRATION_NAME = 'MobileReplayNetworkBodies';
 
 export const MOBILE_REPLAY_INTEGRATION_NAME = 'MobileReplay';
 
@@ -385,6 +389,13 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   function setup(client: Client): void {
     if (!hasHooks(client)) {
       return;
+    }
+
+    if ((options.networkDetailAllowUrls?.length ?? 0) > 0) {
+      registerFeatureMarker(MOBILE_REPLAY_NETWORK_DETAILS_INTEGRATION_NAME, client);
+      if (options.networkCaptureBodies ?? true) {
+        registerFeatureMarker(MOBILE_REPLAY_NETWORK_BODIES_INTEGRATION_NAME, client);
+      }
     }
 
     // Initialize the cached replay ID on setup

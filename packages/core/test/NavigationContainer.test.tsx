@@ -2,10 +2,12 @@ import { render } from '@testing-library/react-native';
 import * as React from 'react';
 import { Text, View } from 'react-native';
 
-import { NavigationContainer } from '../src/js/NavigationContainer';
+import { NAVIGATION_CONTAINER_INTEGRATION_NAME, NavigationContainer } from '../src/js/NavigationContainer';
 
 const mockRegisterNavigationContainer = jest.fn();
 const mockGetClient = jest.fn();
+const mockAddIntegration = jest.fn();
+const mockGetIntegrationByName = jest.fn();
 const mockDebugLog = jest.fn();
 const mockDebugWarn = jest.fn();
 
@@ -47,10 +49,23 @@ jest.mock('../src/js/reactNavigationImport', () => ({
 describe('NavigationContainer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetClient.mockReturnValue({ getIntegrationByName: jest.fn() });
+    mockGetIntegrationByName.mockReturnValue(undefined);
+    mockGetClient.mockReturnValue({
+      getIntegrationByName: mockGetIntegrationByName,
+      addIntegration: mockAddIntegration,
+    });
     mockGetReactNavigationIntegration.mockReturnValue({
       registerNavigationContainer: mockRegisterNavigationContainer,
     });
+  });
+
+  it('registers the NavigationContainer feature marker on mount', () => {
+    render(
+      <NavigationContainer>
+        <Text>App</Text>
+      </NavigationContainer>,
+    );
+    expect(mockAddIntegration).toHaveBeenCalledWith({ name: NAVIGATION_CONTAINER_INTEGRATION_NAME });
   });
 
   it('renders children through to the underlying NavigationContainer', () => {

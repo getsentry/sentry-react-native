@@ -19,7 +19,9 @@ const NOOP_SET_VISIBILITY = (): void => {
 
 abstract class FeedbackManager {
   protected static _isVisible = false;
-  protected static _setVisibility: (visible: boolean) => void;
+  // Default to NOOP so `show()`/`hide()` don't call `undefined(...)` when
+  // invoked before `FeedbackFormProvider` mounts and calls `initialize()`.
+  protected static _setVisibility: (visible: boolean) => void = NOOP_SET_VISIBILITY;
 
   protected static get _feedbackComponentName(): string {
     throw new Error('Subclasses must override feedbackComponentName');

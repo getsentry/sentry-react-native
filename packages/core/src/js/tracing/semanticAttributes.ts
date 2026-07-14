@@ -18,3 +18,8 @@ export const SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_ID = 'previous_route.co
 export const SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_COMPONENT_TYPE = 'previous_route.component_type';
 export const SEMANTIC_ATTRIBUTE_TIME_TO_INITIAL_DISPLAY_FALLBACK = 'route.initial_display_fallback';
 export const SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE = 'navigation.action_type';
+
+// App start vitals (Span V2 / EAP). Emitted on the standalone `app.start` transaction.
+export const SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE = 'app.vitals.start.value';
+export const SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE = 'app.vitals.start.type';
+export const SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN = 'app.vitals.start.screen';

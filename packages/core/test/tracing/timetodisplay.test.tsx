@@ -7,6 +7,7 @@ import {
   getIsolationScope,
   setCurrentClient,
   spanToJSON,
+  startSpan,
   startSpanManual,
 } from '@sentry/core';
 
@@ -31,6 +32,8 @@ import {
 } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import {
+  _resetImperativeTtfdTimestamps,
+  reportFullyDisplayed,
   startTimeToFullDisplaySpan,
   startTimeToInitialDisplaySpan,
   TimeToFullDisplay,
@@ -435,6 +438,7 @@ function expectFinishedInitialDisplaySpan(event: Event) {
       description: 'Time To Initial Display',
       op: 'ui.load.initial_display',
       parent_span_id: event.contexts.trace.span_id,
+      trace_id: event.contexts.trace.trace_id,
       start_timestamp: event.start_timestamp,
       status: 'ok',
       timestamp: expect.any(Number),
@@ -453,6 +457,7 @@ function expectFinishedFullDisplaySpan(event: Event) {
       description: 'Time To Full Display',
       op: 'ui.load.full_display',
       parent_span_id: event.contexts.trace.span_id,
+      trace_id: event.contexts.trace.trace_id,
       start_timestamp: event.start_timestamp,
       status: 'ok',
       timestamp: expect.any(Number),
@@ -471,6 +476,7 @@ function expectDeadlineExceededFullDisplaySpan(event: Event) {
       description: 'Time To Full Display',
       op: 'ui.load.full_display',
       parent_span_id: event.contexts.trace.span_id,
+      trace_id: event.contexts.trace.trace_id,
       start_timestamp: event.start_timestamp,
       status: 'deadline_exceeded',
       timestamp: expect.any(Number),
@@ -988,5 +994,234 @@ describe('Frame Data', () => {
 
       expect(firstSpanId).not.toEqual(secondSpanId);
     });
+  });
+});
+
+describe('reportFullyDisplayed', () => {
+  let client: TestClient;
+
+  beforeEach(() => {
+    clearMockedOnDrawReportedProps();
+    _resetTimeToDisplayCoordinator();
+    _resetImperativeTtfdTimestamps();
+    getCurrentScope().clear();
+    getIsolationScope().clear();
+    getGlobalScope().clear();
+
+    const options = getDefaultTestClientOptions({
+      tracesSampleRate: 1.0,
+    });
+    client = new TestClient({
+      ...options,
+      integrations: [...options.integrations, timeToDisplayIntegration()],
+    });
+    setCurrentClient(client);
+    client.init();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockWrapper.NATIVE.enableNative = true;
+  });
+
+  test('creates full display span with measurement via integration', async () => {
+    const ttidTimestamp = nowInSeconds();
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        render(<TimeToInitialDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+        });
+
+        reportFullyDisplayed();
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expectFinishedInitialDisplaySpan(client.event!);
+    expectInitialDisplayMeasurementOnSpan(client.event!);
+
+    const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan).toBeDefined();
+    expect(ttfdSpan!.op).toBe('ui.load.full_display');
+    expect(ttfdSpan!.status).toBe('ok');
+    expect(ttfdSpan!.timestamp).toBeDefined();
+    expectFullDisplayMeasurementOnSpan(client.event!);
+  });
+
+  test('adjusts ttfd to ttid end when reported before ttid', async () => {
+    const ttidTimestamp = secondInFutureTimestampMs() / 1000;
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        render(<TimeToInitialDisplay record={true} />);
+
+        reportFullyDisplayed();
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+        });
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan).toBeDefined();
+    expect(ttfdSpan!.status).toBe('ok');
+
+    const ttidSpanJSON = getInitialDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan!.timestamp).toEqual(ttidSpanJSON!.timestamp);
+
+    expectFullDisplayMeasurementOnSpan(client.event!);
+  });
+
+  test('does nothing without an active span', () => {
+    expect(() => reportFullyDisplayed()).not.toThrow();
+    expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining('No active span found'));
+  });
+
+  test('does not create ttfd span without ttid', async () => {
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        reportFullyDisplayed();
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expectNoFullDisplayMeasurementOnSpan(client.event!);
+    expect(getFullDisplaySpanJSON(client.event!.spans!)).toBeUndefined();
+  });
+
+  test('works when called inside a nested child span', async () => {
+    const ttidTimestamp = nowInSeconds();
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        render(<TimeToInitialDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+        });
+
+        startSpan({ name: 'child-span' }, () => {
+          reportFullyDisplayed();
+        });
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpan = getFullDisplaySpanJSON(client.event!.spans!);
+    expect(ttfdSpan).toBeDefined();
+    expect(ttfdSpan!.op).toBe('ui.load.full_display');
+    expect(ttfdSpan!.status).toBe('ok');
+    expectFullDisplayMeasurementOnSpan(client.event!);
+  });
+
+  test('does not create duplicate span when component and imperative API are both used', async () => {
+    const ttidTimestamp = nowInSeconds();
+    const ttfdTimestamp = nowInSeconds();
+
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        startTimeToInitialDisplaySpan();
+        startTimeToFullDisplaySpan();
+
+        render(<TimeToInitialDisplay record={true} />);
+        render(<TimeToFullDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: ttidTimestamp,
+          },
+          ttfd: {
+            [spanToJSON(activeSpan).span_id]: ttfdTimestamp,
+          },
+        });
+
+        reportFullyDisplayed();
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpans = client.event!.spans!.filter((s: SpanJSON) => s.op === 'ui.load.full_display');
+    expect(ttfdSpans).toHaveLength(1);
+    expect(ttfdSpans[0]!.status).toBe('ok');
+    expectFullDisplayMeasurementOnSpan(client.event!);
+  });
+
+  test('second call is ignored', async () => {
+    startSpanManual(
+      {
+        name: 'Root Manual Span',
+        startTime: secondAgoTimestampMs(),
+      },
+      (activeSpan: Span | undefined) => {
+        render(<TimeToInitialDisplay record={true} />);
+
+        mockRecordedTimeToDisplay({
+          ttid: {
+            [spanToJSON(activeSpan).span_id]: nowInSeconds(),
+          },
+        });
+
+        reportFullyDisplayed();
+        reportFullyDisplayed();
+
+        activeSpan?.end();
+      },
+    );
+
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    const ttfdSpans = client.event!.spans!.filter((s: SpanJSON) => s.op === 'ui.load.full_display');
+    expect(ttfdSpans).toHaveLength(1);
   });
 });
