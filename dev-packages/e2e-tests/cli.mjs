@@ -347,42 +347,68 @@ if (actions.includes('test')) {
 
     const results = [];
 
+    // Retry only on the known Cirrus Labs Tart VM flake where the app fails
+    // to reach "E2E Tests Ready" after a fresh launchApp. Maestro's exit code
+    // is a flat 0/1 (see TestCommand.kt), so the pattern must be detected in
+    // stdout. Real assertion failures elsewhere (e.g. assertEventIdVisible)
+    // are surfaced immediately.
+    const READY_ASSERTION_FLAKE = 'Assert that "E2E Tests Ready" is visible... FAILED';
+    const MAX_ATTEMPTS = 2;
+
     // Run each flow in its own process to prevent crash cascade —
     // when crash.yml kills the app, a shared Maestro session would fail
     // all subsequent flows.
     console.log('Waiting for flows to complete...');
     for (const flow of flowFiles) {
       const flowPath = path.join('maestro', flow);
-      const startTime = Date.now();
-      try {
-        execFileSync('maestro', [
-          'test',
-          flowPath,
-          '--env', `APP_ID=${appId}`,
-          '--env', `SENTRY_AUTH_TOKEN=${sentryAuthToken}`,
-          '--debug-output', 'maestro-logs',
-          '--flatten-debug-output',
-        ], {
-          stdio: 'pipe',
-          cwd: e2eDir,
-        });
-        const elapsed = Math.round((Date.now() - startTime) / 1000);
-        const name = flow.replace('.yml', '');
-        results.push({ name, passed: true, elapsed });
-        console.log(`[Passed] ${name} (${elapsed}s)`);
-      } catch (error) {
-        const elapsed = Math.round((Date.now() - startTime) / 1000);
-        const name = flow.replace('.yml', '');
-        const output = (error.stdout?.toString() || '') + (error.stderr?.toString() || '');
-        const detail = output.split('\n').find(l =>
-          l.includes('App crashed') || l.includes('Element not found') || l.includes('FAILED')) || '';
-        results.push({ name, passed: false, elapsed, detail });
-        console.log(`[Failed] ${name} (${elapsed}s)${detail ? ` (${detail.trim()})` : ''}`);
-        // Dump Maestro output for failed flows to aid debugging
-        if (output) {
-          console.log(`\n--- ${name} output ---\n${output.trim()}\n--- end ${name} output ---\n`);
+      const name = flow.replace('.yml', '');
+      let lastElapsed = 0;
+      let lastOutput = '';
+      let lastDetail = '';
+      let passed = false;
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const startTime = Date.now();
+        try {
+          execFileSync('maestro', [
+            'test',
+            flowPath,
+            '--env', `APP_ID=${appId}`,
+            '--env', `SENTRY_AUTH_TOKEN=${sentryAuthToken}`,
+            '--debug-output', 'maestro-logs',
+            '--flatten-debug-output',
+          ], {
+            stdio: 'pipe',
+            cwd: e2eDir,
+          });
+          lastElapsed = Math.round((Date.now() - startTime) / 1000);
+          passed = true;
+          const suffix = attempt > 1 ? ` (attempt ${attempt}/${MAX_ATTEMPTS})` : '';
+          console.log(`[Passed] ${name} (${lastElapsed}s)${suffix}`);
+          break;
+        } catch (error) {
+          lastElapsed = Math.round((Date.now() - startTime) / 1000);
+          lastOutput = (error.stdout?.toString() || '') + (error.stderr?.toString() || '');
+          lastDetail = lastOutput.split('\n').find(l =>
+            l.includes('App crashed') || l.includes('Element not found') || l.includes('FAILED')) || '';
+
+          const isReadyFlake = lastOutput.includes(READY_ASSERTION_FLAKE);
+          const canRetry = isReadyFlake && attempt < MAX_ATTEMPTS;
+
+          if (canRetry) {
+            console.log(`[Flaky] ${name} (${lastElapsed}s)${lastDetail ? ` (${lastDetail.trim()})` : ''} — retrying (${attempt + 1}/${MAX_ATTEMPTS})`);
+            // Brief pause to let the simulator/driver settle before retrying
+            execFileSync('sleep', ['5']);
+          } else {
+            console.log(`[Failed] ${name} (${lastElapsed}s)${lastDetail ? ` (${lastDetail.trim()})` : ''}`);
+            if (lastOutput) {
+              console.log(`\n--- ${name} output ---\n${lastOutput.trim()}\n--- end ${name} output ---\n`);
+            }
+          }
         }
       }
+
+      results.push({ name, passed, elapsed: lastElapsed, detail: passed ? '' : lastDetail });
     }
 
     const failedFlows = results.filter(r => !r.passed).map(r => r.name);
