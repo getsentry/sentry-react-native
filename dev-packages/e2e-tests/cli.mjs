@@ -425,12 +425,13 @@ if (actions.includes('test')) {
             console.log(`[Flaky] ${name} (${lastElapsed}s)${lastDetail ? ` (${lastDetail.trim()})` : ''} — retrying (${attempt + 1}/${MAX_ATTEMPTS})`);
             // Brief pause to let the simulator/driver settle before retrying
             execFileSync('sleep', ['5']);
-          } else {
-            console.log(`[Failed] ${name} (${lastElapsed}s)${lastDetail ? ` (${lastDetail.trim()})` : ''}`);
-            if (lastOutput) {
-              console.log(`\n--- ${name} output ---\n${lastOutput.trim()}\n--- end ${name} output ---\n`);
-            }
+            continue;
           }
+          console.log(`[Failed] ${name} (${lastElapsed}s)${lastDetail ? ` (${lastDetail.trim()})` : ''}`);
+          if (lastOutput) {
+            console.log(`\n--- ${name} output ---\n${lastOutput.trim()}\n--- end ${name} output ---\n`);
+          }
+          break;
         }
       }
 
