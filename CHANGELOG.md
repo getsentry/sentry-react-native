@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## 8.14.2
+
+### Fixes
+
+- Fix iOS retain cycle in `RNSentryOnDrawReporterView` leaking TTID/TTFD reporter views and their frame-tracker listeners ([#6449](https://github.com/getsentry/sentry-react-native/pull/6449))
+
 ## 8.14.1
 
 ### Fixes
