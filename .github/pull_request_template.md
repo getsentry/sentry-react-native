@@ -7,7 +7,7 @@
 
 
 ## :scroll: Description
-<!--- Describe your changes in detail -->
+<!--- Describe your changes in detail and optionally add screenshots -->
 
 
 ## :bulb: Motivation and Context
@@ -16,6 +16,10 @@
 
 
 ## :green_heart: How did you test it?
+<!---
+Include a link to Sentry when applicable:
+* Link to Sentry: <LINK>
+-->
 
 
 ## :pencil: Checklist
