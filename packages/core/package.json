@@ -59,7 +59,8 @@
     "ios"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "tag": "v8.14"
   },
   "author": "Sentry",
   "license": "MIT",
