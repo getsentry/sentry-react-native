@@ -11,6 +11,7 @@
 ### Features
 
 - Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
+- Add `enableHistoricalTombstoneReporting` option to report historical tombstones from Android's `ApplicationExitInfo` ([#6450](https://github.com/getsentry/sentry-react-native/pull/6450))
 
 ### Fixes
 
