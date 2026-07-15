@@ -274,7 +274,10 @@ function attachAggregateToTransactionEvent(event: TransactionEvent): void {
  * the flush timer indefinitely in an otherwise-idle session. The release is
  * deferred to the next macrotask so the async record fired from the
  * transport's `.then()` (after the native side resolves) also lands inside
- * the suppression window.
+ * the suppression window; the leftover entries are then drained so the next
+ * real user call registers as an empty→non-empty transition and re-arms
+ * the periodic timer (otherwise a suppressed record would poison the map
+ * and the timer would never re-arm again).
  */
 function flushPeriodicAggregate(client: Client): void {
   if (!hasTurboModuleAggregateData()) {
@@ -301,7 +304,17 @@ function flushPeriodicAggregate(client: Client): void {
       },
     });
   } finally {
-    setTimeout(endSuppressFirstTurboModuleRecordCallback, 0);
+    setTimeout(() => {
+      endSuppressFirstTurboModuleRecordCallback();
+      // Discard whatever landed during the suppression window — those
+      // records are (in the common case) our own transport's self-noise.
+      // Leaving them in the aggregator would leave `size > 0`, so the
+      // next real user call wouldn't be an empty→non-empty transition
+      // and `onFirstRecordAfterEmpty` would never re-arm the timer.
+      if (hasTurboModuleAggregateData()) {
+        drainTurboModuleAggregate();
+      }
+    }, 0);
   }
 }
 

@@ -261,5 +261,45 @@ describe('turboModuleContextIntegration', () => {
       jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS * 10);
       expect(client.captureEvent).toHaveBeenCalledTimes(1);
     });
+
+    it('re-arms the periodic flush on the next real user call after a suppressed flush', () => {
+      // After the first flush, the transport's self-noise gets recorded
+      // under suppression. If those leftover entries stayed in the
+      // aggregator, the next real user call would see `wasEmpty=false`
+      // and never re-arm the timer — so periodic flushes would stop
+      // entirely until a transaction drain cleared the map.
+      jest.useFakeTimers();
+      const integration = turboModuleContextIntegration();
+      integration.setupOnce?.();
+      const client = makeMockClient();
+      client.captureEvent.mockImplementation(() => {
+        recordTurboModuleCall({
+          name: 'RNSentry',
+          method: 'captureEnvelope',
+          kind: 'async',
+          durationMs: 3,
+          errored: false,
+        });
+        return 'event-id';
+      });
+      integration.setup?.(client);
+
+      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
+      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
+      expect(client.captureEvent).toHaveBeenCalledTimes(1);
+
+      // Let the deferred `endSuppress + drain` macrotask run. After this,
+      // the aggregator should be empty so a subsequent user call is an
+      // empty→non-empty transition that re-arms the timer.
+      jest.advanceTimersByTime(1);
+      expect(hasTurboModuleAggregateData()).toBe(false);
+
+      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 2, errored: false });
+      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
+
+      // A second periodic flush must have fired for the real user call
+      // recorded after the first flush.
+      expect(client.captureEvent).toHaveBeenCalledTimes(2);
+    });
   });
 });
