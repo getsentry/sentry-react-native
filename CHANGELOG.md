@@ -17,10 +17,17 @@
 - Fix iOS time-to-initial-display fallback spans reporting a spurious `deadline_exceeded` status and inflated duration ([#6438](https://github.com/getsentry/sentry-react-native/pull/6438))
 - Fix `TypeError` when `showFeedbackForm`/`showFeedbackButton`/`showScreenshotButton` is called before `FeedbackFormProvider` mounts ([#6435](https://github.com/getsentry/sentry-react-native/pull/6435))
 - Fix orphaned TTID/TTFD spans in the trace view ([#6437](https://github.com/getsentry/sentry-react-native/pull/6437))
+- Fix iOS retain cycle in `RNSentryOnDrawReporterView` leaking TTID/TTFD reporter views and their frame-tracker listeners ([#6449](https://github.com/getsentry/sentry-react-native/pull/6449))
 
 ### Internal
 
 - Migrate iOS code from the deprecated `PrivateSentrySDKOnly` SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6380](https://github.com/getsentry/sentry-react-native/pull/6380))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.64.0 to v10.65.0 ([#6441](https://github.com/getsentry/sentry-react-native/pull/6441))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10650)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.64.0...10.65.0)
 
 ## 8.18.0
 
