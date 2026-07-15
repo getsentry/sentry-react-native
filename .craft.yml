@@ -3,6 +3,7 @@ changelogPolicy: auto
 preReleaseCommand: bash scripts/craft-pre-release.sh
 targets:
   - name: npm
+    checkPackageName: '@sentry/react-native'
   - name: github
   - name: registry
     sdks:
