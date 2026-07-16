@@ -28,6 +28,7 @@
   ```
 
 - Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
+- Add `enableHistoricalTombstoneReporting` option to report historical tombstones from Android's `ApplicationExitInfo` ([#6450](https://github.com/getsentry/sentry-react-native/pull/6450))
 
 ### Fixes
 
@@ -35,6 +36,7 @@
 - Fix `TypeError` when `showFeedbackForm`/`showFeedbackButton`/`showScreenshotButton` is called before `FeedbackFormProvider` mounts ([#6435](https://github.com/getsentry/sentry-react-native/pull/6435))
 - Fix orphaned TTID/TTFD spans in the trace view ([#6437](https://github.com/getsentry/sentry-react-native/pull/6437))
 - Fix iOS retain cycle in `RNSentryOnDrawReporterView` leaking TTID/TTFD reporter views and their frame-tracker listeners ([#6449](https://github.com/getsentry/sentry-react-native/pull/6449))
+- Fix `reactNavigationIntegration` reading a stale route from an override provider (e.g. `expoRouterIntegration`), causing navigation transactions to be named/attributed for the previous route ([#6458](https://github.com/getsentry/sentry-react-native/pull/6458))
 
 ### Internal
 
@@ -45,6 +47,9 @@
 - Bump JavaScript SDK from v10.64.0 to v10.65.0 ([#6441](https://github.com/getsentry/sentry-react-native/pull/6441))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10650)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.64.0...10.65.0)
+- Bump Android SDK from v8.48.0 to v8.49.0 ([#6459](https://github.com/getsentry/sentry-react-native/pull/6459))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8490)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.48.0...8.49.0)
 
 ## 8.18.0
 
