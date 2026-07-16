@@ -24,6 +24,12 @@
 
 - Migrate iOS code from the deprecated `PrivateSentrySDKOnly` SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6380](https://github.com/getsentry/sentry-react-native/pull/6380))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.64.0 to v10.65.0 ([#6441](https://github.com/getsentry/sentry-react-native/pull/6441))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10650)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.64.0...10.65.0)
+
 ## 8.18.0
 
 ### Features
@@ -188,6 +194,12 @@
 - Bump CLI from v3.5.0 to v3.5.1 ([#6305](https://github.com/getsentry/sentry-react-native/pull/6305))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#351)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.5.0...3.5.1)
+
+## 8.14.2
+
+### Fixes
+
+- Fix iOS retain cycle in `RNSentryOnDrawReporterView` leaking TTID/TTFD reporter views and their frame-tracker listeners ([#6449](https://github.com/getsentry/sentry-react-native/pull/6449))
 
 ## 8.14.1
 
