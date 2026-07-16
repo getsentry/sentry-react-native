@@ -2007,6 +2007,45 @@ describe('ReactNavigationInstrumentation', () => {
       expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('/posts/[...slug]');
       expect(traceData[SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]).toBe('/profile/[id]');
     });
+
+    // Regression test for #6436. React Navigation's BaseNavigationContainer
+    // fires `emit('state')` synchronously BEFORE the `onStateChange` prop
+    // callback, and Expo Router refreshes its router-store cache from that
+    // prop. Reading the override synchronously in the `state` listener would
+    // return the previous route for the current transition. The integration
+    // must defer the read until after the synchronous state-change chain has
+    // unwound.
+    it('reads the route override after the synchronous state-change chain (Expo Router ordering)', async () => {
+      const rNavigation = setupWithOverride();
+      jest.runOnlyPendingTimers();
+
+      // First navigation: settle on '/A' so the provider has a "previous" value.
+      let latestOverride: { templatedPath: string; params?: Record<string, unknown> } = {
+        templatedPath: '/A',
+      };
+      rNavigation._setRouteOverrideProvider(() => latestOverride);
+
+      mockNavigation.navigateToDynamicRoute();
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      // Second navigation: simulate the Expo Router ordering. When the `state`
+      // event fires the override provider still returns '/A' (Expo Router has
+      // not yet run its own `onStateChange` prop callback). Flip the provider
+      // to '/B' AFTER `navigateToCatchAllRoute()` returns but BEFORE the
+      // pending microtask flushes — this mimics `onStateChange` refreshing
+      // the store cache right after `emit('state')` returns.
+      mockNavigation.navigateToCatchAllRoute();
+      latestOverride = { templatedPath: '/B' };
+      jest.runOnlyPendingTimers();
+      await client.flush();
+
+      const traceData = client.event?.contexts?.trace?.data as Record<string, unknown>;
+      expect(client.event?.transaction).toBe('/B');
+      expect(traceData[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('/B');
+      expect(traceData['route.path']).toBe('/B');
+      expect(traceData[SEMANTIC_ATTRIBUTE_PREVIOUS_ROUTE_NAME]).toBe('/A');
+    });
   });
 
   describe('dispatch breadcrumbs', () => {
