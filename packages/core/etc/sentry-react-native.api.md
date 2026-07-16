@@ -856,17 +856,23 @@ export { TransactionEvent }
 // @public
 export interface TurboModuleCall {
     callId: number;
-    kind: 'sync' | 'async';
+    kind: TurboModuleCallKind;
     method: string;
     name: string;
     startedAtMs: number;
 }
 
 // @public
+export type TurboModuleCallKind = 'sync' | 'async';
+
+// @public
 export const turboModuleContextIntegration: (options?: TurboModuleContextOptions) => Integration;
 
 // @public (undocumented)
 export interface TurboModuleContextOptions {
+    aggregateFlushIntervalMs?: number;
+    enableAggregateStats?: boolean;
+    ignoreTurboModules?: ReadonlyArray<string>;
     modules?: Array<{
         name: string;
         module: object | null | undefined;
