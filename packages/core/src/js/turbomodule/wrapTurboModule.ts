@@ -1,5 +1,8 @@
 import { logger } from '@sentry/core';
 
+import type { TurboModuleCallKind } from './turboModuleTracker';
+
+import { recordTurboModuleCall } from './turboModuleAggregator';
 import { popTurboModuleCall, pushTurboModuleCall, relabelTurboModuleCallKind } from './turboModuleTracker';
 
 /**
@@ -81,6 +84,7 @@ export function wrapTurboModule<T extends object>(
       // We don't know yet whether `original` is sync or async — start optimistic
       // as sync, relabel to 'async' if the result turns out to be thenable.
       let callId: number | undefined;
+      const startedAtMs = Date.now();
       try {
         callId = pushTurboModuleCall({ name, method: key, kind: 'sync' });
       } catch (e) {
@@ -92,6 +96,7 @@ export function wrapTurboModule<T extends object>(
         result = originalFn.apply(this, args);
       } catch (e) {
         safePop(callId, name, key);
+        safeRecord(name, key, 'sync', startedAtMs, true);
         throw e;
       }
 
@@ -100,16 +105,19 @@ export function wrapTurboModule<T extends object>(
         return (result as Promise<unknown>).then(
           value => {
             safePop(callId, name, key);
+            safeRecord(name, key, 'async', startedAtMs, false);
             return value;
           },
           err => {
             safePop(callId, name, key);
+            safeRecord(name, key, 'async', startedAtMs, true);
             throw err;
           },
         );
       }
 
       safePop(callId, name, key);
+      safeRecord(name, key, 'sync', startedAtMs, false);
       return result;
     };
 
@@ -174,7 +182,7 @@ function safePop(callId: number | undefined, name: string, method: string): void
   }
 }
 
-function safeRelabel(callId: number | undefined, kind: 'sync' | 'async', name: string, method: string): void {
+function safeRelabel(callId: number | undefined, kind: TurboModuleCallKind, name: string, method: string): void {
   if (callId === undefined) {
     return;
   }
@@ -182,6 +190,26 @@ function safeRelabel(callId: number | undefined, kind: 'sync' | 'async', name: s
     relabelTurboModuleCallKind(callId, kind);
   } catch (e) {
     logger.warn(`[TurboModuleTracker] relabel failed for ${name}.${method}: ${String(e)}`);
+  }
+}
+
+function safeRecord(
+  name: string,
+  method: string,
+  kind: TurboModuleCallKind,
+  startedAtMs: number,
+  errored: boolean,
+): void {
+  try {
+    recordTurboModuleCall({
+      name,
+      method,
+      kind,
+      durationMs: Date.now() - startedAtMs,
+      errored,
+    });
+  } catch (e) {
+    logger.warn(`[TurboModuleTracker] record failed for ${name}.${method}: ${String(e)}`);
   }
 }
 
