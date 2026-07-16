@@ -96,13 +96,6 @@ export function setIgnoredTurboModules(names: ReadonlyArray<string> | undefined)
 }
 
 /**
- * Returns whether the given TurboModule is currently opted out of aggregation.
- */
-export function isTurboModuleIgnored(name: string): boolean {
-  return ignoredModules.has(name);
-}
-
-/**
  * Records a single TurboModule method invocation into the aggregate.
  *
  * Must be O(1): called on every wrapped method invocation, including hot

@@ -10,7 +10,6 @@ export {
   HISTOGRAM_BUCKET_LABELS,
   HISTOGRAM_BUCKETS_MS,
   hasTurboModuleAggregateData,
-  isTurboModuleIgnored,
   recordTurboModuleCall,
   setAggregateRecordingEnabled,
   setIgnoredTurboModules,
