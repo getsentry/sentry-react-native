@@ -15,3 +15,5 @@ export const SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH = 'auto.expo_router.prefetch'
 export const SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION = 'auto.navigation.expo_router';
 export const SPAN_ORIGIN_AUTO_RESOURCE_EXPO_IMAGE = 'auto.resource.expo_image';
 export const SPAN_ORIGIN_AUTO_RESOURCE_EXPO_ASSET = 'auto.resource.expo_asset';
+
+export const SPAN_ORIGIN_AUTO_EXPO_UPDATES = 'auto.expo.updates';
