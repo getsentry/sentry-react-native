@@ -64,7 +64,7 @@ jobs:
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
-      - uses: ruby/setup-ruby@d45b1a4e94b71acab930e56e79c6aa188764e7f9 # v1
+      - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1
         with:
           working-directory: samples/expo
           ruby-version: "3.3.0" # based on what is used in the sample
