@@ -41,34 +41,25 @@ export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}
     // `Sentry.init()` is typically called at module eval time (as the docs recommend),
     // which runs before Expo Router's Root Layout mounts. Both `store.navigationRef` and
     // `navigationRef.current` may still be undefined here — poll for both to appear.
-    let reactNavigation: ReturnType<typeof reactNavigationIntegration> | undefined;
+    // Defer adding `reactNavigationIntegration` until we can also register it, so a
+    // timeout can never leave a non-functional integration attached to the client.
     const startedAt = Date.now();
-
-    const attachReactNavigationOnce = (): ReturnType<typeof reactNavigationIntegration> => {
-      if (reactNavigation) {
-        return reactNavigation;
-      }
-      // Reuse the user's reactNavigationIntegration if they registered one manually.
-      // Otherwise, create and add one.
-      const existing = getReactNavigationIntegration(client);
-      reactNavigation = existing ?? reactNavigationIntegration(options);
-      if (!existing) {
-        client.addIntegration(reactNavigation);
-      }
-      reactNavigation._setRouteOverrideProvider?.(() => buildExpoRouterRouteOverride(store));
-      return reactNavigation;
-    };
 
     const poll = (): void => {
       const navigationRef = store.navigationRef;
 
-      if (navigationRef) {
-        const integ = attachReactNavigationOnce();
-        if (navigationRef.current) {
-          integ.registerNavigationContainer(navigationRef);
-          pollTimer = undefined;
-          return;
+      if (navigationRef?.current) {
+        // Reuse the user's reactNavigationIntegration if they registered one manually.
+        // Otherwise, create and add one.
+        const existing = getReactNavigationIntegration(client);
+        const reactNavigation = existing ?? reactNavigationIntegration(options);
+        if (!existing) {
+          client.addIntegration(reactNavigation);
         }
+        reactNavigation._setRouteOverrideProvider?.(() => buildExpoRouterRouteOverride(store));
+        reactNavigation.registerNavigationContainer(navigationRef);
+        pollTimer = undefined;
+        return;
       }
 
       if (Date.now() - startedAt >= POLL_MAX_DURATION_MS) {
