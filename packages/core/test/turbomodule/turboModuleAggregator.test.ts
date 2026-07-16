@@ -1,8 +1,6 @@
 import {
   _resetTurboModuleAggregator,
-  beginSuppressFirstTurboModuleRecordCallback,
   drainTurboModuleAggregate,
-  endSuppressFirstTurboModuleRecordCallback,
   hasTurboModuleAggregateData,
   recordTurboModuleCall,
   setAggregateRecordingEnabled,
@@ -62,24 +60,21 @@ describe('turboModuleAggregator', () => {
     expect(snapshot[0]?.name).toBe('Other');
   });
 
-  it('does not fire the empty→non-empty callback while suppressed', () => {
+  it('fires the empty→non-empty callback on the first record after a drain', () => {
     const cb = jest.fn();
     setOnFirstTurboModuleRecord(cb);
 
-    beginSuppressFirstTurboModuleRecordCallback();
-    recordTurboModuleCall({
-      name: 'RNSentry',
-      method: 'captureEnvelope',
-      kind: 'async',
-      durationMs: 1,
-      errored: false,
-    });
-    expect(cb).not.toHaveBeenCalled();
-
-    endSuppressFirstTurboModuleRecordCallback();
-    drainTurboModuleAggregate();
     recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
     expect(cb).toHaveBeenCalledTimes(1);
+
+    // Subsequent records into a non-empty map must NOT re-fire.
+    recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
+    expect(cb).toHaveBeenCalledTimes(1);
+
+    // After a drain the next record fires again.
+    drainTurboModuleAggregate();
+    recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
+    expect(cb).toHaveBeenCalledTimes(2);
   });
 
   it('drops all calls while recording is disabled and clears any existing entries', () => {

@@ -4,9 +4,7 @@ import { debug } from '@sentry/core';
 
 import { createSpanJSON } from '../tracing/utils';
 import {
-  beginSuppressFirstTurboModuleRecordCallback,
   drainTurboModuleAggregate,
-  endSuppressFirstTurboModuleRecordCallback,
   HISTOGRAM_BUCKET_LABELS,
   hasTurboModuleAggregateData,
   setAggregateRecordingEnabled,
@@ -74,9 +72,14 @@ export interface TurboModuleContextOptions {
   aggregateFlushIntervalMs?: number;
 
   /**
-   * TurboModules whose calls should NOT be counted in the aggregate. Users
-   * may e.g. want to exclude `RNSentry` itself to keep the signal clean of
-   * the SDK's own internal calls.
+   * TurboModules whose calls should NOT be counted in the aggregate.
+   *
+   * Default: `['RNSentry']`. The SDK's own transport call
+   * (`RNSentry.captureEnvelope`) fires from every `captureEvent`, so leaving
+   * `RNSentry` in the aggregate would (a) pollute app-level TurboModule
+   * signals with SDK internal noise and (b) allow the periodic flush's own
+   * `captureEvent` to record back into the aggregator and perpetually re-arm
+   * the flush timer in idle sessions. Pass `[]` to opt back in.
    *
    * Note: this does NOT disable wrapping — crashes during those calls still
    * get attributed via `contexts.turbo_module`. It only opts the module out
@@ -146,7 +149,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
 
       setAggregateRecordingEnabled(enableAggregate);
       if (enableAggregate) {
-        setIgnoredTurboModules(options.ignoreTurboModules);
+        setIgnoredTurboModules(options.ignoreTurboModules ?? ['RNSentry']);
       }
     },
     setup(client: Client): void {
@@ -202,6 +205,13 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
 /**
  * Mutates a transaction event in place to add the aggregate breakdown as a
  * synthetic child span plus a few headline measurements on the root span.
+ *
+ * Draining here runs before `beforeSendTransaction`, so if a user hook drops
+ * this transaction, the drained batch is lost. Trade-off is intentional:
+ * peeking without draining would require send-confirmation bookkeeping across
+ * events and multiple transactions in flight would double-count. Data loss
+ * from a dropped transaction is bounded (one interval) and self-heals — the
+ * next transaction or periodic flush picks up fresh activity.
  */
 function attachAggregateToTransactionEvent(event: TransactionEvent): void {
   const trace = event.contexts?.trace;
@@ -268,16 +278,10 @@ function attachAggregateToTransactionEvent(event: TransactionEvent): void {
  * sessions without a transaction still produce a signal. No-op when there's
  * nothing to flush.
  *
- * The `captureEvent` call travels through `RNSentry.captureEnvelope`, which
- * is itself a wrapped TurboModule call. Without the suppression scope below,
- * the resulting empty→non-empty transition on the aggregator would re-arm
- * the flush timer indefinitely in an otherwise-idle session. The release is
- * deferred to the next macrotask so the async record fired from the
- * transport's `.then()` (after the native side resolves) also lands inside
- * the suppression window; the leftover entries are then drained so the next
- * real user call registers as an empty→non-empty transition and re-arms
- * the periodic timer (otherwise a suppressed record would poison the map
- * and the timer would never re-arm again).
+ * `client.captureEvent` reaches wrapped `RNSentry.captureEnvelope` via the
+ * native transport — so if `RNSentry` were aggregated, the flush's own send
+ * would re-arm the lazy timer indefinitely. `ignoreTurboModules` defaults
+ * to `['RNSentry']` for exactly this reason.
  */
 function flushPeriodicAggregate(client: Client): void {
   if (!hasTurboModuleAggregateData()) {
@@ -287,35 +291,20 @@ function flushPeriodicAggregate(client: Client): void {
   const totals = summarise(snapshot);
   const topByTotalMs = [...snapshot].sort((a, b) => b.totalDurationMs - a.totalDurationMs);
 
-  beginSuppressFirstTurboModuleRecordCallback();
-  try {
-    client.captureEvent?.({
-      message: 'TurboModule aggregate (periodic)',
-      level: 'info',
-      tags: {
-        'event.kind': 'turbo_modules.aggregate',
-      },
-      extra: {
-        total_call_count: totals.callCount,
-        total_error_count: totals.errorCount,
-        total_duration_ms: roundMs(totals.totalDurationMs),
-        unique_methods: snapshot.length,
-        modules: topByTotalMs.slice(0, MAX_AGGREGATE_ATTRIBUTE_ROWS).map(serialiseRowAsObject),
-      },
-    });
-  } finally {
-    setTimeout(() => {
-      endSuppressFirstTurboModuleRecordCallback();
-      // Discard whatever landed during the suppression window — those
-      // records are (in the common case) our own transport's self-noise.
-      // Leaving them in the aggregator would leave `size > 0`, so the
-      // next real user call wouldn't be an empty→non-empty transition
-      // and `onFirstRecordAfterEmpty` would never re-arm the timer.
-      if (hasTurboModuleAggregateData()) {
-        drainTurboModuleAggregate();
-      }
-    }, 0);
-  }
+  client.captureEvent?.({
+    message: 'TurboModule aggregate (periodic)',
+    level: 'info',
+    tags: {
+      'event.kind': 'turbo_modules.aggregate',
+    },
+    extra: {
+      total_call_count: totals.callCount,
+      total_error_count: totals.errorCount,
+      total_duration_ms: roundMs(totals.totalDurationMs),
+      unique_methods: snapshot.length,
+      modules: topByTotalMs.slice(0, MAX_AGGREGATE_ATTRIBUTE_ROWS).map(serialiseRowAsObject),
+    },
+  });
 }
 
 function summarise(snapshot: ReadonlyArray<TurboModuleAggregate>): {

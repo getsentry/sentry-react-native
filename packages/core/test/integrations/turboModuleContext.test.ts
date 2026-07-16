@@ -154,15 +154,15 @@ describe('turboModuleContextIntegration', () => {
       integration.setup?.(makeMockClient());
 
       recordTurboModuleCall({
-        name: 'RNSentry',
-        method: 'captureEnvelope',
+        name: 'UserMod',
+        method: 'work',
         kind: 'async',
         durationMs: 12,
         errored: false,
       });
       recordTurboModuleCall({
-        name: 'RNSentry',
-        method: 'captureEnvelope',
+        name: 'UserMod',
+        method: 'work',
         kind: 'async',
         durationMs: 8,
         errored: true,
@@ -174,13 +174,82 @@ describe('turboModuleContextIntegration', () => {
       expect(out.spans).toHaveLength(1);
       expect(out.spans?.[0]).toMatchObject({ op: TURBO_MODULES_AGGREGATE_OP });
       expect(out.spans?.[0]?.data).toMatchObject({
-        'turbo_modules.RNSentry.captureEnvelope.async.count': 2,
-        'turbo_modules.RNSentry.captureEnvelope.async.error_count': 1,
-        'turbo_modules.RNSentry.captureEnvelope.async.total_ms': 20,
+        'turbo_modules.UserMod.work.async.count': 2,
+        'turbo_modules.UserMod.work.async.error_count': 1,
+        'turbo_modules.UserMod.work.async.total_ms': 20,
       });
       expect(out.measurements).toMatchObject({
         'turbo_modules.call_count': { value: 2, unit: 'none' },
         'turbo_modules.total_ms': { value: 20, unit: 'millisecond' },
+      });
+    });
+
+    it('ignores RNSentry by default so the flush self-send does not loop', () => {
+      // RNSentry is in the default `ignoreTurboModules` set — this is what
+      // keeps the flush's own `captureEvent → RNSentry.captureEnvelope`
+      // call from feeding back into the aggregator and re-arming the
+      // periodic timer forever in idle sessions.
+      jest.useFakeTimers();
+      const integration = turboModuleContextIntegration();
+      integration.setupOnce?.();
+      const client = makeMockClient();
+      // Simulate the transport wiring: every captureEvent replays the
+      // TurboModule call the RN transport would have made.
+      client.captureEvent.mockImplementation(() => {
+        recordTurboModuleCall({
+          name: 'RNSentry',
+          method: 'captureEnvelope',
+          kind: 'async',
+          durationMs: 3,
+          errored: false,
+        });
+        return 'event-id';
+      });
+      integration.setup?.(client);
+
+      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
+      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
+      expect(client.captureEvent).toHaveBeenCalledTimes(1);
+
+      // If RNSentry weren't default-ignored, the self-noise would land
+      // in the map and re-arm the timer — a second capture would land
+      // after another interval, then a third, ad infinitum.
+      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS * 10);
+      expect(client.captureEvent).toHaveBeenCalledTimes(1);
+
+      // The RNSentry call from the transport is dropped, so the map is
+      // empty and the next real user call is a fresh empty→non-empty
+      // transition that re-arms the timer.
+      expect(hasTurboModuleAggregateData()).toBe(false);
+      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 2, errored: false });
+      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
+      expect(client.captureEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('respects an explicit ignoreTurboModules override even when it opts RNSentry back in', () => {
+      // Users who want RNSentry aggregation can pass `[]` (or a list
+      // without RNSentry) to override the default. Verify the override
+      // is honoured end-to-end.
+      const integration = turboModuleContextIntegration({
+        aggregateFlushIntervalMs: 0,
+        ignoreTurboModules: [],
+      });
+      integration.setupOnce?.();
+      integration.setup?.(makeMockClient());
+
+      recordTurboModuleCall({
+        name: 'RNSentry',
+        method: 'captureEnvelope',
+        kind: 'async',
+        durationMs: 5,
+        errored: false,
+      });
+
+      const event = makeTransactionEvent();
+      const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
+      expect(out.spans).toHaveLength(1);
+      expect(out.spans?.[0]?.data).toMatchObject({
+        'turbo_modules.RNSentry.captureEnvelope.async.count': 1,
       });
     });
 
@@ -225,81 +294,6 @@ describe('turboModuleContextIntegration', () => {
       const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
       expect(out.spans ?? []).toHaveLength(0);
       expect(out.measurements ?? {}).toEqual({});
-    });
-
-    it('does not re-arm the periodic flush when captureEvent triggers its own TurboModule record', () => {
-      // Reproduces the self-recursion: `flushPeriodicAggregate` calls
-      // `client.captureEvent`, whose transport ultimately calls the wrapped
-      // `RNSentry.captureEnvelope`. That call records back into the
-      // aggregator; without suppression the empty→non-empty transition
-      // re-arms the timer, and an idle session loops forever.
-      jest.useFakeTimers();
-      const integration = turboModuleContextIntegration();
-      integration.setupOnce?.();
-      const client = makeMockClient();
-      // Simulate the transport wiring: every captureEvent replays the
-      // TurboModule call the RN transport would have made.
-      client.captureEvent.mockImplementation(() => {
-        recordTurboModuleCall({
-          name: 'RNSentry',
-          method: 'captureEnvelope',
-          kind: 'async',
-          durationMs: 3,
-          errored: false,
-        });
-        return 'event-id';
-      });
-      integration.setup?.(client);
-
-      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
-      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
-      expect(client.captureEvent).toHaveBeenCalledTimes(1);
-
-      // Release the deferred suppression and let any additional timers run.
-      // If the self-noise had re-armed the flush, a second capture would land
-      // after another interval; the loop would then never terminate.
-      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS * 10);
-      expect(client.captureEvent).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-arms the periodic flush on the next real user call after a suppressed flush', () => {
-      // After the first flush, the transport's self-noise gets recorded
-      // under suppression. If those leftover entries stayed in the
-      // aggregator, the next real user call would see `wasEmpty=false`
-      // and never re-arm the timer — so periodic flushes would stop
-      // entirely until a transaction drain cleared the map.
-      jest.useFakeTimers();
-      const integration = turboModuleContextIntegration();
-      integration.setupOnce?.();
-      const client = makeMockClient();
-      client.captureEvent.mockImplementation(() => {
-        recordTurboModuleCall({
-          name: 'RNSentry',
-          method: 'captureEnvelope',
-          kind: 'async',
-          durationMs: 3,
-          errored: false,
-        });
-        return 'event-id';
-      });
-      integration.setup?.(client);
-
-      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
-      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
-      expect(client.captureEvent).toHaveBeenCalledTimes(1);
-
-      // Let the deferred `endSuppress + drain` macrotask run. After this,
-      // the aggregator should be empty so a subsequent user call is an
-      // empty→non-empty transition that re-arms the timer.
-      jest.advanceTimersByTime(1);
-      expect(hasTurboModuleAggregateData()).toBe(false);
-
-      recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 2, errored: false });
-      jest.advanceTimersByTime(DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS);
-
-      // A second periodic flush must have fired for the real user call
-      // recorded after the first flush.
-      expect(client.captureEvent).toHaveBeenCalledTimes(2);
     });
   });
 });
