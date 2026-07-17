@@ -107,8 +107,9 @@ val androidAssetsDir = File("$rootDir/app/src/main/assets")
 
 // Values captured at configuration time so task onlyIf specs and actions do not read
 // `project` state at execution time (required for Gradle Configuration Cache compatibility).
-val copyOptionsFileEnabled = System.getenv("SENTRY_COPY_OPTIONS_FILE") != "false"
-val sentryAutoUploadGeneralEnabled = System.getenv("SENTRY_DISABLE_AUTO_UPLOAD") != "true"
+// The overridable `shouldCopySentryOptionsFile()` closure is still consulted (not the env var
+// directly) so setups that reassign `project.ext.shouldCopySentryOptionsFile` keep working.
+val copyOptionsFileEnabled = shouldCopySentryOptionsFile()
 val rootDirFile = project.rootDir
 
 tasks.register("copySentryJsonConfiguration") {
@@ -502,6 +503,12 @@ plugins.withId("com.android.application") {
 fun processVariant(v: Any) {
     val vName = v.javaClass.getMethod("getName").invoke(v) as String
     if (vName.contains("debug", ignoreCase = true)) return
+
+    // Captured here (inside the onVariants callback, which runs after the app build.gradle has
+    // evaluated) rather than at apply-time, so a `project.ext.shouldSentryAutoUploadGeneral`
+    // override set right after `apply from` (e.g. the Expo `disableAutoUpload` plugin) is honored.
+    // Referencing this captured boolean in `onlyIf` keeps the task Configuration Cache compatible.
+    val sentryAutoUploadGeneralEnabled = shouldSentryAutoUploadGeneral()
 
     val variantCapitalized = Character.toUpperCase(vName[0]).toString() + vName.substring(1)
     val sentryBundleTaskName =
