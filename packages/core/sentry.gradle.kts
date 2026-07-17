@@ -107,13 +107,14 @@ val androidAssetsDir = File("$rootDir/app/src/main/assets")
 
 // Values captured at configuration time so task onlyIf specs and actions do not read
 // `project` state at execution time (required for Gradle Configuration Cache compatibility).
-// The overridable `shouldCopySentryOptionsFile()` closure is still consulted (not the env var
-// directly) so setups that reassign `project.ext.shouldCopySentryOptionsFile` keep working.
-val copyOptionsFileEnabled = shouldCopySentryOptionsFile()
+// `copyOptionsFileEnabled` is a Property populated in `afterEvaluate` (below) rather than at
+// apply-time, so a `project.ext.shouldCopySentryOptionsFile` override placed after `apply from`
+// is still honored. Referencing the Property in `onlyIf` keeps the tasks Config Cache compatible.
+val copyOptionsFileEnabled = objects.property(Boolean::class.java)
 val rootDirFile = project.rootDir
 
 tasks.register("copySentryJsonConfiguration") {
-    onlyIf { copyOptionsFileEnabled }
+    onlyIf { copyOptionsFileEnabled.get() }
     val injectedFs = project.objects.newInstance(InjectedFsOps::class.java)
     doLast {
         val appRoot = rootDirFile.parentFile ?: rootDirFile
@@ -169,7 +170,7 @@ tasks.register("copySentryJsonConfiguration") {
 }
 
 tasks.register("cleanupTemporarySentryJsonConfiguration") {
-    onlyIf { copyOptionsFileEnabled }
+    onlyIf { copyOptionsFileEnabled.get() }
     doLast {
         val sentryOptionsFile = File(androidAssetsDir, configFile)
         if (sentryOptionsFile.exists()) {
@@ -582,6 +583,10 @@ fun processVariant(v: Any) {
                 group = "sentry.io"
 
                 val sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
+                // Resolved at configuration time and captured: calling this script method from
+                // inside the doLast exec closure would fail under the Configuration Cache (the
+                // serialized task action can't resolve top-level script methods).
+                val cliPackage = resolveSentryCliPackagePath(reactRoot)
                 val copyDebugIdScript =
                     config["copyDebugIdScript"]
                         ?.toString()
@@ -663,7 +668,6 @@ fun processVariant(v: Any) {
                             }
                         }
 
-                        val cliPackage = resolveSentryCliPackagePath(reactRoot)
                         var cliExecutable = sentryProps.getProperty("cli.executable") ?: "$cliPackage/bin/sentry-cli"
 
                         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -797,6 +801,10 @@ fun processVariant(v: Any) {
 }
 
 project.afterEvaluate {
+    // Resolve the (overridable) closure now, after the app build.gradle has evaluated, so an
+    // override placed after `apply from` is honored. The Property is read by the copy/cleanup
+    // tasks' onlyIf at execution time without touching `project` (Configuration Cache safe).
+    copyOptionsFileEnabled.set(shouldCopySentryOptionsFile())
     tasks.named("preBuild").configure {
         dependsOn("copySentryJsonConfiguration")
     }
