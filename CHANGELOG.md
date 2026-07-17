@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix iOS link failure `Undefined symbols: SentryInternalSwizzleApi.Mode.oncePerClass` when consuming the default prebuilt `Sentry.xcframework` ([#6465](https://github.com/getsentry/sentry-react-native/issues/6465))
+
 ## 8.19.0
 
 ### Features

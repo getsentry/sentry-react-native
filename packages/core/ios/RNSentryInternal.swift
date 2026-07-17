@@ -182,52 +182,6 @@ import Foundation
     ) {}
     #endif
 
-    // MARK: - Swizzle
-
-    // `SentryInternalSwizzleApi` in sentry-cocoa has no platform gating.
-    // We enable the wrapper on every UIKit-capable platform (iOS/tvOS/visionOS
-    // — matching `SENTRY_UIKIT_AVAILABLE`, which is what `SENTRY_HAS_UIKIT`
-    // resolves to in the RNSentry.mm caller). `os(iOS)` in Swift already
-    // covers Mac Catalyst, so no separate `targetEnvironment(macCatalyst)` is
-    // needed.
-    #if os(iOS) || os(tvOS) || os(visionOS)
-    /// Stable identity for the `RNSScreen.viewDidAppear:` swizzle so the underlying
-    /// `oncePerClass` bookkeeping in sentry-cocoa can dedupe re-entries.
-    private static var rnsScreenViewDidAppearKey: UInt8 = 0
-
-    /// Swizzles `-[RNSScreen viewDidAppear:]`, invoking `hook` before the original
-    /// implementation on every call. No-op when RNSScreen is unavailable.
-    @_spi(Private) @objc public static func swizzleRNSScreenViewDidAppear(hook: @escaping () -> Void) {
-        guard let cls = NSClassFromString("RNSScreen") else { return }
-        let selector = NSSelectorFromString("viewDidAppear:")
-
-        // `withUnsafePointer(to:)` scopes the pointer's validity to the closure
-        // body. Perform the entire swizzle call inside so we never rely on the
-        // pointer surviving beyond the closure. The backing storage is a
-        // `static var`, so the address itself stays stable across calls —
-        // sentry-cocoa's `oncePerClass` bookkeeping continues to dedupe.
-        withUnsafePointer(to: &rnsScreenViewDidAppearKey) { keyPtr in
-            _ = SentrySDK.internal.swizzle.instanceMethod(
-                selector,
-                in: cls,
-                mode: .oncePerClass,
-                key: UnsafeRawPointer(keyPtr),
-                factory: { getOriginal in
-                    let block: @convention(block) (AnyObject, ObjCBool) -> Void = { receiver, animated in
-                        hook()
-                        typealias OriginalIMP = @convention(c) (AnyObject, Selector, ObjCBool) -> Void
-                        let original = unsafeBitCast(getOriginal(), to: OriginalIMP.self)
-                        original(receiver, selector, animated)
-                    }
-                    return block as AnyObject
-                }
-            )
-        }
-    }
-    #else
-    @_spi(Private) @objc public static func swizzleRNSScreenViewDidAppear(hook: @escaping () -> Void) {}
-    #endif
-
     // MARK: - Profiling
 
     #if !(os(watchOS) || os(tvOS) || os(visionOS))
