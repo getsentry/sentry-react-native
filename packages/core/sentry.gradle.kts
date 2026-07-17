@@ -78,6 +78,11 @@ interface InjectedExecOps {
     val execOps: org.gradle.process.ExecOperations
 }
 
+interface InjectedFsOps {
+    @get:Inject
+    val fs: org.gradle.api.file.FileSystemOperations
+}
+
 extra["shouldCopySentryOptionsFile"] =
     object : groovy.lang.Closure<Boolean>(this) {
         fun doCall(): Boolean = System.getenv("SENTRY_COPY_OPTIONS_FILE") != "false"
@@ -100,17 +105,24 @@ val config: Map<String, Any?> =
 val configFile = "sentry.options.json"
 val androidAssetsDir = File("$rootDir/app/src/main/assets")
 
+// Values captured at configuration time so task onlyIf specs and actions do not read
+// `project` state at execution time (required for Gradle Configuration Cache compatibility).
+val copyOptionsFileEnabled = System.getenv("SENTRY_COPY_OPTIONS_FILE") != "false"
+val sentryAutoUploadGeneralEnabled = System.getenv("SENTRY_DISABLE_AUTO_UPLOAD") != "true"
+val rootDirFile = project.rootDir
+
 tasks.register("copySentryJsonConfiguration") {
-    onlyIf { shouldCopySentryOptionsFile() }
+    onlyIf { copyOptionsFileEnabled }
+    val injectedFs = project.objects.newInstance(InjectedFsOps::class.java)
     doLast {
-        val appRoot = project.rootDir.parentFile ?: project.rootDir
+        val appRoot = rootDirFile.parentFile ?: rootDirFile
         val sentryOptionsFile = File(appRoot, configFile)
         if (sentryOptionsFile.exists()) {
             if (!androidAssetsDir.exists()) {
                 androidAssetsDir.mkdirs()
             }
 
-            copy {
+            injectedFs.fs.copy {
                 from(sentryOptionsFile)
                 into(androidAssetsDir)
                 rename { configFile }
@@ -156,7 +168,7 @@ tasks.register("copySentryJsonConfiguration") {
 }
 
 tasks.register("cleanupTemporarySentryJsonConfiguration") {
-    onlyIf { shouldCopySentryOptionsFile() }
+    onlyIf { copyOptionsFileEnabled }
     doLast {
         val sentryOptionsFile = File(androidAssetsDir, configFile)
         if (sentryOptionsFile.exists()) {
@@ -207,7 +219,7 @@ fun resolveSentryCliPackagePath(reactRoot: File): String {
                     "--print",
                     "require.resolve('@sentry/cli/package.json', { paths: [require.resolve('@sentry/react-native/package.json')] })",
                 ),
-            ).directory(rootDir)
+            ).directory(reactRoot)
                 .start()
         val output =
             process.inputStream
@@ -558,7 +570,7 @@ fun processVariant(v: Any) {
 
         val cliTask =
             tasks.register(nameCliTask) {
-                onlyIf { shouldSentryAutoUploadGeneral() }
+                onlyIf { sentryAutoUploadGeneralEnabled }
                 description = "upload debug symbols to sentry"
                 group = "sentry.io"
 
@@ -591,9 +603,9 @@ fun processVariant(v: Any) {
                             .start()
                     val processOutput = process.inputStream.bufferedReader().readText()
                     process.waitFor()
-                    project.logger.lifecycle("Check generated source map for Debug ID: $processOutput")
+                    logger.lifecycle("Check generated source map for Debug ID: $processOutput")
 
-                    project.logger.lifecycle("Sentry Source Maps upload will include the release name and dist.")
+                    logger.lifecycle("Sentry Source Maps upload will include the release name and dist.")
                     extraArgs.addAll(listOf("--release", releaseName, "--dist", versionCode.toString()))
                 }
 
@@ -608,7 +620,7 @@ fun processVariant(v: Any) {
 
                         if (flavorAware) {
                             propertiesFile = "$reactRoot/android/sentry-$variant.properties"
-                            project.logger.info("For $variant using: $propertiesFile")
+                            logger.info("For $variant using: $propertiesFile")
                         } else {
                             environment("SENTRY_PROPERTIES", propertiesFile)
                         }
@@ -623,7 +635,7 @@ fun processVariant(v: Any) {
                                         "Create it, or disable 'flavorAware' in project.ext.sentryCli.",
                                 )
                             }
-                            project.logger.info("file not found '$propertiesFile' for '$variant'")
+                            logger.info("file not found '$propertiesFile' for '$variant'")
                         }
 
                         val sentryUrl = sentryProps.getProperty("defaults.url")
@@ -685,9 +697,9 @@ fun processVariant(v: Any) {
                             } else {
                                 args
                             }
-                        project.logger.lifecycle("Sentry-CLI arguments: $loggedArgs")
+                        logger.lifecycle("Sentry-CLI arguments: $loggedArgs")
                         val osCompatibility = if (Os.isFamily(Os.FAMILY_WINDOWS)) listOf("cmd", "/c", "node") else emptyList()
-                        if (System.getenv("SENTRY_DOTENV_PATH") == null && file("$reactRoot/.env.sentry-build-plugin").exists()) {
+                        if (System.getenv("SENTRY_DOTENV_PATH") == null && File("$reactRoot/.env.sentry-build-plugin").exists()) {
                             environment("SENTRY_DOTENV_PATH", "$reactRoot/.env.sentry-build-plugin")
                         }
                         commandLine(osCompatibility + args)
