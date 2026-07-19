@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Session Replay network details now capture `fetch` (Blob/ArrayBuffer) response bodies ([#6473](https://github.com/getsentry/sentry-react-native/pull/6473))
+
+  React Native's `fetch` is built on XMLHttpRequest with `responseType: 'blob'`, so fetch response bodies previously always showed `[UNPARSEABLE_BODY_TYPE]` in the Replay network tab. Text-like binary payloads (JSON, XML, `text/*`, form data) are now read asynchronously and inlined like text bodies — still only for URLs matching `networkDetailAllowUrls` with `networkCaptureBodies` enabled, with the same size cap. Genuinely binary payloads (images, media) remain marked as unparseable.
+
 ## 8.19.0
 
 ### Features
