@@ -1,6 +1,16 @@
-import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint, Integration, Metric } from '@sentry/core';
+import type {
+  Breadcrumb,
+  BreadcrumbHint,
+  Client,
+  DynamicSamplingContext,
+  ErrorEvent,
+  Event,
+  EventHint,
+  Integration,
+  Metric,
+} from '@sentry/core';
 
-import { debug } from '@sentry/core';
+import { addBreadcrumb, debug } from '@sentry/core';
 
 import type { ResolvedNetworkOptions } from './networkUtils';
 
@@ -9,7 +19,12 @@ import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
 import { registerFeatureMarker } from '../utils/featureMarkers';
 import { NATIVE } from '../wrapper';
-import { makeEnrichXhrBreadcrumbsForMobileReplay } from './xhrUtils';
+import {
+  makeEnrichXhrBreadcrumbsForMobileReplay,
+  REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY,
+  resolveXhrResponseBody,
+  shouldCaptureResponseBodyAsync,
+} from './xhrUtils';
 
 const MOBILE_REPLAY_NETWORK_DETAILS_INTEGRATION_NAME = 'MobileReplayNetworkDetails';
 const MOBILE_REPLAY_NETWORK_BODIES_INTEGRATION_NAME = 'MobileReplayNetworkBodies';
@@ -433,6 +448,35 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
     // Wrap beforeSend to run processEvent after user's beforeSend
     const clientOptions = client.getOptions();
+
+    // Binary (Blob/ArrayBuffer) response bodies — which is every `fetch`
+    // response, since RN's fetch polyfill uses XHR with responseType 'blob' —
+    // can only be read asynchronously, but the breadcrumb is forwarded to the
+    // native SDKs synchronously. Hold such breadcrumbs here (return null),
+    // read the body, then re-add the same breadcrumb (timestamp is already
+    // set, so it keeps its original time) with the body resolved on the hint.
+    if (networkOptions.captureBodies && networkOptions.allowUrls.length > 0) {
+      const originalBeforeBreadcrumb = clientOptions.beforeBreadcrumb;
+      clientOptions.beforeBreadcrumb = (breadcrumb: Breadcrumb, hint?: BreadcrumbHint): Breadcrumb | null => {
+        if (hint && REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY in hint) {
+          // second pass with the resolved body — the user's beforeBreadcrumb already ran
+          return breadcrumb;
+        }
+        const result = originalBeforeBreadcrumb ? originalBeforeBreadcrumb(breadcrumb, hint) : breadcrumb;
+        if (result === null || !shouldCaptureResponseBodyAsync(result, hint, networkOptions)) {
+          return result;
+        }
+        const xhr = hint.xhr;
+        resolveXhrResponseBody(xhr)
+          .then(resolvedBody => {
+            addBreadcrumb(result, { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: resolvedBody });
+          })
+          .then(undefined, (error: unknown) => {
+            debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to re-add network breadcrumb`, error);
+          });
+        return null;
+      };
+    }
     const originalBeforeSend = clientOptions.beforeSend;
     clientOptions.beforeSend = async (event: ErrorEvent, hint: EventHint): Promise<ErrorEvent | null> => {
       let result: ErrorEvent | null = event;

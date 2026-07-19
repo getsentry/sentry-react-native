@@ -57,6 +57,9 @@ function _serializeFormData(formData: FormData): string {
 
 export const NETWORK_BODY_MAX_SIZE = 150_000;
 
+/** How long to wait for an async body read (FileReader) before giving up. */
+export const NETWORK_BODY_READ_TIMEOUT_MS = 500;
+
 export const DEFAULT_NETWORK_HEADERS = ['content-type', 'content-length', 'accept'];
 
 const DENY_HEADERS = new Set([
@@ -173,6 +176,132 @@ export function getBodyString(body: unknown): NetworkBody | undefined {
     return { _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } };
   }
 }
+
+/**
+ * Whether a Content-Type describes a payload that is safe to decode into text
+ * (JSON, XML, form data, `text/*`). Genuinely binary payloads (images, media,
+ * octet-stream) are excluded so they stay marked as unparseable.
+ */
+export function isTextLikeContentType(contentType: string | null | undefined): boolean {
+  if (!contentType) {
+    return false;
+  }
+  const normalized = contentType.toLowerCase();
+  return (
+    normalized.startsWith('text/') ||
+    normalized.includes('json') ||
+    normalized.includes('xml') ||
+    normalized.includes('x-www-form-urlencoded')
+  );
+}
+
+/**
+ * Read a Blob as UTF-8 text via FileReader (React Native's Blob has no `text()`).
+ * Rejects on read error, abort or after `timeoutMs`.
+ */
+export function readBlobAsText(blob: Blob, timeoutMs: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    const timeout = setTimeout(() => {
+      // reject first — abort() may fire onabort synchronously
+      reject(new Error(`Timed out reading response body after ${timeoutMs}ms`));
+      try {
+        reader.abort();
+      } catch {
+        // ignore — already rejected
+      }
+    }, timeoutMs);
+    reader.onload = () => {
+      clearTimeout(timeout);
+      const result = reader.result;
+      if (typeof result === 'string') {
+        resolve(result);
+      } else {
+        reject(new Error('FileReader did not produce a string result'));
+      }
+    };
+    reader.onerror = () => {
+      clearTimeout(timeout);
+      reject(reader.error ?? new Error('FileReader failed'));
+    };
+    reader.onabort = () => {
+      clearTimeout(timeout);
+      reject(new Error('FileReader aborted'));
+    };
+    reader.readAsText(blob);
+  });
+}
+
+type TextDecoderLike = { decode(input: Uint8Array): string };
+
+/* oxlint-disable eslint(no-bitwise) -- decoding UTF-8 is inherently bit manipulation */
+/**
+ * Decode UTF-8 bytes into a string. Uses the global TextDecoder when the JS
+ * engine provides one and falls back to a manual decoder otherwise (Hermes
+ * has no TextDecoder). Invalid sequences decode to U+FFFD.
+ */
+export function decodeUtf8(bytes: Uint8Array): string {
+  const TextDecoderConstructor = (globalThis as { TextDecoder?: new () => TextDecoderLike }).TextDecoder;
+  if (TextDecoderConstructor) {
+    try {
+      return new TextDecoderConstructor().decode(bytes);
+    } catch {
+      // fall through to the manual decoder
+    }
+  }
+
+  let out = '';
+  let i = 0;
+  while (i < bytes.length) {
+    const byte = bytes[i]!;
+    let codePoint: number;
+    let extraBytes: number;
+    if (byte < 0x80) {
+      codePoint = byte;
+      extraBytes = 0;
+    } else if ((byte & 0xe0) === 0xc0) {
+      codePoint = byte & 0x1f;
+      extraBytes = 1;
+    } else if ((byte & 0xf0) === 0xe0) {
+      codePoint = byte & 0x0f;
+      extraBytes = 2;
+    } else if ((byte & 0xf8) === 0xf0) {
+      codePoint = byte & 0x07;
+      extraBytes = 3;
+    } else {
+      out += '�';
+      i += 1;
+      continue;
+    }
+
+    if (i + extraBytes >= bytes.length) {
+      // truncated sequence at the end of the buffer
+      out += '�';
+      break;
+    }
+
+    let valid = true;
+    for (let j = 1; j <= extraBytes; j++) {
+      const continuation = bytes[i + j]!;
+      if ((continuation & 0xc0) !== 0x80) {
+        valid = false;
+        break;
+      }
+      codePoint = (codePoint << 6) | (continuation & 0x3f);
+    }
+
+    if (!valid || codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) {
+      out += '�';
+      i += 1;
+      continue;
+    }
+
+    out += String.fromCodePoint(codePoint);
+    i += extraBytes + 1;
+  }
+  return out;
+}
+/* oxlint-enable eslint(no-bitwise) */
 
 /**
  * Filter a headers map down to the set explicitly captured (defaults + user-supplied)

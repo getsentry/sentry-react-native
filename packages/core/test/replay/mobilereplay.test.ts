@@ -1,12 +1,26 @@
-import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint } from '@sentry/core';
+import type {
+  Breadcrumb,
+  BreadcrumbHint,
+  Client,
+  DynamicSamplingContext,
+  ErrorEvent,
+  Event,
+  EventHint,
+} from '@sentry/core';
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { addBreadcrumb } from '@sentry/core';
 
 import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
+import { REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY } from '../../src/js/replay/xhrUtils';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');
+jest.mock('@sentry/core', () => ({
+  ...(jest.requireActual('@sentry/core') as object),
+  addBreadcrumb: jest.fn(),
+}));
 
 describe('Mobile Replay Integration', () => {
   let mockCaptureReplay: jest.MockedFunction<typeof NATIVE.captureReplay>;
@@ -575,6 +589,133 @@ describe('Mobile Replay Integration', () => {
 
       expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
       expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+  });
+
+  describe('beforeBreadcrumb wrapping (async binary response bodies)', () => {
+    let mockAddBreadcrumb: jest.MockedFunction<typeof addBreadcrumb>;
+    let wrapClientOptions: {
+      beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null;
+    };
+    let wrapClient: jest.Mocked<Client>;
+
+    const flushMicrotasks = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
+
+    const setupIntegration = (options?: Parameters<typeof mobileReplayIntegration>[0]): void => {
+      const integration = mobileReplayIntegration({
+        networkDetailAllowUrls: ['api.example.com'],
+        ...options,
+      });
+      integration.setup?.(wrapClient);
+    };
+
+    const getBinaryXhrBreadcrumbAndHint = (body = '{"ok":true}'): { breadcrumb: Breadcrumb; hint: BreadcrumbHint } => ({
+      breadcrumb: { category: 'xhr', timestamp: 123, data: { url: 'https://api.example.com/users' } },
+      hint: {
+        startTimestamp: 1,
+        endTimestamp: 2,
+        xhr: {
+          __sentry_xhr_v3__: {
+            method: 'GET',
+            url: 'https://api.example.com/users',
+            request_headers: {},
+          },
+          getResponseHeader: (key: string) => (key === 'content-type' ? 'application/json' : null),
+          getAllResponseHeaders: () => 'content-type: application/json',
+          response: new TextEncoder().encode(body).buffer,
+          responseType: 'arraybuffer',
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<typeof addBreadcrumb>;
+      wrapClientOptions = {};
+      wrapClient = {
+        on: jest.fn(),
+        getOptions: jest.fn(() => wrapClientOptions),
+        getIntegrationByName: jest.fn().mockReturnValue(undefined),
+        addIntegration: jest.fn(),
+      } as unknown as jest.Mocked<Client>;
+    });
+
+    it('holds a binary xhr breadcrumb and re-adds it with the resolved body on the hint', async () => {
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      const result = wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint);
+      expect(result).toBeNull();
+
+      await flushMicrotasks();
+
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+        breadcrumb,
+        expect.objectContaining({
+          [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: '{"ok":true}' },
+        }),
+      );
+    });
+
+    it('passes through breadcrumbs that do not need an async body read', async () => {
+      setupIntegration();
+      const breadcrumb: Breadcrumb = { category: 'console', message: 'hello' };
+
+      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, {})).toBe(breadcrumb);
+
+      await flushMicrotasks();
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('passes the re-added breadcrumb through without holding it again', async () => {
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+      const resolvedHint = { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: '{"ok":true}' } };
+
+      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, resolvedHint)).toBe(breadcrumb);
+
+      await flushMicrotasks();
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('runs the user beforeBreadcrumb once, on the first pass only', async () => {
+      const userBeforeBreadcrumb = jest.fn((breadcrumb: Breadcrumb) => breadcrumb);
+      wrapClientOptions.beforeBreadcrumb = userBeforeBreadcrumb as (
+        breadcrumb: Breadcrumb,
+        hint?: BreadcrumbHint,
+      ) => Breadcrumb | null;
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint)).toBeNull();
+      await flushMicrotasks();
+
+      const resolvedHint = mockAddBreadcrumb.mock.calls[0]?.[1];
+      wrapClientOptions.beforeBreadcrumb?.(breadcrumb, resolvedHint);
+
+      expect(userBeforeBreadcrumb).toHaveBeenCalledTimes(1);
+    });
+
+    it('respects a user beforeBreadcrumb that drops the breadcrumb', async () => {
+      wrapClientOptions.beforeBreadcrumb = () => null;
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint)).toBeNull();
+
+      await flushMicrotasks();
+      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('does not wrap beforeBreadcrumb when body capture is disabled', () => {
+      setupIntegration({ networkCaptureBodies: false });
+      expect(wrapClientOptions.beforeBreadcrumb).toBeUndefined();
+    });
+
+    it('does not wrap beforeBreadcrumb when no URLs are allow-listed', () => {
+      const integration = mobileReplayIntegration({ networkDetailAllowUrls: [] });
+      integration.setup?.(wrapClient);
+      expect(wrapClientOptions.beforeBreadcrumb).toBeUndefined();
     });
   });
 
