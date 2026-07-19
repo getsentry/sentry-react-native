@@ -124,6 +124,13 @@ describe('networkUtils', () => {
         // valid continuation prefix, then interrupted: one U+FFFD, tail kept
         expect(decodeUtf8(new Uint8Array([0xe2, 0x82, 0x41]))).toBe('�A');
       });
+
+      it('consumes a complete sequence that encodes an invalid code point as one U+FFFD', () => {
+        // UTF-16 surrogate U+D800 encoded as UTF-8 (CESU-8 style)
+        expect(decodeUtf8(new Uint8Array([0x61, 0xed, 0xa0, 0x80, 0x62]))).toBe('a�b');
+        // code point above U+10FFFF (0x110000)
+        expect(decodeUtf8(new Uint8Array([0x61, 0xf4, 0x90, 0x80, 0x80, 0x62]))).toBe('a�b');
+      });
     });
   });
 

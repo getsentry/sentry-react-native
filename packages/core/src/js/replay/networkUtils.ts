@@ -293,8 +293,10 @@ export function decodeUtf8(bytes: Uint8Array): string {
     }
 
     if (codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) {
+      // structurally complete sequence encoding an invalid code point
+      // (surrogate or beyond U+10FFFF): the whole sequence is one U+FFFD
       out += '�';
-      i += 1;
+      i += extraBytes + 1;
       continue;
     }
 
