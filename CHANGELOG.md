@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6474](https://github.com/getsentry/sentry-react-native/pull/6474))
+
+  The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
+
 ## 8.19.0
 
 ### Features
