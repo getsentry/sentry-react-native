@@ -454,7 +454,8 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     // can only be read asynchronously, but the breadcrumb is forwarded to the
     // native SDKs synchronously. Hold such breadcrumbs here (return null),
     // read the body, then re-add the same breadcrumb (timestamp is already
-    // set, so it keeps its original time) with the body resolved on the hint.
+    // set, so it keeps its original time) with the resolved body and a
+    // metadata snapshot on the hint — the xhr itself may be reused by then.
     if (networkOptions.captureBodies && networkOptions.allowUrls.length > 0) {
       const originalBeforeBreadcrumb = clientOptions.beforeBreadcrumb;
       clientOptions.beforeBreadcrumb = (breadcrumb: Breadcrumb, hint?: BreadcrumbHint): Breadcrumb | null => {
@@ -468,8 +469,8 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
         }
         const xhr = hint.xhr;
         resolveXhrResponseBody(xhr)
-          .then(resolvedBody => {
-            addBreadcrumb(result, { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: resolvedBody });
+          .then(resolved => {
+            addBreadcrumb(result, { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: resolved });
           })
           .then(undefined, (error: unknown) => {
             debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to re-add network breadcrumb`, error);

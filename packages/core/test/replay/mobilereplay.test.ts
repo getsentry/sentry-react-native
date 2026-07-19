@@ -652,7 +652,12 @@ describe('Mobile Replay Integration', () => {
       expect(mockAddBreadcrumb).toHaveBeenCalledWith(
         breadcrumb,
         expect.objectContaining({
-          [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: '{"ok":true}' },
+          [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: {
+            body: { body: '{"ok":true}' },
+            requestHeaders: {},
+            rawResponseHeaders: 'content-type: application/json',
+            responseBodySize: 11,
+          },
         }),
       );
     });
@@ -670,7 +675,7 @@ describe('Mobile Replay Integration', () => {
     it('passes the re-added breadcrumb through without holding it again', async () => {
       setupIntegration();
       const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
-      const resolvedHint = { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: '{"ok":true}' } };
+      const resolvedHint = { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: { body: '{"ok":true}' } } };
 
       expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, resolvedHint)).toBe(breadcrumb);
 

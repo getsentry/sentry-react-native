@@ -253,7 +253,7 @@ export function decodeUtf8(bytes: Uint8Array): string {
   let out = '';
   let i = 0;
   while (i < bytes.length) {
-    const byte = bytes[i]!;
+    const byte = bytes[i] ?? 0;
     let codePoint: number;
     let extraBytes: number;
     if (byte < 0x80) {
@@ -274,23 +274,25 @@ export function decodeUtf8(bytes: Uint8Array): string {
       continue;
     }
 
-    if (i + extraBytes >= bytes.length) {
-      // truncated sequence at the end of the buffer
-      out += '�';
-      break;
-    }
-
-    let valid = true;
-    for (let j = 1; j <= extraBytes; j++) {
-      const continuation = bytes[i + j]!;
+    let consumed = 0;
+    while (consumed < extraBytes && i + 1 + consumed < bytes.length) {
+      const continuation = bytes[i + 1 + consumed] ?? 0;
       if ((continuation & 0xc0) !== 0x80) {
-        valid = false;
         break;
       }
       codePoint = (codePoint << 6) | (continuation & 0x3f);
+      consumed += 1;
     }
 
-    if (!valid || codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) {
+    if (consumed < extraBytes) {
+      // truncated or interrupted sequence: the consumed prefix decodes to one
+      // U+FFFD and decoding resumes at the offending byte (maximal subpart)
+      out += '�';
+      i += consumed + 1;
+      continue;
+    }
+
+    if (codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) {
       out += '�';
       i += 1;
       continue;

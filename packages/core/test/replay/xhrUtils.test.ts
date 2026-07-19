@@ -338,11 +338,39 @@ describe('xhrUtils', () => {
       const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
       const hint = {
         ...getBlobXhrHint(),
-        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: '{"resolved":true}' },
+        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: {
+          body: { body: '{"resolved":true}' },
+          requestHeaders: { 'content-type': 'application/json' },
+          rawResponseHeaders: 'content-type: application/json',
+          responseBodySize: 17,
+        },
       };
       enrich(breadcrumb, hint);
 
       expect((breadcrumb.data?.response as { body?: string }).body).toBe('{"resolved":true}');
+    });
+
+    it('reads headers and sizes from the hint snapshot, not the live xhr, for re-added breadcrumbs', () => {
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay(getCaptureAllOptions());
+
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      // the live xhr in getBlobXhrHint reports content-type: application/json
+      const hint = {
+        ...getBlobXhrHint(),
+        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: {
+          body: { body: '{"resolved":true}' },
+          requestHeaders: { 'content-type': 'text/xml' },
+          rawResponseHeaders: 'content-type: text/html',
+          responseBodySize: 42,
+        },
+      };
+      enrich(breadcrumb, hint);
+
+      expect(breadcrumb.data?.response_body_size).toBe(42);
+      const requestHeaders = (breadcrumb.data?.request as { headers?: Record<string, string> }).headers;
+      const responseHeaders = (breadcrumb.data?.response as { headers?: Record<string, string> }).headers;
+      expect(requestHeaders).toEqual({ 'content-type': 'text/xml' });
+      expect(responseHeaders).toEqual({ 'content-type': 'text/html' });
     });
   });
 
@@ -397,7 +425,7 @@ describe('xhrUtils', () => {
       const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
       const hint = {
         ...getBlobXhrHint(),
-        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: '{"ok":true}' },
+        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: { body: '{"ok":true}' } },
       };
       expect(shouldCaptureResponseBodyAsync(breadcrumb, hint, getCaptureAllOptions())).toBe(false);
     });
@@ -408,11 +436,14 @@ describe('xhrUtils', () => {
       delete (globalThis as { FileReader?: unknown }).FileReader;
     });
 
-    it('reads a JSON blob response into a text body', async () => {
+    it('reads a JSON blob response into a text body with a metadata snapshot', async () => {
       installMockFileReader();
       const { xhr } = getBlobXhrHint();
       await expect(resolveXhrResponseBody(xhr as unknown as XMLHttpRequest)).resolves.toEqual({
-        body: '{"ok":true}',
+        body: { body: '{"ok":true}' },
+        requestHeaders: { 'content-type': 'application/json' },
+        rawResponseHeaders: 'content-type: application/json',
+        responseBodySize: 11,
       });
     });
 
@@ -421,36 +452,62 @@ describe('xhrUtils', () => {
       const big = 'a'.repeat(NETWORK_BODY_MAX_SIZE + 100);
       const { xhr } = getBlobXhrHint({ body: big });
       const resolved = await resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
-      expect(resolved.body?.length).toBe(NETWORK_BODY_MAX_SIZE);
-      expect(resolved._meta?.warnings).toEqual(['MAX_BODY_SIZE_EXCEEDED']);
+      expect(resolved.body.body?.length).toBe(NETWORK_BODY_MAX_SIZE);
+      expect(resolved.body._meta?.warnings).toEqual(['MAX_BODY_SIZE_EXCEEDED']);
     });
 
     it('decodes arraybuffer responses including multi-byte characters', async () => {
-      const { xhr } = getArrayBufferXhrHint('{"name":"Пёс 🐕"}');
+      const body = '{"name":"Пёс 🐕"}';
+      const { xhr } = getArrayBufferXhrHint(body);
       await expect(resolveXhrResponseBody(xhr as unknown as XMLHttpRequest)).resolves.toEqual({
-        body: '{"name":"Пёс 🐕"}',
+        body: { body },
+        requestHeaders: { 'content-type': 'application/json' },
+        rawResponseHeaders: 'content-type: application/json',
+        responseBodySize: new TextEncoder().encode(body).byteLength,
       });
     });
 
-    it('resolves to an unparseable marker when the read fails', async () => {
+    it('resolves the body to an unparseable marker when the read fails', async () => {
       installMockFileReader({ failWith: new Error('boom') });
       const { xhr } = getBlobXhrHint();
-      await expect(resolveXhrResponseBody(xhr as unknown as XMLHttpRequest)).resolves.toEqual({
-        _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] },
-      });
+      const resolved = await resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+      expect(resolved.body).toEqual({ _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } });
     });
 
-    it('resolves to an unparseable marker on timeout', async () => {
+    it('resolves the body to an unparseable marker on timeout', async () => {
       jest.useFakeTimers();
       try {
         installMockFileReader({ neverComplete: true });
         const { xhr } = getBlobXhrHint();
         const promise = resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
         jest.runAllTimers();
-        await expect(promise).resolves.toEqual({ _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } });
+        const resolved = await promise;
+        expect(resolved.body).toEqual({ _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } });
       } finally {
         jest.useRealTimers();
       }
+    });
+
+    it('snapshots metadata synchronously, unaffected by the xhr being reused mid-read', async () => {
+      installMockFileReader();
+      const { xhr } = getBlobXhrHint();
+      const promise = resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+
+      // simulate the app reusing the xhr before the async body read settles
+      xhr.getAllResponseHeaders = () => 'content-type: text/html';
+      (xhr as { __sentry_xhr_v3__: unknown }).__sentry_xhr_v3__ = {
+        method: 'POST',
+        url: 'https://api.example.com/other',
+        request_headers: { 'content-type': 'text/plain' },
+      };
+      (xhr as { response: unknown }).response = null;
+
+      await expect(promise).resolves.toEqual({
+        body: { body: '{"ok":true}' },
+        requestHeaders: { 'content-type': 'application/json' },
+        rawResponseHeaders: 'content-type: application/json',
+        responseBodySize: 11,
+      });
     });
   });
 });

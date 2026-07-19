@@ -114,6 +114,15 @@ describe('networkUtils', () => {
         expect(decodeUtf8(new Uint8Array([0x61, 0xff, 0x62]))).toBe('a�b');
         // multi-byte sequence truncated at the end of the buffer
         expect(decodeUtf8(new Uint8Array([0x61, 0xd0]))).toBe('a�');
+        // truncated sequence with a valid continuation prefix yields one U+FFFD
+        expect(decodeUtf8(new Uint8Array([0x61, 0xe2, 0x82]))).toBe('a�');
+      });
+
+      it('does not drop bytes that follow an interrupted multi-byte sequence', () => {
+        // lead byte followed by a non-continuation byte: the tail is kept
+        expect(decodeUtf8(new Uint8Array([0xe2, 0x41, 0x42]))).toBe('�AB');
+        // valid continuation prefix, then interrupted: one U+FFFD, tail kept
+        expect(decodeUtf8(new Uint8Array([0xe2, 0x82, 0x41]))).toBe('�A');
       });
     });
   });

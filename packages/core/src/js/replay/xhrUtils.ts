@@ -25,13 +25,26 @@ interface NetworkBreadcrumbSide {
 }
 
 /**
- * Hint key carrying a response body that was read asynchronously (Blob /
- * ArrayBuffer responses) before the breadcrumb was re-added. When present,
- * enrichment uses it instead of reading `xhr.response` synchronously.
+ * Hint key carrying the result of `resolveXhrResponseBody` for a breadcrumb
+ * that was held while its binary (Blob / ArrayBuffer) response body was read
+ * asynchronously. When present, enrichment reads the body and all request /
+ * response metadata from this snapshot instead of the live `xhr`, which may
+ * have been reused or cleared by the time the breadcrumb is re-added.
  */
 export const REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY = '__mobile_replay_resolved_response_body__';
 
-type ResolvedBodyCarrier = { [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]?: NetworkBody };
+/**
+ * An asynchronously resolved response body plus the request / response
+ * metadata snapshotted synchronously at the time the breadcrumb was held.
+ */
+export interface ResolvedXhrResponse {
+  body: NetworkBody;
+  requestHeaders: Record<string, string> | undefined;
+  rawResponseHeaders: string | null;
+  responseBodySize: number | undefined;
+}
+
+type ResolvedBodyCarrier = { [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]?: ResolvedXhrResponse };
 
 const DEFAULT_NETWORK_OPTIONS: ResolvedNetworkOptions = {
   allowUrls: [],
@@ -77,10 +90,12 @@ function enrichXhrBreadcrumb(
   const now = Date.now();
   const { startTimestamp = now, endTimestamp = now, input, xhr } = xhrHint;
 
+  // A held-and-re-added breadcrumb carries a snapshot taken while the xhr was
+  // still current — read from it, never from the (possibly reused) live xhr.
+  const resolved = (hint as ResolvedBodyCarrier)[REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY];
+
   const reqSize = getBodySize(input);
-  const resSize = xhr.getResponseHeader('content-length')
-    ? parseContentLengthHeader(xhr.getResponseHeader('content-length'))
-    : _getBodySize(xhr.response, xhr.responseType);
+  const resSize = resolved ? resolved.responseBodySize : _getXhrResponseBodySize(xhr);
 
   let request: NetworkBreadcrumbSide | undefined;
   let response: NetworkBreadcrumbSide | undefined;
@@ -88,12 +103,12 @@ function enrichXhrBreadcrumb(
   const url = typeof breadcrumb.data?.url === 'string' ? breadcrumb.data.url : undefined;
 
   if (shouldCaptureNetworkDetails(url, networkOptions)) {
-    request = _buildRequestDetails(input, xhr, networkOptions);
-    response = _buildResponseDetails(
-      xhr,
+    request = _buildRequestDetails(
+      input,
+      resolved ? resolved.requestHeaders : xhr.__sentry_xhr_v3__?.request_headers,
       networkOptions,
-      (hint as ResolvedBodyCarrier)[REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY],
     );
+    response = _buildResponseDetails(xhr, networkOptions, resolved);
   }
 
   breadcrumb.data = dropUndefinedKeys({
@@ -109,11 +124,10 @@ function enrichXhrBreadcrumb(
 
 function _buildRequestDetails(
   input: RequestBody | undefined,
-  xhr: XMLHttpRequest & SentryWrappedXMLHttpRequest,
+  requestHeaders: Record<string, string> | undefined,
   networkOptions: ResolvedNetworkOptions,
 ): NetworkBreadcrumbSide | undefined {
-  const sentryXhr = xhr.__sentry_xhr_v3__;
-  const headers = filterHeaders(sentryXhr?.request_headers, networkOptions.requestHeaders);
+  const headers = filterHeaders(requestHeaders, networkOptions.requestHeaders);
 
   let body: NetworkBody | undefined;
   if (networkOptions.captureBodies) {
@@ -126,22 +140,31 @@ function _buildRequestDetails(
 function _buildResponseDetails(
   xhr: XMLHttpRequest & SentryWrappedXMLHttpRequest,
   networkOptions: ResolvedNetworkOptions,
-  resolvedBody: NetworkBody | undefined,
+  resolved: ResolvedXhrResponse | undefined,
 ): NetworkBreadcrumbSide | undefined {
-  let rawHeaders: string | null = null;
-  try {
-    rawHeaders = xhr.getAllResponseHeaders();
-  } catch {
-    // ignore — some environments may throw before the request is complete
-  }
+  const rawHeaders = resolved ? resolved.rawResponseHeaders : _getAllResponseHeaders(xhr);
   const headers = filterHeaders(parseAllResponseHeaders(rawHeaders), networkOptions.responseHeaders);
 
   let body: NetworkBody | undefined;
   if (networkOptions.captureBodies) {
-    body = resolvedBody ?? _getResponseBodyString(xhr);
+    body = resolved ? resolved.body : _getResponseBodyString(xhr);
   }
 
   return _toBreadcrumbSide(headers, body);
+}
+
+function _getAllResponseHeaders(xhr: XMLHttpRequest): string | null {
+  try {
+    return xhr.getAllResponseHeaders();
+  } catch {
+    // some environments may throw before the request is complete
+    return null;
+  }
+}
+
+function _getXhrResponseBodySize(xhr: XMLHttpRequest): number | undefined {
+  const contentLength = xhr.getResponseHeader('content-length');
+  return contentLength ? parseContentLengthHeader(contentLength) : _getBodySize(xhr.response, xhr.responseType);
 }
 
 function _toBreadcrumbSide(
@@ -233,10 +256,29 @@ export function shouldCaptureResponseBodyAsync(
 
 /**
  * Read the body of a binary (`blob` / `arraybuffer`) XHR response and serialize
- * it like a text body (size cap + truncation warning). Resolves to an
+ * it like a text body (size cap + truncation warning), together with the
+ * request / response metadata snapshotted synchronously — by the time the body
+ * read settles, the xhr may have been reused or cleared, so the re-added
+ * breadcrumb must not read from it again. Resolves the body to an
  * UNPARSEABLE_BODY_TYPE warning on read failure or timeout — never rejects.
  */
-export async function resolveXhrResponseBody(xhr: XMLHttpRequest): Promise<NetworkBody> {
+export async function resolveXhrResponseBody(
+  xhr: XMLHttpRequest & SentryWrappedXMLHttpRequest,
+): Promise<ResolvedXhrResponse> {
+  let requestHeaders: Record<string, string> | undefined;
+  let rawResponseHeaders: string | null = null;
+  let responseBodySize: number | undefined;
+  try {
+    requestHeaders = xhr.__sentry_xhr_v3__?.request_headers;
+    rawResponseHeaders = _getAllResponseHeaders(xhr);
+    responseBodySize = _getXhrResponseBodySize(xhr);
+  } catch {
+    // keep the defaults — the metadata snapshot is best-effort
+  }
+  return { body: await _readBinaryResponseBody(xhr), requestHeaders, rawResponseHeaders, responseBodySize };
+}
+
+async function _readBinaryResponseBody(xhr: XMLHttpRequest): Promise<NetworkBody> {
   try {
     if (xhr.responseType === 'blob') {
       const blob = xhr.response as Blob;
