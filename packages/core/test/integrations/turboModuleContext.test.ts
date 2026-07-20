@@ -14,6 +14,7 @@ import * as turboModule from '../../src/js/turbomodule';
 import {
   _resetTurboModuleAggregator,
   hasTurboModuleAggregateData,
+  notifyTurboModuleCallStart,
   recordTurboModuleCall,
 } from '../../src/js/turbomodule/turboModuleAggregator';
 import * as spanUtils from '../../src/js/utils/span';
@@ -409,6 +410,29 @@ describe('turboModuleContextIntegration', () => {
       expect(attributes['turbo_module.C.x.call_count']).toBeUndefined();
       expect(attributes['turbo_module.total_call_count']).toBe(3);
       expect(attributes['turbo_module.unique_methods']).toBe(3);
+    });
+
+    it('credits async calls that started inside the span but settled after it ended', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      // Async call starts during the span, settles after — mirrors what
+      // `wrapTurboModule` does when a promise-returning method is invoked.
+      const recordId = notifyTurboModuleCallStart('Late', 'load', 'async');
+      emit('spanEnd', span);
+      recordTurboModuleCall({ name: 'Late', method: 'load', kind: 'async', durationMs: 42, errored: false, recordId });
+
+      // Only the late record has data — spanEnd's best-effort attach is a
+      // no-op with nothing to serialise. The record's own attach carries it.
+      expect(span.setAttributes).toHaveBeenCalledTimes(1);
+      const attributes = span.setAttributes.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(attributes['turbo_module.Late.load.call_count']).toBe(1);
+      expect(attributes['turbo_module.Late.load.duration_ms']).toBe(42);
     });
 
     it('does not attach attributes to non-root spans', () => {
