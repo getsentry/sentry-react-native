@@ -1,11 +1,13 @@
-import type { Client, TransactionEvent } from '@sentry/core';
+import type { Client, Span, TransactionEvent } from '@sentry/core';
 
 import { Scope } from '@sentry/core';
 import * as SentryCore from '@sentry/core';
 
 import {
   DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS,
+  DEFAULT_SLOW_CALL_THRESHOLD_MS,
   turboModuleContextIntegration,
+  TURBO_MODULE_BREADCRUMB_CATEGORY,
   TURBO_MODULES_AGGREGATE_OP,
 } from '../../src/js/integrations/turboModuleContext';
 import * as turboModule from '../../src/js/turbomodule';
@@ -14,6 +16,7 @@ import {
   hasTurboModuleAggregateData,
   recordTurboModuleCall,
 } from '../../src/js/turbomodule/turboModuleAggregator';
+import * as spanUtils from '../../src/js/utils/span';
 import * as wrapper from '../../src/js/wrapper';
 
 function makeTransactionEvent(overrides: Partial<TransactionEvent> = {}): TransactionEvent {
@@ -36,6 +39,54 @@ function makeMockClient(): Client & { on: jest.Mock; captureEvent: jest.Mock } {
     on: jest.fn(),
     captureEvent: jest.fn(),
   } as unknown as Client & { on: jest.Mock; captureEvent: jest.Mock };
+}
+
+type ClientHandler = (arg: unknown) => void;
+
+function makeClientWithSpanHooks(): {
+  client: Client & { on: jest.Mock; captureEvent: jest.Mock };
+  handlers: Map<string, ClientHandler[]>;
+  emit: (event: string, arg: unknown) => void;
+} {
+  const handlers = new Map<string, ClientHandler[]>();
+  const client = {
+    on: jest.fn((event: string, cb: ClientHandler) => {
+      const list = handlers.get(event) ?? [];
+      list.push(cb);
+      handlers.set(event, list);
+    }),
+    captureEvent: jest.fn(),
+  } as unknown as Client & { on: jest.Mock; captureEvent: jest.Mock };
+  return {
+    client,
+    handlers,
+    emit: (event: string, arg: unknown) => {
+      for (const cb of handlers.get(event) ?? []) {
+        cb(arg);
+      }
+    },
+  };
+}
+
+function makeFakeSpan(overrides: { spanId?: string } = {}): Span & {
+  setAttributes: jest.Mock;
+  spanContext: () => { spanId: string; traceId: string; traceFlags: number };
+} {
+  const attributes: Record<string, unknown> = {};
+  return {
+    setAttributes: jest.fn((next: Record<string, unknown>) => {
+      Object.assign(attributes, next);
+    }),
+    spanContext: () => ({
+      spanId: overrides.spanId ?? 'span-id',
+      traceId: 't'.repeat(32),
+      traceFlags: 1,
+    }),
+    __attributes: attributes,
+  } as unknown as Span & {
+    setAttributes: jest.Mock;
+    spanContext: () => { spanId: string; traceId: string; traceFlags: number };
+  };
 }
 
 describe('turboModuleContextIntegration', () => {
@@ -294,6 +345,146 @@ describe('turboModuleContextIntegration', () => {
       const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
       expect(out.spans ?? []).toHaveLength(0);
       expect(out.measurements ?? {}).toEqual({});
+    });
+  });
+
+  describe('span attribution', () => {
+    let addBreadcrumbSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
+      jest.spyOn(spanUtils, 'isRootSpan').mockReturnValue(true);
+      addBreadcrumbSpy = jest.spyOn(SentryCore, 'addBreadcrumb').mockImplementation(() => {});
+    });
+
+    it('attaches per-(module, method) attributes to root spans on spanEnd', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      recordTurboModuleCall({ name: 'UserMod', method: 'work', kind: 'async', durationMs: 12, errored: false });
+      recordTurboModuleCall({ name: 'UserMod', method: 'work', kind: 'async', durationMs: 8, errored: true });
+      recordTurboModuleCall({ name: 'Other', method: 'ping', kind: 'sync', durationMs: 1, errored: false });
+
+      emit('spanEnd', span);
+
+      expect(span.setAttributes).toHaveBeenCalledTimes(1);
+      const attributes = span.setAttributes.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(attributes).toMatchObject({
+        'turbo_module.UserMod.work.call_count': 2,
+        'turbo_module.UserMod.work.duration_ms': 20,
+        'turbo_module.UserMod.work.error_count': 1,
+        'turbo_module.Other.ping.call_count': 1,
+        'turbo_module.total_call_count': 3,
+        'turbo_module.total_error_count': 1,
+        'turbo_module.top_module': 'UserMod.work',
+      });
+    });
+
+    it('caps the per-row attribute payload to maxTopModulesPerSpan', () => {
+      const integration = turboModuleContextIntegration({
+        aggregateFlushIntervalMs: 0,
+        maxTopModulesPerSpan: 2,
+      });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 100, errored: false });
+      recordTurboModuleCall({ name: 'B', method: 'x', kind: 'sync', durationMs: 50, errored: false });
+      recordTurboModuleCall({ name: 'C', method: 'x', kind: 'sync', durationMs: 10, errored: false });
+
+      emit('spanEnd', span);
+
+      const attributes = span.setAttributes.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(attributes['turbo_module.A.x.call_count']).toBe(1);
+      expect(attributes['turbo_module.B.x.call_count']).toBe(1);
+      expect(attributes['turbo_module.C.x.call_count']).toBeUndefined();
+      expect(attributes['turbo_module.total_call_count']).toBe(3);
+      expect(attributes['turbo_module.unique_methods']).toBe(3);
+    });
+
+    it('does not attach attributes to non-root spans', () => {
+      (spanUtils.isRootSpan as jest.Mock).mockReturnValue(false);
+
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+      recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });
+      emit('spanEnd', span);
+
+      expect(span.setAttributes).not.toHaveBeenCalled();
+    });
+
+    it('is inert when enableSpanAttribution is disabled', () => {
+      const integration = turboModuleContextIntegration({
+        aggregateFlushIntervalMs: 0,
+        enableSpanAttribution: false,
+      });
+      integration.setupOnce?.();
+      const { client, handlers } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      expect(handlers.has('spanStart')).toBe(false);
+      expect(handlers.has('spanEnd')).toBe(false);
+    });
+
+    it('emits a native.turbo_module breadcrumb for async calls exceeding the threshold', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      recordTurboModuleCall({
+        name: 'Slow',
+        method: 'blocking',
+        kind: 'async',
+        durationMs: DEFAULT_SLOW_CALL_THRESHOLD_MS + 50,
+        errored: false,
+      });
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledTimes(1);
+      const breadcrumb = addBreadcrumbSpy.mock.calls[0]?.[0];
+      expect(breadcrumb).toMatchObject({
+        category: TURBO_MODULE_BREADCRUMB_CATEGORY,
+        level: 'info',
+        data: expect.objectContaining({ module: 'Slow', method: 'blocking', kind: 'async' }),
+      });
+    });
+
+    it('does not emit a breadcrumb below the threshold or for sync calls', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      recordTurboModuleCall({
+        name: 'Fast',
+        method: 'noop',
+        kind: 'async',
+        durationMs: DEFAULT_SLOW_CALL_THRESHOLD_MS - 1,
+        errored: false,
+      });
+      recordTurboModuleCall({
+        name: 'SlowSync',
+        method: 'block',
+        kind: 'sync',
+        durationMs: DEFAULT_SLOW_CALL_THRESHOLD_MS + 100,
+        errored: false,
+      });
+
+      expect(addBreadcrumbSpy).not.toHaveBeenCalled();
     });
   });
 });

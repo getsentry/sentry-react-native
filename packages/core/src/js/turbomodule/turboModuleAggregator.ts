@@ -54,9 +54,20 @@ interface MutableAggregate extends TurboModuleAggregate {
   buckets: number[];
 }
 
+export interface TurboModuleRecord {
+  name: string;
+  method: string;
+  kind: TurboModuleCallKind;
+  durationMs: number;
+  errored: boolean;
+}
+
+export type TurboModuleRecordObserver = (record: TurboModuleRecord) => void;
+
 const aggregates = new Map<string, MutableAggregate>();
 const ignoredModules = new Set<string>();
 let onFirstRecordAfterEmpty: (() => void) | undefined;
+const observers: Set<TurboModuleRecordObserver> = new Set();
 // When `false`, `recordTurboModuleCall` is a no-op. The integration flips
 // this off when `enableAggregateStats: false` so wrapped TurboModule calls
 // don't accumulate into a map that nothing ever drains.
@@ -158,6 +169,38 @@ export function recordTurboModuleCall(args: {
       // intentionally swallowed
     }
   }
+
+  if (observers.size > 0) {
+    // Reused across observers to avoid GC churn on the wrap layer hot path.
+    const record: TurboModuleRecord = {
+      name: args.name,
+      method: args.method,
+      kind: args.kind,
+      durationMs: duration,
+      errored: args.errored,
+    };
+    for (const observer of observers) {
+      try {
+        observer(record);
+      } catch {
+        // A misbehaving observer must not drop records for others.
+      }
+    }
+  }
+}
+
+/**
+ * Subscribes to per-record notifications. Fires for records that survive the
+ * `setAggregateRecordingEnabled` / `setIgnoredTurboModules` filters — the same
+ * set that reaches the aggregate map. Observers run synchronously on the wrap
+ * hot path, so must be O(1); thrown errors are swallowed.
+ */
+export function addTurboModuleRecordObserver(observer: TurboModuleRecordObserver): void {
+  observers.add(observer);
+}
+
+export function removeTurboModuleRecordObserver(observer: TurboModuleRecordObserver): void {
+  observers.delete(observer);
 }
 
 /**
@@ -230,5 +273,6 @@ export function _resetTurboModuleAggregator(): void {
   aggregates.clear();
   ignoredModules.clear();
   onFirstRecordAfterEmpty = undefined;
+  observers.clear();
   recordingEnabled = true;
 }
