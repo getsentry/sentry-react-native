@@ -872,12 +872,15 @@ export const turboModuleContextIntegration: (options?: TurboModuleContextOptions
 export interface TurboModuleContextOptions {
     aggregateFlushIntervalMs?: number;
     enableAggregateStats?: boolean;
+    enableSpanAttribution?: boolean;
     ignoreTurboModules?: ReadonlyArray<string>;
+    maxTopModulesPerSpan?: number;
     modules?: Array<{
         name: string;
         module: object | null | undefined;
         skipMethods?: ReadonlyArray<string>;
     }>;
+    slowCallThresholdMs?: number;
 }
 
 // @public (undocumented)
