@@ -3,12 +3,15 @@ import type { Client, Event, Integration, Span, TransactionEvent } from '@sentry
 import { addBreadcrumb, debug, spanToJSON } from '@sentry/core';
 
 import {
+  addTurboModuleCallStartObserver,
   addTurboModuleRecordObserver,
   hasTurboModuleAggregateData,
+  removeTurboModuleCallStartObserver,
   removeTurboModuleRecordObserver,
   setAggregateRecordingEnabled,
   setIgnoredTurboModules,
   setOnFirstTurboModuleRecord,
+  type TurboModuleCallStart,
   type TurboModuleRecord,
   wrapTurboModule,
 } from '../turbomodule';
@@ -177,7 +180,12 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   // the parallel array is what the record observer iterates on the hot path.
   const openWindows: WeakMap<Span, WindowState> = new WeakMap();
   const openWindowList: WindowState[] = [];
+  // Windows open at each in-flight call's start. Keyed by the wrap layer's
+  // `recordId` so async calls that settle after their originating span has
+  // ended still get credited to that span.
+  const pendingCallWindows: Map<number, WindowState[]> = new Map();
   let recordObserver: ((record: TurboModuleRecord) => void) | undefined;
+  let startObserver: ((start: TurboModuleCallStart) => void) | undefined;
 
   return {
     name: INTEGRATION_NAME,
@@ -189,7 +197,10 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       }
 
       setAggregateRecordingEnabled(enableAggregate);
-      if (enableAggregate) {
+      // Applied whenever any consumer of the record path is active — the
+      // aggregate map, span attribution, or the slow-call breadcrumb — so
+      // RNSentry's own transport calls are filtered from every surface.
+      if (enableAggregate || enableSpanAttribution) {
         setIgnoredTurboModules(options.ignoreTurboModules ?? ['RNSentry']);
       }
     },
@@ -208,9 +219,33 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       }
 
       if (enableSpanAttribution) {
+        startObserver = (start: TurboModuleCallStart): void => {
+          if (openWindowList.length === 0) {
+            return;
+          }
+          pendingCallWindows.set(start.recordId, openWindowList.slice());
+        };
+        addTurboModuleCallStartObserver(startObserver);
+
         recordObserver = (record: TurboModuleRecord): void => {
-          for (const window of openWindowList) {
-            recordIntoWindow(window, record);
+          const windows = record.recordId !== undefined ? pendingCallWindows.get(record.recordId) : undefined;
+          if (windows) {
+            pendingCallWindows.delete(record.recordId as number);
+            for (const window of windows) {
+              recordIntoWindow(window, record);
+              // If the span has already ended, re-emit the attributes so a
+              // late-settling async call still lands on the span before the
+              // parent transaction is serialised.
+              if (window.closed) {
+                attachWindowToSpan(window.span, window, maxTopModulesPerSpan);
+              }
+            }
+          } else {
+            // Fallback for records that arrived without a paired start (e.g.
+            // sync path or a direct `recordTurboModuleCall` caller in tests).
+            for (const window of openWindowList) {
+              recordIntoWindow(window, record);
+            }
           }
 
           if (slowCallThresholdMs > 0 && record.kind === 'async' && record.durationMs >= slowCallThresholdMs) {
@@ -238,7 +273,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
           if (openWindows.has(span)) {
             return;
           }
-          const window: WindowState = { span, counters: new Map() };
+          const window: WindowState = { span, closed: false, counters: new Map() };
           openWindows.set(span, window);
           openWindowList.push(window);
         });
@@ -253,6 +288,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
           if (idx >= 0) {
             openWindowList.splice(idx, 1);
           }
+          window.closed = true;
           attachWindowToSpan(span, window, maxTopModulesPerSpan);
         });
       }
@@ -268,7 +304,12 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
           removeTurboModuleRecordObserver(recordObserver);
           recordObserver = undefined;
         }
+        if (startObserver) {
+          removeTurboModuleCallStartObserver(startObserver);
+          startObserver = undefined;
+        }
         openWindowList.length = 0;
+        pendingCallWindows.clear();
       });
     },
     processEvent(event: Event): Event {
@@ -303,6 +344,8 @@ function stripEmptySentinelTags(event: Event): void {
 }
 
 interface WindowRow {
+  name: string;
+  method: string;
   callCount: number;
   errorCount: number;
   totalDurationMs: number;
@@ -310,15 +353,31 @@ interface WindowRow {
 
 interface WindowState {
   span: Span;
-  counters: Map<string, WindowRow>;
+  // `true` after `spanEnd` fires. Late-settling async calls that were tracked
+  // via `pendingCallWindows` still credit the window and re-emit
+  // `setAttributes` on the span so the transaction picks up the update.
+  closed: boolean;
+  // Nested `name → method → row` so identifiers with any character (spaces,
+  // dots, etc.) can never collide with the pair separator.
+  counters: Map<string, Map<string, WindowRow>>;
 }
 
 function recordIntoWindow(window: WindowState, record: TurboModuleRecord): void {
-  const key = `${record.name} ${record.method}`;
-  let row = window.counters.get(key);
+  let byMethod = window.counters.get(record.name);
+  if (!byMethod) {
+    byMethod = new Map();
+    window.counters.set(record.name, byMethod);
+  }
+  let row = byMethod.get(record.method);
   if (!row) {
-    row = { callCount: 0, errorCount: 0, totalDurationMs: 0 };
-    window.counters.set(key, row);
+    row = {
+      name: record.name,
+      method: record.method,
+      callCount: 0,
+      errorCount: 0,
+      totalDurationMs: 0,
+    };
+    byMethod.set(record.method, row);
   }
   row.callCount += 1;
   row.totalDurationMs += record.durationMs;
@@ -332,22 +391,17 @@ function attachWindowToSpan(span: Span, window: WindowState, topN: number): void
     return;
   }
 
-  interface FlatRow extends WindowRow {
-    name: string;
-    method: string;
-  }
-  const rows: FlatRow[] = [];
+  const rows: WindowRow[] = [];
   let totalCallCount = 0;
   let totalErrorCount = 0;
   let totalDurationMs = 0;
-  for (const [key, row] of window.counters) {
-    const sep = key.indexOf(' ');
-    const name = key.slice(0, sep);
-    const method = key.slice(sep + 1);
-    rows.push({ name, method, ...row });
-    totalCallCount += row.callCount;
-    totalErrorCount += row.errorCount;
-    totalDurationMs += row.totalDurationMs;
+  for (const byMethod of window.counters.values()) {
+    for (const row of byMethod.values()) {
+      rows.push(row);
+      totalCallCount += row.callCount;
+      totalErrorCount += row.errorCount;
+      totalDurationMs += row.totalDurationMs;
+    }
   }
   rows.sort((a, b) => b.totalDurationMs - a.totalDurationMs);
 
