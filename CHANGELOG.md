@@ -13,6 +13,9 @@
 - Bump JavaScript SDK from v10.65.0 to v10.67.0 ([#6471](https://github.com/getsentry/sentry-react-native/pull/6471), [#6494](https://github.com/getsentry/sentry-react-native/pull/6494))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10670)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.65.0...10.67.0)
+- Bump CLI from v3.6.0 to v3.6.1 ([#6493](https://github.com/getsentry/sentry-react-native/pull/6493))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#361)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.0...3.6.1)
 
 ## 8.19.0
 
