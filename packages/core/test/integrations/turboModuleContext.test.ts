@@ -435,6 +435,28 @@ describe('turboModuleContextIntegration', () => {
       expect(attributes['turbo_module.Late.load.duration_ms']).toBe(42);
     });
 
+    it('does not credit a later span for an async call that started before any span was open', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      // Async call starts with no span open — snapshot must capture "no
+      // windows" rather than nothing.
+      const recordId = notifyTurboModuleCallStart('Boot', 'init', 'async');
+
+      // Span opens *after* the call started.
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      // Call settles into the recordObserver — must not credit `span`.
+      recordTurboModuleCall({ name: 'Boot', method: 'init', kind: 'async', durationMs: 10, errored: false, recordId });
+
+      emit('spanEnd', span);
+
+      expect(span.setAttributes).not.toHaveBeenCalled();
+    });
+
     it('does not attach attributes to non-root spans', () => {
       (spanUtils.isRootSpan as jest.Mock).mockReturnValue(false);
 

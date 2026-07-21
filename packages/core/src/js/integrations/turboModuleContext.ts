@@ -219,30 +219,36 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       }
 
       if (enableSpanAttribution) {
+        // Always record a snapshot — even an empty one — so a call that started
+        // when no root span was open never gets attributed to spans that
+        // opened between call start and settle.
         startObserver = (start: TurboModuleCallStart): void => {
-          if (openWindowList.length === 0) {
-            return;
-          }
           pendingCallWindows.set(start.recordId, openWindowList.slice());
         };
         addTurboModuleCallStartObserver(startObserver);
 
         recordObserver = (record: TurboModuleRecord): void => {
-          const windows = record.recordId !== undefined ? pendingCallWindows.get(record.recordId) : undefined;
-          if (windows) {
-            pendingCallWindows.delete(record.recordId as number);
-            for (const window of windows) {
-              recordIntoWindow(window, record);
-              // If the span has already ended, re-emit the attributes so a
-              // late-settling async call still lands on the span before the
-              // parent transaction is serialised.
-              if (window.closed) {
-                attachWindowToSpan(window.span, window, maxTopModulesPerSpan);
+          if (record.recordId !== undefined) {
+            const windows = pendingCallWindows.get(record.recordId);
+            pendingCallWindows.delete(record.recordId);
+            // `windows` may be an empty array (no spans open at call start).
+            // Either way, credit only what was captured — the currently-open
+            // spans opened *after* this call and must not receive its data.
+            if (windows) {
+              for (const window of windows) {
+                recordIntoWindow(window, record);
+                // If the span has already ended, re-emit the attributes so a
+                // late-settling async call still lands on the span before the
+                // parent transaction is serialised.
+                if (window.closed) {
+                  attachWindowToSpan(window.span, window, maxTopModulesPerSpan);
+                }
               }
             }
           } else {
-            // Fallback for records that arrived without a paired start (e.g.
-            // sync path or a direct `recordTurboModuleCall` caller in tests).
+            // No `recordId` means the caller bypassed `notifyTurboModuleCallStart`
+            // (e.g. a direct `recordTurboModuleCall` in tests). Fall back to
+            // the currently-open windows.
             for (const window of openWindowList) {
               recordIntoWindow(window, record);
             }
