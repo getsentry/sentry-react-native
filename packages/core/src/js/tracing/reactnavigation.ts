@@ -411,7 +411,14 @@ export const reactNavigationIntegration = ({
 
     // This action is emitted on every dispatch
     navigationContainer.addListener('__unsafe_action__', startIdleNavigationSpan);
-    navigationContainer.addListener('state', updateLatestNavigationSpanWithCurrentRoute);
+    // React Navigation fires `emit('state')` synchronously BEFORE the
+    // `onStateChange` prop callback. Integrations like Expo Router refresh
+    // their route cache (which our route override provider reads) inside that
+    // `onStateChange`, so reading the override synchronously here would return
+    // the previous route for the current transition. Defer with a microtask
+    // so the read happens after the synchronous state-change chain completes
+    // and downstream caches have caught up. See #6436.
+    navigationContainer.addListener('state', scheduleUpdateLatestNavigationSpanWithCurrentRoute);
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = true;
 
     if (initialStateHandled) {
@@ -613,6 +620,27 @@ export const reactNavigationIntegration = ({
     }
 
     stateChangeTimeout = setTimeout(_discardLatestTransaction, routeChangeTimeoutMs);
+  };
+
+  /**
+   * Defer {@link updateLatestNavigationSpanWithCurrentRoute} until the current
+   * synchronous state-change chain unwinds so route override providers backed
+   * by a downstream cache (e.g. Expo Router's router-store, which is refreshed
+   * via `NavigationContainer.onStateChange`) have picked up the new route. See
+   * #6436.
+   */
+  const scheduleUpdateLatestNavigationSpanWithCurrentRoute = (): void => {
+    const g = globalThis as unknown as { queueMicrotask?: (cb: () => void) => void };
+    if (typeof g.queueMicrotask === 'function') {
+      g.queueMicrotask(updateLatestNavigationSpanWithCurrentRoute);
+      return;
+    }
+    // Fallback for runtimes without `queueMicrotask`. `.catch()` handler is
+    // there only to satisfy the `no-floating-promises` lint — the update
+    // function does not throw.
+    Promise.resolve()
+      .then(updateLatestNavigationSpanWithCurrentRoute)
+      .catch(() => {});
   };
 
   /**

@@ -2,11 +2,13 @@
 #import <QuartzCore/QuartzCore.h>
 #import <React/RCTLog.h>
 
+const int TIME_TO_DISPLAY_ENTRIES_MAX_SIZE = 50;
+
 // All static state below is accessed from the main thread (CADisplayLink, UI) and from the
 // React Native bridge / JS thread (setActiveSpanId, pop). Synchronize every access.
 @implementation RNSentryTimeToDisplay {
     CADisplayLink *displayLink;
-    RCTResponseSenderBlock resolveBlock;
+    RCTPromiseResolveBlock resolveBlock;
 }
 
 static NSMutableDictionary<NSString *, NSNumber *> *screenIdToRenderDuration;
@@ -92,7 +94,7 @@ static NSString *activeSpanId;
 }
 
 // Rename requestAnimationFrame to getTimeToDisplay
-- (void)getTimeToDisplay:(RCTResponseSenderBlock)callback
+- (void)getTimeToDisplay:(RCTPromiseResolveBlock)callback
 {
     // Store the resolve block to use in the callback.
     resolveBlock = callback;
@@ -102,7 +104,7 @@ static NSString *activeSpanId;
     displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(handleDisplayLink:)];
     [displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 #else
-    resolveBlock(@[]); // Return nothing if not iOS.
+    resolveBlock(nil); // Return nothing if not iOS.
 #endif
 }
 
@@ -114,7 +116,7 @@ static NSString *activeSpanId;
 
     // Ensure the callback is valid and pass the current time back
     if (resolveBlock) {
-        resolveBlock(@[ @(currentTime) ]); // Call the callback with the current time
+        resolveBlock(@(currentTime)); // Resolve the promise with the current time
         resolveBlock = nil; // Clear the block after it's called
     }
 

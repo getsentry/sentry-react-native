@@ -37,49 +37,48 @@ export const expoRouterIntegration = (options: ExpoRouterIntegrationOptions = {}
       // expo-router not installed
       return;
     }
-    if (!store.navigationRef) {
-      debug.warn(
-        `${INTEGRATION_NAME} Found expo-router router-store but it does not expose a \`navigationRef\`. ` +
-          `This likely means the installed expo-router version is incompatible with this integration.`,
-      );
-      return;
-    }
 
-    // reuse the user's reactNavigationIntegration if they registered one manually.
-    // Otherwise, create and add one.
-    let reactNavigation = getReactNavigationIntegration(client);
-    if (!reactNavigation) {
-      reactNavigation = reactNavigationIntegration(options);
-      client.addIntegration(reactNavigation);
-    }
-
-    const navigationRef = store.navigationRef;
-
-    reactNavigation._setRouteOverrideProvider?.(() => buildExpoRouterRouteOverride(store));
-
-    if (navigationRef.current) {
-      reactNavigation.registerNavigationContainer(navigationRef);
-      return;
-    }
-
-    // Otherwise, poll until the Root Layout mounts and Expo Router sets `.current`.
+    // `Sentry.init()` is typically called at module eval time (as the docs recommend),
+    // which runs before Expo Router's Root Layout mounts. Both `store.navigationRef` and
+    // `navigationRef.current` may still be undefined here — poll for both to appear.
+    // Defer adding `reactNavigationIntegration` until we can also register it, so a
+    // timeout can never leave a non-functional integration attached to the client.
     const startedAt = Date.now();
+
     const poll = (): void => {
-      if (!navigationRef.current) {
-        if (Date.now() - startedAt >= POLL_MAX_DURATION_MS) {
-          debug.warn(`${INTEGRATION_NAME} Timed out waiting for Expo Router navigation container.`);
-          pollTimer = undefined;
-          return;
+      const navigationRef = store.navigationRef;
+
+      if (navigationRef?.current) {
+        // Reuse the user's reactNavigationIntegration if they registered one manually.
+        // Otherwise, create and add one.
+        const existing = getReactNavigationIntegration(client);
+        const reactNavigation = existing ?? reactNavigationIntegration(options);
+        if (!existing) {
+          client.addIntegration(reactNavigation);
         }
-        pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
+        reactNavigation._setRouteOverrideProvider?.(() => buildExpoRouterRouteOverride(store));
+        reactNavigation.registerNavigationContainer(navigationRef);
+        pollTimer = undefined;
         return;
       }
 
-      reactNavigation?.registerNavigationContainer(navigationRef);
-      pollTimer = undefined;
+      if (Date.now() - startedAt >= POLL_MAX_DURATION_MS) {
+        if (!navigationRef) {
+          debug.warn(
+            `${INTEGRATION_NAME} Found expo-router router-store but it does not expose a \`navigationRef\`. ` +
+              `This likely means the installed expo-router version is incompatible with this integration.`,
+          );
+        } else {
+          debug.warn(`${INTEGRATION_NAME} Timed out waiting for Expo Router navigation container.`);
+        }
+        pollTimer = undefined;
+        return;
+      }
+
+      pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
     };
 
-    pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
+    poll();
 
     client.on('close', () => {
       if (pollTimer !== undefined) {
