@@ -122,16 +122,24 @@ Pod::Spec.new do |s|
     # sentry-cocoa's `Sentry.xcframework` layout is stable across releases.
     # Add a slice there if a future release ships one.
     #
-    # Point the search paths at the pod-install-time absolute path to the
-    # xcframework. `${PODS_TARGET_SRCROOT}` is only defined in per-pod
-    # xcconfigs, not in aggregate/user-target xcconfigs, and a
-    # `${PODS_ROOT}`-relative fallback works for one Podfile layout but
-    # breaks for another (e.g. the RN sample apps put node_modules at a
-    # different depth from RNSentryCocoaTester). Using the absolute path
-    # avoids the layout-detection dance — the path is regenerated on
-    # every `pod install`, so it's not something anyone commits.
+    # Reference the xcframework through a `Pods/sentry-xcframeworks/…`
+    # symlink so the search paths are machine-independent (see
+    # `stage_sentry_xcframework_in_pods`) — the values below feed the
+    # `RNSentry` SPEC CHECKSUM in `Podfile.lock`, so an absolute
+    # `~/Library/Caches/…` path here made the lockfile churn between
+    # machines (#6467). `${PODS_TARGET_SRCROOT}` can't be used instead: it
+    # is only defined in per-pod xcconfigs, not in aggregate/user-target
+    # xcconfigs, and a `${PODS_ROOT}`-relative path to node_modules works
+    # for one Podfile layout but breaks for another (e.g. the RN sample
+    # apps put node_modules at a different depth from RNSentryCocoaTester).
+    # If the symlink can't be created, fall back to the absolute
+    # pod-install-time path — functional, but with a machine-specific
+    # checksum.
+    sentry_xcframework_ref =
+      stage_sentry_xcframework_in_pods(sentry_xcframework_dir, sentry_cocoa_version, 'Sentry') ||
+      sentry_xcframework_dir
     xcframework_search_paths = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
-      paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_dir, slice)}") }
+      paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_ref, slice)}") }
       acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
     end
 

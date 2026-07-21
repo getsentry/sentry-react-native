@@ -165,3 +165,52 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
   target_dir
 end
 
+# Stage the cached xcframework behind a machine-independent `$(PODS_ROOT)`
+# reference.
+#
+# Everything assigned to `pod_target_xcconfig`/`user_target_xcconfig` is part
+# of the evaluated spec, and CocoaPods derives the pod's `SPEC CHECKSUM` in
+# `Podfile.lock` from exactly that evaluated spec. Pointing
+# `FRAMEWORK_SEARCH_PATHS` at the per-user cache directory
+# (`~/Library/Caches/…`) therefore leaked `$HOME` into the checksum: two
+# machines installing the same SDK version produced different `RNSentry`
+# checksums and `Podfile.lock` churned on every `pod install` (#6467).
+#
+# Instead, symlink `Pods/sentry-xcframeworks/<version>/<product>.xcframework`
+# to the cached bundle and reference it as
+# `$(PODS_ROOT)/sentry-xcframeworks/…` — a string that is identical on every
+# machine (including ones overriding `SENTRY_XCFRAMEWORK_CACHE_DIR`).
+# `$(PODS_ROOT)` is defined by CocoaPods in both the per-pod and the
+# user/aggregate xcconfigs, unlike `$(PODS_TARGET_SRCROOT)`, and the link
+# lives inside `Pods/` so no Podfile-layout detection is needed.
+#
+# Returns the `$(PODS_ROOT)`-based path, or nil when the symlink cannot be
+# created — callers should fall back to the absolute cache path (previous
+# behaviour, functional but with a machine-specific checksum).
+def stage_sentry_xcframework_in_pods(xcframework_dir, version, product = 'Sentry')
+  pods_root = if defined?(Pod::Config) && Pod::Config.instance.respond_to?(:sandbox_root)
+                Pod::Config.instance.sandbox_root.to_s
+              else
+                File.join(Dir.pwd, 'Pods')
+              end
+  staging_dir = File.join(pods_root, 'sentry-xcframeworks', version)
+  link_path = File.join(staging_dir, "#{product}.xcframework")
+
+  FileUtils.mkdir_p(staging_dir)
+  # Recreate the link when it's missing or points at a stale location
+  # (e.g. `SENTRY_XCFRAMEWORK_CACHE_DIR` changed between installs).
+  unless File.symlink?(link_path) && File.readlink(link_path) == xcframework_dir
+    FileUtils.rm_rf(link_path)
+    File.symlink(xcframework_dir, link_path)
+  end
+
+  "$(PODS_ROOT)/sentry-xcframeworks/#{version}/#{product}.xcframework"
+rescue StandardError, NotImplementedError => e
+  if defined?(Pod::UI)
+    Pod::UI.warn "[Sentry] Could not link the #{product} xcframework into Pods/ " \
+                 "(#{e.class}: #{e.message}). Falling back to the absolute cache path; " \
+                 "the RNSentry checksum in Podfile.lock will be machine-specific."
+  end
+  nil
+end
+
