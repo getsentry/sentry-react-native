@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Fix spurious duplicate navigation transaction created by Expo Router's `withAnchor` bookkeeping `POP_TO` dispatch when `useDispatchedActionData` is enabled ([#6472](https://github.com/getsentry/sentry-react-native/pull/6472))
+
 ## 8.19.0
 
 ### Features

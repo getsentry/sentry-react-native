@@ -38,7 +38,11 @@ import { mockAppRegistryIntegration } from '../mocks/appRegistryIntegrationMock'
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
-import { createMockNavigationAndAttachTo, createMockNavigationWithNestedState } from './reactnavigationutils';
+import {
+  createMockNavigationAndAttachTo,
+  createMockNavigationWithNestedState,
+  MockNavigationContainerWithState,
+} from './reactnavigationutils';
 
 const dummyRoute = {
   name: 'Route',
@@ -1436,6 +1440,141 @@ describe('ReactNavigationInstrumentation', () => {
       expect(client.event?.transaction).toBe('TabScreen');
     });
 
+    test('POP_TO action to a different route creates a named span', async () => {
+      mockNavigation.emitWithStateChange(
+        {
+          data: {
+            action: {
+              type: 'POP_TO',
+              payload: { name: 'ScreenB' },
+            },
+            noop: false,
+            stack: undefined,
+          },
+        },
+        { key: 'screen_b', name: 'ScreenB' },
+      );
+      jest.runOnlyPendingTimers();
+
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('ScreenB');
+    });
+
+    test('POP_TO action targeting the focused route does not create a navigation span', async () => {
+      // Real navigation to New Screen.
+      mockNavigation.emitWithStateChange(
+        {
+          data: {
+            action: {
+              type: 'NAVIGATE',
+              payload: { name: 'New Screen' },
+            },
+            noop: false,
+            stack: undefined,
+          },
+        },
+        { key: 'new_screen', name: 'New Screen' },
+      );
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+      expect(client.event?.transaction).toBe('New Screen');
+      client.event = undefined;
+
+      // Expo Router `withAnchor` bookkeeping dispatch: POP_TO stamping
+      // `initial: false` onto the route that is already focused.
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: {
+            type: 'POP_TO',
+            payload: { name: 'New Screen', params: { initial: false } },
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event).toBeUndefined();
+    });
+
+    test('POP_TO action targeting the focused route does not remove the in-flight navigation span', async () => {
+      mockNavigation.emitNavigationWithoutStateChange();
+      const activeSpan = getActiveSpan();
+
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: {
+            type: 'POP_TO',
+            payload: { name: 'Initial Screen', params: { initial: false } },
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+
+      expect(getActiveSpan()).toBe(activeSpan);
+    });
+
+    test('POP_TO span that did not change the route is discarded', async () => {
+      // Payload name matches no focused route (e.g. a nested navigator name),
+      // so the dispatch-time filter misses, but the state change lands on the
+      // same route key — the span must be discarded, not left running.
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: {
+            type: 'POP_TO',
+            payload: { name: '(app)', params: { initial: false } },
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event).toBeUndefined();
+    });
+
+    test('POP_TO span that did not change the route is kept when it carries a deep link', async () => {
+      setPendingDeepLink('myapp://initial-screen', 'warm-open');
+
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: {
+            type: 'POP_TO',
+            payload: { name: '(app)', params: { initial: false } },
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event?.contexts?.trace?.data?.['navigation.trigger']).toBe('deeplink');
+
+      clearPendingDeepLink();
+    });
+
+    test('NAVIGATE landing on the same route still creates a span', async () => {
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: {
+            type: 'NAVIGATE',
+            payload: { name: 'Initial Screen' },
+          },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event?.transaction).toBe('Initial Screen');
+    });
+
     test('cancelled navigation with dispatched route name is discarded', async () => {
       mockNavigation.emitWithoutStateChange({
         data: {
@@ -1481,6 +1620,66 @@ describe('ReactNavigationInstrumentation', () => {
       // Initial span should be created with 'Initial Screen' from the mock container
       expect(freshClient.event?.transaction).toBe('Initial Screen');
     });
+  });
+
+  test('POP_TO targeting a focused parent navigator route does not create a navigation span', async () => {
+    // Expo Router's `withAnchor` bookkeeping POP_TO carries the route name of
+    // the divergent navigator level, which is often a parent of the leaf
+    // route — the focused-route check must walk the whole focused chain.
+    const rNavigation = reactNavigationIntegration({
+      routeChangeTimeoutMs: 200,
+      useDispatchedActionData: true,
+    });
+
+    const container = new MockNavigationContainerWithState();
+    container.currentRoute = { key: 'screen_b', name: 'screenB' };
+    container.currentState = {
+      index: 0,
+      routes: [
+        {
+          name: '(app)',
+          key: 'app',
+          state: {
+            index: 1,
+            routes: [
+              { name: 'screenA', key: 'screen_a' },
+              { name: 'screenB', key: 'screen_b' },
+            ],
+          },
+        },
+      ],
+    };
+
+    const options = getDefaultTestClientOptions({
+      enableNativeFramesTracking: false,
+      enableStallTracking: false,
+      tracesSampleRate: 1.0,
+      integrations: [rNavigation, reactNativeTracingIntegration()],
+      enableAppStartTracking: false,
+    });
+    client = new TestClient(options);
+    setCurrentClient(client);
+    client.init();
+    rNavigation.registerNavigationContainer(container);
+
+    await jest.runOnlyPendingTimersAsync(); // Flush the initial navigation span
+    client.event = undefined;
+
+    container.listeners['__unsafe_action__']({
+      data: {
+        action: {
+          type: 'POP_TO',
+          payload: { name: '(app)', params: { initial: false } },
+        },
+        noop: false,
+        stack: undefined,
+      },
+    });
+    container.listeners['state']({});
+    await jest.runOnlyPendingTimersAsync();
+    await client.flush();
+
+    expect(client.event).toBeUndefined();
   });
 
   describe('useDispatchedActionData disabled (default) still uses generic span name', () => {
