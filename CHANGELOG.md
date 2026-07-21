@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Make `copySentryJsonConfiguration` and the `*_SentryUpload` Gradle tasks compatible with the Gradle Configuration Cache ([#6466](https://github.com/getsentry/sentry-react-native/issues/6466))
+- Make `copySentryJsonConfiguration` and the `*_SentryUpload` Gradle tasks compatible with the Gradle Configuration Cache ([#6469](https://github.com/getsentry/sentry-react-native/pull/6469))
 
   These tasks previously read `project` state at execution time — `onlyIf` predicates resolving closures from `project.extra`, plus `project.rootDir`, `project.copy`, `project.logger`, and `Project.file` inside task actions — which fails the build with `Could not evaluate onlyIf predicate` when `org.gradle.configuration-cache=true` (Gradle 9 defaults to recommending it). Environment reads are now captured at configuration time, file copies use an injected `FileSystemOperations`, and task actions use the task's own `logger`. No behaviour change. Interim step ahead of the full SAGP migration (getsentry/sentry-android-gradle-plugin#796).
 

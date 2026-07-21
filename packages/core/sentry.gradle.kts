@@ -110,7 +110,8 @@ val androidAssetsDir = File("$rootDir/app/src/main/assets")
 // `copyOptionsFileEnabled` is a Property populated in `afterEvaluate` (below) rather than at
 // apply-time, so a `project.ext.shouldCopySentryOptionsFile` override placed after `apply from`
 // is still honored. Referencing the Property in `onlyIf` keeps the tasks Config Cache compatible.
-val copyOptionsFileEnabled = objects.property(Boolean::class.java)
+// The convention preserves the documented default (copy enabled) if `afterEvaluate` never runs.
+val copyOptionsFileEnabled = objects.property(Boolean::class.java).convention(true)
 val rootDirFile = project.rootDir
 
 tasks.register("copySentryJsonConfiguration") {
@@ -221,7 +222,7 @@ fun resolveSentryCliPackagePath(reactRoot: File): String {
                     "--print",
                     "require.resolve('@sentry/cli/package.json', { paths: [require.resolve('@sentry/react-native/package.json')] })",
                 ),
-            ).directory(reactRoot)
+            ).directory(rootDir)
                 .start()
         val output =
             process.inputStream
