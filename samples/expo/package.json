@@ -23,7 +23,7 @@
     "eas-build-development-android": "eas build --profile development --platform android"
   },
   "dependencies": {
-    "@sentry/core": "10.65.0",
+    "@sentry/core": "10.66.0",
     "@sentry/react-native": "8.19.0",
     "@types/react": "~19.2.10",
     "expo": "^57.0.0",
