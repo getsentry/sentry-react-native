@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix iOS screenshots no longer being captured since 8.19.0 (Feedback Widget screenshot, `attachScreenshot`, `Sentry.captureScreenshot()`) by reverting the iOS `SentrySDK.internal` migration from #6380 ([#6491](https://github.com/getsentry/sentry-react-native/pull/6491), [#6497](https://github.com/getsentry/sentry-react-native/issues/6497))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.65.0 to v10.67.0 ([#6471](https://github.com/getsentry/sentry-react-native/pull/6471), [#6494](https://github.com/getsentry/sentry-react-native/pull/6494))
