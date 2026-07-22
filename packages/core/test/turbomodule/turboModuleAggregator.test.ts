@@ -89,20 +89,28 @@ describe('turboModuleAggregator', () => {
     recordTurboModuleCall({ name: 'A', method: 'y', kind: 'async', durationMs: 42, errored: true });
 
     expect(observer).toHaveBeenCalledTimes(2);
-    expect(observer).toHaveBeenNthCalledWith(1, {
-      name: 'A',
-      method: 'x',
-      kind: 'sync',
-      durationMs: 3,
-      errored: false,
-    });
-    expect(observer).toHaveBeenNthCalledWith(2, {
-      name: 'A',
-      method: 'y',
-      kind: 'async',
-      durationMs: 42,
-      errored: true,
-    });
+    expect(observer).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        name: 'A',
+        method: 'x',
+        kind: 'sync',
+        durationMs: 3,
+        errored: false,
+        arch: 'new',
+      }),
+    );
+    expect(observer).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        name: 'A',
+        method: 'y',
+        kind: 'async',
+        durationMs: 42,
+        errored: true,
+        arch: 'new',
+      }),
+    );
 
     removeTurboModuleRecordObserver(observer);
     recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });

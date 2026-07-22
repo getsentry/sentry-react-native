@@ -14,8 +14,10 @@ import {
   setOnFirstTurboModuleRecord,
   type TurboModuleCallStart,
   type TurboModuleRecord,
+  wrapAllNativeModules,
   wrapTurboModule,
 } from '../turbomodule';
+import { isTurboModuleEnabled } from '../utils/environment';
 import { isRootSpan } from '../utils/span';
 import { getRNSentryModule } from '../wrapper';
 import {
@@ -71,6 +73,15 @@ export interface TurboModuleContextOptions {
 
   /** Cap on per-`(module, method)` rows attributed to a single span. Default: `16`. */
   maxTopModulesPerSpan?: number;
+
+  /** On Old Architecture, auto-wrap every registered `NativeModules.*`. Default: `true`. */
+  enableLegacyNativeModules?: boolean;
+
+  /** Modules to skip in the legacy auto-wrap (`RNSentry` is always skipped). */
+  legacyModulesSkip?: ReadonlyArray<string>;
+
+  /** Per-module method skips for the legacy auto-wrap. */
+  legacyModulesSkipMethods?: Readonly<Record<string, ReadonlyArray<string>>>;
 }
 
 // Scope-sync methods must NOT be tracked — `enableSyncToNative` calls them on
@@ -101,6 +112,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   const flushIntervalMs = options.aggregateFlushIntervalMs ?? DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS;
   const slowCallThresholdMs = options.slowCallThresholdMs ?? DEFAULT_SLOW_CALL_THRESHOLD_MS;
   const maxTopModulesPerSpan = options.maxTopModulesPerSpan ?? DEFAULT_MAX_TOP_MODULES_PER_SPAN;
+  const contextArch: 'new' | 'legacy' = isTurboModuleEnabled() ? 'new' : 'legacy';
 
   let pendingFlushHandle: ReturnType<typeof setTimeout> | undefined;
   let closed = false;
@@ -120,10 +132,19 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   return {
     name: INTEGRATION_NAME,
     setupOnce() {
-      wrapTurboModule('RNSentry', getRNSentryModule(), { skip: RNSENTRY_SKIP });
+      // Wrap RNSentry first with its curated skip list; `wrapAllNativeModules`
+      // then skips it implicitly to avoid double-wrapping with a wider surface.
+      wrapTurboModule('RNSentry', getRNSentryModule(), { skip: RNSENTRY_SKIP, arch: contextArch });
 
       for (const entry of options.modules ?? []) {
-        wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods });
+        wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods, arch: contextArch });
+      }
+
+      if (options.enableLegacyNativeModules !== false) {
+        wrapAllNativeModules({
+          skipModules: options.legacyModulesSkip,
+          skipMethodsPerModule: options.legacyModulesSkipMethods,
+        });
       }
 
       setAggregateRecordingEnabled(enableAggregate);
@@ -175,7 +196,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
                 for (const window of windows) {
                   recordIntoWindow(window, record);
                   if (window.closed) {
-                    attachWindowToSpan(window.span, window, maxTopModulesPerSpan, pendingSpanAttributes);
+                    attachWindowToSpan(window.span, window, maxTopModulesPerSpan, contextArch, pendingSpanAttributes);
                   }
                 }
               }
@@ -229,7 +250,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
             openWindowList.splice(idx, 1);
           }
           window.closed = true;
-          attachWindowToSpan(span, window, maxTopModulesPerSpan, pendingSpanAttributes);
+          attachWindowToSpan(span, window, maxTopModulesPerSpan, contextArch, pendingSpanAttributes);
         });
       }
 
@@ -326,6 +347,7 @@ function attachWindowToSpan(
   span: Span,
   window: WindowState,
   topN: number,
+  arch: 'new' | 'legacy',
   pendingSpanAttributes: Map<string, Record<string, number | string | undefined>>,
 ): void {
   if (window.counters.size === 0) {
@@ -351,6 +373,7 @@ function attachWindowToSpan(
     'turbo_module.total_error_count': totalErrorCount,
     'turbo_module.total_duration_ms': roundMs(totalDurationMs),
     'turbo_module.unique_methods': rows.length,
+    'turbo_module.arch': arch,
   };
   const top = rows[0];
   if (top) {
