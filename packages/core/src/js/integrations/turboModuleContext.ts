@@ -231,16 +231,16 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         });
       }
 
-      // Register the start observer only for span attribution and only for
-      // async calls. Sync calls settle in the same synchronous turn — window
-      // state at start and settle is identical, so they can credit
-      // `openWindowList` directly without a snapshot. Skipping them also
-      // keeps sync traffic from evicting genuine async entries under the cap.
+      // Snapshot the open windows at every call start (sync or async).
+      // `wrapTurboModule` always calls `notifyTurboModuleCallStart` with kind
+      // `'sync'` and only relabels to `'async'` once the return value is known
+      // to be thenable — so gating by `start.kind === 'async'` here would
+      // silently drop *all* async attribution. Sync entries settle in the
+      // same synchronous turn (their record fires immediately after the
+      // wrapped method returns) and are removed from the map right away, so
+      // they don't accumulate under normal traffic.
       if (enableSpanAttribution) {
         startObserver = (start: TurboModuleCallStart): void => {
-          if (start.kind !== 'async') {
-            return;
-          }
           if (pendingCallWindows.size >= MAX_PENDING_CALL_WINDOWS) {
             // Drop oldest entry (Map preserves insertion order). Its record,
             // if it ever settles, falls through the `if (windows)` gate and
@@ -262,7 +262,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       if (enableSpanAttribution || wantsBreadcrumbs) {
         recordObserver = (record: TurboModuleRecord): void => {
           if (enableSpanAttribution) {
-            if (record.recordId !== undefined && record.kind === 'async') {
+            if (record.recordId !== undefined) {
               const windows = pendingCallWindows.get(record.recordId);
               pendingCallWindows.delete(record.recordId);
               // `windows` may be an empty array (no spans open at call start).
@@ -280,9 +280,9 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
                 }
               }
             } else {
-              // Sync calls (or records without `recordId`, e.g. a direct
-              // `recordTurboModuleCall` in tests): sync start + settle happen
-              // in the same turn, so `openWindowList` is the correct set.
+              // No `recordId` means the caller bypassed `notifyTurboModuleCallStart`
+              // (e.g. a direct `recordTurboModuleCall` in tests). Fall back to
+              // the currently-open windows.
               for (const window of openWindowList) {
                 recordIntoWindow(window, record);
               }
