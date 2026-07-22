@@ -25,6 +25,9 @@
 
 ## 8.19.0
 
+> [!WARNING]
+> ⚠️ **Known Issue (iOS):** screenshot capture returns empty in this release, affecting the Feedback Widget screenshot, `attachScreenshot`, and `Sentry.captureScreenshot()`. Android is unaffected. Tracked in [#6497](https://github.com/getsentry/sentry-react-native/issues/6497).
+
 ### Features
 
 - Aggregate TurboModule call counts + latency per `(module, method, kind)` and flush them on transaction finish and on a lazy periodic timer ([#6377](https://github.com/getsentry/sentry-react-native/pull/6377))
@@ -46,6 +49,10 @@
 
 - Add `Sentry.reportFullyDisplayed()` imperative API for signaling Time to Full Display ([#6419](https://github.com/getsentry/sentry-react-native/pull/6419))
 - Add `enableHistoricalTombstoneReporting` option to report historical tombstones from Android's `ApplicationExitInfo` ([#6450](https://github.com/getsentry/sentry-react-native/pull/6450))
+
+### Changes
+
+- **iOS:** On React Native versions where `React-hermes` (or another RN pod) is not modularized by default (e.g. RN 0.71), add `use_modular_headers!` to your `ios/Podfile` above the `target` block. This is required because the `RNSentry` pod now contains Swift code (the new `RNSentryInternal` bridge over `SentrySDK.internal`) and CocoaPods refuses to integrate a Swift pod against non-modular ObjC dependencies. Newer React Native versions require no change ([#6380](https://github.com/getsentry/sentry-react-native/pull/6380)).
 
 ### Fixes
 
@@ -82,7 +89,6 @@
   **Warning**
 
   **This may be a breaking change for some setups.** `pod install` now downloads `Sentry.xcframework` from sentry-cocoa's GitHub release (SHA256-verified) and vendors it, instead of building Sentry from source as a CocoaPod. If your iOS build breaks after upgrading (e.g. when another pod also depends on the `Sentry` CocoaPod), or if your `pod install` environment cannot reach `github.com`, set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior.
-- **iOS:** On React Native versions where `React-hermes` (or another RN pod) is not modularized by default (e.g. RN 0.71), add `use_modular_headers!` to your `ios/Podfile` above the `target` block. This is required because the `RNSentry` pod now contains Swift code (the new `RNSentryInternal` bridge over `SentrySDK.internal`) and CocoaPods refuses to integrate a Swift pod against non-modular ObjC dependencies. Newer React Native versions require no change ([#6380](https://github.com/getsentry/sentry-react-native/pull/6380)).
 
 ### Fixes
 
