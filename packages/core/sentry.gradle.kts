@@ -78,6 +78,11 @@ interface InjectedExecOps {
     val execOps: org.gradle.process.ExecOperations
 }
 
+interface InjectedFsOps {
+    @get:Inject
+    val fs: org.gradle.api.file.FileSystemOperations
+}
+
 extra["shouldCopySentryOptionsFile"] =
     object : groovy.lang.Closure<Boolean>(this) {
         fun doCall(): Boolean = System.getenv("SENTRY_COPY_OPTIONS_FILE") != "false"
@@ -100,17 +105,27 @@ val config: Map<String, Any?> =
 val configFile = "sentry.options.json"
 val androidAssetsDir = File("$rootDir/app/src/main/assets")
 
+// Values captured at configuration time so task onlyIf specs and actions do not read
+// `project` state at execution time (required for Gradle Configuration Cache compatibility).
+// `copyOptionsFileEnabled` is a Property populated in `afterEvaluate` (below) rather than at
+// apply-time, so a `project.ext.shouldCopySentryOptionsFile` override placed after `apply from`
+// is still honored. Referencing the Property in `onlyIf` keeps the tasks Config Cache compatible.
+// The convention preserves the documented default (copy enabled) if `afterEvaluate` never runs.
+val copyOptionsFileEnabled = objects.property(Boolean::class.java).convention(true)
+val rootDirFile = project.rootDir
+
 tasks.register("copySentryJsonConfiguration") {
-    onlyIf { shouldCopySentryOptionsFile() }
+    onlyIf { copyOptionsFileEnabled.get() }
+    val injectedFs = project.objects.newInstance(InjectedFsOps::class.java)
     doLast {
-        val appRoot = project.rootDir.parentFile ?: project.rootDir
+        val appRoot = rootDirFile.parentFile ?: rootDirFile
         val sentryOptionsFile = File(appRoot, configFile)
         if (sentryOptionsFile.exists()) {
             if (!androidAssetsDir.exists()) {
                 androidAssetsDir.mkdirs()
             }
 
-            copy {
+            injectedFs.fs.copy {
                 from(sentryOptionsFile)
                 into(androidAssetsDir)
                 rename { configFile }
@@ -156,7 +171,7 @@ tasks.register("copySentryJsonConfiguration") {
 }
 
 tasks.register("cleanupTemporarySentryJsonConfiguration") {
-    onlyIf { shouldCopySentryOptionsFile() }
+    onlyIf { copyOptionsFileEnabled.get() }
     doLast {
         val sentryOptionsFile = File(androidAssetsDir, configFile)
         if (sentryOptionsFile.exists()) {
@@ -491,6 +506,12 @@ fun processVariant(v: Any) {
     val vName = v.javaClass.getMethod("getName").invoke(v) as String
     if (vName.contains("debug", ignoreCase = true)) return
 
+    // Captured here (inside the onVariants callback, which runs after the app build.gradle has
+    // evaluated) rather than at apply-time, so a `project.ext.shouldSentryAutoUploadGeneral`
+    // override set right after `apply from` (e.g. the Expo `disableAutoUpload` plugin) is honored.
+    // Referencing this captured boolean in `onlyIf` keeps the task Configuration Cache compatible.
+    val sentryAutoUploadGeneralEnabled = shouldSentryAutoUploadGeneral()
+
     val variantCapitalized = Character.toUpperCase(vName[0]).toString() + vName.substring(1)
     val sentryBundleTaskName =
         listOf(
@@ -558,11 +579,15 @@ fun processVariant(v: Any) {
 
         val cliTask =
             tasks.register(nameCliTask) {
-                onlyIf { shouldSentryAutoUploadGeneral() }
+                onlyIf { sentryAutoUploadGeneralEnabled }
                 description = "upload debug symbols to sentry"
                 group = "sentry.io"
 
                 val sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
+                // Resolved at configuration time and captured: calling this script method from
+                // inside the doLast exec closure would fail under the Configuration Cache (the
+                // serialized task action can't resolve top-level script methods).
+                val cliPackage = resolveSentryCliPackagePath(reactRoot)
                 val copyDebugIdScript =
                     config["copyDebugIdScript"]
                         ?.toString()
@@ -591,9 +616,9 @@ fun processVariant(v: Any) {
                             .start()
                     val processOutput = process.inputStream.bufferedReader().readText()
                     process.waitFor()
-                    project.logger.lifecycle("Check generated source map for Debug ID: $processOutput")
+                    logger.lifecycle("Check generated source map for Debug ID: $processOutput")
 
-                    project.logger.lifecycle("Sentry Source Maps upload will include the release name and dist.")
+                    logger.lifecycle("Sentry Source Maps upload will include the release name and dist.")
                     extraArgs.addAll(listOf("--release", releaseName, "--dist", versionCode.toString()))
                 }
 
@@ -608,7 +633,7 @@ fun processVariant(v: Any) {
 
                         if (flavorAware) {
                             propertiesFile = "$reactRoot/android/sentry-$variant.properties"
-                            project.logger.info("For $variant using: $propertiesFile")
+                            logger.info("For $variant using: $propertiesFile")
                         } else {
                             environment("SENTRY_PROPERTIES", propertiesFile)
                         }
@@ -623,7 +648,7 @@ fun processVariant(v: Any) {
                                         "Create it, or disable 'flavorAware' in project.ext.sentryCli.",
                                 )
                             }
-                            project.logger.info("file not found '$propertiesFile' for '$variant'")
+                            logger.info("file not found '$propertiesFile' for '$variant'")
                         }
 
                         val sentryUrl = sentryProps.getProperty("defaults.url")
@@ -644,7 +669,6 @@ fun processVariant(v: Any) {
                             }
                         }
 
-                        val cliPackage = resolveSentryCliPackagePath(reactRoot)
                         var cliExecutable = sentryProps.getProperty("cli.executable") ?: "$cliPackage/bin/sentry-cli"
 
                         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -685,9 +709,9 @@ fun processVariant(v: Any) {
                             } else {
                                 args
                             }
-                        project.logger.lifecycle("Sentry-CLI arguments: $loggedArgs")
+                        logger.lifecycle("Sentry-CLI arguments: $loggedArgs")
                         val osCompatibility = if (Os.isFamily(Os.FAMILY_WINDOWS)) listOf("cmd", "/c", "node") else emptyList()
-                        if (System.getenv("SENTRY_DOTENV_PATH") == null && file("$reactRoot/.env.sentry-build-plugin").exists()) {
+                        if (System.getenv("SENTRY_DOTENV_PATH") == null && File("$reactRoot/.env.sentry-build-plugin").exists()) {
                             environment("SENTRY_DOTENV_PATH", "$reactRoot/.env.sentry-build-plugin")
                         }
                         commandLine(osCompatibility + args)
@@ -778,6 +802,10 @@ fun processVariant(v: Any) {
 }
 
 project.afterEvaluate {
+    // Resolve the (overridable) closure now, after the app build.gradle has evaluated, so an
+    // override placed after `apply from` is honored. The Property is read by the copy/cleanup
+    // tasks' onlyIf at execution time without touching `project` (Configuration Cache safe).
+    copyOptionsFileEnabled.set(shouldCopySentryOptionsFile())
     tasks.named("preBuild").configure {
         dependsOn("copySentryJsonConfiguration")
     }
