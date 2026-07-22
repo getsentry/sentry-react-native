@@ -213,7 +213,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       // Applied whenever any consumer of the record path is active — the
       // aggregate map, span attribution, or the slow-call breadcrumb — so
       // RNSentry's own transport calls are filtered from every surface.
-      if (enableAggregate || enableSpanAttribution) {
+      if (enableAggregate || enableSpanAttribution || slowCallThresholdMs > 0) {
         setIgnoredTurboModules(options.ignoreTurboModules ?? ['RNSentry']);
       }
     },
@@ -231,11 +231,16 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         });
       }
 
+      // Register the start observer only for span attribution and only for
+      // async calls. Sync calls settle in the same synchronous turn — window
+      // state at start and settle is identical, so they can credit
+      // `openWindowList` directly without a snapshot. Skipping them also
+      // keeps sync traffic from evicting genuine async entries under the cap.
       if (enableSpanAttribution) {
-        // Always record a snapshot — even an empty one — so a call that started
-        // when no root span was open never gets attributed to spans that
-        // opened between call start and settle.
         startObserver = (start: TurboModuleCallStart): void => {
+          if (start.kind !== 'async') {
+            return;
+          }
           if (pendingCallWindows.size >= MAX_PENDING_CALL_WINDOWS) {
             // Drop oldest entry (Map preserves insertion order). Its record,
             // if it ever settles, falls through the `if (windows)` gate and
@@ -248,35 +253,43 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
           pendingCallWindows.set(start.recordId, openWindowList.slice());
         };
         addTurboModuleCallStartObserver(startObserver);
+      }
 
+      // Record observer registers whenever any per-record consumer is active
+      // (span attribution or slow-call breadcrumbs). Each surface is gated
+      // separately inside so the two knobs stay independent.
+      const wantsBreadcrumbs = slowCallThresholdMs > 0;
+      if (enableSpanAttribution || wantsBreadcrumbs) {
         recordObserver = (record: TurboModuleRecord): void => {
-          if (record.recordId !== undefined) {
-            const windows = pendingCallWindows.get(record.recordId);
-            pendingCallWindows.delete(record.recordId);
-            // `windows` may be an empty array (no spans open at call start).
-            // Either way, credit only what was captured — the currently-open
-            // spans opened *after* this call and must not receive its data.
-            if (windows) {
-              for (const window of windows) {
-                recordIntoWindow(window, record);
-                // If the span has already ended, re-emit the attributes so a
-                // late-settling async call still lands on the span before the
-                // parent transaction is serialised.
-                if (window.closed) {
-                  attachWindowToSpan(window.span, window, maxTopModulesPerSpan);
+          if (enableSpanAttribution) {
+            if (record.recordId !== undefined && record.kind === 'async') {
+              const windows = pendingCallWindows.get(record.recordId);
+              pendingCallWindows.delete(record.recordId);
+              // `windows` may be an empty array (no spans open at call start).
+              // Either way, credit only what was captured — the currently-open
+              // spans opened *after* this call and must not receive its data.
+              if (windows) {
+                for (const window of windows) {
+                  recordIntoWindow(window, record);
+                  // If the span has already ended, re-emit the attributes so a
+                  // late-settling async call still lands on the span before the
+                  // parent transaction is serialised.
+                  if (window.closed) {
+                    attachWindowToSpan(window.span, window, maxTopModulesPerSpan);
+                  }
                 }
               }
-            }
-          } else {
-            // No `recordId` means the caller bypassed `notifyTurboModuleCallStart`
-            // (e.g. a direct `recordTurboModuleCall` in tests). Fall back to
-            // the currently-open windows.
-            for (const window of openWindowList) {
-              recordIntoWindow(window, record);
+            } else {
+              // Sync calls (or records without `recordId`, e.g. a direct
+              // `recordTurboModuleCall` in tests): sync start + settle happen
+              // in the same turn, so `openWindowList` is the correct set.
+              for (const window of openWindowList) {
+                recordIntoWindow(window, record);
+              }
             }
           }
 
-          if (slowCallThresholdMs > 0 && record.kind === 'async' && record.durationMs >= slowCallThresholdMs) {
+          if (wantsBreadcrumbs && record.kind === 'async' && record.durationMs >= slowCallThresholdMs) {
             addBreadcrumb({
               category: TURBO_MODULE_BREADCRUMB_CATEGORY,
               level: 'info',
@@ -293,7 +306,9 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
           }
         };
         addTurboModuleRecordObserver(recordObserver);
+      }
 
+      if (enableSpanAttribution) {
         client.on?.('spanStart', (span: Span) => {
           if (!isRootSpan(span)) {
             return;
