@@ -665,5 +665,85 @@ describe('turboModuleContextIntegration', () => {
 
       expect(addBreadcrumbSpy).not.toHaveBeenCalled();
     });
+
+    it('emits slow-call breadcrumbs even when enableSpanAttribution is disabled', () => {
+      // `slowCallThresholdMs` is documented as an independent knob — turning
+      // span attribution off must not silently disable breadcrumbs.
+      const integration = turboModuleContextIntegration({
+        aggregateFlushIntervalMs: 0,
+        enableSpanAttribution: false,
+      });
+      integration.setupOnce?.();
+      const { client } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      recordTurboModuleCall({
+        name: 'Slow',
+        method: 'blocking',
+        kind: 'async',
+        durationMs: DEFAULT_SLOW_CALL_THRESHOLD_MS + 50,
+        errored: false,
+      });
+
+      expect(addBreadcrumbSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not register the record observer when both span attribution and breadcrumbs are off', () => {
+      const integration = turboModuleContextIntegration({
+        aggregateFlushIntervalMs: 0,
+        enableSpanAttribution: false,
+        slowCallThresholdMs: 0,
+      });
+      integration.setupOnce?.();
+      const { client } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      // With every per-record surface disabled, a call must be a no-op —
+      // no breadcrumb, no attempt to touch a span.
+      recordTurboModuleCall({
+        name: 'X',
+        method: 'y',
+        kind: 'async',
+        durationMs: DEFAULT_SLOW_CALL_THRESHOLD_MS + 100,
+        errored: false,
+      });
+
+      expect(addBreadcrumbSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not evict async pending entries when sync calls fire at cap', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      // A legitimate long-running async call starts and takes a slot.
+      const asyncRecordId = notifyTurboModuleCallStart('Long', 'req', 'async');
+
+      // A burst of sync calls hits — with the old design, MAX_PENDING_CALL_WINDOWS
+      // sync starts would evict `Long`. Sync now skips `pendingCallWindows`
+      // entirely, so `Long`'s slot survives.
+      for (let i = 0; i < MAX_PENDING_CALL_WINDOWS + 5; i++) {
+        notifyTurboModuleCallStart('SyncBurst', `m${i}`, 'sync');
+      }
+
+      // `Long` settles after the burst — its window snapshot is still there.
+      recordTurboModuleCall({
+        name: 'Long',
+        method: 'req',
+        kind: 'async',
+        durationMs: 42,
+        errored: false,
+        recordId: asyncRecordId,
+      });
+      emit('spanEnd', span);
+
+      const attributes = span.setAttributes.mock.calls.at(-1)?.[0] as Record<string, unknown>;
+      expect(attributes['turbo_module.Long.req.call_count']).toBe(1);
+      expect(attributes['turbo_module.Long.req.duration_ms']).toBe(42);
+    });
   });
 });
