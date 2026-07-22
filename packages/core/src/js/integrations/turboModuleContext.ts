@@ -45,6 +45,15 @@ export const DEFAULT_MAX_TOP_MODULES_PER_SPAN = 16;
 /** Breadcrumb category for slow-call notifications. */
 export const TURBO_MODULE_BREADCRUMB_CATEGORY = 'native.turbo_module';
 
+/**
+ * Upper bound on `pendingCallWindows` size. Each in-flight async TurboModule
+ * call adds an entry that's removed when the call settles; a bounded cap keeps
+ * abandoned (never-settling) promises from pinning `WindowState` forever.
+ * When exceeded, the oldest entry is dropped — its late-settling record is
+ * silently ignored rather than mis-attributed to a later span.
+ */
+export const MAX_PENDING_CALL_WINDOWS = 1024;
+
 export interface TurboModuleContextOptions {
   /**
    * Additional TurboModules to track. Each entry's methods will be wrapped so
@@ -176,13 +185,17 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   let pendingFlushHandle: ReturnType<typeof setTimeout> | undefined;
   let closed = false;
 
-  // WeakMap keeps a leaked span (one that never fires `spanEnd`) GC-eligible;
-  // the parallel array is what the record observer iterates on the hot path.
+  // Two structures for the same set of open root spans: the WeakMap gives O(1)
+  // lookup in `spanEnd`, the parallel array is what the record observer
+  // iterates on the hot path. Both are cleaned in `spanEnd`; a span that never
+  // fires `spanEnd` stays pinned via `openWindowList` until `client.close`
+  // (root spans are always eventually ended in practice, so this is bounded).
   const openWindows: WeakMap<Span, WindowState> = new WeakMap();
   const openWindowList: WindowState[] = [];
   // Windows open at each in-flight call's start. Keyed by the wrap layer's
   // `recordId` so async calls that settle after their originating span has
-  // ended still get credited to that span.
+  // ended still get credited to that span. Bounded by MAX_PENDING_CALL_WINDOWS
+  // so a chatty session where some promises never settle can't leak forever.
   const pendingCallWindows: Map<number, WindowState[]> = new Map();
   let recordObserver: ((record: TurboModuleRecord) => void) | undefined;
   let startObserver: ((start: TurboModuleCallStart) => void) | undefined;
@@ -223,6 +236,15 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         // when no root span was open never gets attributed to spans that
         // opened between call start and settle.
         startObserver = (start: TurboModuleCallStart): void => {
+          if (pendingCallWindows.size >= MAX_PENDING_CALL_WINDOWS) {
+            // Drop oldest entry (Map preserves insertion order). Its record,
+            // if it ever settles, falls through the `if (windows)` gate and
+            // is silently ignored — better than mis-attributing to a later span.
+            const oldest = pendingCallWindows.keys().next().value;
+            if (oldest !== undefined) {
+              pendingCallWindows.delete(oldest);
+            }
+          }
           pendingCallWindows.set(start.recordId, openWindowList.slice());
         };
         addTurboModuleCallStartObserver(startObserver);
@@ -366,6 +388,11 @@ interface WindowState {
   // Nested `name → method → row` so identifiers with any character (spaces,
   // dots, etc.) can never collide with the pair separator.
   counters: Map<string, Map<string, WindowRow>>;
+  // Per-method attribute keys written on the previous `attachWindowToSpan`
+  // call. On re-emit (late-settling async), any key not in the new top-N is
+  // cleared so stale rows don't survive re-ranking. `setAttributes` merges,
+  // so without this the dropped tail would linger.
+  writtenPerMethodKeys?: Set<string>;
 }
 
 function recordIntoWindow(window: WindowState, record: TurboModuleRecord): void {
@@ -411,7 +438,7 @@ function attachWindowToSpan(span: Span, window: WindowState, topN: number): void
   }
   rows.sort((a, b) => b.totalDurationMs - a.totalDurationMs);
 
-  const attributes: Record<string, number | string> = {
+  const attributes: Record<string, number | string | undefined> = {
     'turbo_module.total_call_count': totalCallCount,
     'turbo_module.total_error_count': totalErrorCount,
     'turbo_module.total_duration_ms': roundMs(totalDurationMs),
@@ -423,12 +450,31 @@ function attachWindowToSpan(span: Span, window: WindowState, topN: number): void
     attributes['turbo_module.top_module_duration_ms'] = roundMs(top.totalDurationMs);
   }
   const capped = rows.slice(0, topN);
+  const nextKeys = new Set<string>();
   for (const row of capped) {
     const prefix = `turbo_module.${row.name}.${row.method}`;
-    attributes[`${prefix}.call_count`] = row.callCount;
-    attributes[`${prefix}.duration_ms`] = roundMs(row.totalDurationMs);
-    attributes[`${prefix}.error_count`] = row.errorCount;
+    const callCountKey = `${prefix}.call_count`;
+    const durationKey = `${prefix}.duration_ms`;
+    const errorCountKey = `${prefix}.error_count`;
+    attributes[callCountKey] = row.callCount;
+    attributes[durationKey] = roundMs(row.totalDurationMs);
+    attributes[errorCountKey] = row.errorCount;
+    nextKeys.add(callCountKey);
+    nextKeys.add(durationKey);
+    nextKeys.add(errorCountKey);
   }
+  // Clear per-method keys written on a previous emit that no longer fit in the
+  // top-N. `setAttributes` merges, so a bare re-emit would leave stale rows.
+  // Setting undefined removes the attribute from the span.
+  if (window.writtenPerMethodKeys) {
+    for (const key of window.writtenPerMethodKeys) {
+      if (!nextKeys.has(key)) {
+        attributes[key] = undefined;
+      }
+    }
+  }
+  window.writtenPerMethodKeys = nextKeys;
+
   if (rows.length > topN) {
     const spanId = spanToJSON(span).span_id;
     debug.log(

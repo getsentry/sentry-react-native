@@ -6,6 +6,7 @@ import * as SentryCore from '@sentry/core';
 import {
   DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS,
   DEFAULT_SLOW_CALL_THRESHOLD_MS,
+  MAX_PENDING_CALL_WINDOWS,
   turboModuleContextIntegration,
   TURBO_MODULE_BREADCRUMB_CATEGORY,
   TURBO_MODULES_AGGREGATE_OP,
@@ -506,6 +507,87 @@ describe('turboModuleContextIntegration', () => {
       emit('spanEnd', span);
 
       expect(span.setAttributes).not.toHaveBeenCalled();
+    });
+
+    it('clears stale per-method keys on re-emit after a late-settling async re-ranks the top-N', () => {
+      const integration = turboModuleContextIntegration({
+        aggregateFlushIntervalMs: 0,
+        maxTopModulesPerSpan: 2,
+      });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      // A and B fit within maxTopModulesPerSpan=2 at spanEnd.
+      recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 100, errored: false });
+      recordTurboModuleCall({ name: 'B', method: 'x', kind: 'sync', durationMs: 50, errored: false });
+
+      // Async C starts before spanEnd so it captures the window and can credit
+      // it after spanEnd via `pendingCallWindows`.
+      const recordId = notifyTurboModuleCallStart('C', 'x', 'async');
+      emit('spanEnd', span);
+
+      // Late-settling async C outweighs B and takes B's slot in the top-2.
+      // Without clearing, B's stale per-method keys would linger on the span
+      // because `setAttributes` merges.
+      recordTurboModuleCall({
+        name: 'C',
+        method: 'x',
+        kind: 'async',
+        durationMs: 1000,
+        errored: false,
+        recordId,
+      });
+
+      expect(span.setAttributes).toHaveBeenCalledTimes(2);
+      const secondCall = span.setAttributes.mock.calls[1]?.[0] as Record<string, unknown>;
+      // The re-emit must explicitly pass undefined for B's per-method keys so
+      // the merge clears them from the span. Use array form of toHaveProperty
+      // to match keys that contain dots.
+      expect(secondCall).toHaveProperty(['turbo_module.B.x.call_count'], undefined);
+      expect(secondCall).toHaveProperty(['turbo_module.B.x.duration_ms'], undefined);
+      expect(secondCall).toHaveProperty(['turbo_module.B.x.error_count'], undefined);
+      // Top-2 now reflects C and A.
+      expect(secondCall['turbo_module.C.x.duration_ms']).toBe(1000);
+      expect(secondCall['turbo_module.A.x.call_count']).toBe(1);
+    });
+
+    it('caps pendingCallWindows so unresolved async calls do not leak', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      // Start MAX_PENDING_CALL_WINDOWS + 1 async calls without settling them.
+      // The very first entry must be evicted (oldest-first eviction).
+      const firstRecordId = notifyTurboModuleCallStart('First', 'work', 'async');
+      for (let i = 0; i < MAX_PENDING_CALL_WINDOWS; i++) {
+        notifyTurboModuleCallStart('Filler', `m${i}`, 'async');
+      }
+
+      // Settle the evicted first call — its pending window entry is gone, so
+      // it must NOT credit `span`.
+      recordTurboModuleCall({
+        name: 'First',
+        method: 'work',
+        kind: 'async',
+        durationMs: 5,
+        errored: false,
+        recordId: firstRecordId,
+      });
+
+      emit('spanEnd', span);
+
+      // No setAttributes call should ever include the evicted method.
+      for (const [attributes] of span.setAttributes.mock.calls) {
+        expect(attributes['turbo_module.First.work.call_count']).toBeUndefined();
+      }
     });
 
     it('does not attach attributes to non-root spans', () => {
