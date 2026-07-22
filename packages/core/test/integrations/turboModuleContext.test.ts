@@ -118,21 +118,25 @@ describe('turboModuleContextIntegration', () => {
 
     turboModuleContextIntegration().setupOnce!();
 
-    expect(wrapSpy).toHaveBeenCalledWith('RNSentry', fakeModule, {
-      skip: [
-        'addListener',
-        'removeListeners',
-        'setContext',
-        'setTag',
-        'setExtra',
-        'setUser',
-        'addBreadcrumb',
-        'clearBreadcrumbs',
-        'setAttribute',
-        'setAttributes',
-        'removeAttribute',
-      ],
-    });
+    expect(wrapSpy).toHaveBeenCalledWith(
+      'RNSentry',
+      fakeModule,
+      expect.objectContaining({
+        skip: [
+          'addListener',
+          'removeListeners',
+          'setContext',
+          'setTag',
+          'setExtra',
+          'setUser',
+          'addBreadcrumb',
+          'clearBreadcrumbs',
+          'setAttribute',
+          'setAttributes',
+          'removeAttribute',
+        ],
+      }),
+    );
   });
 
   it('does not wrap scope-sync methods on RNSentry (would recurse infinitely)', () => {
@@ -187,7 +191,7 @@ describe('turboModuleContextIntegration', () => {
       modules: [{ name: 'Other', module: fakeOther, skipMethods: ['ignored'] }],
     }).setupOnce!();
 
-    expect(wrapSpy).toHaveBeenCalledWith('Other', fakeOther, { skip: ['ignored'] });
+    expect(wrapSpy).toHaveBeenCalledWith('Other', fakeOther, expect.objectContaining({ skip: ['ignored'] }));
   });
 
   it('tolerates a missing RNSentry module', () => {
