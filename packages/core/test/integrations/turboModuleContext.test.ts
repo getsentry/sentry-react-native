@@ -711,7 +711,7 @@ describe('turboModuleContextIntegration', () => {
       expect(addBreadcrumbSpy).not.toHaveBeenCalled();
     });
 
-    it('does not evict async pending entries when sync calls fire at cap', () => {
+    it('does not evict async pending entries when sync calls churn through the pending map', () => {
       const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
       integration.setupOnce?.();
       const { client, emit } = makeClientWithSpanHooks();
@@ -720,17 +720,26 @@ describe('turboModuleContextIntegration', () => {
       const span = makeFakeSpan();
       emit('spanStart', span);
 
-      // A legitimate long-running async call starts and takes a slot.
+      // A legitimate long-running async call starts and holds a slot.
       const asyncRecordId = notifyTurboModuleCallStart('Long', 'req', 'async');
 
-      // A burst of sync calls hits — with the old design, MAX_PENDING_CALL_WINDOWS
-      // sync starts would evict `Long`. Sync now skips `pendingCallWindows`
-      // entirely, so `Long`'s slot survives.
+      // A burst of paired sync notify+record calls (what `wrapTurboModule`
+      // does for every wrapped invocation before it knows if the return is
+      // thenable). Each entry lives briefly then is removed by the paired
+      // record, so the map stays bounded by in-flight async count.
       for (let i = 0; i < MAX_PENDING_CALL_WINDOWS + 5; i++) {
-        notifyTurboModuleCallStart('SyncBurst', `m${i}`, 'sync');
+        const syncId = notifyTurboModuleCallStart('SyncBurst', `m${i}`, 'sync');
+        recordTurboModuleCall({
+          name: 'SyncBurst',
+          method: `m${i}`,
+          kind: 'sync',
+          durationMs: 1,
+          errored: false,
+          recordId: syncId,
+        });
       }
 
-      // `Long` settles after the burst — its window snapshot is still there.
+      // `Long` settles after the burst — its window snapshot survived.
       recordTurboModuleCall({
         name: 'Long',
         method: 'req',
