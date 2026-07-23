@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Strip empty `turbo_module.name` / `turbo_module.method` tags in `turboModuleContextIntegration` so events captured outside an active TurboModule call no longer carry an ingestion "Processing Error" ([#6502](https://github.com/getsentry/sentry-react-native/issues/6502))
+- Strip empty `turbo_module.name` / `turbo_module.method` tags in `turboModuleContextIntegration` so events captured outside an active TurboModule call no longer carry an ingestion "Processing Error" ([#6506](https://github.com/getsentry/sentry-react-native/pull/6506))
 
 - Make `copySentryJsonConfiguration` and the `*_SentryUpload` Gradle tasks compatible with the Gradle Configuration Cache ([#6469](https://github.com/getsentry/sentry-react-native/pull/6469))
 
