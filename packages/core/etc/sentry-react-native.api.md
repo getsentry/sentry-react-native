@@ -865,21 +865,28 @@ export interface TurboModuleCall {
 // @public
 export type TurboModuleCallKind = 'sync' | 'async';
 
-// @public
+// @public (undocumented)
 export const turboModuleContextIntegration: (options?: TurboModuleContextOptions) => Integration;
 
 // @public (undocumented)
 export interface TurboModuleContextOptions {
+    // (undocumented)
     aggregateFlushIntervalMs?: number;
+    // (undocumented)
     enableAggregateStats?: boolean;
+    // (undocumented)
     enableSpanAttribution?: boolean;
+    // (undocumented)
     ignoreTurboModules?: ReadonlyArray<string>;
+    // (undocumented)
     maxTopModulesPerSpan?: number;
+    // (undocumented)
     modules?: Array<{
         name: string;
         module: object | null | undefined;
         skipMethods?: ReadonlyArray<string>;
     }>;
+    // (undocumented)
     slowCallThresholdMs?: number;
 }
 
@@ -930,7 +937,7 @@ export function wrapExpoRouter<T extends ExpoRouter>(router: T): T;
 // @public
 export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryProps>(OriginalErrorBoundary: React_2.ComponentType<P>): React_2.ComponentType<P>;
 
-// @public
+// @public (undocumented)
 export function wrapTurboModule<T extends object>(name: string, module: T | null | undefined, options?: {
     skip?: ReadonlyArray<string>;
 }): T | null | undefined;

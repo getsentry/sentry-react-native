@@ -438,6 +438,27 @@ describe('turboModuleContextIntegration', () => {
       });
     });
 
+    it('escapes `.` and `_` so `(a.b, c)` and `(a_b, c)` do not collide on the same key', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+
+      recordTurboModuleCall({ name: 'a.b', method: 'c', kind: 'sync', durationMs: 5, errored: false });
+      recordTurboModuleCall({ name: 'a_b', method: 'c', kind: 'sync', durationMs: 7, errored: false });
+
+      emit('spanEnd', span);
+
+      const attributes = span.setAttributes.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(attributes['turbo_module.a_b.c.call_count']).toBe(1);
+      expect(attributes['turbo_module.a__b.c.call_count']).toBe(1);
+      expect(attributes['turbo_module.total_call_count']).toBe(2);
+      expect(attributes['turbo_module.unique_methods']).toBe(2);
+    });
+
     it('caps the per-row attribute payload to maxTopModulesPerSpan', () => {
       const integration = turboModuleContextIntegration({
         aggregateFlushIntervalMs: 0,
