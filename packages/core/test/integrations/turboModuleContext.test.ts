@@ -1,4 +1,4 @@
-import type { Client, TransactionEvent } from '@sentry/core';
+import type { Client, Event, TransactionEvent } from '@sentry/core';
 
 import { Scope } from '@sentry/core';
 import * as SentryCore from '@sentry/core';
@@ -141,6 +141,57 @@ describe('turboModuleContextIntegration', () => {
     jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
 
     expect(() => turboModuleContextIntegration().setupOnce!()).not.toThrow();
+  });
+
+  describe('empty-sentinel tag stripping', () => {
+    beforeEach(() => {
+      jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
+    });
+
+    it('strips empty turbo_module.name / turbo_module.method tags on any event', () => {
+      const integration = turboModuleContextIntegration({ enableAggregateStats: false });
+      integration.setupOnce?.();
+      integration.setup?.(makeMockClient());
+
+      const event: Event = {
+        tags: {
+          'turbo_module.name': '',
+          'turbo_module.method': '',
+          other: 'kept',
+        },
+      };
+      const out = integration.processEvent?.(event, {}, makeMockClient()) as Event;
+
+      expect(out.tags).toEqual({ other: 'kept' });
+    });
+
+    it('keeps non-empty turbo_module.* tag values untouched', () => {
+      const integration = turboModuleContextIntegration({ enableAggregateStats: false });
+      integration.setupOnce?.();
+      integration.setup?.(makeMockClient());
+
+      const event: Event = {
+        tags: {
+          'turbo_module.name': 'RNSentry',
+          'turbo_module.method': 'captureEnvelope',
+        },
+      };
+      const out = integration.processEvent?.(event, {}, makeMockClient()) as Event;
+
+      expect(out.tags).toEqual({
+        'turbo_module.name': 'RNSentry',
+        'turbo_module.method': 'captureEnvelope',
+      });
+    });
+
+    it('handles events without a tags object', () => {
+      const integration = turboModuleContextIntegration({ enableAggregateStats: false });
+      integration.setupOnce?.();
+      integration.setup?.(makeMockClient());
+
+      const event: Event = {};
+      expect(() => integration.processEvent?.(event, {}, makeMockClient())).not.toThrow();
+    });
   });
 
   describe('aggregate stats', () => {
