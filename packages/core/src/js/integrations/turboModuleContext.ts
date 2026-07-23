@@ -1,3 +1,4 @@
+/* oxlint-disable eslint(max-lines) */
 import type { Client, Event, Integration, Span, TransactionEvent } from '@sentry/core';
 
 import { addBreadcrumb, debug, spanToJSON } from '@sentry/core';
@@ -53,6 +54,16 @@ export const TURBO_MODULE_BREADCRUMB_CATEGORY = 'native.turbo_module';
  * silently ignored rather than mis-attributed to a later span.
  */
 export const MAX_PENDING_CALL_WINDOWS = 1024;
+
+/**
+ * Upper bound on the `pendingSpanAttributes` buffer. Each ended root span adds
+ * an entry that's removed when the paired transaction event flows through
+ * `processEvent`. Sampled-out or otherwise dropped transactions would never
+ * clear their entry — capping prevents unbounded growth in that edge case.
+ * Root spans are relatively low-churn (one per navigation / user span) so a
+ * moderate cap is plenty.
+ */
+export const MAX_PENDING_SPAN_ATTRIBUTES = 256;
 
 export interface TurboModuleContextOptions {
   /**
@@ -197,6 +208,14 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   // ended still get credited to that span. Bounded by MAX_PENDING_CALL_WINDOWS
   // so a chatty session where some promises never settle can't leak forever.
   const pendingCallWindows: Map<number, WindowState[]> = new Map();
+  // Latest attribute payload for each ended root span, keyed by span_id.
+  // `Span#setAttributes` on a frozen span is a no-op in the Sentry SDK, so a
+  // late-settling async record after `spanEnd` can't reach the sent
+  // transaction through the span object alone. We buffer here and merge into
+  // `event.contexts.trace.data` when the paired transaction hits
+  // `processEvent`. Bounded so a stream of sampled-out transactions doesn't
+  // pin memory.
+  const pendingSpanAttributes: Map<string, Record<string, number | string | undefined>> = new Map();
   let recordObserver: ((record: TurboModuleRecord) => void) | undefined;
   let startObserver: ((start: TurboModuleCallStart) => void) | undefined;
 
@@ -275,7 +294,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
                   // late-settling async call still lands on the span before the
                   // parent transaction is serialised.
                   if (window.closed) {
-                    attachWindowToSpan(window.span, window, maxTopModulesPerSpan);
+                    attachWindowToSpan(window.span, window, maxTopModulesPerSpan, pendingSpanAttributes);
                   }
                 }
               }
@@ -332,7 +351,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
             openWindowList.splice(idx, 1);
           }
           window.closed = true;
-          attachWindowToSpan(span, window, maxTopModulesPerSpan);
+          attachWindowToSpan(span, window, maxTopModulesPerSpan, pendingSpanAttributes);
         });
       }
 
@@ -353,6 +372,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         }
         openWindowList.length = 0;
         pendingCallWindows.clear();
+        pendingSpanAttributes.clear();
       });
     },
     processEvent(event: Event): Event {
@@ -361,13 +381,31 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       // and flags the event with a Processing Error. See #6502.
       stripEmptySentinelTags(event);
 
-      if (!enableAggregate || event.type !== 'transaction') {
+      if (event.type !== 'transaction') {
         return event;
       }
-      if (!hasTurboModuleAggregateData()) {
-        return event;
+      const txEvent = event as TransactionEvent;
+
+      if (enableAggregate && hasTurboModuleAggregateData()) {
+        attachAggregateToTransactionEvent(txEvent);
       }
-      attachAggregateToTransactionEvent(event as TransactionEvent);
+
+      // Merge any span attributes buffered for this transaction's root span.
+      // `attachWindowToSpan` also called `span.setAttributes` when the record
+      // came in, but that write is a no-op on a frozen span (late-settling
+      // async after `spanEnd`). Applying the same payload to
+      // `event.contexts.trace.data` here is the guaranteed delivery path.
+      if (enableSpanAttribution) {
+        const rootSpanId = txEvent.contexts?.trace?.span_id;
+        if (rootSpanId) {
+          const pending = pendingSpanAttributes.get(rootSpanId);
+          if (pending) {
+            pendingSpanAttributes.delete(rootSpanId);
+            mergeAttributesIntoTraceData(txEvent, pending);
+          }
+        }
+      }
+
       return event;
     },
   };
@@ -434,7 +472,12 @@ function recordIntoWindow(window: WindowState, record: TurboModuleRecord): void 
   }
 }
 
-function attachWindowToSpan(span: Span, window: WindowState, topN: number): void {
+function attachWindowToSpan(
+  span: Span,
+  window: WindowState,
+  topN: number,
+  pendingSpanAttributes: Map<string, Record<string, number | string | undefined>>,
+): void {
   if (window.counters.size === 0) {
     return;
   }
@@ -467,7 +510,11 @@ function attachWindowToSpan(span: Span, window: WindowState, topN: number): void
   const capped = rows.slice(0, topN);
   const nextKeys = new Set<string>();
   for (const row of capped) {
-    const prefix = `turbo_module.${row.name}.${row.method}`;
+    // Sanitise dots in name/method — the attribute key uses `.` as a delimiter,
+    // so a module named "a.b" with method "c" and a module named "a" with
+    // method "b.c" would otherwise both produce `turbo_module.a.b.c.*`. RN
+    // modules don't typically contain dots, but user-provided ones can.
+    const prefix = `turbo_module.${safeKeyPart(row.name)}.${safeKeyPart(row.method)}`;
     const callCountKey = `${prefix}.call_count`;
     const durationKey = `${prefix}.duration_ms`;
     const errorCountKey = `${prefix}.error_count`;
@@ -499,4 +546,60 @@ function attachWindowToSpan(span: Span, window: WindowState, topN: number): void
   }
 
   span.setAttributes(attributes);
+
+  // Also buffer for `processEvent` — `setAttributes` on a frozen span is a
+  // no-op, so a late-settling async record after `spanEnd` can't land on the
+  // transaction event through the span object. Applying the same payload to
+  // `event.contexts.trace.data` at processEvent time is the safety net.
+  const spanId = spanToJSON(span).span_id;
+  if (spanId) {
+    if (!pendingSpanAttributes.has(spanId) && pendingSpanAttributes.size >= MAX_PENDING_SPAN_ATTRIBUTES) {
+      // Drop the oldest entry (Map preserves insertion order). Sampled-out or
+      // dropped transactions never come back to reclaim theirs — capping keeps
+      // the buffer bounded.
+      const oldest = pendingSpanAttributes.keys().next().value;
+      if (oldest !== undefined) {
+        pendingSpanAttributes.delete(oldest);
+      }
+    }
+    pendingSpanAttributes.set(spanId, attributes);
+  }
+}
+
+/**
+ * Escapes `.` (the attribute-key delimiter) inside a module/method name so
+ * `(name="a.b", method="c")` and `(name="a", method="b.c")` don't produce the
+ * same attribute key. Replacement is not injective in principle — `"a.b"` and
+ * `"a_b"` would both encode to `"a_b"` — but RN modules don't mix these
+ * characters mid-identifier, so collisions are effectively impossible in
+ * practice.
+ */
+function safeKeyPart(s: string): string {
+  return s.replace(/\./g, '_');
+}
+
+/**
+ * Applies a buffered attribute payload to the root span's data on a
+ * transaction event. `undefined` values are stripped (Sentry `Span#setAttribute`
+ * semantics), and other values are merged over any existing keys.
+ */
+function mergeAttributesIntoTraceData(
+  event: TransactionEvent,
+  attributes: Record<string, number | string | undefined>,
+): void {
+  const trace = event.contexts?.trace;
+  if (!trace) {
+    return;
+  }
+  const data = { ...((trace.data as Record<string, unknown> | undefined) ?? {}) };
+  for (const key of Object.keys(attributes)) {
+    const value = attributes[key];
+    if (value === undefined) {
+      // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
+      delete data[key];
+    } else {
+      data[key] = value;
+    }
+  }
+  trace.data = data;
 }

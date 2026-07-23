@@ -152,7 +152,9 @@ function summarise(snapshot: ReadonlyArray<TurboModuleAggregate>): {
 function serialiseRows(rows: ReadonlyArray<TurboModuleAggregate>): Record<string, number | string> {
   const out: Record<string, number | string> = {};
   for (const row of rows) {
-    const prefix = `turbo_modules.${row.name}.${row.method}.${row.kind}`;
+    // Escape `.` in name/method — attribute keys use `.` as a delimiter, so
+    // `(name="a.b", method="c")` and `(name="a", method="b.c")` would collide.
+    const prefix = `turbo_modules.${safeKeyPart(row.name)}.${safeKeyPart(row.method)}.${row.kind}`;
     out[`${prefix}.count`] = row.callCount;
     out[`${prefix}.error_count`] = row.errorCount;
     out[`${prefix}.total_ms`] = roundMs(row.totalDurationMs);
@@ -204,4 +206,9 @@ function serialiseRowAsObject(row: TurboModuleAggregate): {
  */
 export function roundMs(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+/** Same as the helper in `turboModuleContext.ts` — kept local to avoid a shared util. */
+function safeKeyPart(s: string): string {
+  return s.replace(/\./g, '_');
 }
