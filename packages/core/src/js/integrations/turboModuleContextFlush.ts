@@ -10,29 +10,15 @@ import {
   type TurboModuleAggregate,
 } from '../turbomodule';
 
-/** Op for the synthetic child span that carries the aggregate breakdown. */
 export const TURBO_MODULES_AGGREGATE_OP = 'turbo_modules.aggregate';
-
-/** Origin string set on the aggregate span so it shows up as auto-instrumented. */
 export const TURBO_MODULES_AGGREGATE_ORIGIN = 'auto.tracing.turbo_modules';
 
-/**
- * Maximum number of `(module, method, kind)` triplets serialised as span
- * attributes on a single flush. Beyond this, the long tail is dropped from
- * the attribute payload — the headline measurements still reflect the totals.
- */
 const MAX_AGGREGATE_ATTRIBUTE_ROWS = 64;
 
 /**
- * Mutates a transaction event in place to add the aggregate breakdown as a
- * synthetic child span plus a few headline measurements on the root span.
- *
- * Draining here runs before `beforeSendTransaction`, so if a user hook drops
- * this transaction, the drained batch is lost. Trade-off is intentional:
- * peeking without draining would require send-confirmation bookkeeping across
- * events and multiple transactions in flight would double-count. Data loss
- * from a dropped transaction is bounded (one interval) and self-heals — the
- * next transaction or periodic flush picks up fresh activity.
+ * Drains the aggregate into the transaction event as a synthetic child span
+ * plus headline measurements. Runs before `beforeSendTransaction`, so a
+ * user-dropped transaction loses its interval — bounded and self-healing.
  */
 export function attachAggregateToTransactionEvent(event: TransactionEvent): void {
   const trace = event.contexts?.trace;
@@ -94,16 +80,7 @@ export function attachAggregateToTransactionEvent(event: TransactionEvent): void
   }
 }
 
-/**
- * Emits the current aggregate as a custom Sentry event so long-running
- * sessions without a transaction still produce a signal. No-op when there's
- * nothing to flush.
- *
- * `client.captureEvent` reaches wrapped `RNSentry.captureEnvelope` via the
- * native transport — so if `RNSentry` were aggregated, the flush's own send
- * would re-arm the lazy timer indefinitely. `ignoreTurboModules` defaults
- * to `['RNSentry']` for exactly this reason.
- */
+/** Custom Sentry event so long-running sessions without a transaction still emit a signal. */
 export function flushPeriodicAggregate(client: Client): void {
   if (!hasTurboModuleAggregateData()) {
     return;
@@ -144,16 +121,9 @@ function summarise(snapshot: ReadonlyArray<TurboModuleAggregate>): {
   return { callCount, errorCount, totalDurationMs };
 }
 
-/**
- * Serialises an aggregate row into a flat set of span-attribute keys, prefixed
- * with the `(name.method.kind)` triplet. Span attributes are flat key→scalar
- * pairs so nested objects aren't an option here.
- */
 function serialiseRows(rows: ReadonlyArray<TurboModuleAggregate>): Record<string, number | string> {
   const out: Record<string, number | string> = {};
   for (const row of rows) {
-    // Escape `.` in name/method — attribute keys use `.` as a delimiter, so
-    // `(name="a.b", method="c")` and `(name="a", method="b.c")` would collide.
     const prefix = `turbo_modules.${safeKeyPart(row.name)}.${safeKeyPart(row.method)}.${row.kind}`;
     out[`${prefix}.count`] = row.callCount;
     out[`${prefix}.error_count`] = row.errorCount;
@@ -200,15 +170,10 @@ function serialiseRowAsObject(row: TurboModuleAggregate): {
   };
 }
 
-/**
- * Rounds to two-decimal precision — enough for human-readable totals and
- * keeps the JSON payload terse.
- */
 export function roundMs(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/** Same as the helper in `turboModuleContext.ts` — kept local to avoid a shared util. */
 function safeKeyPart(s: string): string {
   return s.replace(/\./g, '_');
 }

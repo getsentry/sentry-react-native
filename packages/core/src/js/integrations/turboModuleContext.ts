@@ -36,128 +36,46 @@ export const DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS = 30_000;
 /** Default duration above which an async TurboModule call becomes a breadcrumb. */
 export const DEFAULT_SLOW_CALL_THRESHOLD_MS = 500;
 
-/**
- * Default cap on the number of `(module, method)` rows serialised as attributes
- * on a single active span. Beyond this, the long tail is dropped; the summary
- * attributes still reflect the totals.
- */
 export const DEFAULT_MAX_TOP_MODULES_PER_SPAN = 16;
 
-/** Breadcrumb category for slow-call notifications. */
 export const TURBO_MODULE_BREADCRUMB_CATEGORY = 'native.turbo_module';
 
-/**
- * Upper bound on `pendingCallWindows` size. Each in-flight async TurboModule
- * call adds an entry that's removed when the call settles; a bounded cap keeps
- * abandoned (never-settling) promises from pinning `WindowState` forever.
- * When exceeded, the oldest entry is dropped — its late-settling record is
- * silently ignored rather than mis-attributed to a later span.
- */
+/** Cap so abandoned (never-settling) promises can't pin `WindowState` forever. */
 export const MAX_PENDING_CALL_WINDOWS = 1024;
 
-/**
- * Upper bound on the `pendingSpanAttributes` buffer. Each ended root span adds
- * an entry that's removed when the paired transaction event flows through
- * `processEvent`. Sampled-out or otherwise dropped transactions would never
- * clear their entry — capping prevents unbounded growth in that edge case.
- * Root spans are relatively low-churn (one per navigation / user span) so a
- * moderate cap is plenty.
- */
+/** Cap so sampled-out transactions can't leak their buffered attributes. */
 export const MAX_PENDING_SPAN_ATTRIBUTES = 256;
 
 export interface TurboModuleContextOptions {
-  /**
-   * Additional TurboModules to track. Each entry's methods will be wrapped so
-   * that any native crash happening inside a method call gets `contexts.turbo_module`
-   * + `turbo_module.name` / `turbo_module.method` attached to the crash report,
-   * and so the calls are recorded into the aggregator (subject to
-   * `ignoreTurboModules`).
-   *
-   * The built-in `RNSentry` TurboModule is always tracked.
-   */
+  /** Additional TurboModules to wrap. `RNSentry` is always tracked. */
   modules?: Array<{ name: string; module: object | null | undefined; skipMethods?: ReadonlyArray<string> }>;
 
-  /**
-   * Per-(module, method, kind) call-count / latency aggregation. When enabled,
-   * each wrapped TurboModule invocation contributes to a small fixed set of
-   * counters that flush:
-   *   - on every transaction finish, as a synthetic `turbo_modules.aggregate`
-   *     child span (per-call data in span attributes) plus headline
-   *     measurements on the root span;
-   *   - on a periodic timer (see `aggregateFlushIntervalMs`) so
-   *     long-running sessions without transactions still emit a signal.
-   *
-   * Default: `true`.
-   *
-   * See https://github.com/getsentry/sentry-react-native/issues/6164.
-   */
+  /** Per-(module, method, kind) counters, flushed on transaction finish and on a periodic timer. Default: `true`. */
   enableAggregateStats?: boolean;
 
-  /**
-   * Interval in milliseconds for the periodic aggregate flush. Only used when
-   * `enableAggregateStats` is enabled. The periodic flush emits a custom
-   * Sentry event so the data survives sessions that never produce a transaction.
-   *
-   * Default: 30000 (30s). Set to `0` to disable the periodic timer (data is
-   * still flushed on transaction finish).
-   */
+  /** Periodic aggregate flush interval, ms. `0` disables the periodic timer. Default: `30000`. */
   aggregateFlushIntervalMs?: number;
 
   /**
-   * TurboModules whose calls should NOT be counted in the aggregate.
-   *
-   * Default: `['RNSentry']`. The SDK's own transport call
-   * (`RNSentry.captureEnvelope`) fires from every `captureEvent`, so leaving
-   * `RNSentry` in the aggregate would (a) pollute app-level TurboModule
-   * signals with SDK internal noise and (b) allow the periodic flush's own
-   * `captureEvent` to record back into the aggregator and perpetually re-arm
-   * the flush timer in idle sessions. Pass `[]` to opt back in.
-   *
-   * Note: this does NOT disable wrapping — crashes during those calls still
-   * get attributed via `contexts.turbo_module`. It only opts the module out
-   * of the per-(module, method, kind) counters.
+   * Modules opted out of the aggregate (still wrapped for crash context).
+   * Default `['RNSentry']` — the SDK's own transport calls would otherwise
+   * pollute the signal and self-re-arm the periodic timer indefinitely.
    */
   ignoreTurboModules?: ReadonlyArray<string>;
 
-  /**
-   * On `spanEnd`, attach a per-`(module, method)` TurboModule call breakdown
-   * to root spans as `turbo_module.<name>.<method>.{call_count,duration_ms,error_count}`
-   * attributes plus summary keys. Only root spans are attributed so nested
-   * user spans don't double-count.
-   *
-   * Default: `true`. See https://github.com/getsentry/sentry-react-native/issues/6165.
-   */
+  /** Per-`(module, method)` breakdown on root-span `spanEnd`. Default: `true`. */
   enableSpanAttribution?: boolean;
 
-  /**
-   * Minimum duration for an async TurboModule call to emit a
-   * `native.turbo_module` breadcrumb. Sync calls are excluded — they block JS
-   * and are covered by stall / frozen-frame instrumentation.
-   *
-   * Default: `500`. Set to `0` to disable.
-   */
+  /** Async-call duration above which a `native.turbo_module` breadcrumb fires. `0` disables. Default: `500`. */
   slowCallThresholdMs?: number;
 
-  /**
-   * Maximum `(module, method)` rows serialised as attributes on a single span.
-   * Beyond this the tail is dropped; summary attributes still reflect totals.
-   *
-   * Default: `16`.
-   */
+  /** Cap on per-`(module, method)` rows attributed to a single span. Default: `16`. */
   maxTopModulesPerSpan?: number;
 }
 
-// Methods on RNSentry that must NOT be tracked:
-//
-// - `addListener` / `removeListeners` are RN event-emitter stubs that fire on
-//   every subscriber registration — tracking them would just churn the scope.
-//
-// - The scope-sync methods (`setContext`, `setTag`, `setExtra`, `setUser`,
-//   `addBreadcrumb`, `clearBreadcrumbs`, `setAttribute`, `setAttributes`,
-//   `removeAttribute`) are called by our own `enableSyncToNative` hook every
-//   time anything writes to a JS Scope. Tracking them would cause infinite
-//   recursion: `pushTurboModuleCall` -> `scope.setContext` -> `NATIVE.setContext`
-//   -> `RNSentry.setContext` (wrapped) -> `pushTurboModuleCall` -> ... .
+// Scope-sync methods must NOT be tracked — `enableSyncToNative` calls them on
+// every Scope write, so wrapping them would recurse infinitely via
+// `pushTurboModuleCall` -> `scope.setContext` -> `RNSentry.setContext`.
 const RNSENTRY_SKIP = [
   'addListener',
   'removeListeners',
@@ -173,18 +91,9 @@ const RNSENTRY_SKIP = [
 ] as const;
 
 /**
- * Attaches the currently-executing TurboModule method to the Sentry scope so
- * that native crashes can be attributed to the high-level RN module + method
- * (e.g. `RNSentry.captureEnvelope`) on top of the native stack trace.
- *
- * Additionally aggregates per-(module, method, kind) call-count / latency
- * counters and flushes them on transaction finish (as a synthetic
- * `turbo_modules.aggregate` child span with headline measurements on the root
- * span) and on a periodic timer (as a custom Sentry event) — see
- * https://github.com/getsentry/sentry-react-native/issues/6164.
- *
- * See https://github.com/getsentry/sentry-react-native/issues/6163 for the
- * crash-attribution side of this integration.
+ * Attributes TurboModule invocations to the Sentry scope for crash context,
+ * aggregates per-`(module, method, kind)` counters into transaction events,
+ * attaches a per-span breakdown on `spanEnd`, and emits slow-call breadcrumbs.
  */
 export const turboModuleContextIntegration = (options: TurboModuleContextOptions = {}): Integration => {
   const enableAggregate = options.enableAggregateStats !== false;
@@ -196,25 +105,14 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   let pendingFlushHandle: ReturnType<typeof setTimeout> | undefined;
   let closed = false;
 
-  // Two structures for the same set of open root spans: the WeakMap gives O(1)
-  // lookup in `spanEnd`, the parallel array is what the record observer
-  // iterates on the hot path. Both are cleaned in `spanEnd`; a span that never
-  // fires `spanEnd` stays pinned via `openWindowList` until `client.close`
-  // (root spans are always eventually ended in practice, so this is bounded).
+  // WeakMap: O(1) lookup in spanEnd. Array: hot-path iteration in recordObserver.
   const openWindows: WeakMap<Span, WindowState> = new WeakMap();
   const openWindowList: WindowState[] = [];
-  // Windows open at each in-flight call's start. Keyed by the wrap layer's
-  // `recordId` so async calls that settle after their originating span has
-  // ended still get credited to that span. Bounded by MAX_PENDING_CALL_WINDOWS
-  // so a chatty session where some promises never settle can't leak forever.
+  // Keyed by `recordId` so a call that settles after its originating span
+  // ended still credits that span.
   const pendingCallWindows: Map<number, WindowState[]> = new Map();
-  // Latest attribute payload for each ended root span, keyed by span_id.
-  // `Span#setAttributes` on a frozen span is a no-op in the Sentry SDK, so a
-  // late-settling async record after `spanEnd` can't reach the sent
-  // transaction through the span object alone. We buffer here and merge into
-  // `event.contexts.trace.data` when the paired transaction hits
-  // `processEvent`. Bounded so a stream of sampled-out transactions doesn't
-  // pin memory.
+  // Buffer for `processEvent` merging: `Span#setAttributes` on a frozen span
+  // is a no-op, so late records after `spanEnd` can only land via the event.
   const pendingSpanAttributes: Map<string, Record<string, number | string | undefined>> = new Map();
   let recordObserver: ((record: TurboModuleRecord) => void) | undefined;
   let startObserver: ((start: TurboModuleCallStart) => void) | undefined;
@@ -229,16 +127,13 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       }
 
       setAggregateRecordingEnabled(enableAggregate);
-      // Applied whenever any consumer of the record path is active — the
-      // aggregate map, span attribution, or the slow-call breadcrumb — so
-      // RNSentry's own transport calls are filtered from every surface.
       if (enableAggregate || enableSpanAttribution || slowCallThresholdMs > 0) {
         setIgnoredTurboModules(options.ignoreTurboModules ?? ['RNSentry']);
       }
     },
     setup(client: Client): void {
       if (enableAggregate && flushIntervalMs > 0) {
-        // Lazy re-arm: keeps idle sessions from churning a recurring timer.
+        // Lazy re-arm keeps idle sessions from churning a recurring timer.
         setOnFirstTurboModuleRecord(() => {
           if (closed || pendingFlushHandle !== undefined) {
             return;
@@ -250,20 +145,13 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         });
       }
 
-      // Snapshot the open windows at every call start (sync or async).
-      // `wrapTurboModule` always calls `notifyTurboModuleCallStart` with kind
-      // `'sync'` and only relabels to `'async'` once the return value is known
-      // to be thenable — so gating by `start.kind === 'async'` here would
-      // silently drop *all* async attribution. Sync entries settle in the
-      // same synchronous turn (their record fires immediately after the
-      // wrapped method returns) and are removed from the map right away, so
-      // they don't accumulate under normal traffic.
+      // Snapshot on every start (any kind): `wrapTurboModule` always calls
+      // `notifyTurboModuleCallStart` with `'sync'` and only relabels to
+      // `'async'` after the return value proves thenable, so gating by kind
+      // here would silently drop all async attribution.
       if (enableSpanAttribution) {
         startObserver = (start: TurboModuleCallStart): void => {
           if (pendingCallWindows.size >= MAX_PENDING_CALL_WINDOWS) {
-            // Drop oldest entry (Map preserves insertion order). Its record,
-            // if it ever settles, falls through the `if (windows)` gate and
-            // is silently ignored — better than mis-attributing to a later span.
             const oldest = pendingCallWindows.keys().next().value;
             if (oldest !== undefined) {
               pendingCallWindows.delete(oldest);
@@ -274,9 +162,6 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         addTurboModuleCallStartObserver(startObserver);
       }
 
-      // Record observer registers whenever any per-record consumer is active
-      // (span attribution or slow-call breadcrumbs). Each surface is gated
-      // separately inside so the two knobs stay independent.
       const wantsBreadcrumbs = slowCallThresholdMs > 0;
       if (enableSpanAttribution || wantsBreadcrumbs) {
         recordObserver = (record: TurboModuleRecord): void => {
@@ -284,24 +169,17 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
             if (record.recordId !== undefined) {
               const windows = pendingCallWindows.get(record.recordId);
               pendingCallWindows.delete(record.recordId);
-              // `windows` may be an empty array (no spans open at call start).
-              // Either way, credit only what was captured — the currently-open
-              // spans opened *after* this call and must not receive its data.
+              // Empty `windows` means no spans were open at call start —
+              // don't fall back to `openWindowList` or we'd credit a later span.
               if (windows) {
                 for (const window of windows) {
                   recordIntoWindow(window, record);
-                  // If the span has already ended, re-emit the attributes so a
-                  // late-settling async call still lands on the span before the
-                  // parent transaction is serialised.
                   if (window.closed) {
                     attachWindowToSpan(window.span, window, maxTopModulesPerSpan, pendingSpanAttributes);
                   }
                 }
               }
             } else {
-              // No `recordId` means the caller bypassed `notifyTurboModuleCallStart`
-              // (e.g. a direct `recordTurboModuleCall` in tests). Fall back to
-              // the currently-open windows.
               for (const window of openWindowList) {
                 recordIntoWindow(window, record);
               }
@@ -385,11 +263,8 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         attachAggregateToTransactionEvent(txEvent);
       }
 
-      // Merge any span attributes buffered for this transaction's root span.
-      // `attachWindowToSpan` also called `span.setAttributes` when the record
-      // came in, but that write is a no-op on a frozen span (late-settling
-      // async after `spanEnd`). Applying the same payload to
-      // `event.contexts.trace.data` here is the guaranteed delivery path.
+      // Guaranteed-delivery path for span attributes: `setAttributes` on the
+      // frozen span is a no-op, so late-settling records can only land here.
       if (enableSpanAttribution) {
         const rootSpanId = txEvent.contexts?.trace?.span_id;
         if (rootSpanId) {
@@ -416,17 +291,10 @@ interface WindowRow {
 
 interface WindowState {
   span: Span;
-  // `true` after `spanEnd` fires. Late-settling async calls that were tracked
-  // via `pendingCallWindows` still credit the window and re-emit
-  // `setAttributes` on the span so the transaction picks up the update.
+  /** `true` after `spanEnd` — late records still credit and re-emit. */
   closed: boolean;
-  // Nested `name → method → row` so identifiers with any character (spaces,
-  // dots, etc.) can never collide with the pair separator.
   counters: Map<string, Map<string, WindowRow>>;
-  // Per-method attribute keys written on the previous `attachWindowToSpan`
-  // call. On re-emit (late-settling async), any key not in the new top-N is
-  // cleared so stale rows don't survive re-ranking. `setAttributes` merges,
-  // so without this the dropped tail would linger.
+  /** Previously-written top-N keys, used to clear stale ones on re-emit. */
   writtenPerMethodKeys?: Set<string>;
 }
 
@@ -492,10 +360,6 @@ function attachWindowToSpan(
   const capped = rows.slice(0, topN);
   const nextKeys = new Set<string>();
   for (const row of capped) {
-    // Sanitise dots in name/method — the attribute key uses `.` as a delimiter,
-    // so a module named "a.b" with method "c" and a module named "a" with
-    // method "b.c" would otherwise both produce `turbo_module.a.b.c.*`. RN
-    // modules don't typically contain dots, but user-provided ones can.
     const prefix = `turbo_module.${safeKeyPart(row.name)}.${safeKeyPart(row.method)}`;
     const callCountKey = `${prefix}.call_count`;
     const durationKey = `${prefix}.duration_ms`;
@@ -507,9 +371,8 @@ function attachWindowToSpan(
     nextKeys.add(durationKey);
     nextKeys.add(errorCountKey);
   }
-  // Clear per-method keys written on a previous emit that no longer fit in the
-  // top-N. `setAttributes` merges, so a bare re-emit would leave stale rows.
-  // Setting undefined removes the attribute from the span.
+  // `setAttributes` merges, so keys dropped from top-N must be explicitly
+  // cleared with `undefined` or they linger from a previous emit.
   if (window.writtenPerMethodKeys) {
     for (const key of window.writtenPerMethodKeys) {
       if (!nextKeys.has(key)) {
@@ -529,16 +392,9 @@ function attachWindowToSpan(
 
   span.setAttributes(attributes);
 
-  // Also buffer for `processEvent` — `setAttributes` on a frozen span is a
-  // no-op, so a late-settling async record after `spanEnd` can't land on the
-  // transaction event through the span object. Applying the same payload to
-  // `event.contexts.trace.data` at processEvent time is the safety net.
   const spanId = spanToJSON(span).span_id;
   if (spanId) {
     if (!pendingSpanAttributes.has(spanId) && pendingSpanAttributes.size >= MAX_PENDING_SPAN_ATTRIBUTES) {
-      // Drop the oldest entry (Map preserves insertion order). Sampled-out or
-      // dropped transactions never come back to reclaim theirs — capping keeps
-      // the buffer bounded.
       const oldest = pendingSpanAttributes.keys().next().value;
       if (oldest !== undefined) {
         pendingSpanAttributes.delete(oldest);
@@ -548,23 +404,11 @@ function attachWindowToSpan(
   }
 }
 
-/**
- * Escapes `.` (the attribute-key delimiter) inside a module/method name so
- * `(name="a.b", method="c")` and `(name="a", method="b.c")` don't produce the
- * same attribute key. Replacement is not injective in principle — `"a.b"` and
- * `"a_b"` would both encode to `"a_b"` — but RN modules don't mix these
- * characters mid-identifier, so collisions are effectively impossible in
- * practice.
- */
+/** `.` is the attribute-key delimiter — escape it in name/method to avoid collisions. */
 function safeKeyPart(s: string): string {
   return s.replace(/\./g, '_');
 }
 
-/**
- * Applies a buffered attribute payload to the root span's data on a
- * transaction event. `undefined` values are stripped (Sentry `Span#setAttribute`
- * semantics), and other values are merged over any existing keys.
- */
 function mergeAttributesIntoTraceData(
   event: TransactionEvent,
   attributes: Record<string, number | string | undefined>,
