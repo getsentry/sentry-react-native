@@ -513,11 +513,27 @@ describe('turboModuleContextIntegration', () => {
       const span = makeFakeSpan();
       emit('spanStart', span);
 
-      // Start MAX_PENDING_CALL_WINDOWS + 1 async calls without settling them.
-      // The very first entry must be evicted (oldest-first eviction).
+      // Start MAX_PENDING_CALL_WINDOWS + 1 async calls. The very first entry
+      // must be evicted (oldest-first eviction).
       const firstRecordId = notifyTurboModuleCallStart('First', 'work', 'async');
+      const fillerIds: number[] = [];
       for (let i = 0; i < MAX_PENDING_CALL_WINDOWS; i++) {
-        notifyTurboModuleCallStart('Filler', `m${i}`, 'async');
+        fillerIds.push(notifyTurboModuleCallStart('Filler', `m${i}`, 'async'));
+      }
+
+      // Settle a filler so its window credit lands on the span — this drives
+      // `attachWindowToSpan` on `spanEnd` and gives us setAttributes calls to
+      // inspect below.
+      const survivor = fillerIds[0];
+      if (survivor !== undefined) {
+        recordTurboModuleCall({
+          name: 'Filler',
+          method: 'm0',
+          kind: 'async',
+          durationMs: 3,
+          errored: false,
+          recordId: survivor,
+        });
       }
 
       // Settle the evicted first call — its pending window entry is gone, so
@@ -533,10 +549,102 @@ describe('turboModuleContextIntegration', () => {
 
       emit('spanEnd', span);
 
-      // No setAttributes call should ever include the evicted method.
+      // spanEnd must have flushed the window at least once, and none of the
+      // resulting payloads may contain the evicted `First.work` row.
+      expect(span.setAttributes.mock.calls.length).toBeGreaterThan(0);
       for (const [attributes] of span.setAttributes.mock.calls) {
         expect(attributes['turbo_module.First.work.call_count']).toBeUndefined();
       }
+      // The surviving filler *did* get credited — that's the positive control
+      // that keeps this test from silently passing on an empty payload.
+      const lastCall = span.setAttributes.mock.calls.at(-1)?.[0] as Record<string, unknown>;
+      expect(lastCall['turbo_module.Filler.m0.call_count']).toBe(1);
+    });
+
+    it('merges the latest attribute payload onto the transaction event via processEvent', () => {
+      // The Sentry SDK freezes a span at `.end()`, so a late-settling async
+      // record after `spanEnd` can't reach the transaction through
+      // `span.setAttributes` alone. The integration also buffers the payload
+      // by span_id and merges it into `event.contexts.trace.data` on the
+      // paired transaction event — this test drives that path.
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan({ spanId: 'root-1' });
+      emit('spanStart', span);
+
+      const recordId = notifyTurboModuleCallStart('Late', 'load', 'async');
+      emit('spanEnd', span);
+      recordTurboModuleCall({
+        name: 'Late',
+        method: 'load',
+        kind: 'async',
+        durationMs: 42,
+        errored: false,
+        recordId,
+      });
+
+      const event = makeTransactionEvent({
+        contexts: { trace: { trace_id: 'a'.repeat(32), span_id: 'root-1' } },
+      });
+      const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
+      const data = out.contexts?.trace?.data as Record<string, unknown> | undefined;
+
+      expect(data).toBeDefined();
+      expect(data?.['turbo_module.Late.load.call_count']).toBe(1);
+      expect(data?.['turbo_module.Late.load.duration_ms']).toBe(42);
+      expect(data?.['turbo_module.total_call_count']).toBe(1);
+    });
+
+    it('does not overwrite pre-existing trace.data keys when merging', () => {
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan({ spanId: 'root-2' });
+      emit('spanStart', span);
+      recordTurboModuleCall({ name: 'Mod', method: 'op', kind: 'sync', durationMs: 1, errored: false });
+      emit('spanEnd', span);
+
+      const event = makeTransactionEvent({
+        contexts: {
+          trace: {
+            trace_id: 'a'.repeat(32),
+            span_id: 'root-2',
+            data: { 'existing.key': 'kept' },
+          },
+        },
+      });
+      const out = integration.processEvent?.(event, {}, makeMockClient()) as TransactionEvent;
+      const data = out.contexts?.trace?.data as Record<string, unknown>;
+
+      expect(data['existing.key']).toBe('kept');
+      expect(data['turbo_module.Mod.op.call_count']).toBe(1);
+    });
+
+    it('escapes dots in module and method names so distinct pairs never collapse', () => {
+      // `(name="a.b", method="c")` and `(name="a", method="b.c")` would both
+      // produce `turbo_module.a.b.c.*` without escaping and overwrite each
+      // other in the attribute payload.
+      const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+      integration.setupOnce?.();
+      const { client, emit } = makeClientWithSpanHooks();
+      integration.setup?.(client);
+
+      const span = makeFakeSpan();
+      emit('spanStart', span);
+      recordTurboModuleCall({ name: 'a.b', method: 'c', kind: 'sync', durationMs: 5, errored: false });
+      recordTurboModuleCall({ name: 'a', method: 'b.c', kind: 'sync', durationMs: 7, errored: false });
+      emit('spanEnd', span);
+
+      const attributes = span.setAttributes.mock.calls[0]?.[0] as Record<string, unknown>;
+      // Two distinct keys must survive — no collision.
+      expect(attributes['turbo_module.a_b.c.call_count']).toBe(1);
+      expect(attributes['turbo_module.a.b_c.call_count']).toBe(1);
+      expect(attributes['turbo_module.unique_methods']).toBe(2);
     });
 
     it('does not attach attributes to non-root spans', () => {
