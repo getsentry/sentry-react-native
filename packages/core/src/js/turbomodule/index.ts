@@ -22,9 +22,12 @@ export {
 } from './turboModuleAggregator';
 export type {
   TurboModuleAggregate,
+  TurboModuleArch,
   TurboModuleCallStart,
   TurboModuleCallStartObserver,
   TurboModuleRecord,
   TurboModuleRecordObserver,
 } from './turboModuleAggregator';
+export { wrapAllNativeModules } from './wrapNativeModules';
+export type { WrapNativeModulesOptions } from './wrapNativeModules';
 export { wrapTurboModule } from './wrapTurboModule';
