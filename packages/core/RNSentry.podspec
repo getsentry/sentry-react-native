@@ -71,7 +71,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  sentry_cocoa_version = '9.19.1'
+  sentry_cocoa_version = '9.23.0'
 
   # Consume sentry-cocoa as a prebuilt `Sentry.xcframework` by default.
   #
