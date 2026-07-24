@@ -39,7 +39,7 @@
 ## 8.19.0
 
 > [!WARNING]
-> ⚠️ **Known Issue (iOS):** screenshot capture returns empty in this release, affecting the Feedback Widget screenshot, `attachScreenshot`, and `Sentry.captureScreenshot()`. Android is unaffected. Tracked in [#6497](https://github.com/getsentry/sentry-react-native/issues/6497).
+> ⚠️ **Known Issue (iOS):** screenshot capture returns empty in this release, affecting the Feedback Widget screenshot, `attachScreenshot`, and `Sentry.captureScreenshot()`. Android is unaffected. **[Please use 8.20.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.20.0).**
 
 ### Features
 
