@@ -5,7 +5,10 @@ import type { TurboModuleCallKind } from './turboModuleTracker';
 import { notifyTurboModuleCallStart, recordTurboModuleCall } from './turboModuleAggregator';
 import { popTurboModuleCall, pushTurboModuleCall, relabelTurboModuleCallKind } from './turboModuleTracker';
 
-// Tracked off-module so sealed proxies (that can't accept a marker property) are protected from double-wrapping.
+/**
+ * Modules we've already wrapped. Tracked off-module so that even sealed proxies
+ * (which can't accept a marker property) are protected from double-wrapping.
+ */
 let wrappedModules = new WeakSet<object>();
 
 /** Tests only. */
@@ -13,6 +16,19 @@ export function _resetWrappedModules(): void {
   wrappedModules = new WeakSet<object>();
 }
 
+/**
+ * Wraps every function-valued property on the given TurboModule so that each
+ * invocation is recorded on the Sentry TurboModule tracker. Returns the same
+ * `module` reference for chaining convenience.
+ *
+ * - Sync methods are tracked as `kind: 'sync'` and popped right after the call.
+ * - Async methods (those returning a thenable) are relabelled to `kind: 'async'`
+ *   right after the call dispatches and popped when the returned promise settles.
+ *
+ * `skip` can be used to opt specific method names out of tracking (e.g. very
+ * hot, no-op methods like RN's `addListener`/`removeListeners` event-emitter
+ * stubs which would otherwise pollute the scope).
+ */
 export function wrapTurboModule<T extends object>(
   name: string,
   module: T | null | undefined,
@@ -30,7 +46,8 @@ export function wrapTurboModule<T extends object>(
   const methodNames = collectMethodNames(module);
 
   if (methodNames.length === 0) {
-    // Do NOT mark as wrapped — a later call (once a JSI HostObject materialises its methods) should retry.
+    // Do NOT add to wrappedModules — a later call (e.g. once a JSI HostObject
+    // has materialised its methods) should still get a chance to wrap.
     logger.warn(
       `[TurboModuleTracker] No methods discovered on '${name}' — TurboModule context will not be attached for this module. ` +
         `This usually means the module is a JSI HostObject that only materialises methods on first access.`,
@@ -44,8 +61,10 @@ export function wrapTurboModule<T extends object>(
     if (skip.has(key)) {
       continue;
     }
-    // JSI HostObject proxies may expose methods as accessors — guard so a throwing getter
-    // is treated as non-wrappable instead of aborting the whole loop.
+    // `target[key]` may be a getter (some JSI HostObject proxies expose methods
+    // as accessors under the New Architecture). Guard the read so a throwing
+    // getter is treated like a non-wrappable property instead of aborting the
+    // entire wrap loop.
     let original: unknown;
     try {
       original = target[key];
@@ -58,7 +77,12 @@ export function wrapTurboModule<T extends object>(
     const originalFn = original as (...a: unknown[]) => unknown;
 
     const wrapper = function sentryTurboModuleWrapper(this: unknown, ...args: unknown[]): unknown {
-      // Start optimistic as sync; relabel to 'async' if the return value proves thenable.
+      // The instrumentation must never break the user's call — every tracker
+      // interaction is isolated so a failure inside Sentry only drops the
+      // attribution data, never the real TurboModule invocation.
+      //
+      // We don't know yet whether `original` is sync or async — start optimistic
+      // as sync, relabel to 'async' if the result turns out to be thenable.
       let callId: number | undefined;
       const startedAtMs = Date.now();
       let recordId: number | undefined;
@@ -107,14 +131,21 @@ export function wrapTurboModule<T extends object>(
       target[key] = wrapper;
       wrappedAny = true;
     } catch {
-      // sealed / non-writable — skip this method, keep wrapping the rest
+      // Sealed / non-writable property — can't intercept this method, but we
+      // can still wrap the rest. Skip silently.
     }
   }
 
+  // Only mark as wrapped if we actually installed at least one wrapper.
+  // Otherwise a future call (e.g. after the proxy has materialised methods)
+  // should be allowed to retry.
   if (wrappedAny) {
     wrappedModules.add(module);
   } else {
-    // Methods found but none writable — surface so the silent no-op is debuggable.
+    // We discovered methods but couldn't intercept any of them — e.g. the
+    // module is frozen, or every method is a read-only accessor. Surface this
+    // so the silent no-op is debuggable (the issue would otherwise look like
+    // "no crash context attached" with no obvious cause).
     logger.warn(
       `[TurboModuleTracker] '${name}' has methods but none could be wrapped — TurboModule context will not be attached. ` +
         `This usually means the module is frozen or its methods are non-writable accessors.`,
@@ -124,8 +155,13 @@ export function wrapTurboModule<T extends object>(
   return module;
 }
 
-// Walks the proto chain — JSI HostObject-backed TurboModule proxies expose methods
-// via the proto rather than as own enumerable properties.
+/**
+ * Returns the union of own + prototype-chain method names on `module`,
+ * deduplicated and skipping `Object.prototype`. Walking the prototype chain is
+ * necessary for JSI HostObject-backed TurboModule proxies under RN's New
+ * Architecture, which can expose methods via the proto chain rather than as
+ * own enumerable properties.
+ */
 function collectMethodNames(module: object): string[] {
   const seen = new Set<string>();
   let current: object | null = module;
@@ -189,7 +225,8 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
   if (!value || (typeof value !== 'object' && typeof value !== 'function')) {
     return false;
   }
-  // A user-defined `then` getter could throw — don't let that leak the tracker frame.
+  // A user-defined `then` getter could throw — don't let that escape into the
+  // wrapper (which would leak the in-flight tracker frame on top of the bug).
   try {
     const then = (value as { then?: unknown }).then;
     return typeof then === 'function';

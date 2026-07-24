@@ -30,24 +30,51 @@ export { TURBO_MODULES_AGGREGATE_OP, TURBO_MODULES_AGGREGATE_ORIGIN };
 
 export const INTEGRATION_NAME = 'TurboModuleContext';
 
+/** Default flush cadence for the periodic timer, in milliseconds. */
 export const DEFAULT_AGGREGATE_FLUSH_INTERVAL_MS = 30_000;
+
+/** Default duration above which an async TurboModule call becomes a breadcrumb. */
 export const DEFAULT_SLOW_CALL_THRESHOLD_MS = 500;
+
 export const DEFAULT_MAX_TOP_MODULES_PER_SPAN = 16;
+
 export const TURBO_MODULE_BREADCRUMB_CATEGORY = 'native.turbo_module';
+
+/** Cap so abandoned (never-settling) promises can't pin `WindowState` forever. */
 export const MAX_PENDING_CALL_WINDOWS = 1024;
+
+/** Cap so sampled-out transactions can't leak their buffered attributes. */
 export const MAX_PENDING_SPAN_ATTRIBUTES = 256;
 
 export interface TurboModuleContextOptions {
+  /** Additional TurboModules to wrap. `RNSentry` is always tracked. */
   modules?: Array<{ name: string; module: object | null | undefined; skipMethods?: ReadonlyArray<string> }>;
+
+  /** Per-(module, method, kind) counters, flushed on transaction finish and on a periodic timer. Default: `true`. */
   enableAggregateStats?: boolean;
+
+  /** Periodic aggregate flush interval, ms. `0` disables the periodic timer. Default: `30000`. */
   aggregateFlushIntervalMs?: number;
+
+  /**
+   * Modules opted out of the aggregate (still wrapped for crash context).
+   * Default `['RNSentry']` — the SDK's own transport calls would otherwise
+   * pollute the signal and self-re-arm the periodic timer indefinitely.
+   */
   ignoreTurboModules?: ReadonlyArray<string>;
+
+  /** Per-`(module, method)` breakdown on root-span `spanEnd`. Default: `true`. */
   enableSpanAttribution?: boolean;
+
+  /** Async-call duration above which a `native.turbo_module` breadcrumb fires. `0` disables. Default: `500`. */
   slowCallThresholdMs?: number;
+
+  /** Cap on per-`(module, method)` rows attributed to a single span. Default: `16`. */
   maxTopModulesPerSpan?: number;
 }
 
-// Wrapping scope-sync methods would recurse infinitely via
+// Scope-sync methods must NOT be tracked — `enableSyncToNative` calls them on
+// every Scope write, so wrapping them would recurse infinitely via
 // `pushTurboModuleCall` -> `scope.setContext` -> `RNSentry.setContext`.
 const RNSENTRY_SKIP = [
   'addListener',
@@ -63,6 +90,11 @@ const RNSENTRY_SKIP = [
   'removeAttribute',
 ] as const;
 
+/**
+ * Attributes TurboModule invocations to the Sentry scope for crash context,
+ * aggregates per-`(module, method, kind)` counters into transaction events,
+ * attaches a per-span breakdown on `spanEnd`, and emits slow-call breadcrumbs.
+ */
 export const turboModuleContextIntegration = (options: TurboModuleContextOptions = {}): Integration => {
   const enableAggregate = options.enableAggregateStats !== false;
   const enableSpanAttribution = options.enableSpanAttribution !== false;
@@ -73,11 +105,14 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   let pendingFlushHandle: ReturnType<typeof setTimeout> | undefined;
   let closed = false;
 
+  // WeakMap: O(1) lookup in spanEnd. Array: hot-path iteration in recordObserver.
   const openWindows: WeakMap<Span, WindowState> = new WeakMap();
   const openWindowList: WindowState[] = [];
-  // Keyed by `recordId` so a call that settles after its span ended still credits that span.
+  // Keyed by `recordId` so a call that settles after its originating span
+  // ended still credits that span.
   const pendingCallWindows: Map<number, WindowState[]> = new Map();
-  // `setAttributes` on a frozen span is a no-op, so late records land here for processEvent merging.
+  // Buffer for `processEvent` merging: `Span#setAttributes` on a frozen span
+  // is a no-op, so late records after `spanEnd` can only land via the event.
   const pendingSpanAttributes: Map<string, Record<string, number | string | undefined>> = new Map();
   let recordObserver: ((record: TurboModuleRecord) => void) | undefined;
   let startObserver: ((start: TurboModuleCallStart) => void) | undefined;
@@ -110,8 +145,10 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         });
       }
 
-      // Snapshot on every start regardless of kind — `wrapTurboModule` starts as `'sync'`
-      // and only relabels to `'async'` post-hoc, so gating by kind would drop all async attribution.
+      // Snapshot on every start (any kind): `wrapTurboModule` always calls
+      // `notifyTurboModuleCallStart` with `'sync'` and only relabels to
+      // `'async'` after the return value proves thenable, so gating by kind
+      // here would silently drop all async attribution.
       if (enableSpanAttribution) {
         startObserver = (start: TurboModuleCallStart): void => {
           if (pendingCallWindows.size >= MAX_PENDING_CALL_WINDOWS) {
@@ -132,8 +169,8 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
             if (record.recordId !== undefined) {
               const windows = pendingCallWindows.get(record.recordId);
               pendingCallWindows.delete(record.recordId);
-              // Empty `windows` means no spans were open at call start — don't fall back
-              // to `openWindowList` or a later span would get credited.
+              // Empty `windows` means no spans were open at call start —
+              // don't fall back to `openWindowList` or we'd credit a later span.
               if (windows) {
                 for (const window of windows) {
                   recordIntoWindow(window, record);
@@ -217,7 +254,9 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       });
     },
     processEvent(event: Event): Event {
-      // See #6502: ingestion rejects empty tag values with a Processing Error.
+      // Drop the empty-string sentinel tags written by `clearScope` when no
+      // TurboModule call is active. Sentry ingestion rejects empty tag values
+      // and flags the event with a Processing Error. See #6502.
       stripEmptySentinelTags(event);
 
       if (event.type !== 'transaction') {
@@ -229,7 +268,8 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         attachAggregateToTransactionEvent(txEvent);
       }
 
-      // Guaranteed-delivery path for late-settling span attributes (frozen-span setAttributes is a no-op).
+      // Guaranteed-delivery path for span attributes: `setAttributes` on the
+      // frozen span is a no-op, so late-settling records can only land here.
       if (enableSpanAttribution) {
         const rootSpanId = txEvent.contexts?.trace?.span_id;
         if (rootSpanId) {
@@ -269,8 +309,10 @@ interface WindowRow {
 
 interface WindowState {
   span: Span;
+  /** `true` after `spanEnd` — late records still credit and re-emit. */
   closed: boolean;
   counters: Map<string, Map<string, WindowRow>>;
+  /** Previously-written top-N keys, used to clear stale ones on re-emit. */
   writtenPerMethodKeys?: Set<string>;
 }
 
@@ -347,7 +389,8 @@ function attachWindowToSpan(
     nextKeys.add(durationKey);
     nextKeys.add(errorCountKey);
   }
-  // `setAttributes` merges — dropped top-N keys need `undefined` to clear or they linger.
+  // `setAttributes` merges, so keys dropped from top-N must be explicitly
+  // cleared with `undefined` or they linger from a previous emit.
   if (window.writtenPerMethodKeys) {
     for (const key of window.writtenPerMethodKeys) {
       if (!nextKeys.has(key)) {
@@ -379,8 +422,11 @@ function attachWindowToSpan(
   }
 }
 
-// `.` is the attribute-key delimiter — escape to `_` (and pre-escape existing `_` as `__`)
-// so `(a.b, c)` and `(a_b, c)` don't collapse to the same key.
+/**
+ * `.` is the attribute-key delimiter — escape it to `_` in name/method so keys
+ * don't collide. `_` is pre-escaped to `__` so `(a.b, c)` and `(a_b, c)` still
+ * round-trip to distinct keys.
+ */
 function safeKeyPart(s: string): string {
   return s.replace(/_/g, '__').replace(/\./g, '_');
 }

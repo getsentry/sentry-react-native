@@ -15,7 +15,11 @@ export const TURBO_MODULES_AGGREGATE_ORIGIN = 'auto.tracing.turbo_modules';
 
 const MAX_AGGREGATE_ATTRIBUTE_ROWS = 64;
 
-// Runs before `beforeSendTransaction`, so a user-dropped transaction loses one interval — self-healing.
+/**
+ * Drains the aggregate into the transaction event as a synthetic child span
+ * plus headline measurements. Runs before `beforeSendTransaction`, so a
+ * user-dropped transaction loses its interval — bounded and self-healing.
+ */
 export function attachAggregateToTransactionEvent(event: TransactionEvent): void {
   const trace = event.contexts?.trace;
   if (!trace?.trace_id || !trace.span_id) {
@@ -76,6 +80,7 @@ export function attachAggregateToTransactionEvent(event: TransactionEvent): void
   }
 }
 
+/** Custom Sentry event so long-running sessions without a transaction still emit a signal. */
 export function flushPeriodicAggregate(client: Client): void {
   if (!hasTurboModuleAggregateData()) {
     return;
@@ -169,8 +174,11 @@ export function roundMs(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-// `.` is the attribute-key delimiter — escape to `_` (and pre-escape existing `_` as `__`)
-// so `(a.b, c)` and `(a_b, c)` don't collapse to the same key.
+/**
+ * `.` is the attribute-key delimiter — escape it to `_` in name/method so keys
+ * don't collide. `_` is pre-escaped to `__` so `(a.b, c)` and `(a_b, c)` still
+ * round-trip to distinct keys.
+ */
 function safeKeyPart(s: string): string {
   return s.replace(/_/g, '__').replace(/\./g, '_');
 }
