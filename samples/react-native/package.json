@@ -78,7 +78,7 @@
     "@react-native/jest-preset": "0.86.0",
     "@react-native/metro-config": "0.86.0",
     "@react-native/typescript-config": "0.86.0",
-    "@sentry/babel-plugin-component-annotate": "5.3.0",
+    "@sentry/bundler-plugins": "10.67.0",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.1",

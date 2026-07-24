@@ -379,7 +379,7 @@ function getTouchedComponentInfo(
     (shouldExtractText ? extractTextFromFiber(currentInst) : undefined);
 
   return dropUndefinedKeys<TouchedComponentInfo>({
-    // provided by @sentry/babel-plugin-component-annotate
+    // provided by @sentry/bundler-plugins/babel-plugin
     name: getComponentName(props) || displayName,
     element: getElementName(props),
     file: getFileName(props),

@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Internal
+
+- Migrate from `@sentry/babel-plugin-component-annotate` to `@sentry/bundler-plugins/babel-plugin` ([#6501](https://github.com/getsentry/sentry-react-native/pull/6501))
+
 ### Dependencies
 
 - Bump Android SDK from v8.49.0 to v8.50.1 ([#6503](https://github.com/getsentry/sentry-react-native/pull/6503))
