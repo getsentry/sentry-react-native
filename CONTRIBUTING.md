@@ -82,13 +82,13 @@ Recommended is to open the native project in `samples/react-native/android` and 
 For android switch `newArchEnabled` to `false` in [android/gradle.properties](https://github.com/getsentry/sentry-react-native/blob/c95aa21497ca93aaaaf0b44d170dc39dc7bcf660/sample-new-architecture/android/gradle.properties#L40). For iOS explicitly disable fabric in `samples/react-native/ios/Podfile` by setting `:fabric_enabled => false` before `pod install`.
 
 ```sh
-yarn pod-install-legacy
+yarn pod-install-debug-static-legacy
 yarn react-native run-ios
 
 yarn react-native run-android
 
 # Release builds
-yarn pod-install-legacy-production
+yarn pod-install-release-static-legacy
 yarn react-native run-ios --mode=Release
 
 yarn react-native run-android --mode=release
@@ -96,17 +96,19 @@ yarn react-native run-android --mode=release
 
 ### Run the emulators (new-architecture):
 ```sh
-yarn pod-install
+yarn pod-install-debug-static
 yarn react-native run-ios
 
 yarn react-native run-android
 
 # Release builds
-yarn pod-install-production
+yarn pod-install-release-static
 yarn react-native run-ios --mode=Release
 
 yarn react-native run-android --mode=Release
 ```
+
+The `pod-install-*` scripts follow the pattern `pod-install-{debug,release}-{static,dynamic}[-legacy]` (dynamic variants build with frameworks as dynamic libraries). Since [#6413](https://github.com/getsentry/sentry-react-native/pull/6413), `pod install` downloads a prebuilt `Sentry.xcframework` from sentry-cocoa's GitHub release and vendors it, instead of building Sentry from source. Set `SENTRY_USE_XCFRAMEWORK=0` before `pod install` to restore the previous source-build behavior (e.g. for offline builds).
 
 ## Running the macOS sample
 

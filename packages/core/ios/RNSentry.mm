@@ -16,13 +16,9 @@
 #    define SENTRY_TARGET_PROFILING_SUPPORTED 0
 #endif
 
-#if __has_include(<RNSentry/RNSentry-Swift.h>)
-#    import <RNSentry/RNSentry-Swift.h>
-#else
-#    import "RNSentry-Swift.h"
-#endif
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryId.h"
+#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryAppStartMeasurement.h>
 #import <Sentry/SentryBreadcrumb.h>
 #import <Sentry/SentryDebugMeta.h>
@@ -407,8 +403,10 @@ RCT_EXPORT_METHOD(disableShakeDetection)
 RCT_EXPORT_METHOD(
     fetchNativeSdkInfo : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
-    resolve(
-        @ { @"name" : RNSentryInternal.sdkName, @"version" : RNSentryInternal.sdkVersionString });
+    resolve(@ {
+        @"name" : PrivateSentrySDKOnly.getSdkName,
+        @"version" : PrivateSentrySDKOnly.getSdkVersionString
+    });
 }
 
 RCT_EXPORT_METHOD(
@@ -460,7 +458,7 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes : (RCTPromiseResolveBlock)resolve rej
             contexts[@"release"] = releaseName;
         }
         // Merge extra context
-        NSDictionary *extraContext = [RNSentryInternal extraContext];
+        NSDictionary *extraContext = [PrivateSentrySDKOnly getExtraContext];
 
         if (extraContext) {
             NSDictionary *extraDevice = extraContext[@"device"];
@@ -498,7 +496,8 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve re
 
         NSDictionary<NSString *, id> *user = [serializedScope valueForKey:@"user"];
         if (user == nil) {
-            [serializedScope setValue:@ { @"id" : RNSentryInternal.installationID } forKey:@"user"];
+            [serializedScope setValue:@ { @"id" : PrivateSentrySDKOnly.installationID }
+                               forKey:@"user"];
         }
 
         if ([SentrySDKWrapper debug]) {
@@ -511,7 +510,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve re
         }
     }];
 
-    NSDictionary<NSString *, id> *extraContext = [RNSentryInternal extraContext];
+    NSDictionary<NSString *, id> *extraContext = [PrivateSentrySDKOnly getExtraContext];
     NSMutableDictionary<NSString *, NSDictionary<NSString *, id> *> *contexts =
         [serializedScope[@"context"] mutableCopy];
 
@@ -548,7 +547,8 @@ RCT_EXPORT_METHOD(
     fetchNativeAppStart : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_HAS_UIKIT
-    NSDictionary<NSString *, id> *measurements = [RNSentryInternal appStartMeasurementWithSpans];
+    NSDictionary<NSString *, id> *measurements =
+        [PrivateSentrySDKOnly appStartMeasurementWithSpans];
     if (measurements == nil) {
         resolve(nil);
         return;
@@ -574,7 +574,7 @@ RCT_EXPORT_METHOD(
 {
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    if (RNSentryInternal.isFramesTrackingRunning) {
+    if (PrivateSentrySDKOnly.isFramesTrackingRunning) {
         if (![SentryScreenFramesWrapper canTrackFrames]) {
             resolve(nil);
             return;
@@ -626,20 +626,20 @@ RCT_EXPORT_METHOD(captureEnvelope : (NSString *_Nonnull)rawBytes options : (NSDi
 {
     NSData *data = [[NSData alloc] initWithBase64EncodedString:rawBytes options:0];
 
-    SentryEnvelope *envelope = [RNSentryInternal envelopeFromData:data];
+    SentryEnvelope *envelope = [PrivateSentrySDKOnly envelopeWithData:data];
     if (envelope == nil) {
         reject(@"SentryReactNative", @"Failed to parse envelope from byte array.", nil);
         return;
     }
 
 #if DEBUG
-    [RNSentryInternal capture:envelope];
+    [PrivateSentrySDKOnly captureEnvelope:envelope];
 #else
     if ([[options objectForKey:@"hardCrashed"] boolValue]) {
         // Storing to disk happens asynchronously with captureEnvelope
-        [RNSentryInternal store:envelope];
+        [PrivateSentrySDKOnly storeEnvelope:envelope];
     } else {
-        [RNSentryInternal capture:envelope];
+        [PrivateSentrySDKOnly captureEnvelope:envelope];
     }
 #endif
     resolve(@YES);
@@ -649,7 +649,7 @@ RCT_EXPORT_METHOD(
     captureScreenshot : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    NSArray<NSData *> *rawScreenshots = [RNSentryInternal captureScreenshots];
+    NSArray<NSData *> *rawScreenshots = [PrivateSentrySDKOnly captureScreenshots];
     NSMutableArray *screenshotsArray = [NSMutableArray arrayWithCapacity:[rawScreenshots count]];
 
     int counter = 1;
@@ -682,13 +682,7 @@ RCT_EXPORT_METHOD(
     fetchViewHierarchy : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-    NSData *rawViewHierarchy = [RNSentryInternal captureViewHierarchy];
-    if (rawViewHierarchy == nil) {
-        // Propagate the capture failure to JS instead of a truthy `[]`, which
-        // would be treated as a successful (empty) attachment.
-        resolve(nil);
-        return;
-    }
+    NSData *rawViewHierarchy = [PrivateSentrySDKOnly captureViewHierarchy];
 
     NSMutableArray *viewHierarchy = [NSMutableArray arrayWithCapacity:rawViewHierarchy.length];
     const char *bytes = (char *)[rawViewHierarchy bytes];
@@ -739,7 +733,7 @@ RCT_EXPORT_METHOD(addBreadcrumb : (NSDictionary *)breadcrumb)
 #if SENTRY_HAS_UIKIT
     NSString *_Nullable screen = [RNSentryBreadcrumb getCurrentScreenFrom:breadcrumb];
     if (screen != nil) {
-        [RNSentryInternal setCurrentScreen:screen];
+        [PrivateSentrySDKOnly setCurrentScreen:screen];
     }
 #endif // SENTRY_HAS_UIKIT
 }
@@ -822,19 +816,52 @@ RCT_EXPORT_METHOD(pauseAppHangTracking) { [SentrySDKWrapper pauseAppHangTracking
 
 RCT_EXPORT_METHOD(resumeAppHangTracking) { [SentrySDKWrapper resumeAppHangTracking]; }
 
-// Calls `SentrySDK.internal.replay.capture()` via the Swift bridge and returns
-// the BOOL result. The `@try`/`@catch` is retained as cheap insurance for one
-// release cycle — see getsentry/sentry-react-native#5074 for the historical
-// fault path that motivated defensive handling here.
+/**
+ * Calls captureReplay on the native replay integration and returns
+ * the BOOL result indicating whether the capture succeeded.
+ *
+ * PrivateSentrySDKOnly.captureReplay is void and discards the result,
+ * so we call the integration directly to get the success status.
+ * This prevents returning a stale buffer-mode replay ID when the
+ * capture actually failed (e.g., replay not running).
+ *
+ * Falls back to the old void captureReplay if the integration
+ * cannot be accessed directly (e.g., future Cocoa SDK changes).
+ *
+ * See https://github.com/getsentry/sentry-react-native/issues/5074
+ */
 + (BOOL)captureReplayWithReturnValue
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     @try {
-        return [RNSentryInternal captureReplay];
+        if ([PrivateSentrySDKOnly respondsToSelector:@selector(getReplayIntegration)]) {
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+            id replayIntegration =
+                [PrivateSentrySDKOnly performSelector:@selector(getReplayIntegration)];
+#    pragma clang diagnostic pop
+            if (replayIntegration &&
+                [replayIntegration respondsToSelector:@selector(captureReplay)]) {
+                typedef BOOL (*CaptureReplayIMP)(id, SEL);
+                CaptureReplayIMP captureFunc = (CaptureReplayIMP)
+                    [replayIntegration methodForSelector:@selector(captureReplay)];
+                return captureFunc(replayIntegration, @selector(captureReplay));
+            }
+        }
     } @catch (NSException *exception) {
-        NSLog(@"[RNSentry] Failed to call captureReplay: %@", exception);
+        NSLog(@"[RNSentry] Failed to call captureReplay on integration: %@", exception);
+    }
+    // Fallback: call the void method and assume success if a replay ID exists.
+    // This preserves the old behavior when the integration isn't directly accessible.
+    // clang-format off
+    @try {
+        [PrivateSentrySDKOnly captureReplay];
+        return [PrivateSentrySDKOnly getReplayId] != nil;
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call captureReplay fallback: %@", exception);
         return NO;
     }
+    // clang-format on
 #else
     return NO;
 #endif
@@ -846,7 +873,7 @@ RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     BOOL captured = [RNSentry captureReplayWithReturnValue];
     if (captured) {
-        resolve([RNSentryInternal replayId]);
+        resolve([PrivateSentrySDKOnly getReplayId]);
     } else {
         resolve(nil);
     }
@@ -936,7 +963,7 @@ RCT_EXPORT_METHOD(getDataFromUri : (NSString *_Nonnull)uri resolve : (
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentReplayId)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    return [RNSentryInternal replayId];
+    return [PrivateSentrySDKOnly getReplayId];
 #else
     return nil;
 #endif
@@ -962,7 +989,8 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
         if (nativeProfileTraceId == nil && nativeProfileStartTime == 0 && platformProfilers) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
             nativeProfileTraceId = [RNSentryId newId];
-            nativeProfileStartTime = [RNSentryInternal startProfilerForTrace:nativeProfileTraceId];
+            nativeProfileStartTime =
+                [PrivateSentrySDKOnly startProfilerForTrace:nativeProfileTraceId];
 #    endif
         } else {
             if (!platformProfilers) {
@@ -976,7 +1004,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
     } catch (const std::exception &ex) {
         if (nativeProfileTraceId != nil) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
-            [RNSentryInternal discardProfilerForTrace:nativeProfileTraceId];
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
 #    endif
             nativeProfileTraceId = nil;
         }
@@ -988,7 +1016,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, startProfiling : (BOOL)platf
     } catch (...) {
         if (nativeProfileTraceId != nil) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
-            [RNSentryInternal discardProfilerForTrace:nativeProfileTraceId];
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
 #    endif
             nativeProfileTraceId = nil;
         }
@@ -1008,9 +1036,9 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
         if (nativeProfileTraceId != nil && nativeProfileStartTime != 0) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
             uint64_t nativeProfileStopTime = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
-            nativeProfile = [RNSentryInternal collectProfileBetween:nativeProfileStartTime
-                                                                and:nativeProfileStopTime
-                                                           forTrace:nativeProfileTraceId];
+            nativeProfile = [PrivateSentrySDKOnly collectProfileBetween:nativeProfileStartTime
+                                                                    and:nativeProfileStopTime
+                                                               forTrace:nativeProfileTraceId];
 #    endif
         }
         // Cleanup native profiles
@@ -1065,7 +1093,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
     } catch (const std::exception &ex) {
         if (nativeProfileTraceId != nil) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
-            [RNSentryInternal discardProfilerForTrace:nativeProfileTraceId];
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
 #    endif
             nativeProfileTraceId = nil;
         }
@@ -1077,7 +1105,7 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
     } catch (...) {
         if (nativeProfileTraceId != nil) {
 #    if SENTRY_TARGET_PROFILING_SUPPORTED
-            [RNSentryInternal discardProfilerForTrace:nativeProfileTraceId];
+            [PrivateSentrySDKOnly discardProfilerForTrace:nativeProfileTraceId];
 #    endif
             nativeProfileTraceId = nil;
         }
