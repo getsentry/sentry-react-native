@@ -32,7 +32,12 @@ set-version)
     done
     (
         cd "${monorepoRoot}"
-        yarn up $list
+        # These are all first-party @sentry/* packages and the updater's job is to
+        # adopt the just-published version immediately. Yarn 4's npmMinimalAgeGate
+        # (default 1 day, auto-enabled on CI) quarantines a fresh release and fails
+        # `yarn up`. There's no supply-chain risk for our own packages, so disable
+        # the gate for this single command.
+        YARN_NPM_MINIMAL_AGE_GATE=0 yarn up $list
     )
     ;;
 *)
