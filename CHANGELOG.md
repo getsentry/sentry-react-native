@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix duplicate navigation transaction on Expo Router `withAnchor` navigations ([#6439](https://github.com/getsentry/sentry-react-native/pull/6439))
+
 ### Dependencies
 
 - Bump Android SDK from v8.49.0 to v8.50.1 ([#6503](https://github.com/getsentry/sentry-react-native/pull/6503))
