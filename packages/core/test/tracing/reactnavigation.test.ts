@@ -1334,6 +1334,71 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(countTransactionsNamed('ScreenB')).toBe(1);
     });
+
+    test('still creates a span for a popTo to an earlier same-named route in the stack', async () => {
+      // Stack with a repeated route name (e.g. Expo Router `[id]`): on Detail(#2),
+      // popTo the earlier Detail(#1). The target name matches the focused leaf
+      // name, but the bookkeeping marker (`initial: false`) is absent, so this
+      // real, key-changing navigation must NOT be filtered.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(
+        { data: { action: { type: 'PUSH', payload: { name: 'Detail' } }, noop: false, stack: undefined } },
+        { key: 'detail_2', name: 'Detail' },
+      );
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(
+        { data: { action: { type: 'POP_TO', payload: { name: 'Detail' } }, noop: false, stack: undefined } },
+        { key: 'detail_1', name: 'Detail' },
+      );
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('Detail')).toBe(1);
+    });
+
+    test('discards a bookkeeping POP_TO that slips past the dispatch-time filter (same route key)', async () => {
+      // Payload name matches no focused route (e.g. a parent navigator name),
+      // so the dispatch-time filter misses, but the state change lands on the
+      // same route key — the state-change guard must discard the span.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: '(app)', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.filter(e => e.type === 'transaction').length).toBe(0);
+    });
+
+    test('a focused-route bookkeeping POP_TO does not tear down an in-flight navigation span', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+
+      mockNavigation.emitNavigationWithoutStateChange();
+      const activeSpan = getActiveSpan();
+
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: 'Initial Screen', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+
+      expect(getActiveSpan()).toBe(activeSpan);
+    });
   });
 
   test('noop does not remove the previous navigation span from scope', async () => {

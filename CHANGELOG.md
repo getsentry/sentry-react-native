@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix duplicate navigation transaction on Expo Router `withAnchor` navigations ([#6439](https://github.com/getsentry/sentry-react-native/pull/6439))
+
 ### Dependencies
 
 - Bump Android SDK from v8.49.0 to v8.50.1 ([#6503](https://github.com/getsentry/sentry-react-native/pull/6503))
@@ -88,10 +92,6 @@
 - Bump Android SDK from v8.48.0 to v8.49.0 ([#6459](https://github.com/getsentry/sentry-react-native/pull/6459))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8490)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.48.0...8.49.0)
-
-### Fixes
-
-- Fix duplicate navigation transaction on Expo Router `withAnchor` navigations ([#6439](https://github.com/getsentry/sentry-react-native/pull/6439))
 
 ## 8.18.0
 
