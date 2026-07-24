@@ -1322,6 +1322,23 @@ describe('ReactNavigationInstrumentation', () => {
       expect(countTransactionsNamed('ScreenB')).toBe(1);
     });
 
+    test('does not create a second transaction with useDispatchedActionData disabled (default Expo setup)', async () => {
+      // The guards are driven off `actionType`, not the opt-in flag, so the
+      // default `expoRouterIntegration` setup (flag off) is fixed too.
+      setupTestClient({ useDispatchedActionData: false });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(realPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+
+      mockNavigation.emitWithStateChange(bookkeepingPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.filter(e => e.type === 'transaction').length).toBe(1);
+    });
+
     test('still creates a transaction for a genuine popTo navigation', async () => {
       setupTestClient({ useDispatchedActionData: true });
       await jest.runOnlyPendingTimers(); // Flush the initial navigation span

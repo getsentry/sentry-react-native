@@ -237,6 +237,10 @@ export const reactNavigationIntegration = ({
 
   let latestNavigationSpan: Span | undefined;
   let latestNavigationSpanNameCustomized: boolean = false;
+  // Action type of the dispatch that started `latestNavigationSpan`. Tracked
+  // independently of the (flag-gated) span attribute so the same-route discard
+  // works even when `useDispatchedActionData` is off.
+  let latestNavigationActionType: string | undefined;
   let navigationProcessingSpan: Span | undefined;
   /**
    * The first nav span that successfully completed a state change — i.e. the
@@ -578,9 +582,12 @@ export const reactNavigationIntegration = ({
     // being wrongly skipped: those carry no `initial` param. The `route.key`
     // check in `updateLatestNavigationSpanWithCurrentRoute` backstops any
     // bookkeeping dispatch that slips past this filter.
+    // Driven off `actionType` (parsed unconditionally), not `navigationActionType`,
+    // so it also applies to the default `expoRouterIntegration` setup where
+    // `useDispatchedActionData` is off — that is where this bug was reported.
     const popToParams = (event?.data?.action?.payload as { params?: { initial?: boolean } } | undefined)?.params;
     if (
-      navigationActionType === 'POP_TO' &&
+      actionType === 'POP_TO' &&
       targetRouteName &&
       popToParams?.initial === false &&
       isRouteFocused(targetRouteName)
@@ -616,6 +623,7 @@ export const reactNavigationIntegration = ({
     latestNavigationSpanNameCustomized = finalSpanOptions.name !== originalName;
 
     latestNavigationSpan = startGenericIdleNavigationSpan(finalSpanOptions, { ...idleSpanOptions, isAppRestart });
+    latestNavigationActionType = actionType;
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, navigationActionType);
 
@@ -730,10 +738,7 @@ export const reactNavigationIntegration = ({
       // just-attached result so a span tagged earlier via the synchronous
       // late-arrival listener is also preserved. Keyed on `route.key`, this
       // never affects a genuine navigation that actually changed the route.
-      if (
-        !taggedDeepLinkSpans.has(latestNavigationSpan) &&
-        spanToJSON(latestNavigationSpan).data?.[SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE] === 'POP_TO'
-      ) {
+      if (!taggedDeepLinkSpans.has(latestNavigationSpan) && latestNavigationActionType === 'POP_TO') {
         debug.log(`[${INTEGRATION_NAME}] Discarding POP_TO navigation span that did not change the route.`);
         clearStateChangeTimeout();
         _discardLatestTransaction();
