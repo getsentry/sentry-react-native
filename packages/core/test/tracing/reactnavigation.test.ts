@@ -1408,9 +1408,20 @@ describe('ReactNavigationInstrumentation', () => {
       setupTestClient({ useDispatchedActionData: true });
       await jest.runOnlyPendingTimers();
 
-      mockNavigation.emitNavigationWithoutStateChange();
+      // Start a real, still-in-flight navigation (dispatch with a route name in
+      // the payload, but no state change yet).
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'NAVIGATE', payload: { name: 'New Screen' } },
+          noop: false,
+          stack: undefined,
+        },
+      });
       const activeSpan = getActiveSpan();
+      expect(activeSpan).toBeDefined();
 
+      // The withAnchor bookkeeping POP_TO to the already-focused route must not
+      // discard that in-flight span via the "noop transaction" branch.
       mockNavigation.emitWithoutStateChange({
         data: {
           action: { type: 'POP_TO', payload: { name: 'Initial Screen', params: { initial: false } } },
