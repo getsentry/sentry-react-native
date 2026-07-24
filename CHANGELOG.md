@@ -6,6 +6,21 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Internal
+
+- Migrate from `@sentry/babel-plugin-component-annotate` to `@sentry/bundler-plugins/babel-plugin` ([#6501](https://github.com/getsentry/sentry-react-native/pull/6501))
+
+### Dependencies
+
+- Bump Android SDK from v8.49.0 to v8.50.1 ([#6503](https://github.com/getsentry/sentry-react-native/pull/6503))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8501)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.49.0...8.50.1)
+- Bump CLI from v3.6.1 to v3.6.2 ([#6511](https://github.com/getsentry/sentry-react-native/pull/6511))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#362)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.1...3.6.2)
+
 ## 8.20.0
 
 ### Fixes
@@ -15,10 +30,6 @@
 - Make `copySentryJsonConfiguration` and the `*_SentryUpload` Gradle tasks compatible with the Gradle Configuration Cache ([#6469](https://github.com/getsentry/sentry-react-native/pull/6469))
 
   These tasks previously read `project` state at execution time — `onlyIf` predicates resolving closures from `project.extra`, plus `project.rootDir`, `project.copy`, `project.logger`, and `Project.file` inside task actions — which fails the build with `Could not evaluate onlyIf predicate` when `org.gradle.configuration-cache=true` (Gradle 9 defaults to recommending it). Environment reads are now captured at configuration time, file copies use an injected `FileSystemOperations`, and task actions use the task's own `logger`. No behaviour change. Interim step ahead of the full SAGP migration (getsentry/sentry-android-gradle-plugin#796).
-
-### Internal
-
-- Migrate from `@sentry/babel-plugin-component-annotate` to `@sentry/bundler-plugins/babel-plugin` ([#6501](https://github.com/getsentry/sentry-react-native/pull/6501))
 
 ### Dependencies
 
