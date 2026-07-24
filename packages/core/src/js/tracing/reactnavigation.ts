@@ -261,8 +261,7 @@ export const reactNavigationIntegration = ({
   const spanDispatchSeq = new WeakMap<Span, number>();
 
   /**
-   * Attempts to attach the pending deep link to the given span. Returns `true`
-   * when the link was attached.
+   * Attempts to attach the pending deep link to the given span.
    *
    * Warm-open links only attach to spans dispatched *after* the link was
    * received. This prevents an unrelated, already-in-flight navigation from
@@ -275,10 +274,10 @@ export const reactNavigationIntegration = ({
    * Rejected warm-open links are left in the slot to be picked up by the next
    * eligible span.
    */
-  const applyPendingDeepLinkToSpan = (span: Span, maxAgeMs: number): boolean => {
+  const applyPendingDeepLinkToSpan = (span: Span, maxAgeMs: number): void => {
     const pending = peekPendingDeepLink(maxAgeMs);
     if (!pending) {
-      return false;
+      return;
     }
     if (pending.source === 'warm-open') {
       const spanSeq = spanDispatchSeq.get(span);
@@ -286,11 +285,11 @@ export const reactNavigationIntegration = ({
         // Span was dispatched before (or at the same tick as) the link arrived
         // — it cannot be the navigation the link triggered. Leave the link in
         // the slot for the next eligible span.
-        return false;
+        return;
       }
     }
     consumePendingDeepLink(maxAgeMs);
-    return tagSpanWithDeepLink(span, pending);
+    tagSpanWithDeepLink(span, pending);
   };
 
   /**
@@ -716,7 +715,7 @@ export const reactNavigationIntegration = ({
       // deep link (e.g. deep-linking to the screen you're already on). Make
       // sure the pending link still gets attributed before we drop the span
       // reference.
-      const deepLinkAttached = applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
+      applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
       pushRecentRouteKey(route.key);
       latestRoute = route;
 
@@ -726,11 +725,13 @@ export const reactNavigationIntegration = ({
       // dispatch-time filter (for instance a nested destination whose payload
       // name matches none of the focused route names). Letting the span run
       // would ship a spurious duplicate transaction that collects the real
-      // navigation's in-flight child spans, so discard it unless a deep link
-      // claimed it above (#6434). Keyed on `route.key`, this never affects a
-      // genuine navigation that actually changed the route.
+      // navigation's in-flight child spans, so discard it unless it carries a
+      // deep link (#6434). We check `taggedDeepLinkSpans` rather than the
+      // just-attached result so a span tagged earlier via the synchronous
+      // late-arrival listener is also preserved. Keyed on `route.key`, this
+      // never affects a genuine navigation that actually changed the route.
       if (
-        !deepLinkAttached &&
+        !taggedDeepLinkSpans.has(latestNavigationSpan) &&
         spanToJSON(latestNavigationSpan).data?.[SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE] === 'POP_TO'
       ) {
         debug.log(`[${INTEGRATION_NAME}] Discarding POP_TO navigation span that did not change the route.`);
@@ -851,6 +852,10 @@ export const reactNavigationIntegration = ({
       latestNavigationSpan = undefined;
     }
     if (navigationProcessingSpan) {
+      // End before dropping the reference so we don't leave an unfinished span
+      // dangling. It is a child of the (now discarded) navigation span, so it
+      // is dropped with the transaction rather than sent on its own.
+      navigationProcessingSpan.end();
       navigationProcessingSpan = undefined;
     }
   };

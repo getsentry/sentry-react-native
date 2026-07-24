@@ -1382,6 +1382,28 @@ describe('ReactNavigationInstrumentation', () => {
       expect(client.eventQueue.filter(e => e.type === 'transaction').length).toBe(0);
     });
 
+    test('keeps a same-route POP_TO span that carries a deep link', async () => {
+      // A same-route POP_TO that is actually a deep link to the screen you are
+      // already on must NOT be discarded by the bookkeeping guard.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      setPendingDeepLink('myapp://initial-screen', 'warm-open');
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: '(app)', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event?.contexts?.trace?.data?.['navigation.trigger']).toBe('deeplink');
+      clearPendingDeepLink();
+    });
+
     test('a focused-route bookkeeping POP_TO does not tear down an in-flight navigation span', async () => {
       setupTestClient({ useDispatchedActionData: true });
       await jest.runOnlyPendingTimers();
