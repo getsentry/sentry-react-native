@@ -12,6 +12,10 @@
 
 - Fix duplicate navigation transaction on Expo Router `withAnchor` navigations ([#6439](https://github.com/getsentry/sentry-react-native/pull/6439))
 
+### Internal
+
+- Migrate from `@sentry/babel-plugin-component-annotate` to `@sentry/bundler-plugins/babel-plugin` ([#6501](https://github.com/getsentry/sentry-react-native/pull/6501))
+
 ### Dependencies
 
 - Bump Android SDK from v8.49.0 to v8.50.1 ([#6503](https://github.com/getsentry/sentry-react-native/pull/6503))
@@ -20,6 +24,9 @@
 - Bump CLI from v3.6.1 to v3.6.2 ([#6511](https://github.com/getsentry/sentry-react-native/pull/6511))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#362)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.1...3.6.2)
+- Bump JavaScript SDK from v10.67.0 to v10.68.0 ([#6516](https://github.com/getsentry/sentry-react-native/pull/6516))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10680)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.67.0...10.68.0)
 
 ## 8.20.0
 
@@ -43,7 +50,7 @@
 ## 8.19.0
 
 > [!WARNING]
-> ⚠️ **Known Issue (iOS):** screenshot capture returns empty in this release, affecting the Feedback Widget screenshot, `attachScreenshot`, and `Sentry.captureScreenshot()`. Android is unaffected. Tracked in [#6497](https://github.com/getsentry/sentry-react-native/issues/6497).
+> ⚠️ **Known Issue (iOS):** screenshot capture returns empty in this release, affecting the Feedback Widget screenshot, `attachScreenshot`, and `Sentry.captureScreenshot()`. Android is unaffected. **[Please use 8.20.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.20.0).**
 
 ### Features
 
