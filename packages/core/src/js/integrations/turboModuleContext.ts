@@ -190,6 +190,11 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
       });
     },
     processEvent(event: Event): Event {
+      // Drop the empty-string sentinel tags written by `clearScope` when no
+      // TurboModule call is active. Sentry ingestion rejects empty tag values
+      // and flags the event with a Processing Error. See #6502.
+      stripEmptySentinelTags(event);
+
       if (!enableAggregate || event.type !== 'transaction') {
         return event;
       }
@@ -201,6 +206,19 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
     },
   };
 };
+
+function stripEmptySentinelTags(event: Event): void {
+  const tags = event.tags;
+  if (!tags) {
+    return;
+  }
+  if (tags['turbo_module.name'] === '') {
+    delete tags['turbo_module.name'];
+  }
+  if (tags['turbo_module.method'] === '') {
+    delete tags['turbo_module.method'];
+  }
+}
 
 /**
  * Mutates a transaction event in place to add the aggregate breakdown as a

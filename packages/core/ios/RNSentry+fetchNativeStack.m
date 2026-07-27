@@ -2,6 +2,7 @@
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryHexFormatter.h"
 #import "RNSentryId.h"
+#import <Sentry/PrivateSentrySDKOnly.h>
 @import Sentry;
 
 // This method was moved to a new category so we can use `@import Sentry` to use Sentry's Swift

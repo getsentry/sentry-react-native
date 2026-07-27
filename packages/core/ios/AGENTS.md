@@ -56,15 +56,5 @@ RCT_EXPORT_METHOD(nativeOperation:(NSString *)param
 2. Edit `RNSentry.podspec` to remove version constraint
 3. Add local pod to sample's Podfile:
    ```ruby
-   pod 'Sentry', :path => '../../../../sentry-cocoa'
+   pod 'Sentry/HybridSDK', :path => '../../../../sentry-cocoa'
    ```
-
-## Internal API access (`SentrySDK.internal`)
-
-RNSentry consumes sentry-cocoa's hybrid-SDK surface (`SentrySDK.internal.*`)
-through a Swift bridge in `RNSentryInternal.swift`. The bridge imports Sentry
-with `@_spi(Private)` because several sub-APIs (`performance.currentScreenFrames`,
-`replay.configure`, `envelope.{store,capture,deserialize}`) are SPI-gated.
-`.m`/`.mm` callers import the auto-generated `RNSentry-Swift.h` and route
-through `[RNSentryInternal …]` instead of touching `PrivateSentrySDKOnly`
-(deprecated since cocoa 9.19.0 and slated for removal in the next major).

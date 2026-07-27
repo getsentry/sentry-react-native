@@ -1,4 +1,3 @@
-@_spi(Private) import Sentry
 import XCTest
 
 final class RNSentryStartTests: XCTestCase {
@@ -30,7 +29,7 @@ final class RNSentryStartTests: XCTestCase {
             "dsn": "https://abcd@efgh.ingest.sentry.io/123456"
         ])
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         assertReactDefaults(actualOptions)
     }
 
@@ -64,10 +63,10 @@ final class RNSentryStartTests: XCTestCase {
         for startMethod in testCases {
             try startMethod()
 
-            let actualOptions = SentrySDK.internal.options
+            let actualOptions = PrivateSentrySDKOnly.options
 
-            XCTAssertTrue(SentrySDK.internal.appStart.hybridSDKMode)
-            XCTAssertTrue(SentrySDK.internal.performance.framesTrackingHybridSDKMode)
+            XCTAssertTrue(PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode)
+            XCTAssertTrue(PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode)
         }
     }
 
@@ -90,10 +89,10 @@ final class RNSentryStartTests: XCTestCase {
         for startMethod in testCases {
             try startMethod()
 
-            let actualOptions = SentrySDK.internal.options
+            let actualOptions = PrivateSentrySDKOnly.options
 
-            XCTAssertFalse(SentrySDK.internal.appStart.hybridSDKMode)
-            XCTAssertFalse(SentrySDK.internal.performance.framesTrackingHybridSDKMode)
+            XCTAssertFalse(PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode)
+            XCTAssertFalse(PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode)
         }
     }
 
@@ -114,7 +113,7 @@ final class RNSentryStartTests: XCTestCase {
         for startMethod in testCases {
             try startMethod()
 
-            let actualOptions = SentrySDK.internal.options
+            let actualOptions = PrivateSentrySDKOnly.options
 
             let actualEvent = actualOptions.beforeSend!(createUnhandledJsExceptionEvent())
 
@@ -139,7 +138,7 @@ final class RNSentryStartTests: XCTestCase {
         for startMethod in testCases {
             try startMethod()
 
-            let actualOptions = SentrySDK.internal.options
+            let actualOptions = PrivateSentrySDKOnly.options
 
             let actualEvent = actualOptions.beforeSend!(createNativeEvent())
 
@@ -161,7 +160,7 @@ final class RNSentryStartTests: XCTestCase {
             }
         }
 
-        SentrySDK.internal.options.beforeSend!(genericEvent())
+        PrivateSentrySDKOnly.options.beforeSend!(genericEvent())
 
         XCTAssertTrue(executed)
     }
@@ -208,7 +207,7 @@ final class RNSentryStartTests: XCTestCase {
             ]
         ])
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         XCTAssertTrue(actualOptions.attachScreenshot)
         XCTAssertFalse(actualOptions.screenshot.maskAllText)
         XCTAssertTrue(actualOptions.screenshot.maskAllImages)
@@ -220,7 +219,7 @@ final class RNSentryStartTests: XCTestCase {
             "attachScreenshot": true
         ])
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         XCTAssertTrue(actualOptions.attachScreenshot)
         XCTAssertTrue(actualOptions.screenshot.maskAllText)
         XCTAssertTrue(actualOptions.screenshot.maskAllImages)
@@ -259,8 +258,8 @@ final class RNSentryStartTests: XCTestCase {
         var actualEvent: Event?
 
         // This is the closest to the sent event we can get using the actual Sentry start method
-        let originalBeforeSend = SentrySDK.internal.options.beforeSend
-        SentrySDK.internal.options.beforeSend = { event in
+        let originalBeforeSend = PrivateSentrySDKOnly.options.beforeSend
+        PrivateSentrySDKOnly.options.beforeSend = { event in
             if let originalBeforeSend = originalBeforeSend {
                 let processedEvent = originalBeforeSend(event)
                 actualEvent = processedEvent

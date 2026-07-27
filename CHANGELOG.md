@@ -14,6 +14,33 @@
 
   When Android spawns the app process in the background (for example to handle an FCM push) and the user opens the app later, the native SDK keeps the app start anchored at background process creation, inflating `app_start_cold`/`app_start_warm` by the whole idle gap. On API 35+ the SDK now uses the process start reason (`ApplicationStartInfo#getReason()`) to detect these background launches and drops the app start, similar to how the Cocoa SDK drops pre-warmed starts.
 
+### Changes
+
+- Expose `instrumentStateGraph` for manual LangGraph instrumentation ([#6520](https://github.com/getsentry/sentry-react-native/pull/6520))
+  - `instrumentLangGraph` was renamed to `instrumentStateGraph` in the JavaScript SDK and is now deprecated. It stays exported for backwards compatibility and will be removed in the next major version.
+
+### Internal
+
+- Migrate from `@sentry/babel-plugin-component-annotate` to `@sentry/bundler-plugins/babel-plugin` ([#6501](https://github.com/getsentry/sentry-react-native/pull/6501))
+
+### Dependencies
+
+- Bump Android SDK from v8.49.0 to v8.50.1 ([#6503](https://github.com/getsentry/sentry-react-native/pull/6503))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8501)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.49.0...8.50.1)
+- Bump CLI from v3.6.1 to v3.6.2 ([#6511](https://github.com/getsentry/sentry-react-native/pull/6511))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#362)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.1...3.6.2)
+- Bump JavaScript SDK from v10.67.0 to v10.68.0 ([#6516](https://github.com/getsentry/sentry-react-native/pull/6516))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10680)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.67.0...10.68.0)
+
+## 8.20.0
+
+### Fixes
+
+- Fix iOS screenshots no longer being captured since 8.19.0 (Feedback Widget screenshot, `attachScreenshot`, `Sentry.captureScreenshot()`) by reverting the iOS `SentrySDK.internal` migration from #6380 ([#6491](https://github.com/getsentry/sentry-react-native/pull/6491), [#6497](https://github.com/getsentry/sentry-react-native/issues/6497))
+- Strip empty `turbo_module.name` / `turbo_module.method` tags in `turboModuleContextIntegration` so events captured outside an active TurboModule call no longer carry an ingestion "Processing Error" ([#6506](https://github.com/getsentry/sentry-react-native/pull/6506))
 - Make `copySentryJsonConfiguration` and the `*_SentryUpload` Gradle tasks compatible with the Gradle Configuration Cache ([#6469](https://github.com/getsentry/sentry-react-native/pull/6469))
 
   These tasks previously read `project` state at execution time — `onlyIf` predicates resolving closures from `project.extra`, plus `project.rootDir`, `project.copy`, `project.logger`, and `Project.file` inside task actions — which fails the build with `Could not evaluate onlyIf predicate` when `org.gradle.configuration-cache=true` (Gradle 9 defaults to recommending it). Environment reads are now captured at configuration time, file copies use an injected `FileSystemOperations`, and task actions use the task's own `logger`. No behaviour change. Interim step ahead of the full SAGP migration (getsentry/sentry-android-gradle-plugin#796).
@@ -30,7 +57,7 @@
 ## 8.19.0
 
 > [!WARNING]
-> ⚠️ **Known Issue (iOS):** screenshot capture returns empty in this release, affecting the Feedback Widget screenshot, `attachScreenshot`, and `Sentry.captureScreenshot()`. Android is unaffected. Tracked in [#6497](https://github.com/getsentry/sentry-react-native/issues/6497).
+> ⚠️ **Known Issue (iOS):** screenshot capture returns empty in this release, affecting the Feedback Widget screenshot, `attachScreenshot`, and `Sentry.captureScreenshot()`. Android is unaffected. **[Please use 8.20.0](https://github.com/getsentry/sentry-react-native/releases/tag/8.20.0).**
 
 ### Features
 

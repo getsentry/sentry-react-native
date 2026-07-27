@@ -1,9 +1,4 @@
 #import "SentryScreenFramesWrapper.h"
-#if __has_include(<RNSentry/RNSentry-Swift.h>)
-#    import <RNSentry/RNSentry-Swift.h>
-#else
-#    import "RNSentry-Swift.h"
-#endif
 @import Sentry;
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
@@ -12,7 +7,7 @@
 
 + (BOOL)canTrackFrames
 {
-    return RNSentryInternal.currentScreenFrames != nil;
+    return PrivateSentrySDKOnly.currentScreenFrames != nil;
 }
 
 + (NSNumber *)totalFrames
@@ -20,7 +15,7 @@
     if (![self canTrackFrames]) {
         return nil;
     }
-    return [NSNumber numberWithLong:RNSentryInternal.currentScreenFrames.total];
+    return [NSNumber numberWithLong:PrivateSentrySDKOnly.currentScreenFrames.total];
 }
 
 + (NSNumber *)frozenFrames
@@ -28,7 +23,7 @@
     if (![self canTrackFrames]) {
         return nil;
     }
-    return [NSNumber numberWithLong:RNSentryInternal.currentScreenFrames.frozen];
+    return [NSNumber numberWithLong:PrivateSentrySDKOnly.currentScreenFrames.frozen];
 }
 
 + (NSNumber *)slowFrames
@@ -36,7 +31,7 @@
     if (![self canTrackFrames]) {
         return nil;
     }
-    return [NSNumber numberWithLong:RNSentryInternal.currentScreenFrames.slow];
+    return [NSNumber numberWithLong:PrivateSentrySDKOnly.currentScreenFrames.slow];
 }
 
 + (NSNumber *)framesDelayForStartTimestamp:(double)startTimestampSeconds

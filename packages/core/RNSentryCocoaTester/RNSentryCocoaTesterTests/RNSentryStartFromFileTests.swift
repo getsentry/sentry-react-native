@@ -1,4 +1,3 @@
-@_spi(Private) import Sentry
 import XCTest
 
 final class RNSentryStartFromFileTests: XCTestCase {
@@ -12,7 +11,7 @@ final class RNSentryStartFromFileTests: XCTestCase {
 
         XCTAssertTrue(wasConfigurationCalled)
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         XCTAssertNil(actualOptions.dsn)
         XCTAssertNil(actualOptions.parsedDsn)
     }
@@ -26,7 +25,7 @@ final class RNSentryStartFromFileTests: XCTestCase {
 
         XCTAssertTrue(wasConfigurationCalled)
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         XCTAssertNil(actualOptions.dsn)
         XCTAssertNil(actualOptions.parsedDsn)
     }
@@ -40,7 +39,7 @@ final class RNSentryStartFromFileTests: XCTestCase {
 
         XCTAssertTrue(wasConfigurationCalled)
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         XCTAssertNil(actualOptions.dsn)
         XCTAssertNotNil(actualOptions.parsedDsn)
         XCTAssertEqual(actualOptions.environment, "environment-from-invalid-file")
@@ -55,7 +54,7 @@ final class RNSentryStartFromFileTests: XCTestCase {
 
         XCTAssertTrue(wasConfigurationCalled)
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         XCTAssertNil(actualOptions.dsn)
         XCTAssertNotNil(actualOptions.parsedDsn)
         XCTAssertEqual(actualOptions.environment, "environment-from-valid-file")
@@ -77,7 +76,7 @@ final class RNSentryStartFromFileTests: XCTestCase {
             options.environment = "new-environment"
         }
 
-        let actualOptions = SentrySDK.internal.options
+        let actualOptions = PrivateSentrySDKOnly.options
         XCTAssertEqual(actualOptions.environment, "new-environment")
     }
 

@@ -54,10 +54,13 @@ export {
   instrumentAnthropicAiClient,
   instrumentGoogleGenAIClient,
   createLangChainCallbackHandler,
-  instrumentLangGraph,
+  instrumentStateGraph,
   instrumentStateGraphCompile,
   addConsoleInstrumentationFilter,
 } from '@sentry/core';
+
+/** @deprecated Use `instrumentStateGraph` instead. `instrumentLangGraph` will be removed in a future major version. */
+export { instrumentLangGraph } from '@sentry/core';
 
 export type {
   OpenAiClient,
