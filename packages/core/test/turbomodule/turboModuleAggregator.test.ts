@@ -1,8 +1,10 @@
 import {
   _resetTurboModuleAggregator,
+  addTurboModuleRecordObserver,
   drainTurboModuleAggregate,
   hasTurboModuleAggregateData,
   recordTurboModuleCall,
+  removeTurboModuleRecordObserver,
   setAggregateRecordingEnabled,
   setIgnoredTurboModules,
   setOnFirstTurboModuleRecord,
@@ -75,6 +77,36 @@ describe('turboModuleAggregator', () => {
     drainTurboModuleAggregate();
     recordTurboModuleCall({ name: 'User', method: 'work', kind: 'sync', durationMs: 1, errored: false });
     expect(cb).toHaveBeenCalledTimes(2);
+  });
+
+  it('notifies per-record observers with the same set of records that reach the aggregate', () => {
+    const observer = jest.fn();
+    addTurboModuleRecordObserver(observer);
+
+    recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 3, errored: false });
+    setIgnoredTurboModules(['B']);
+    recordTurboModuleCall({ name: 'B', method: 'x', kind: 'sync', durationMs: 3, errored: false });
+    recordTurboModuleCall({ name: 'A', method: 'y', kind: 'async', durationMs: 42, errored: true });
+
+    expect(observer).toHaveBeenCalledTimes(2);
+    expect(observer).toHaveBeenNthCalledWith(1, {
+      name: 'A',
+      method: 'x',
+      kind: 'sync',
+      durationMs: 3,
+      errored: false,
+    });
+    expect(observer).toHaveBeenNthCalledWith(2, {
+      name: 'A',
+      method: 'y',
+      kind: 'async',
+      durationMs: 42,
+      errored: true,
+    });
+
+    removeTurboModuleRecordObserver(observer);
+    recordTurboModuleCall({ name: 'A', method: 'x', kind: 'sync', durationMs: 1, errored: false });
+    expect(observer).toHaveBeenCalledTimes(2);
   });
 
   it('drops all calls while recording is disabled and clears any existing entries', () => {
