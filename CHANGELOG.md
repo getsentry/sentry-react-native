@@ -10,7 +10,7 @@
 
 ### Features
 
-- Export `instrumentStateGraph` for manual LangGraph instrumentation ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+- Export `instrumentStateGraph` for manual LangGraph instrumentation ([#6520](https://github.com/getsentry/sentry-react-native/pull/6520))
 
   `instrumentLangGraph` was renamed to `instrumentStateGraph` in the JavaScript SDK and is now deprecated. It remains exported for backwards compatibility and will be removed in the next major version.
 
