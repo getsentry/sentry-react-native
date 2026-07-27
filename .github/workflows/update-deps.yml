@@ -56,15 +56,6 @@ jobs:
           name: CLI
           ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
 
-  bundler-plugins:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: getsentry/github-workflows/updater@607fed74f812e69201531a5185b6c3c57caa4e89 # v3
-        with:
-          path: scripts/update-bundler-plugins.sh
-          name: Bundler Plugins
-          ssh-key: ${{ secrets.CI_DEPLOY_KEY }}
-
   sample-rn:
     runs-on: ubuntu-latest
     steps:
