@@ -8,6 +8,18 @@
 
 ## Unreleased
 
+### Features
+
+- Export `instrumentStateGraph` for manual LangGraph instrumentation ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+
+  `instrumentLangGraph` was renamed to `instrumentStateGraph` in the JavaScript SDK and is now deprecated. It remains exported for backwards compatibility and will be removed in the next major version.
+
+  ```js
+  import * as Sentry from '@sentry/react-native';
+
+  const graph = Sentry.instrumentStateGraph(new StateGraph(...));
+  ```
+
 ### Internal
 
 - Migrate from `@sentry/babel-plugin-component-annotate` to `@sentry/bundler-plugins/babel-plugin` ([#6501](https://github.com/getsentry/sentry-react-native/pull/6501))

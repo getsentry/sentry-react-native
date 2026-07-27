@@ -59,6 +59,7 @@ import { InstrumentedMethod } from '@sentry/core';
 import { instrumentGoogleGenAIClient } from '@sentry/core';
 import { instrumentLangGraph } from '@sentry/core';
 import { instrumentOpenAiClient } from '@sentry/core';
+import { instrumentStateGraph } from '@sentry/core';
 import { instrumentStateGraphCompile } from '@sentry/core';
 import { Integration } from '@sentry/core';
 import { LangChainIntegration } from '@sentry/core';
@@ -464,6 +465,8 @@ export { instrumentGoogleGenAIClient }
 export { instrumentLangGraph }
 
 export { instrumentOpenAiClient }
+
+export { instrumentStateGraph }
 
 export { instrumentStateGraphCompile }
 
