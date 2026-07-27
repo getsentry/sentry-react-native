@@ -10,6 +10,10 @@
 
 ### Fixes
 
+- Drop inflated Android cold/warm app starts for background-spawned processes (e.g. FCM push) ([#6382](https://github.com/getsentry/sentry-react-native/issues/6382))
+
+  When Android spawns the app process in the background (for example to handle an FCM push) and the user opens the app later, the native SDK keeps the app start anchored at background process creation, inflating `app_start_cold`/`app_start_warm` by the whole idle gap. On API 35+ the SDK now uses the process start reason (`ApplicationStartInfo#getReason()`) to detect these background launches and drops the app start, similar to how the Cocoa SDK drops pre-warmed starts.
+
 - Make `copySentryJsonConfiguration` and the `*_SentryUpload` Gradle tasks compatible with the Gradle Configuration Cache ([#6469](https://github.com/getsentry/sentry-react-native/pull/6469))
 
   These tasks previously read `project` state at execution time — `onlyIf` predicates resolving closures from `project.extra`, plus `project.rootDir`, `project.copy`, `project.logger`, and `Project.file` inside task actions — which fails the build with `Could not evaluate onlyIf predicate` when `org.gradle.configuration-cache=true` (Gradle 9 defaults to recommending it). Environment reads are now captured at configuration time, file copies use an injected `FileSystemOperations`, and task actions use the task's own `logger`. No behaviour change. Interim step ahead of the full SAGP migration (getsentry/sentry-android-gradle-plugin#796).

@@ -76,11 +76,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -107,6 +110,36 @@ public class RNSentryModuleImpl {
   private boolean androidXAvailable;
 
   @VisibleForTesting static long lastStartTimestampMs = -1;
+
+  // App start reasons (from ApplicationStartInfo#getReason(), API 35+) that indicate the process
+  // was spawned by the system in the background rather than by a user-initiated launch. When the
+  // app is later brought to the foreground, the native SDK keeps the app start anchored at
+  // background process creation, which inflates app_start_cold/warm (see
+  // https://github.com/getsentry/sentry-react-native/issues/6382). We drop these app starts,
+  // similar to how the Cocoa SDK drops pre-warmed starts.
+  private static final Set<String> BACKGROUND_APP_START_REASONS =
+      new HashSet<>(
+          Arrays.asList(
+              "alarm",
+              "backup",
+              "boot_complete",
+              "broadcast",
+              "content_provider",
+              "job",
+              "push",
+              "service"));
+
+  /**
+   * @param appStartReason the process start reason from {@link
+   *     io.sentry.android.core.performance.AppStartMetrics#getAppStartReason()} (API 35+, {@code
+   *     null} on lower API levels or for an unmapped reason)
+   * @return {@code true} if the process was spawned by the system in the background rather than by
+   *     a user-initiated launch, in which case the app start data should be dropped
+   */
+  @VisibleForTesting
+  static boolean isBackgroundAppStartReason(final @Nullable String appStartReason) {
+    return appStartReason != null && BACKGROUND_APP_START_REASONS.contains(appStartReason);
+  }
 
   // 700ms to constitute frozen frames.
   private static final int FROZEN_FRAME_THRESHOLD = 700;
@@ -363,6 +396,23 @@ public class RNSentryModuleImpl {
       ILogger logger) {
     if (!metrics.isAppLaunchedInForeground()) {
       logger.log(SentryLevel.WARNING, "Invalid app start data: app not launched in foreground.");
+      promise.resolve(null);
+      return;
+    }
+
+    // On API 35+ the process start reason tells us whether the process was spawned in the
+    // background (e.g. by an FCM push, a job or a service) rather than by the user opening the app.
+    // In that case the native app start remains anchored at background process creation, so the
+    // reported cold/warm start is the full idle gap until the user finally opens the app. We drop
+    // such app starts to avoid inflating app_start_cold/warm. Reason is null on API < 35, where we
+    // fall back to the existing foreground check above.
+    final @Nullable String appStartReason = metrics.getAppStartReason();
+    if (isBackgroundAppStartReason(appStartReason)) {
+      logger.log(
+          SentryLevel.WARNING,
+          "Invalid app start data: app was launched in the background (reason: "
+              + appStartReason
+              + ").");
       promise.resolve(null);
       return;
     }
