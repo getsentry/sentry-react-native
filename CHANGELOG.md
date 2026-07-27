@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Drop inflated Android cold/warm app starts for background-spawned processes (e.g. FCM push) ([#6382](https://github.com/getsentry/sentry-react-native/issues/6382))
+- Drop inflated Android cold/warm app starts for background-spawned processes (e.g. FCM push) ([#6526](https://github.com/getsentry/sentry-react-native/pull/6526))
 
   When Android spawns the app process in the background (for example to handle an FCM push) and the user opens the app later, the native SDK keeps the app start anchored at background process creation, inflating `app_start_cold`/`app_start_warm` by the whole idle gap. On API 35+ the SDK now uses the process start reason (`ApplicationStartInfo#getReason()`) to detect these background launches and drops the app start, similar to how the Cocoa SDK drops pre-warmed starts.
 
