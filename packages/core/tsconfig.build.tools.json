@@ -8,7 +8,12 @@
     // incompatible with `module: CommonJS` below. Pin classic node resolution.
     "moduleResolution": "node",
     "paths": {
-      "metro": ["./node_modules/metro/src/index"]
+      "metro": ["./node_modules/metro/src/index"],
+      // `@sentry/bundler-plugins` exposes the component-annotate plugin via the `./babel-plugin`
+      // subpath export, which classic `node` resolution can't follow. Point directly at its types.
+      "@sentry/bundler-plugins/babel-plugin": [
+        "./node_modules/@sentry/bundler-plugins/build/types/babel-plugin/index.d.ts"
+      ]
     },
     "outDir": "dist",
     "rootDir": "src",
