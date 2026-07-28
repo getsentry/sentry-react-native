@@ -74,10 +74,19 @@ export interface TurboModuleContextOptions {
   /** Cap on per-`(module, method)` rows attributed to a single span. Default: `16`. */
   maxTopModulesPerSpan?: number;
 
-  /** On Old Architecture, auto-wrap every registered `NativeModules.*`. Default: `true`. */
+  /**
+   * On Old Architecture, auto-wrap registered `NativeModules.*`. Default: `true`.
+   *
+   * Lazily-exposed modules stay lazy — they are wrapped on first access rather than
+   * initialised during `Sentry.init`.
+   */
   enableLegacyNativeModules?: boolean;
 
-  /** Modules to skip in the legacy auto-wrap (`RNSentry` is always skipped). */
+  /**
+   * Additional modules to skip in the legacy auto-wrap. `RNSentry` and hot React
+   * Native infrastructure (`Timing`, `UIManager`, and the animated modules) are
+   * always skipped; pass them via `modules` to instrument them deliberately.
+   */
   legacyModulesSkip?: ReadonlyArray<string>;
 
   /** Per-module method skips for the legacy auto-wrap. */

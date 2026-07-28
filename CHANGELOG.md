@@ -23,7 +23,7 @@
 
 - Extend TurboModule instrumentation to the Old Architecture `NativeModules` bridge ([#6504](https://github.com/getsentry/sentry-react-native/pull/6504))
 
-  Apps still on the Old Architecture now flow legacy `NativeModules.*` calls through the same aggregator, span-attribution, and slow-call breadcrumb path as TurboModules on the New Architecture. Records carry `arch: 'new' | 'legacy'` (also surfaced on the flushed aggregate span and each attributed span) so analyses can split the signal by architecture. Auto-wrap is on by default; opt out with `enableLegacyNativeModules: false`, or scope it via `legacyModulesSkip` / `legacyModulesSkipMethods` on `turboModuleContextIntegration`.
+  Apps still on the Old Architecture now flow legacy `NativeModules.*` calls through the same aggregator, span-attribution, and slow-call breadcrumb path as TurboModules on the New Architecture. Records carry `arch: 'new' | 'legacy'` (also surfaced on the flushed aggregate span and each attributed span) so analyses can split the signal by architecture. Lazily-exposed modules stay lazy — they're wrapped on first access instead of being initialised during `Sentry.init`. `RNSentry` and hot RN infrastructure (`Timing`, `UIManager`, animated modules) are skipped by default. Auto-wrap is on by default; opt out with `enableLegacyNativeModules: false`, or scope it via `legacyModulesSkip` / `legacyModulesSkipMethods` on `turboModuleContextIntegration`.
 
 ## 8.21.0
 

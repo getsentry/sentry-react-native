@@ -1,3 +1,4 @@
+import { logger } from '@sentry/core';
 import { NativeModules } from 'react-native';
 
 import { wrapAllNativeModules } from '../../src/js/turbomodule/wrapNativeModules';
@@ -93,4 +94,138 @@ describe('wrapAllNativeModules', () => {
     expect(wrapped).toContain('RealMod');
     expect(spy).toHaveBeenCalledWith('RealMod', expect.any(Object), expect.objectContaining({ arch: 'legacy' }));
   });
+
+  describe('lazy modules', () => {
+    it('does not initialise a lazily-exposed module during setup', () => {
+      jest.spyOn(environment, 'isTurboModuleEnabled').mockReturnValue(false);
+      const spy = jest.spyOn(wrapTurboModuleMod, 'wrapTurboModule');
+      const load = jest.fn(() => ({ doWork: jest.fn() }));
+      defineLazy('LazyMod', load);
+
+      const wrapped = wrapAllNativeModules();
+
+      // Arming must not read through RN's lazy getter — doing so would eagerly
+      // initialise every native module at Sentry.init.
+      expect(load).not.toHaveBeenCalled();
+      expect(spy).not.toHaveBeenCalledWith('LazyMod', expect.anything(), expect.anything());
+      expect(wrapped).toContain('LazyMod');
+    });
+
+    it('wraps a lazily-exposed module on first access', () => {
+      jest.spyOn(environment, 'isTurboModuleEnabled').mockReturnValue(false);
+      const spy = jest.spyOn(wrapTurboModuleMod, 'wrapTurboModule');
+      const instance = { doWork: jest.fn() };
+      const load = jest.fn(() => instance);
+      defineLazy('LazyMod', load);
+
+      wrapAllNativeModules();
+      const resolved = (NativeModules as Record<string, unknown>).LazyMod;
+
+      expect(load).toHaveBeenCalledTimes(1);
+      expect(resolved).toBe(instance);
+      expect(spy).toHaveBeenCalledWith('LazyMod', instance, expect.objectContaining({ arch: 'legacy' }));
+    });
+
+    it('caches the resolved module so repeated reads do not re-enter the getter', () => {
+      jest.spyOn(environment, 'isTurboModuleEnabled').mockReturnValue(false);
+      const load = jest.fn(() => ({ doWork: jest.fn() }));
+      defineLazy('LazyMod', load);
+
+      wrapAllNativeModules();
+      const first = (NativeModules as Record<string, unknown>).LazyMod;
+      const second = (NativeModules as Record<string, unknown>).LazyMod;
+
+      expect(load).toHaveBeenCalledTimes(1);
+      expect(second).toBe(first);
+      expect(Object.getOwnPropertyDescriptor(NativeModules, 'LazyMod')?.get).toBeUndefined();
+    });
+
+    it('keeps assignment working through the armed property', () => {
+      jest.spyOn(environment, 'isTurboModuleEnabled').mockReturnValue(false);
+      const load = jest.fn(() => ({ doWork: jest.fn() }));
+      defineLazy('LazyMod', load);
+
+      wrapAllNativeModules();
+      const replacement = { other: jest.fn() };
+      (NativeModules as Record<string, unknown>).LazyMod = replacement;
+
+      expect((NativeModules as Record<string, unknown>).LazyMod).toBe(replacement);
+      expect(load).not.toHaveBeenCalled();
+    });
+
+    it('propagates an error thrown by the underlying lazy getter', () => {
+      jest.spyOn(environment, 'isTurboModuleEnabled').mockReturnValue(false);
+      const load = jest.fn(() => {
+        throw new Error('native module failed to load');
+      });
+      defineLazy('BrokenMod', load);
+
+      wrapAllNativeModules();
+
+      expect(() => (NativeModules as Record<string, unknown>).BrokenMod).toThrow('native module failed to load');
+    });
+  });
+
+  it('skips hot React Native infrastructure modules by default', () => {
+    jest.spyOn(environment, 'isTurboModuleEnabled').mockReturnValue(false);
+    const spy = jest.spyOn(wrapTurboModuleMod, 'wrapTurboModule');
+
+    for (const name of ['Timing', 'UIManager', 'NativeAnimatedModule', 'NativeAnimatedTurboModule']) {
+      (NativeModules as Record<string, unknown>)[name] = { createTimer: jest.fn(), doWork: jest.fn() };
+    }
+
+    const wrapped = wrapAllNativeModules();
+
+    for (const name of ['Timing', 'UIManager', 'NativeAnimatedModule', 'NativeAnimatedTurboModule']) {
+      expect(wrapped).not.toContain(name);
+      expect(spy).not.toHaveBeenCalledWith(name, expect.anything(), expect.anything());
+    }
+  });
+
+  it('warns instead of silently no-oping when NativeModules cannot be enumerated', () => {
+    jest.spyOn(environment, 'isTurboModuleEnabled').mockReturnValue(false);
+    // Simulates the JSI host-object proxy, which exposes no enumerable keys.
+    // Scoped to NativeModules so jest's own use of Object.keys keeps working.
+    const realKeys = Object.keys;
+    jest.spyOn(Object, 'keys').mockImplementation((o: object) => (o === NativeModules ? [] : realKeys(o)));
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+
+    const wrapped = wrapAllNativeModules();
+
+    expect(wrapped).toHaveLength(0);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('found no modules to instrument'));
+  });
 });
+
+function defineLazy(name: string, get: () => unknown): void {
+  let value: unknown;
+  let resolved = false;
+  Object.defineProperty(NativeModules, name, {
+    configurable: true,
+    enumerable: true,
+    get: () => {
+      if (!resolved) {
+        // Mirror RN's `defineLazyObjectProperty`: self-replace with a plain value.
+        value = get();
+        resolved = true;
+        Object.defineProperty(NativeModules, name, {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          value,
+        });
+      }
+      return value;
+    },
+    set: (next: unknown) => {
+      value = next;
+      resolved = true;
+      Object.defineProperty(NativeModules, name, {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: next,
+      });
+    },
+  });
+}
