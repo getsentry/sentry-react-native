@@ -1,4 +1,10 @@
-import { getBodySize, parseContentLengthHeader } from '../../src/js/replay/networkUtils';
+import {
+  decodeUtf8,
+  getBodySize,
+  isTextLikeContentType,
+  parseContentLengthHeader,
+  readBlobAsText,
+} from '../../src/js/replay/networkUtils';
 
 describe('networkUtils', () => {
   describe('parseContentLengthHeader()', () => {
@@ -56,4 +62,139 @@ describe('networkUtils', () => {
       expect(getBodySize(arrayBuffer)).toBe(8);
     });
   });
+
+  describe('isTextLikeContentType()', () => {
+    it.each([
+      ['application/json', true],
+      ['application/json; charset=utf-8', true],
+      ['application/hal+json', true],
+      ['text/plain', true],
+      ['text/html; charset=utf-8', true],
+      ['application/xml', true],
+      ['image/svg+xml', true],
+      ['application/x-www-form-urlencoded', true],
+      ['APPLICATION/JSON', true],
+      ['image/png', false],
+      ['application/octet-stream', false],
+      ['video/mp4', false],
+      ['', false],
+      [null, false],
+      [undefined, false],
+    ])('classifies %s as %s', (contentType, expected) => {
+      expect(isTextLikeContentType(contentType)).toBe(expected);
+    });
+  });
+
+  describe('decodeUtf8()', () => {
+    const encode = (text: string): Uint8Array => new TextEncoder().encode(text);
+
+    it('decodes ASCII and multi-byte characters via TextDecoder when available', () => {
+      expect(decodeUtf8(encode('{"ok":true}'))).toBe('{"ok":true}');
+      expect(decodeUtf8(encode('Привет 你好 🎉'))).toBe('Привет 你好 🎉');
+    });
+
+    describe('without TextDecoder (Hermes)', () => {
+      let originalTextDecoder: unknown;
+
+      beforeEach(() => {
+        originalTextDecoder = (globalThis as { TextDecoder?: unknown }).TextDecoder;
+        delete (globalThis as { TextDecoder?: unknown }).TextDecoder;
+      });
+
+      afterEach(() => {
+        (globalThis as { TextDecoder?: unknown }).TextDecoder = originalTextDecoder;
+      });
+
+      it('decodes ASCII and multi-byte characters with the manual decoder', () => {
+        expect(decodeUtf8(encode('{"ok":true}'))).toBe('{"ok":true}');
+        expect(decodeUtf8(encode('Привет 你好 🎉'))).toBe('Привет 你好 🎉');
+      });
+
+      it('replaces invalid sequences with U+FFFD instead of throwing', () => {
+        expect(decodeUtf8(new Uint8Array([0x61, 0xff, 0x62]))).toBe('a�b');
+        // multi-byte sequence truncated at the end of the buffer
+        expect(decodeUtf8(new Uint8Array([0x61, 0xd0]))).toBe('a�');
+        // truncated sequence with a valid continuation prefix yields one U+FFFD
+        expect(decodeUtf8(new Uint8Array([0x61, 0xe2, 0x82]))).toBe('a�');
+      });
+
+      it('does not drop bytes that follow an interrupted multi-byte sequence', () => {
+        // lead byte followed by a non-continuation byte: the tail is kept
+        expect(decodeUtf8(new Uint8Array([0xe2, 0x41, 0x42]))).toBe('�AB');
+        // valid continuation prefix, then interrupted: one U+FFFD, tail kept
+        expect(decodeUtf8(new Uint8Array([0xe2, 0x82, 0x41]))).toBe('�A');
+      });
+
+      it('consumes a complete sequence that encodes an invalid code point as one U+FFFD', () => {
+        // UTF-16 surrogate U+D800 encoded as UTF-8 (CESU-8 style)
+        expect(decodeUtf8(new Uint8Array([0x61, 0xed, 0xa0, 0x80, 0x62]))).toBe('a�b');
+        // code point above U+10FFFF (0x110000)
+        expect(decodeUtf8(new Uint8Array([0x61, 0xf4, 0x90, 0x80, 0x80, 0x62]))).toBe('a�b');
+      });
+    });
+  });
+
+  describe('readBlobAsText()', () => {
+    afterEach(() => {
+      delete (globalThis as { FileReader?: unknown }).FileReader;
+      jest.useRealTimers();
+    });
+
+    it('resolves with the blob content', async () => {
+      installMockFileReader();
+      await expect(readBlobAsText(new Blob(['{"ok":true}']), 500)).resolves.toBe('{"ok":true}');
+    });
+
+    it('rejects when the reader errors', async () => {
+      installMockFileReader({ failWith: new Error('read failed') });
+      await expect(readBlobAsText(new Blob(['x']), 500)).rejects.toThrow('read failed');
+    });
+
+    it('rejects after the timeout when the reader never completes', async () => {
+      jest.useFakeTimers();
+      installMockFileReader({ neverComplete: true });
+      const promise = readBlobAsText(new Blob(['x']), 500);
+      const assertion = expect(promise).rejects.toThrow('Timed out');
+      jest.advanceTimersByTime(500);
+      await assertion;
+    });
+  });
 });
+
+function installMockFileReader(behavior: { failWith?: Error; neverComplete?: boolean } = {}): void {
+  class MockFileReader {
+    public result: string | null = null;
+    public error: Error | null = null;
+    public onload: (() => void) | null = null;
+    public onerror: (() => void) | null = null;
+    public onabort: (() => void) | null = null;
+
+    public readAsText(blob: Blob): void {
+      if (behavior.neverComplete) {
+        return;
+      }
+      if (behavior.failWith) {
+        this.error = behavior.failWith;
+        queueMicrotask(() => this.onerror?.());
+        return;
+      }
+      blob.text().then(
+        text => {
+          this.result = text;
+          this.onload?.();
+        },
+        (error: Error) => {
+          this.error = error;
+          this.onerror?.();
+        },
+      );
+    }
+
+    public abort(): void {
+      // match the browser behaviour of firing onabort asynchronously-ish;
+      // readBlobAsText has already rejected by the time this runs
+      this.onabort?.();
+    }
+  }
+  (globalThis as { FileReader?: unknown }).FileReader = MockFileReader;
+}

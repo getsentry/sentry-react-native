@@ -1,9 +1,14 @@
 import type { Breadcrumb } from '@sentry/core';
 
+import type { ResolvedNetworkOptions } from '../../src/js/replay/networkUtils';
+
 import { NETWORK_BODY_MAX_SIZE } from '../../src/js/replay/networkUtils';
 import {
   enrichXhrBreadcrumbsForMobileReplay,
   makeEnrichXhrBreadcrumbsForMobileReplay,
+  REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY,
+  resolveXhrResponseBody,
+  shouldCaptureResponseBodyAsync,
 } from '../../src/js/replay/xhrUtils';
 
 describe('xhrUtils', () => {
@@ -326,8 +331,275 @@ describe('xhrUtils', () => {
       expect(responseHeaders['x-request-id']).toBe('req-456');
       expect(responseHeaders['x-rate-limit']).toBeUndefined();
     });
+
+    it('uses an asynchronously resolved response body from the hint instead of reading the xhr', () => {
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay(getCaptureAllOptions());
+
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      const hint = {
+        ...getBlobXhrHint(),
+        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: {
+          body: { body: '{"resolved":true}' },
+          requestHeaders: { 'content-type': 'application/json' },
+          rawResponseHeaders: 'content-type: application/json',
+          responseBodySize: 17,
+        },
+      };
+      enrich(breadcrumb, hint);
+
+      expect((breadcrumb.data?.response as { body?: string }).body).toBe('{"resolved":true}');
+    });
+
+    it('reads headers and sizes from the hint snapshot, not the live xhr, for re-added breadcrumbs', () => {
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay(getCaptureAllOptions());
+
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      // the live xhr in getBlobXhrHint reports content-type: application/json
+      const hint = {
+        ...getBlobXhrHint(),
+        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: {
+          body: { body: '{"resolved":true}' },
+          requestHeaders: { 'content-type': 'text/xml' },
+          rawResponseHeaders: 'content-type: text/html',
+          responseBodySize: 42,
+        },
+      };
+      enrich(breadcrumb, hint);
+
+      expect(breadcrumb.data?.response_body_size).toBe(42);
+      const requestHeaders = (breadcrumb.data?.request as { headers?: Record<string, string> }).headers;
+      const responseHeaders = (breadcrumb.data?.response as { headers?: Record<string, string> }).headers;
+      expect(requestHeaders).toEqual({ 'content-type': 'text/xml' });
+      expect(responseHeaders).toEqual({ 'content-type': 'text/html' });
+    });
+  });
+
+  describe('shouldCaptureResponseBodyAsync', () => {
+    it('returns true for an allow-listed blob response with a text-like content type', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      expect(shouldCaptureResponseBodyAsync(breadcrumb, getBlobXhrHint(), getCaptureAllOptions())).toBe(true);
+    });
+
+    it('returns true for arraybuffer responses', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      expect(
+        shouldCaptureResponseBodyAsync(breadcrumb, getArrayBufferXhrHint('{"ok":true}'), getCaptureAllOptions()),
+      ).toBe(true);
+    });
+
+    it('returns false for non-xhr breadcrumbs and missing hints', () => {
+      expect(shouldCaptureResponseBodyAsync({ category: 'http' }, getBlobXhrHint(), getCaptureAllOptions())).toBe(
+        false,
+      );
+      expect(shouldCaptureResponseBodyAsync({ category: 'xhr' }, undefined, getCaptureAllOptions())).toBe(false);
+    });
+
+    it('returns false for text-like responseTypes that are readable synchronously', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      expect(shouldCaptureResponseBodyAsync(breadcrumb, getValidXhrHint(), getCaptureAllOptions())).toBe(false);
+    });
+
+    it('returns false for binary content types (kept as unparseable)', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      const hint = getBlobXhrHint({ contentType: 'image/png' });
+      expect(shouldCaptureResponseBodyAsync(breadcrumb, hint, getCaptureAllOptions())).toBe(false);
+    });
+
+    it('returns false when body capture is disabled or the URL is not allow-listed', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      expect(
+        shouldCaptureResponseBodyAsync(breadcrumb, getBlobXhrHint(), {
+          ...getCaptureAllOptions(),
+          captureBodies: false,
+        }),
+      ).toBe(false);
+      expect(
+        shouldCaptureResponseBodyAsync(breadcrumb, getBlobXhrHint(), {
+          ...getCaptureAllOptions(),
+          allowUrls: ['api.other.com'],
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false when the hint already carries a resolved body (re-added breadcrumb)', () => {
+      const breadcrumb: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      const hint = {
+        ...getBlobXhrHint(),
+        [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: { body: '{"ok":true}' } },
+      };
+      expect(shouldCaptureResponseBodyAsync(breadcrumb, hint, getCaptureAllOptions())).toBe(false);
+    });
+  });
+
+  describe('resolveXhrResponseBody', () => {
+    afterEach(() => {
+      delete (globalThis as { FileReader?: unknown }).FileReader;
+    });
+
+    it('reads a JSON blob response into a text body with a metadata snapshot', async () => {
+      installMockFileReader();
+      const { xhr } = getBlobXhrHint();
+      await expect(resolveXhrResponseBody(xhr as unknown as XMLHttpRequest)).resolves.toEqual({
+        body: { body: '{"ok":true}' },
+        requestHeaders: { 'content-type': 'application/json' },
+        rawResponseHeaders: 'content-type: application/json',
+        responseBodySize: 11,
+      });
+    });
+
+    it('truncates blob bodies over the size cap and slices before reading', async () => {
+      installMockFileReader();
+      const big = 'a'.repeat(NETWORK_BODY_MAX_SIZE + 100);
+      const { xhr } = getBlobXhrHint({ body: big });
+      const resolved = await resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+      expect(resolved.body.body?.length).toBe(NETWORK_BODY_MAX_SIZE);
+      expect(resolved.body._meta?.warnings).toEqual(['MAX_BODY_SIZE_EXCEEDED']);
+    });
+
+    it('decodes arraybuffer responses including multi-byte characters', async () => {
+      const body = '{"name":"Пёс 🐕"}';
+      const { xhr } = getArrayBufferXhrHint(body);
+      await expect(resolveXhrResponseBody(xhr as unknown as XMLHttpRequest)).resolves.toEqual({
+        body: { body },
+        requestHeaders: { 'content-type': 'application/json' },
+        rawResponseHeaders: 'content-type: application/json',
+        responseBodySize: new TextEncoder().encode(body).byteLength,
+      });
+    });
+
+    it('resolves the body to an unparseable marker when the read fails', async () => {
+      installMockFileReader({ failWith: new Error('boom') });
+      const { xhr } = getBlobXhrHint();
+      const resolved = await resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+      expect(resolved.body).toEqual({ _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } });
+    });
+
+    it('resolves the body to an unparseable marker on timeout', async () => {
+      jest.useFakeTimers();
+      try {
+        installMockFileReader({ neverComplete: true });
+        const { xhr } = getBlobXhrHint();
+        const promise = resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+        jest.runAllTimers();
+        const resolved = await promise;
+        expect(resolved.body).toEqual({ _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('snapshots metadata synchronously, unaffected by the xhr being reused mid-read', async () => {
+      installMockFileReader();
+      const { xhr } = getBlobXhrHint();
+      const promise = resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+
+      // simulate the app reusing the xhr before the async body read settles
+      xhr.getAllResponseHeaders = () => 'content-type: text/html';
+      (xhr as { __sentry_xhr_v3__: unknown }).__sentry_xhr_v3__ = {
+        method: 'POST',
+        url: 'https://api.example.com/other',
+        request_headers: { 'content-type': 'text/plain' },
+      };
+      (xhr as { response: unknown }).response = null;
+
+      await expect(promise).resolves.toEqual({
+        body: { body: '{"ok":true}' },
+        requestHeaders: { 'content-type': 'application/json' },
+        rawResponseHeaders: 'content-type: application/json',
+        responseBodySize: 11,
+      });
+    });
   });
 });
+
+function getCaptureAllOptions(): ResolvedNetworkOptions {
+  return {
+    allowUrls: ['api.example.com'],
+    denyUrls: [],
+    captureBodies: true,
+    requestHeaders: [],
+    responseHeaders: [],
+  };
+}
+
+function getBlobXhrHint(options: { body?: string; contentType?: string } = {}) {
+  const { body = '{"ok":true}', contentType = 'application/json' } = options;
+  const blob = new Blob([body]);
+  return {
+    startTimestamp: 1,
+    endTimestamp: 2,
+    input: undefined,
+    xhr: {
+      __sentry_xhr_v3__: {
+        method: 'GET',
+        url: 'https://api.example.com/users',
+        request_headers: { 'content-type': 'application/json' },
+      },
+      getResponseHeader: (key: string) => (key === 'content-type' ? contentType : null),
+      getAllResponseHeaders: () => `content-type: ${contentType}`,
+      response: blob as unknown as { ok: boolean },
+      responseText: '',
+      responseType: 'blob' as const,
+    },
+  };
+}
+
+function getArrayBufferXhrHint(body: string) {
+  const buffer = new TextEncoder().encode(body).buffer;
+  return {
+    startTimestamp: 1,
+    endTimestamp: 2,
+    input: undefined,
+    xhr: {
+      __sentry_xhr_v3__: {
+        method: 'GET',
+        url: 'https://api.example.com/users',
+        request_headers: { 'content-type': 'application/json' },
+      },
+      getResponseHeader: (key: string) => (key === 'content-type' ? 'application/json' : null),
+      getAllResponseHeaders: () => 'content-type: application/json',
+      response: buffer as unknown as { ok: boolean },
+      responseText: '',
+      responseType: 'arraybuffer' as const,
+    },
+  };
+}
+
+function installMockFileReader(behavior: { failWith?: Error; neverComplete?: boolean } = {}): void {
+  class MockFileReader {
+    public result: string | null = null;
+    public error: Error | null = null;
+    public onload: (() => void) | null = null;
+    public onerror: (() => void) | null = null;
+    public onabort: (() => void) | null = null;
+
+    public readAsText(blob: Blob): void {
+      if (behavior.neverComplete) {
+        return;
+      }
+      if (behavior.failWith) {
+        this.error = behavior.failWith;
+        queueMicrotask(() => this.onerror?.());
+        return;
+      }
+      blob.text().then(
+        text => {
+          this.result = text;
+          this.onload?.();
+        },
+        (error: Error) => {
+          this.error = error;
+          this.onerror?.();
+        },
+      );
+    }
+
+    public abort(): void {
+      this.onabort?.();
+    }
+  }
+  (globalThis as { FileReader?: unknown }).FileReader = MockFileReader;
+}
 
 function getValidXhrHint() {
   const responseHeadersRaw = 'content-type: application/json\r\ncontent-length: 13';
