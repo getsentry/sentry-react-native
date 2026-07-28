@@ -1,6 +1,7 @@
 import {
   decodeUtf8,
   getBodySize,
+  isBlobDecodeError,
   isTextLikeContentType,
   parseContentLengthHeader,
   readBlobAsText,
@@ -74,6 +75,9 @@ describe('networkUtils', () => {
       ['image/svg+xml', true],
       ['application/x-www-form-urlencoded', true],
       ['APPLICATION/JSON', true],
+      ['application/javascript', true],
+      ['text/javascript; charset=utf-8', true],
+      ['application/ecmascript', true],
       ['image/png', false],
       ['application/octet-stream', false],
       ['video/mp4', false],
@@ -158,10 +162,26 @@ describe('networkUtils', () => {
       jest.advanceTimersByTime(500);
       await assertion;
     });
+
+    it('rejects with a decode error when the reader yields a non-string result', async () => {
+      // iOS resolves with null when the bytes are not valid in the requested
+      // encoding, e.g. a slice that cut a multi-byte UTF-8 sequence in half.
+      installMockFileReader({ resolveWithNull: true });
+
+      await expect(readBlobAsText(new Blob(['x']), 500)).rejects.toSatisfy(isBlobDecodeError);
+    });
+
+    it('does not classify other failures as decode errors', async () => {
+      installMockFileReader({ failWith: new Error('read failed') });
+
+      await expect(readBlobAsText(new Blob(['x']), 500)).rejects.not.toSatisfy(isBlobDecodeError);
+    });
   });
 });
 
-function installMockFileReader(behavior: { failWith?: Error; neverComplete?: boolean } = {}): void {
+function installMockFileReader(
+  behavior: { failWith?: Error; neverComplete?: boolean; resolveWithNull?: boolean } = {},
+): void {
   class MockFileReader {
     public result: string | null = null;
     public error: Error | null = null;
@@ -176,6 +196,11 @@ function installMockFileReader(behavior: { failWith?: Error; neverComplete?: boo
       if (behavior.failWith) {
         this.error = behavior.failWith;
         queueMicrotask(() => this.onerror?.());
+        return;
+      }
+      if (behavior.resolveWithNull) {
+        this.result = null;
+        queueMicrotask(() => this.onload?.());
         return;
       }
       blob.text().then(

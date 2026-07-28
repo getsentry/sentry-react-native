@@ -3,7 +3,7 @@ import type { Breadcrumb } from '@sentry/core';
 import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
 
-import { enableSyncToNative } from '../src/js/scopeSync';
+import { deferBreadcrumbNativeSync, enableSyncToNative, syncBreadcrumbToNative } from '../src/js/scopeSync';
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
 
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
@@ -106,6 +106,56 @@ describe('ScopeSync', () => {
             data: { value: 'foo' },
           }),
         );
+      });
+    });
+
+    describe('deferBreadcrumbNativeSync', () => {
+      it('adds the breadcrumb to the scope but skips the sync to native', () => {
+        const breadcrumb: Breadcrumb = { message: 'deferred' };
+
+        deferBreadcrumbNativeSync(breadcrumb);
+        scope.addBreadcrumb(breadcrumb);
+
+        expect(scope.getLastBreadcrumb()).toEqual(expect.objectContaining({ message: 'deferred' }));
+        expect(NATIVE.addBreadcrumb).not.toHaveBeenCalled();
+      });
+
+      it('consumes the mark, so re-adding the same breadcrumb syncs normally', () => {
+        const breadcrumb: Breadcrumb = { message: 'deferred' };
+
+        deferBreadcrumbNativeSync(breadcrumb);
+        scope.addBreadcrumb(breadcrumb);
+        scope.addBreadcrumb(breadcrumb);
+
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not affect other breadcrumbs', () => {
+        deferBreadcrumbNativeSync({ message: 'deferred' });
+
+        scope.addBreadcrumb({ message: 'other' });
+
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledTimes(1);
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledWith(expect.objectContaining({ message: 'other' }));
+      });
+    });
+
+    describe('syncBreadcrumbToNative', () => {
+      it('forwards a normalized breadcrumb to native without touching the scope', () => {
+        syncBreadcrumbToNative({ message: 'test', data: { foo: NaN } });
+
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledExactlyOnceWith({
+          message: 'test',
+          level: 'info',
+          data: { foo: '[NaN]' },
+        });
+        expect(scope.getLastBreadcrumb()).toBeUndefined();
+      });
+
+      it('keeps an explicit level', () => {
+        syncBreadcrumbToNative({ message: 'test', level: 'error' });
+
+        expect(NATIVE.addBreadcrumb).toHaveBeenCalledWith(expect.objectContaining({ level: 'error' }));
       });
     });
   });

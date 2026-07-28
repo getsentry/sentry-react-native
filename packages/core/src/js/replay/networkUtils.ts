@@ -179,8 +179,8 @@ export function getBodyString(body: unknown): NetworkBody | undefined {
 
 /**
  * Whether a Content-Type describes a payload that is safe to decode into text
- * (JSON, XML, form data, `text/*`). Genuinely binary payloads (images, media,
- * octet-stream) are excluded so they stay marked as unparseable.
+ * (JSON, XML, form data, JavaScript, `text/*`). Genuinely binary payloads
+ * (images, media, octet-stream) are excluded so they stay marked as unparseable.
  */
 export function isTextLikeContentType(contentType: string | null | undefined): boolean {
   if (!contentType) {
@@ -191,9 +191,26 @@ export function isTextLikeContentType(contentType: string | null | undefined): b
     normalized.startsWith('text/') ||
     normalized.includes('json') ||
     normalized.includes('xml') ||
+    normalized.includes('javascript') ||
+    normalized.includes('ecmascript') ||
     normalized.includes('x-www-form-urlencoded')
   );
 }
+
+/**
+ * Rejection message used when a blob read completed but the engine could not
+ * decode the bytes in the requested encoding. Distinguished from other failures
+ * because it is the one case worth retrying with a different byte range.
+ */
+export const BLOB_DECODE_FAILED = 'SentryBlobDecodeFailed';
+
+/** Whether an error is the decode failure signalled by `readBlobAsText`. */
+export function isBlobDecodeError(error: unknown): boolean {
+  return error instanceof Error && error.message === BLOB_DECODE_FAILED;
+}
+
+/** The maximum number of bytes a single UTF-8 encoded code point can occupy. */
+export const MAX_UTF8_SEQUENCE_BYTES = 4;
 
 /**
  * Read a Blob as UTF-8 text via FileReader (React Native's Blob has no `text()`).
@@ -203,7 +220,11 @@ export function readBlobAsText(blob: Blob, timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     const timeout = setTimeout(() => {
-      // reject first — abort() may fire onabort synchronously
+      // Reject before aborting: on engines that implement the full FileReader
+      // state machine, `abort()` dispatches `onabort` synchronously. On React
+      // Native it dispatches nothing at all (the reader never enters LOADING,
+      // see Libraries/Blob/FileReader.js) and does not cancel the native read,
+      // it only discards the result — so rejecting here is what ends the wait.
       reject(new Error(`Timed out reading response body after ${timeoutMs}ms`));
       try {
         reader.abort();
@@ -217,7 +238,11 @@ export function readBlobAsText(blob: Blob, timeoutMs: number): Promise<string> {
       if (typeof result === 'string') {
         resolve(result);
       } else {
-        reject(new Error('FileReader did not produce a string result'));
+        // iOS decodes via `-[NSString initWithData:encoding:]`, which yields nil
+        // (surfacing here as a null result) when the bytes are not valid in the
+        // requested encoding — e.g. a byte slice that cut a multi-byte UTF-8
+        // sequence in half.
+        reject(new Error(BLOB_DECODE_FAILED));
       }
     };
     reader.onerror = () => {
@@ -237,8 +262,9 @@ type TextDecoderLike = { decode(input: Uint8Array): string };
 /* oxlint-disable eslint(no-bitwise) -- decoding UTF-8 is inherently bit manipulation */
 /**
  * Decode UTF-8 bytes into a string. Uses the global TextDecoder when the JS
- * engine provides one and falls back to a manual decoder otherwise (Hermes
- * has no TextDecoder). Invalid sequences decode to U+FFFD.
+ * engine provides one and falls back to a manual decoder otherwise. Hermes and
+ * JSC expose `TextEncoder` but no `TextDecoder`, so on React Native the manual
+ * decoder is the path actually taken. Invalid sequences decode to U+FFFD.
  */
 export function decodeUtf8(bytes: Uint8Array): string {
   const TextDecoderConstructor = (globalThis as { TextDecoder?: new () => TextDecoderLike }).TextDecoder;

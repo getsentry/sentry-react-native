@@ -9,7 +9,9 @@ import {
   filterHeaders,
   getBodySize,
   getBodyString,
+  isBlobDecodeError,
   isTextLikeContentType,
+  MAX_UTF8_SEQUENCE_BYTES,
   NETWORK_BODY_MAX_SIZE,
   NETWORK_BODY_READ_TIMEOUT_MS,
   parseAllResponseHeaders,
@@ -26,16 +28,16 @@ interface NetworkBreadcrumbSide {
 
 /**
  * Hint key carrying the result of `resolveXhrResponseBody` for a breadcrumb
- * that was held while its binary (Blob / ArrayBuffer) response body was read
- * asynchronously. When present, enrichment reads the body and all request /
- * response metadata from this snapshot instead of the live `xhr`, which may
- * have been reused or cleared by the time the breadcrumb is re-added.
+ * whose binary (Blob / ArrayBuffer) response body was read asynchronously. When
+ * present, enrichment reads the body and all request / response metadata from
+ * this snapshot instead of the live `xhr`, which may have been reused or cleared
+ * by the time the read settles.
  */
 export const REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY = '__mobile_replay_resolved_response_body__';
 
 /**
  * An asynchronously resolved response body plus the request / response
- * metadata snapshotted synchronously at the time the breadcrumb was held.
+ * metadata snapshotted synchronously at the time the read was started.
  */
 export interface ResolvedXhrResponse {
   body: NetworkBody;
@@ -90,8 +92,8 @@ function enrichXhrBreadcrumb(
   const now = Date.now();
   const { startTimestamp = now, endTimestamp = now, input, xhr } = xhrHint;
 
-  // A held-and-re-added breadcrumb carries a snapshot taken while the xhr was
-  // still current — read from it, never from the (possibly reused) live xhr.
+  // An asynchronously resolved snapshot taken while the xhr was still current —
+  // read from it, never from the (possibly reused) live xhr.
   const resolved = (hint as ResolvedBodyCarrier)[REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY];
 
   const reqSize = getBodySize(input);
@@ -231,7 +233,7 @@ export function shouldCaptureResponseBodyAsync(
     return false;
   }
   if ((hint as ResolvedBodyCarrier)[REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY] !== undefined) {
-    // already resolved — this is the re-added breadcrumb
+    // already resolved — nothing left to read asynchronously
     return false;
   }
   const xhr = (hint as Partial<XhrHint>).xhr;
@@ -258,7 +260,7 @@ export function shouldCaptureResponseBodyAsync(
  * Read the body of a binary (`blob` / `arraybuffer`) XHR response and serialize
  * it like a text body (size cap + truncation warning), together with the
  * request / response metadata snapshotted synchronously — by the time the body
- * read settles, the xhr may have been reused or cleared, so the re-added
+ * read settles, the xhr may have been reused or cleared, so the enriched
  * breadcrumb must not read from it again. Resolves the body to an
  * UNPARSEABLE_BODY_TYPE warning on read failure or timeout — never rejects.
  */
@@ -278,15 +280,42 @@ export async function resolveXhrResponseBody(
   return { body: await _readBinaryResponseBody(xhr), requestHeaders, rawResponseHeaders, responseBodySize };
 }
 
+/**
+ * Build a copy of an already-enriched xhr breadcrumb with its network details
+ * rebuilt from an asynchronously resolved response body.
+ *
+ * The original breadcrumb is left untouched: it is already on the JavaScript
+ * scope (and possibly attached to events), and the normalized copy the scope
+ * holds is a different object anyway. The returned breadcrumb is meant to be
+ * forwarded to the native SDKs, which is what feeds the Replay network tab.
+ */
+export function buildResolvedNetworkBreadcrumb(
+  breadcrumb: Breadcrumb,
+  hint: BreadcrumbHint,
+  resolved: ResolvedXhrResponse,
+  networkOptions: ResolvedNetworkOptions,
+): Breadcrumb {
+  const data = { ...breadcrumb.data };
+  // Drop the details built from the synchronous pass so they are rebuilt from
+  // the snapshot rather than merged with it.
+  delete data.request;
+  delete data.response;
+
+  const enriched: Breadcrumb = { ...breadcrumb, data };
+  enrichXhrBreadcrumb(enriched, { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: resolved }, networkOptions);
+  return enriched;
+}
+
 async function _readBinaryResponseBody(xhr: XMLHttpRequest): Promise<NetworkBody> {
   try {
     if (xhr.responseType === 'blob') {
       const blob = xhr.response as Blob;
       const truncated = blob.size > NETWORK_BODY_MAX_SIZE;
+      if (!truncated) {
+        return _toCappedBody(await readBlobAsText(blob, NETWORK_BODY_READ_TIMEOUT_MS), false);
+      }
       // Slice before reading so a huge payload is never fully read into memory.
-      const capped = truncated ? blob.slice(0, NETWORK_BODY_MAX_SIZE) : blob;
-      const text = await readBlobAsText(capped, NETWORK_BODY_READ_TIMEOUT_MS);
-      return _toCappedBody(text, truncated);
+      return _toCappedBody(await _readCappedBlobAsText(blob), true);
     }
     if (xhr.responseType === 'arraybuffer') {
       const buffer = xhr.response as ArrayBuffer;
@@ -298,6 +327,31 @@ async function _readBinaryResponseBody(xhr: XMLHttpRequest): Promise<NetworkBody
     // fall through to the unparseable marker
   }
   return { _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } };
+}
+
+/**
+ * Read the first `NETWORK_BODY_MAX_SIZE` bytes of an oversized blob as text.
+ *
+ * A byte slice can cut a multi-byte UTF-8 sequence in half, and iOS then fails to
+ * decode the whole chunk rather than substituting a replacement character. Retry
+ * with a shorter slice in that case: a UTF-8 sequence spans at most
+ * `MAX_UTF8_SEQUENCE_BYTES` bytes, so dropping up to that many trailing bytes is
+ * guaranteed to land on a character boundary. Only decode failures are retried —
+ * timeouts and read errors propagate immediately.
+ */
+async function _readCappedBlobAsText(blob: Blob): Promise<string> {
+  let lastError: unknown;
+  for (let dropped = 0; dropped < MAX_UTF8_SEQUENCE_BYTES; dropped++) {
+    try {
+      return await readBlobAsText(blob.slice(0, NETWORK_BODY_MAX_SIZE - dropped), NETWORK_BODY_READ_TIMEOUT_MS);
+    } catch (error) {
+      lastError = error;
+      if (!isBlobDecodeError(error)) {
+        throw error;
+      }
+    }
+  }
+  throw lastError;
 }
 
 function _toCappedBody(text: string, truncated: boolean): NetworkBody {

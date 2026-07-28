@@ -14,6 +14,49 @@ import { NATIVE } from './wrapper';
 const syncedToNativeMap = new WeakMap<Scope, true>();
 
 /**
+ * Breadcrumbs whose sync to the native SDKs is owned by whoever marked them,
+ * rather than by the scope patch below.
+ */
+const deferredNativeSyncBreadcrumbs = new WeakSet<Breadcrumb>();
+
+/**
+ * Normalize a breadcrumb the same way it is normalized before being added to the
+ * scope, so the native SDKs always receive the same shape.
+ */
+function normalizeBreadcrumbForNative(breadcrumb: Breadcrumb): Breadcrumb {
+  return {
+    ...breadcrumb,
+    level: breadcrumb.level || DEFAULT_BREADCRUMB_LEVEL,
+    data: breadcrumb.data ? convertToNormalizedObject(breadcrumb.data) : undefined,
+  };
+}
+
+/**
+ * Mark a breadcrumb so that adding it to a synced scope does **not** forward it
+ * to the native SDKs. The caller becomes responsible for calling
+ * `syncBreadcrumbToNative` once its data is complete.
+ *
+ * This exists for breadcrumbs that carry data which can only be resolved
+ * asynchronously (see the Mobile Replay network body capture): the breadcrumb
+ * still reaches the JavaScript scope synchronously — so error events captured in
+ * the meantime keep it — while the native SDKs, which cannot update a breadcrumb
+ * after the fact, receive it once and already enriched.
+ *
+ * The mark is consumed by the first synced scope the breadcrumb is added to.
+ */
+export function deferBreadcrumbNativeSync(breadcrumb: Breadcrumb): void {
+  deferredNativeSyncBreadcrumbs.add(breadcrumb);
+}
+
+/**
+ * Forward a breadcrumb to the native SDKs without adding it to a scope. Used to
+ * complete a `deferBreadcrumbNativeSync` handover.
+ */
+export function syncBreadcrumbToNative(breadcrumb: Breadcrumb): void {
+  NATIVE.addBreadcrumb(normalizeBreadcrumbForNative(breadcrumb));
+}
+
+/**
  * Hooks into the scope set methods and sync new data added to the given scope with the native SDKs.
  */
 export function enableSyncToNative(scope: Scope): void {
@@ -53,13 +96,17 @@ export function enableSyncToNative(scope: Scope): void {
   });
 
   fillTyped(scope, 'addBreadcrumb', original => (breadcrumb, maxBreadcrumbs): Scope => {
-    const mergedBreadcrumb: Breadcrumb = {
-      ...breadcrumb,
-      level: breadcrumb.level || DEFAULT_BREADCRUMB_LEVEL,
-      data: breadcrumb.data ? convertToNormalizedObject(breadcrumb.data) : undefined,
-    };
+    // Consume the mark before normalizing — the normalized copy is a different object.
+    const nativeSyncDeferred = deferredNativeSyncBreadcrumbs.delete(breadcrumb);
+    const mergedBreadcrumb = normalizeBreadcrumbForNative(breadcrumb);
 
     original.call(scope, mergedBreadcrumb, maxBreadcrumbs);
+
+    if (nativeSyncDeferred) {
+      // Whoever deferred the sync forwards this breadcrumb to native itself,
+      // once the data it is waiting for has resolved.
+      return scope;
+    }
 
     const finalBreadcrumb = scope.getLastBreadcrumb();
     if (finalBreadcrumb) {

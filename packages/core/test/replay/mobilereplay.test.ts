@@ -9,18 +9,14 @@ import type {
 } from '@sentry/core';
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { addBreadcrumb } from '@sentry/core';
 
 import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
 import { REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY } from '../../src/js/replay/xhrUtils';
+import * as scopeSync from '../../src/js/scopeSync';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');
-jest.mock('@sentry/core', () => ({
-  ...(jest.requireActual('@sentry/core') as object),
-  addBreadcrumb: jest.fn(),
-}));
 
 describe('Mobile Replay Integration', () => {
   let mockCaptureReplay: jest.MockedFunction<typeof NATIVE.captureReplay>;
@@ -593,7 +589,8 @@ describe('Mobile Replay Integration', () => {
   });
 
   describe('beforeBreadcrumb wrapping (async binary response bodies)', () => {
-    let mockAddBreadcrumb: jest.MockedFunction<typeof addBreadcrumb>;
+    let mockDeferBreadcrumbNativeSync: jest.SpiedFunction<typeof scopeSync.deferBreadcrumbNativeSync>;
+    let mockSyncBreadcrumbToNative: jest.SpiedFunction<typeof scopeSync.syncBreadcrumbToNative>;
     let wrapClientOptions: {
       beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null;
     };
@@ -629,7 +626,8 @@ describe('Mobile Replay Integration', () => {
     });
 
     beforeEach(() => {
-      mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<typeof addBreadcrumb>;
+      mockDeferBreadcrumbNativeSync = jest.spyOn(scopeSync, 'deferBreadcrumbNativeSync').mockImplementation(() => {});
+      mockSyncBreadcrumbToNative = jest.spyOn(scopeSync, 'syncBreadcrumbToNative').mockImplementation(() => {});
       wrapClientOptions = {};
       wrapClient = {
         on: jest.fn(),
@@ -639,27 +637,37 @@ describe('Mobile Replay Integration', () => {
       } as unknown as jest.Mocked<Client>;
     });
 
-    it('holds a binary xhr breadcrumb and re-adds it with the resolved body on the hint', async () => {
+    it('keeps the breadcrumb on the scope and defers only the native sync', async () => {
       setupIntegration();
       const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
 
+      // Arrange/Act: the breadcrumb must not be dropped — error events captured
+      // while the body read is in flight need to keep it.
       const result = wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint);
-      expect(result).toBeNull();
+
+      expect(result).toBe(breadcrumb);
+      expect(mockDeferBreadcrumbNativeSync).toHaveBeenCalledWith(breadcrumb);
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
 
       await flushMicrotasks();
 
-      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
-      expect(mockAddBreadcrumb).toHaveBeenCalledWith(
-        breadcrumb,
-        expect.objectContaining({
-          [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: {
-            body: { body: '{"ok":true}' },
-            requestHeaders: {},
-            rawResponseHeaders: 'content-type: application/json',
-            responseBodySize: 11,
-          },
-        }),
-      );
+      expect(mockSyncBreadcrumbToNative).toHaveBeenCalledTimes(1);
+    });
+
+    it('syncs a copy carrying the resolved body, leaving the scope breadcrumb untouched', async () => {
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint);
+      await flushMicrotasks();
+
+      const synced = mockSyncBreadcrumbToNative.mock.calls[0]?.[0] as Breadcrumb;
+      expect(synced).not.toBe(breadcrumb);
+      expect(synced.timestamp).toBe(123);
+      expect((synced.data?.response as { body?: string }).body).toBe('{"ok":true}');
+      expect(synced.data?.response_body_size).toBe(11);
+      // The scope copy keeps whatever the synchronous enrichment produced.
+      expect(breadcrumb.data?.response).toBeUndefined();
     });
 
     it('passes through breadcrumbs that do not need an async body read', async () => {
@@ -669,10 +677,11 @@ describe('Mobile Replay Integration', () => {
       expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, {})).toBe(breadcrumb);
 
       await flushMicrotasks();
-      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+      expect(mockDeferBreadcrumbNativeSync).not.toHaveBeenCalled();
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
     });
 
-    it('passes the re-added breadcrumb through without holding it again', async () => {
+    it('does not defer again for a hint that already carries a resolved body', async () => {
       setupIntegration();
       const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
       const resolvedHint = { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: { body: '{"ok":true}' } } };
@@ -680,10 +689,11 @@ describe('Mobile Replay Integration', () => {
       expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, resolvedHint)).toBe(breadcrumb);
 
       await flushMicrotasks();
-      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+      expect(mockDeferBreadcrumbNativeSync).not.toHaveBeenCalled();
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
     });
 
-    it('runs the user beforeBreadcrumb once, on the first pass only', async () => {
+    it('runs the user beforeBreadcrumb exactly once', async () => {
       const userBeforeBreadcrumb = jest.fn((breadcrumb: Breadcrumb) => breadcrumb);
       wrapClientOptions.beforeBreadcrumb = userBeforeBreadcrumb as (
         breadcrumb: Breadcrumb,
@@ -692,11 +702,8 @@ describe('Mobile Replay Integration', () => {
       setupIntegration();
       const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
 
-      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint)).toBeNull();
+      wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint);
       await flushMicrotasks();
-
-      const resolvedHint = mockAddBreadcrumb.mock.calls[0]?.[1];
-      wrapClientOptions.beforeBreadcrumb?.(breadcrumb, resolvedHint);
 
       expect(userBeforeBreadcrumb).toHaveBeenCalledTimes(1);
     });
@@ -709,7 +716,8 @@ describe('Mobile Replay Integration', () => {
       expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint)).toBeNull();
 
       await flushMicrotasks();
-      expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+      expect(mockDeferBreadcrumbNativeSync).not.toHaveBeenCalled();
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
     });
 
     it('does not wrap beforeBreadcrumb when body capture is disabled', () => {

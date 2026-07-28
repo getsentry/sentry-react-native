@@ -4,6 +4,7 @@ import type { ResolvedNetworkOptions } from '../../src/js/replay/networkUtils';
 
 import { NETWORK_BODY_MAX_SIZE } from '../../src/js/replay/networkUtils';
 import {
+  buildResolvedNetworkBreadcrumb,
   enrichXhrBreadcrumbsForMobileReplay,
   makeEnrichXhrBreadcrumbsForMobileReplay,
   REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY,
@@ -456,6 +457,43 @@ describe('xhrUtils', () => {
       expect(resolved.body._meta?.warnings).toEqual(['MAX_BODY_SIZE_EXCEEDED']);
     });
 
+    it('retries a truncated read with a shorter slice when the slice cut a multi-byte character', async () => {
+      // iOS fails to decode the whole chunk (null result) when the byte slice
+      // splits a multi-byte UTF-8 sequence, rather than substituting U+FFFD.
+      const readLengths: number[] = [];
+      installMockFileReader({ failToDecodeUnlessSliceEndsAt: NETWORK_BODY_MAX_SIZE - 2, readLengths });
+      const { xhr } = getBlobXhrHint({ body: 'a'.repeat(NETWORK_BODY_MAX_SIZE + 100) });
+
+      const resolved = await resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+
+      expect(readLengths).toEqual([NETWORK_BODY_MAX_SIZE, NETWORK_BODY_MAX_SIZE - 1, NETWORK_BODY_MAX_SIZE - 2]);
+      expect(resolved.body.body?.length).toBe(NETWORK_BODY_MAX_SIZE - 2);
+      expect(resolved.body._meta?.warnings).toEqual(['MAX_BODY_SIZE_EXCEEDED']);
+    });
+
+    it('gives up after exhausting the multi-byte boundary retries', async () => {
+      const readLengths: number[] = [];
+      installMockFileReader({ failToDecodeUnlessSliceEndsAt: -1, readLengths });
+      const { xhr } = getBlobXhrHint({ body: 'a'.repeat(NETWORK_BODY_MAX_SIZE + 100) });
+
+      const resolved = await resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+
+      // a UTF-8 sequence is at most 4 bytes, so at most 4 attempts
+      expect(readLengths).toHaveLength(4);
+      expect(resolved.body).toEqual({ _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } });
+    });
+
+    it('does not retry a read that failed for a reason other than decoding', async () => {
+      const readLengths: number[] = [];
+      installMockFileReader({ failWith: new Error('boom'), readLengths });
+      const { xhr } = getBlobXhrHint({ body: 'a'.repeat(NETWORK_BODY_MAX_SIZE + 100) });
+
+      const resolved = await resolveXhrResponseBody(xhr as unknown as XMLHttpRequest);
+
+      expect(readLengths).toEqual([NETWORK_BODY_MAX_SIZE]);
+      expect(resolved.body).toEqual({ _meta: { warnings: ['UNPARSEABLE_BODY_TYPE'] } });
+    });
+
     it('decodes arraybuffer responses including multi-byte characters', async () => {
       const body = '{"name":"Пёс 🐕"}';
       const { xhr } = getArrayBufferXhrHint(body);
@@ -508,6 +546,54 @@ describe('xhrUtils', () => {
         rawResponseHeaders: 'content-type: application/json',
         responseBodySize: 11,
       });
+    });
+  });
+
+  describe('buildResolvedNetworkBreadcrumb', () => {
+    const getResolved = (body: string) => ({
+      body: { body },
+      requestHeaders: { 'content-type': 'application/json' },
+      rawResponseHeaders: 'content-type: application/json',
+      responseBodySize: body.length,
+    });
+
+    it('returns a copy, leaving the original breadcrumb untouched', () => {
+      const hint = getBlobXhrHint();
+      const original: Breadcrumb = { category: 'xhr', timestamp: 42, data: { url: 'https://api.example.com/users' } };
+      const enrich = makeEnrichXhrBreadcrumbsForMobileReplay(getCaptureAllOptions());
+      // the synchronous pass marks the body as unparseable
+      enrich(original, hint);
+      const beforeResponse = original.data?.response;
+
+      const resolved = buildResolvedNetworkBreadcrumb(
+        original,
+        hint,
+        getResolved('{"ok":true}'),
+        getCaptureAllOptions(),
+      );
+
+      expect(resolved).not.toBe(original);
+      expect(resolved.timestamp).toBe(42);
+      expect((resolved.data?.response as { body?: string }).body).toBe('{"ok":true}');
+      expect(original.data?.response).toBe(beforeResponse);
+    });
+
+    it('replaces the synchronous unparseable marker instead of merging with it', () => {
+      const hint = getBlobXhrHint();
+      const original: Breadcrumb = { category: 'xhr', data: { url: 'https://api.example.com/users' } };
+      makeEnrichXhrBreadcrumbsForMobileReplay(getCaptureAllOptions())(original, hint);
+      expect((original.data?.response as { body?: string }).body).toBe('[UNPARSEABLE_BODY_TYPE]');
+
+      const resolved = buildResolvedNetworkBreadcrumb(
+        original,
+        hint,
+        getResolved('{"ok":true}'),
+        getCaptureAllOptions(),
+      );
+
+      const response = resolved.data?.response as { body?: string; _meta?: { warnings: string[] } };
+      expect(response.body).toBe('{"ok":true}');
+      expect(response._meta).toBeUndefined();
     });
   });
 });
@@ -565,7 +651,16 @@ function getArrayBufferXhrHint(body: string) {
   };
 }
 
-function installMockFileReader(behavior: { failWith?: Error; neverComplete?: boolean } = {}): void {
+function installMockFileReader(
+  behavior: {
+    failWith?: Error;
+    neverComplete?: boolean;
+    /** Yield a null result (iOS decode failure) unless the slice ends at this byte. */
+    failToDecodeUnlessSliceEndsAt?: number;
+    /** Collects the byte length of every slice handed to the reader. */
+    readLengths?: number[];
+  } = {},
+): void {
   class MockFileReader {
     public result: string | null = null;
     public error: Error | null = null;
@@ -574,12 +669,21 @@ function installMockFileReader(behavior: { failWith?: Error; neverComplete?: boo
     public onabort: (() => void) | null = null;
 
     public readAsText(blob: Blob): void {
+      behavior.readLengths?.push(blob.size);
       if (behavior.neverComplete) {
         return;
       }
       if (behavior.failWith) {
         this.error = behavior.failWith;
         queueMicrotask(() => this.onerror?.());
+        return;
+      }
+      if (
+        behavior.failToDecodeUnlessSliceEndsAt !== undefined &&
+        blob.size !== behavior.failToDecodeUnlessSliceEndsAt
+      ) {
+        this.result = null;
+        queueMicrotask(() => this.onload?.());
         return;
       }
       blob.text().then(
