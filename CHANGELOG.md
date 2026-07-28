@@ -14,6 +14,12 @@
 
   When a root span ends (idle nav spans from `reactNavigationIntegration` / `expoRouterIntegration`, or a user's own `Sentry.startSpan(...)`), the integration writes `turbo_module.<name>.<method>.{call_count,duration_ms,error_count}` attributes plus summary keys (`turbo_module.total_call_count`, `turbo_module.total_duration_ms`, `turbo_module.top_module`). Async calls above `slowCallThresholdMs` (default 500ms) additionally record a `native.turbo_module` breadcrumb. Both surfaces enabled by default; new knobs `enableSpanAttribution`, `slowCallThresholdMs`, `maxTopModulesPerSpan` on `turboModuleContextIntegration`.
 
+### Fixes
+
+- Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6474](https://github.com/getsentry/sentry-react-native/pull/6474))
+
+  The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
+
 ### Changes
 
 - Expose `instrumentStateGraph` for manual LangGraph instrumentation ([#6520](https://github.com/getsentry/sentry-react-native/pull/6520))
