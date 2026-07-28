@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add check and download timing spans to Expo Updates listener integration ([#6430](https://github.com/getsentry/sentry-react-native/pull/6430))
 - Attach a per-`(module, method)` TurboModule breakdown to active spans on `spanEnd`, plus `native.turbo_module` breadcrumbs for slow async calls ([#6478](https://github.com/getsentry/sentry-react-native/pull/6478))
 
   When a root span ends (idle nav spans from `reactNavigationIntegration` / `expoRouterIntegration`, or a user's own `Sentry.startSpan(...)`), the integration writes `turbo_module.<name>.<method>.{call_count,duration_ms,error_count}` attributes plus summary keys (`turbo_module.total_call_count`, `turbo_module.total_duration_ms`, `turbo_module.top_module`). Async calls above `slowCallThresholdMs` (default 500ms) additionally record a `native.turbo_module` breadcrumb. Both surfaces enabled by default; new knobs `enableSpanAttribution`, `slowCallThresholdMs`, `maxTopModulesPerSpan` on `turboModuleContextIntegration`.
