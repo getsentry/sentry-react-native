@@ -67,7 +67,7 @@ describe('expoRouterIntegration', () => {
   });
 
   describe('expo-router router-store found but navigationRef missing', () => {
-    it('warns and does not add the integration', () => {
+    it('does not add the integration and warns after the timeout', () => {
       jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({ store: {} }), { virtual: true });
 
       const { debug } = require('@sentry/core');
@@ -79,10 +79,48 @@ describe('expoRouterIntegration', () => {
       const integ = integration();
       integ.afterAllSetup?.(client);
 
+      // No warning yet — we keep polling in case the ref shows up later.
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(addIntegration).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(6_000);
+
       expect(addIntegration).not.toHaveBeenCalled();
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('navigationRef'));
 
       warnSpy.mockRestore();
+    });
+
+    it('picks up navigationRef when it appears mid-poll (issue #6431)', () => {
+      const container = createMockNavigationContainer();
+      const store: { navigationRef?: { current: MockNavigationContainer | null } } = {};
+      jest.doMock(EXPO_ROUTER_STORE_MODULE, () => ({ store }), { virtual: true });
+
+      const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
+      const { client, addIntegration } = createMockClient();
+
+      const integ = integration();
+      integ.afterAllSetup?.(client);
+
+      // Nothing to attach to yet — reactNavigation must not be added until we see a ref.
+      expect(addIntegration).not.toHaveBeenCalled();
+
+      // Root Layout mounts a bit later: navigationRef appears, then .current gets populated.
+      jest.advanceTimersByTime(200);
+      store.navigationRef = { current: null };
+      jest.advanceTimersByTime(50);
+
+      // navigationRef exists but .current is still null — hold off on attaching,
+      // otherwise a subsequent timeout would leave a non-functional integration behind.
+      expect(addIntegration).not.toHaveBeenCalled();
+      expect(container.addListener).not.toHaveBeenCalled();
+
+      store.navigationRef.current = container;
+      jest.advanceTimersByTime(50);
+
+      expect(addIntegration).toHaveBeenCalledTimes(1);
+      expect(container.addListener).toHaveBeenCalledWith('__unsafe_action__', expect.any(Function));
+      expect(container.addListener).toHaveBeenCalledWith('state', expect.any(Function));
     });
   });
 
@@ -130,18 +168,20 @@ describe('expoRouterIntegration', () => {
       const integ = integration();
       integ.afterAllSetup?.(client);
 
-      // nothing registered yet
+      // nothing attached yet — .current is still null
       expect(container.addListener).not.toHaveBeenCalled();
-      expect(addIntegration).toHaveBeenCalledTimes(1);
+      expect(addIntegration).not.toHaveBeenCalled();
 
       // tick the polling timer once before ref is populated — still no registration
       jest.advanceTimersByTime(50);
       expect(container.addListener).not.toHaveBeenCalled();
+      expect(addIntegration).not.toHaveBeenCalled();
 
       // populate the ref and tick again
       navigationRef.current = container;
       jest.advanceTimersByTime(50);
 
+      expect(addIntegration).toHaveBeenCalledTimes(1);
       expect(container.addListener).toHaveBeenCalledWith('__unsafe_action__', expect.any(Function));
       expect(container.addListener).toHaveBeenCalledWith('state', expect.any(Function));
     });
@@ -157,7 +197,7 @@ describe('expoRouterIntegration', () => {
       );
 
       const { expoRouterIntegration: integration } = require('../../src/js/tracing/expoRouterIntegration');
-      const { client, closeHandlers } = createMockClient();
+      const { client, addIntegration, closeHandlers } = createMockClient();
 
       const integ = integration();
       integ.afterAllSetup?.(client);
@@ -167,6 +207,9 @@ describe('expoRouterIntegration', () => {
 
       expect(jest.getTimerCount()).toBeLessThan(timersAfterSetup);
       expect(closeHandlers.length).toBe(1);
+      // navigationRef existed the whole time but .current never populated — we must
+      // not leave a `reactNavigationIntegration` attached that was never registered.
+      expect(addIntegration).not.toHaveBeenCalled();
     });
   });
 

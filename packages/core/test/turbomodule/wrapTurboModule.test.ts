@@ -1,6 +1,7 @@
 import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
 
+import { _resetTurboModuleAggregator, drainTurboModuleAggregate } from '../../src/js/turbomodule/turboModuleAggregator';
 import * as tracker from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetTurboModuleTracker, getTurboModuleCallStack } from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetWrappedModules, wrapTurboModule } from '../../src/js/turbomodule/wrapTurboModule';
@@ -10,6 +11,7 @@ describe('wrapTurboModule', () => {
 
   beforeEach(() => {
     _resetTurboModuleTracker();
+    _resetTurboModuleAggregator();
     _resetWrappedModules();
     scope = new Scope();
     // `pushTurboModuleCall` defaults to `getIsolationScope()` (see commit
@@ -328,5 +330,24 @@ describe('wrapTurboModule', () => {
 
     expect(module.version).toBe('1.0.0');
     expect(module.doStuff()).toBe(42);
+  });
+
+  it('feeds sync and async calls into the aggregator', async () => {
+    const module = {
+      sync: () => 'ok',
+      asyncOk: () => Promise.resolve('done'),
+    };
+    wrapTurboModule('Mod', module);
+
+    module.sync();
+    await module.asyncOk();
+
+    const snapshot = drainTurboModuleAggregate();
+    expect(snapshot.map(r => ({ method: r.method, kind: r.kind, callCount: r.callCount }))).toEqual(
+      expect.arrayContaining([
+        { method: 'sync', kind: 'sync', callCount: 1 },
+        { method: 'asyncOk', kind: 'async', callCount: 1 },
+      ]),
+    );
   });
 });

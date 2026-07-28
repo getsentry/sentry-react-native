@@ -145,4 +145,22 @@ final class RNSentryOnDrawReporterTests: XCTestCase {
 
         emitNewFrameCallback!(1)
     }
+
+    func testReporterViewIsDeallocatedAfterRelease() {
+        // Guards against the retain cycle described in
+        // https://github.com/getsentry/sentry-react-native/issues/6440 where the
+        // emit-new-frame block captured `self` strongly, keeping the view (and
+        // its frames-tracker listener) alive forever.
+        weak var weakReporter: RNSentryOnDrawReporterView?
+
+        autoreleasepool {
+            let reporter = RNSentryOnDrawReporterView.createWithMockedListener()
+            reporter!.initialDisplay = true
+            reporter!.parentSpanId = spanId
+            reporter!.didSetProps(["initialDisplay", "parentSpanId"])
+            weakReporter = reporter
+        }
+
+        XCTAssertNil(weakReporter, "RNSentryOnDrawReporterView leaked due to a retain cycle")
+    }
 }

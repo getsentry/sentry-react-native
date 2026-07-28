@@ -2,6 +2,9 @@ import type { Scope } from '@sentry/core';
 
 import { getIsolationScope } from '@sentry/core';
 
+/** Whether a TurboModule invocation is `sync` (blocking) or `async` (returns a Promise). */
+export type TurboModuleCallKind = 'sync' | 'async';
+
 /**
  * Describes a single TurboModule method invocation currently in flight.
  */
@@ -11,7 +14,7 @@ export interface TurboModuleCall {
   /** Method name, e.g. `captureEnvelope`. */
   method: string;
   /** Whether the invocation is `sync` (blocking) or `async` (returns a Promise). */
-  kind: 'sync' | 'async';
+  kind: TurboModuleCallKind;
   /** `Date.now()` at the moment the call started. */
   startedAtMs: number;
   /** Monotonically increasing id, used as the JS-side `call_id` cross-reference. */

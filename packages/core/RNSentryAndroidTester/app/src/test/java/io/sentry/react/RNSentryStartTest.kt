@@ -315,6 +315,39 @@ class RNSentryStartTest {
     }
 
     @Test
+    fun `when enableHistoricalTombstoneReporting is true, historical tombstone reporting is enabled`() {
+        val rnOptions = JavaOnlyMap.of("enableHistoricalTombstoneReporting", true)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertTrue("Historical tombstone reporting should be enabled", options.isReportHistoricalTombstones)
+    }
+
+    @Test
+    fun `when enableHistoricalTombstoneReporting is false, historical tombstone reporting is disabled`() {
+        val rnOptions = JavaOnlyMap.of("enableHistoricalTombstoneReporting", false)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse("Historical tombstone reporting should be disabled", options.isReportHistoricalTombstones)
+    }
+
+    @Test
+    fun `when enableHistoricalTombstoneReporting is not set, it remains at default (disabled)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse(
+            "Historical tombstone reporting should be disabled by default",
+            options.isReportHistoricalTombstones,
+        )
+    }
+
+    @Test
     fun `network detail replay options are forwarded to the native replay options`() {
         val mobileReplayOptions =
             JavaOnlyMap.of(

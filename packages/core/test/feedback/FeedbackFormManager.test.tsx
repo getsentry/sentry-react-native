@@ -87,6 +87,29 @@ describe('FeedbackFormManager', () => {
     }).not.toThrow();
   });
 
+  it('showFeedbackForm does not throw before any provider or reset has run', () => {
+    // Regression for SDK-CRASHES-REACT-NATIVE-62C: `_setVisibility` used to be
+    // uninitialized, so calling show() before FeedbackFormProvider mounted threw
+    // `TypeError: this._setVisibility is not a function`. Load the module fresh
+    // so the class statics have never been touched by other tests.
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const freshManager = require('../../src/js/feedback/FeedbackFormManager');
+      expect(() => freshManager.showFeedbackForm()).not.toThrow();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("requires 'Sentry.wrap(RootComponent)'"));
+    });
+  });
+
+  it('hideFeedbackForm does not throw before any provider or reset has run', () => {
+    // Symmetric to show(): hide() reads the same uninitialized static field.
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const freshManager = require('../../src/js/feedback/FeedbackFormManager');
+      expect(() => freshManager.FeedbackFormManager.hide()).not.toThrow();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("requires 'Sentry.wrap(RootComponent)'"));
+    });
+  });
+
   it('showFeedbackForm displays the form with the feedbackIntegration options', async () => {
     mockedIsModalSupported.mockReturnValue(true);
     const { getByPlaceholderText, getByText } = render(

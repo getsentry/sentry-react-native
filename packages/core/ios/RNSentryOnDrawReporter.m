@@ -40,23 +40,29 @@ RCT_EXPORT_VIEW_PROPERTY(parentSpanId, NSString)
 
 - (RNSentryEmitNewFrameEvent)createEmitNewFrameEvent
 {
+    __weak __typeof__(self) weakSelf = self;
     return ^(NSNumber *newFrameTimestampInSeconds) {
-        self->isListening = NO;
-
-        if (![_parentSpanId isKindOfClass:[NSString class]]) {
+        __strong __typeof__(weakSelf) strongSelf = weakSelf;
+        if (strongSelf == nil) {
             return;
         }
 
-        if (self->_fullDisplay) {
+        strongSelf->isListening = NO;
+
+        if (![strongSelf->_parentSpanId isKindOfClass:[NSString class]]) {
+            return;
+        }
+
+        if (strongSelf->_fullDisplay) {
             [RNSentryTimeToDisplay
-                putTimeToDisplayFor:[@"ttfd-" stringByAppendingString:self->_parentSpanId]
+                putTimeToDisplayFor:[@"ttfd-" stringByAppendingString:strongSelf->_parentSpanId]
                               value:newFrameTimestampInSeconds];
             return;
         }
 
-        if (self->_initialDisplay) {
+        if (strongSelf->_initialDisplay) {
             [RNSentryTimeToDisplay
-                putTimeToDisplayFor:[@"ttid-" stringByAppendingString:self->_parentSpanId]
+                putTimeToDisplayFor:[@"ttid-" stringByAppendingString:strongSelf->_parentSpanId]
                               value:newFrameTimestampInSeconds];
             return;
         }

@@ -9,6 +9,6 @@ static const int TIME_TO_DISPLAY_ENTRIES_MAX_SIZE = 50;
 + (void)setActiveSpanId:(NSString *)spanId;
 + (void)putTimeToInitialDisplayForActiveSpan:(NSNumber *)timestampSeconds;
 
-- (void)getTimeToDisplay:(RCTResponseSenderBlock)callback;
+- (void)getTimeToDisplay:(RCTPromiseResolveBlock)callback;
 
 @end

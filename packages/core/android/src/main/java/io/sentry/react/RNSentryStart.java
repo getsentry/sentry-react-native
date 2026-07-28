@@ -195,6 +195,10 @@ final class RNSentryStart {
     if (rnOptions.hasKey("enableTombstone")) {
       options.setTombstoneEnabled(rnOptions.getBoolean("enableTombstone"));
     }
+    if (rnOptions.hasKey("enableHistoricalTombstoneReporting")) {
+      options.setReportHistoricalTombstones(
+          rnOptions.getBoolean("enableHistoricalTombstoneReporting"));
+    }
     if (rnOptions.hasKey("enableAnrFingerprinting")) {
       options.setEnableAnrFingerprinting(rnOptions.getBoolean("enableAnrFingerprinting"));
     }

@@ -59,6 +59,7 @@ import { InstrumentedMethod } from '@sentry/core';
 import { instrumentGoogleGenAIClient } from '@sentry/core';
 import { instrumentLangGraph } from '@sentry/core';
 import { instrumentOpenAiClient } from '@sentry/core';
+import { instrumentStateGraph } from '@sentry/core';
 import { instrumentStateGraphCompile } from '@sentry/core';
 import { Integration } from '@sentry/core';
 import { LangChainIntegration } from '@sentry/core';
@@ -465,6 +466,8 @@ export { instrumentLangGraph }
 
 export { instrumentOpenAiClient }
 
+export { instrumentStateGraph }
+
 export { instrumentStateGraphCompile }
 
 export { LangChainIntegration }
@@ -856,22 +859,31 @@ export { TransactionEvent }
 // @public
 export interface TurboModuleCall {
     callId: number;
-    kind: 'sync' | 'async';
+    kind: TurboModuleCallKind;
     method: string;
     name: string;
     startedAtMs: number;
 }
 
 // @public
+export type TurboModuleCallKind = 'sync' | 'async';
+
+// @public
 export const turboModuleContextIntegration: (options?: TurboModuleContextOptions) => Integration;
 
 // @public (undocumented)
 export interface TurboModuleContextOptions {
+    aggregateFlushIntervalMs?: number;
+    enableAggregateStats?: boolean;
+    enableSpanAttribution?: boolean;
+    ignoreTurboModules?: ReadonlyArray<string>;
+    maxTopModulesPerSpan?: number;
     modules?: Array<{
         name: string;
         module: object | null | undefined;
         skipMethods?: ReadonlyArray<string>;
     }>;
+    slowCallThresholdMs?: number;
 }
 
 // @public (undocumented)

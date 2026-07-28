@@ -69,6 +69,20 @@ export interface BaseReactNativeOptions {
    */
   enableTombstone?: boolean;
 
+  /**
+   * When enabled, the SDK reports historical tombstones from Android's
+   * ApplicationExitInfo system API, as opposed to reporting only the tombstone
+   * of the latest application run. Historical events are reported without
+   * current scope data (e.g. breadcrumbs), as it's not possible to know
+   * the state of the app at the time they happened.
+   *
+   * Only has an effect if `enableTombstone` is `true`.
+   *
+   * @default false
+   * @platform android
+   */
+  enableHistoricalTombstoneReporting?: boolean;
+
   /** Enable scope sync from Java to NDK on Android
    * Only has an effect if `enableNdk` is `true`.
    *

@@ -40,6 +40,14 @@ export const timeToDisplayIntegration = (): Integration => {
         return event;
       }
 
+      // `trace_id` is a required field of a transaction's trace context and is
+      // always present here alongside `rootSpanId`. Read it (instead of early
+      // returning) so the TTID/TTFD spans inherit the transaction's trace and
+      // nest correctly, and so we never skip the coordinator cleanup at the end
+      // of `processEvent`. If it were ever absent, `createSpanJSON` keeps its
+      // existing behavior of generating one.
+      const traceId = event.contexts?.trace?.trace_id;
+
       const transactionStartTimestampSeconds = event.start_timestamp;
       if (!transactionStartTimestampSeconds) {
         // This should never happen
@@ -53,10 +61,17 @@ export const timeToDisplayIntegration = (): Integration => {
       const ttidSpan = await addTimeToInitialDisplay({
         event,
         rootSpanId,
+        traceId,
         transactionStartTimestampSeconds,
         enableTimeToInitialDisplayForPreloadedRoutes,
       });
-      const ttfdSpan = await addTimeToFullDisplay({ event, rootSpanId, transactionStartTimestampSeconds, ttidSpan });
+      const ttfdSpan = await addTimeToFullDisplay({
+        event,
+        rootSpanId,
+        traceId,
+        transactionStartTimestampSeconds,
+        ttidSpan,
+      });
 
       const ttidDurationMs =
         ttidSpan?.start_timestamp && ttidSpan?.timestamp
@@ -109,11 +124,13 @@ export const timeToDisplayIntegration = (): Integration => {
 async function addTimeToInitialDisplay({
   event,
   rootSpanId,
+  traceId,
   transactionStartTimestampSeconds,
   enableTimeToInitialDisplayForPreloadedRoutes,
 }: {
   event: Event;
   rootSpanId: string;
+  traceId: string | undefined;
   transactionStartTimestampSeconds: number;
   enableTimeToInitialDisplayForPreloadedRoutes: boolean;
 }): Promise<SpanJSON | undefined> {
@@ -133,6 +150,7 @@ async function addTimeToInitialDisplay({
     return addAutomaticTimeToInitialDisplay({
       event,
       rootSpanId,
+      traceId,
       transactionStartTimestampSeconds,
       enableTimeToInitialDisplayForPreloadedRoutes,
     });
@@ -156,6 +174,7 @@ async function addTimeToInitialDisplay({
     timestamp: ttidEndTimestampSeconds,
     origin: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
     parent_span_id: rootSpanId,
+    trace_id: traceId,
     data: {
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
@@ -168,11 +187,13 @@ async function addTimeToInitialDisplay({
 async function addAutomaticTimeToInitialDisplay({
   event,
   rootSpanId,
+  traceId,
   transactionStartTimestampSeconds,
   enableTimeToInitialDisplayForPreloadedRoutes,
 }: {
   event: Event;
   rootSpanId: string;
+  traceId: string | undefined;
   transactionStartTimestampSeconds: number;
   enableTimeToInitialDisplayForPreloadedRoutes: boolean;
 }): Promise<SpanJSON | undefined> {
@@ -205,6 +226,7 @@ async function addAutomaticTimeToInitialDisplay({
     timestamp: ttidTimestampSeconds,
     origin: SPAN_ORIGIN_AUTO_UI_TIME_TO_DISPLAY,
     parent_span_id: rootSpanId,
+    trace_id: traceId,
     data: {
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
@@ -217,11 +239,13 @@ async function addAutomaticTimeToInitialDisplay({
 async function addTimeToFullDisplay({
   event,
   rootSpanId,
+  traceId,
   transactionStartTimestampSeconds,
   ttidSpan,
 }: {
   event: Event;
   rootSpanId: string;
+  traceId: string | undefined;
   transactionStartTimestampSeconds: number;
   ttidSpan: SpanJSON | undefined;
 }): Promise<SpanJSON | undefined> {
@@ -271,6 +295,7 @@ async function addTimeToFullDisplay({
     timestamp: ttfdAdjustedEndTimestampSeconds,
     origin: SPAN_ORIGIN_MANUAL_UI_TIME_TO_DISPLAY,
     parent_span_id: rootSpanId,
+    trace_id: traceId,
     data: {
       [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
     },
