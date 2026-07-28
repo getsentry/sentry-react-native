@@ -84,6 +84,36 @@ describe('Capture Spaceflight News Screen Transaction', () => {
       });
   });
 
+  it('ttid/ttfd spans share the same trace and parent span as their navigation transaction', async () => {
+    // Display spans must inherit the navigation transaction's `trace_id` (not
+    // get a random one) and reference its root span as their `parent_span_id`,
+    // otherwise they render as orphaned spans in the trace view.
+    const transaction = getFirstNewsEventItem()?.[1];
+    expect(transaction).toBeDefined();
+
+    const traceId = transaction?.contexts?.trace?.trace_id;
+    const rootSpanId = transaction?.contexts?.trace?.span_id;
+    expect(traceId).toEqual(expect.any(String));
+    expect(rootSpanId).toEqual(expect.any(String));
+
+    const ttidSpan = transaction?.spans?.find(
+      span => span.op === 'ui.load.initial_display',
+    );
+    const ttfdSpan = transaction?.spans?.find(
+      span => span.op === 'ui.load.full_display',
+    );
+
+    // A navigation transaction must at least carry the initial-display span.
+    expect(ttidSpan).toBeDefined();
+
+    [ttidSpan, ttfdSpan]
+      .filter((span): span is NonNullable<typeof span> => span !== undefined)
+      .forEach(span => {
+        expect(span.trace_id).toBe(traceId);
+        expect(span.parent_span_id).toBe(rootSpanId);
+      });
+  });
+
   function expectToContainTimeToDisplayMeasurements(
     item: EventItem | undefined,
   ) {
