@@ -11,7 +11,7 @@
     "@react-native/new-app-screen": "0.86.0",
     "@sentry/react-native": "8.20.0",
     "react": "19.2.3",
-    "react-native": "0.86.0"
+    "react-native": "0.86.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
