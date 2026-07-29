@@ -1,15 +1,31 @@
-import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint, Integration, Metric } from '@sentry/core';
+import type {
+  Breadcrumb,
+  BreadcrumbHint,
+  Client,
+  DynamicSamplingContext,
+  ErrorEvent,
+  Event,
+  EventHint,
+  Integration,
+  Metric,
+} from '@sentry/core';
 
 import { debug } from '@sentry/core';
 
 import type { ResolvedNetworkOptions } from './networkUtils';
 
 import { isHardCrash } from '../misc';
+import { deferBreadcrumbNativeSync, syncBreadcrumbToNative } from '../scopeSync';
 import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
 import { registerFeatureMarker } from '../utils/featureMarkers';
 import { NATIVE } from '../wrapper';
-import { makeEnrichXhrBreadcrumbsForMobileReplay } from './xhrUtils';
+import {
+  buildResolvedNetworkBreadcrumb,
+  makeEnrichXhrBreadcrumbsForMobileReplay,
+  resolveXhrResponseBody,
+  shouldCaptureResponseBodyAsync,
+} from './xhrUtils';
 
 const MOBILE_REPLAY_NETWORK_DETAILS_INTEGRATION_NAME = 'MobileReplayNetworkDetails';
 const MOBILE_REPLAY_NETWORK_BODIES_INTEGRATION_NAME = 'MobileReplayNetworkBodies';
@@ -167,8 +183,13 @@ export interface MobileReplayOptions {
    * Authorization-like headers (`authorization`, `cookie`, `set-cookie`,
    * `x-api-key`, `x-auth-token`, `proxy-authorization`) are always stripped.
    *
-   * Currently only XHR requests are supported (this covers `axios` and similar
-   * libraries). Fetch body capture will be added in a follow-up.
+   * Both `XMLHttpRequest` (this covers `axios` and similar libraries) and
+   * `fetch` are supported — React Native's `fetch` is a polyfill built on
+   * `XMLHttpRequest`. Response bodies returned as `Blob`/`ArrayBuffer` (which is
+   * every `fetch` response) are read asynchronously and inlined when the
+   * `content-type` is text-like (JSON, XML, `text/*`, form data); genuinely
+   * binary payloads stay marked as unparseable. Request bodies passed as
+   * `Blob`/`ArrayBuffer` are not inlined yet.
    *
    * Note: `RegExp` patterns are matched in JavaScript for request enrichment, but
    * only their string source is forwarded to the native SDKs (a `RegExp` can't
@@ -433,6 +454,41 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
     // Wrap beforeSend to run processEvent after user's beforeSend
     const clientOptions = client.getOptions();
+
+    // Binary (Blob/ArrayBuffer) response bodies — which is every `fetch`
+    // response, since RN's fetch polyfill uses XHR with responseType 'blob' —
+    // can only be read asynchronously, while breadcrumbs are forwarded to the
+    // native SDKs synchronously and cannot be updated afterwards.
+    //
+    // The breadcrumb is therefore still returned here, so it lands on the
+    // JavaScript scope immediately and error events captured while the read is in
+    // flight keep it. Only the sync to native — which is what feeds the Replay
+    // network tab — is deferred until the body has been read, and then performed
+    // once with the resolved body. The breadcrumb keeps its original timestamp,
+    // so the replay places it correctly regardless of the delay.
+    if (networkOptions.captureBodies && networkOptions.allowUrls.length > 0) {
+      const originalBeforeBreadcrumb = clientOptions.beforeBreadcrumb;
+      clientOptions.beforeBreadcrumb = (breadcrumb: Breadcrumb, hint?: BreadcrumbHint): Breadcrumb | null => {
+        const result = originalBeforeBreadcrumb ? originalBeforeBreadcrumb(breadcrumb, hint) : breadcrumb;
+        if (result === null || !shouldCaptureResponseBodyAsync(result, hint, networkOptions)) {
+          return result;
+        }
+
+        deferBreadcrumbNativeSync(result);
+        const xhr = hint.xhr;
+        resolveXhrResponseBody(xhr)
+          .then(resolved => {
+            syncBreadcrumbToNative(buildResolvedNetworkBreadcrumb(result, hint, resolved, networkOptions));
+          })
+          .then(undefined, (error: unknown) => {
+            debug.error(
+              `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to sync network breadcrumb with resolved response body to native`,
+              error,
+            );
+          });
+        return result;
+      };
+    }
     const originalBeforeSend = clientOptions.beforeSend;
     clientOptions.beforeSend = async (event: ErrorEvent, hint: EventHint): Promise<ErrorEvent | null> => {
       let result: ErrorEvent | null = event;
