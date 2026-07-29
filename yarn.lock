@@ -9088,9 +9088,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-macos/virtualized-lists@npm:0.81.7":
-  version: 0.81.7
-  resolution: "@react-native-macos/virtualized-lists@npm:0.81.7"
+"@react-native-macos/virtualized-lists@npm:0.81.8":
+  version: 0.81.8
+  resolution: "@react-native-macos/virtualized-lists@npm:0.81.8"
   dependencies:
     invariant: "npm:^2.2.4"
     nullthrows: "npm:^1.1.1"
@@ -9101,7 +9101,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/0289db9004faece046685417878410b187c68c9245ffabe4e6aa6ec03fce70627b593a36927e899abe6bd658f4739c32a8ca09613ff814086887e2082f758e1f
+  checksum: 10c0/a4f1f28fa08b9d8e58a1b5d398990c6ea3860a55c480120e24d50b7b1f63cab484c7ca821bbab725ce142bd9ebee9f7733d20cf3c8a1b822aeb96aa72f29683d
   languageName: node
   linkType: hard
 
@@ -9753,6 +9753,23 @@ __metadata:
   version: 0.86.0
   resolution: "@react-native/typescript-config@npm:0.86.0"
   checksum: 10c0/66020e6d945e863847639b4932ef22082dad8ba4e345fe785b85987ae18a6cb56b31539c3502731238580ad96a9b1de32fac55e2e245debf693f039ec36fcffc
+  languageName: node
+  linkType: hard
+
+"@react-native/virtualized-lists@npm:0.81.6":
+  version: 0.81.6
+  resolution: "@react-native/virtualized-lists@npm:0.81.6"
+  dependencies:
+    invariant: "npm:^2.2.4"
+    nullthrows: "npm:^1.1.1"
+  peerDependencies:
+    "@types/react": ^19.1.4
+    react: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/345e8b4b444364daa6d439821040180b11c4001c3b28e384a30f46dcc98cd64d98a7184b47282786e98513685457d78bb98f1a5b94284e46281b694956ca3319
   languageName: node
   linkType: hard
 
@@ -26394,12 +26411,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-macos@npm:0.81.7":
-  version: 0.81.7
-  resolution: "react-native-macos@npm:0.81.7"
+"react-native-macos@npm:0.81.8":
+  version: 0.81.8
+  resolution: "react-native-macos@npm:0.81.8"
   dependencies:
     "@jest/create-cache-key-function": "npm:^29.7.0"
-    "@react-native-macos/virtualized-lists": "npm:0.81.7"
+    "@react-native-macos/virtualized-lists": "npm:0.81.8"
     "@react-native/assets-registry": "npm:0.81.6"
     "@react-native/codegen": "npm:0.81.6"
     "@react-native/community-cli-plugin": "npm:0.81.6"
@@ -26442,7 +26459,7 @@ __metadata:
   bin:
     react-native: cli.js
     react-native-macos: cli.js
-  checksum: 10c0/d38f768c222c4c144490c4bb6c5de87153f9d9665275fb74141369a8ac68d4f178b6ad1d134c3a705ef65c0e56046b550c8c6364b435ea381dd72d704426d8ae
+  checksum: 10c0/0e74f47d25b8ee5a2252663c6da6ba386baa44a89c3eba09541f88cf10b2330c062d85de9716b49fdf285c4766915afc3619790efa38697796c53ace791bb298
   languageName: node
   linkType: hard
 
@@ -26660,6 +26677,56 @@ __metadata:
     react: "*"
     react-native: 0.83 - 0.86
   checksum: 10c0/9e1bfd2030f51de14596eb7c394db9cabac2f9430508728407b2fea6adcf56761ee85cec03a62f1aed7c93e77ac254ddf03f38b4906885f9390b9e809cdbb065
+  languageName: node
+  linkType: hard
+
+"react-native@npm:0.81.6":
+  version: 0.81.6
+  resolution: "react-native@npm:0.81.6"
+  dependencies:
+    "@jest/create-cache-key-function": "npm:^29.7.0"
+    "@react-native/assets-registry": "npm:0.81.6"
+    "@react-native/codegen": "npm:0.81.6"
+    "@react-native/community-cli-plugin": "npm:0.81.6"
+    "@react-native/gradle-plugin": "npm:0.81.6"
+    "@react-native/js-polyfills": "npm:0.81.6"
+    "@react-native/normalize-colors": "npm:0.81.6"
+    "@react-native/virtualized-lists": "npm:0.81.6"
+    abort-controller: "npm:^3.0.0"
+    anser: "npm:^1.4.9"
+    ansi-regex: "npm:^5.0.0"
+    babel-jest: "npm:^29.7.0"
+    babel-plugin-syntax-hermes-parser: "npm:0.29.1"
+    base64-js: "npm:^1.5.1"
+    commander: "npm:^12.0.0"
+    flow-enums-runtime: "npm:^0.0.6"
+    glob: "npm:^7.1.1"
+    invariant: "npm:^2.2.4"
+    jest-environment-node: "npm:^29.7.0"
+    memoize-one: "npm:^5.0.0"
+    metro-runtime: "npm:^0.83.1"
+    metro-source-map: "npm:^0.83.1"
+    nullthrows: "npm:^1.1.1"
+    pretty-format: "npm:^29.7.0"
+    promise: "npm:^8.3.0"
+    react-devtools-core: "npm:^6.1.5"
+    react-refresh: "npm:^0.14.0"
+    regenerator-runtime: "npm:^0.13.2"
+    scheduler: "npm:0.26.0"
+    semver: "npm:^7.1.3"
+    stacktrace-parser: "npm:^0.1.10"
+    whatwg-fetch: "npm:^3.0.0"
+    ws: "npm:^6.2.3"
+    yargs: "npm:^17.6.2"
+  peerDependencies:
+    "@types/react": ^19.1.4
+    react: ^19.1.4
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  bin:
+    react-native: cli.js
+  checksum: 10c0/ff42d33412091c0e22d2366c9aea726e33637d2e34c6a5b2703687923078aeb615b3cd38da637ffd2105d681cecb9e2da0b371a77452931347dcc8171b9d7d72
   languageName: node
   linkType: hard
 
@@ -28193,9 +28260,9 @@ __metadata:
     delay: "npm:^6.0.0"
     jest: "npm:^29.6.3"
     react: "npm:19.1.4"
-    react-native: "npm:0.86.2"
+    react-native: "npm:0.81.6"
     react-native-gesture-handler: "npm:2.14.0"
-    react-native-macos: "npm:0.81.7"
+    react-native-macos: "npm:0.81.8"
     react-native-reanimated: "npm:3.19.5"
     react-native-safe-area-context: "npm:4.8.0"
     react-native-screens: "npm:3.29.0"
