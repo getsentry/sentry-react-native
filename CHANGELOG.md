@@ -16,10 +16,6 @@
 
 - Session Replay network details now capture `fetch` (Blob/ArrayBuffer) response bodies ([#6473](https://github.com/getsentry/sentry-react-native/pull/6473), [#6533](https://github.com/getsentry/sentry-react-native/pull/6533))
 
-  React Native's `fetch` is built on `XMLHttpRequest` with `responseType: 'blob'`, so fetch response bodies previously always showed `[UNPARSEABLE_BODY_TYPE]` in the Replay network tab. Text-like binary payloads (JSON, XML, JavaScript, `text/*`, form data) are now read asynchronously and inlined like text bodies — still only for URLs matching `networkDetailAllowUrls` with `networkCaptureBodies` enabled, with the same ~150 KB cap. Genuinely binary payloads (images, media) remain marked as unparseable.
-
-  Because a binary body can only be read asynchronously while breadcrumbs are forwarded to the native SDKs synchronously, the breadcrumb still reaches the JavaScript scope immediately — error events captured while the read is in flight keep it — and only the sync to native is deferred until the body has been read. The breadcrumb keeps its original timestamp, so the replay places it correctly. Note that the breadcrumb attached to a JS error event still shows `[UNPARSEABLE_BODY_TYPE]` for these responses; the resolved body appears in the Replay network tab.
-
 ### Changes
 
 - Expose `instrumentStateGraph` for manual LangGraph instrumentation ([#6520](https://github.com/getsentry/sentry-react-native/pull/6520))
