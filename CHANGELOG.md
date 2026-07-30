@@ -10,6 +10,17 @@
 
 ### Features
 
+- Add `enableMetricKit` option to enable the iOS MetricKit integration ([#6457](https://github.com/getsentry/sentry-react-native/issues/6457))
+
+  When enabled, the iOS SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and `MXHangDiagnostic` reports to Sentry. Requires iOS 15 or later and is disabled by default. MetricKit hang diagnostics are reported by the operating system and are separate from the app hangs captured by `enableAppHangTracking`, so enabling both can result in the same hang being reported twice.
+
+  ```js
+  Sentry.init({
+    dsn: '___DSN___',
+    enableMetricKit: true,
+  });
+  ```
+
 - Attach a per-`(module, method)` TurboModule breakdown to active spans on `spanEnd`, plus `native.turbo_module` breadcrumbs for slow async calls ([#6478](https://github.com/getsentry/sentry-react-native/pull/6478))
 
   When a root span ends (idle nav spans from `reactNavigationIntegration` / `expoRouterIntegration`, or a user's own `Sentry.startSpan(...)`), the integration writes `turbo_module.<name>.<method>.{call_count,duration_ms,error_count}` attributes plus summary keys (`turbo_module.total_call_count`, `turbo_module.total_duration_ms`, `turbo_module.top_module`). Async calls above `slowCallThresholdMs` (default 500ms) additionally record a `native.turbo_module` breadcrumb. Both surfaces enabled by default; new knobs `enableSpanAttribution`, `slowCallThresholdMs`, `maxTopModulesPerSpan` on `turboModuleContextIntegration`.

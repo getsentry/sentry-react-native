@@ -197,6 +197,24 @@ export interface BaseReactNativeOptions {
   appHangTimeoutInterval?: number;
 
   /**
+   * Use this feature to enable the Sentry MetricKit integration.
+   *
+   * When enabled, the SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and
+   * `MXHangDiagnostic` to Sentry. Requires iOS 15 or later, because only on these versions MetricKit
+   * delivers diagnostic reports immediately. On earlier versions this option has no effect.
+   *
+   * MetricKit hang diagnostics are reported by the operating system and are distinct from the app
+   * hangs captured by `enableAppHangTracking`. Enabling both can result in the same hang being
+   * reported twice, from two different sources.
+   *
+   * iOS only
+   *
+   * @default false
+   * @platform ios
+   */
+  enableMetricKit?: boolean;
+
+  /**
    * The max queue size for capping the number of envelopes waiting to be sent by Transport.
    */
   maxQueueSize?: number;
