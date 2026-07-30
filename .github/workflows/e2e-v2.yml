@@ -235,7 +235,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ["0.71.19", "0.86.0"]
+        rn-version: ["0.71.19", "0.86.2"]
         rn-architecture: ["legacy", "new"]
         platform: ["android", "ios"]
         build-type: ["production"]
@@ -248,7 +248,7 @@ jobs:
             runs-on: macos-15-xlarge
           # Use Xcode 26 (macos-26) for newer RN versions
           - platform: ios
-            rn-version: "0.86.0"
+            rn-version: "0.86.2"
             runs-on: macos-26-xlarge
           - platform: android
             runs-on:
@@ -393,7 +393,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ["0.86.0"]
+        rn-version: ["0.86.2"]
         rn-architecture: ["legacy", "new"]
         platform: ["android", "ios"]
         build-type: ["production"]
@@ -402,7 +402,7 @@ jobs:
         runner_provider: ["cirrus", "bitrise"]
         include:
           - platform: ios
-            rn-version: "0.86.0"
+            rn-version: "0.86.2"
             runs-on:
               [
                 "ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0",
