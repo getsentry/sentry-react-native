@@ -1,6 +1,20 @@
-import { addBreadcrumb, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
+import {
+  addBreadcrumb,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  type Span,
+  SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
+  startInactiveSpan,
+} from '@sentry/core';
 
-import { expoUpdatesListenerIntegration, handleStateChange } from '../../src/js/integrations/expoupdateslistener';
+import {
+  expoUpdatesListenerIntegration,
+  handleSpanLifecycle,
+  handleStateChange,
+} from '../../src/js/integrations/expoupdateslistener';
+import { SPAN_ORIGIN_AUTO_EXPO_UPDATES } from '../../src/js/tracing/origin';
 import * as environment from '../../src/js/utils/environment';
 import { setupTestClient } from '../mocks/client';
 
@@ -10,6 +24,11 @@ jest.mock('@sentry/core', () => {
   return {
     ...actual,
     addBreadcrumb: jest.fn(),
+    startInactiveSpan: jest.fn().mockReturnValue({
+      setStatus: jest.fn(),
+      setAttribute: jest.fn(),
+      end: jest.fn(),
+    }),
   };
 });
 
@@ -29,6 +48,7 @@ const mockExpoUpdates = {
 jest.mock('expo-updates', () => mockExpoUpdates, { virtual: true });
 
 const mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<typeof addBreadcrumb>;
+const mockStartInactiveSpan = startInactiveSpan as jest.MockedFunction<typeof startInactiveSpan>;
 
 describe('ExpoUpdatesListener Integration', () => {
   afterEach(() => {
@@ -72,6 +92,64 @@ describe('ExpoUpdatesListener Integration', () => {
       client.emit('close');
 
       expect(mockRemove).toHaveBeenCalledTimes(1);
+    });
+
+    it('ends in-progress spans on client close', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+      mockStartInactiveSpan.mockReturnValueOnce(mockSpan as unknown as Span);
+
+      let capturedListener: ((event: { context: Record<string, unknown> }) => void) | undefined;
+      mockAddListener.mockImplementation((listener: (event: { context: Record<string, unknown> }) => void) => {
+        capturedListener = listener;
+        return { remove: jest.fn() };
+      });
+
+      const client = setupTestClient({ enableNative: true, integrations: [expoUpdatesListenerIntegration()] });
+
+      // Start a check (creates a span)
+      capturedListener!({
+        context: { ...mockLatestContext, isChecking: true },
+      });
+      expect(mockSpan.end).not.toHaveBeenCalled();
+
+      // Close the client — span should be ended as cancelled
+      // @ts-expect-error emit is not typed for 'close' on TestClient
+      client.emit('close');
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('ends in-progress spans on re-init', () => {
+      jest.spyOn(environment, 'isExpo').mockReturnValue(true);
+      jest.spyOn(environment, 'isExpoGo').mockReturnValue(false);
+
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+      mockStartInactiveSpan.mockReturnValueOnce(mockSpan as unknown as Span);
+
+      let capturedListener: ((event: { context: Record<string, unknown> }) => void) | undefined;
+      mockAddListener.mockImplementation((listener: (event: { context: Record<string, unknown> }) => void) => {
+        capturedListener = listener;
+        return { remove: jest.fn() };
+      });
+
+      const integration = expoUpdatesListenerIntegration();
+      setupTestClient({ enableNative: true, integrations: [integration] });
+
+      // Start a check (creates a span)
+      capturedListener!({
+        context: { ...mockLatestContext, isChecking: true },
+      });
+      expect(mockSpan.end).not.toHaveBeenCalled();
+
+      // Re-init — old span should be ended as cancelled
+      setupTestClient({ enableNative: true, integrations: [integration] });
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
+      expect(mockSpan.end).toHaveBeenCalled();
     });
 
     it('removes previous subscription when setup is called again', () => {
@@ -391,6 +469,198 @@ describe('ExpoUpdatesListener Integration', () => {
           data: { error: 'Custom error string' },
         }),
       );
+    });
+  });
+
+  describe('handleSpanLifecycle', () => {
+    const baseContext = {
+      isChecking: false,
+      isDownloading: false,
+      isUpdateAvailable: false,
+      isUpdatePending: false,
+      isRestarting: false,
+    };
+
+    beforeEach(() => {
+      mockStartInactiveSpan.mockClear();
+    });
+
+    it('starts a check span when isChecking transitions to true', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+      mockStartInactiveSpan.mockReturnValueOnce(mockSpan as unknown as Span);
+
+      const result = handleSpanLifecycle(
+        { ...baseContext },
+        { ...baseContext, isChecking: true },
+        undefined,
+        undefined,
+      );
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+        name: 'expo-updates check',
+        op: 'app.update.check',
+        forceTransaction: true,
+        attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
+      });
+      expect(result.checkSpan).toBe(mockSpan);
+    });
+
+    it('ends check span with ok status when check succeeds with update available', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+
+      handleSpanLifecycle(
+        { ...baseContext, isChecking: true },
+        { ...baseContext, isChecking: false, isUpdateAvailable: true, latestManifest: { id: 'update-123' } },
+        mockSpan as unknown as Span,
+        undefined,
+      );
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SPAN_STATUS_OK });
+      expect(mockSpan.setAttribute).toHaveBeenCalledWith('expo.update.id', 'update-123');
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('ends check span with ok status when no update available', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+
+      const result = handleSpanLifecycle(
+        { ...baseContext, isChecking: true },
+        { ...baseContext, isChecking: false, isUpdateAvailable: false },
+        mockSpan as unknown as Span,
+        undefined,
+      );
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SPAN_STATUS_OK });
+      expect(mockSpan.setAttribute).not.toHaveBeenCalled();
+      expect(mockSpan.end).toHaveBeenCalled();
+      expect(result.checkSpan).toBeUndefined();
+    });
+
+    it('ends check span with error status on check error', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+
+      handleSpanLifecycle(
+        { ...baseContext, isChecking: true },
+        { ...baseContext, isChecking: false, checkError: new Error('Network failed') },
+        mockSpan as unknown as Span,
+        undefined,
+      );
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SPAN_STATUS_ERROR, message: 'Network failed' });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('starts a download span when isDownloading transitions to true', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+      mockStartInactiveSpan.mockReturnValueOnce(mockSpan as unknown as Span);
+
+      const result = handleSpanLifecycle(
+        { ...baseContext },
+        { ...baseContext, isDownloading: true },
+        undefined,
+        undefined,
+      );
+
+      expect(mockStartInactiveSpan).toHaveBeenCalledWith({
+        name: 'expo-updates download',
+        op: 'app.update.download',
+        forceTransaction: true,
+        attributes: { 'sentry.origin': SPAN_ORIGIN_AUTO_EXPO_UPDATES },
+      });
+      expect(result.downloadSpan).toBe(mockSpan);
+    });
+
+    it('ends download span with ok status when download succeeds', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+
+      handleSpanLifecycle(
+        { ...baseContext, isDownloading: true },
+        { ...baseContext, isDownloading: false, isUpdatePending: true, downloadedManifest: { id: 'dl-456' } },
+        undefined,
+        mockSpan as unknown as Span,
+      );
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SPAN_STATUS_OK });
+      expect(mockSpan.setAttribute).toHaveBeenCalledWith('expo.update.id', 'dl-456');
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('ends download span with error status on download error', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+
+      handleSpanLifecycle(
+        { ...baseContext, isDownloading: true },
+        { ...baseContext, isDownloading: false, downloadError: new Error('Insufficient storage') },
+        undefined,
+        mockSpan as unknown as Span,
+      );
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SPAN_STATUS_ERROR,
+        message: 'Insufficient storage',
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('does not start spans when fields stay the same', () => {
+      handleSpanLifecycle({ ...baseContext }, { ...baseContext }, undefined, undefined);
+
+      expect(mockStartInactiveSpan).not.toHaveBeenCalled();
+    });
+
+    it('does not end spans when isChecking stays true', () => {
+      const mockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+
+      const result = handleSpanLifecycle(
+        { ...baseContext, isChecking: true },
+        { ...baseContext, isChecking: true },
+        mockSpan as unknown as Span,
+        undefined,
+      );
+
+      expect(mockSpan.end).not.toHaveBeenCalled();
+      expect(result.checkSpan).toBe(mockSpan);
+    });
+
+    it('handles full check-then-download lifecycle', () => {
+      const checkMockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+      const downloadMockSpan = { setStatus: jest.fn(), setAttribute: jest.fn(), end: jest.fn() };
+      mockStartInactiveSpan
+        .mockReturnValueOnce(checkMockSpan as unknown as Span)
+        .mockReturnValueOnce(downloadMockSpan as unknown as Span);
+
+      // Step 1: Start checking
+      let result = handleSpanLifecycle({ ...baseContext }, { ...baseContext, isChecking: true }, undefined, undefined);
+      expect(result.checkSpan).toBe(checkMockSpan);
+
+      // Step 2: Check complete, update available
+      result = handleSpanLifecycle(
+        { ...baseContext, isChecking: true },
+        { ...baseContext, isUpdateAvailable: true, latestManifest: { id: 'u-1' } },
+        result.checkSpan,
+        result.downloadSpan,
+      );
+      expect(checkMockSpan.end).toHaveBeenCalled();
+      expect(result.checkSpan).toBeUndefined();
+
+      // Step 3: Start downloading
+      result = handleSpanLifecycle(
+        { ...baseContext, isUpdateAvailable: true },
+        { ...baseContext, isUpdateAvailable: true, isDownloading: true },
+        result.checkSpan,
+        result.downloadSpan,
+      );
+      expect(result.downloadSpan).toBe(downloadMockSpan);
+
+      // Step 4: Download complete
+      result = handleSpanLifecycle(
+        { ...baseContext, isUpdateAvailable: true, isDownloading: true },
+        { ...baseContext, isUpdateAvailable: true, isUpdatePending: true, downloadedManifest: { id: 'u-1' } },
+        result.checkSpan,
+        result.downloadSpan,
+      );
+      expect(downloadMockSpan.end).toHaveBeenCalled();
+      expect(result.downloadSpan).toBeUndefined();
     });
   });
 });

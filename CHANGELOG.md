@@ -10,6 +10,7 @@
 
 ### Features
 
+- Add check and download timing spans to Expo Updates listener integration ([#6430](https://github.com/getsentry/sentry-react-native/pull/6430))
 - Attach a per-`(module, method)` TurboModule breakdown to active spans on `spanEnd`, plus `native.turbo_module` breadcrumbs for slow async calls ([#6478](https://github.com/getsentry/sentry-react-native/pull/6478))
 
   When a root span ends (idle nav spans from `reactNavigationIntegration` / `expoRouterIntegration`, or a user's own `Sentry.startSpan(...)`), the integration writes `turbo_module.<name>.<method>.{call_count,duration_ms,error_count}` attributes plus summary keys (`turbo_module.total_call_count`, `turbo_module.total_duration_ms`, `turbo_module.top_module`). Async calls above `slowCallThresholdMs` (default 500ms) additionally record a `native.turbo_module` breadcrumb. Both surfaces enabled by default; new knobs `enableSpanAttribution`, `slowCallThresholdMs`, `maxTopModulesPerSpan` on `turboModuleContextIntegration`.
@@ -19,6 +20,9 @@
 - Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6474](https://github.com/getsentry/sentry-react-native/pull/6474))
 
   The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
+- Session Replay network details now capture `fetch` (Blob/ArrayBuffer) response bodies ([#6473](https://github.com/getsentry/sentry-react-native/pull/6473), [#6533](https://github.com/getsentry/sentry-react-native/pull/6533))
+
+- Fix duplicate navigation transaction on Expo Router `withAnchor` navigations ([#6439](https://github.com/getsentry/sentry-react-native/pull/6439))
 
 ### Changes
 
@@ -37,9 +41,9 @@
 - Bump CLI from v3.6.1 to v3.6.2 ([#6511](https://github.com/getsentry/sentry-react-native/pull/6511))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#362)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.1...3.6.2)
-- Bump JavaScript SDK from v10.67.0 to v10.68.0 ([#6516](https://github.com/getsentry/sentry-react-native/pull/6516))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10680)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.67.0...10.68.0)
+- Bump JavaScript SDK from v10.67.0 to v10.69.0 ([#6516](https://github.com/getsentry/sentry-react-native/pull/6516), [#6537](https://github.com/getsentry/sentry-react-native/pull/6537))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10690)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.67.0...10.69.0)
 
 ## 8.20.0
 

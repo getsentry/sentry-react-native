@@ -11,6 +11,7 @@ import {
 } from '@sentry/core';
 
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
+import type { UnsafeAction } from '../../src/js/vendor/react-navigation/types';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
@@ -1274,6 +1275,179 @@ describe('ReactNavigationInstrumentation', () => {
           expect(client.event === undefined).toBe(useDispatchedActionData);
         },
       );
+    });
+  });
+
+  describe('withAnchor POP_TO bookkeeping dispatch (#6434)', () => {
+    // `router.dismissTo('/ScreenB', { withAnchor: true })` navigates to ScreenB
+    // (a real POP_TO) and, on some expo-router versions, immediately issues a
+    // second POP_TO to the same route purely to stamp `initial: false`. That
+    // bookkeeping dispatch carries no state change of its own and must not
+    // produce a second, spurious navigation transaction.
+    const realPopTo: UnsafeAction = {
+      data: {
+        action: { type: 'POP_TO', payload: { name: 'ScreenB', params: {} } },
+        noop: false,
+        stack: undefined,
+      },
+    };
+    const bookkeepingPopTo: UnsafeAction = {
+      data: {
+        action: { type: 'POP_TO', payload: { name: 'ScreenB', params: { initial: false } } },
+        noop: false,
+        stack: undefined,
+      },
+    };
+
+    function countTransactionsNamed(name: string): number {
+      return client.eventQueue.filter(e => e.type === 'transaction' && e.transaction === name).length;
+    }
+
+    test('does not create a second transaction for the bookkeeping dispatch', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers(); // Flush the initial navigation span
+      client.eventQueue = [];
+
+      // Real navigation to ScreenB — resolves via a state change.
+      mockNavigation.emitWithStateChange(realPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+
+      // withAnchor bookkeeping POP_TO to the same route. It only flips
+      // `params.initial`, which React Navigation reports as a state change to
+      // the same route key.
+      mockNavigation.emitWithStateChange(bookkeepingPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('ScreenB')).toBe(1);
+    });
+
+    test('does not create a second transaction with useDispatchedActionData disabled (default Expo setup)', async () => {
+      // The guards are driven off `actionType`, not the opt-in flag, so the
+      // default `expoRouterIntegration` setup (flag off) is fixed too.
+      setupTestClient({ useDispatchedActionData: false });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(realPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+
+      mockNavigation.emitWithStateChange(bookkeepingPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.filter(e => e.type === 'transaction').length).toBe(1);
+    });
+
+    test('still creates a transaction for a genuine popTo navigation', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers(); // Flush the initial navigation span
+      client.eventQueue = [];
+
+      // A real dismissTo/popTo to a different route must still be traced.
+      mockNavigation.emitWithStateChange(realPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('ScreenB')).toBe(1);
+    });
+
+    test('still creates a span for a popTo to an earlier same-named route in the stack', async () => {
+      // Stack with a repeated route name (e.g. Expo Router `[id]`): on Detail(#2),
+      // popTo the earlier Detail(#1). The target name matches the focused leaf
+      // name, but the bookkeeping marker (`initial: false`) is absent, so this
+      // real, key-changing navigation must NOT be filtered.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(
+        { data: { action: { type: 'PUSH', payload: { name: 'Detail' } }, noop: false, stack: undefined } },
+        { key: 'detail_2', name: 'Detail' },
+      );
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(
+        { data: { action: { type: 'POP_TO', payload: { name: 'Detail' } }, noop: false, stack: undefined } },
+        { key: 'detail_1', name: 'Detail' },
+      );
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('Detail')).toBe(1);
+    });
+
+    test('discards a bookkeeping POP_TO that slips past the dispatch-time filter (same route key)', async () => {
+      // Payload name matches no focused route (e.g. a parent navigator name),
+      // so the dispatch-time filter misses, but the state change lands on the
+      // same route key — the state-change guard must discard the span.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: '(app)', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.filter(e => e.type === 'transaction').length).toBe(0);
+    });
+
+    test('keeps a same-route POP_TO span that carries a deep link', async () => {
+      // A same-route POP_TO that is actually a deep link to the screen you are
+      // already on must NOT be discarded by the bookkeeping guard.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      setPendingDeepLink('myapp://initial-screen', 'warm-open');
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: '(app)', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event?.contexts?.trace?.data?.['navigation.trigger']).toBe('deeplink');
+      clearPendingDeepLink();
+    });
+
+    test('a focused-route bookkeeping POP_TO does not tear down an in-flight navigation span', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+
+      // Start a real, still-in-flight navigation (dispatch with a route name in
+      // the payload, but no state change yet).
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'NAVIGATE', payload: { name: 'New Screen' } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      const activeSpan = getActiveSpan();
+      expect(activeSpan).toBeDefined();
+
+      // The withAnchor bookkeeping POP_TO to the already-focused route must not
+      // discard that in-flight span via the "noop transaction" branch.
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: 'Initial Screen', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+
+      expect(getActiveSpan()).toBe(activeSpan);
     });
   });
 
