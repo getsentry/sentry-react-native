@@ -27,7 +27,7 @@
 
 ### Fixes
 
-- Attach `debug_meta` to JS error events on Hermes when the Debug ID stack match fails ([#6480](https://github.com/getsentry/sentry-react-native/issues/6480))
+- Attach `debug_meta` to JS error events on Hermes when the Debug ID stack match fails ([#6545](https://github.com/getsentry/sentry-react-native/pull/6545))
 
 ## 8.21.0
 
