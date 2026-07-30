@@ -211,6 +211,9 @@ export function createTimeToInitialDisplay(input: {
 }): React_2.ComponentType<TimeToDisplayProps>;
 
 // @public
+export const debugMetaIntegration: () => Integration;
+
+// @public
 export const debugSymbolicatorIntegration: () => Integration;
 
 export { dedupeIntegration }

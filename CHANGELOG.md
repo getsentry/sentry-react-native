@@ -25,6 +25,10 @@
 
   Apps on the Old Architecture now get the same aggregate, span attribution and slow call breadcrumbs as TurboModules. An `arch: 'new' | 'legacy'` field distinguishes the two sources. Opt in with `turboModuleContextIntegration({ enableLegacyNativeModules: true })`.
 
+### Fixes
+
+- Attach `debug_meta` to JS error events on Hermes when the Debug ID stack match fails ([#6480](https://github.com/getsentry/sentry-react-native/issues/6480))
+
 ## 8.21.0
 
 ### Features
