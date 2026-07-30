@@ -2,6 +2,8 @@
 #import <QuartzCore/QuartzCore.h>
 #import <React/RCTLog.h>
 
+const int TIME_TO_DISPLAY_ENTRIES_MAX_SIZE = 50;
+
 // All static state below is accessed from the main thread (CADisplayLink, UI) and from the
 // React Native bridge / JS thread (setActiveSpanId, pop). Synchronize every access.
 @implementation RNSentryTimeToDisplay {

@@ -36,11 +36,22 @@
 
 - `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` ([#6543](https://github.com/getsentry/sentry-react-native/pull/6543))
 
+### Changes
+
+- Migrate iOS internals from the deprecated `PrivateSentrySDKOnly` SPI to `SentrySDK.internal` ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
+
+  Re-lands [#6380](https://github.com/getsentry/sentry-react-native/pull/6380), which was reverted in 8.20.0 because it broke iOS screenshot capture ([#6497](https://github.com/getsentry/sentry-react-native/issues/6497)). The underlying sentry-cocoa bug is fixed in 9.24.0.
+
+  The `RNSentry` pod now contains Swift code. On React Native versions where RN pods are not modularized by default (e.g. RN 0.71), add `use_modular_headers!` to your `ios/Podfile`.
+
 ### Dependencies
 
 - Bump Android SDK from v8.50.1 to v8.51.0 ([#6539](https://github.com/getsentry/sentry-react-native/pull/6539))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8510)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.50.1...8.51.0)
+- Bump Cocoa SDK from v9.19.1 to v9.24.0 ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9240)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.19.1...9.24.0)
 
 ## 8.21.0
 

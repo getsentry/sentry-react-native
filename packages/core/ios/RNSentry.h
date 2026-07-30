@@ -14,12 +14,7 @@
 
 typedef int (*SymbolicateCallbackType)(const void *, Dl_info *);
 
-@class SentryOptions;
 @class SentryEvent;
-
-@interface SentrySDKInternal : NSObject
-@property (nonatomic, nullable, readonly, class) SentryOptions *options;
-@end
 
 @interface RNSentry : RCTEventEmitter <RCTBridgeModule>
 
