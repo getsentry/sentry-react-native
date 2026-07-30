@@ -118,21 +118,25 @@ describe('turboModuleContextIntegration', () => {
 
     turboModuleContextIntegration().setupOnce!();
 
-    expect(wrapSpy).toHaveBeenCalledWith('RNSentry', fakeModule, {
-      skip: [
-        'addListener',
-        'removeListeners',
-        'setContext',
-        'setTag',
-        'setExtra',
-        'setUser',
-        'addBreadcrumb',
-        'clearBreadcrumbs',
-        'setAttribute',
-        'setAttributes',
-        'removeAttribute',
-      ],
-    });
+    expect(wrapSpy).toHaveBeenCalledWith(
+      'RNSentry',
+      fakeModule,
+      expect.objectContaining({
+        skip: [
+          'addListener',
+          'removeListeners',
+          'setContext',
+          'setTag',
+          'setExtra',
+          'setUser',
+          'addBreadcrumb',
+          'clearBreadcrumbs',
+          'setAttribute',
+          'setAttributes',
+          'removeAttribute',
+        ],
+      }),
+    );
   });
 
   it('does not wrap scope-sync methods on RNSentry (would recurse infinitely)', () => {
@@ -187,13 +191,42 @@ describe('turboModuleContextIntegration', () => {
       modules: [{ name: 'Other', module: fakeOther, skipMethods: ['ignored'] }],
     }).setupOnce!();
 
-    expect(wrapSpy).toHaveBeenCalledWith('Other', fakeOther, { skip: ['ignored'] });
+    expect(wrapSpy).toHaveBeenCalledWith('Other', fakeOther, expect.objectContaining({ skip: ['ignored'] }));
   });
 
   it('tolerates a missing RNSentry module', () => {
     jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
 
     expect(() => turboModuleContextIntegration().setupOnce!()).not.toThrow();
+  });
+
+  describe('legacy NativeModules auto-wrap', () => {
+    beforeEach(() => {
+      jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
+    });
+
+    it('is opt-in — does not auto-wrap legacy NativeModules by default', () => {
+      const wrapAllSpy = jest.spyOn(turboModule, 'wrapAllNativeModules');
+
+      turboModuleContextIntegration().setupOnce!();
+
+      expect(wrapAllSpy).not.toHaveBeenCalled();
+    });
+
+    it('auto-wraps legacy NativeModules when explicitly enabled', () => {
+      const wrapAllSpy = jest.spyOn(turboModule, 'wrapAllNativeModules').mockReturnValue([]);
+
+      turboModuleContextIntegration({
+        enableLegacyNativeModules: true,
+        legacyModulesSkip: ['SkipMe'],
+        legacyModulesSkipMethods: { WrapMe: ['drop'] },
+      }).setupOnce!();
+
+      expect(wrapAllSpy).toHaveBeenCalledWith({
+        skipModules: ['SkipMe'],
+        skipMethodsPerModule: { WrapMe: ['drop'] },
+      });
+    });
   });
 
   describe('empty-sentinel tag stripping', () => {

@@ -175,4 +175,4 @@ export {
   pushTurboModuleCall,
   wrapTurboModule,
 } from './turbomodule';
-export type { TurboModuleCall, TurboModuleCallKind } from './turbomodule';
+export type { TurboModuleArch, TurboModuleCall, TurboModuleCallKind } from './turbomodule';
