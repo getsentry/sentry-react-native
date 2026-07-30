@@ -7,21 +7,28 @@ import { _resetWrappedModules } from '../../src/js/turbomodule/wrapTurboModule';
 import * as environment from '../../src/js/utils/environment';
 
 describe('wrapAllNativeModules', () => {
-  const originalKeys = Object.keys(NativeModules);
+  let originalDescriptors: Record<string, PropertyDescriptor>;
 
   beforeEach(() => {
     _resetWrappedModules();
     jest.restoreAllMocks();
+    originalDescriptors = Object.getOwnPropertyDescriptors(NativeModules);
   });
 
   afterEach(() => {
-    // Clear anything the test added to NativeModules so it doesn't leak.
-    for (const key of Object.keys(NativeModules)) {
-      if (!originalKeys.includes(key)) {
+    // Restore NativeModules to its exact pre-test shape. Tests not only add keys,
+    // they also overwrite existing ones (`Timing`, `UIManager`, ...) and
+    // `wrapAllNativeModules` itself re-defines property descriptors when arming
+    // lazy modules — all of which would otherwise leak into later tests.
+    // `getOwnPropertyNames` (not `Object.keys`) because one test mocks
+    // `Object.keys` and non-enumerable entries must be cleared too.
+    for (const key of Object.getOwnPropertyNames(NativeModules)) {
+      if (Object.getOwnPropertyDescriptor(NativeModules, key)?.configurable) {
         // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
         delete (NativeModules as Record<string, unknown>)[key];
       }
     }
+    Object.defineProperties(NativeModules, originalDescriptors);
   });
 
   it('is a no-op on the New Architecture', () => {

@@ -200,6 +200,35 @@ describe('turboModuleContextIntegration', () => {
     expect(() => turboModuleContextIntegration().setupOnce!()).not.toThrow();
   });
 
+  describe('legacy NativeModules auto-wrap', () => {
+    beforeEach(() => {
+      jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
+    });
+
+    it('is opt-in — does not auto-wrap legacy NativeModules by default', () => {
+      const wrapAllSpy = jest.spyOn(turboModule, 'wrapAllNativeModules');
+
+      turboModuleContextIntegration().setupOnce!();
+
+      expect(wrapAllSpy).not.toHaveBeenCalled();
+    });
+
+    it('auto-wraps legacy NativeModules when explicitly enabled', () => {
+      const wrapAllSpy = jest.spyOn(turboModule, 'wrapAllNativeModules').mockReturnValue([]);
+
+      turboModuleContextIntegration({
+        enableLegacyNativeModules: true,
+        legacyModulesSkip: ['SkipMe'],
+        legacyModulesSkipMethods: { WrapMe: ['drop'] },
+      }).setupOnce!();
+
+      expect(wrapAllSpy).toHaveBeenCalledWith({
+        skipModules: ['SkipMe'],
+        skipMethodsPerModule: { WrapMe: ['drop'] },
+      });
+    });
+  });
+
   describe('empty-sentinel tag stripping', () => {
     beforeEach(() => {
       jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);

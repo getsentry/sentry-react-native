@@ -75,7 +75,11 @@ export interface TurboModuleContextOptions {
   maxTopModulesPerSpan?: number;
 
   /**
-   * On Old Architecture, auto-wrap registered `NativeModules.*`. Default: `true`.
+   * On Old Architecture, auto-wrap registered `NativeModules.*`. Default: `false`.
+   *
+   * Opt-in while we gather feedback: unlike the New Architecture path, which only
+   * sees modules the app actually imports, this instruments every registered
+   * bridge module, including third-party ones.
    *
    * Lazily-exposed modules stay lazy — they are wrapped on first access rather than
    * initialised during `Sentry.init`.
@@ -149,7 +153,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
         wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods, arch: contextArch });
       }
 
-      if (options.enableLegacyNativeModules !== false) {
+      if (options.enableLegacyNativeModules === true) {
         wrapAllNativeModules({
           skipModules: options.legacyModulesSkip,
           skipMethodsPerModule: options.legacyModulesSkipMethods,
