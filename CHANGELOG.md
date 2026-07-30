@@ -6,6 +6,21 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add `enableMetricKit` option to enable the iOS MetricKit integration ([#6540](https://github.com/getsentry/sentry-react-native/pull/6540))
+
+  When enabled, the iOS SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and `MXHangDiagnostic` reports to Sentry. Requires iOS 15 or later and is disabled by default. MetricKit hang diagnostics are reported by the operating system and are separate from the app hangs captured by `enableAppHangTracking`, so enabling both can result in the same hang being reported twice.
+
+  ```js
+  Sentry.init({
+    dsn: '___DSN___',
+    enableMetricKit: true,
+  });
+  ```
+
 ## 8.21.0
 
 ### Features
