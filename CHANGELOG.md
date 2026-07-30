@@ -21,6 +21,10 @@
   });
   ```
 
+### Fixes
+
+- `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` (not only `@sentry/react-native/expo`) ([#6538](https://github.com/getsentry/sentry-react-native/issues/6538))
+
 ## 8.21.0
 
 ### Features
