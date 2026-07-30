@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 8.21.0
+## Unreleased
 
 ### Features
 
@@ -20,6 +20,10 @@
     enableMetricKit: true,
   });
   ```
+
+## 8.21.0
+
+### Features
 
 - Add check and download timing spans to Expo Updates listener integration ([#6430](https://github.com/getsentry/sentry-react-native/pull/6430))
 - Attach a per-`(module, method)` TurboModule breakdown to active spans on `spanEnd`, plus `native.turbo_module` breadcrumbs for slow async calls ([#6478](https://github.com/getsentry/sentry-react-native/pull/6478))
