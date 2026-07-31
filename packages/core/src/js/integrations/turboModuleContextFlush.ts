@@ -129,6 +129,7 @@ function serialiseRows(rows: ReadonlyArray<TurboModuleAggregate>): Record<string
     out[`${prefix}.error_count`] = row.errorCount;
     out[`${prefix}.total_ms`] = roundMs(row.totalDurationMs);
     out[`${prefix}.max_ms`] = roundMs(row.maxDurationMs);
+    out[`${prefix}.arch`] = row.arch;
     for (let i = 0; i < row.buckets.length; i++) {
       const label = HISTOGRAM_BUCKET_LABELS[i];
       const count = row.buckets[i];
@@ -144,6 +145,7 @@ function serialiseRowAsObject(row: TurboModuleAggregate): {
   name: string;
   method: string;
   kind: string;
+  arch: string;
   call_count: number;
   error_count: number;
   total_ms: number;
@@ -162,6 +164,7 @@ function serialiseRowAsObject(row: TurboModuleAggregate): {
     name: row.name,
     method: row.method,
     kind: row.kind,
+    arch: row.arch,
     call_count: row.callCount,
     error_count: row.errorCount,
     total_ms: roundMs(row.totalDurationMs),

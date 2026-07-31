@@ -2,7 +2,7 @@ import { logger } from '@sentry/core';
 
 import type { TurboModuleCallKind } from './turboModuleTracker';
 
-import { notifyTurboModuleCallStart, recordTurboModuleCall } from './turboModuleAggregator';
+import { notifyTurboModuleCallStart, recordTurboModuleCall, type TurboModuleArch } from './turboModuleAggregator';
 import { popTurboModuleCall, pushTurboModuleCall, relabelTurboModuleCallKind } from './turboModuleTracker';
 
 /**
@@ -32,7 +32,7 @@ export function _resetWrappedModules(): void {
 export function wrapTurboModule<T extends object>(
   name: string,
   module: T | null | undefined,
-  options: { skip?: ReadonlyArray<string> } = {},
+  options: { skip?: ReadonlyArray<string>; arch?: TurboModuleArch } = {},
 ): T | null | undefined {
   if (!module) {
     return module;
@@ -43,6 +43,7 @@ export function wrapTurboModule<T extends object>(
   }
 
   const skip = new Set(options.skip ?? []);
+  const arch: TurboModuleArch = options.arch ?? 'new';
   const methodNames = collectMethodNames(module);
 
   if (methodNames.length === 0) {
@@ -92,7 +93,7 @@ export function wrapTurboModule<T extends object>(
         logger.warn(`[TurboModuleTracker] push failed for ${name}.${key}: ${String(e)}`);
       }
       try {
-        recordId = notifyTurboModuleCallStart(name, key, 'sync');
+        recordId = notifyTurboModuleCallStart(name, key, 'sync', arch);
       } catch (e) {
         logger.warn(`[TurboModuleTracker] notifyStart failed for ${name}.${key}: ${String(e)}`);
       }
@@ -102,7 +103,7 @@ export function wrapTurboModule<T extends object>(
         result = originalFn.apply(this, args);
       } catch (e) {
         safePop(callId, name, key);
-        safeRecord(name, key, 'sync', startedAtMs, true, recordId);
+        safeRecord(name, key, 'sync', startedAtMs, true, recordId, arch);
         throw e;
       }
 
@@ -111,19 +112,19 @@ export function wrapTurboModule<T extends object>(
         return (result as Promise<unknown>).then(
           value => {
             safePop(callId, name, key);
-            safeRecord(name, key, 'async', startedAtMs, false, recordId);
+            safeRecord(name, key, 'async', startedAtMs, false, recordId, arch);
             return value;
           },
           err => {
             safePop(callId, name, key);
-            safeRecord(name, key, 'async', startedAtMs, true, recordId);
+            safeRecord(name, key, 'async', startedAtMs, true, recordId, arch);
             throw err;
           },
         );
       }
 
       safePop(callId, name, key);
-      safeRecord(name, key, 'sync', startedAtMs, false, recordId);
+      safeRecord(name, key, 'sync', startedAtMs, false, recordId, arch);
       return result;
     };
 
@@ -206,6 +207,7 @@ function safeRecord(
   startedAtMs: number,
   errored: boolean,
   recordId: number | undefined,
+  arch: TurboModuleArch,
 ): void {
   try {
     recordTurboModuleCall({
@@ -215,6 +217,7 @@ function safeRecord(
       durationMs: Date.now() - startedAtMs,
       errored,
       recordId,
+      arch,
     });
   } catch (e) {
     logger.warn(`[TurboModuleTracker] record failed for ${name}.${method}: ${String(e)}`);

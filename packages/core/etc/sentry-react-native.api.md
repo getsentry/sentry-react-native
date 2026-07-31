@@ -857,6 +857,9 @@ export class TouchEventBoundary extends React_2.Component<TouchEventBoundaryProp
 export { TransactionEvent }
 
 // @public
+export type TurboModuleArch = 'new' | 'legacy';
+
+// @public
 export interface TurboModuleCall {
     callId: number;
     kind: TurboModuleCallKind;
@@ -875,8 +878,11 @@ export const turboModuleContextIntegration: (options?: TurboModuleContextOptions
 export interface TurboModuleContextOptions {
     aggregateFlushIntervalMs?: number;
     enableAggregateStats?: boolean;
+    enableLegacyNativeModules?: boolean;
     enableSpanAttribution?: boolean;
     ignoreTurboModules?: ReadonlyArray<string>;
+    legacyModulesSkip?: ReadonlyArray<string>;
+    legacyModulesSkipMethods?: Readonly<Record<string, ReadonlyArray<string>>>;
     maxTopModulesPerSpan?: number;
     modules?: Array<{
         name: string;
@@ -936,6 +942,7 @@ export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryPro
 // @public
 export function wrapTurboModule<T extends object>(name: string, module: T | null | undefined, options?: {
     skip?: ReadonlyArray<string>;
+    arch?: TurboModuleArch;
 }): T | null | undefined;
 
 // Warnings were encountered during analysis:

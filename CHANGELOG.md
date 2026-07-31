@@ -24,6 +24,15 @@
 ### Fixes
 
 - `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` ([#6543](https://github.com/getsentry/sentry-react-native/pull/6543))
+- Extend TurboModule instrumentation to the Old Architecture `NativeModules` bridge ([#6504](https://github.com/getsentry/sentry-react-native/pull/6504))
+
+  Apps on the Old Architecture now get the same aggregate, span attribution and slow call breadcrumbs as TurboModules. An `arch: 'new' | 'legacy'` field distinguishes the two sources. Opt in with `turboModuleContextIntegration({ enableLegacyNativeModules: true })`.
+
+### Dependencies
+
+- Bump Android SDK from v8.50.1 to v8.51.0 ([#6539](https://github.com/getsentry/sentry-react-native/pull/6539))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8510)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.50.1...8.51.0)
 
 ## 8.21.0
 
