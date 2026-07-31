@@ -165,3 +165,71 @@ def ensure_sentry_xcframework(version, product = 'Sentry')
   target_dir
 end
 
+# Directory inside the CocoaPods sandbox (`Pods/`) that holds the symlinks to
+# the cached xcframeworks staged by `stage_sentry_xcframework_in_pods`.
+SENTRY_XCFRAMEWORK_STAGING_DIR = 'sentry-xcframeworks'.freeze
+
+# Stage the cached xcframework behind a machine-independent `$(PODS_ROOT)`
+# reference.
+#
+# Everything assigned to `pod_target_xcconfig`/`user_target_xcconfig` is part
+# of the evaluated spec, and CocoaPods derives the pod's `SPEC CHECKSUM` in
+# `Podfile.lock` from exactly that evaluated spec. Pointing
+# `FRAMEWORK_SEARCH_PATHS` at the per-user cache directory
+# (`~/Library/Caches/…`) therefore leaked `$HOME` into the checksum: two
+# machines installing the same SDK version produced different `RNSentry`
+# checksums and `Podfile.lock` churned on every `pod install` (#6467).
+#
+# Instead, symlink `Pods/sentry-xcframeworks/<version>/<product>.xcframework`
+# to the cached bundle and reference it as
+# `$(PODS_ROOT)/sentry-xcframeworks/…` — a string that is identical on every
+# machine (including ones overriding `SENTRY_XCFRAMEWORK_CACHE_DIR`).
+# `$(PODS_ROOT)` is defined by CocoaPods in both the per-pod and the
+# user/aggregate xcconfigs, unlike `$(PODS_TARGET_SRCROOT)`, and the link
+# lives inside `Pods/` so no Podfile-layout detection is needed.
+#
+# Returns the `$(PODS_ROOT)`-based path, or nil when the link can't be staged
+# — callers must then fall back to the absolute cache path (previous
+# behaviour, functional but with a machine-specific checksum).
+def stage_sentry_xcframework_in_pods(xcframework_dir, version, product = 'Sentry')
+  # Only stage when we're inside a real `pod install`, i.e. CocoaPods has
+  # located a Podfile and `sandbox_root` therefore points at the `Pods/`
+  # directory of the project that will consume the xcconfig. Anywhere else
+  # (`pod ipc spec`, `pod lib lint`, plain `Specification.from_file`) the
+  # sandbox root is unrelated to that project — CocoaPods evaluates a podspec
+  # with the CWD set to the podspec's own directory, so a guessed
+  # `<cwd>/Pods` would stage the link inside `node_modules/@sentry/
+  # react-native/` and `$(PODS_ROOT)/…` would dangle at build time. Bail out
+  # and let the caller use the absolute path, which is always correct.
+  return nil unless defined?(Pod::Config) &&
+                    Pod::Config.instance.respond_to?(:podfile_path) &&
+                    Pod::Config.instance.podfile_path
+
+  staging_root = File.join(Pod::Config.instance.sandbox_root.to_s, SENTRY_XCFRAMEWORK_STAGING_DIR)
+  staging_dir = File.join(staging_root, version)
+  link_path = File.join(staging_dir, "#{product}.xcframework")
+
+  FileUtils.mkdir_p(staging_dir)
+  # Recreate the link when it's missing or points at a stale location (e.g.
+  # `SENTRY_XCFRAMEWORK_CACHE_DIR` changed between installs). `rm_rf` unlinks
+  # the symlink itself, it does not follow it into the shared cache.
+  unless File.symlink?(link_path) && File.readlink(link_path) == xcframework_dir
+    FileUtils.rm_rf(link_path)
+    File.symlink(xcframework_dir, link_path)
+  end
+
+  # Drop links staged for other sentry-cocoa versions (left behind by SDK
+  # upgrades) so the directory doesn't collect dangling symlinks.
+  Dir.glob(File.join(staging_root, '*')).each do |stale|
+    FileUtils.rm_rf(stale) unless File.basename(stale) == version
+  end
+
+  "$(PODS_ROOT)/#{SENTRY_XCFRAMEWORK_STAGING_DIR}/#{version}/#{product}.xcframework"
+rescue StandardError, NotImplementedError => e
+  if defined?(Pod::UI)
+    Pod::UI.warn "[Sentry] Could not link the #{product} xcframework into Pods/ " \
+                 "(#{e.class}: #{e.message}). Falling back to the absolute cache path; " \
+                 "the RNSentry checksum in Podfile.lock will be machine-specific."
+  end
+  nil
+end

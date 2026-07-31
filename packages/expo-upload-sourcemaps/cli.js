@@ -60,7 +60,9 @@ function getSentryPluginPropertiesFromExpoConfig() {
         return false;
       }
       const [pluginName] = plugin;
-      return pluginName === '@sentry/react-native/expo';
+      // Both '@sentry/react-native' and '@sentry/react-native/expo' are valid
+      // plugin paths in the Expo config; Expo resolves them the same way.
+      return pluginName === '@sentry/react-native/expo' || pluginName === '@sentry/react-native';
     });
 
     if (sentryPlugin) {

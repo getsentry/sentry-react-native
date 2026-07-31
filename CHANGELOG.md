@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Fixes
+
+- Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6534](https://github.com/getsentry/sentry-react-native/pull/6534))
+
+  The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
+
 ### Features
 
 - Add `enableNdkAppHangTracking` and `ndkAppHangTimeoutIntervalMillis` options to enable Android NDK app hang tracking ([#6548](https://github.com/getsentry/sentry-react-native/pull/6548))
@@ -26,6 +32,11 @@
 - Extend TurboModule instrumentation to the Old Architecture `NativeModules` bridge ([#6504](https://github.com/getsentry/sentry-react-native/pull/6504))
 
   Apps on the Old Architecture now get the same aggregate, span attribution and slow call breadcrumbs as TurboModules. An `arch: 'new' | 'legacy'` field distinguishes the two sources. Opt in with `turboModuleContextIntegration({ enableLegacyNativeModules: true })`.
+
+
+### Fixes
+
+- `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` ([#6543](https://github.com/getsentry/sentry-react-native/pull/6543))
 
 ### Dependencies
 
