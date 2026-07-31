@@ -299,6 +299,41 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE.enableNative).toBe(true);
     });
 
+    test('passes enableMetricKit to the Native SDK when set', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableMetricKit: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).toEqual(expect.objectContaining({ enableMetricKit: true }));
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('does not pass enableMetricKit to the Native SDK when not set', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('enableMetricKit');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
       NATIVE.enableNative = false;
       debug.warn = jest.fn();
