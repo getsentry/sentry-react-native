@@ -197,6 +197,29 @@ export interface BaseReactNativeOptions {
   appHangTimeoutInterval?: number;
 
   /**
+   * When enabled, the SDK uses sentry-native's heartbeat-based app-hang detection
+   * to track when the application stops responding for a specific amount of time
+   * defined by the `ndkAppHangTimeoutIntervalMillis` option.
+   *
+   * This is independent of the JVM-based ANR detection and requires NDK to be enabled.
+   *
+   * @default false
+   * @platform android
+   */
+  enableNdkAppHangTracking?: boolean;
+
+  /**
+   * The minimum amount of time in milliseconds an app should be unresponsive to be
+   * classified as an App Hang when using NDK app-hang detection.
+   *
+   * Only has an effect if `enableNdkAppHangTracking` is `true`.
+   *
+   * @default 5000
+   * @platform android
+   */
+  ndkAppHangTimeoutIntervalMillis?: number;
+
+  /**
    * Use this feature to enable the Sentry MetricKit integration.
    *
    * When enabled, the SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and
