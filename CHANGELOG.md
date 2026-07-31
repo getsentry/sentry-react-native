@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Fixes
+
+- Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6534](https://github.com/getsentry/sentry-react-native/pull/6534))
+
+  The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
+
 ### Features
 
 - Add `enableMetricKit` option to enable the iOS MetricKit integration ([#6540](https://github.com/getsentry/sentry-react-native/pull/6540))
@@ -28,6 +34,7 @@
 ### Fixes
 
 - Attach `debug_meta` to JS error events on Hermes when the Debug ID stack match fails ([#6545](https://github.com/getsentry/sentry-react-native/pull/6545))
+- `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` ([#6543](https://github.com/getsentry/sentry-react-native/pull/6543))
 
 ### Dependencies
 
