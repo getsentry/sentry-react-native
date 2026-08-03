@@ -83,6 +83,11 @@ const TurboModuleScreen = (_props: Props) => {
 
             span.end();
 
+            // Safe to read right after `end()`: `SentrySpan.end()` emits
+            // `spanEnd` — where the TurboModuleContext integration writes the
+            // attributes — before it seals the span, and spans created through
+            // the core span API are never sealed. Covered by
+            // `packages/core/test/integrations/turboModuleContext.spans.test.ts`.
             const collected = collectTurboModuleAttributes(span);
             setAttributes(collected);
             // Also log so the numbers are greppable from the device logs.
