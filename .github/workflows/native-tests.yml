@@ -32,15 +32,10 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   test-ios:
-    name: ios on ${{matrix.runner_provider}}
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    name: ios
+    runs-on: ["bitrise_pool_name:tahoe"]
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_ios == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -54,7 +49,6 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Setup asdf Node.js (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
         run: |
           asdf global nodejs system
           corepack enable
@@ -63,34 +57,15 @@ jobs:
         run: yarn install
 
       - uses: actions/cache@v6
-        name: Cache Ruby
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          path: |
-            ~/.rbenv/versions
-            ~/.rbenv/cache
-          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - uses: actions/cache@v6
         name: Cache Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
         with:
           path: ~/.asdf/installs/ruby
           key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
 
       - name: Install Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
         run: |
           asdf install ruby 3.3.0
           asdf local ruby 3.3.0
-
-      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          ruby-version: "3.3.0"
-        env:
-          # Disable rbenv to avoid .ruby-version conflicts
-          RBENV_VERSION: system
 
       - name: Install CocoaPods
         run: gem install cocoapods
@@ -138,8 +113,7 @@ jobs:
 
   test-android:
     name: android
-    runs-on:
-      ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+    runs-on: ubuntu-24.04-16core
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_android == 'true' }}
     steps:
