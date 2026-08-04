@@ -8,6 +8,19 @@
 
 ## Unreleased
 
+### Changes
+
+- Migrate iOS internals from the deprecated `PrivateSentrySDKOnly` SPI to `SentrySDK.internal` ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
+
+  Re-lands [#6380](https://github.com/getsentry/sentry-react-native/pull/6380), reverted in 8.20.0 by [#6491](https://github.com/getsentry/sentry-react-native/pull/6491) because it broke iOS screenshot capture. The underlying sentry-cocoa bug is fixed in 9.24.0.
+
+<!-- prettier-ignore-start -->
+> [!WARNING]
+> **Action required if you target React Native < 0.75.**
+> `RNSentry` now ships Swift code, which makes it a Swift pod under CocoaPods. If your `Podfile` doesn't already modularize React Native's ObjC pods (RN >= 0.75 does this by default), add `use_modular_headers!` to your `ios/Podfile` before running `pod install`. Otherwise `pod install` fails with an error like:
+> `The Swift pod 'RNSentry' depends upon 'React-hermes', which does not define modules.`
+<!-- prettier-ignore-end -->
+
 ### Fixes
 
 - Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6534](https://github.com/getsentry/sentry-react-native/pull/6534))
@@ -35,14 +48,6 @@
 ### Fixes
 
 - `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` ([#6543](https://github.com/getsentry/sentry-react-native/pull/6543))
-
-### Changes
-
-- Migrate iOS internals from the deprecated `PrivateSentrySDKOnly` SPI to `SentrySDK.internal` ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
-
-  Re-lands [#6380](https://github.com/getsentry/sentry-react-native/pull/6380), which was reverted in 8.20.0 because it broke iOS screenshot capture ([#6497](https://github.com/getsentry/sentry-react-native/issues/6497)). The underlying sentry-cocoa bug is fixed in 9.24.0.
-
-  The `RNSentry` pod now contains Swift code. On React Native versions where RN pods are not modularized by default (e.g. RN 0.71), add `use_modular_headers!` to your `ios/Podfile`.
 
 ### Dependencies
 

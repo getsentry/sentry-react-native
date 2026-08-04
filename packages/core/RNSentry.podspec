@@ -78,7 +78,13 @@ Pod::Spec.new do |s|
   # (`Signatures/*.signature` collision during archive).
   #
   # Set `SENTRY_USE_XCFRAMEWORK=0` to fall back to the source-built
-  # `Sentry` CocoaPod (e.g. for offline builds behind a restrictive proxy).
+  # `Sentry` CocoaPod. This fallback is unavailable for sentry-cocoa
+  # >= 9.20.0: upstream deleted `Sentry.podspec` and dropped the
+  # `cocoapods` publishing target in that release, so 9.19.1 is the last
+  # version on the CocoaPods trunk. Opting out therefore raises below
+  # with an explanation rather than letting CocoaPods fail with an
+  # opaque "None of your spec sources contain a spec satisfying the
+  # dependency: `Sentry (= x.y.z)`".
   #
   # `SENTRY_USE_SPM` was the name in earlier drafts of this PR; honor it as a
   # deprecated alias so CI or local envs still exporting `SENTRY_USE_SPM=0`
@@ -147,7 +153,18 @@ Pod::Spec.new do |s|
     pod_target_xcconfig.merge!(xcframework_search_paths)
     s.user_target_xcconfig = xcframework_search_paths
   else
-    s.dependency 'Sentry', sentry_cocoa_version
+    raise <<~MSG
+      [Sentry] SENTRY_USE_XCFRAMEWORK=0 is no longer supported.
+
+      sentry-cocoa stopped publishing to the CocoaPods trunk in 9.20.0
+      (`Sentry.podspec` was removed upstream), so `pod 'Sentry', '#{sentry_cocoa_version}'`
+      cannot resolve — 9.19.1 is the last version available there.
+
+      Unset SENTRY_USE_XCFRAMEWORK to use the prebuilt `Sentry.xcframework`.
+      For builds without network access to GitHub Releases, pre-populate the
+      cache on a machine that has access and point the build at it with
+      SENTRY_XCFRAMEWORK_CACHE_DIR.
+    MSG
   end
 
   # Assign before `install_modules_dependencies` so it can merge its
