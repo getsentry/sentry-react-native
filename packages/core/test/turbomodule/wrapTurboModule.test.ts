@@ -2,6 +2,7 @@ import * as SentryCore from '@sentry/core';
 import { Scope } from '@sentry/core';
 
 import { _resetTurboModuleAggregator, drainTurboModuleAggregate } from '../../src/js/turbomodule/turboModuleAggregator';
+import { CALLBACK_MAX_AGE_MS, MAX_PENDING_CALLBACK_CALLS } from '../../src/js/turbomodule/turboModuleCallbacks';
 import * as tracker from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetTurboModuleTracker, getTurboModuleCallStack } from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetWrappedModules, wrapTurboModule } from '../../src/js/turbomodule/wrapTurboModule';
@@ -349,5 +350,327 @@ describe('wrapTurboModule', () => {
         { method: 'asyncOk', kind: 'async', callCount: 1 },
       ]),
     );
+  });
+
+  describe('callback-style methods', () => {
+    /** Mimics an Old Architecture bridge method: RN tags every generated method with `type`. */
+    const asBridgeMethod = <T extends (...args: never[]) => unknown>(fn: T, type = 'async'): T => {
+      (fn as unknown as { type: string }).type = type;
+      return fn;
+    };
+
+    it('measures the duration until the success callback fires, not until return', () => {
+      let fireSuccess: () => void = () => undefined;
+      const module = {
+        doWork: (_arg: string, onSuccess: () => void): void => {
+          fireSuccess = onSuccess;
+        },
+      };
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      wrapTurboModule('Mod', module);
+
+      module.doWork('x', () => undefined);
+      // Nothing recorded yet — the call is still in flight.
+      expect(drainTurboModuleAggregate()).toEqual([]);
+
+      nowSpy.mockReturnValue(1_750);
+      fireSuccess();
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({
+        method: 'doWork',
+        kind: 'async',
+        callCount: 1,
+        errorCount: 0,
+        totalDurationMs: 750,
+      });
+    });
+
+    it('pops the crash-attribution frame synchronously, before the callback fires', () => {
+      let fireSuccess: () => void = () => undefined;
+      const module = {
+        doWork: (onSuccess: () => void): void => {
+          fireSuccess = onSuccess;
+        },
+      };
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => undefined);
+
+      expect(getTurboModuleCallStack()).toEqual([]);
+      expect(scope.getScopeData().contexts.turbo_module).toBeUndefined();
+
+      fireSuccess();
+      expect(getTurboModuleCallStack()).toEqual([]);
+    });
+
+    it('keeps kind="sync" when the callback fires inline', () => {
+      const module = {
+        doWork: (onSuccess: () => void): void => onSuccess(),
+      };
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => undefined);
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ method: 'doWork', kind: 'sync', callCount: 1 });
+    });
+
+    it('counts a failure callback as an error on the legacy bridge', () => {
+      let fireFailure: () => void = () => undefined;
+      const module = {
+        doWork: asBridgeMethod((onFail: () => void, _onSuccess: () => void): void => {
+          fireFailure = onFail;
+        }),
+      };
+      wrapTurboModule('Mod', module, { arch: 'legacy' });
+
+      module.doWork(
+        () => undefined,
+        () => undefined,
+      );
+      fireFailure();
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ method: 'doWork', callCount: 1, errorCount: 1 });
+    });
+
+    it('does not guess error attribution on the New Architecture', () => {
+      let fireFirst: () => void = () => undefined;
+      const module = {
+        doWork: (first: () => void, _second: () => void): void => {
+          fireFirst = first;
+        },
+      };
+      wrapTurboModule('Mod', module, { arch: 'new' });
+
+      module.doWork(
+        () => undefined,
+        () => undefined,
+      );
+      fireFirst();
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ method: 'doWork', callCount: 1, errorCount: 0 });
+    });
+
+    it('records the call once even when the callback is invoked repeatedly', () => {
+      let fireSuccess: () => void = () => undefined;
+      const module = {
+        doWork: (onSuccess: () => void): void => {
+          fireSuccess = onSuccess;
+        },
+      };
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => undefined);
+      fireSuccess();
+      fireSuccess();
+      fireSuccess();
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ callCount: 1 });
+    });
+
+    it('passes through the callback receiver, arguments and return value', () => {
+      let invoke: (...args: unknown[]) => unknown = () => undefined;
+      const module = {
+        doWork: (onSuccess: (...args: unknown[]) => unknown): void => {
+          invoke = onSuccess;
+        },
+      };
+      wrapTurboModule('Mod', module);
+
+      const receiver = { marker: 'receiver' };
+      const original = jest.fn(function (this: unknown, ...args: unknown[]): string {
+        expect(this).toBe(receiver);
+        expect(args).toEqual([1, 'two']);
+        return 'returned';
+      });
+
+      module.doWork(original);
+      const result = invoke.call(receiver, 1, 'two');
+
+      expect(original).toHaveBeenCalledTimes(1);
+      expect(result).toBe('returned');
+    });
+
+    it('propagates a throwing callback after recording the call', () => {
+      let fireSuccess: () => void = () => undefined;
+      const module = {
+        doWork: (onSuccess: () => void): void => {
+          fireSuccess = onSuccess;
+        },
+      };
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => {
+        throw new Error('callback boom');
+      });
+
+      expect(() => fireSuccess()).toThrow('callback boom');
+      expect(drainTurboModuleAggregate()).toHaveLength(1);
+    });
+
+    it('records nothing while the callback has not fired', () => {
+      const module = {
+        doWork: (_onSuccess: () => void): void => undefined,
+      };
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => undefined);
+
+      expect(drainTurboModuleAggregate()).toEqual([]);
+    });
+
+    it('closes the oldest pending call without a duration once the cap is reached', () => {
+      const pending: Array<() => void> = [];
+      const module = {
+        doWork: (onSuccess: () => void): void => {
+          pending.push(onSuccess);
+        },
+      };
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      wrapTurboModule('Mod', module);
+
+      for (let i = 0; i < MAX_PENDING_CALLBACK_CALLS; i++) {
+        module.doWork(() => undefined);
+      }
+      expect(drainTurboModuleAggregate()).toEqual([]);
+
+      // One over the cap evicts the oldest, which is counted with no duration.
+      nowSpy.mockReturnValue(3_000);
+      module.doWork(() => undefined);
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ callCount: 1, totalDurationMs: 0 });
+
+      // The evicted call's callback is now inert.
+      pending[0]?.();
+      expect(drainTurboModuleAggregate()).toEqual([]);
+    });
+
+    it('sweeps out aged pending calls when a later call comes in', () => {
+      const pending: Array<() => void> = [];
+      const module = {
+        doWork: (onSuccess: () => void): void => {
+          pending.push(onSuccess);
+        },
+      };
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => undefined);
+      expect(drainTurboModuleAggregate()).toEqual([]);
+
+      // A later call past the max age sweeps the stale entry, counting it
+      // without a duration, and records itself normally once it settles.
+      nowSpy.mockReturnValue(1_000 + CALLBACK_MAX_AGE_MS + 1);
+      module.doWork(() => undefined);
+
+      let snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ callCount: 1, totalDurationMs: 0 });
+
+      // The swept call's callback is inert; the second call still settles.
+      pending[0]?.();
+      expect(drainTurboModuleAggregate()).toEqual([]);
+
+      pending[1]?.();
+      snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ callCount: 1, totalDurationMs: 0 });
+    });
+
+    it('counts a callback that fires implausibly late without its duration', () => {
+      let fireSuccess: () => void = () => undefined;
+      const module = {
+        doWork: (onSuccess: () => void): void => {
+          fireSuccess = onSuccess;
+        },
+      };
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => undefined);
+      nowSpy.mockReturnValue(1_000 + CALLBACK_MAX_AGE_MS + 1);
+      fireSuccess();
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ callCount: 1, totalDurationMs: 0 });
+    });
+
+    it('leaves promise-typed bridge methods to the thenable path', async () => {
+      const onSuccess = jest.fn();
+      const module = {
+        doWork: asBridgeMethod((cb: () => void): Promise<string> => {
+          // A `'promise'`-typed method never receives callbacks; assert we didn't
+          // substitute the argument anyway.
+          expect(cb).toBe(onSuccess);
+          return Promise.resolve('done');
+        }, 'promise'),
+      };
+      wrapTurboModule('Mod', module, { arch: 'legacy' });
+
+      await module.doWork(onSuccess);
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ kind: 'async', callCount: 1 });
+    });
+
+    it('prefers the promise signal when a method both returns a thenable and takes a callback', async () => {
+      let fireSuccess: () => void = () => undefined;
+      const module = {
+        doWork: (onSuccess: () => void): Promise<string> => {
+          fireSuccess = onSuccess;
+          return Promise.resolve('done');
+        },
+      };
+      wrapTurboModule('Mod', module);
+
+      await module.doWork(() => undefined);
+      fireSuccess();
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ kind: 'async', callCount: 1 });
+    });
+
+    it('ignores a function argument that is not in a trailing position', () => {
+      const module = {
+        doWork: (_fn: () => void, _tail: string): void => undefined,
+      };
+      wrapTurboModule('Mod', module);
+
+      module.doWork(() => undefined, 'tail');
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ kind: 'sync', callCount: 1 });
+    });
+
+    it('records a synchronous throw once when the callback already fired', () => {
+      const module = {
+        doWork: (onSuccess: () => void): void => {
+          onSuccess();
+          throw new Error('boom');
+        },
+      };
+      wrapTurboModule('Mod', module);
+
+      expect(() => module.doWork(() => undefined)).toThrow('boom');
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ callCount: 1, errorCount: 0 });
+    });
   });
 });
