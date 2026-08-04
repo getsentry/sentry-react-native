@@ -37,7 +37,8 @@ jobs:
       caller_ref: ${{ github.ref }}
   auth_token_check:
     uses: ./.github/workflows/skip-ci-noauth.yml
-    secrets: inherit
+    secrets:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   metrics:
     runs-on: ${{ matrix.runs-on }}
     needs: [diff_check, detect-changes, auth_token_check]
