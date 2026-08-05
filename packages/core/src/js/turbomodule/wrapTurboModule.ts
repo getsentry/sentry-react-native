@@ -128,19 +128,23 @@ export function wrapTurboModule<T extends object>(
       }
 
       if (isThenable(result)) {
-        // A thenable return is a stronger completion signal than a callback —
-        // drop the callback bookkeeping so the call is recorded exactly once.
-        callbackCall?.abandon();
+        // A callback that already fired emitted the record itself — the promise
+        // handlers must not add a second one for the same invocation.
+        const alreadyRecorded = callbackCall?.abandon() === true;
         safeRelabel(callId, 'async', name, key);
         return (result as Promise<unknown>).then(
           value => {
             safePop(callId, name, key);
-            safeRecordTurboModuleCall(name, key, 'async', Date.now() - startedAtMs, false, recordId, arch);
+            if (!alreadyRecorded) {
+              safeRecordTurboModuleCall(name, key, 'async', Date.now() - startedAtMs, false, recordId, arch);
+            }
             return value;
           },
           err => {
             safePop(callId, name, key);
-            safeRecordTurboModuleCall(name, key, 'async', Date.now() - startedAtMs, true, recordId, arch);
+            if (!alreadyRecorded) {
+              safeRecordTurboModuleCall(name, key, 'async', Date.now() - startedAtMs, true, recordId, arch);
+            }
             throw err;
           },
         );

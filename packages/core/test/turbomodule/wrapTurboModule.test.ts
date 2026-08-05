@@ -644,6 +644,24 @@ describe('wrapTurboModule', () => {
       expect(snapshot[0]).toMatchObject({ kind: 'async', callCount: 1 });
     });
 
+    it('records once when a thenable-returning method fires its callback inline', async () => {
+      const module = {
+        doWork: (onSuccess: () => void): Promise<string> => {
+          onSuccess();
+          return Promise.resolve('done');
+        },
+      };
+      wrapTurboModule('Mod', module);
+
+      await module.doWork(() => undefined);
+
+      // The inline callback closed the record as `sync` before the thenable was
+      // seen; the promise handler must not add a second `async` entry.
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ kind: 'sync', callCount: 1 });
+    });
+
     it('ignores a function argument that is not in a trailing position', () => {
       const module = {
         doWork: (_fn: () => void, _tail: string): void => undefined,
