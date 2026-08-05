@@ -27,9 +27,9 @@
 
 ### Fixes
 
-- Apply screenshot masking in Android `captureScreenshot()` when `screenshot` options are configured
+- Apply screenshot masking in Android `captureScreenshot()` when `screenshot` options are configured ([#6565](https://github.com/getsentry/sentry-react-native/pull/6565))
 
-  Hybrid SDK screenshot capture (`NATIVE.captureScreenshot()`, used by the Feedback Widget and custom integrations) returned unmasked window captures on Android while iOS redacts text and images via `SentryViewPhotographer`. Error-screenshot masking (`attachScreenshot` + `ScreenshotEventProcessor`) was unaffected. Android `captureScreenshot()` now reuses the same view-hierarchy masking pipeline when `options.getScreenshot()` has mask classes configured.
+  Hybrid SDK screenshot capture (`NATIVE.captureScreenshot()`, used by the Feedback Widget and custom integrations) returned unmasked window captures on Android while iOS redacts text and images via `SentryViewPhotographer`. Error-screenshot masking (`attachScreenshot` + `ScreenshotEventProcessor`) was unaffected. Android `captureScreenshot()` now reuses the same view-hierarchy masking pipeline for configured `screenshot` options such as `maskAllText` and `maskAllImages`.
 
 - Attach `debug_meta` to JS error events on Hermes when the Debug ID stack match fails ([#6545](https://github.com/getsentry/sentry-react-native/pull/6545))
 - `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` ([#6543](https://github.com/getsentry/sentry-react-native/pull/6543))

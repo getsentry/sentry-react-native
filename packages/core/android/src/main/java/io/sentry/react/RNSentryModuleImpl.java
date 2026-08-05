@@ -598,9 +598,7 @@ public class RNSentryModuleImpl {
       return null;
     }
 
-    final @NotNull SentryScreenshotOptions screenshotOptions =
-        ((SentryAndroidOptions) options).getScreenshot();
-    return screenshotOptions.getMaskViewClasses().isEmpty() ? null : screenshotOptions;
+    return ((SentryAndroidOptions) options).getScreenshot();
   }
 
   private static @Nullable Bitmap maskScreenshot(
