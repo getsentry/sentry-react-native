@@ -6,6 +6,9 @@ on:
       skip_ci:
         description: "Value 'true' if the CI cannot access the SENTRY_AUTH_TOKEN, otherwise, not defined."
         value: ${{ jobs.auth_token_check.outputs.skip_ci }}
+    secrets:
+      SENTRY_AUTH_TOKEN:
+        required: false
 
 jobs:
   auth_token_check:
