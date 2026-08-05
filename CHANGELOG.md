@@ -27,7 +27,7 @@
 
 ### Fixes
 
-- Apply screenshot masking in Android `captureScreenshot()` when `screenshot` options are configured ([#TBD](https://github.com/getsentry/sentry-react-native/pull/TBD))
+- Apply screenshot masking in Android `captureScreenshot()` when `screenshot` options are configured
 
   Hybrid SDK screenshot capture (`NATIVE.captureScreenshot()`, used by the Feedback Widget and custom integrations) returned unmasked window captures on Android while iOS redacts text and images via `SentryViewPhotographer`. Error-screenshot masking (`attachScreenshot` + `ScreenshotEventProcessor`) was unaffected. Android `captureScreenshot()` now reuses the same view-hierarchy masking pipeline when `options.getScreenshot()` has mask classes configured.
 
