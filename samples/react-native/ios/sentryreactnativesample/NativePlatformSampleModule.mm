@@ -2,6 +2,8 @@
 
 #ifdef RCT_NEW_ARCH_ENABLED
 
+#    import <UIKit/UIKit.h>
+
 @implementation NativePlatformSampleModule
 
 RCT_EXPORT_MODULE();
@@ -18,6 +20,11 @@ RCT_EXPORT_MODULE();
     NSObject *nilObject = NULL;
     NSArray *_ = @[ nilObject ];
     return @"NEVER RETURNED";
+}
+
+- (void)getPlatform:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+    resolve([NSString stringWithFormat:@"ios %@", [[UIDevice currentDevice] systemVersion]]);
 }
 
 @end
