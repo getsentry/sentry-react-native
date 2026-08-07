@@ -61,15 +61,12 @@ jobs:
         ios-use-frameworks: ["no-frameworks"]
         build-type: ["dev", "production"]
         sentry-consumption: ["xcframework"]
-        # `xcframework` is the default: RNSentry vendors a prebuilt
-        # `Sentry-Dynamic.xcframework` downloaded from sentry-cocoa's release.
-        # Keep a single CocoaPods job to catch regressions in the source-build
-        # fallback (`SENTRY_USE_XCFRAMEWORK=0`).
-        include:
-          - rn-architecture: "new"
-            ios-use-frameworks: "no-frameworks"
-            build-type: "production"
-            sentry-consumption: "cocoapods"
+        # `xcframework` is the only supported mode: RNSentry vendors a prebuilt
+        # `Sentry.xcframework` downloaded from sentry-cocoa's release.
+        # There is no CocoaPods job because the source-build fallback
+        # (`SENTRY_USE_XCFRAMEWORK=0`) is gone — sentry-cocoa stopped
+        # publishing to the CocoaPods trunk in 9.20.0, so the podspec raises
+        # when that opt-out is set.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -105,7 +102,6 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
           [[ "${{ matrix.rn-architecture }}" == "new" ]] && export ENABLE_NEW_ARCH=1 || export ENABLE_NEW_ARCH=0
           [[ "${{ matrix.ios-use-frameworks }}" == "dynamic-frameworks" ]] && export USE_FRAMEWORKS=dynamic
-          [[ "${{ matrix.sentry-consumption }}" == "cocoapods" ]] && export SENTRY_USE_XCFRAMEWORK=0
 
           ./scripts/pod-install.sh
 
