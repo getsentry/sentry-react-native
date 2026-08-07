@@ -78,7 +78,7 @@ jobs:
 
       - name: Install Sentry CLI
         if: env.SENTRY_AUTH_TOKEN != ''
-        run: curl -sL https://sentry.io/get-cli/ | sh
+        uses: getsentry/action-setup-cli@70d7e587b84c2e78cf4d37cd33d7b74fb3729c1b # v1
 
       - name: Upload Android Bundle to Sentry Size Analysis
         if: env.SENTRY_AUTH_TOKEN != ''
@@ -155,7 +155,7 @@ jobs:
 
       - name: Install Sentry CLI
         if: env.SENTRY_AUTH_TOKEN != ''
-        run: curl -sL https://sentry.io/get-cli/ | sh
+        uses: getsentry/action-setup-cli@70d7e587b84c2e78cf4d37cd33d7b74fb3729c1b # v1
 
       - name: Upload iOS XCArchive to Sentry Size Analysis
         if: env.SENTRY_AUTH_TOKEN != ''
