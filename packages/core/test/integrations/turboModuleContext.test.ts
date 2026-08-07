@@ -18,6 +18,7 @@ import {
   notifyTurboModuleCallStart,
   recordTurboModuleCall,
 } from '../../src/js/turbomodule/turboModuleAggregator';
+import { _resetWrappedModules, wrapTurboModule } from '../../src/js/turbomodule/wrapTurboModule';
 import * as spanUtils from '../../src/js/utils/span';
 import * as wrapper from '../../src/js/wrapper';
 
@@ -915,6 +916,78 @@ describe('turboModuleContextIntegration', () => {
       const attributes = span.setAttributes.mock.calls.at(-1)?.[0] as Record<string, unknown>;
       expect(attributes['turbo_module.Long.req.call_count']).toBe(1);
       expect(attributes['turbo_module.Long.req.duration_ms']).toBe(42);
+    });
+
+    describe('callback-style methods, end to end through wrapTurboModule', () => {
+      beforeEach(() => {
+        _resetWrappedModules();
+      });
+
+      afterEach(() => {
+        _resetWrappedModules();
+      });
+
+      it('emits a slow-call breadcrumb once the completion callback fires', () => {
+        const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+        integration.setupOnce?.();
+        const { client } = makeClientWithSpanHooks();
+        integration.setup?.(client);
+
+        let fireSuccess: () => void = () => undefined;
+        const module = {
+          slowWork: (onSuccess: () => void): void => {
+            fireSuccess = onSuccess;
+          },
+        };
+        const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(10_000);
+        wrapTurboModule('Legacy', module, { arch: 'legacy' });
+
+        module.slowWork(() => undefined);
+        // Pre-fix this call closed on return and never crossed the threshold.
+        expect(addBreadcrumbSpy).not.toHaveBeenCalled();
+
+        nowSpy.mockReturnValue(10_000 + DEFAULT_SLOW_CALL_THRESHOLD_MS + 50);
+        fireSuccess();
+
+        expect(addBreadcrumbSpy).toHaveBeenCalledTimes(1);
+        expect(addBreadcrumbSpy.mock.calls[0]?.[0]).toMatchObject({
+          category: TURBO_MODULE_BREADCRUMB_CATEGORY,
+          data: expect.objectContaining({
+            module: 'Legacy',
+            method: 'slowWork',
+            kind: 'async',
+            duration_ms: DEFAULT_SLOW_CALL_THRESHOLD_MS + 50,
+          }),
+        });
+      });
+
+      it('credits the span that was open at call start, not the one open when the callback fires', () => {
+        const integration = turboModuleContextIntegration({ aggregateFlushIntervalMs: 0 });
+        integration.setupOnce?.();
+        const { client, emit } = makeClientWithSpanHooks();
+        integration.setup?.(client);
+
+        let fireSuccess: () => void = () => undefined;
+        const module = {
+          work: (onSuccess: () => void): void => {
+            fireSuccess = onSuccess;
+          },
+        };
+        const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(10_000);
+        wrapTurboModule('Legacy', module, { arch: 'legacy' });
+
+        const span = makeFakeSpan();
+        emit('spanStart', span);
+        module.work(() => undefined);
+        emit('spanEnd', span);
+
+        nowSpy.mockReturnValue(10_030);
+        fireSuccess();
+
+        const attributes = span.setAttributes.mock.calls.at(-1)?.[0] as Record<string, unknown>;
+        expect(attributes['turbo_module.Legacy.work.call_count']).toBe(1);
+        expect(attributes['turbo_module.Legacy.work.duration_ms']).toBe(30);
+      });
     });
   });
 });
