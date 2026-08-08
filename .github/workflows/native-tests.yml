@@ -113,7 +113,7 @@ jobs:
 
   test-android:
     name: android
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_android == 'true' }}
     steps:
