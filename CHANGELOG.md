@@ -26,6 +26,13 @@
 - Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6534](https://github.com/getsentry/sentry-react-native/pull/6534))
 
   The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
+
+### Internal
+
+- Mark `enableTurboModuleTracking` as internal and correct its documentation ([#6168](https://github.com/getsentry/sentry-react-native/issues/6168))
+
+  The option only installs the native `TurboModulePerfLogger`; no sink consumes its callbacks, so enabling it emits no data. Its documentation claimed it fed crash attribution, per-module spans and aggregated stats — those all come from `turboModuleContextIntegration()`, which is enabled by default with `enableNative` and never reads this option. No behaviour change.
+
 ### Dependencies
 
 - Bump Android SDK from v8.51.0 to v8.52.0 ([#6566](https://github.com/getsentry/sentry-react-native/pull/6566))
