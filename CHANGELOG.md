@@ -25,8 +25,6 @@
 
 - Resolve `config-plugins` through the `expo` package in the Expo config plugin ([#6581](https://github.com/getsentry/sentry-react-native/pull/6581))
 
-  `withSentryAndroidGradlePlugin` required the bare `@expo/config-plugins`, which the SDK does not declare as a dependency, so `expo config`, `expo-doctor` and `expo prebuild` failed with `Cannot find module '@expo/config-plugins'` whenever no other package hoisted it to the project root.
-
 - Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6534](https://github.com/getsentry/sentry-react-native/pull/6534))
 
   The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
