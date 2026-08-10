@@ -180,7 +180,7 @@ jobs:
           distribution: "adopt"
 
       - name: Gradle cache
-        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
 
       - name: Install SDK Dependencies
         run: yarn install
@@ -323,9 +323,8 @@ jobs:
           path: samples/react-native-macos/macos/*.log
 
   test-ios:
-    name: Test ios production REV2 on ${{matrix.runner_provider}}
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    name: Test ios production REV2
+    runs-on: ["bitrise_pool_name:tahoe"]
     needs: [diff_check, detect-changes, build-ios]
     if: >-
       ${{
@@ -333,10 +332,6 @@ jobs:
         && needs.detect-changes.outputs.needs_sample_react_native == 'true'
         && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
       }}
-    strategy:
-      fail-fast: false
-      matrix:
-        runner_provider: ["cirrus", "bitrise"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -366,7 +361,6 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Setup asdf Node.js (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
         run: |
           asdf global nodejs system
           corepack enable

@@ -14,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.7.0'
+  MAESTRO_VERSION: "2.7.0"
   IOS_DEVICE: "iPhone 17"
   IOS_VERSION: ">=18.0"
 
@@ -59,11 +59,7 @@ jobs:
             name: iOS
             appPlain: performance-tests/test-app-plain.ipa
           - platform: android
-            runs-on:
-              [
-                "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04",
-                "runner_group_id:10",
-              ]
+            runs-on: ubuntu-24.04
             name: Android
             appPlain: performance-tests/TestAppPlain/android/app/build/outputs/apk/release/app-release.apk
     steps:
@@ -116,7 +112,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
 
       - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
@@ -252,11 +248,7 @@ jobs:
             rn-version: "0.86.2"
             runs-on: macos-26-xlarge
           - platform: android
-            runs-on:
-              [
-                "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04",
-                "runner_group_id:10",
-              ]
+            runs-on: ubuntu-24.04
         exclude:
           # exclude all rn versions lower than 0.80.0 for new architecture
           - rn-version: "0.71.19"
@@ -339,7 +331,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
 
       - name: Setup Global Tools
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -385,12 +377,11 @@ jobs:
   react-native-test:
     name:
       Test RN ${{ matrix.rn-version }} ${{ matrix.rn-architecture }} ${{ matrix.engine }} ${{ matrix.platform }} ${{
-      matrix.build-type }} ${{ matrix.ios-use-frameworks }} on ${{matrix.runner_provider}}
+      matrix.build-type }} ${{ matrix.ios-use-frameworks }}
     needs: [react-native-build, diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
 
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || matrix.runs-on }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
@@ -400,24 +391,11 @@ jobs:
         build-type: ["production"]
         ios-use-frameworks: ["no"] # test only no frameworks
         engine: ["hermes"]
-        runner_provider: ["cirrus", "bitrise"]
         include:
           - platform: ios
-            rn-version: "0.86.2"
-            runs-on:
-              [
-                "ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0",
-                "runner_group_id:10",
-              ]
+            runs-on: ["bitrise_pool_name:tahoe"]
           - platform: android
-            runs-on:
-              [
-                "ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04",
-                "runner_group_id:10",
-              ]
-        exclude:
-          - platform: android
-            runner_provider: bitrise
+            runs-on: ubuntu-24.04
 
     steps:
       - name: Check if platform is needed
@@ -473,7 +451,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Setup asdf Node.js (Bitrise)
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.runner_provider == 'bitrise' }}
+        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         run: |
           asdf global nodejs system
           corepack enable
@@ -490,7 +468,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
 
       - name: Setup KVM
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -547,7 +525,7 @@ jobs:
           xcrun simctl bootstatus booted -b
           # Launch and dismiss Settings.app to ensure SpringBoard and system services
           # are fully initialized — this avoids Maestro connecting to a half-booted
-          # simulator on Cirrus Labs Tart VMs.
+          # simulator.
           xcrun simctl launch booted com.apple.Preferences
           sleep 5
           xcrun simctl terminate booted com.apple.Preferences
@@ -563,6 +541,6 @@ jobs:
         if: ${{ always() && steps.platform-check.outputs.skip != 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-${{ matrix.runner_provider }}-logs
+          name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-logs
           path: |
             ./dev-packages/e2e-tests/maestro-logs
