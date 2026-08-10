@@ -23,7 +23,7 @@
 
 ### Fixes
 
-- Resolve `config-plugins` through the `expo` package in the Expo config plugin ([#6577](https://github.com/getsentry/sentry-react-native/pull/6577))
+- Resolve `config-plugins` through the `expo` package in the Expo config plugin ([#6581](https://github.com/getsentry/sentry-react-native/pull/6581))
 
   `withSentryAndroidGradlePlugin` required the bare `@expo/config-plugins`, which the SDK does not declare as a dependency, so `expo config`, `expo-doctor` and `expo prebuild` failed with `Cannot find module '@expo/config-plugins'` whenever no other package hoisted it to the project root. It now uses the `expo/config-plugins` sub-export like the other plugin files.
 
