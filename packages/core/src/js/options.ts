@@ -321,25 +321,32 @@ export interface BaseReactNativeOptions {
   enableStallTracking?: boolean;
 
   /**
-   * Install Sentry's native `TurboModulePerfLogger` and forward every Turbo
-   * Module lifecycle callback (`moduleCreate*`, sync/async method call
-   * start/end/fail, execution start/end/fail) to the higher-level Sentry
-   * instrumentation (crash attribution, per-module spans, aggregated stats).
+   * Claim React Native's `NativeModulePerfLogger` slot with Sentry's native
+   * `TurboModulePerfLogger` and forward every Turbo Module lifecycle callback
+   * (`moduleCreate*`, sync/async method call start/end/fail, execution
+   * start/end/fail) to the C++ sink installed via
+   * `SentryTurboModulePerfController::setSink`.
    *
-   * Only takes effect on React Native 0.75+ New Architecture. On Old Architecture
-   * this option is a no-op.
+   * Enabling this on its own emits nothing: the SDK ships no production sink
+   * yet, so every forwarded callback is dropped. The flag exists so the native
+   * install path can land ahead of the features that will consume it.
    *
-   * The native perf logger is installed lazily on the first opt-in: while
-   * this flag is off (the default), Sentry never claims React Native's
-   * `NativeModulePerfLogger` slot and incurs no native-library mapping
-   * cost. The first `initNativeSdk` call with `enableTurboModuleTracking:
-   * true` loads the native library, installs the logger, and starts
-   * forwarding callbacks to the Sentry sink. Off by default because the
-   * higher-level features building on top of this hook ship in follow-up
-   * releases.
+   * This is **not** the switch for the TurboModule instrumentation users can
+   * see today. Crash attribution, span attribution, slow-call breadcrumbs and
+   * the call aggregate all come from `turboModuleContextIntegration()`, which
+   * is a JS-side wrapper enabled by default whenever `enableNative` is `true`
+   * and never reads this option.
+   *
+   * Only takes effect on React Native 0.75+ New Architecture. On Old
+   * Architecture this option is a no-op.
+   *
+   * The native perf logger is installed lazily on the first opt-in: while this
+   * flag is off (the default), Sentry never claims the slot and incurs no
+   * native-library mapping cost.
    *
    * @default false
    * @experimental
+   * @internal
    */
   enableTurboModuleTracking?: boolean;
 
