@@ -23,6 +23,10 @@
 
 ### Fixes
 
+- Measure callback-style native module calls until their completion callback fires ([#6561](https://github.com/getsentry/sentry-react-native/pull/6561))
+
+  Bridge methods that report completion through success/failure callbacks instead of a Promise return `undefined`, so they were recorded as sync calls with a near-zero duration. Their `turbo_module.*` durations are now correct, and slow ones produce a `native.turbo_module` breadcrumb. On the Old Architecture a failure callback is also counted as an error, following React Native's own `(failure, success)` trailing-argument convention.
+
 - Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6534](https://github.com/getsentry/sentry-react-native/pull/6534))
 
   The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
@@ -46,10 +50,6 @@
   Apps on the Old Architecture now get the same aggregate, span attribution and slow call breadcrumbs as TurboModules. An `arch: 'new' | 'legacy'` field distinguishes the two sources. Opt in with `turboModuleContextIntegration({ enableLegacyNativeModules: true })`.
 
 ### Fixes
-
-- Measure callback-style native module calls until their completion callback fires ([#6561](https://github.com/getsentry/sentry-react-native/pull/6561))
-  
-  Bridge methods that report completion through success/failure callbacks instead of a Promise return `undefined`, so they were recorded as sync calls with a near-zero duration. Their `turbo_module.*` durations are now correct, and slow ones produce a `native.turbo_module` breadcrumb. On the Old Architecture a failure callback is also counted as an error, following React Native's own `(failure, success)` trailing-argument convention.
 
 - Attach `debug_meta` to JS error events on Hermes when the Debug ID stack match fails ([#6545](https://github.com/getsentry/sentry-react-native/pull/6545))
 - `sentry-expo-upload-sourcemaps` now reads plugin config when the plugin is registered as `@sentry/react-native` ([#6543](https://github.com/getsentry/sentry-react-native/pull/6543))
