@@ -8,6 +8,26 @@
 
 ## Unreleased
 
+### Changes
+
+- Migrate iOS internals from the deprecated `PrivateSentrySDKOnly` SPI to `SentrySDK.internal` ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
+
+  Re-lands [#6380](https://github.com/getsentry/sentry-react-native/pull/6380), reverted in 8.20.0 by [#6491](https://github.com/getsentry/sentry-react-native/pull/6491) because it broke iOS screenshot capture. The underlying sentry-cocoa bug is fixed in 9.24.0.
+
+<!-- prettier-ignore-start -->
+> [!WARNING]
+> **Action required if you target React Native < 0.75.**
+> `RNSentry` now ships Swift code, which makes it a Swift pod under CocoaPods. If your `Podfile` doesn't already modularize React Native's ObjC pods (RN >= 0.75 does this by default), add `use_modular_headers!` to your `ios/Podfile` before running `pod install`. Otherwise `pod install` fails with an error like:
+> `The Swift pod 'RNSentry' depends upon 'React-hermes', which does not define modules.`
+<!-- prettier-ignore-end -->
+
+### Fixes
+
+- Make the `RNSentry` SPEC CHECKSUM in `Podfile.lock` machine-independent ([#6534](https://github.com/getsentry/sentry-react-native/pull/6534))
+
+  The prebuilt `Sentry.xcframework` is now referenced through a `$(PODS_ROOT)/sentry-xcframeworks/…` symlink instead of the absolute per-user cache path, so `Podfile.lock` no longer churns between developers and CI. Expect a one-time `RNSentry` checksum change on the next `pod install`; the `SENTRY_XCFRAMEWORK_CACHE_DIR=/tmp/…` workaround is no longer needed.
+## 8.22.0
+
 ### Features
 
 - Add `enableMetricKit` option to enable the iOS MetricKit integration ([#6540](https://github.com/getsentry/sentry-react-native/pull/6540))
@@ -42,6 +62,9 @@
 - Bump Android SDK from v8.50.1 to v8.51.0 ([#6539](https://github.com/getsentry/sentry-react-native/pull/6539))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8510)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.50.1...8.51.0)
+- Bump Cocoa SDK from v9.19.1 to v9.24.0 ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9240)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.19.1...9.24.0)
 
 ## 8.21.0
 
