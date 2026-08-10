@@ -690,5 +690,77 @@ describe('wrapTurboModule', () => {
       expect(snapshot).toHaveLength(1);
       expect(snapshot[0]).toMatchObject({ callCount: 1, errorCount: 0 });
     });
+
+    it('still performs the call when setting up the callback instrumentation throws', () => {
+      const { debug } = require('@sentry/core');
+      const warnSpy = jest.spyOn(debug, 'warn').mockImplementation(() => undefined);
+      const onSuccess = jest.fn();
+      const doWork = (cb: () => void): string => {
+        cb();
+        return 'done';
+      };
+      // The instrumentation reads RN's `type` tag off the method; a throwing
+      // accessor stands in for any failure while setting the wrapping up. That
+      // happens before the real invocation and outside the caller's `try`, so it
+      // must not escape.
+      Object.defineProperty(doWork, 'type', {
+        get: () => {
+          throw new Error('type boom');
+        },
+      });
+      const module = { doWork };
+      wrapTurboModule('Mod', module);
+
+      expect(module.doWork(onSuccess)).toBe('done');
+      // The user's callback is handed to the method untouched.
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('callback instrumentation failed for Mod.doWork'));
+
+      // Falls back to closing the record on return: exactly one entry, never two.
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toMatchObject({ kind: 'sync', callCount: 1 });
+      expect(getTurboModuleCallStack()).toEqual([]);
+    });
+
+    it('still performs the call and records it when the pending-call bookkeeping throws', () => {
+      const { debug } = require('@sentry/core');
+      const warnSpy = jest.spyOn(debug, 'warn').mockImplementation(() => undefined);
+      // Cap eviction is the only part of the bookkeeping that calls out of the
+      // module, so it stands in for a failure on the post-return path.
+      jest.spyOn(debug, 'log').mockImplementation(() => {
+        throw new Error('log boom');
+      });
+      let lastSuccess: () => void = () => undefined;
+      const module = {
+        filler: (_onSuccess: () => void): void => undefined,
+        doWork: (onSuccess: () => void): string => {
+          lastSuccess = onSuccess;
+          return 'ok';
+        },
+      };
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      wrapTurboModule('Mod', module);
+
+      for (let i = 0; i < MAX_PENDING_CALLBACK_CALLS; i++) {
+        module.filler(() => undefined);
+      }
+
+      nowSpy.mockReturnValue(1_400);
+      expect(module.doWork(() => undefined)).toBe('ok');
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('pending registration failed for Mod.doWork'));
+
+      // Only the cap on this one call is lost — its callback still closes the
+      // record with a real duration.
+      nowSpy.mockReturnValue(1_600);
+      lastSuccess();
+
+      const snapshot = drainTurboModuleAggregate();
+      expect(snapshot).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ method: 'doWork', kind: 'async', callCount: 1, totalDurationMs: 200 }),
+        ]),
+      );
+    });
   });
 });

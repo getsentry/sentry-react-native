@@ -65,6 +65,17 @@ export interface CallbackCallHandle {
 }
 
 /**
+ * State shared between the wrapped callbacks and the returned handle. Held in an
+ * object rather than closure variables so `instrumentTrailingCallbacks` can
+ * neutralise callbacks it had already installed if it fails part-way through.
+ */
+interface CallbackCallState {
+  settled: boolean;
+  returned: boolean;
+  pendingId: number | undefined;
+}
+
+/**
  * Records a TurboModule invocation, isolated so a failure inside Sentry only
  * drops the data instead of breaking the user's call.
  */
@@ -98,6 +109,10 @@ export function safeRecordTurboModuleCall(
  * returns. Returns `undefined` when the method isn't callback-shaped, which is
  * the common case — nothing is allocated on that path.
  *
+ * Never throws, and neither do the returned handle's methods: this runs outside
+ * the caller's `try` and before the real invocation, so a failure here must
+ * only drop the attribution data, never block or corrupt the user's call.
+ *
  * React Native's bridge fixes the shape: the last argument is the success
  * callback, the second-to-last the failure callback, and a non-function
  * argument may never follow a function one (see `genMethod` in RN's
@@ -106,6 +121,31 @@ export function safeRecordTurboModuleCall(
  * skipped outright.
  */
 export function instrumentTrailingCallbacks(
+  args: unknown[],
+  originalFn: (...a: unknown[]) => unknown,
+  name: string,
+  method: string,
+  startedAtMs: number,
+  recordId: number | undefined,
+  arch: TurboModuleArch,
+): CallbackCallHandle | undefined {
+  const state: CallbackCallState = { settled: false, returned: false, pendingId: undefined };
+  try {
+    return createCallbackCall(state, args, originalFn, name, method, startedAtMs, recordId, arch);
+  } catch (e) {
+    // Some callbacks may already have been swapped into `args` — arity and
+    // argument types are unchanged, so the user's call is unaffected, but they
+    // must not emit anything: the caller sees `undefined` and now closes the
+    // record itself.
+    state.settled = true;
+    debug.warn(`[TurboModuleTracker] callback instrumentation failed for ${name}.${method}: ${String(e)}`);
+    return undefined;
+  }
+}
+
+/** Body of {@link instrumentTrailingCallbacks}; may throw, isolated by its caller. */
+function createCallbackCall(
+  state: CallbackCallState,
   args: unknown[],
   originalFn: (...a: unknown[]) => unknown,
   name: string,
@@ -131,25 +171,18 @@ export function instrumentTrailingCallbacks(
   // corrupt `errorCount` — close the record without flagging an error instead.
   const failureIsError = failureIndex >= 0 && arch === 'legacy' && typeof methodType === 'string';
 
-  let settled = false;
-  let returned = false;
-  let pendingId: number | undefined;
-
   const settle = (errored: boolean, durationMs: number): void => {
-    if (settled) {
+    if (state.settled) {
       return;
     }
-    settled = true;
-    if (pendingId !== undefined) {
-      pendingCallbackCalls.delete(pendingId);
-      pendingId = undefined;
-    }
+    state.settled = true;
+    forgetPendingCall(state);
     safeRecordTurboModuleCall(
       name,
       method,
       // A callback that already fired before the method returned means the work
       // was synchronous (RN's `'sync'` method type invokes callbacks inline).
-      returned ? 'async' : 'sync',
+      state.returned ? 'async' : 'sync',
       durationMs,
       errored,
       recordId,
@@ -163,7 +196,7 @@ export function instrumentTrailingCallbacks(
     // long-lived subscription handler), so its "duration" is meaningless.
     // Still record the call itself — dropping it would hide the method from
     // the aggregate entirely, which is worse than the pre-fix ~0ms.
-    settle(errored, returned && durationMs > CALLBACK_MAX_AGE_MS ? 0 : durationMs);
+    settle(errored, state.returned && durationMs > CALLBACK_MAX_AGE_MS ? 0 : durationMs);
   };
 
   args[lastIndex] = instrumentCallback(args[lastIndex] as (...a: unknown[]) => unknown, false, emit);
@@ -173,32 +206,47 @@ export function instrumentTrailingCallbacks(
 
   return {
     markReturned: (): void => {
-      returned = true;
-      if (settled) {
+      // Set before the guarded part: a later callback must be attributed as
+      // 'async' even if registering the pending entry fails.
+      state.returned = true;
+      if (state.settled) {
         return;
       }
-      evictStalePendingCallbackCalls(startedAtMs);
-      pendingId = nextPendingCallbackId++;
-      pendingCallbackCalls.set(pendingId, {
-        startedAtMs,
-        // Closed out before the callback fired: keep the call in the aggregate,
-        // but with no duration we can stand behind.
-        expire: (): void => {
-          pendingId = undefined;
-          settle(false, 0);
-        },
-      });
+      try {
+        evictStalePendingCallbackCalls(startedAtMs);
+        state.pendingId = nextPendingCallbackId++;
+        pendingCallbackCalls.set(state.pendingId, {
+          startedAtMs,
+          // Closed out before the callback fired: keep the call in the
+          // aggregate, but with no duration we can stand behind.
+          expire: (): void => {
+            state.pendingId = undefined;
+            settle(false, 0);
+          },
+        });
+      } catch (e) {
+        // Only the bound on this one call is lost; the callback can still
+        // close the record when it fires.
+        state.pendingId = undefined;
+        debug.warn(`[TurboModuleTracker] pending registration failed for ${name}.${method}: ${String(e)}`);
+      }
     },
     abandon: (): boolean => {
-      const alreadyRecorded = settled;
-      settled = true;
-      if (pendingId !== undefined) {
-        pendingCallbackCalls.delete(pendingId);
-        pendingId = undefined;
-      }
+      // Throw-free: only local state and a `Map.delete`.
+      const alreadyRecorded = state.settled;
+      state.settled = true;
+      forgetPendingCall(state);
       return alreadyRecorded;
     },
   };
+}
+
+/** Drops the pending entry, if any, without emitting a record. */
+function forgetPendingCall(state: CallbackCallState): void {
+  if (state.pendingId !== undefined) {
+    pendingCallbackCalls.delete(state.pendingId);
+    state.pendingId = undefined;
+  }
 }
 
 /**

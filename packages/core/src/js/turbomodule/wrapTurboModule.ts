@@ -111,7 +111,8 @@ export function wrapTurboModule<T extends object>(
 
       // Must happen before the call: the wrapped callbacks have to be the ones
       // handed to the native side. Mutates `args` in place, leaving arity and
-      // argument types untouched.
+      // argument types untouched. Isolated internally — neither this nor the
+      // returned handle's methods can throw into the user's call.
       const callbackCall = instrumentTrailingCallbacks(args, originalFn, name, key, startedAtMs, recordId, arch);
 
       let result: unknown;
