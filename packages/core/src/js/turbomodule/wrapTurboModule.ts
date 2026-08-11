@@ -1,4 +1,4 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 
 import type { TurboModuleCallKind } from './turboModuleTracker';
 
@@ -60,7 +60,7 @@ export function wrapTurboModule<T extends object>(
   if (methodNames.length === 0) {
     // Do NOT add to wrappedModules — a later call (e.g. once a JSI HostObject
     // has materialised its methods) should still get a chance to wrap.
-    logger.warn(
+    debug.warn(
       `[TurboModuleTracker] No methods discovered on '${name}' — TurboModule context will not be attached for this module. ` +
         `This usually means the module is a JSI HostObject that only materialises methods on first access.`,
     );
@@ -101,12 +101,12 @@ export function wrapTurboModule<T extends object>(
       try {
         callId = pushTurboModuleCall({ name, method: key, kind: 'sync' });
       } catch (e) {
-        logger.warn(`[TurboModuleTracker] push failed for ${name}.${key}: ${String(e)}`);
+        debug.warn(`[TurboModuleTracker] push failed for ${name}.${key}: ${String(e)}`);
       }
       try {
         recordId = notifyTurboModuleCallStart(name, key, 'sync', arch);
       } catch (e) {
-        logger.warn(`[TurboModuleTracker] notifyStart failed for ${name}.${key}: ${String(e)}`);
+        debug.warn(`[TurboModuleTracker] notifyStart failed for ${name}.${key}: ${String(e)}`);
       }
 
       // Must happen before the call: the wrapped callbacks have to be the ones
@@ -185,7 +185,7 @@ export function wrapTurboModule<T extends object>(
     // module is frozen, or every method is a read-only accessor. Surface this
     // so the silent no-op is debuggable (the issue would otherwise look like
     // "no crash context attached" with no obvious cause).
-    logger.warn(
+    debug.warn(
       `[TurboModuleTracker] '${name}' has methods but none could be wrapped — TurboModule context will not be attached. ` +
         `This usually means the module is frozen or its methods are non-writable accessors.`,
     );
@@ -223,7 +223,7 @@ function safePop(callId: number | undefined, name: string, method: string): void
   try {
     popTurboModuleCall(callId);
   } catch (e) {
-    logger.warn(`[TurboModuleTracker] pop failed for ${name}.${method}: ${String(e)}`);
+    debug.warn(`[TurboModuleTracker] pop failed for ${name}.${method}: ${String(e)}`);
   }
 }
 
@@ -234,7 +234,7 @@ function safeRelabel(callId: number | undefined, kind: TurboModuleCallKind, name
   try {
     relabelTurboModuleCallKind(callId, kind);
   } catch (e) {
-    logger.warn(`[TurboModuleTracker] relabel failed for ${name}.${method}: ${String(e)}`);
+    debug.warn(`[TurboModuleTracker] relabel failed for ${name}.${method}: ${String(e)}`);
   }
 }
 

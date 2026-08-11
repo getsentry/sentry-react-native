@@ -4,10 +4,10 @@ import {
   addBreadcrumb,
   addExceptionMechanism,
   captureException,
+  debug,
   getActiveSpan,
   getClient,
   getRootSpan,
-  logger,
   SPAN_STATUS_ERROR,
   spanToJSON,
 } from '@sentry/core';
@@ -93,7 +93,7 @@ export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryPro
         reportRouterBoundaryError(error);
         reportedErrors.add(error);
       } catch (e) {
-        logger.error(
+        debug.error(
           `[wrapExpoRouterErrorBoundary] Failed to report boundary error: ${e instanceof Error ? e.message : String(e)}`,
         );
       }

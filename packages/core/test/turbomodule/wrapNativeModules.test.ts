@@ -1,4 +1,4 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { NativeModules } from 'react-native';
 
 import { wrapAllNativeModules } from '../../src/js/turbomodule/wrapNativeModules';
@@ -195,7 +195,7 @@ describe('wrapAllNativeModules', () => {
     // Scoped to NativeModules so jest's own use of Object.keys keeps working.
     const realKeys = Object.keys;
     jest.spyOn(Object, 'keys').mockImplementation((o: object) => (o === NativeModules ? [] : realKeys(o)));
-    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    const warn = jest.spyOn(debug, 'warn').mockImplementation(() => undefined);
 
     const wrapped = wrapAllNativeModules();
 
