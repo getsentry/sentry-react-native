@@ -23,6 +23,10 @@
 
 ### Fixes
 
+- Send SDK-internal diagnostics to the debug logger instead of the Sentry Logs API ([#6585](https://github.com/getsentry/sentry-react-native/pull/6585))
+
+  Ten internal warnings in the TurboModule instrumentation, scope sync and the Expo Router error boundary were written against `logger`, which captures a log record and sends it to your project. They now go to `debug`, printed only when the SDK is initialized with `debug: true`.
+
 - Measure callback-style native module calls until their completion callback fires ([#6561](https://github.com/getsentry/sentry-react-native/pull/6561))
 
   Bridge methods that report completion through success/failure callbacks instead of a Promise return `undefined`, so they were recorded as sync calls with a near-zero duration. Their `turbo_module.*` durations are now correct, and slow ones produce a `native.turbo_module` breadcrumb. On the Old Architecture a failure callback is also counted as an error, following React Native's own `(failure, success)` trailing-argument convention.
