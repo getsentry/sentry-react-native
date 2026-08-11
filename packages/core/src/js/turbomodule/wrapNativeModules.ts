@@ -1,4 +1,4 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 import { NativeModules } from 'react-native';
 
 import type { TurboModuleArch } from './turboModuleAggregator';
@@ -64,7 +64,7 @@ export function wrapAllNativeModules(options: WrapNativeModulesOptions = {}): st
   try {
     moduleNames = Object.keys(NativeModules);
   } catch (e) {
-    logger.warn(`[TurboModuleTracker] Failed to enumerate NativeModules for legacy wrapping: ${String(e)}`);
+    debug.warn(`[TurboModuleTracker] Failed to enumerate NativeModules for legacy wrapping: ${String(e)}`);
     return [];
   }
 
@@ -195,5 +195,5 @@ function warnNotEnumerable(): void {
     : 'because `NativeModules` exposed no enumerable entries.';
   const hint =
     'Pass the modules you care about to turboModuleContextIntegration({ modules: [{ name, module }] }) instead.';
-  logger.warn(`[TurboModuleTracker] Legacy NativeModules auto-wrap found no modules to instrument ${reason} ${hint}`);
+  debug.warn(`[TurboModuleTracker] Legacy NativeModules auto-wrap found no modules to instrument ${reason} ${hint}`);
 }

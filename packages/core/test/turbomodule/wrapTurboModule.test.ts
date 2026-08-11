@@ -166,7 +166,7 @@ describe('wrapTurboModule', () => {
   });
 
   it('retries wrapping a previously-empty module (lazy JSI HostObject)', () => {
-    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest.spyOn(require('@sentry/core').debug, 'warn').mockImplementation(() => undefined);
 
     // First call: methods not yet materialised — should warn, NOT mark as wrapped.
     const lazyModule: { doStuff?: () => string } = Object.create(null) as { doStuff?: () => string };
@@ -213,7 +213,7 @@ describe('wrapTurboModule', () => {
   });
 
   it('warns when methods are discovered but none could be wrapped (frozen module)', () => {
-    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest.spyOn(require('@sentry/core').debug, 'warn').mockImplementation(() => undefined);
 
     const frozen = Object.freeze({ doStuff: () => 'ok' });
 
@@ -223,7 +223,7 @@ describe('wrapTurboModule', () => {
   });
 
   it('still calls the original method when the tracker push throws (native bridge error)', () => {
-    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest.spyOn(require('@sentry/core').debug, 'warn').mockImplementation(() => undefined);
     // Simulate a scope-sync hook that calls into a native bridge which throws.
     jest.spyOn(scope, 'setContext').mockImplementation(() => {
       throw new Error('NATIVE.setContext boom');
@@ -246,7 +246,7 @@ describe('wrapTurboModule', () => {
   });
 
   it('still calls the original method when the tracker pop throws', () => {
-    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest.spyOn(require('@sentry/core').debug, 'warn').mockImplementation(() => undefined);
 
     const originalFn = jest.fn(() => 42);
     const module = { doStuff: originalFn };
@@ -287,7 +287,7 @@ describe('wrapTurboModule', () => {
   });
 
   it('warns and bails out cleanly when no methods are discoverable', () => {
-    const warnSpy = jest.spyOn(require('@sentry/core').logger, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest.spyOn(require('@sentry/core').debug, 'warn').mockImplementation(() => undefined);
 
     const opaque = Object.create(null) as object;
 

@@ -1,6 +1,6 @@
 import type { Breadcrumb, Scope } from '@sentry/core';
 
-import { logger } from '@sentry/react';
+import { debug } from '@sentry/core';
 
 import { DEFAULT_BREADCRUMB_LEVEL } from './breadcrumb';
 import { fillTyped } from './utils/fill';
@@ -112,7 +112,7 @@ export function enableSyncToNative(scope: Scope): void {
     if (finalBreadcrumb) {
       NATIVE.addBreadcrumb(finalBreadcrumb);
     } else {
-      logger.warn('[ScopeSync] Last created breadcrumb is undefined. Skipping sync to native.');
+      debug.warn('[ScopeSync] Last created breadcrumb is undefined. Skipping sync to native.');
     }
 
     return scope;
