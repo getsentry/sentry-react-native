@@ -176,6 +176,9 @@ export { captureException }
 
 export { captureFeedback }
 
+// @public
+export function captureInvariantViolation(options?: InvariantViolationOptions): string;
+
 export { captureMessage }
 
 // @public
@@ -222,6 +225,9 @@ export { dedupeIntegration }
 export const deeplinkIntegration: (...args: any[]) => Integration & {
     name: string;
 };
+
+// @public
+export const DEFAULT_INVARIANT_MECHANISM = "invariant";
 
 // @public
 export const deviceContextIntegration: () => Integration;
@@ -472,6 +478,18 @@ export { instrumentOpenAiClient }
 export { instrumentStateGraph }
 
 export { instrumentStateGraphCompile }
+
+// @public (undocumented)
+export interface InvariantViolationOptions {
+    condition?: string;
+    error?: Error;
+    message?: string;
+    once?: boolean;
+    pragma?: string;
+    rethrow?: boolean;
+    siteId?: string;
+    values?: Record<string, unknown>;
+}
 
 export { LangChainIntegration }
 

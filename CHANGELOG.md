@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Add opt-in "Loud Invariants" Metro transform that reports violated `invariant`/`assert`/`warning`/`console.assert` assertions as non-fatal Sentry events instead of crashing or being stripped ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+
 ## 8.23.0
 
 ### Changes

@@ -118,6 +118,8 @@ export {
   pauseAppHangTracking,
   resumeAppHangTracking,
 } from './sdk';
+export { captureInvariantViolation, DEFAULT_INVARIANT_MECHANISM } from './invariant';
+export type { InvariantViolationOptions } from './invariant';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 export { NavigationContainer } from './NavigationContainer';
 export type { FontStyle, NavigationTheme, SentryNavigationContainerProps } from './NavigationContainer';

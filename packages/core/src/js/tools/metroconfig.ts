@@ -6,6 +6,7 @@ import { debug } from '@sentry/core';
 import * as process from 'process';
 import { env } from 'process';
 
+import type { SentryInvariantBabelPluginOptions } from './sentryInvariantBabelPlugin';
 import type { MetroCustomSerializer } from './utils';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
@@ -88,6 +89,19 @@ export interface SentryMetroConfigOptions {
    * @default false
    */
   autoWrapExpoRouterErrorBoundary?: boolean;
+  /**
+   * Rewrite assertion call sites (`invariant`, `assert`, `warning`,
+   * `console.assert`) so a violated invariant is reported to Sentry as a
+   * non-fatal (handled) event instead of being stripped from the release
+   * bundle or crashing the app.
+   *
+   * Pass `true` to instrument first-party code with the default pragma set, or
+   * an object to customize the pragmas and to opt into instrumenting
+   * `node_modules`.
+   *
+   * @default false
+   */
+  loudInvariants?: boolean | SentryInvariantBabelPluginOptions;
 }
 
 export interface SentryExpoConfigOptions {
@@ -119,6 +133,7 @@ export function withSentryConfig(
     enableSourceContextInDevelopment = true,
     optionsFile = true,
     autoWrapExpoRouterErrorBoundary = false,
+    loudInvariants = false,
   }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
@@ -127,8 +142,13 @@ export function withSentryConfig(
 
   newConfig = withSentryDebugId(newConfig);
   newConfig = withSentryFramesCollapsed(newConfig);
-  if (annotateReactComponents || autoWrapExpoRouterErrorBoundary) {
-    newConfig = withSentryBabelTransformer(newConfig, annotateReactComponents, autoWrapExpoRouterErrorBoundary);
+  if (annotateReactComponents || autoWrapExpoRouterErrorBoundary || loudInvariants) {
+    newConfig = withSentryBabelTransformer(
+      newConfig,
+      annotateReactComponents,
+      autoWrapExpoRouterErrorBoundary,
+      loudInvariants,
+    );
   }
   if (includeWebReplay === false) {
     newConfig = withSentryResolver(newConfig, includeWebReplay);
@@ -170,11 +190,13 @@ export function getSentryExpoConfig(
 
   let newConfig = withSentryFramesCollapsed(config);
   const autoWrapExpoRouterErrorBoundary = options.autoWrapExpoRouterErrorBoundary ?? false;
-  if (options.annotateReactComponents || autoWrapExpoRouterErrorBoundary) {
+  const loudInvariants = options.loudInvariants ?? false;
+  if (options.annotateReactComponents || autoWrapExpoRouterErrorBoundary || loudInvariants) {
     newConfig = withSentryBabelTransformer(
       newConfig,
       options.annotateReactComponents ?? false,
       autoWrapExpoRouterErrorBoundary,
+      loudInvariants,
     );
   }
 
@@ -225,6 +247,7 @@ export function withSentryBabelTransformer(
     | boolean
     | { ignoredComponents?: string[]; autoInjectSentryLabel?: boolean; textComponentNames?: string[] },
   autoWrapExpoRouterErrorBoundary: boolean = false,
+  loudInvariants: SentryMetroConfigOptions['loudInvariants'] = false,
 ): MetroConfig {
   const defaultBabelTransformerPath = config.transformer?.babelTransformerPath;
   debug.log('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
@@ -247,6 +270,7 @@ export function withSentryBabelTransformer(
       ? { annotateReactComponents: typeof annotateReactComponents === 'object' ? annotateReactComponents : {} }
       : {}),
     autoWrapExpoRouterErrorBoundary,
+    ...(loudInvariants ? { loudInvariants: typeof loudInvariants === 'object' ? loudInvariants : {} } : {}),
   });
 
   return {
