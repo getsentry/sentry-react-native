@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add opt-in "Loud Invariants" Metro transform that reports violated `invariant`/`assert`/`warning`/`console.assert` assertions as non-fatal Sentry events instead of crashing or being stripped ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Add opt-in "Loud Invariants" Metro transform that reports violated `invariant`/`assert`/`warning`/`console.assert` assertions as non-fatal Sentry events instead of crashing or being stripped ([#6592](https://github.com/getsentry/sentry-react-native/pull/6592))
 
 ## 8.23.0
 
