@@ -160,9 +160,9 @@ function setupErrorUtilsGlobalHandler(): void {
 
   // oxlint-disable-next-line typescript-eslint(no-explicit-any), typescript-eslint(no-unsafe-member-access)
   errorUtils.setGlobalHandler(async (error: any, isFatal?: boolean) => {
-    // Skip errors already captured by Sentry and then re-thrown (e.g. a "loud
-    // invariant" that reports a handled event before re-throwing, or user code
-    // doing `captureException(e); throw e;`). `client.captureException` dedups
+    // Skip errors already captured by Sentry and then re-thrown (e.g. a captured
+    // assertion violation that reports a handled event before re-throwing, or
+    // user code doing `captureException(e); throw e;`). `client.captureException` dedups
     // via this same `__sentry_captured__` flag, but this handler reports through
     // `eventFromException` + `captureEvent`, which don't — so without this guard
     // the error is reported a second time as an unhandled crash. Let the default
