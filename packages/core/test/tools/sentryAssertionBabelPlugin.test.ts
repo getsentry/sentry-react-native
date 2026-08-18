@@ -1,31 +1,32 @@
 import { transformSync } from '@babel/core';
 
-import type { SentryInvariantBabelPluginOptions } from '../../src/js/tools/sentryInvariantBabelPlugin';
+import type { SentryAssertionBabelPluginOptions } from '../../src/js/tools/sentryAssertionBabelPlugin';
 
-import sentryInvariantBabelPlugin from '../../src/js/tools/sentryInvariantBabelPlugin';
+import { captureAssertionViolation } from '../../src/js/assertion';
+import sentryAssertionBabelPlugin, { CAPTURE_FN } from '../../src/js/tools/sentryAssertionBabelPlugin';
 
 function transform(
   code: string,
-  { filename = '/app/index.tsx', options }: { filename?: string; options?: SentryInvariantBabelPluginOptions } = {},
+  { filename = '/app/index.tsx', options }: { filename?: string; options?: SentryAssertionBabelPluginOptions } = {},
 ): string {
   const result = transformSync(code, {
     filename,
     babelrc: false,
     configFile: false,
-    plugins: [options ? [sentryInvariantBabelPlugin, options] : sentryInvariantBabelPlugin],
+    plugins: [options ? [sentryAssertionBabelPlugin, options] : sentryAssertionBabelPlugin],
   });
   return result?.code ?? '';
 }
 
-describe('sentryInvariantBabelPlugin', () => {
+describe('sentryAssertionBabelPlugin', () => {
   it('rewrites an `invariant` call to a non-fatal report on a falsy condition', () => {
     const out = transform(`invariant(total >= 0, 'bad total');`);
 
     expect(out).toMatch(
-      /var _captureInvariantViolation\w* = require\(['"]@sentry\/react-native['"]\)\.captureInvariantViolation/,
+      /var _captureAssertionViolation\w* = require\(['"]@sentry\/react-native['"]\)\.captureAssertionViolation/,
     );
     // `cond || report()` — truthy short-circuits, falsy reports.
-    expect(out).toMatch(/total >= 0 \|\| _captureInvariantViolation\w*\(\{/);
+    expect(out).toMatch(/total >= 0 \|\| _captureAssertionViolation\w*\(\{/);
     expect(out).toContain(`pragma: "invariant"`);
     expect(out).toContain(`condition: "total >= 0"`);
     expect(out).toContain(`message: 'bad total'`);
@@ -81,7 +82,7 @@ describe('sentryInvariantBabelPlugin', () => {
   it('matches the `console.assert` member call', () => {
     const out = transform(`console.assert(count > 0, 'empty');`);
     expect(out).toContain(`pragma: "console.assert"`);
-    expect(out).toMatch(/count > 0 \|\| _captureInvariantViolation/);
+    expect(out).toMatch(/count > 0 \|\| _captureAssertionViolation/);
   });
 
   it('honors a custom pragma set', () => {
@@ -94,9 +95,9 @@ describe('sentryInvariantBabelPlugin', () => {
 
   it('injects the helper binding exactly once for multiple call sites', () => {
     const out = transform(`invariant(a);\nassert(b);\nwarning(c);`);
-    const bindings = out.match(/require\(['"]@sentry\/react-native['"]\)\.captureInvariantViolation/g)?.length ?? 0;
+    const bindings = out.match(/require\(['"]@sentry\/react-native['"]\)\.captureAssertionViolation/g)?.length ?? 0;
     expect(bindings).toBe(1);
-    const reports = out.match(/_captureInvariantViolation\w*\(\{/g)?.length ?? 0;
+    const reports = out.match(/_captureAssertionViolation\w*\(\{/g)?.length ?? 0;
     expect(reports).toBe(3);
   });
 
@@ -108,26 +109,26 @@ describe('sentryInvariantBabelPlugin', () => {
       filename: '/proj/node_modules/some-dep/index.js',
       options: { includeNodeModules: true },
     });
-    expect(out).toMatch(/require\(['"]@sentry\/react-native['"]\)\.captureInvariantViolation/);
+    expect(out).toMatch(/require\(['"]@sentry\/react-native['"]\)\.captureAssertionViolation/);
     expect(out).not.toMatch(/^\s*import\b/m);
   });
 
   it('leaves non-pragma calls alone', () => {
     const out = transform(`doSomething(a, b);\nfoo.bar(c);`);
     expect(out).not.toContain('@sentry/react-native');
-    expect(out).not.toContain('_captureInvariantViolation');
+    expect(out).not.toContain('_captureAssertionViolation');
   });
 
   it('skips calls with no arguments or a leading spread', () => {
     const out = transform(`invariant();\ninvariant(...args);`);
-    expect(out).not.toContain('_captureInvariantViolation');
+    expect(out).not.toContain('_captureAssertionViolation');
   });
 
   it('is idempotent — running the plugin twice does not double-instrument', () => {
     const first = transform(`invariant(ok, 'msg');`);
     const second = transform(first);
-    const reports = second.match(/_captureInvariantViolation\w*\(\{/g)?.length ?? 0;
-    const bindings = second.match(/require\(['"]@sentry\/react-native['"]\)\.captureInvariantViolation/g)?.length ?? 0;
+    const reports = second.match(/_captureAssertionViolation\w*\(\{/g)?.length ?? 0;
+    const bindings = second.match(/require\(['"]@sentry\/react-native['"]\)\.captureAssertionViolation/g)?.length ?? 0;
     expect(reports).toBe(1);
     expect(bindings).toBe(1);
   });
@@ -166,7 +167,7 @@ describe('sentryInvariantBabelPlugin', () => {
       filename: '/proj/node_modules/@sentry/react-native/dist/js/foo.js',
       options: { includeNodeModules: true },
     });
-    expect(out).not.toContain('_captureInvariantViolation');
+    expect(out).not.toContain('_captureAssertionViolation');
     expect(out).toMatch(/invariant\(ok\)/);
   });
 
@@ -176,7 +177,7 @@ describe('sentryInvariantBabelPlugin', () => {
     const out = transform(`invariant(ok);`, {
       filename: '/x/sentry-react-native/packages/core/dist/js/foo.js',
     });
-    expect(out).not.toContain('_captureInvariantViolation');
+    expect(out).not.toContain('_captureAssertionViolation');
   });
 
   it('skips a coincidentally-named node_modules pragma that does not resolve to an assertion module', () => {
@@ -186,7 +187,7 @@ describe('sentryInvariantBabelPlugin', () => {
       filename: '/proj/node_modules/some-dep/index.js',
       options: { includeNodeModules: true },
     });
-    expect(out).not.toContain('_captureInvariantViolation');
+    expect(out).not.toContain('_captureAssertionViolation');
   });
 
   it('always instruments console.assert in node_modules (member pragma bypasses import resolution)', () => {
@@ -220,6 +221,17 @@ describe('sentryInvariantBabelPlugin', () => {
       filename: '/proj/node_modules/other-dep/index.js',
       options,
     });
-    expect(excluded).not.toContain('_captureInvariantViolation');
+    expect(excluded).not.toContain('_captureAssertionViolation');
+  });
+
+  it('injects a call to the runtime reporter that `@sentry/react-native` actually exports', () => {
+    // The plugin emits `require('@sentry/react-native').<CAPTURE_FN>`. If the
+    // runtime export is renamed without updating `CAPTURE_FN` (or vice versa),
+    // the injected helper resolves to `undefined` and every instrumented
+    // assertion throws at runtime — a silent, build-time-invisible break. Assert
+    // the two stay coupled.
+    expect(typeof captureAssertionViolation).toBe('function');
+    expect(captureAssertionViolation.name).toBe(CAPTURE_FN);
+    expect(transform(`invariant(ok);`)).toContain(`.${CAPTURE_FN}`);
   });
 });

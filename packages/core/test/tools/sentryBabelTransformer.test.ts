@@ -178,9 +178,9 @@ describe('SentryBabelTransformer', () => {
     );
   });
 
-  test('transform adds the loud invariants plugin with its options', () => {
+  test('transform adds the capture assertions plugin with its options', () => {
     process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
-      loudInvariants: { pragmas: ['invariant', 'assert'] },
+      captureAssertions: { pragmas: ['invariant', 'assert'] },
     });
 
     createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
@@ -189,14 +189,14 @@ describe('SentryBabelTransformer', () => {
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
-          [expect.objectContaining({ name: 'sentryInvariantBabelPlugin' }), { pragmas: ['invariant', 'assert'] }],
+          [expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), { pragmas: ['invariant', 'assert'] }],
         ]),
       }),
     );
   });
 
-  test('transform does not add the loud invariants plugin for node_modules by default', () => {
-    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({ loudInvariants: {} });
+  test('transform does not add the capture assertions plugin for node_modules by default', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({ captureAssertions: {} });
 
     createSentryBabelTransformer().transform?.({
       ...createMinimalMockedTransformOptions(),
@@ -206,13 +206,13 @@ describe('SentryBabelTransformer', () => {
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
     const calledArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
     expect(calledArgs.plugins).not.toEqual(
-      expect.arrayContaining([[expect.objectContaining({ name: 'sentryInvariantBabelPlugin' }), expect.anything()]]),
+      expect.arrayContaining([[expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), expect.anything()]]),
     );
   });
 
-  test('transform adds the loud invariants plugin for node_modules when includeNodeModules is set', () => {
+  test('transform adds the capture assertions plugin for node_modules when includeNodeModules is set', () => {
     process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
-      loudInvariants: { includeNodeModules: true },
+      captureAssertions: { includeNodeModules: true },
     });
 
     createSentryBabelTransformer().transform?.({
@@ -224,7 +224,7 @@ describe('SentryBabelTransformer', () => {
     expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
       expect.objectContaining({
         plugins: expect.arrayContaining([
-          [expect.objectContaining({ name: 'sentryInvariantBabelPlugin' }), { includeNodeModules: true }],
+          [expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), { includeNodeModules: true }],
         ]),
       }),
     );
@@ -232,7 +232,7 @@ describe('SentryBabelTransformer', () => {
 
   test('transform honors an includeNodeModules array allowlist for node_modules', () => {
     process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
-      loudInvariants: { includeNodeModules: ['react-native/Libraries/Utilities'] },
+      captureAssertions: { includeNodeModules: ['react-native/Libraries/Utilities'] },
     });
 
     // A non-allowlisted dependency is not instrumented.
@@ -242,7 +242,7 @@ describe('SentryBabelTransformer', () => {
     });
     const excludedArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
     expect(excludedArgs.plugins).not.toEqual(
-      expect.arrayContaining([[expect.objectContaining({ name: 'sentryInvariantBabelPlugin' }), expect.anything()]]),
+      expect.arrayContaining([[expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), expect.anything()]]),
     );
 
     // An allowlisted dependency path is instrumented.
@@ -254,7 +254,7 @@ describe('SentryBabelTransformer', () => {
     expect(includedArgs.plugins).toEqual(
       expect.arrayContaining([
         [
-          expect.objectContaining({ name: 'sentryInvariantBabelPlugin' }),
+          expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }),
           { includeNodeModules: ['react-native/Libraries/Utilities'] },
         ],
       ]),

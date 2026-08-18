@@ -65,13 +65,13 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
-          title="Loud Invariant (non-fatal)"
+          title="Assertion violation (non-fatal)"
           onPress={() => {
-            // Milestone 0: a hand-written violated invariant reported as a
-            // non-fatal event — no throw, the app keeps running.
+            // A hand-written violated assertion reported as a non-fatal event —
+            // no throw, the app keeps running.
             const total = -4;
             if (!(total >= 0)) {
-              Sentry.captureInvariantViolation({
+              Sentry.captureAssertionViolation({
                 condition: 'total >= 0',
                 values: { total },
               });
@@ -79,11 +79,11 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
-          title="Loud Invariant from a dependency (RN Dimensions)"
+          title="Assertion from a dependency (RN Dimensions)"
           onPress={() => {
             // No invariant is written here. We just call a real React Native API
             // with a bad key, which trips RN's OWN existing `invariant()` inside
-            // Dimensions.js. The `loudInvariants.includeNodeModules` allowlist in
+            // Dimensions.js. The `captureAssertions.includeNodeModules` allowlist in
             // metro.config.js tells the Babel plugin to instrument that one
             // dependency — config-only, zero source changes to the app or to RN.
             //
@@ -102,10 +102,10 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
-          title="Loud console.assert (first-party)"
+          title="Assertion via console.assert (first-party)"
           onPress={() => {
             // A first-party assertion in the app's OWN source. `console.assert`
-            // is a real global, so with the "Loud Invariants" plugin off this
+            // is a real global, so with the assertion capture plugin off this
             // line just logs to the console; with it on, the Babel transform
             // rewrites this call site to a non-fatal Sentry report whose top
             // frame is right here (ErrorsScreen.tsx) — not inside the SDK.

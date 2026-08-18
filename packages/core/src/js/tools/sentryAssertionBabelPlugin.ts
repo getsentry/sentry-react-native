@@ -1,7 +1,7 @@
 import type { NodePath, PluginObj, PluginPass, types as BabelTypes } from '@babel/core';
 
 /**
- * Babel plugin that rewrites assertion call sites so a violated invariant is
+ * Babel plugin that rewrites assertion call sites so a violated assertion is
  * reported to Sentry as a non-fatal (handled) event instead of being stripped
  * from the release bundle or crashing with a minified, unreadable message.
  *
@@ -17,9 +17,9 @@ import type { NodePath, PluginObj, PluginPass, types as BabelTypes } from '@babe
  * falsy:
  *
  * ```ts
- * var _captureInvariantViolation = require('@sentry/react-native').captureInvariantViolation;
+ * var _captureAssertionViolation = require('@sentry/react-native').captureAssertionViolation;
  * // ...
- * total >= 0 || _captureInvariantViolation({
+ * total >= 0 || _captureAssertionViolation({
  *   pragma: 'invariant',
  *   condition: 'total >= 0',
  *   values: { total: total },
@@ -84,9 +84,16 @@ import type { NodePath, PluginObj, PluginPass, types as BabelTypes } from '@babe
  */
 
 const SENTRY_PACKAGE = '@sentry/react-native';
-const CAPTURE_FN = 'captureInvariantViolation';
+/**
+ * The exported runtime reporter this plugin injects a call to. MUST stay in
+ * sync with the actual `@sentry/react-native` export name — the plugin emits
+ * `require('@sentry/react-native').<CAPTURE_FN>`, so a rename on one side
+ * without the other breaks at runtime with an undefined helper. A test asserts
+ * the two match (see `sentryAssertionBabelPlugin.test.ts`).
+ */
+export const CAPTURE_FN = 'captureAssertionViolation';
 /** Per-file state key holding the injected helper's local identifier. */
-const IMPORT_UID_KEY = 'sentryInvariantCaptureUid';
+const IMPORT_UID_KEY = 'sentryAssertionCaptureUid';
 
 const DEFAULT_PRAGMAS = ['invariant', 'assert', 'warning', 'console.assert'];
 
@@ -112,7 +119,7 @@ const DEFAULT_ASSERTION_MODULES = ['invariant', 'tiny-invariant', 'warning', 'as
  */
 const SENTRY_SDK_PATH_MARKERS = ['/@sentry/', 'sentry-react-native/packages/'];
 
-export interface SentryInvariantBabelPluginOptions {
+export interface SentryAssertionBabelPluginOptions {
   /**
    * The assertion pragmas to rewrite. Simple identifiers (`invariant`) match a
    * bare call; a dotted name (`console.assert`) matches a member call on that
@@ -308,7 +315,7 @@ function resolveInstrumentablePragma(
   t: typeof BabelTypes,
   path: NodePath<BabelTypes.CallExpression>,
   filename: string,
-  options: SentryInvariantBabelPluginOptions,
+  options: SentryAssertionBabelPluginOptions,
 ): { pragma: string; condition: BabelTypes.Expression } | undefined {
   // Never instrument the Sentry SDK itself — the plugin injects a require of the
   // SDK, so rewriting its own asserts would create a circular require.
@@ -384,7 +391,7 @@ function buildReportProperties(
   filename: string,
   pragma: string,
   condition: BabelTypes.Expression,
-  options: SentryInvariantBabelPluginOptions,
+  options: SentryAssertionBabelPluginOptions,
 ): BabelTypes.ObjectProperty[] {
   const properties: BabelTypes.ObjectProperty[] = [t.objectProperty(t.identifier('pragma'), t.stringLiteral(pragma))];
 
@@ -437,12 +444,12 @@ function buildReportProperties(
   return properties;
 }
 
-export default function sentryInvariantBabelPlugin({ types: t }: BabelApi): PluginObj<PluginPass> {
+export default function sentryAssertionBabelPlugin({ types: t }: BabelApi): PluginObj<PluginPass> {
   return {
-    name: 'sentry-invariant',
+    name: 'sentry-assertion',
     visitor: {
       CallExpression(path: NodePath<BabelTypes.CallExpression>, state: PluginPass) {
-        const options = (state.opts as SentryInvariantBabelPluginOptions | undefined) ?? {};
+        const options = (state.opts as SentryAssertionBabelPluginOptions | undefined) ?? {};
         const filename = (state.file?.opts?.filename as string | undefined) ?? '';
 
         const match = resolveInstrumentablePragma(t, path, filename, options);

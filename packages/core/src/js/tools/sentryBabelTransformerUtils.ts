@@ -2,11 +2,11 @@ import componentAnnotatePlugin from '@sentry/bundler-plugins/babel-plugin';
 import { debug } from '@sentry/core';
 import * as process from 'process';
 
-import type { SentryInvariantBabelPluginOptions } from './sentryInvariantBabelPlugin';
+import type { SentryAssertionBabelPluginOptions } from './sentryAssertionBabelPlugin';
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
+import sentryAssertionBabelPlugin from './sentryAssertionBabelPlugin';
 import sentryExpoRouterAutoWrapBabelPlugin from './sentryExpoRouterAutoWrapBabelPlugin';
-import sentryInvariantBabelPlugin from './sentryInvariantBabelPlugin';
 
 export type SentryBabelTransformerOptions = {
   annotateReactComponents?: {
@@ -15,7 +15,7 @@ export type SentryBabelTransformerOptions = {
     textComponentNames?: string[];
   };
   autoWrapExpoRouterErrorBoundary?: boolean;
-  loudInvariants?: SentryInvariantBabelPluginOptions;
+  captureAssertions?: SentryAssertionBabelPluginOptions;
 };
 
 export const SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH = 'SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH';
@@ -109,8 +109,8 @@ export function createSentryBabelTransformer(): BabelTransformer {
     if (options?.autoWrapExpoRouterErrorBoundary) {
       addSentryExpoRouterAutoWrapPlugin(transformerArgs);
     }
-    if (options?.loudInvariants !== undefined) {
-      addSentryLoudInvariantsPlugin(transformerArgs, options.loudInvariants);
+    if (options?.captureAssertions !== undefined) {
+      addSentryCaptureAssertionsPlugin(transformerArgs, options.captureAssertions);
     }
 
     return defaultTransformer.transform(...args);
@@ -149,9 +149,9 @@ function addSentryExpoRouterAutoWrapPlugin(args: BabelTransformerArgs | undefine
   args.plugins.push([sentryExpoRouterAutoWrapBabelPlugin, {}]);
 }
 
-function addSentryLoudInvariantsPlugin(
+function addSentryCaptureAssertionsPlugin(
   args: BabelTransformerArgs | undefined,
-  options: NonNullable<SentryBabelTransformerOptions['loudInvariants']>,
+  options: NonNullable<SentryBabelTransformerOptions['captureAssertions']>,
 ): void {
   if (!args || typeof args.filename !== 'string' || !Array.isArray(args.plugins)) {
     return undefined;
@@ -170,5 +170,5 @@ function addSentryLoudInvariantsPlugin(
       return undefined;
     }
   }
-  args.plugins.push([sentryInvariantBabelPlugin, options]);
+  args.plugins.push([sentryAssertionBabelPlugin, options]);
 }

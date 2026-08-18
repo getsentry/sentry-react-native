@@ -6,7 +6,7 @@ import { debug } from '@sentry/core';
 import * as process from 'process';
 import { env } from 'process';
 
-import type { SentryInvariantBabelPluginOptions } from './sentryInvariantBabelPlugin';
+import type { SentryAssertionBabelPluginOptions } from './sentryAssertionBabelPlugin';
 import type { MetroCustomSerializer } from './utils';
 import type { DefaultConfigOptions } from './vendor/expo/expoconfig';
 
@@ -90,10 +90,10 @@ export interface SentryMetroConfigOptions {
    */
   autoWrapExpoRouterErrorBoundary?: boolean;
   /**
-   * Rewrite assertion call sites (`invariant`, `assert`, `warning`,
-   * `console.assert`) so a violated invariant is reported to Sentry as a
-   * non-fatal (handled) event instead of being stripped from the release
-   * bundle or crashing the app.
+   * Rewrite assertion call sites — `invariant`, `assert`, `warning` and
+   * `console.assert` (all four pragmas, not just literal `assert`) — so a
+   * violated assertion is reported to Sentry as a non-fatal (handled) event
+   * instead of being stripped from the release bundle or crashing the app.
    *
    * Pass `true` to instrument first-party code with the default pragma set, or
    * an object to customize the pragmas and to opt into instrumenting
@@ -101,7 +101,7 @@ export interface SentryMetroConfigOptions {
    *
    * @default false
    */
-  loudInvariants?: boolean | SentryInvariantBabelPluginOptions;
+  captureAssertions?: boolean | SentryAssertionBabelPluginOptions;
 }
 
 export interface SentryExpoConfigOptions {
@@ -133,7 +133,7 @@ export function withSentryConfig(
     enableSourceContextInDevelopment = true,
     optionsFile = true,
     autoWrapExpoRouterErrorBoundary = false,
-    loudInvariants = false,
+    captureAssertions = false,
   }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
@@ -142,12 +142,12 @@ export function withSentryConfig(
 
   newConfig = withSentryDebugId(newConfig);
   newConfig = withSentryFramesCollapsed(newConfig);
-  if (annotateReactComponents || autoWrapExpoRouterErrorBoundary || loudInvariants) {
+  if (annotateReactComponents || autoWrapExpoRouterErrorBoundary || captureAssertions) {
     newConfig = withSentryBabelTransformer(
       newConfig,
       annotateReactComponents,
       autoWrapExpoRouterErrorBoundary,
-      loudInvariants,
+      captureAssertions,
     );
   }
   if (includeWebReplay === false) {
@@ -190,13 +190,13 @@ export function getSentryExpoConfig(
 
   let newConfig = withSentryFramesCollapsed(config);
   const autoWrapExpoRouterErrorBoundary = options.autoWrapExpoRouterErrorBoundary ?? false;
-  const loudInvariants = options.loudInvariants ?? false;
-  if (options.annotateReactComponents || autoWrapExpoRouterErrorBoundary || loudInvariants) {
+  const captureAssertions = options.captureAssertions ?? false;
+  if (options.annotateReactComponents || autoWrapExpoRouterErrorBoundary || captureAssertions) {
     newConfig = withSentryBabelTransformer(
       newConfig,
       options.annotateReactComponents ?? false,
       autoWrapExpoRouterErrorBoundary,
-      loudInvariants,
+      captureAssertions,
     );
   }
 
@@ -247,7 +247,7 @@ export function withSentryBabelTransformer(
     | boolean
     | { ignoredComponents?: string[]; autoInjectSentryLabel?: boolean; textComponentNames?: string[] },
   autoWrapExpoRouterErrorBoundary: boolean = false,
-  loudInvariants: SentryMetroConfigOptions['loudInvariants'] = false,
+  captureAssertions: SentryMetroConfigOptions['captureAssertions'] = false,
 ): MetroConfig {
   const defaultBabelTransformerPath = config.transformer?.babelTransformerPath;
   debug.log('Default Babel transformer path from `config.transformer`:', defaultBabelTransformerPath);
@@ -270,7 +270,7 @@ export function withSentryBabelTransformer(
       ? { annotateReactComponents: typeof annotateReactComponents === 'object' ? annotateReactComponents : {} }
       : {}),
     autoWrapExpoRouterErrorBoundary,
-    ...(loudInvariants ? { loudInvariants: typeof loudInvariants === 'object' ? loudInvariants : {} } : {}),
+    ...(captureAssertions ? { captureAssertions: typeof captureAssertions === 'object' ? captureAssertions : {} } : {}),
   });
 
   return {

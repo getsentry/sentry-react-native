@@ -151,6 +151,18 @@ export const appStartIntegration: (input?: {
     standalone?: boolean;
 }) => AppStartIntegration;
 
+// @public (undocumented)
+export interface AssertionViolationOptions {
+    condition?: string;
+    error?: Error;
+    message?: string;
+    once?: boolean;
+    pragma?: string;
+    rethrow?: boolean;
+    siteId?: string;
+    values?: Record<string, unknown>;
+}
+
 export { Breadcrumb }
 
 // Warning: (ae-forgotten-export) The symbol "BreadcrumbsOptions" needs to be exported by the entry point index.d.ts
@@ -170,14 +182,14 @@ export { browserLinkedErrorsIntegration }
 // @public
 export const browserReplayIntegration: (options?: ReplayConfiguration) => Replay;
 
+// @public
+export function captureAssertionViolation(options?: AssertionViolationOptions): string;
+
 export { captureEvent }
 
 export { captureException }
 
 export { captureFeedback }
-
-// @public
-export function captureInvariantViolation(options?: InvariantViolationOptions): string;
 
 export { captureMessage }
 
@@ -227,7 +239,7 @@ export const deeplinkIntegration: (...args: any[]) => Integration & {
 };
 
 // @public
-export const DEFAULT_INVARIANT_MECHANISM = "invariant";
+export const DEFAULT_ASSERTION_MECHANISM = "assertion";
 
 // @public
 export const deviceContextIntegration: () => Integration;
@@ -478,18 +490,6 @@ export { instrumentOpenAiClient }
 export { instrumentStateGraph }
 
 export { instrumentStateGraphCompile }
-
-// @public (undocumented)
-export interface InvariantViolationOptions {
-    condition?: string;
-    error?: Error;
-    message?: string;
-    once?: boolean;
-    pragma?: string;
-    rethrow?: boolean;
-    siteId?: string;
-    values?: Record<string, unknown>;
-}
 
 export { LangChainIntegration }
 

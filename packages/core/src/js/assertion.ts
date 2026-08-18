@@ -3,23 +3,27 @@ import { addNonEnumerableProperty, captureException, withScope } from '@sentry/c
 import { createSyntheticError, isErrorLike } from './utils/error';
 
 /**
- * Default mechanism type reported for a violated invariant.
+ * Mechanism type reported for every assertion violation.
  *
- * This is a de-facto (unregistered) mechanism type — Sentry ingestion accepts
- * arbitrary `mechanism.type` values and converts them to a tag, so no backend
- * or Relay registration is required. Violations render as non-fatal, handled
- * events with a full stack trace, breadcrumbs, and Session Replay attached.
+ * Uniform across all pragmas — the specific pragma (`invariant`, `assert`,
+ * `warning`, `console.assert`, ...) is recorded under `mechanism.data.pragma`
+ * instead, so violations can be filtered by flavor without fragmenting the
+ * mechanism type. This is a de-facto (unregistered) mechanism type: Sentry
+ * ingestion accepts arbitrary `mechanism.type` values and converts them to a
+ * tag, so no backend or Relay registration is required. Violations render as
+ * non-fatal, handled events with a full stack trace, breadcrumbs, and Session
+ * Replay attached.
  */
-export const DEFAULT_INVARIANT_MECHANISM = 'invariant';
+export const DEFAULT_ASSERTION_MECHANISM = 'assertion';
 
-export interface InvariantViolationOptions {
+export interface AssertionViolationOptions {
   /**
    * The source text of the assertion condition that failed, e.g. `"total >= 0"`.
    * Surfaced under `mechanism.data.condition` and used to build the default message.
    */
   condition?: string;
   /**
-   * Runtime values that violated the invariant, e.g. `{ total: -4 }`.
+   * Runtime values that failed the assertion, e.g. `{ total: -4 }`.
    *
    * `mechanism.data` only accepts flat `string | boolean` values, so each entry
    * is flattened to `values.<key>` and stringified. The full object is also
@@ -28,13 +32,14 @@ export interface InvariantViolationOptions {
   values?: Record<string, unknown>;
   /**
    * The assertion pragma that produced this violation (`invariant`, `assert`,
-   * `console.assert`, `warning`, ...). Becomes `mechanism.type`.
-   *
-   * @default 'invariant'
+   * `console.assert`, `warning`, ...). Recorded under `mechanism.data.pragma`
+   * so violations can be filtered by the assertion flavor, while the mechanism
+   * type stays the uniform `'assertion'` (`DEFAULT_ASSERTION_MECHANISM`). Only
+   * added to `mechanism.data` when provided.
    */
   pragma?: string;
   /**
-   * Human-readable message. Defaults to `Invariant violated: <condition>`.
+   * Human-readable message. Defaults to `Assertion failed: <condition>`.
    */
   message?: string;
   /**
@@ -130,22 +135,22 @@ function flattenValues(values: Record<string, unknown>): { [key: string]: string
 }
 
 /**
- * Reports a violated invariant to Sentry as a non-fatal (handled) event without
+ * Reports a violated assertion to Sentry as a non-fatal (handled) event without
  * throwing or crashing the app.
  *
- * This is the runtime target of the `@sentry/babel-plugin-invariant` transform:
- * the plugin rewrites `invariant()` / `assert()` / `console.assert()` /
- * `warning()` call sites so that a falsy condition invokes this reporter instead
- * of being stripped from the release bundle.
+ * This is the runtime target of the Sentry assertion Babel transform: the plugin
+ * rewrites `invariant()` / `assert()` / `console.assert()` / `warning()` call
+ * sites so that a falsy condition invokes this reporter instead of being
+ * stripped from the release bundle.
  *
  * It can also be called by hand (Milestone 0) to de-risk the reporting path.
  *
  * @returns the id of the captured Sentry event.
  */
-export function captureInvariantViolation(options: InvariantViolationOptions = {}): string {
-  const { condition, values, pragma = DEFAULT_INVARIANT_MECHANISM, siteId, once = true, rethrow = false } = options;
+export function captureAssertionViolation(options: AssertionViolationOptions = {}): string {
+  const { condition, values, pragma, siteId, once = true, rethrow = false } = options;
 
-  const message = options.message ?? (condition ? `Invariant violated: ${condition}` : 'Invariant violated');
+  const message = options.message ?? (condition ? `Assertion failed: ${condition}` : 'Assertion failed');
 
   const error = options.error ?? new Error(message);
   // The Babel transform creates a bare `new Error()` at the call site so its
@@ -169,6 +174,9 @@ export function captureInvariantViolation(options: InvariantViolationOptions = {
   }
 
   const data: { [key: string]: string | boolean } = {};
+  if (pragma !== undefined) {
+    data.pragma = pragma;
+  }
   if (condition !== undefined) {
     data.condition = condition;
   }
@@ -183,16 +191,18 @@ export function captureInvariantViolation(options: InvariantViolationOptions = {
     // Group deterministically by call site rather than by the runtime stack top.
     // For an inline assertion the top frame is a generic host frame (e.g. React
     // Native's Pressability internals) shared by every violation, so default
-    // stack-based grouping would collapse unrelated invariants into one issue.
+    // stack-based grouping would collapse unrelated assertions into one issue.
     // The build-time `siteId` is stable across dev and release; fall back to the
     // condition (then message) for hand-written calls that carry no `siteId`.
-    scope.setFingerprint(['loud-invariant', pragma, siteId ?? condition ?? message]);
+    scope.setFingerprint(['sentry-assertion', pragma ?? DEFAULT_ASSERTION_MECHANISM, siteId ?? condition ?? message]);
 
     return captureException(error, {
       // `synthetic: true` — the error was fabricated to carry a stack, not thrown.
       // `handled: true` — renders as a non-fatal in the issue stream.
+      // `type` is the uniform assertion mechanism; the specific pragma lives in
+      // `data.pragma`.
       mechanism: {
-        type: pragma,
+        type: DEFAULT_ASSERTION_MECHANISM,
         handled: true,
         synthetic: true,
         data,
