@@ -171,6 +171,25 @@ interface BabelApi {
 /**
  * Returns the pragma string matched by `callee`, or `undefined`. Supports bare
  * identifiers (`invariant`) and single-level member expressions (`console.assert`).
+ *
+ * Matching is purely syntactic on the callee shape — it does not follow aliases,
+ * which has two consequences:
+ *
+ * - A renamed pragma slips through unmatched: `const inv = invariant; inv(x)` is
+ *   left untouched because the callee is a bare `inv`, not `invariant`. Harmless
+ *   (the site is simply not instrumented).
+ * - A pragma destructured off its object is matched as the *bare* pragma, not the
+ *   member one: `const { assert } = console; assert(false)` compiles under the
+ *   `assert` pragma (a throwing precondition), not `console.assert` (report-only).
+ *   Because the two default pragmas differ in `rethrow`, this flips a report-only
+ *   `console.assert` into a throwing assertion. Following the binding back to
+ *   `console` would require flow analysis and still risks miscompiling an
+ *   unrelated same-named local, so it is left syntactic by design.
+ *
+ * Call the pragma by its canonical form (`console.assert(...)`, `invariant(...)`)
+ * at the site you want instrumented; if you must destructure `console.assert`,
+ * drop `assert` from `pragmas` (or drop it from `rethrowPragmas`) to avoid the
+ * throwing rewrite.
  */
 function matchPragma(
   t: typeof BabelTypes,
@@ -192,9 +211,23 @@ function matchPragma(
   return undefined;
 }
 
-/** True when `filename` belongs to the Sentry SDK's own source. */
+/**
+ * Normalizes path separators to forward slashes so substring matching works on
+ * Windows, where Babel/Metro `filename` values contain backslashes.
+ */
+function toPosixPath(filename: string): string {
+  return filename.replace(/\\/g, '/');
+}
+
+/**
+ * True when `filename` belongs to the Sentry SDK's own source. Separators are
+ * normalized first: the markers use forward slashes, so without this an SDK path
+ * with Windows backslashes would slip through and get a self-referential
+ * `require('@sentry/react-native')` injected into the package that defines it.
+ */
 function isSentrySdkPath(filename: string): boolean {
-  return SENTRY_SDK_PATH_MARKERS.some(marker => filename.includes(marker));
+  const normalized = toPosixPath(filename);
+  return SENTRY_SDK_PATH_MARKERS.some(marker => normalized.includes(marker));
 }
 
 /** True when `source` matches one of `modules` exactly or by trailing segment. */
@@ -264,6 +297,13 @@ function sourceOf(state: PluginPass, node: BabelTypes.Node): string | undefined 
  * `console`, …) are skipped as noise, and member *properties* (`a.ready` →
  * `ready`) are excluded because they sit in a non-referenced position.
  *
+ * Identifiers bound *inside* the condition are excluded: the emitted `values`
+ * object is evaluated at the call site, so a name bound in a nested scope — e.g.
+ * the `x` parameter in `invariant(items.every(x => x > 0))` — is out of scope
+ * there and would throw a `ReferenceError` on the (falsy) report path. Only
+ * identifiers whose binding is visible from the call-site scope are collected;
+ * `items` is captured, `x` is not.
+ *
  * Caveat: this is side-effect-free only for *already-initialized* bindings. If
  * the condition short-circuits past an identifier that is still in its
  * temporal dead zone (a `let`/`const` declared textually after the assertion),
@@ -274,9 +314,19 @@ function sourceOf(state: PluginPass, node: BabelTypes.Node): string | undefined 
  */
 function collectValueIdentifiers(conditionPath: NodePath<BabelTypes.Expression>): string[] {
   const names = new Set<string>();
+  // The `values` object is emitted in the call-site scope, so only capture
+  // identifiers that resolve to a binding visible there. An identifier bound in
+  // a nested scope (an arrow param, a callback local) resolves to a different
+  // binding than the call-site scope sees — or to none — so it is dropped.
+  const callSiteScope = conditionPath.scope;
   const add = (p: NodePath<BabelTypes.Node>): void => {
-    if (p.isIdentifier() && p.isReferencedIdentifier() && p.scope.getBinding(p.node.name)) {
-      names.add(p.node.name);
+    if (!p.isIdentifier() || !p.isReferencedIdentifier()) {
+      return;
+    }
+    const name = p.node.name;
+    const binding = p.scope.getBinding(name);
+    if (binding && callSiteScope.getBinding(name) === binding) {
+      names.add(name);
     }
   };
   // `traverse` visits descendants only, so check the root expression too (a bare
@@ -299,7 +349,10 @@ function isNodeModulesExcluded(filename: string, includeNodeModules: boolean | s
     return true;
   }
   if (Array.isArray(includeNodeModules)) {
-    return !includeNodeModules.some(fragment => filename.includes(fragment));
+    // Allowlist fragments are written with forward slashes; normalize so they
+    // still match on Windows (backslash) paths.
+    const normalized = toPosixPath(filename);
+    return !includeNodeModules.some(fragment => normalized.includes(fragment));
   }
   return false;
 }

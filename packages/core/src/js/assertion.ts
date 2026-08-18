@@ -101,6 +101,21 @@ function truncate(text: string, max: number): string {
 }
 
 /**
+ * Coerces a single runtime value to a string for `mechanism.data`. Defensive on
+ * purpose: `String(symbol)` throws a `TypeError`, and a value can carry a
+ * throwing `toString`/`Symbol.toPrimitive`, so a naive `String(value)` would
+ * crash the reporting path — exactly the path that must never throw. Symbols are
+ * rendered via `.toString()`; anything else that throws falls back to its type.
+ */
+function stringifyValue(value: unknown): string {
+  try {
+    return typeof value === 'symbol' ? value.toString() : String(value);
+  } catch (_e) {
+    return `[unstringifiable ${typeof value}]`;
+  }
+}
+
+/**
  * Re-throws `error` after tagging it as already reported. The tag
  * (`__sentry_captured__`) is the same non-enumerable marker `@sentry/core`
  * stamps in `checkOrSetAlreadyCaught`, so both `captureException` and — once it
@@ -124,7 +139,7 @@ function flattenValues(values: Record<string, unknown>): { [key: string]: string
   const data: { [key: string]: string | boolean } = {};
   for (const key of Object.keys(values)) {
     const value = values[key];
-    data[`values.${key}`] = typeof value === 'boolean' ? value : truncate(String(value), MAX_VALUE_LENGTH);
+    data[`values.${key}`] = typeof value === 'boolean' ? value : truncate(stringifyValue(value), MAX_VALUE_LENGTH);
   }
   try {
     data.values = truncate(JSON.stringify(values) ?? 'undefined', MAX_SNAPSHOT_LENGTH);

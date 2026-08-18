@@ -68,6 +68,23 @@ describe('sentryAssertionBabelPlugin', () => {
     expect(out).not.toMatch(/\bNaN: NaN\b/);
   });
 
+  it('excludes identifiers bound inside the condition (nested-scope params)', () => {
+    // `x` is the arrow parameter — bound inside the condition, so it is out of
+    // scope at the call site where `values` is emitted. Capturing it would throw
+    // a ReferenceError on the (falsy) report path. `items` (call-site scope) is
+    // kept; `x` is dropped.
+    const out = transform(`const items = [];\ninvariant(items.every(x => x > 0));`);
+    expect(out).toMatch(/values: \{[^}]*\bitems: items\b/);
+    expect(out).not.toMatch(/\bx: x\b/);
+  });
+
+  it('keeps a call-site identifier shadowed by a nested param of the same name', () => {
+    // Outer `items` is referenced as the receiver; the inner `items` param is a
+    // different binding. Only the call-site binding is safe to emit.
+    const out = transform(`const items = [];\ninvariant(items.every(items => items > 0));`);
+    expect(out).toMatch(/values: \{[^}]*\bitems: items\b/);
+  });
+
   it('omits the values object when the condition references no bound identifiers', () => {
     const out = transform(`invariant(1 > 0);`);
     expect(out).toContain(`pragma: "invariant"`);
@@ -165,6 +182,19 @@ describe('sentryAssertionBabelPlugin', () => {
   it('never instruments the Sentry SDK’s own source (installed @sentry path)', () => {
     const out = transform(`import invariant from 'invariant';\ninvariant(ok);`, {
       filename: '/proj/node_modules/@sentry/react-native/dist/js/foo.js',
+      options: { includeNodeModules: true },
+    });
+    expect(out).not.toContain('_captureAssertionViolation');
+    expect(out).toMatch(/invariant\(ok\)/);
+  });
+
+  it('never instruments the Sentry SDK’s own source on Windows-style paths', () => {
+    // Babel hands filenames with backslashes on Windows; the SDK markers are
+    // written with forward slashes. Without normalizing the path first the
+    // marker never matches and the SDK gets a self-referential reporter
+    // injected into its own source.
+    const out = transform(`import invariant from 'invariant';\ninvariant(ok);`, {
+      filename: 'C:\\proj\\node_modules\\@sentry\\react-native\\dist\\js\\foo.js',
       options: { includeNodeModules: true },
     });
     expect(out).not.toContain('_captureAssertionViolation');

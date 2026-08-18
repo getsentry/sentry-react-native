@@ -170,6 +170,29 @@ describe('captureAssertionViolation', () => {
     expect((second as { __sentry_captured__?: boolean }).__sentry_captured__).toBe(true);
   });
 
+  test('stringifies a Symbol value without throwing', () => {
+    // `String(symbol)` throws a TypeError; the reporting path must never throw,
+    // and the auto-captured `values` can hold a symbol when the condition
+    // references a symbol-valued identifier.
+    const sym = Symbol('token');
+    expect(() => captureAssertionViolation({ condition: 'token', values: { token: sym } })).not.toThrow();
+
+    const [, hint] = (captureException as jest.Mock).mock.calls[0];
+    expect(hint.mechanism.data['values.token']).toBe('Symbol(token)');
+  });
+
+  test('falls back gracefully when a value throws on stringification', () => {
+    const hostile = {
+      toString() {
+        throw new Error('nope');
+      },
+    };
+    expect(() => captureAssertionViolation({ condition: 'x', values: { x: hostile } })).not.toThrow();
+
+    const [, hint] = (captureException as jest.Mock).mock.calls[0];
+    expect(hint.mechanism.data['values.x']).toBe('[unstringifiable object]');
+  });
+
   test('caps oversized flattened values and the JSON snapshot', () => {
     const big = 'x'.repeat(5000);
     captureAssertionViolation({ condition: 'c', values: { big } });
