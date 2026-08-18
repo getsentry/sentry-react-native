@@ -261,6 +261,29 @@ describe('SentryBabelTransformer', () => {
     );
   });
 
+  test('transform honors an includeNodeModules array allowlist on Windows-style paths', () => {
+    // Babel/Metro pass backslash filenames on Windows; the allowlist fragments
+    // are written with forward slashes. The gate must normalize before matching,
+    // or an allowlisted dependency is silently skipped on Windows.
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      captureAssertions: { includeNodeModules: ['react-native/Libraries/Utilities'] },
+    });
+
+    createSentryBabelTransformer().transform?.({
+      ...createMinimalMockedTransformOptions(),
+      filename: 'C:\\project\\node_modules\\react-native\\Libraries\\Utilities\\Dimensions.js',
+    });
+    const includedArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
+    expect(includedArgs.plugins).toEqual(
+      expect.arrayContaining([
+        [
+          expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }),
+          { includeNodeModules: ['react-native/Libraries/Utilities'] },
+        ],
+      ]),
+    );
+  });
+
   test.each([
     [
       {

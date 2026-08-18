@@ -39,9 +39,22 @@ export interface AssertionViolationOptions {
    */
   pragma?: string;
   /**
-   * Human-readable message. Defaults to `Assertion failed: <condition>`.
+   * Human-readable message. Defaults to `Assertion failed: <condition>`. When
+   * `messageArgs` are present, this is treated as a `util.format`-style template.
    */
   message?: string;
+  /**
+   * Substitution arguments for a variadic pragma (`invariant(cond, fmt, ...args)`,
+   * `console.assert(cond, fmt, ...args)`). The Babel transform forwards the call's
+   * arguments beyond the format string here so the `%s`/`%d`/`%o`/... specifiers
+   * in `message` are interpolated instead of surfacing verbatim. Extra args with
+   * no matching specifier are appended to the message.
+   *
+   * Evaluated only on the report (falsy) path, so their cost — and any side
+   * effects — are deferred to an actual violation, consistent with the
+   * `cond || report()` rewrite.
+   */
+  messageArgs?: unknown[];
   /**
    * An already-constructed error carrying the stack of the assertion call site.
    * The Babel transform passes a bare `new Error()` created at the call site so
@@ -116,6 +129,68 @@ function stringifyValue(value: unknown): string {
 }
 
 /**
+ * Interpolates a `console.assert`/`invariant`/`warning`-style format string with
+ * its substitution arguments. These pragmas are variadic (`invariant(cond, fmt,
+ * ...args)`); the Babel transform forwards the extra args as `messageArgs` so the
+ * `%s`/`%d`/`%o`/... specifiers resolve instead of reaching Sentry verbatim.
+ *
+ * A pragmatic subset of the Node/browser `util.format` specifiers is supported.
+ * Every substitution flows through `stringifyValue`, so interpolation inherits
+ * the same no-throw guarantee. Args left over after the specifiers are consumed
+ * are appended space-separated (matching `console.assert(cond, a, b)`); a
+ * specifier with no remaining arg is left verbatim.
+ */
+function formatMessage(template: string, args: unknown[]): string {
+  let i = 0;
+  const out = template.replace(/%[sdifjoOc%]/g, spec => {
+    if (spec === '%%') {
+      return '%';
+    }
+    if (spec === '%c') {
+      i++; // CSS directive consumes an arg but renders nothing.
+      return '';
+    }
+    if (i >= args.length) {
+      return spec;
+    }
+    const arg = args[i++];
+    switch (spec) {
+      case '%d':
+      case '%i':
+        return String(Math.trunc(Number(arg)));
+      case '%f':
+        return String(Number(arg));
+      case '%j':
+        try {
+          return JSON.stringify(arg) ?? 'undefined';
+        } catch (_e) {
+          return '[circular]';
+        }
+      default:
+        // %s, %o, %O
+        return stringifyValue(arg);
+    }
+  });
+  const rest = args.slice(i).map(stringifyValue);
+  return rest.length > 0 ? `${out} ${rest.join(' ')}` : out;
+}
+
+/**
+ * Resolves the human-readable message: a caller `message` (interpolated with
+ * `messageArgs` when present), else `Assertion failed: <condition>`, else the
+ * bare fallback. A non-string `message` is coerced defensively.
+ */
+function buildMessage(message: unknown, messageArgs: unknown[] | undefined, condition: string | undefined): string {
+  if (typeof message === 'string') {
+    return messageArgs && messageArgs.length > 0 ? formatMessage(message, messageArgs) : message;
+  }
+  if (message !== undefined) {
+    return stringifyValue(message);
+  }
+  return condition ? `Assertion failed: ${condition}` : 'Assertion failed';
+}
+
+/**
  * Re-throws `error` after tagging it as already reported. The tag
  * (`__sentry_captured__`) is the same non-enumerable marker `@sentry/core`
  * stamps in `checkOrSetAlreadyCaught`, so both `captureException` and — once it
@@ -138,8 +213,13 @@ function rethrowCaptured(error: Error): never {
 function flattenValues(values: Record<string, unknown>): { [key: string]: string | boolean } {
   const data: { [key: string]: string | boolean } = {};
   for (const key of Object.keys(values)) {
-    const value = values[key];
-    data[`values.${key}`] = typeof value === 'boolean' ? value : truncate(stringifyValue(value), MAX_VALUE_LENGTH);
+    try {
+      const value = values[key];
+      data[`values.${key}`] = typeof value === 'boolean' ? value : truncate(stringifyValue(value), MAX_VALUE_LENGTH);
+    } catch (_e) {
+      // A throwing getter must not break the no-throw reporting path.
+      data[`values.${key}`] = '[unreadable]';
+    }
   }
   try {
     data.values = truncate(JSON.stringify(values) ?? 'undefined', MAX_SNAPSHOT_LENGTH);
@@ -165,7 +245,7 @@ function flattenValues(values: Record<string, unknown>): { [key: string]: string
 export function captureAssertionViolation(options: AssertionViolationOptions = {}): string {
   const { condition, values, pragma, siteId, once = true, rethrow = false } = options;
 
-  const message = options.message ?? (condition ? `Assertion failed: ${condition}` : 'Assertion failed');
+  const message = buildMessage(options.message, options.messageArgs, condition);
 
   const error = options.error ?? new Error(message);
   // The Babel transform creates a bare `new Error()` at the call site so its
@@ -198,7 +278,9 @@ export function captureAssertionViolation(options: AssertionViolationOptions = {
   if (siteId !== undefined) {
     data.siteId = siteId;
   }
-  if (values !== undefined) {
+  // `!= null` (not `!== undefined`): a hand-written call can pass `values: null`,
+  // and `flattenValues` → `Object.keys(null)` would throw on the no-throw path.
+  if (values != null) {
     Object.assign(data, flattenValues(values));
   }
 

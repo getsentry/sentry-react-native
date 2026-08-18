@@ -38,11 +38,37 @@ describe('sentryAssertionBabelPlugin', () => {
   });
 
   it('constructs the Error at the call site so its stack top is the assertion site', () => {
-    // The bare `new Error()` is created in the rewritten code (not inside the
+    // The `new Error()` is created in the rewritten code (not inside the
     // reporter), so the top frame is the assertion site in dev and release —
-    // without relying on framesToPop or the in_app heuristic.
+    // without relying on framesToPop or the in_app heuristic. It goes through a
+    // hoisted global-`Error` alias so a call-site shadow can't break it.
     const out = transform(`invariant(total >= 0, 'bad total');`);
-    expect(out).toMatch(/error: new Error\(\)/);
+    expect(out).toMatch(/var _Error\d* = Error;/);
+    expect(out).toMatch(/error: new _Error\d*\(\)/);
+  });
+
+  it('is immune to a call-site `Error` shadow (hoisted alias captures the global)', () => {
+    // A parameter named `Error` shadows the global at the call site. The hoisted
+    // `var _Error = Error;` at program top captured the real constructor first,
+    // so the injected `new _Error()` never resolves to the shadow (which would
+    // throw `TypeError: Error is not a constructor` when the assertion fires).
+    const out = transform(`function f(Error) {\n  invariant(ok);\n}`);
+    expect(out).toMatch(/var _Error\d* = Error;/);
+    expect(out).toMatch(/error: new _Error\d*\(\)/);
+  });
+
+  it('forwards variadic substitution args as messageArgs for interpolation', () => {
+    // RN's Dimensions invariant is `invariant(dims, 'No dimension set for key %s',
+    // dimension)` — the extra arg must reach the reporter so `%s` interpolates.
+    const out = transform(`invariant(ok, 'No dimension set for key %s', dimension);`);
+    expect(out).toContain(`message: 'No dimension set for key %s'`);
+    expect(out).toMatch(/messageArgs: \[dimension\]/);
+  });
+
+  it('omits messageArgs when the pragma has no args past the message', () => {
+    expect(transform(`invariant(ok, 'bad');`)).not.toContain('messageArgs');
+    // ...and when there is no message at all.
+    expect(transform(`invariant(ok);`)).not.toContain('messageArgs');
   });
 
   it('attaches the runtime values of identifiers referenced in the condition', () => {

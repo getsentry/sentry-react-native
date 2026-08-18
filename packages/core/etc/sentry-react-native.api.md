@@ -156,6 +156,7 @@ export interface AssertionViolationOptions {
     condition?: string;
     error?: Error;
     message?: string;
+    messageArgs?: unknown[];
     once?: boolean;
     pragma?: string;
     rethrow?: boolean;

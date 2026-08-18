@@ -162,11 +162,15 @@ function addSentryCaptureAssertionsPlugin(
   // semantics: `false`/absent skips all node_modules, an array allowlists by
   // path substring, `true` instruments all.
   const inc = options.includeNodeModules;
-  if (args.filename.includes('node_modules')) {
+  // Normalize separators so the allowlist (written with forward slashes) matches
+  // on Windows, where Babel/Metro pass backslash paths — mirroring the plugin's
+  // own `toPosixPath` normalization in `isNodeModulesExcluded`.
+  const normalizedFilename = args.filename.replace(/\\/g, '/');
+  if (normalizedFilename.includes('node_modules')) {
     if (!inc) {
       return undefined;
     }
-    if (Array.isArray(inc) && !inc.some(fragment => args.filename.includes(fragment))) {
+    if (Array.isArray(inc) && !inc.some(fragment => normalizedFilename.includes(fragment))) {
       return undefined;
     }
   }

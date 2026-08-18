@@ -118,15 +118,22 @@ describe('captureAssertionViolation', () => {
   });
 
   test('reports each siteId at most once per session', () => {
-    captureAssertionViolation({ condition: 'x', siteId: 'A.tsx:1:0' });
-    const secondId = captureAssertionViolation({ condition: 'x', siteId: 'A.tsx:1:0' });
+    // Isolate the module registry so `reportedSites` starts empty regardless of
+    // which siteIds other tests reported — the dedup set is module-level state.
+    jest.isolateModules(() => {
+      const { captureException: freshCapture } = require('@sentry/core');
+      const { captureAssertionViolation: report } = require('../src/js/assertion');
 
-    // A different site is unaffected by the first site's dedup.
-    captureAssertionViolation({ condition: 'y', siteId: 'B.tsx:2:0' });
+      report({ condition: 'x', siteId: 'A.tsx:1:0' });
+      const secondId = report({ condition: 'x', siteId: 'A.tsx:1:0' });
 
-    expect(captureException).toHaveBeenCalledTimes(2);
-    // The deduped call reports nothing and returns an empty event id.
-    expect(secondId).toBe('');
+      // A different site is unaffected by the first site's dedup.
+      report({ condition: 'y', siteId: 'B.tsx:2:0' });
+
+      expect(freshCapture).toHaveBeenCalledTimes(2);
+      // The deduped call reports nothing and returns an empty event id.
+      expect(secondId).toBe('');
+    });
   });
 
   test('reports on every call when once is false', () => {
@@ -152,22 +159,24 @@ describe('captureAssertionViolation', () => {
   });
 
   test('re-throws even when the report is deduplicated by siteId', () => {
-    const first = new Error('first');
-    expect(() =>
-      captureAssertionViolation({ condition: 'x', error: first, siteId: 'R.tsx:1:0', rethrow: true }),
-    ).toThrow(first);
-    expect(captureException).toHaveBeenCalledTimes(1);
+    // Isolated so the first call is guaranteed to be this site's first sighting.
+    jest.isolateModules(() => {
+      const { captureException: freshCapture } = require('@sentry/core');
+      const { captureAssertionViolation: report } = require('../src/js/assertion');
 
-    const second = new Error('second');
-    // Same site → the duplicate event is suppressed, but a violated precondition
-    // must still halt control flow.
-    expect(() =>
-      captureAssertionViolation({ condition: 'x', error: second, siteId: 'R.tsx:1:0', rethrow: true }),
-    ).toThrow(second);
-    expect(captureException).toHaveBeenCalledTimes(1);
-    // The deduped rethrow is tagged too, so the global handler skips it — the
-    // guard must hold on this branch, which returns before the tail rethrow.
-    expect((second as { __sentry_captured__?: boolean }).__sentry_captured__).toBe(true);
+      const first = new Error('first');
+      expect(() => report({ condition: 'x', error: first, siteId: 'R.tsx:1:0', rethrow: true })).toThrow(first);
+      expect(freshCapture).toHaveBeenCalledTimes(1);
+
+      const second = new Error('second');
+      // Same site → the duplicate event is suppressed, but a violated precondition
+      // must still halt control flow.
+      expect(() => report({ condition: 'x', error: second, siteId: 'R.tsx:1:0', rethrow: true })).toThrow(second);
+      expect(freshCapture).toHaveBeenCalledTimes(1);
+      // The deduped rethrow is tagged too, so the global handler skips it — the
+      // guard must hold on this branch, which returns before the tail rethrow.
+      expect((second as { __sentry_captured__?: boolean }).__sentry_captured__).toBe(true);
+    });
   });
 
   test('stringifies a Symbol value without throwing', () => {
@@ -191,6 +200,44 @@ describe('captureAssertionViolation', () => {
 
     const [, hint] = (captureException as jest.Mock).mock.calls[0];
     expect(hint.mechanism.data['values.x']).toBe('[unstringifiable object]');
+  });
+
+  test('does not throw when values is null', () => {
+    // The public API can be called by hand with `values: null`; `Object.keys(null)`
+    // would otherwise throw on the no-throw reporting path.
+    expect(() => captureAssertionViolation({ condition: 'x', values: null as never })).not.toThrow();
+    expect(captureException).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not throw when a value has a throwing getter', () => {
+    const values = {};
+    Object.defineProperty(values, 'boom', {
+      enumerable: true,
+      get() {
+        throw new Error('nope');
+      },
+    });
+    expect(() => captureAssertionViolation({ condition: 'x', values })).not.toThrow();
+
+    const [, hint] = (captureException as jest.Mock).mock.calls[0];
+    expect(hint.mechanism.data['values.boom']).toBe('[unreadable]');
+  });
+
+  test('interpolates messageArgs into the message format string', () => {
+    // The variadic RN Dimensions invariant: `invariant(dims, '... %s', key)`.
+    captureAssertionViolation({ message: 'No dimension set for key %s', messageArgs: ['window'] });
+
+    const [error] = (captureException as jest.Mock).mock.calls[0];
+    expect((error as Error).message).toBe('No dimension set for key window');
+  });
+
+  test('interpolates %d/%j and appends extra args, leaving a dangling specifier verbatim', () => {
+    captureAssertionViolation({ message: 'n=%d obj=%j missing=%s', messageArgs: [3.9, { a: 1 }, 'x', 'y'] });
+
+    const [error] = (captureException as jest.Mock).mock.calls[0];
+    // %d truncates, %j serializes, the two consumed the first three args, the
+    // trailing 'y' is appended, and the un-fed %s is left literal.
+    expect((error as Error).message).toBe('n=3 obj={"a":1} missing=x y');
   });
 
   test('caps oversized flattened values and the JSON snapshot', () => {

@@ -94,6 +94,8 @@ const SENTRY_PACKAGE = '@sentry/react-native';
 export const CAPTURE_FN = 'captureAssertionViolation';
 /** Per-file state key holding the injected helper's local identifier. */
 const IMPORT_UID_KEY = 'sentryAssertionCaptureUid';
+/** Per-file state key for the hoisted `Error`-constructor alias. */
+const ERROR_UID_KEY = 'sentryAssertionErrorUid';
 
 const DEFAULT_PRAGMAS = ['invariant', 'assert', 'warning', 'console.assert'];
 
@@ -436,6 +438,36 @@ function ensureHelperBinding(
   return uid;
 }
 
+/**
+ * Resolves a hoisted alias of the global `Error` constructor for this file,
+ * injecting `var _Error = Error;` once at the top of the program on first use.
+ *
+ * The transform emits `new Error()` at the assertion call site (so the stack top
+ * is the site itself). Referencing `Error` directly there would bind to whatever
+ * `Error` is in scope — a local `let Error`, a parameter, an import — and a
+ * non-constructable shadow would throw `TypeError: Error is not a constructor`
+ * exactly when the assertion fires. The alias is captured at program top, where
+ * `Error` is the global, so the injected `new _Error()` is immune to call-site
+ * shadowing.
+ */
+function ensureErrorBinding(
+  t: typeof BabelTypes,
+  path: NodePath<BabelTypes.CallExpression>,
+  state: PluginPass,
+): BabelTypes.Identifier {
+  let uid = state.get(ERROR_UID_KEY) as BabelTypes.Identifier | undefined;
+  if (uid) {
+    return uid;
+  }
+  uid = path.scope.generateUidIdentifier('Error');
+  const program = path.scope.getProgramParent().path as NodePath<BabelTypes.Program>;
+  program.unshiftContainer('body', [
+    t.variableDeclaration('var', [t.variableDeclarator(t.cloneNode(uid), t.identifier('Error'))]),
+  ]);
+  state.set(ERROR_UID_KEY, uid);
+  return uid;
+}
+
 /** Builds the reporter's options-object properties for a matched call site. */
 function buildReportProperties(
   t: typeof BabelTypes,
@@ -471,6 +503,20 @@ function buildReportProperties(
   const messageArg = path.node.arguments[1];
   if (messageArg !== undefined && t.isExpression(messageArg)) {
     properties.push(t.objectProperty(t.identifier('message'), t.cloneNode(messageArg, true)));
+
+    // Forward the variadic substitution args (`invariant(cond, fmt, ...args)`,
+    // `console.assert(cond, fmt, ...args)`) so the reporter interpolates the
+    // `%s`/`%d`/... specifiers instead of surfacing the literal format string.
+    // Cloned into an array literal on the report (RHS) path, so — like the
+    // condition's `values` — they are only evaluated when the assertion fails.
+    const extraArgs = path.node.arguments
+      .slice(2)
+      .filter((a): a is BabelTypes.Expression | BabelTypes.SpreadElement => t.isExpression(a) || t.isSpreadElement(a));
+    if (extraArgs.length > 0) {
+      properties.push(
+        t.objectProperty(t.identifier('messageArgs'), t.arrayExpression(extraArgs.map(a => t.cloneNode(a, true)))),
+      );
+    }
   }
 
   const loc = path.node.loc;
@@ -492,7 +538,10 @@ function buildReportProperties(
   // site itself — in dev AND release, with no reliance on `error.framesToPop`
   // (consumed only by the dev debug symbolicator) or the `in_app` path
   // heuristic. The reporter backfills a readable `.message`, so it is bare here.
-  properties.push(t.objectProperty(t.identifier('error'), t.newExpression(t.identifier('Error'), [])));
+  // Use the hoisted global-`Error` alias so a call-site shadow can't turn this
+  // into a `TypeError` when the assertion fires — see `ensureErrorBinding`.
+  const errorUid = ensureErrorBinding(t, path, state);
+  properties.push(t.objectProperty(t.identifier('error'), t.newExpression(t.cloneNode(errorUid), [])));
 
   return properties;
 }
