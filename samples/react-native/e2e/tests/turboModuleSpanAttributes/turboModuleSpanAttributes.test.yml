@@ -30,13 +30,42 @@ appId: io.sentry.reactnative.sample
 - assertVisible: 'Sync: add x5 = 15'
 - assertVisible: 'Async: getPlatform = .*'
 
-# The `turbo_module.*` attributes the TurboModuleContext integration attached
-# to the root span are rendered on screen so QA can eyeball them on device.
-- assertVisible: 'turbo_module.total_call_count: 6'
-- assertVisible: 'turbo_module.total_error_count: 0'
-
-# A native throw surfaced to JS must still be capturable (crash-context path)
+# Do the native-throw interaction BEFORE scrolling to the attributes: the throw
+# button lives in the button group at the top of the screen, so it must be
+# exercised while the viewport is still at the top. Scrolling down to the
+# attribute block first (below) would push it off-screen on the shorter Android
+# emulator and the tap would miss it.
+#
+# A native throw surfaced to JS must still be capturable (crash-context path).
 - tapOn: 'Throw from native platform'
 - extendedWaitUntil:
     visible: 'Throw: captured platform throw as .*'
     timeout: 30000
+
+# The `turbo_module.*` attributes the TurboModuleContext integration attached
+# to the root span are rendered on screen so QA can eyeball them on device.
+# This block is the LAST content in a long ScrollView, so on the shorter Android
+# emulator screen it starts below the fold — scroll it into view before asserting
+# (`assertVisible` alone only sees the current viewport, which is why this never
+# passed on Android since #6549). Kept last so nothing after it needs the top of
+# the screen back.
+#
+# Match the full line with a regex: Maestro anchors `assertVisible` text to the
+# whole node, so a bare `total_call_count:` prefix would NOT match `... : 6`.
+# We deliberately don't pin the exact on-screen count here — it can race the
+# async `getPlatform` record settling relative to the synchronous post-`end()`
+# read. The exact aggregate counts are asserted against the transaction envelope
+# in turboModuleSpanAttributes.test.ts, which is the authoritative source.
+- scrollUntilVisible:
+    element:
+      text: 'turbo_module.total_call_count: .*'
+    direction: DOWN
+    timeout: 10000
+# Sorted alphabetically, `total_error_count` renders a few lines below
+# `total_call_count`, so it may sit past the bottom edge after the scroll above —
+# scroll to it independently rather than assume both fit in one viewport.
+- scrollUntilVisible:
+    element:
+      text: 'turbo_module.total_error_count: 0'
+    direction: DOWN
+    timeout: 10000
