@@ -104,6 +104,16 @@ describe('sentryAssertionBabelPlugin', () => {
     expect(out).not.toMatch(/\bx: x\b/);
   });
 
+  it('drops a `let` identifier declared after the call site to avoid a TDZ crash', () => {
+    // `x` is a `let` declared textually below the assertion. On a falsy `cond`
+    // the original short-circuits and never reads `x`, but the emitted `values`
+    // would — hitting its temporal dead zone and throwing a ReferenceError on
+    // the report path. `items` (declared above) is kept; `x` is dropped.
+    const out = transform(`const items = [];\ninvariant(items.length > 0 && x > 0);\nlet x = 5;`);
+    expect(out).toMatch(/values: \{[^}]*\bitems: items\b/);
+    expect(out).not.toMatch(/\bx: x\b/);
+  });
+
   it('keeps a call-site identifier shadowed by a nested param of the same name', () => {
     // Outer `items` is referenced as the receiver; the inner `items` param is a
     // different binding. Only the call-site binding is safe to emit.
@@ -154,6 +164,19 @@ describe('sentryAssertionBabelPlugin', () => {
     });
     expect(out).toMatch(/require\(['"]@sentry\/react-native['"]\)\.captureAssertionViolation/);
     expect(out).not.toMatch(/^\s*import\b/m);
+  });
+
+  it('leaves a pragma call used as a subexpression untouched', () => {
+    // Rewriting `warning(cond) && next()` to `(cond || report()) && next()`
+    // would change the branching (report() is truthy where `warning` returned
+    // undefined), so only standalone assertion statements are instrumented.
+    const andOut = transform(`warning(cond) && next();`);
+    expect(andOut).not.toContain('_captureAssertionViolation');
+    expect(andOut).toMatch(/warning\(cond\) && next\(\)/);
+
+    // Same for an assignment / return position.
+    const assignOut = transform(`const ok = invariant(cond);`);
+    expect(assignOut).not.toContain('_captureAssertionViolation');
   });
 
   it('leaves non-pragma calls alone', () => {

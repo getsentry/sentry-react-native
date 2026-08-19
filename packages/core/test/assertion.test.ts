@@ -240,6 +240,16 @@ describe('captureAssertionViolation', () => {
     expect((error as Error).message).toBe('n=3 obj={"a":1} missing=x y');
   });
 
+  test('renders a non-coercible %d arg as NaN instead of throwing', () => {
+    // `Number(symbol)` throws a TypeError; the numeric specifiers must not break
+    // the no-throw reporting path.
+    const sym = Symbol('x');
+    expect(() => captureAssertionViolation({ message: 'id %d', messageArgs: [sym] })).not.toThrow();
+
+    const [error] = (captureException as jest.Mock).mock.calls[0];
+    expect((error as Error).message).toBe('id NaN');
+  });
+
   test('caps oversized flattened values and the JSON snapshot', () => {
     const big = 'x'.repeat(5000);
     captureAssertionViolation({ condition: 'c', values: { big } });

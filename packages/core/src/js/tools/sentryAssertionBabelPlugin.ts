@@ -306,13 +306,12 @@ function sourceOf(state: PluginPass, node: BabelTypes.Node): string | undefined 
  * identifiers whose binding is visible from the call-site scope are collected;
  * `items` is captured, `x` is not.
  *
- * Caveat: this is side-effect-free only for *already-initialized* bindings. If
- * the condition short-circuits past an identifier that is still in its
- * temporal dead zone (a `let`/`const` declared textually after the assertion),
- * reading it on the report path can throw a `ReferenceError` where the original
- * condition would not have. This is rare (it requires a use-before-declaration
- * that only survives via short-circuiting) but it is why the guarantee is
- * "initialized bindings", not "all references".
+ * A `let`/`const` binding declared textually *after* the call site is dropped:
+ * on the falsy report path the emitted `values` reads it, and if the original
+ * condition only reached it via short-circuit the read would hit its temporal
+ * dead zone here — a `ReferenceError` the original never threw. (A deferred
+ * call could initialize it before running, so this may drop a safe value, but
+ * dropping a value is always preferable to crashing the report path.)
  */
 function collectValueIdentifiers(conditionPath: NodePath<BabelTypes.Expression>): string[] {
   const names = new Set<string>();
@@ -321,15 +320,26 @@ function collectValueIdentifiers(conditionPath: NodePath<BabelTypes.Expression>)
   // a nested scope (an arrow param, a callback local) resolves to a different
   // binding than the call-site scope sees — or to none — so it is dropped.
   const callSiteScope = conditionPath.scope;
+  // The `values` object is emitted at the call site's position; a lexical
+  // binding whose declaration starts after this is in its TDZ here.
+  const useStart = conditionPath.node.start;
   const add = (p: NodePath<BabelTypes.Node>): void => {
     if (!p.isIdentifier() || !p.isReferencedIdentifier()) {
       return;
     }
     const name = p.node.name;
     const binding = p.scope.getBinding(name);
-    if (binding && callSiteScope.getBinding(name) === binding) {
-      names.add(name);
+    if (!binding || callSiteScope.getBinding(name) !== binding) {
+      return;
     }
+    if (binding.kind === 'let' || binding.kind === 'const') {
+      // Class declarations also register as `let`, so this covers them too.
+      const declStart = binding.path.node.start;
+      if (typeof declStart === 'number' && typeof useStart === 'number' && declStart > useStart) {
+        return;
+      }
+    }
+    names.add(name);
   };
   // `traverse` visits descendants only, so check the root expression too (a bare
   // `invariant(ready)` condition is the identifier itself).
@@ -553,6 +563,14 @@ export default function sentryAssertionBabelPlugin({ types: t }: BabelApi): Plug
       CallExpression(path: NodePath<BabelTypes.CallExpression>, state: PluginPass) {
         const options = (state.opts as SentryAssertionBabelPluginOptions | undefined) ?? {};
         const filename = (state.file?.opts?.filename as string | undefined) ?? '';
+
+        // Only rewrite a standalone assertion statement. As a subexpression
+        // (`warning(cond) && next()`), the `cond || report()` rewrite would
+        // change the value and branching — `report()` returns a truthy event id
+        // where the pragma returned `undefined` — so those calls are left alone.
+        if (!path.parentPath.isExpressionStatement()) {
+          return;
+        }
 
         const match = resolveInstrumentablePragma(t, path, filename, options);
         if (!match) {

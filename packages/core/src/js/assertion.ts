@@ -140,6 +140,16 @@ function stringifyValue(value: unknown): string {
  * are appended space-separated (matching `console.assert(cond, a, b)`); a
  * specifier with no remaining arg is left verbatim.
  */
+function safeNumber(arg: unknown): number {
+  try {
+    return Number(arg);
+  } catch (_e) {
+    // `Number(symbol)` throws a TypeError; the reporting path must never throw,
+    // so a non-coercible arg renders as `NaN` (matching `util.format`).
+    return NaN;
+  }
+}
+
 function formatMessage(template: string, args: unknown[]): string {
   let i = 0;
   const out = template.replace(/%[sdifjoOc%]/g, spec => {
@@ -157,9 +167,9 @@ function formatMessage(template: string, args: unknown[]): string {
     switch (spec) {
       case '%d':
       case '%i':
-        return String(Math.trunc(Number(arg)));
+        return String(Math.trunc(safeNumber(arg)));
       case '%f':
-        return String(Number(arg));
+        return String(safeNumber(arg));
       case '%j':
         try {
           return JSON.stringify(arg) ?? 'undefined';
