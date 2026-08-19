@@ -30,13 +30,6 @@ appId: io.sentry.reactnative.sample
 - assertVisible: 'Sync: add x5 = 15'
 - assertVisible: 'Async: getPlatform = .*'
 
-# Do the native-throw interaction BEFORE scrolling to the attributes: the throw
-# button lives in the button group at the top of the screen, so it must be
-# exercised while the viewport is still at the top. Scrolling down to the
-# attribute block first (below) would push it off-screen on the shorter Android
-# emulator and the tap would miss it.
-#
-# A native throw surfaced to JS must still be capturable (crash-context path).
 - tapOn: 'Throw from native platform'
 - extendedWaitUntil:
     visible: 'Throw: captured platform throw as .*'
