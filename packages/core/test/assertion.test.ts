@@ -262,4 +262,27 @@ describe('captureAssertionViolation', () => {
     expect(snapshot.length).toBeLessThanOrEqual(1044);
     expect(snapshot).toContain('…[truncated]');
   });
+
+  test('caps the number of flattened value entries and snapshots only the subset', () => {
+    // The public API can be handed an object with a huge key count; each entry
+    // is length-capped, but the entry *count* and the full-object JSON.stringify
+    // must be bounded too so a million-key object can't exhaust CPU/memory on
+    // the no-throw reporting path.
+    const huge: Record<string, number> = {};
+    for (let i = 0; i < 1000; i++) {
+      huge[`k${i}`] = i;
+    }
+    expect(() => captureAssertionViolation({ condition: 'c', values: huge })).not.toThrow();
+
+    const [, hint] = (captureException as jest.Mock).mock.calls[0];
+    const emitted = Object.keys(hint.mechanism.data).filter(
+      k => k.startsWith('values.') && k !== 'values.__truncated__',
+    );
+    // At most MAX_VALUE_ENTRIES (50) per-key entries survive.
+    expect(emitted.length).toBe(50);
+    expect(hint.mechanism.data['values.__truncated__']).toBe('950 more keys omitted');
+    // The snapshot is built from the capped subset, so it never contains a
+    // key beyond the cap (e.g. `k999`).
+    expect(hint.mechanism.data.values as string).not.toContain('k999');
+  });
 });

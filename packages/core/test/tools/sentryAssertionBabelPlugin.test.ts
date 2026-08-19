@@ -246,6 +246,20 @@ describe('sentryAssertionBabelPlugin', () => {
     expect(transform(`invariant(ok);`, { options: { rethrowPragmas: [] } })).not.toContain('rethrow');
   });
 
+  it('does not crash the build on a non-array `pragmas`/`rethrowPragmas` option', () => {
+    // Metro config is untyped at runtime; a bare string (or any non-array) must
+    // fall back to the defaults instead of throwing a `TypeError` at `.includes`.
+    const badPragmas = { options: { pragmas: 'invariant' } as unknown as SentryAssertionBabelPluginOptions };
+    expect(() => transform(`invariant(ok);`, badPragmas)).not.toThrow();
+    // Falls back to DEFAULT_PRAGMAS, so `invariant` is still instrumented.
+    expect(transform(`invariant(ok);`, badPragmas)).toContain(`pragma: "invariant"`);
+
+    const badRethrow = { options: { rethrowPragmas: 'invariant' } as unknown as SentryAssertionBabelPluginOptions };
+    expect(() => transform(`invariant(ok);`, badRethrow)).not.toThrow();
+    // Falls back to DEFAULT_RETHROW_PRAGMAS, so `invariant` still re-throws.
+    expect(transform(`invariant(ok);`, badRethrow)).toContain('rethrow: true');
+  });
+
   it('never instruments the Sentry SDK’s own source (installed @sentry path)', () => {
     const out = transform(`import invariant from 'invariant';\ninvariant(ok);`, {
       filename: '/proj/node_modules/@sentry/react-native/dist/js/foo.js',

@@ -195,6 +195,16 @@ interface BabelApi {
  * drop `assert` from `pragmas` (or drop it from `rethrowPragmas`) to avoid the
  * throwing rewrite.
  */
+/**
+ * Coerces a user-supplied pragma option to a string array. A non-array value
+ * (e.g. a bare string passed through Metro config) would otherwise crash the
+ * build with an opaque `TypeError` the first time `.includes()` is called on it.
+ * Mirrors the `Array.isArray` guard already applied to `includeNodeModules`.
+ */
+function asPragmaList(value: unknown, fallback: string[]): string[] {
+  return Array.isArray(value) ? value : fallback;
+}
+
 function matchPragma(
   t: typeof BabelTypes,
   callee: BabelTypes.Expression | BabelTypes.V8IntrinsicIdentifier,
@@ -393,7 +403,7 @@ function resolveInstrumentablePragma(
     return undefined;
   }
 
-  const pragma = matchPragma(t, path.node.callee, options.pragmas ?? DEFAULT_PRAGMAS);
+  const pragma = matchPragma(t, path.node.callee, asPragmaList(options.pragmas, DEFAULT_PRAGMAS));
   if (pragma === undefined) {
     return undefined;
   }
@@ -559,7 +569,7 @@ function buildReportProperties(
   // For a throwing pragma (`invariant`/`assert`), preserve control flow: the
   // reporter re-throws after capturing so downstream code that assumed the
   // precondition held is not reached with invalid state.
-  const rethrowPragmas = options.rethrowPragmas ?? DEFAULT_RETHROW_PRAGMAS;
+  const rethrowPragmas = asPragmaList(options.rethrowPragmas, DEFAULT_RETHROW_PRAGMAS);
   if (rethrowPragmas.includes(pragma)) {
     properties.push(t.objectProperty(t.identifier('rethrow'), t.booleanLiteral(true)));
   }

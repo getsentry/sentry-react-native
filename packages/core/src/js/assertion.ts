@@ -107,6 +107,8 @@ const reportedSites = new Set<string>();
 const MAX_VALUE_LENGTH = 256;
 /** Max length of the whole `values` JSON snapshot before truncation. */
 const MAX_SNAPSHOT_LENGTH = 1024;
+/** Max number of `values.<key>` entries emitted before the rest are dropped. */
+const MAX_VALUE_ENTRIES = 50;
 
 /** Truncates `text` to `max` characters, appending an ellipsis marker if cut. */
 function truncate(text: string, max: number): string {
@@ -216,23 +218,42 @@ function rethrowCaptured(error: Error): never {
 
 /**
  * Flattens a runtime values object into the flat `string | boolean` map that
- * `mechanism.data` accepts. Nested/complex values are stringified. Both the
- * per-key entries and the JSON snapshot are length-capped so a large captured
- * object (e.g. a whole config or dimensions map) can't bloat the event payload.
+ * `mechanism.data` accepts. Nested/complex values are stringified.
+ *
+ * Three bounds keep a large captured object from bloating the event payload or
+ * burning CPU on the no-throw reporting path: the number of keys is capped
+ * (`MAX_VALUE_ENTRIES`), each entry is length-capped (`MAX_VALUE_LENGTH`), and
+ * the JSON snapshot — built from only the capped subset, never the full input —
+ * is length-capped (`MAX_SNAPSHOT_LENGTH`). The Babel transform only ever emits
+ * a handful of condition identifiers, but `captureAssertionViolation` is public
+ * and can be handed an arbitrarily large object (e.g. a config or array with
+ * millions of indices) by hand.
  */
 function flattenValues(values: Record<string, unknown>): { [key: string]: string | boolean } {
   const data: { [key: string]: string | boolean } = {};
-  for (const key of Object.keys(values)) {
+  const keys = Object.keys(values);
+  const cappedKeys = keys.length > MAX_VALUE_ENTRIES ? keys.slice(0, MAX_VALUE_ENTRIES) : keys;
+  // Only materialize a subset object when we actually truncated, so the common
+  // (small) case snapshots the input directly with no extra allocation.
+  const truncated = cappedKeys.length < keys.length;
+  const snapshotSource: Record<string, unknown> = truncated ? {} : values;
+  for (const key of cappedKeys) {
     try {
       const value = values[key];
       data[`values.${key}`] = typeof value === 'boolean' ? value : truncate(stringifyValue(value), MAX_VALUE_LENGTH);
+      if (truncated) {
+        snapshotSource[key] = value;
+      }
     } catch (_e) {
       // A throwing getter must not break the no-throw reporting path.
       data[`values.${key}`] = '[unreadable]';
     }
   }
+  if (truncated) {
+    data['values.__truncated__'] = `${keys.length - cappedKeys.length} more keys omitted`;
+  }
   try {
-    data.values = truncate(JSON.stringify(values) ?? 'undefined', MAX_SNAPSHOT_LENGTH);
+    data.values = truncate(JSON.stringify(snapshotSource) ?? 'undefined', MAX_SNAPSHOT_LENGTH);
   } catch (_e) {
     // Circular or non-serializable values — the flattened entries above still apply.
   }
