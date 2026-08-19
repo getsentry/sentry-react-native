@@ -7,10 +7,15 @@ import sentryAssertionBabelPlugin, { CAPTURE_FN } from '../../src/js/tools/sentr
 
 function transform(
   code: string,
-  { filename = '/app/index.tsx', options }: { filename?: string; options?: SentryAssertionBabelPluginOptions } = {},
+  {
+    filename = '/app/index.tsx',
+    options,
+    root,
+  }: { filename?: string; options?: SentryAssertionBabelPluginOptions; root?: string } = {},
 ): string {
   const result = transformSync(code, {
     filename,
+    root,
     babelrc: false,
     configFile: false,
     plugins: [options ? [sentryAssertionBabelPlugin, options] : sentryAssertionBabelPlugin],
@@ -32,9 +37,28 @@ describe('sentryAssertionBabelPlugin', () => {
     expect(out).toContain(`message: 'bad total'`);
   });
 
-  it('injects a stable per-site siteId', () => {
+  it('injects a stable per-site siteId (root-relative when the project root is known)', () => {
+    const out = transform(`invariant(ok);`, { filename: '/proj/src/Foo.tsx', root: '/proj' });
+    expect(out).toContain(`siteId: "src/Foo.tsx:1:0"`);
+  });
+
+  it('falls back to parentDir/basename for the siteId when the file is outside root', () => {
+    // No matching root → the path can't be made relative, but a bare basename
+    // collides across the many `index.tsx` files an app has. The last two
+    // segments keep it disambiguated.
     const out = transform(`invariant(ok);`, { filename: '/proj/src/Foo.tsx' });
-    expect(out).toContain(`siteId: "Foo.tsx:1:0"`);
+    expect(out).toContain(`siteId: "src/Foo.tsx:1:0"`);
+  });
+
+  it('does not collide siteIds across files sharing a basename', () => {
+    // `screens/index.tsx` and `components/index.tsx` with an assertion at the
+    // same line:column must produce distinct siteIds, or the runtime dedup set
+    // (keyed by siteId) suppresses the second file's violation entirely.
+    const a = transform(`invariant(ok);`, { filename: '/app/src/screens/index.tsx', root: '/app' });
+    const b = transform(`invariant(ok);`, { filename: '/app/src/components/index.tsx', root: '/app' });
+    expect(a).toContain(`siteId: "src/screens/index.tsx:1:0"`);
+    expect(b).toContain(`siteId: "src/components/index.tsx:1:0"`);
+    expect(a).not.toEqual(b);
   });
 
   it('constructs the Error at the call site so its stack top is the assertion site', () => {
@@ -221,6 +245,15 @@ describe('sentryAssertionBabelPlugin', () => {
     const out = transform(`invariant(ok);`, { filename: '/proj/node_modules/some-dep/index.js' });
     expect(out).not.toContain('@sentry/react-native');
     expect(out).toMatch(/invariant\(ok\)/);
+  });
+
+  it('instruments a first-party file whose path merely contains the node_modules substring', () => {
+    // `node_modules` must match a real path segment, not a raw substring — a
+    // first-party file named like `node_modules_helper.ts` is not a dependency
+    // and must still be instrumented.
+    const out = transform(`invariant(ok);`, { filename: '/proj/src/utils/node_modules_helper.ts' });
+    expect(out).toContain('@sentry/react-native');
+    expect(out).toContain(`pragma: "invariant"`);
   });
 
   it('instruments node_modules when includeNodeModules is set and the pragma resolves to an assertion module', () => {

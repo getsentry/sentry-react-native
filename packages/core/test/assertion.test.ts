@@ -82,6 +82,25 @@ describe('captureAssertionViolation', () => {
     expect((captured as Error).message).toBe('Assertion failed: total >= 0');
   });
 
+  test('does not throw when backfilling the message on a frozen error', () => {
+    // The public API is untyped at runtime; a frozen error (or one with a
+    // read-only `message`) must not break the no-throw reporting path when the
+    // reporter tries to backfill the default message.
+    const frozen = Object.freeze(new Error());
+    expect(() => captureAssertionViolation({ condition: 'total >= 0', error: frozen })).not.toThrow();
+
+    const [captured] = (captureException as jest.Mock).mock.calls[0];
+    expect(captured).toBe(frozen);
+    expect(captureException).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not throw when a non-object error is passed', () => {
+    // A primitive `error` short-circuits the `?? new Error()` fallback; assigning
+    // `.message` to it throws in strict mode, so the backfill must be guarded.
+    expect(() => captureAssertionViolation({ condition: 'x', error: 'boom' as unknown as Error })).not.toThrow();
+    expect(captureException).toHaveBeenCalledTimes(1);
+  });
+
   test('groups by call site via a deterministic fingerprint', () => {
     captureAssertionViolation({
       condition: 'count > 0',

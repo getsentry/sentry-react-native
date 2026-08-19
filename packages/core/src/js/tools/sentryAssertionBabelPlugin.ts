@@ -234,6 +234,29 @@ function toPosixPath(filename: string): string {
 }
 
 /**
+ * Builds the path portion of a `siteId`. The `siteId` feeds both per-session
+ * dedup and the issue fingerprint, so it must be unique per call site: a bare
+ * basename collides across the many `index.tsx` / `index.ts` files a real app
+ * has, silently deduplicating (and cross-grouping) assertions in different
+ * directories.
+ *
+ * Prefers the path relative to the Babel `root` (the project root Metro passes),
+ * which is stable within a built bundle and machine-independent. When `filename`
+ * is outside `root` (or `root` is absent) it falls back to the last two path
+ * segments (`parentDir/basename`), which still disambiguates the common
+ * same-basename-in-sibling-directories collision.
+ */
+function relativeSitePath(filename: string, root: string | undefined): string {
+  const normalized = toPosixPath(filename);
+  const normalizedRoot = root ? toPosixPath(root).replace(/\/+$/, '') : '';
+  if (normalizedRoot && normalized.startsWith(`${normalizedRoot}/`)) {
+    return normalized.slice(normalizedRoot.length + 1);
+  }
+  const segments = normalized.split('/').filter(Boolean);
+  return segments.slice(-2).join('/') || normalized;
+}
+
+/**
  * True when `filename` belongs to the Sentry SDK's own source. Separators are
  * normalized first: the markers use forward slashes, so without this an SDK path
  * with Windows backslashes would slip through and get a self-referential
@@ -364,9 +387,18 @@ function collectValueIdentifiers(conditionPath: NodePath<BabelTypes.Expression>)
   return Array.from(names);
 }
 
+/**
+ * True when `filename` sits inside a real `node_modules` directory segment.
+ * Matches the `node_modules/` path segment, not the bare substring — a
+ * first-party file like `src/utils/node_modules_helper.ts` is not a dependency.
+ */
+function isInNodeModules(filename: string): boolean {
+  return /(?:^|\/)node_modules\//.test(toPosixPath(filename));
+}
+
 /** True when `filename` should be skipped given the `includeNodeModules` option. */
 function isNodeModulesExcluded(filename: string, includeNodeModules: boolean | string[] | undefined): boolean {
-  if (!filename.includes('node_modules')) {
+  if (!isInNodeModules(filename)) {
     return false;
   }
   if (!includeNodeModules) {
@@ -417,7 +449,7 @@ function resolveInstrumentablePragma(
   // Guard against miscompiling a coincidentally-named function: for a bare
   // identifier pragma, optionally require it to resolve to a known assertion
   // module. On by default in node_modules, off for first-party code.
-  const requireResolved = options.requireResolvedImport ?? filename.includes('node_modules');
+  const requireResolved = options.requireResolvedImport ?? isInNodeModules(filename);
   if (requireResolved && t.isIdentifier(path.node.callee)) {
     const modules = options.assertionModules ?? DEFAULT_ASSERTION_MODULES;
     if (!calleeResolvesToAssertionModule(t, path.get('callee'), modules)) {
@@ -561,8 +593,9 @@ function buildReportProperties(
 
   const loc = path.node.loc;
   if (loc) {
-    const basename = filename.split(/[\\/]/).pop() || filename;
-    const siteId = `${basename}:${loc.start.line}:${loc.start.column}`;
+    const root = state.file?.opts?.root as string | undefined;
+    const sitePath = relativeSitePath(filename, root);
+    const siteId = `${sitePath}:${loc.start.line}:${loc.start.column}`;
     properties.push(t.objectProperty(t.identifier('siteId'), t.stringLiteral(siteId)));
   }
 

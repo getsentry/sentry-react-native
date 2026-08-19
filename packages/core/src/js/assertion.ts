@@ -281,9 +281,18 @@ export function captureAssertionViolation(options: AssertionViolationOptions = {
   const error = options.error ?? new Error(message);
   // The Babel transform creates a bare `new Error()` at the call site so its
   // stack top is the assertion site; backfill the readable message here, in the
-  // one place that owns the default-message template.
-  if (!error.message) {
-    error.message = message;
+  // one place that owns the default-message template. Guarded because the public
+  // API is untyped at runtime: `error` can be a frozen object, carry a read-only
+  // `message` accessor, or be a non-object primitive, any of which would throw a
+  // `TypeError` on the assignment (in strict mode) — and this path must never
+  // throw. If backfilling fails the caller's error rides along unchanged; the
+  // message still reaches the event via `mechanism.data`/fingerprint.
+  try {
+    if (!error.message) {
+      error.message = message;
+    }
+  } catch (_e) {
+    // Read-only/frozen/non-object error — leave it as-is.
   }
 
   // Report each call site at most once per session unless the caller opts out.
