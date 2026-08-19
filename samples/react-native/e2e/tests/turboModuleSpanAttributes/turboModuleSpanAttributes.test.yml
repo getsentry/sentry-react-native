@@ -36,27 +36,14 @@ appId: io.sentry.reactnative.sample
     timeout: 30000
 
 # The `turbo_module.*` attributes the TurboModuleContext integration attached
-# to the root span are rendered on screen so QA can eyeball them on device.
-# This block is the LAST content in a long ScrollView, so on the shorter Android
-# emulator screen it starts below the fold — scroll it into view before asserting
-# (`assertVisible` alone only sees the current viewport, which is why this never
-# passed on Android since #6549). Kept last so nothing after it needs the top of
-# the screen back.
-#
-# Match the full line with a regex: Maestro anchors `assertVisible` text to the
-# whole node, so a bare `total_call_count:` prefix would NOT match `... : 6`.
-# We deliberately don't pin the exact on-screen count here — it can race the
-# async `getPlatform` record settling relative to the synchronous post-`end()`
-# read. The exact aggregate counts are asserted against the transaction envelope
+# to the root span are rendered on screen. Scroll it into view before asserting.
+# The exact aggregate counts are asserted against the transaction envelope
 # in turboModuleSpanAttributes.test.ts, which is the authoritative source.
 - scrollUntilVisible:
     element:
       text: 'turbo_module.total_call_count: .*'
     direction: DOWN
     timeout: 10000
-# Sorted alphabetically, `total_error_count` renders a few lines below
-# `total_call_count`, so it may sit past the bottom edge after the scroll above —
-# scroll to it independently rather than assume both fit in one viewport.
 - scrollUntilVisible:
     element:
       text: 'turbo_module.total_error_count: 0'
