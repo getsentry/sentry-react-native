@@ -43,18 +43,36 @@ describe('sentryAssertionBabelPlugin', () => {
     // without relying on framesToPop or the in_app heuristic. It goes through a
     // hoisted global-`Error` alias so a call-site shadow can't break it.
     const out = transform(`invariant(total >= 0, 'bad total');`);
-    expect(out).toMatch(/var _Error\d* = Error;/);
+    expect(out).toMatch(/var _Error\d* = typeof globalThis !== ["']undefined["'] \? globalThis\.Error : Error;/);
     expect(out).toMatch(/error: new _Error\d*\(\)/);
   });
 
   it('is immune to a call-site `Error` shadow (hoisted alias captures the global)', () => {
     // A parameter named `Error` shadows the global at the call site. The hoisted
-    // `var _Error = Error;` at program top captured the real constructor first,
-    // so the injected `new _Error()` never resolves to the shadow (which would
-    // throw `TypeError: Error is not a constructor` when the assertion fires).
+    // alias at program top captured the real constructor first, so the injected
+    // `new _Error()` never resolves to the shadow (which would throw
+    // `TypeError: Error is not a constructor` when the assertion fires).
     const out = transform(`function f(Error) {\n  invariant(ok);\n}`);
-    expect(out).toMatch(/var _Error\d* = Error;/);
+    expect(out).toMatch(/var _Error\d* = typeof globalThis !== ["']undefined["'] \? globalThis\.Error : Error;/);
     expect(out).toMatch(/error: new _Error\d*\(\)/);
+  });
+
+  it('is immune to a module-level `Error` shadow (alias reads globalThis.Error)', () => {
+    // A module-scope `const Error` would put the bare `Error` identifier in its
+    // TDZ at program top, so `var _Error = Error;` would throw at load time. The
+    // alias reads `globalThis.Error` instead, which the lexical shadow can't
+    // capture.
+    const out = transform(`const Error = 1;\ninvariant(ok);`);
+    expect(out).toMatch(/var _Error\d* = typeof globalThis !== ["']undefined["'] \? globalThis\.Error : Error;/);
+    expect(out).toMatch(/error: new _Error\d*\(\)/);
+  });
+
+  it('emits a `__proto__` value as a computed key, not a prototype setter', () => {
+    // `{ __proto__: v }` sets the prototype and throws for a non-object value;
+    // the computed form `{ ['__proto__']: v }` keeps it an own data property.
+    const out = transform(`const __proto__ = 1;\ninvariant(__proto__ > 0);`);
+    expect(out).toMatch(/\[["']__proto__["']\]: __proto__/);
+    expect(out).not.toMatch(/\{\s*__proto__: __proto__/);
   });
 
   it('forwards variadic substitution args as messageArgs for interpolation', () => {
@@ -244,6 +262,18 @@ describe('sentryAssertionBabelPlugin', () => {
     // injected into its own source.
     const out = transform(`import invariant from 'invariant';\ninvariant(ok);`, {
       filename: 'C:\\proj\\node_modules\\@sentry\\react-native\\dist\\js\\foo.js',
+      options: { includeNodeModules: true },
+    });
+    expect(out).not.toContain('_captureAssertionViolation');
+    expect(out).toMatch(/invariant\(ok\)/);
+  });
+
+  it('never instruments `@sentry-internal` packages (SDK transitive deps)', () => {
+    // `@sentry-internal/*` packages are dependencies of `@sentry/react-native`;
+    // instrumenting them injects a require of the SDK into its own dependency
+    // graph, creating a circular require that can leave the reporter undefined.
+    const out = transform(`import invariant from 'invariant';\ninvariant(ok);`, {
+      filename: '/proj/node_modules/@sentry-internal/browser-utils/index.js',
       options: { includeNodeModules: true },
     });
     expect(out).not.toContain('_captureAssertionViolation');

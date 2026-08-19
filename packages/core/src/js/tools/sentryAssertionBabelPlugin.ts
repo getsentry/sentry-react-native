@@ -116,10 +116,12 @@ const DEFAULT_ASSERTION_MODULES = ['invariant', 'tiny-invariant', 'warning', 'as
  * Path fragments identifying the Sentry SDK's own source. Files matching any of
  * these are never instrumented — the plugin injects a `require` of the SDK, so
  * rewriting the SDK's own asserts would create a self-referential require. The
- * second marker covers the monorepo dev symlink, whose path has no
- * `node_modules/@sentry` segment.
+ * `@sentry-internal` scope holds packages the SDK depends on transitively, so
+ * instrumenting them would create the same circular require. The last marker
+ * covers the monorepo dev symlink, whose path has no `node_modules/@sentry`
+ * segment.
  */
-const SENTRY_SDK_PATH_MARKERS = ['/@sentry/', 'sentry-react-native/packages/'];
+const SENTRY_SDK_PATH_MARKERS = ['/@sentry/', '/@sentry-internal/', 'sentry-react-native/packages/'];
 
 export interface SentryAssertionBabelPluginOptions {
   /**
@@ -471,9 +473,18 @@ function ensureErrorBinding(
   }
   uid = path.scope.generateUidIdentifier('Error');
   const program = path.scope.getProgramParent().path as NodePath<BabelTypes.Program>;
-  program.unshiftContainer('body', [
-    t.variableDeclaration('var', [t.variableDeclarator(t.cloneNode(uid), t.identifier('Error'))]),
-  ]);
+  // `var _Error = typeof globalThis !== 'undefined' ? globalThis.Error : Error;`
+  // Reading `globalThis.Error` (not the bare `Error` identifier) means a
+  // module-level `const`/`let`/`class Error` — which would put the bare
+  // identifier in its TDZ at program top, or a `var Error` shadow that reads
+  // `undefined` — can't corrupt the alias. The bare-`Error` fallback is only
+  // reached on ancient runtimes without `globalThis`, where the shadow is moot.
+  const errorInit = t.conditionalExpression(
+    t.binaryExpression('!==', t.unaryExpression('typeof', t.identifier('globalThis')), t.stringLiteral('undefined')),
+    t.memberExpression(t.identifier('globalThis'), t.identifier('Error')),
+    t.identifier('Error'),
+  );
+  program.unshiftContainer('body', [t.variableDeclaration('var', [t.variableDeclarator(t.cloneNode(uid), errorInit)])]);
   state.set(ERROR_UID_KEY, uid);
   return uid;
 }
@@ -505,7 +516,16 @@ function buildReportProperties(
     properties.push(
       t.objectProperty(
         t.identifier('values'),
-        t.objectExpression(valueNames.map(name => t.objectProperty(t.identifier(name), t.identifier(name)))),
+        t.objectExpression(
+          valueNames.map(name =>
+            // A bare `__proto__: v` key is the prototype-setter syntax, not a
+            // data property, and throws for a non-object value. Emit it as a
+            // computed key (`['__proto__']: v`) so it stays an own property.
+            name === '__proto__'
+              ? t.objectProperty(t.stringLiteral('__proto__'), t.identifier('__proto__'), /* computed */ true)
+              : t.objectProperty(t.identifier(name), t.identifier(name)),
+          ),
+        ),
       ),
     );
   }
