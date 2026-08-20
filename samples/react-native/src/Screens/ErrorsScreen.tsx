@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import {
   ButtonProps,
   Button as NativeButton,
+  Dimensions,
   NativeModules,
   Platform,
   ScrollView,
@@ -61,6 +62,56 @@ const ErrorsScreen = (_props: Props) => {
           title="Capture exception"
           onPress={() => {
             Sentry.captureException(new Error('Captured exception'));
+          }}
+        />
+        <Button
+          title="Assertion violation (non-fatal)"
+          onPress={() => {
+            // A hand-written violated assertion reported as a non-fatal event —
+            // no throw, the app keeps running.
+            const total = -4;
+            if (!(total >= 0)) {
+              Sentry.captureAssertionViolation({
+                condition: 'total >= 0',
+                values: { total },
+              });
+            }
+          }}
+        />
+        <Button
+          title="Assertion from a dependency (RN Dimensions)"
+          onPress={() => {
+            // No invariant is written here. We just call a real React Native API
+            // with a bad key, which trips RN's OWN existing `invariant()` inside
+            // Dimensions.js. The `captureAssertions.includeNodeModules` allowlist in
+            // metro.config.js tells the Babel plugin to instrument that one
+            // dependency — config-only, zero source changes to the app or to RN.
+            //
+            // `invariant` is a hard precondition, so it is a "rethrow" pragma: the
+            // rewrite reports a readable, handled Sentry event AND then re-throws
+            // to preserve the original control flow (in dev this surfaces a redbox
+            // after reporting). The re-thrown error is tagged so the runtime's
+            // global handler does not report the same violation a second time.
+            const unregisteredKey = 'does-not-exist';
+            try {
+              (Dimensions.get as (dim: string) => unknown)(unregisteredKey);
+              console.log('Dimensions.get returned without throwing.');
+            } catch (e) {
+              console.log('Dimensions.get re-threw after reporting a handled event:', e);
+            }
+          }}
+        />
+        <Button
+          title="Assertion via console.assert (first-party)"
+          onPress={() => {
+            // A first-party assertion in the app's OWN source. `console.assert`
+            // is a real global, so with the assertion capture plugin off this
+            // line just logs to the console; with it on, the Babel transform
+            // rewrites this call site to a non-fatal Sentry report whose top
+            // frame is right here (ErrorsScreen.tsx) — not inside the SDK.
+            const count = 0;
+            console.assert(count > 0, 'expected a positive count');
+            console.log('console.assert returned without throwing.');
           }}
         />
         <Button

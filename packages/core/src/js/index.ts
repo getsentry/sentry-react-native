@@ -118,6 +118,8 @@ export {
   pauseAppHangTracking,
   resumeAppHangTracking,
 } from './sdk';
+export { captureAssertionViolation, DEFAULT_ASSERTION_MECHANISM } from './assertion';
+export type { AssertionViolationOptions } from './assertion';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
 export { NavigationContainer } from './NavigationContainer';
 export type { FontStyle, NavigationTheme, SentryNavigationContainerProps } from './NavigationContainer';
