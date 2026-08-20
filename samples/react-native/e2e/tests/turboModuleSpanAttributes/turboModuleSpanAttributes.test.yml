@@ -30,13 +30,22 @@ appId: io.sentry.reactnative.sample
 - assertVisible: 'Sync: add x5 = 15'
 - assertVisible: 'Async: getPlatform = .*'
 
-# The `turbo_module.*` attributes the TurboModuleContext integration attached
-# to the root span are rendered on screen so QA can eyeball them on device.
-- assertVisible: 'turbo_module.total_call_count: 6'
-- assertVisible: 'turbo_module.total_error_count: 0'
-
-# A native throw surfaced to JS must still be capturable (crash-context path)
 - tapOn: 'Throw from native platform'
 - extendedWaitUntil:
     visible: 'Throw: captured platform throw as .*'
     timeout: 30000
+
+# The `turbo_module.*` attributes the TurboModuleContext integration attached
+# to the root span are rendered on screen. Scroll it into view before asserting.
+# The exact aggregate counts are asserted against the transaction envelope
+# in turboModuleSpanAttributes.test.ts, which is the authoritative source.
+- scrollUntilVisible:
+    element:
+      text: 'turbo_module.total_call_count: .*'
+    direction: DOWN
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'turbo_module.total_error_count: 0'
+    direction: DOWN
+    timeout: 10000
