@@ -12,8 +12,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "types": [
-      "react-native",
-    ],
+    "types": [],
+    "paths": {
+      "react-native": ["./node_modules/react-native/types/index.d.ts"]
+    },
   }
 }

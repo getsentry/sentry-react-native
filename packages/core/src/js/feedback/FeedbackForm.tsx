@@ -308,7 +308,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     return (
       <TouchableWithoutFeedback
-        onPress={notWeb() ? Keyboard.dismiss : undefined}
+        onPress={notWeb() ? Keyboard.dismiss : undefined} // oxlint-disable-line typescript-eslint(unbound-method)
         accessible={false}
         accessibilityElementsHidden={false}
       >

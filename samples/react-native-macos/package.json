@@ -21,7 +21,7 @@
     "@sentry/react-native": "8.23.0",
     "delay": "^6.0.0",
     "react": "19.1.4",
-    "react-native": "0.87.0",
+    "react-native": "0.81.6",
     "react-native-gesture-handler": "2.14.0",
     "react-native-macos": "0.81.8",
     "react-native-reanimated": "3.19.5",
