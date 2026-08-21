@@ -155,7 +155,7 @@ Comment out sentry dependency in `RNSentry.podspec`.
 +   s.dependency 'Sentry'
 ```
 
-Add local pods to `sample/ios/Podfile`.
+Add local pods to `samples/react-native/ios/Podfile`.
 
 ```diff
 target 'sample' do
@@ -186,7 +186,7 @@ ls ~/.m2/repository/io/sentry/sentry-android # check that `sentry-java` was publ
 cd sentry-react-native/sample
 ```
 
-Add local maven to `sample/android/build.gradle`.
+Add local maven to `samples/react-native/android/build.gradle`.
 
 ```gradle
 allprojects {
@@ -196,7 +196,7 @@ allprojects {
 }
 ```
 
-Update `sentry-android` version, to the one locally published, in `android/build.gradle`.
+Update `sentry-android` version, to the one locally published, in `packages/core/android/build.gradle`.
 
 ```diff
 dependencies {

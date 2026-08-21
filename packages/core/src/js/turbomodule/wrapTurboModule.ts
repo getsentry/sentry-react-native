@@ -1,8 +1,13 @@
-import { logger } from '@sentry/core';
+import { debug } from '@sentry/core';
 
 import type { TurboModuleCallKind } from './turboModuleTracker';
 
-import { notifyTurboModuleCallStart, recordTurboModuleCall, type TurboModuleArch } from './turboModuleAggregator';
+import { notifyTurboModuleCallStart, type TurboModuleArch } from './turboModuleAggregator';
+import {
+  _resetPendingCallbackCalls,
+  instrumentTrailingCallbacks,
+  safeRecordTurboModuleCall,
+} from './turboModuleCallbacks';
 import { popTurboModuleCall, pushTurboModuleCall, relabelTurboModuleCallKind } from './turboModuleTracker';
 
 /**
@@ -14,6 +19,7 @@ let wrappedModules = new WeakSet<object>();
 /** Tests only. */
 export function _resetWrappedModules(): void {
   wrappedModules = new WeakSet<object>();
+  _resetPendingCallbackCalls();
 }
 
 /**
@@ -24,6 +30,11 @@ export function _resetWrappedModules(): void {
  * - Sync methods are tracked as `kind: 'sync'` and popped right after the call.
  * - Async methods (those returning a thenable) are relabelled to `kind: 'async'`
  *   right after the call dispatches and popped when the returned promise settles.
+ * - Callback-style methods (trailing function arguments, no thenable return —
+ *   the dominant async shape on the Old Architecture bridge) have their
+ *   completion callbacks wrapped, so the recorded duration spans until the
+ *   callback fires instead of collapsing to ~0ms. See
+ *   https://github.com/getsentry/sentry-react-native/issues/6542.
  *
  * `skip` can be used to opt specific method names out of tracking (e.g. very
  * hot, no-op methods like RN's `addListener`/`removeListeners` event-emitter
@@ -49,7 +60,7 @@ export function wrapTurboModule<T extends object>(
   if (methodNames.length === 0) {
     // Do NOT add to wrappedModules — a later call (e.g. once a JSI HostObject
     // has materialised its methods) should still get a chance to wrap.
-    logger.warn(
+    debug.warn(
       `[TurboModuleTracker] No methods discovered on '${name}' — TurboModule context will not be attached for this module. ` +
         `This usually means the module is a JSI HostObject that only materialises methods on first access.`,
     );
@@ -90,41 +101,68 @@ export function wrapTurboModule<T extends object>(
       try {
         callId = pushTurboModuleCall({ name, method: key, kind: 'sync' });
       } catch (e) {
-        logger.warn(`[TurboModuleTracker] push failed for ${name}.${key}: ${String(e)}`);
+        debug.warn(`[TurboModuleTracker] push failed for ${name}.${key}: ${String(e)}`);
       }
       try {
         recordId = notifyTurboModuleCallStart(name, key, 'sync', arch);
       } catch (e) {
-        logger.warn(`[TurboModuleTracker] notifyStart failed for ${name}.${key}: ${String(e)}`);
+        debug.warn(`[TurboModuleTracker] notifyStart failed for ${name}.${key}: ${String(e)}`);
       }
+
+      // Must happen before the call: the wrapped callbacks have to be the ones
+      // handed to the native side. Mutates `args` in place, leaving arity and
+      // argument types untouched. Isolated internally — neither this nor the
+      // returned handle's methods can throw into the user's call.
+      const callbackCall = instrumentTrailingCallbacks(args, originalFn, name, key, startedAtMs, recordId, arch);
 
       let result: unknown;
       try {
         result = originalFn.apply(this, args);
       } catch (e) {
+        // A callback that already fired emitted the record itself.
+        const alreadyRecorded = callbackCall?.abandon() === true;
         safePop(callId, name, key);
-        safeRecord(name, key, 'sync', startedAtMs, true, recordId, arch);
+        if (!alreadyRecorded) {
+          safeRecordTurboModuleCall(name, key, 'sync', Date.now() - startedAtMs, true, recordId, arch);
+        }
         throw e;
       }
 
       if (isThenable(result)) {
+        // A callback that already fired emitted the record itself — the promise
+        // handlers must not add a second one for the same invocation.
+        const alreadyRecorded = callbackCall?.abandon() === true;
         safeRelabel(callId, 'async', name, key);
         return (result as Promise<unknown>).then(
           value => {
             safePop(callId, name, key);
-            safeRecord(name, key, 'async', startedAtMs, false, recordId, arch);
+            if (!alreadyRecorded) {
+              safeRecordTurboModuleCall(name, key, 'async', Date.now() - startedAtMs, false, recordId, arch);
+            }
             return value;
           },
           err => {
             safePop(callId, name, key);
-            safeRecord(name, key, 'async', startedAtMs, true, recordId, arch);
+            if (!alreadyRecorded) {
+              safeRecordTurboModuleCall(name, key, 'async', Date.now() - startedAtMs, true, recordId, arch);
+            }
             throw err;
           },
         );
       }
 
+      if (callbackCall) {
+        // The crash-attribution frame is popped synchronously either way: a
+        // frame held until a callback that may never fire would risk blaming
+        // this module for an unrelated later native crash. Only the timing
+        // record is deferred.
+        safePop(callId, name, key);
+        callbackCall.markReturned();
+        return result;
+      }
+
       safePop(callId, name, key);
-      safeRecord(name, key, 'sync', startedAtMs, false, recordId, arch);
+      safeRecordTurboModuleCall(name, key, 'sync', Date.now() - startedAtMs, false, recordId, arch);
       return result;
     };
 
@@ -147,7 +185,7 @@ export function wrapTurboModule<T extends object>(
     // module is frozen, or every method is a read-only accessor. Surface this
     // so the silent no-op is debuggable (the issue would otherwise look like
     // "no crash context attached" with no obvious cause).
-    logger.warn(
+    debug.warn(
       `[TurboModuleTracker] '${name}' has methods but none could be wrapped — TurboModule context will not be attached. ` +
         `This usually means the module is frozen or its methods are non-writable accessors.`,
     );
@@ -185,7 +223,7 @@ function safePop(callId: number | undefined, name: string, method: string): void
   try {
     popTurboModuleCall(callId);
   } catch (e) {
-    logger.warn(`[TurboModuleTracker] pop failed for ${name}.${method}: ${String(e)}`);
+    debug.warn(`[TurboModuleTracker] pop failed for ${name}.${method}: ${String(e)}`);
   }
 }
 
@@ -196,31 +234,7 @@ function safeRelabel(callId: number | undefined, kind: TurboModuleCallKind, name
   try {
     relabelTurboModuleCallKind(callId, kind);
   } catch (e) {
-    logger.warn(`[TurboModuleTracker] relabel failed for ${name}.${method}: ${String(e)}`);
-  }
-}
-
-function safeRecord(
-  name: string,
-  method: string,
-  kind: TurboModuleCallKind,
-  startedAtMs: number,
-  errored: boolean,
-  recordId: number | undefined,
-  arch: TurboModuleArch,
-): void {
-  try {
-    recordTurboModuleCall({
-      name,
-      method,
-      kind,
-      durationMs: Date.now() - startedAtMs,
-      errored,
-      recordId,
-      arch,
-    });
-  } catch (e) {
-    logger.warn(`[TurboModuleTracker] record failed for ${name}.${method}: ${String(e)}`);
+    debug.warn(`[TurboModuleTracker] relabel failed for ${name}.${method}: ${String(e)}`);
   }
 }
 

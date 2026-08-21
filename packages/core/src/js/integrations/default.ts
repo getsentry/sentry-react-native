@@ -16,6 +16,7 @@ import {
   browserLinkedErrorsIntegration,
   createNativeFramesIntegrations,
   createReactNativeRewriteFrames,
+  debugMetaIntegration,
   debugSymbolicatorIntegration,
   dedupeIntegration,
   deviceContextIntegration,
@@ -89,6 +90,11 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
   integrations.push(reactNativeInfoIntegration());
 
   integrations.push(createReactNativeRewriteFrames());
+  // Stamp debug_meta from the Metro-injected Debug ID. Registered after
+  // RewriteFrames so the canonical bundle filename is already in place. This
+  // backfills debug_meta for Hermes/Expo-OTA events where the core
+  // applyDebugIds path fails to match the premodule stack.
+  integrations.push(debugMetaIntegration());
 
   if (options.enableNative) {
     integrations.push(deviceContextIntegration());

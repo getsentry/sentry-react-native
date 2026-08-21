@@ -46,23 +46,15 @@ Pod::Spec.new do |s|
   # in `android/CMakeLists.txt`. The files are guarded with
   # `RCT_NEW_ARCH_ENABLED` so they compile to empty TUs on Old Arch.
   #
-  # We include `.swift` (for `RNSentrySwiftLinkStub.swift`) only on RN >=
-  # 0.75. Adding a Swift file makes CocoaPods treat RNSentry as a Swift
-  # pod, which then requires modular headers from its ObjC dependencies
-  # (React-Core, React-hermes) — RN < 0.75 doesn't emit those, so
-  # `pod install` fails with:
-  #   "The Swift pod `RNSentry` depends upon `React-hermes`, which does
-  #    not define modules."
-  # The stub is only needed when linking Sentry.xcframework's Swift
-  # symbols into a dynamic framework anyway (RN 0.86+ `use_frameworks!
-  # :dynamic`), so gating on RN 0.75 is safe.
-  supports_swift_stub = rn_version[:major] >= 1 || (rn_version[:major] == 0 && rn_version[:minor] >= 75)
-  if supports_swift_stub
-    s.source_files = 'ios/**/*.{h,m,mm,swift}', 'cpp/**/*.{h,cpp}'
-    s.swift_versions = ['5.5']
-  else
-    s.source_files = 'ios/**/*.{h,m,mm}', 'cpp/**/*.{h,cpp}'
-  end
+  # Swift is compiled unconditionally because `RNSentryInternal.swift` is
+  # the sole ObjC↔Swift bridge over `SentrySDK.internal.*` — every `.m`/
+  # `.mm` file in this pod calls into it. That makes RNSentry a Swift pod
+  # in CocoaPods' eyes, which in turn requires modular headers from its
+  # ObjC dependencies. Users on React Native < 0.75 (where `React-hermes`
+  # and friends aren't modularized by default) must add
+  # `use_modular_headers!` to their Podfile — see CHANGELOG.
+  s.source_files = 'ios/**/*.{h,m,mm,swift}', 'cpp/**/*.{h,cpp}'
+  s.swift_versions = ['5.5']
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
   s.compiler_flags = other_cflags
@@ -71,7 +63,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  sentry_cocoa_version = '9.19.1'
+  sentry_cocoa_version = '9.24.0'
 
   # Consume sentry-cocoa as a prebuilt `Sentry.xcframework` by default.
   #
@@ -86,7 +78,13 @@ Pod::Spec.new do |s|
   # (`Signatures/*.signature` collision during archive).
   #
   # Set `SENTRY_USE_XCFRAMEWORK=0` to fall back to the source-built
-  # `Sentry` CocoaPod (e.g. for offline builds behind a restrictive proxy).
+  # `Sentry` CocoaPod. This fallback is unavailable for sentry-cocoa
+  # >= 9.20.0: upstream deleted `Sentry.podspec` and dropped the
+  # `cocoapods` publishing target in that release, so 9.19.1 is the last
+  # version on the CocoaPods trunk. Opting out therefore raises below
+  # with an explanation rather than letting CocoaPods fail with an
+  # opaque "None of your spec sources contain a spec satisfying the
+  # dependency: `Sentry (= x.y.z)`".
   #
   # `SENTRY_USE_SPM` was the name in earlier drafts of this PR; honor it as a
   # deprecated alias so CI or local envs still exporting `SENTRY_USE_SPM=0`
@@ -155,7 +153,18 @@ Pod::Spec.new do |s|
     pod_target_xcconfig.merge!(xcframework_search_paths)
     s.user_target_xcconfig = xcframework_search_paths
   else
-    s.dependency 'Sentry', sentry_cocoa_version
+    raise <<~MSG
+      [Sentry] SENTRY_USE_XCFRAMEWORK=0 is no longer supported.
+
+      sentry-cocoa stopped publishing to the CocoaPods trunk in 9.20.0
+      (`Sentry.podspec` was removed upstream), so `pod 'Sentry', '#{sentry_cocoa_version}'`
+      cannot resolve — 9.19.1 is the last version available there.
+
+      Unset SENTRY_USE_XCFRAMEWORK to use the prebuilt `Sentry.xcframework`.
+      For builds without network access to GitHub Releases, pre-populate the
+      cache on a machine that has access and point the build at it with
+      SENTRY_XCFRAMEWORK_CACHE_DIR.
+    MSG
   end
 
   # Assign before `install_modules_dependencies` so it can merge its

@@ -2,6 +2,7 @@
 #import "RNSentry+Test.h"
 #import "RNSentryReplay.h"
 #import "RNSentryStart+Test.h"
+#import "SentrySDKWrapper.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
 #import <Sentry/PrivateSentrySDKOnly.h>
@@ -68,11 +69,8 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 
 - (void)prepareNativeFrameMocksWithLocalSymbolication:(BOOL)debug
 {
-    SentryOptions *sentryOptions = [[SentryOptions alloc] init];
-    sentryOptions.debug = debug; // no local symbolication
-
-    id sentrySDKMock = OCMClassMock([SentrySDKInternal class]);
-    OCMStub([(Class)sentrySDKMock options]).andReturn(sentryOptions);
+    id sentrySDKWrapperMock = OCMClassMock([SentrySDKWrapper class]);
+    OCMStub(ClassMethod([sentrySDKWrapperMock debug])).andReturn(debug);
 
     id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
     OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance]))
