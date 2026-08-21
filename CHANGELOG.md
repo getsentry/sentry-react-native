@@ -17,6 +17,9 @@
 - Bump Android SDK from v8.52.0 to v8.53.0 ([#6586](https://github.com/getsentry/sentry-react-native/pull/6586))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8530)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.52.0...8.53.0)
+- Bump Cocoa SDK from v9.24.0 to v9.26.0 ([#6409](https://github.com/getsentry/sentry-react-native/pull/6409))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9260)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.0)
 
 ## 8.23.0
 
