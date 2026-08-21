@@ -348,6 +348,59 @@ class RNSentryStartTest {
     }
 
     @Test
+    fun `when enableNdkAppHangTracking is true, NDK app hang tracking is enabled`() {
+        val rnOptions = JavaOnlyMap.of("enableNdkAppHangTracking", true)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertTrue("NDK app hang tracking should be enabled", options.isEnableNdkAppHangTracking)
+    }
+
+    @Test
+    fun `when enableNdkAppHangTracking is false, NDK app hang tracking is disabled`() {
+        val rnOptions = JavaOnlyMap.of("enableNdkAppHangTracking", false)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse("NDK app hang tracking should be disabled", options.isEnableNdkAppHangTracking)
+    }
+
+    @Test
+    fun `when enableNdkAppHangTracking is not set, it remains at default (disabled)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse(
+            "NDK app hang tracking should be disabled by default",
+            options.isEnableNdkAppHangTracking,
+        )
+    }
+
+    @Test
+    fun `when ndkAppHangTimeoutIntervalMillis is set, the timeout interval is applied`() {
+        val rnOptions = JavaOnlyMap.of("ndkAppHangTimeoutIntervalMillis", 3000)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals(3000L, options.ndkAppHangTimeoutIntervalMillis)
+    }
+
+    @Test
+    fun `when ndkAppHangTimeoutIntervalMillis is not set, it remains at default (5000)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals(5000L, options.ndkAppHangTimeoutIntervalMillis)
+    }
+
+    @Test
     fun `network detail replay options are forwarded to the native replay options`() {
         val mobileReplayOptions =
             JavaOnlyMap.of(
