@@ -91,6 +91,7 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
       public void onEventDispatch(Event event) {
         if ("com.swmansion.rnscreens.events.ScreenAppearEvent".equals(event.getClass().getCanonicalName())) {
           this.dispatcher.removeListener(this);
+          listenerWrapperMap.remove(f);
           FirstDrawDoneListener.registerForNextDraw(v, emitNewFrameEvent, buildInfoProvider);
         }
       }
