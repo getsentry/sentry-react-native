@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `enableNdkAppHangTracking` and `ndkAppHangTimeoutIntervalMillis` options to enable Android NDK app hang tracking ([#6548](https://github.com/getsentry/sentry-react-native/pull/6548))
+
 ### Dependencies
 
 - Bump Android SDK from v8.52.0 to v8.53.0 ([#6586](https://github.com/getsentry/sentry-react-native/pull/6586))
@@ -61,7 +65,6 @@
 
 ### Features
 
-- Add `enableNdkAppHangTracking` and `ndkAppHangTimeoutIntervalMillis` options to enable Android NDK app hang tracking ([#6548](https://github.com/getsentry/sentry-react-native/pull/6548))
 - Add `enableMetricKit` option to enable the iOS MetricKit integration ([#6540](https://github.com/getsentry/sentry-react-native/pull/6540))
 
   When enabled, the iOS SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and `MXHangDiagnostic` reports to Sentry. Requires iOS 15 or later and is disabled by default. MetricKit hang diagnostics are reported by the operating system and are separate from the app hangs captured by `enableAppHangTracking`, so enabling both can result in the same hang being reported twice.
