@@ -44,11 +44,14 @@
       // subpath export, which classic `node` resolution can't follow. Point directly at its types.
       "@sentry/bundler-plugins/babel-plugin": [
         "./node_modules/@sentry/bundler-plugins/build/types/babel-plugin/index.d.ts"
-      ]
+      ],
+      // RN 0.87 dropped the top-level `types` field from package.json. Classic `node`
+      // module resolution can't follow the exports map that now points to `types_generated/`.
+      "react-native": ["./node_modules/react-native/types/index.d.ts"]
     },
     "lib": ["es7"],
     "jsx": "react",
-    "types": ["jest", "react-native"],
+    "types": ["jest"],
     "target": "es6",
     "module": "es6",
     "skipLibCheck": true,

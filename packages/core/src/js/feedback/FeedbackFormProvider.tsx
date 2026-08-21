@@ -153,13 +153,13 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
           toValue: 1,
           duration: BACKGROUND_ANIMATION_DURATION,
           useNativeDriver: useNativeDriverForColorAnimations,
-          easing: Easing.in(Easing.quad),
+          easing: Easing.in(Easing.quad), // oxlint-disable-line typescript-eslint(unbound-method)
         }),
         Animated.timing(this.state.panY, {
           toValue: 0,
           duration: SLIDE_ANIMATION_DURATION,
           useNativeDriver: true,
-          easing: Easing.in(Easing.quad),
+          easing: Easing.in(Easing.quad), // oxlint-disable-line typescript-eslint(unbound-method)
         }),
       ]).start(() => {
         debug.log('FeedbackFormProvider componentDidUpdate');
@@ -242,13 +242,13 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
           toValue: Dimensions.get('screen').height,
           duration: SLIDE_ANIMATION_DURATION,
           useNativeDriver: true,
-          easing: Easing.out(Easing.quad),
+          easing: Easing.out(Easing.quad), // oxlint-disable-line typescript-eslint(unbound-method)
         }),
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 0,
           duration: BACKGROUND_ANIMATION_DURATION,
           useNativeDriver: useNativeDriverForColorAnimations,
-          easing: Easing.out(Easing.quad),
+          easing: Easing.out(Easing.quad), // oxlint-disable-line typescript-eslint(unbound-method)
         }),
       ]).start(() => {
         // Change of the state unmount the component
