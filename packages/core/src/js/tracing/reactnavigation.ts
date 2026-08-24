@@ -745,10 +745,16 @@ export const reactNavigationIntegration = ({
 
       // Same key and unchanged params is a no-op (drawer toggle, empty
       // SET_PARAMS, deep link to the current screen): keep the idle-path
-      // behaviour and let the span end via the idle timeout.
+      // behaviour and let the span end via the idle timeout. Clear the pending
+      // discard timeout and end the processing span here so a leftover timer
+      // cannot fire later and discard the next navigation's span.
       if (!haveRouteParamsChanged(previousRoute?.params, route.params)) {
         pushRecentRouteKey(route.key);
         latestRoute = route;
+        clearStateChangeTimeout();
+        navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
+        navigationProcessingSpan?.end(stateChangedTimestamp);
+        navigationProcessingSpan = undefined;
         latestNavigationSpan = undefined;
         return undefined;
       }

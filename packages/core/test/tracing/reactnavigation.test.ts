@@ -1522,7 +1522,11 @@ describe('ReactNavigationInstrumentation', () => {
       await jest.runOnlyPendingTimersAsync();
       await client.flush();
 
+      // Under the default config the re-nav is intentionally discarded as an
+      // empty back navigation, so neither an unnamed nor a named "Chat"
+      // transaction ships.
       expect(countTransactionsNamed(DEFAULT_NAVIGATION_SPAN_NAME)).toBe(0);
+      expect(countTransactionsNamed('Chat')).toBe(0);
     });
   });
 
