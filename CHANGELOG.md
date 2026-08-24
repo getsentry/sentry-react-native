@@ -14,7 +14,7 @@
 
 ### Fixes
 
-- Fix Expo iOS build failing when the project path contains spaces ([#6583](https://github.com/getsentry/sentry-react-native/issues/6583))
+- Fix Expo iOS build failing when the project path contains spaces ([#6604](https://github.com/getsentry/sentry-react-native/pull/6604))
 
 ### Dependencies
 
