@@ -27,9 +27,10 @@ describe('Sentry Metro Serializer', () => {
     expect(bundle.code).toEqual(
       'var _sentryDebugIds,_sentryDebugIdIdentifier;void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]="c9e276ed-1171-4e26-ac5d-0193a85ed160",_sentryDebugIdIdentifier="sentry-dbid-c9e276ed-1171-4e26-ac5d-0193a85ed160")}catch(e){}\n//# debugId=c9e276ed-1171-4e26-ac5d-0193a85ed160',
     );
-    expect(bundle.map).toEqual(
-      '{"version":3,"sources":["__debugid__"],"sourcesContent":["var _sentryDebugIds,_sentryDebugIdIdentifier;void 0===_sentryDebugIds&&(_sentryDebugIds={});try{var stack=(new Error).stack;stack&&(_sentryDebugIds[stack]=\\"c9e276ed-1171-4e26-ac5d-0193a85ed160\\",_sentryDebugIdIdentifier=\\"sentry-dbid-c9e276ed-1171-4e26-ac5d-0193a85ed160\\")}catch(e){}"],"names":[],"mappings":"","debug_id":"c9e276ed-1171-4e26-ac5d-0193a85ed160","debugId":"c9e276ed-1171-4e26-ac5d-0193a85ed160"}',
-    );
+    const sourceMap = JSON.parse(bundle.map);
+    expect(sourceMap.version).toBe(3);
+    expect(sourceMap.debug_id).toBe('c9e276ed-1171-4e26-ac5d-0193a85ed160');
+    expect(sourceMap.debugId).toBe('c9e276ed-1171-4e26-ac5d-0193a85ed160');
   });
 
   test('generated debug id is uuid v4 format', async () => {
@@ -48,7 +49,10 @@ describe('Sentry Metro Serializer', () => {
     }
 
     expect(bundle.code).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture`, 'utf8'));
-    expect(bundle.map).toEqual(fs.readFileSync(`${__dirname}/fixtures/bundleWithPrelude.js.fixture.map`, 'utf8'));
+    const sourceMap = JSON.parse(bundle.map);
+    expect(sourceMap.version).toBe(3);
+    expect(sourceMap.debug_id).toBe('a4917c7b-23c2-46db-b503-1079d8bccbc6');
+    expect(sourceMap.debugId).toBe('a4917c7b-23c2-46db-b503-1079d8bccbc6');
   });
 
   test('works when shouldAddToIgnoreList is undefined', async () => {

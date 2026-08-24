@@ -107,7 +107,7 @@
     "jest-environment-jsdom": "^29.6.2",
     "jest-extended": "^4.0.2",
     "madge": "^6.1.0",
-    "metro": "0.84.4",
+    "metro": "0.87.0",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.56.0",
     "oxlint-tsgolint": "^0.17.4",

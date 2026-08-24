@@ -9,15 +9,15 @@
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* sentryreactnativesampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* sentryreactnativesampleTests.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		5ACADB1A9924EDD0850FACBA /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9416CD608C927040C56DEF7A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
-		A1E4B0A60FC0F30C68B6BF57 /* libPods-sentryreactnativesample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-sentryreactnativesample.a */; };
+		9A0B83D8C55CD1B18A03C655 /* Pods_sentryreactnativesample_sentryreactnativesampleTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E9D8B1EEF3610527ADB3985 /* Pods_sentryreactnativesample_sentryreactnativesampleTests.framework */; };
 		AE3C91AE2E3BB9B400DC7C20 /* SentryNativeInitializer.m in Sources */ = {isa = PBXBuildFile; fileRef = AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitializer.m */; };
 		B2FBDDFF2E4A0F6C00B18357 /* NativePlatformSampleModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = B2FBDDFC2E4A0F6C00B18357 /* NativePlatformSampleModule.mm */; };
 		B2FBDE002E4A0F6C00B18357 /* RCTAssetsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = B2FBDDFE2E4A0F6C00B18357 /* RCTAssetsModule.m */; };
 		B2FBDE052E4A11F800B18357 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B2FBDE042E4A11F800B18357 /* main.m */; };
 		B2FBDE062E4A11F800B18357 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = B2FBDE032E4A11F800B18357 /* AppDelegate.mm */; };
+		F7F9C2BF21780AFD9F349F62 /* Pods_sentryreactnativesample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B10ED37A20DF6773EF62C392 /* Pods_sentryreactnativesample.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,15 +28,15 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = sentryreactnativesample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = sentryreactnativesample/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = sentryreactnativesample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2E9D8B1EEF3610527ADB3985 /* Pods_sentryreactnativesample_sentryreactnativesampleTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_sentryreactnativesample_sentryreactnativesampleTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4392A12AC88292D35C810B /* Pods-sentryreactnativesample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample.debug.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample/Pods-sentryreactnativesample.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-sentryreactnativesample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample.release.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample/Pods-sentryreactnativesample.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-sentryreactnativesample-sentryreactnativesampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample-sentryreactnativesampleTests.debug.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample-sentryreactnativesampleTests/Pods-sentryreactnativesample-sentryreactnativesampleTests.debug.xcconfig"; sourceTree = "<group>"; };
-		5DCACB8F33CDC322A6C60F78 /* libPods-sentryreactnativesample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = sentryreactnativesample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; path = "Target Support Files/Pods-sentryreactnativesample-sentryreactnativesampleTests/Pods-sentryreactnativesample-sentryreactnativesampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		AE3C91AC2E3BB98B00DC7C20 /* SentryNativeInitializer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SentryNativeInitializer.h; sourceTree = "<group>"; };
 		AE3C91AD2E3BB9B000DC7C20 /* SentryNativeInitializer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SentryNativeInitializer.m; sourceTree = "<group>"; };
-		AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-sentryreactnativesample-sentryreactnativesampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10ED37A20DF6773EF62C392 /* Pods_sentryreactnativesample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_sentryreactnativesample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2FBDDFB2E4A0F6C00B18357 /* NativePlatformSampleModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NativePlatformSampleModule.h; path = sentryreactnativesample/NativePlatformSampleModule.h; sourceTree = "<group>"; };
 		B2FBDDFC2E4A0F6C00B18357 /* NativePlatformSampleModule.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = NativePlatformSampleModule.mm; path = sentryreactnativesample/NativePlatformSampleModule.mm; sourceTree = "<group>"; };
 		B2FBDDFD2E4A0F6C00B18357 /* RCTAssetsModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTAssetsModule.h; path = sentryreactnativesample/RCTAssetsModule.h; sourceTree = "<group>"; };
@@ -52,7 +52,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5ACADB1A9924EDD0850FACBA /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a in Frameworks */,
+				9A0B83D8C55CD1B18A03C655 /* Pods_sentryreactnativesample_sentryreactnativesampleTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,7 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1E4B0A60FC0F30C68B6BF57 /* libPods-sentryreactnativesample.a in Frameworks */,
+				F7F9C2BF21780AFD9F349F62 /* Pods_sentryreactnativesample.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,8 +108,8 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				5DCACB8F33CDC322A6C60F78 /* libPods-sentryreactnativesample.a */,
-				AFC2BCCFBDE2DC231B5C04E5 /* libPods-sentryreactnativesample-sentryreactnativesampleTests.a */,
+				B10ED37A20DF6773EF62C392 /* Pods_sentryreactnativesample.framework */,
+				2E9D8B1EEF3610527ADB3985 /* Pods_sentryreactnativesample_sentryreactnativesampleTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -598,6 +598,22 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-bridging",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD = "";
 				LDPLUSPLUS = "";
@@ -681,6 +697,22 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"${PODS_ROOT}/ReactCommon",
+					"${PODS_ROOT}/ReactCommon/react/nativemodule/core",
+					"${PODS_ROOT}/React-runtimeexecutor",
+					"${PODS_ROOT}/React-runtimeexecutor/platform/ios",
+					"${PODS_ROOT}/ReactCommon-Samples",
+					"${PODS_ROOT}/ReactCommon-Samples/platform/ios",
+					"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx",
+					"${PODS_ROOT}/React-NativeModulesApple",
+					"${PODS_ROOT}/React-bridging",
+					"${PODS_ROOT}/React-graphics",
+					"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios",
+					"${PODS_ROOT}/React-featureflags",
+					"${PODS_ROOT}/React-renderercss",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
