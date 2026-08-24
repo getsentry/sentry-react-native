@@ -14,7 +14,7 @@
 
 ### Fixes
 
-- Ship a named navigation transaction when re-navigating to the focused route with new params, instead of an unnamed "Route Change" ([#6593](https://github.com/getsentry/sentry-react-native/issues/6593))
+- Ship a named navigation transaction when re-navigating to the focused route with new params, instead of an unnamed "Route Change" ([#6606](https://github.com/getsentry/sentry-react-native/pull/6606))
 
 ### Dependencies
 
