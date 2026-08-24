@@ -1507,6 +1507,43 @@ describe('ReactNavigationInstrumentation', () => {
       expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_KEY]).toBe('chat');
     });
 
+    test('detects a param change when only disjoint undefined-valued keys differ', async () => {
+      // { a: undefined } -> { b: undefined }: same key count, disjoint keys.
+      // haveRouteParamsChanged must still report a change, so the span goes
+      // through the naming path (which sets route.key/route.name) rather than
+      // the no-op idle path (which does not).
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        ignoreEmptyBackNavigationTransactions: false,
+        useDispatchedActionData: true,
+      });
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      mockNavigation = createMockNavigationAndAttachTo(instrumentation);
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { a: undefined } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { b: undefined } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      const chat = client.eventQueue.find(e => e.type === 'transaction' && e.transaction === 'Chat');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_KEY]).toBe('chat');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('Chat');
+    });
+
     test('does not leak an unnamed transaction when the re-navigation is empty (default config)', async () => {
       // Under the default config an empty same-key re-nav is discarded as an
       // empty back navigation, not leaked as an unnamed "Route Change".

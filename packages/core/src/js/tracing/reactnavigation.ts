@@ -992,7 +992,13 @@ function haveRouteParamsChanged(
   if (aKeys.length !== bKeys.length) {
     return true;
   }
-  return aKeys.some(key => !Object.is((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]));
+  // Counts are equal, so `a` non-empty implies `b` non-empty. Require every key
+  // to exist on `b` too — otherwise disjoint bags with matching `undefined`
+  // values (e.g. `{ x: undefined }` vs `{ y: undefined }`) would compare equal.
+  const bBag = (b ?? {}) as Record<string, unknown>;
+  return aKeys.some(
+    key => !Object.prototype.hasOwnProperty.call(bBag, key) || !Object.is((a as Record<string, unknown>)[key], bBag[key]),
+  );
 }
 
 /**
