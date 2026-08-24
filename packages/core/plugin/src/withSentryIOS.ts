@@ -29,12 +29,9 @@ export const withSentryIOS: ConfigPlugin<{
       'PBXShellScriptBuildPhase',
     );
     if (!sentryBuildPhase) {
-      const debugFilesScript = disableAutoUpload
-        ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`
-        : `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`;
       xcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
         shellPath: '/bin/sh',
-        shellScript: debugFilesScript,
+        shellScript: getDebugFilesUploadScript(disableAutoUpload),
       });
     } else if (disableAutoUpload) {
       addDisableAutoUploadToExistingScript(sentryBuildPhase);
@@ -98,10 +95,21 @@ export function addSentryWithBundledScriptsToBundleShellScript(
   disableAutoUpload: boolean = false,
 ): string {
   const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
+  // Match through end-of-line so the full react-native-xcode.sh invocation (which in the bare/monorepo
+  // templates is a backtick command substitution ending in `'"` + backtick) stays inside `${match}`.
+  // Both the Sentry script path and the original invocation are wrapped in double quotes so paths
+  // containing spaces are passed as single arguments instead of being word-split. See issue #6583.
   return script.replace(
-    /^.*?(packager|scripts)\/react-native-xcode\.sh\s*(\\'\\\\")?/m,
-    (match: string) => `${disableAutoUploadExport}/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} ${match}`,
+    /^.*?(packager|scripts)\/react-native-xcode\.sh.*$/m,
+    (match: string) => `${disableAutoUploadExport}/bin/sh "${SENTRY_REACT_NATIVE_XCODE_PATH}" "${match}"`,
   );
+}
+
+export function getDebugFilesUploadScript(disableAutoUpload: boolean = false): string {
+  // The resolved script path is wrapped in double quotes so a project path containing spaces is
+  // passed to `/bin/sh` as a single argument instead of being word-split. See issue #6583.
+  const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
+  return `${disableAutoUploadExport}/bin/sh "${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}"`;
 }
 
 export function addDisableAutoUploadToExistingScript(script: BuildPhase): void {

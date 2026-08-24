@@ -12,6 +12,10 @@
 
 - Add `enableNdkAppHangTracking` and `ndkAppHangTimeoutIntervalMillis` options to enable Android NDK app hang tracking ([#6548](https://github.com/getsentry/sentry-react-native/pull/6548))
 
+### Fixes
+
+- Fix Expo iOS build failing when the project path contains spaces ([#6583](https://github.com/getsentry/sentry-react-native/issues/6583))
+
 ### Dependencies
 
 - Bump Android SDK from v8.52.0 to v8.53.0 ([#6586](https://github.com/getsentry/sentry-react-native/pull/6586))
