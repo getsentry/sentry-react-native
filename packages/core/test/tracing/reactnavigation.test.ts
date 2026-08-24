@@ -1451,6 +1451,81 @@ describe('ReactNavigationInstrumentation', () => {
     });
   });
 
+  describe('NAVIGATE onto the already-focused route with new params (#6593)', () => {
+    // navigate('Chat', { id: 2 }) while Chat/id:1 is focused keeps the same
+    // route.key (only params change), but is a genuine screen entry and must
+    // ship a named transaction, not an unnamed "Route Change".
+    const navigateToChat: UnsafeAction = {
+      data: {
+        action: { type: 'NAVIGATE', payload: { name: 'Chat' } },
+        noop: false,
+        stack: undefined,
+      },
+    };
+
+    function countTransactionsNamed(name: string): number {
+      return client.eventQueue.filter(e => e.type === 'transaction' && e.transaction === name).length;
+    }
+
+    test('ships a named transaction instead of an unnamed "Route Change"', async () => {
+      // ignoreEmptyBackNavigationTransactions: false isolates the naming
+      // behaviour from the empty-back-navigation discard.
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        ignoreEmptyBackNavigationTransactions: false,
+        useDispatchedActionData: true,
+      });
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      mockNavigation = createMockNavigationAndAttachTo(instrumentation);
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      // Enter Chat for conversation 1.
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 1 } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      // Tap a notification for conversation 2 — same route key, new params.
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 2 } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('Chat')).toBe(1);
+      expect(countTransactionsNamed(DEFAULT_NAVIGATION_SPAN_NAME)).toBe(0);
+      const chat = client.eventQueue.find(e => e.type === 'transaction' && e.transaction === 'Chat');
+      expect(chat?.contexts?.trace?.op).toBe('navigation');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('Chat');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_KEY]).toBe('chat');
+    });
+
+    test('does not leak an unnamed transaction when the re-navigation is empty (default config)', async () => {
+      // Under the default config an empty same-key re-nav is discarded as an
+      // empty back navigation, not leaked as an unnamed "Route Change".
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 1 } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      // Re-navigate onto the already-focused "Chat" with new params (same key).
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 2 } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed(DEFAULT_NAVIGATION_SPAN_NAME)).toBe(0);
+    });
+  });
+
   test('noop does not remove the previous navigation span from scope', async () => {
     setupTestClient({ useDispatchedActionData: true });
     await jest.runOnlyPendingTimers(); // Flushes the initial navigation span

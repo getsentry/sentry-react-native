@@ -719,13 +719,9 @@ export const reactNavigationIntegration = ({
 
     if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
-      // Even a same-route state change is a legitimate destination for a
-      // deep link (e.g. deep-linking to the screen you're already on). Make
-      // sure the pending link still gets attributed before we drop the span
-      // reference.
+      // Attribute a pending deep link even to a same-route change (e.g. a deep
+      // link to the screen you're already on) before deciding on the span.
       applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
-      pushRecentRouteKey(route.key);
-      latestRoute = route;
 
       // A `POP_TO` span that landed on the route we were already on (same
       // `route.key`) was a params-only bookkeeping dispatch — e.g. Expo
@@ -740,14 +736,27 @@ export const reactNavigationIntegration = ({
       // never affects a genuine navigation that actually changed the route.
       if (!taggedDeepLinkSpans.has(latestNavigationSpan) && latestNavigationActionType === 'POP_TO') {
         debug.log(`[${INTEGRATION_NAME}] Discarding POP_TO navigation span that did not change the route.`);
+        pushRecentRouteKey(route.key);
+        latestRoute = route;
         clearStateChangeTimeout();
         _discardLatestTransaction();
         return undefined;
       }
 
-      // Clear the latest transaction as it has been handled.
-      latestNavigationSpan = undefined;
-      return undefined;
+      // Same key and unchanged params is a no-op (drawer toggle, empty
+      // SET_PARAMS, deep link to the current screen): keep the idle-path
+      // behaviour and let the span end via the idle timeout.
+      if (!haveRouteParamsChanged(previousRoute?.params, route.params)) {
+        pushRecentRouteKey(route.key);
+        latestRoute = route;
+        latestNavigationSpan = undefined;
+        return undefined;
+      }
+
+      // Same key but changed params is a genuine navigation onto the focused
+      // route (e.g. navigate('Chat', { id: 2 }) from Chat/id:1). Fall through
+      // to name and finalize the transaction instead of leaking an unnamed
+      // "Route Change" (#6593).
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
@@ -961,6 +970,23 @@ function getRouteNameFromAction(event: UnsafeAction | undefined): string | undef
     return payload.name;
   }
   return undefined;
+}
+
+/**
+ * Shallow-compares two route param bags to tell a genuine re-navigation onto
+ * the already-focused route (same `route.key`, changed params) apart from a
+ * no-op same-route state change (#6593). Missing and empty bags are equal.
+ */
+function haveRouteParamsChanged(
+  a: Record<string, unknown> | undefined,
+  b: Record<string, unknown> | undefined,
+): boolean {
+  const aKeys = a ? Object.keys(a) : [];
+  const bKeys = b ? Object.keys(b) : [];
+  if (aKeys.length !== bKeys.length) {
+    return true;
+  }
+  return aKeys.some(key => !Object.is((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]));
 }
 
 /**
