@@ -42,6 +42,21 @@ class RNSentryReactFragmentLifecycleTracerTest {
     }
 
     @Test
+    fun tracerRemovesListenerWhenFragmentViewDestroyed() {
+        val mockEventDispatcher = mock<EventDispatcher>()
+        val fragment = mock<ScreenStackFragment>()
+
+        val tracer = createSutWith()
+        mockUIManager(mockEventDispatcher)
+
+        callOnFragmentViewCreated(fragment, mockScreenViewWithReactContext(), tracer)
+        verify(mockEventDispatcher, times(1)).addListener(any())
+
+        callOnFragmentViewDestroyed(fragment, tracer)
+        verify(mockEventDispatcher, times(1)).removeListener(any())
+    }
+
+    @Test
     fun tracerDoesNotAddListenerForGenericFragment() {
         val mockEventDispatcher = mock<EventDispatcher>()
         mockUIManager(mockEventDispatcher)
@@ -87,13 +102,21 @@ class RNSentryReactFragmentLifecycleTracerTest {
     private fun callOnFragmentViewCreated(
         mockFragment: Fragment,
         mockView: View,
+        tracer: RNSentryReactFragmentLifecycleTracer = createSutWith(),
     ) {
-        createSutWith().onFragmentViewCreated(
+        tracer.onFragmentViewCreated(
             mock(),
             mockFragment,
             mockView,
             null,
         )
+    }
+
+    private fun callOnFragmentViewDestroyed(
+        mockFragment: Fragment,
+        tracer: RNSentryReactFragmentLifecycleTracer = createSutWith(),
+    ) {
+        tracer.onFragmentViewDestroyed(mock(), mockFragment)
     }
 
     private fun createSutWith(): RNSentryReactFragmentLifecycleTracer {
