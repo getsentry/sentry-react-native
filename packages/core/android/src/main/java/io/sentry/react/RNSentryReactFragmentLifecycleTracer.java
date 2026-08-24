@@ -12,12 +12,12 @@ import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.EventDispatcherListener;
-import java.util.HashMap;
-import java.util.Map;
 import io.sentry.ILogger;
 import io.sentry.SentryLevel;
 import io.sentry.android.core.BuildInfoProvider;
 import io.sentry.android.core.internal.util.FirstDrawDoneListener;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +26,7 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
   private @NotNull final BuildInfoProvider buildInfoProvider;
   private @NotNull final Runnable emitNewFrameEvent;
   private @NotNull final ILogger logger;
-  private final Map<Fragment,EventDispatcherListenerWrapper> listenerWrapperMap = new HashMap<>();
+  private final Map<Fragment, EventDispatcherListenerWrapper> listenerWrapperMap = new HashMap<>();
 
   public RNSentryReactFragmentLifecycleTracer(
       @NotNull BuildInfoProvider buildInfoProvider,
@@ -86,21 +86,22 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
       return;
     }
 
-    EventDispatcherListenerWrapper listenerWrapper = new EventDispatcherListenerWrapper(eventDispatcher) {
-      @Override
-      public void onEventDispatch(Event event) {
-        if ("com.swmansion.rnscreens.events.ScreenAppearEvent".equals(event.getClass().getCanonicalName())) {
-          this.dispatcher.removeListener(this);
-          listenerWrapperMap.remove(f);
-          FirstDrawDoneListener.registerForNextDraw(v, emitNewFrameEvent, buildInfoProvider);
-        }
-      }
-    };
+    EventDispatcherListenerWrapper listenerWrapper =
+        new EventDispatcherListenerWrapper(eventDispatcher) {
+          @Override
+          public void onEventDispatch(Event event) {
+            if ("com.swmansion.rnscreens.events.ScreenAppearEvent"
+                .equals(event.getClass().getCanonicalName())) {
+              this.dispatcher.removeListener(this);
+              listenerWrapperMap.remove(f);
+              FirstDrawDoneListener.registerForNextDraw(v, emitNewFrameEvent, buildInfoProvider);
+            }
+          }
+        };
 
     eventDispatcher.addListener(listenerWrapper);
     listenerWrapperMap.put(f, listenerWrapper);
   }
-
 
   @Override
   public void onFragmentViewDestroyed(@NonNull FragmentManager fm, @NonNull Fragment f) {
@@ -112,15 +113,13 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
     }
   }
 
-
-  static abstract class EventDispatcherListenerWrapper implements EventDispatcherListener {
+  abstract static class EventDispatcherListenerWrapper implements EventDispatcherListener {
 
     protected final EventDispatcher dispatcher;
 
     public EventDispatcherListenerWrapper(EventDispatcher dispatcher) {
       this.dispatcher = dispatcher;
     }
-
   }
 
   private static @Nullable EventDispatcher getEventDispatcherForReactTag(
