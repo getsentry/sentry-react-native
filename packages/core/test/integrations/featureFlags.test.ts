@@ -49,4 +49,15 @@ describe('Feature Flags Integration', () => {
     integration.addFeatureFlag('object-flag', { enabled: true });
     expect(NATIVE.addFeatureFlag).not.toHaveBeenCalled();
   });
+
+  it('does not throw and still buffers on the JS scope when native forwarding fails', () => {
+    (NATIVE.addFeatureFlag as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Native module is not available');
+    });
+
+    expect(() => integration.addFeatureFlag('my-flag', true)).not.toThrow();
+    expect(getCurrentScope().getScopeData().contexts.flags).toEqual({
+      values: [{ flag: 'my-flag', result: true }],
+    });
+  });
 });

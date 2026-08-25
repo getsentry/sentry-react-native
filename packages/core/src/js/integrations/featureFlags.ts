@@ -1,4 +1,5 @@
 import { featureFlagsIntegration as jsFeatureFlagsIntegration, type FeatureFlagsIntegration } from '@sentry/browser';
+import { debug } from '@sentry/core';
 
 import { NATIVE } from '../wrapper';
 
@@ -42,7 +43,13 @@ export const featureFlagsIntegration = (): FeatureFlagsIntegration => {
       // The native feature flag APIs only accept boolean values, matching the
       // JavaScript flag buffer which ignores non-boolean evaluations.
       if (typeof value === 'boolean') {
-        NATIVE.addFeatureFlag(name, value);
+        try {
+          NATIVE.addFeatureFlag(name, value);
+        } catch (error) {
+          // Never let native forwarding break the host app's flag evaluation;
+          // the flag is already buffered on the JavaScript scope above.
+          debug.error('[FeatureFlags] Failed to forward feature flag to the native SDK:', error);
+        }
       }
     },
   };
