@@ -110,6 +110,7 @@ interface SentryNativeWrapper {
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
   setTag(key: string, value?: string): void;
+  addFeatureFlag(name: string, value: boolean): void;
   setAttribute(key: string, value: string | number | boolean): void;
   setAttributes(attributes: Record<string, string | number | boolean>): void;
   removeAttribute(key: string): void;
@@ -491,6 +492,23 @@ export const NATIVE: SentryNativeWrapper = {
     const stringifiedValue = typeof value === 'string' ? value : JSON.stringify(value);
 
     RNSentry.setTag(key, stringifiedValue);
+  },
+
+  /**
+   * Forwards a feature flag evaluation to the native scope so it is attached to
+   * native crashes and native error events.
+   * @param name string
+   * @param value boolean
+   */
+  addFeatureFlag(name: string, value: boolean): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    RNSentry.addFeatureFlag(name, value);
   },
 
   /**

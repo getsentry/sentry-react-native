@@ -46,6 +46,7 @@ jest.mock('react-native', () => {
     setContext: jest.fn(),
     setExtra: jest.fn(),
     setTag: jest.fn(),
+    addFeatureFlag: jest.fn(),
     setUser: jest.fn(() => {
       return;
     }),
@@ -89,6 +90,7 @@ const callAllScopeMethods = () => {
     id: 'setUser',
   });
   NATIVE.setTag('key', 'value');
+  NATIVE.addFeatureFlag('flag', true);
   NATIVE.setContext('key', {
     value: 'value',
     data: {
@@ -1155,6 +1157,26 @@ describe('Tests Native Wrapper', () => {
       NATIVE.setExtra('key', circular);
       expect(RNSentry.setExtra).toHaveBeenCalledWith('key', '{"self":"[Circular ~]"}');
       expect(RNSentry.setExtra).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('addFeatureFlag', () => {
+    test('passes name and boolean value to native method', () => {
+      NATIVE.addFeatureFlag('my-flag', true);
+      expect(RNSentry.addFeatureFlag).toHaveBeenCalledWith('my-flag', true);
+      expect(RNSentry.addFeatureFlag).toHaveBeenCalledOnce();
+    });
+
+    test('passes false value to native method', () => {
+      NATIVE.addFeatureFlag('my-flag', false);
+      expect(RNSentry.addFeatureFlag).toHaveBeenCalledWith('my-flag', false);
+      expect(RNSentry.addFeatureFlag).toHaveBeenCalledOnce();
+    });
+
+    test('does not call native method when enableNative is false', () => {
+      NATIVE.enableNative = false;
+      NATIVE.addFeatureFlag('my-flag', true);
+      expect(RNSentry.addFeatureFlag).not.toHaveBeenCalled();
     });
   });
 

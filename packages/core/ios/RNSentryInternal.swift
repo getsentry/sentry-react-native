@@ -35,6 +35,16 @@ import Foundation
         SentrySDK.internal.sdk.installationID
     }
 
+    // MARK: - Feature flags
+
+    // `SentrySDK.addFeatureFlag(name:result:)` is `@nonobjc` in sentry-cocoa, so
+    // the `.m`/`.mm` callers can only reach it through this Swift bridge. It
+    // records the flag on the current scope, so it is attached to native
+    // crashes and native error events.
+    @_spi(Private) @objc public static func addFeatureFlag(_ name: String, value: Bool) {
+        SentrySDK.addFeatureFlag(name: name, result: value)
+    }
+
     // MARK: - Options
 
     @_spi(Private) @objc public static var options: Options { SentrySDK.internal.options }
