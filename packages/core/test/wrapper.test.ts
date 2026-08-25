@@ -90,7 +90,6 @@ const callAllScopeMethods = () => {
     id: 'setUser',
   });
   NATIVE.setTag('key', 'value');
-  NATIVE.addFeatureFlag('flag', true);
   NATIVE.setContext('key', {
     value: 'value',
     data: {
