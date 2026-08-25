@@ -481,6 +481,64 @@ describe('sentry-xcode.sh', () => {
     expect(result.stdout).toContain('Mock React Native bundle');
   });
 
+  describe('project path containing spaces (issue #6583)', () => {
+    // Put react-native-xcode.sh in a directory whose path contains a space. The disable and Debug
+    // branches re-parse REACT_NATIVE_XCODE via `/bin/sh -c`, which word-splits on the space unless
+    // the path is re-quoted.
+    const makeSpacedScript = (): string => {
+      const spacedDir = path.join(tempDir, 'My App');
+      fs.mkdirSync(spacedDir, { recursive: true });
+      const spacedScript = path.join(spacedDir, 'react-native-xcode.sh');
+      fs.writeFileSync(spacedScript, '#!/bin/bash\necho "Mock React Native bundle"\nexit 0\n');
+      fs.chmodSync(spacedScript, '755');
+      return spacedScript;
+    };
+
+    const runWithArg = (arg: string, env: Record<string, string> = {}) => {
+      const mockCollectModulesScript = path.join(tempDir, 'collect-modules.sh');
+      fs.writeFileSync(mockCollectModulesScript, '#!/bin/bash\nexit 0\n');
+      fs.chmodSync(mockCollectModulesScript, '755');
+      try {
+        const stdout = execSync(`bash "${XCODE_SCRIPT}" "${arg}"`, {
+          env: {
+            ...process.env,
+            NODE_BINARY: process.execPath,
+            SENTRY_CLI_EXECUTABLE: mockSentryCliScript,
+            PROJECT_DIR: tempDir,
+            DERIVED_FILE_DIR: tempDir,
+            SENTRY_COLLECT_MODULES: mockCollectModulesScript,
+            ...env,
+          },
+          encoding: 'utf8',
+          stdio: 'pipe',
+        });
+        return { stdout, stderr: '', exitCode: 0 };
+      } catch (error: any) {
+        return {
+          stdout: error.stdout?.toString() || '',
+          stderr: error.stderr?.toString() || '',
+          exitCode: error.status || 1,
+        };
+      }
+    };
+
+    it('runs react-native-xcode.sh from a spaced path when SENTRY_DISABLE_AUTO_UPLOAD=true', () => {
+      const result = runWithArg(makeSpacedScript(), { SENTRY_DISABLE_AUTO_UPLOAD: 'true' });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Mock React Native bundle');
+      expect(result.stdout).not.toContain('No such file or directory');
+    });
+
+    it('runs react-native-xcode.sh from a spaced path for Debug configuration', () => {
+      const result = runWithArg(makeSpacedScript(), { CONFIGURATION: 'Debug' });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Mock React Native bundle');
+      expect(result.stdout).not.toContain('No such file or directory');
+    });
+  });
+
   describe('SENTRY_PROJECT_ROOT override', () => {
     it('resolves SOURCEMAP_FILE relative to SENTRY_PROJECT_ROOT instead of PROJECT_DIR/..', () => {
       const customRoot = path.join(tempDir, 'monorepo-package');
