@@ -1306,6 +1306,26 @@ describe('Tests the SDK functionality', () => {
       expect(debug.warn).not.toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
     });
 
+    it('does not warn when replay sample rates are set to 0 (replay disabled)', () => {
+      init({
+        replaysSessionSampleRate: 0,
+        replaysOnErrorSampleRate: 0,
+        defaultIntegrations: [],
+      });
+
+      expect(debug.warn).not.toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
+    it('warns when only replaysOnErrorSampleRate is greater than 0 and the integration is missing', () => {
+      init({
+        replaysSessionSampleRate: 0,
+        replaysOnErrorSampleRate: 1.0,
+        defaultIntegrations: [],
+      });
+
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
     it('warns with the browser integration hint when on web and the browser replay integration is missing', () => {
       (notWeb as jest.Mock).mockImplementation(() => false);
       (isWeb as jest.Mock).mockImplementation(() => true);

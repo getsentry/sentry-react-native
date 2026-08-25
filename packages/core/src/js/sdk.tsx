@@ -212,11 +212,14 @@ export function init(passedOptions: ReactNativeOptions): void {
  * integration is never auto-added. In both cases replay would otherwise fail silently.
  */
 function warnIfReplayIntegrationMissing(options: ReactNativeClientOptions): void {
+  // Only a rate > 0 actually enables replay; `0` is a valid way to keep it off, so it must not warn.
+  const isEnabledRate = (rate: number | undefined): boolean => typeof rate === 'number' && rate > 0;
+  const experiments = options._experiments;
   const hasReplayOptions =
-    typeof options.replaysOnErrorSampleRate === 'number' ||
-    typeof options.replaysSessionSampleRate === 'number' ||
-    typeof options._experiments?.replaysOnErrorSampleRate === 'number' ||
-    typeof options._experiments?.replaysSessionSampleRate === 'number';
+    isEnabledRate(options.replaysOnErrorSampleRate) ||
+    isEnabledRate(options.replaysSessionSampleRate) ||
+    isEnabledRate(experiments?.replaysOnErrorSampleRate) ||
+    isEnabledRate(experiments?.replaysSessionSampleRate);
 
   if (!hasReplayOptions) {
     return;
