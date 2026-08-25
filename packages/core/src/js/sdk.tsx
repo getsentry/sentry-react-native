@@ -182,8 +182,10 @@ export function init(passedOptions: ReactNativeOptions): void {
     integrations: safeFactory(userOptions.integrations, { loggerMessage: 'The integrations threw an error' }),
     defaultIntegrations,
   });
-  warnIfReplayIntegrationMissing(options);
   initAndBind(ReactNativeClient, options);
+  // Must run after `initAndBind`: that is where `@sentry/core` enables the debug logger
+  // (`debug.enable()` when `debug: true`), so `debug.warn` is a no-op before it.
+  warnIfReplayIntegrationMissing(options);
   if (__DEV__) {
     checkSentryJsSdkVersionMismatch();
   }
