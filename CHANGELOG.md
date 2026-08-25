@@ -14,6 +14,7 @@
 
 ### Fixes
 
+- Warn when replay sample rates are set but the Replay integration is missing ([#6612](https://github.com/getsentry/sentry-react-native/pull/6612))
 - Fix Expo iOS build failing when the project path contains spaces ([#6604](https://github.com/getsentry/sentry-react-native/pull/6604))
 - Fix Android fragment memory leak in `RNSentryReactFragmentLifecycleTracer` ([#6599](https://github.com/getsentry/sentry-react-native/pull/6599))
 
