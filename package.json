@@ -140,7 +140,8 @@
     "@appium/support@npm:7.0.6/uuid": "^13.0.1",
     "node-simctl@npm:8.1.6/uuid": "^13.0.1",
     "shell-quote": "^1.10.0",
-    "downlevel-dts@npm:0.11.0/typescript": "5.9.3"
+    "downlevel-dts@npm:0.11.0/typescript": "5.9.3",
+    "deepmerge-ts": "^8.0.0"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
