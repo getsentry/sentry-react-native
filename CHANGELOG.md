@@ -17,6 +17,7 @@
 - Fix time to display spans causing transactions to be dropped by Relay ([#6608](https://github.com/getsentry/sentry-react-native/pull/6608))
 - Fix Expo iOS build failing when the project path contains spaces ([#6604](https://github.com/getsentry/sentry-react-native/pull/6604))
 - Fix Android fragment memory leak in `RNSentryReactFragmentLifecycleTracer` ([#6599](https://github.com/getsentry/sentry-react-native/pull/6599))
+- Ship a named navigation transaction when re-navigating to the focused route with new params, instead of an unnamed "Route Change" ([#6606](https://github.com/getsentry/sentry-react-native/pull/6606))
 
 ### Dependencies
 
