@@ -150,25 +150,24 @@ Pod::Spec.new do |s|
       acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
     end
 
-    # Force-load the whole Sentry static archive on the *app* link. We link
-    # Sentry statically (see the `vendored_frameworks` note above) with no
-    # whole-archive flag, so any symbol reachable only through an Objective-C
-    # category — a Swift `@objc extension`, e.g.
-    # `SentryReplayNetworkDetails+Capture` in sentry-cocoa 9.25/9.26
-    # (getsentry/sentry-react-native#6609) — or through Swift-only metadata is
-    # dead-stripped at the final link and crashes at runtime with
-    # "unrecognized selector". Apple documents this as the *consumer's*
-    # responsibility (QA1490: https://developer.apple.com/library/archive/qa/qa1490/_index.html).
+    # Force-load the Sentry static archive so its ObjC category methods survive
+    # linking. We link Sentry statically with no whole-archive flag, so symbols
+    # reachable only through an ObjC category (what a Swift `@objc extension`
+    # compiles to, e.g. `SentryReplayNetworkDetails+Capture` in sentry-cocoa
+    # 9.25/9.26, #6609) or through Swift-only metadata get dead-stripped and
+    # crash at runtime with "unrecognized selector" — the consumer's job to fix
+    # at link time, per Apple QA1490
+    # (https://developer.apple.com/library/archive/qa/qa1490/_index.html).
+    # `-force_load` beats `-ObjC`/`-all_load`: it is scoped to Sentry and also
+    # keeps Swift-only metadata, guarding against future strippable upstream
+    # changes, not just today's category.
     #
-    # `-force_load` on the Sentry binary is preferred over `-ObjC`/`-all_load`:
-    # it is scoped to the Sentry archive (those flags force-load every static
-    # lib in the app — size bloat + duplicate-symbol risk), and, unlike
-    # `-ObjC`, it also retains Swift-only metadata. So this hardens us against
-    # future valid-but-strippable upstream changes, not only the current
-    # category case — independent of any producer-side fix in sentry-cocoa.
-    #
-    # Lives on `user_target_xcconfig` (the app target) because that is where
-    # the link that strips happens; `pod_target_xcconfig` would be too early.
+    # The flag must ride whichever target's link does the stripping, which
+    # depends on linkage: static libs (the default) absorb Sentry into the app
+    # binary → app link → `user_target_xcconfig`; `:linkage => :dynamic` absorbs
+    # it into the RNSentry dylib → that link → `pod_target_xcconfig`. Never
+    # both, or a second copy of Sentry lands in the app. Detected via
+    # `ENV['USE_FRAMEWORKS']`.
     force_load_flags = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
       loads = slice_ids.map do |slice|
         %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
@@ -177,7 +176,13 @@ Pod::Spec.new do |s|
     end
 
     pod_target_xcconfig.merge!(xcframework_search_paths)
-    s.user_target_xcconfig = xcframework_search_paths.merge(force_load_flags)
+    user_target_xcconfig = xcframework_search_paths.dup
+    if ENV['USE_FRAMEWORKS'] == 'dynamic'
+      pod_target_xcconfig.merge!(force_load_flags)
+    else
+      user_target_xcconfig.merge!(force_load_flags)
+    end
+    s.user_target_xcconfig = user_target_xcconfig
   else
     raise <<~MSG
       [Sentry] SENTRY_USE_XCFRAMEWORK=0 is no longer supported.
