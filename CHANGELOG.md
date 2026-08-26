@@ -14,6 +14,7 @@
 
 ### Fixes
 
+- Fix iOS `unrecognized selector` crash when Session Replay captures network request/response details, caused by Objective-C category methods in the Sentry static framework being stripped at link time ([#6615](https://github.com/getsentry/sentry-react-native/pull/6615))
 - Fix time to display spans causing transactions to be dropped by Relay ([#6608](https://github.com/getsentry/sentry-react-native/pull/6608))
 - Fix Expo iOS build failing when the project path contains spaces ([#6604](https://github.com/getsentry/sentry-react-native/pull/6604))
 - Fix Android fragment memory leak in `RNSentryReactFragmentLifecycleTracer` ([#6599](https://github.com/getsentry/sentry-react-native/pull/6599))

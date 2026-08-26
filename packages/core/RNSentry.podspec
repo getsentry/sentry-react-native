@@ -150,8 +150,34 @@ Pod::Spec.new do |s|
       acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
     end
 
+    # Force-load the whole Sentry static archive on the *app* link. We link
+    # Sentry statically (see the `vendored_frameworks` note above) with no
+    # whole-archive flag, so any symbol reachable only through an Objective-C
+    # category — a Swift `@objc extension`, e.g.
+    # `SentryReplayNetworkDetails+Capture` in sentry-cocoa 9.25/9.26
+    # (getsentry/sentry-react-native#6609) — or through Swift-only metadata is
+    # dead-stripped at the final link and crashes at runtime with
+    # "unrecognized selector". Apple documents this as the *consumer's*
+    # responsibility (QA1490: https://developer.apple.com/library/archive/qa/qa1490/_index.html).
+    #
+    # `-force_load` on the Sentry binary is preferred over `-ObjC`/`-all_load`:
+    # it is scoped to the Sentry archive (those flags force-load every static
+    # lib in the app — size bloat + duplicate-symbol risk), and, unlike
+    # `-ObjC`, it also retains Swift-only metadata. So this hardens us against
+    # future valid-but-strippable upstream changes, not only the current
+    # category case — independent of any producer-side fix in sentry-cocoa.
+    #
+    # Lives on `user_target_xcconfig` (the app target) because that is where
+    # the link that strips happens; `pod_target_xcconfig` would be too early.
+    force_load_flags = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
+      loads = slice_ids.map do |slice|
+        %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
+      end
+      acc["OTHER_LDFLAGS[sdk=#{sdk}*]"] = (['$(inherited)'] + loads).join(' ')
+    end
+
     pod_target_xcconfig.merge!(xcframework_search_paths)
-    s.user_target_xcconfig = xcframework_search_paths
+    s.user_target_xcconfig = xcframework_search_paths.merge(force_load_flags)
   else
     raise <<~MSG
       [Sentry] SENTRY_USE_XCFRAMEWORK=0 is no longer supported.
