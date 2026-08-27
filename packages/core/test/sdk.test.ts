@@ -10,13 +10,14 @@ import { getDevServer } from '../src/js/integrations/debugsymbolicatorutils';
 import { init, withScope } from '../src/js/sdk';
 import { REACT_NATIVE_TRACING_INTEGRATION_NAME, reactNativeTracingIntegration } from '../src/js/tracing';
 import { makeNativeTransport } from '../src/js/transports/native';
-import { getDefaultEnvironment, isExpoGo, notWeb } from '../src/js/utils/environment';
+import { getDefaultEnvironment, isExpoGo, isWeb, notWeb } from '../src/js/utils/environment';
 import { registerFeatureMarker } from '../src/js/utils/featureMarkers';
 import { RN_GLOBAL_OBJ } from '../src/js/utils/worldwide';
 import { NATIVE } from './mockWrapper';
 import { firstArg, secondArg } from './testutils';
 
 jest.spyOn(debug, 'error');
+jest.spyOn(debug, 'warn');
 jest.mock('../src/js/wrapper', () => jest.requireActual('./mockWrapper'));
 jest.mock('../src/js/utils/environment');
 jest.mock('@sentry/core', () => ({
@@ -1243,6 +1244,109 @@ describe('Tests the SDK functionality', () => {
 
     expectNotIntegration('Replay');
     expectNotIntegration('MobileReplay');
+  });
+
+  describe('replay integration missing warning', () => {
+    // Phrase unique to the missing-integration warning, so assertions don't collide with
+    // other replay warnings (e.g. the Expo Go / unsupported-platform noop warnings).
+    const MISSING_WARNING = 'integration is missing';
+
+    beforeEach(() => {
+      // Isolate from mock implementations leaked by earlier tests (isExpoGo/isWeb are not reset in the outer beforeEach).
+      (isExpoGo as jest.Mock).mockImplementation(() => false);
+      (isWeb as jest.Mock).mockImplementation(() => false);
+    });
+
+    it('warns when replay sample rates are set but the mobile replay integration is missing', () => {
+      init({
+        replaysSessionSampleRate: 1.0,
+        // Supplying defaultIntegrations skips the auto-add of mobileReplayIntegration
+        defaultIntegrations: [],
+      });
+
+      expectNotIntegration('MobileReplay');
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining('mobileReplayIntegration()'));
+    });
+
+    it('warns when only replaysOnErrorSampleRate is set but the mobile replay integration is missing', () => {
+      init({
+        replaysOnErrorSampleRate: 1.0,
+        defaultIntegrations: [],
+      });
+
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
+    it('warns when experimental replay sample rates are set but the mobile replay integration is missing', () => {
+      init({
+        _experiments: {
+          replaysSessionSampleRate: 1.0,
+        },
+        defaultIntegrations: [],
+      });
+
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
+    it('does not warn when the mobile replay integration is auto-added', () => {
+      init({
+        replaysSessionSampleRate: 1.0,
+      });
+
+      expectIntegration('MobileReplay');
+      expect(debug.warn).not.toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
+    it('does not warn when no replay sample rates are set', () => {
+      init({
+        defaultIntegrations: [],
+      });
+
+      expect(debug.warn).not.toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
+    it('does not warn when replay sample rates are set to 0 (replay disabled)', () => {
+      init({
+        replaysSessionSampleRate: 0,
+        replaysOnErrorSampleRate: 0,
+        defaultIntegrations: [],
+      });
+
+      expect(debug.warn).not.toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
+    it('warns when only replaysOnErrorSampleRate is greater than 0 and the integration is missing', () => {
+      init({
+        replaysSessionSampleRate: 0,
+        replaysOnErrorSampleRate: 1.0,
+        defaultIntegrations: [],
+      });
+
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
+
+    it('warns with the browser integration hint when on web and the browser replay integration is missing', () => {
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      (isWeb as jest.Mock).mockImplementation(() => true);
+      init({
+        replaysSessionSampleRate: 1.0,
+      });
+
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+      expect(debug.warn).toHaveBeenCalledWith(expect.stringContaining('browserReplayIntegration()'));
+    });
+
+    it('does not warn when on web and the browser replay integration is present', () => {
+      (notWeb as jest.Mock).mockImplementation(() => false);
+      (isWeb as jest.Mock).mockImplementation(() => true);
+      init({
+        replaysSessionSampleRate: 1.0,
+        integrations: [createMockedIntegration({ name: 'Replay' })],
+      });
+
+      expect(debug.warn).not.toHaveBeenCalledWith(expect.stringContaining(MISSING_WARNING));
+    });
   });
 
   // TODO: No longer an experiment on major version.
