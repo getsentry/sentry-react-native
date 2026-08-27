@@ -22,6 +22,8 @@ import { FeedbackFormProvider } from './feedback/FeedbackFormProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { getDefaultIntegrations } from './integrations/default';
 import { shouldEnableNativeNagger } from './options';
+import { BROWSER_REPLAY_INTEGRATION_NAME } from './replay/browserReplay';
+import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
 import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
@@ -181,6 +183,9 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
+  // Must run after `initAndBind`: that is where `@sentry/core` enables the debug logger
+  // (`debug.enable()` when `debug: true`), so `debug.warn` is a no-op before it.
+  warnIfReplayIntegrationMissing(options);
   if (__DEV__) {
     checkSentryJsSdkVersionMismatch();
   }
@@ -197,6 +202,44 @@ export function init(passedOptions: ReactNativeOptions): void {
     // it into JS as `__SENTRY_OPTIONS__`, and native reads it before JS runs).
     registerFeatureMarker(CAPTURE_APP_START_ERRORS_INTEGRATION_NAME);
   }
+}
+
+/**
+ * Warns when replay sample rates are configured but the matching Replay integration is missing.
+ *
+ * The mobile integration is auto-added by `getDefaultIntegrations` when sample rates are set, but
+ * that path is skipped when the user supplies their own `defaultIntegrations`. On web the browser
+ * integration is never auto-added. In both cases replay would otherwise fail silently.
+ */
+function warnIfReplayIntegrationMissing(options: ReactNativeClientOptions): void {
+  // Only a rate > 0 actually enables replay; `0` is a valid way to keep it off, so it must not warn.
+  const isEnabledRate = (rate: number | undefined): boolean => typeof rate === 'number' && rate > 0;
+  const experiments = options._experiments;
+  const hasReplayOptions = [
+    options.replaysOnErrorSampleRate,
+    options.replaysSessionSampleRate,
+    experiments?.replaysOnErrorSampleRate,
+    experiments?.replaysSessionSampleRate,
+  ].some(isEnabledRate);
+
+  if (!hasReplayOptions) {
+    return;
+  }
+
+  const web = isWeb();
+  const expectedIntegrationName = web ? BROWSER_REPLAY_INTEGRATION_NAME : MOBILE_REPLAY_INTEGRATION_NAME;
+  const hasReplayIntegration = options.integrations.some(integration => integration.name === expectedIntegrationName);
+
+  if (hasReplayIntegration) {
+    return;
+  }
+
+  const factoryName = web ? 'browserReplayIntegration()' : 'mobileReplayIntegration()';
+  debug.warn(
+    `[Sentry] \`replaysSessionSampleRate\` or \`replaysOnErrorSampleRate\` is set but the \`${expectedIntegrationName}\` integration is missing. ` +
+      `Session Replay may not work as expected. Add \`Sentry.${factoryName}\` to the \`integrations\` option to enable it. ` +
+      `See https://docs.sentry.io/platforms/react-native/session-replay/#set-up`,
+  );
 }
 
 /**

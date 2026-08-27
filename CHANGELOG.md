@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.24.0
 
 ### Features
 
@@ -15,17 +15,17 @@
 
 ### Fixes
 
+- Warn when replay sample rates are set but the Replay integration is missing ([#6612](https://github.com/getsentry/sentry-react-native/pull/6612))
+- Fix time to display spans causing transactions to be dropped by Relay ([#6608](https://github.com/getsentry/sentry-react-native/pull/6608))
 - Fix Expo iOS build failing when the project path contains spaces ([#6604](https://github.com/getsentry/sentry-react-native/pull/6604))
 - Fix Android fragment memory leak in `RNSentryReactFragmentLifecycleTracer` ([#6599](https://github.com/getsentry/sentry-react-native/pull/6599))
+- Ship a named navigation transaction when re-navigating to the focused route with new params, instead of an unnamed "Route Change" ([#6606](https://github.com/getsentry/sentry-react-native/pull/6606))
 
 ### Dependencies
 
 - Bump Android SDK from v8.52.0 to v8.53.0 ([#6586](https://github.com/getsentry/sentry-react-native/pull/6586))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8530)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.52.0...8.53.0)
-- Bump Cocoa SDK from v9.24.0 to v9.26.0 ([#6409](https://github.com/getsentry/sentry-react-native/pull/6409))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9260)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.0)
 - Bump JavaScript SDK from v10.69.0 to v10.71.0 ([#6580](https://github.com/getsentry/sentry-react-native/pull/6580), [#6610](https://github.com/getsentry/sentry-react-native/pull/6610))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10710)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.69.0...10.71.0)

@@ -114,6 +114,26 @@ export const timeToDisplayIntegration = (): Integration => {
         event.timestamp = newTransactionEndTimestampSeconds;
       }
 
+      // Deadline-exceeded TTID/TTFD spans deliberately do NOT extend the
+      // transaction end above (that would inflate its duration by up to the 30s
+      // deadline). Without a guard this leaves a child span ending after the
+      // transaction end — an out-of-bounds span that Relay rejects as
+      // `invalid_transaction`, dropping the whole transaction and any attached
+      // profile (#6597). Clamp such spans to the transaction end so they always
+      // stay within the transaction bounds.
+      const transactionEndTimestampSeconds = event.timestamp;
+      if (transactionEndTimestampSeconds !== undefined) {
+        for (const span of [ttidSpan, ttfdSpan]) {
+          if (span?.timestamp !== undefined && span.timestamp > transactionEndTimestampSeconds) {
+            debug.warn(
+              `[${INTEGRATION_NAME}] Clamping ${span.op} span end (${span.timestamp}) to the transaction end ` +
+                `(${transactionEndTimestampSeconds}) to keep it within the transaction bounds.`,
+            );
+            span.timestamp = transactionEndTimestampSeconds;
+          }
+        }
+      }
+
       clearTimeToDisplayCoordinatorSpan(rootSpanId);
 
       return event;
