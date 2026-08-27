@@ -52,21 +52,31 @@ interface ResolvedMetroInternals {
  * dependency that would otherwise shadow the app's Metro and generate source maps with a
  * mismatched (older) Metro version.
  *
- * Each candidate is tried in order (`metro/private/*` first, `metro/src/*` as fallback) since
- * Metro moved its internals behind the `private` export path.
+ * Resolution is location-first: every candidate path shape is tried against the app
+ * (`projectRoot`) before falling back to the SDK's own location. Within a single location the
+ * newer `metro/private/*` path is preferred over the legacy `metro/src/*` path, since Metro moved
+ * its internals behind the `private` export. Ordering locations outside the path shapes is what
+ * guarantees the app's Metro wins even when the two copies expose their internals via different
+ * subpaths (e.g. app on `metro/src/*`, SDK on `metro/private/*`).
  */
 // oxlint-disable-next-line typescript-eslint(no-explicit-any)
 function requireMetroModule(candidates: string[], projectRoot: string | undefined): any {
-  const paths = projectRoot ? [projectRoot, __dirname] : undefined;
+  const roots = projectRoot ? [projectRoot, __dirname] : [__dirname];
   let lastError: unknown;
-  for (const candidate of candidates) {
-    if (paths) {
+  for (const root of roots) {
+    for (const candidate of candidates) {
       try {
-        return require(require.resolve(candidate, { paths }));
+        return require(require.resolve(candidate, { paths: [root] }));
       } catch (e) {
         lastError = e;
       }
     }
+  }
+  // Last resort: a bare require from the SDK's own module context. Preserves the previous
+  // fallback behavior for environments where `require.resolve` with an explicit `paths` cannot
+  // resolve a subpath that a plain `require` can. Runs only after every located attempt failed,
+  // so it can never shadow the app's Metro.
+  for (const candidate of candidates) {
     try {
       return require(candidate);
     } catch (e) {
