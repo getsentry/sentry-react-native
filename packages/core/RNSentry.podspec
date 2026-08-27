@@ -164,10 +164,14 @@ Pod::Spec.new do |s|
     #
     # The flag must ride whichever target's link does the stripping, which
     # depends on linkage: static libs (the default) absorb Sentry into the app
-    # binary → app link → `user_target_xcconfig`; `:linkage => :dynamic` absorbs
+    # binary → app link → `user_target_xcconfig`; a dynamic framework absorbs
     # it into the RNSentry dylib → that link → `pod_target_xcconfig`. Never
-    # both, or a second copy of Sentry lands in the app. Detected via
-    # `ENV['USE_FRAMEWORKS']`.
+    # both, or a second copy of Sentry lands in the app.
+    #
+    # Linkage is resolved by `sentry_uses_dynamic_linkage` (see sentry_utils):
+    # `ENV['USE_FRAMEWORKS']` when set (this repo's CI + the RN/Expo samples),
+    # otherwise read off the consumer's Podfile so a bare `use_frameworks!`
+    # without that env var still lands on the right target.
     force_load_flags = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
       loads = slice_ids.map do |slice|
         %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
@@ -177,7 +181,7 @@ Pod::Spec.new do |s|
 
     pod_target_xcconfig.merge!(xcframework_search_paths)
     user_target_xcconfig = xcframework_search_paths.dup
-    if ENV['USE_FRAMEWORKS'] == 'dynamic'
+    if sentry_uses_dynamic_linkage
       pod_target_xcconfig.merge!(force_load_flags)
     else
       user_target_xcconfig.merge!(force_load_flags)

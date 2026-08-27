@@ -233,3 +233,40 @@ rescue StandardError, NotImplementedError => e
   end
   nil
 end
+
+# Whether RNSentry (and thus the Sentry static archive it absorbs) is linked
+# into a dynamic framework rather than statically into the app. This decides
+# which target's link the `-force_load` flag must ride — see the call site in
+# `RNSentry.podspec`.
+#
+# `ENV['USE_FRAMEWORKS']` is an explicit override (the convention the RN and
+# Expo sample Podfiles and this repo's CI already use): `dynamic` forces the
+# dynamic path, any other value forces static. When it is unset we read the
+# actual linkage off the Podfile CocoaPods has already loaded, because a bare
+# `use_frameworks!` / `use_frameworks! :linkage => :dynamic` in a consumer's
+# Podfile does NOT export that env var — trusting the env var alone would take
+# the static path and force-load Sentry into the app while RNSentry is really a
+# dylib (a second Sentry copy in the app, and the framework link still strips
+# the category). Reading the Podfile closes that gap.
+#
+# This is a best-effort proxy: the linkage that ultimately governs is
+# RNSentry's own pod `build_type`, which the installer only computes after
+# `pre_install` hooks run and which isn't available at podspec-eval time. We
+# therefore read the declared target linkage, matching (and widening) what the
+# env var proxied. Guarded like `stage_sentry_xcframework_in_pods`: outside a
+# real `pod install` (`pod ipc spec`, `pod lib lint`) there is no Podfile, so
+# we fall back to the static default, which is correct for the RN default.
+def sentry_uses_dynamic_linkage
+  env = ENV['USE_FRAMEWORKS']
+  return true if env == 'dynamic'
+  return false unless env.nil? || env.empty?
+
+  podfile = (Pod::Config.instance.podfile if defined?(Pod::Config)) rescue nil
+  return false unless podfile
+
+  podfile.target_definition_list.any? do |td|
+    !td.root? && (td.build_type.dynamic_framework? rescue false)
+  end
+rescue StandardError, NotImplementedError
+  false
+end
