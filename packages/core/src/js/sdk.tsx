@@ -215,11 +215,12 @@ function warnIfReplayIntegrationMissing(options: ReactNativeClientOptions): void
   // Only a rate > 0 actually enables replay; `0` is a valid way to keep it off, so it must not warn.
   const isEnabledRate = (rate: number | undefined): boolean => typeof rate === 'number' && rate > 0;
   const experiments = options._experiments;
-  const hasReplayOptions =
-    isEnabledRate(options.replaysOnErrorSampleRate) ||
-    isEnabledRate(options.replaysSessionSampleRate) ||
-    isEnabledRate(experiments?.replaysOnErrorSampleRate) ||
-    isEnabledRate(experiments?.replaysSessionSampleRate);
+const hasReplayOptions = [
+    options.replaysOnErrorSampleRate,
+    options.replaysSessionSampleRate,
+    experiments?.replaysOnErrorSampleRate,
+    experiments?.replaysSessionSampleRate,
+].some(isEnabledRate);
 
   if (!hasReplayOptions) {
     return;
