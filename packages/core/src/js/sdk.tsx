@@ -215,25 +215,26 @@ function warnIfReplayIntegrationMissing(options: ReactNativeClientOptions): void
   // Only a rate > 0 actually enables replay; `0` is a valid way to keep it off, so it must not warn.
   const isEnabledRate = (rate: number | undefined): boolean => typeof rate === 'number' && rate > 0;
   const experiments = options._experiments;
-const hasReplayOptions = [
+  const hasReplayOptions = [
     options.replaysOnErrorSampleRate,
     options.replaysSessionSampleRate,
     experiments?.replaysOnErrorSampleRate,
     experiments?.replaysSessionSampleRate,
-].some(isEnabledRate);
+  ].some(isEnabledRate);
 
   if (!hasReplayOptions) {
     return;
   }
 
-  const expectedIntegrationName = isWeb() ? BROWSER_REPLAY_INTEGRATION_NAME : MOBILE_REPLAY_INTEGRATION_NAME;
+  const web = isWeb();
+  const expectedIntegrationName = web ? BROWSER_REPLAY_INTEGRATION_NAME : MOBILE_REPLAY_INTEGRATION_NAME;
   const hasReplayIntegration = options.integrations.some(integration => integration.name === expectedIntegrationName);
 
   if (hasReplayIntegration) {
     return;
   }
 
-  const factoryName = isWeb() ? 'browserReplayIntegration()' : 'mobileReplayIntegration()';
+  const factoryName = web ? 'browserReplayIntegration()' : 'mobileReplayIntegration()';
   debug.warn(
     `[Sentry] \`replaysSessionSampleRate\` or \`replaysOnErrorSampleRate\` is set but the \`${expectedIntegrationName}\` integration is missing. ` +
       `Session Replay may not work as expected. Add \`Sentry.${factoryName}\` to the \`integrations\` option to enable it. ` +
