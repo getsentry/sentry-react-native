@@ -14,6 +14,7 @@
 
 ### Fixes
 
+- Resolve Metro from the app's project root when generating source maps, fixing production bundling when a different Metro version is nested under the SDK (e.g. Metro 0.87) ([#6625](https://github.com/getsentry/sentry-react-native/pull/6625))
 - Warn when replay sample rates are set but the Replay integration is missing ([#6612](https://github.com/getsentry/sentry-react-native/pull/6612))
 - Fix time to display spans causing transactions to be dropped by Relay ([#6608](https://github.com/getsentry/sentry-react-native/pull/6608))
 - Fix Expo iOS build failing when the project path contains spaces ([#6604](https://github.com/getsentry/sentry-react-native/pull/6604))
