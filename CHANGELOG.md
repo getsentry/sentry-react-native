@@ -6,11 +6,16 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 8.24.0
+## Unreleased
 
 ### Features
 
 - `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
+
+## 8.24.0
+
+### Features
+
 - Add `enableNdkAppHangTracking` and `ndkAppHangTimeoutIntervalMillis` options to enable Android NDK app hang tracking ([#6548](https://github.com/getsentry/sentry-react-native/pull/6548))
 
 ### Fixes
