@@ -74,6 +74,16 @@ const MAX_APP_START_DURATION_MS = 60_000;
 /** We filter out App starts which timestamp is 60s and more before the transaction start */
 const MAX_APP_START_AGE_MS = 60_000;
 
+/**
+ * When the first navigation transaction starts more than this long after the app finished starting,
+ * it is a normal (delayed) screen load — e.g. after a splash / auth / loading screen — not the
+ * cold-start's initial display. App start is decoupled from JS navigation in React Native, so we still
+ * report the `app_start_*` measurement, but we do NOT re-anchor the screen's TTID/TTFD to process init.
+ * Re-anchoring would make TTID/TTFD absorb the uninstrumented gap between app start end and the first
+ * navigation, inflating them well beyond the actual screen render time.
+ */
+const MAX_APP_START_TO_FIRST_DISPLAY_GAP_MS = 5_000;
+
 /** App Start transaction name */
 const APP_START_TX_NAME = 'App Start';
 
@@ -721,6 +731,31 @@ export const appStartIntegration = ({
     event.contexts.trace.op = traceOp;
     event.contexts.trace.data[SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN] = origin;
     event.contexts.trace.origin = origin;
+
+    // If the first navigation transaction starts well after the app finished starting, it is a normal
+    // (delayed) screen load, not the cold-start's initial display. In React Native the JS navigation is
+    // decoupled from the native app start, so this gap is uninstrumented time (splash / auth / loading)
+    // that belongs to neither the app start nor the screen render. Report the app start measurement, but
+    // leave `event.start_timestamp` (and therefore TTID/TTFD, which are derived from it) anchored to the
+    // navigation start so they measure the actual screen render. Re-anchoring to process init here — and
+    // adding the process-init-anchored breakdown spans — would make TTID/TTFD absorb the whole gap.
+    // Skipped for standalone (the transaction *is* the app start) and in dev builds (long dev app starts).
+    const appReadyToFirstDisplayGapMs = event.start_timestamp
+      ? event.start_timestamp * 1000 - originalAppStartEndTimestampMs
+      : 0;
+    if (!standalone && !__DEV__ && appReadyToFirstDisplayGapMs > MAX_APP_START_TO_FIRST_DISPLAY_GAP_MS) {
+      debug.log(
+        '[AppStart] First navigation is delayed past the app start end. Reporting the app start measurement ' +
+          'only and leaving the screen TTID/TTFD anchored to the navigation start.',
+      );
+      const measurementKey = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
+      event.measurements = event.measurements || {};
+      event.measurements[measurementKey] = {
+        value: appStartDurationMs,
+        unit: 'millisecond',
+      };
+      return true;
+    }
 
     const appStartTimestampSeconds = appStartTimestampMs / 1000;
     const appStartEndTimestampSeconds = appStartEndTimestampMs / 1000;
