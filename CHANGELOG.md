@@ -10,6 +10,21 @@
 
 ### Features
 
+- `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
+
+### Dependencies
+
+- Bump Android SDK from v8.53.0 to v8.54.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8540)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.53.0...8.54.0)
+- Bump Cocoa SDK from v9.24.0 to v9.26.1 ([#6623](https://github.com/getsentry/sentry-react-native/pull/6623))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9261)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.1)
+
+## 8.24.0
+
+### Features
+
 - Add `enableNdkAppHangTracking` and `ndkAppHangTimeoutIntervalMillis` options to enable Android NDK app hang tracking ([#6548](https://github.com/getsentry/sentry-react-native/pull/6548))
 
 ### Fixes
@@ -25,9 +40,6 @@
 - Bump Android SDK from v8.52.0 to v8.53.0 ([#6586](https://github.com/getsentry/sentry-react-native/pull/6586))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8530)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.52.0...8.53.0)
-- Bump Cocoa SDK from v9.24.0 to v9.26.0 ([#6409](https://github.com/getsentry/sentry-react-native/pull/6409))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9260)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.0)
 - Bump JavaScript SDK from v10.69.0 to v10.71.0 ([#6580](https://github.com/getsentry/sentry-react-native/pull/6580), [#6610](https://github.com/getsentry/sentry-react-native/pull/6610))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10710)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.69.0...10.71.0)
