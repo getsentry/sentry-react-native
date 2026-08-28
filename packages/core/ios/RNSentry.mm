@@ -776,6 +776,11 @@ RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
         configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
 }
 
+RCT_EXPORT_METHOD(addFeatureFlag : (NSString *)name value : (BOOL)value)
+{
+    [RNSentryInternal addFeatureFlag:name value:value];
+}
+
 RCT_EXPORT_METHOD(setAttribute : (NSString *)key value : (NSString *)value)
 {
     [SentrySDKWrapper configureScope:^(
