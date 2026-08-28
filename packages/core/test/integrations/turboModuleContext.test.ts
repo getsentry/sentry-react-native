@@ -128,6 +128,7 @@ describe('turboModuleContextIntegration', () => {
           'removeListeners',
           'setContext',
           'setTag',
+          'addFeatureFlag',
           'setExtra',
           'setUser',
           'addBreadcrumb',

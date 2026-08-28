@@ -39,7 +39,6 @@ import type { EventHint } from '@sentry/core';
 import { Exception } from '@sentry/core';
 import { extraErrorDataIntegration } from '@sentry/react';
 import { FeatureFlagsIntegration } from '@sentry/browser';
-import { featureFlagsIntegration } from '@sentry/browser';
 import type { FeedbackFormData } from '@sentry/core';
 import { functionToStringIntegration } from '@sentry/react';
 import { getActiveSpan } from '@sentry/core';
@@ -316,7 +315,8 @@ export { extraErrorDataIntegration }
 
 export { FeatureFlagsIntegration }
 
-export { featureFlagsIntegration }
+// @public
+export const featureFlagsIntegration: () => FeatureFlagsIntegration;
 
 // Warning: (ae-forgotten-export) The symbol "FeedbackButtonProps" needs to be exported by the entry point index.d.ts
 //
