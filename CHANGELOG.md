@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
+
 ### Dependencies
 
 - Bump Android SDK from v8.53.0 to v8.54.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624))
