@@ -63,7 +63,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  sentry_cocoa_version = '9.24.0'
+  sentry_cocoa_version = '9.26.1'
 
   # Consume sentry-cocoa as a prebuilt `Sentry.xcframework` by default.
   #
@@ -150,8 +150,39 @@ Pod::Spec.new do |s|
       acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
     end
 
+    # Force-load the Sentry static archive so its ObjC category methods survive
+    # linking. We link Sentry statically with no whole-archive flag, so symbols
+    # reachable only through an ObjC category (what a Swift `@objc extension`
+    # compiles to, e.g. `SentryReplayNetworkDetails+Capture` in sentry-cocoa
+    # 9.25/9.26, #6609) or through Swift-only metadata get dead-stripped and
+    # crash at runtime with "unrecognized selector" — the consumer's job to fix
+    # at link time, per Apple QA1490
+    # (https://developer.apple.com/library/archive/qa/qa1490/_index.html).
+    # `-force_load` beats `-ObjC`/`-all_load`: it is scoped to Sentry and also
+    # keeps Swift-only metadata, guarding against future strippable upstream
+    # changes, not just today's category.
+    #
+    # The flag must ride whichever target's link does the stripping, which
+    # depends on linkage: static libs (the default) absorb Sentry into the app
+    # binary → app link → `user_target_xcconfig`; `:linkage => :dynamic` absorbs
+    # it into the RNSentry dylib → that link → `pod_target_xcconfig`. Never
+    # both, or a second copy of Sentry lands in the app. Detected via
+    # `ENV['USE_FRAMEWORKS']`.
+    force_load_flags = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
+      loads = slice_ids.map do |slice|
+        %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
+      end
+      acc["OTHER_LDFLAGS[sdk=#{sdk}*]"] = (['$(inherited)'] + loads).join(' ')
+    end
+
     pod_target_xcconfig.merge!(xcframework_search_paths)
-    s.user_target_xcconfig = xcframework_search_paths
+    user_target_xcconfig = xcframework_search_paths.dup
+    if ENV['USE_FRAMEWORKS'] == 'dynamic'
+      pod_target_xcconfig.merge!(force_load_flags)
+    else
+      user_target_xcconfig.merge!(force_load_flags)
+    end
+    s.user_target_xcconfig = user_target_xcconfig
   else
     raise <<~MSG
       [Sentry] SENTRY_USE_XCFRAMEWORK=0 is no longer supported.
