@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Copy `app.vitals.start.screen` and `app.vitals.start.type` onto standalone `app.start` children, including user spans under `app.start.extended`
+
 ## 8.24.0
 
 ### Features
