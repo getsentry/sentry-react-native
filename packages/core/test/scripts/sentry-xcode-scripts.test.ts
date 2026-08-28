@@ -61,10 +61,15 @@ describe('sentry-xcode-debug-files.sh', () => {
     }
   };
 
+  // These tests exercise the upload path only and never create a dSYM bundle. Without disabling
+  // the dSYM wait they would each hit the full wait_for_dsym_files() timeout (~10s), so set
+  // SENTRY_DSYM_WAIT_ENABLED=false to keep them fast. The dSYM wait behavior is covered by the
+  // dedicated 'dSYM wait functionality' block below.
   it('exits with 0 when upload succeeds', () => {
     const result = runScript({
       MOCK_CLI_EXIT_CODE: '0',
       MOCK_CLI_OUTPUT: 'Upload successful',
+      SENTRY_DSYM_WAIT_ENABLED: 'false',
     });
 
     expect(result.exitCode).toBe(0);
@@ -76,6 +81,7 @@ describe('sentry-xcode-debug-files.sh', () => {
       MOCK_CLI_EXIT_CODE: '1',
       MOCK_CLI_OUTPUT: 'Upload failed: API error',
       SENTRY_ALLOW_FAILURE: 'true',
+      SENTRY_DSYM_WAIT_ENABLED: 'false',
     });
 
     expect(result.exitCode).toBe(0);
@@ -88,6 +94,7 @@ describe('sentry-xcode-debug-files.sh', () => {
     const result = runScript({
       MOCK_CLI_EXIT_CODE: '1',
       MOCK_CLI_OUTPUT: 'Upload failed: API error',
+      SENTRY_DSYM_WAIT_ENABLED: 'false',
     });
 
     // Original behavior: script exits 0, but Xcode fails build due to "error:" prefix
@@ -102,6 +109,7 @@ describe('sentry-xcode-debug-files.sh', () => {
       MOCK_CLI_EXIT_CODE: '1',
       MOCK_CLI_OUTPUT: 'Upload failed: Network error',
       SENTRY_ALLOW_FAILURE: 'false',
+      SENTRY_DSYM_WAIT_ENABLED: 'false',
     });
 
     // Original behavior: script exits 0, but Xcode fails build due to "error:" prefix
