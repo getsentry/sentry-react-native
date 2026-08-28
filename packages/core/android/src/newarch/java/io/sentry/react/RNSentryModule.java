@@ -119,6 +119,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void addFeatureFlag(String name, boolean value) {
+    this.impl.addFeatureFlag(name, value);
+  }
+
+  @Override
   public void setAttribute(String key, String value) {
     this.impl.setAttribute(key, value);
   }
