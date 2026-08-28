@@ -6,6 +6,18 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
+
+### Dependencies
+
+- Bump Android SDK from v8.53.0 to v8.54.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8540)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.53.0...8.54.0)
+
 ## 8.24.0
 
 ### Features

@@ -119,6 +119,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void addFeatureFlag(String name, boolean value) {
+    this.impl.addFeatureFlag(name, value);
+  }
+
+  @ReactMethod
   public void setAttribute(String key, String value) {
     this.impl.setAttribute(key, value);
   }
