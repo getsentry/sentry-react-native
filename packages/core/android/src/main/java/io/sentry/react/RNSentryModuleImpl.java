@@ -717,6 +717,10 @@ public class RNSentryModuleImpl {
         });
   }
 
+  public void addFeatureFlag(String name, boolean value) {
+    Sentry.addFeatureFlag(name, value);
+  }
+
   public void setAttribute(String key, String value) {
     Sentry.configureScope(
         scope -> {

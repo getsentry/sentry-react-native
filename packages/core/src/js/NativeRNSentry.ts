@@ -35,6 +35,7 @@ export interface Spec extends TurboModule {
   setContext(key: string, value: UnsafeObject | null): void;
   setExtra(key: string, value: string): void;
   setTag(key: string, value: string): void;
+  addFeatureFlag(name: string, value: boolean): void;
   setAttribute(key: string, value: string): void;
   setAttributes(attributes: UnsafeObject): void;
   removeAttribute(key: string): void;
