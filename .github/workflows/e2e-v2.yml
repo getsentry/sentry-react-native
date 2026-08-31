@@ -108,7 +108,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
-          distribution: "adopt"
+          distribution: "temurin"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -327,7 +327,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
-          distribution: "adopt"
+          distribution: "temurin"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -464,7 +464,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
-          distribution: "adopt"
+          distribution: "temurin"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
