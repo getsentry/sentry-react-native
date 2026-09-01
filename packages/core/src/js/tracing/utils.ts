@@ -1,4 +1,12 @@
-import type { MeasurementUnit, Span, SpanJSON, StartSpanOptions, TransactionSource } from '@sentry/core';
+import type {
+  Event,
+  MeasurementUnit,
+  Measurements,
+  Span,
+  SpanJSON,
+  StartSpanOptions,
+  TransactionSource,
+} from '@sentry/core';
 
 import {
   debug,
@@ -71,6 +79,14 @@ export function setSpanDurationAsMeasurementOnSpan(name: string, span: Span, on:
   }
 
   setSpanMeasurement(on, name, (spanEnd - spanStart) * 1000, 'millisecond');
+}
+
+/**
+ * Sets a measurement on the event, initializing the measurements object if needed.
+ */
+export function addMeasurement(event: Event, key: string, measurement: Measurements[string]): void {
+  event.measurements = event.measurements || {};
+  event.measurements[key] = measurement;
 }
 
 /**

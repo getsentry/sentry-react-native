@@ -45,6 +45,7 @@ import {
 } from '../semanticAttributes';
 import { setMainThreadInfo } from '../span';
 import {
+  addMeasurement,
   createChildSpanJSON,
   createSpanJSON,
   getBundleStartTimestampMs,
@@ -747,11 +748,10 @@ export const appStartIntegration = ({
       debug.log(`[AppStart] First navigation is delayed past the app start end.
 Reporting the app start measurement only and leaving the screen TTID/TTFD anchored to the navigation start.`);
       const measurementKey = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
-      event.measurements = event.measurements || {};
-      event.measurements[measurementKey] = {
+      addMeasurement(event, measurementKey, {
         value: appStartDurationMs,
         unit: 'millisecond',
-      };
+      });
       return true;
     }
 
@@ -872,8 +872,7 @@ Reporting the app start measurement only and leaving the screen TTID/TTFD anchor
         value: appStartDurationMs,
         unit: 'millisecond',
       };
-      event.measurements = event.measurements || {};
-      event.measurements[measurementKey] = measurementValue;
+      addMeasurement(event, measurementKey, measurementValue);
       debug.log(
         '[AppStart] Added app start measurement to transaction event.',
         JSON.stringify(measurementValue, undefined, 2),
@@ -1098,11 +1097,10 @@ function setSpanDurationAsMeasurementOnTransactionEvent(event: TransactionEvent,
     return;
   }
 
-  event.measurements = event.measurements || {};
-  event.measurements[label] = {
+  addMeasurement(event, label, {
     value: (span.timestamp - span.start_timestamp) * 1000,
     unit: 'millisecond',
-  };
+  });
 }
 
 /**
