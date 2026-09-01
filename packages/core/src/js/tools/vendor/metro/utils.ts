@@ -91,14 +91,22 @@ function requireMetroModule(candidates: string[], projectRoot: string | undefine
 
 /**
  * Normalizes a Metro internal module to its callable export, tolerating the different export
- * shapes Metro has used over versions (bare function, named export, or default export).
+ * shapes Metro has used over versions (bare function, named export, or default export). Throws a
+ * descriptive error when no callable can be found, so an unsupported Metro version fails loudly
+ * with an actionable message instead of a later opaque "x is not a function".
  */
 // oxlint-disable-next-line typescript-eslint(no-explicit-any)
 function toCallable(metroModule: any, namedExport: string): any {
-  if (typeof metroModule === 'function') {
-    return metroModule;
+  const callable =
+    typeof metroModule === 'function' ? metroModule : (metroModule?.[namedExport] ?? metroModule?.default);
+  if (typeof callable !== 'function') {
+    throw new Error(
+      `[@sentry/react-native/metro] Could not resolve the '${namedExport}' function from Metro's internals. ` +
+        `Please check the version of Metro you are using and report the issue at ` +
+        `http://www.github.com/getsentry/sentry-react-native/issues`,
+    );
   }
-  return metroModule?.[namedExport] ?? metroModule?.default;
+  return callable;
 }
 
 function resolveMetroInternals(projectRoot: string | undefined): ResolvedMetroInternals {
@@ -122,12 +130,6 @@ function resolveMetroInternals(projectRoot: string | undefined): ResolvedMetroIn
     ),
     'sourceMapString',
   );
-  if (typeof sourceMapString !== 'function') {
-    throw new Error(`
-[@sentry/react-native/metro] Cannot find sourceMapString function in 'metro/src/DeltaBundler/Serializers/sourceMapString'.
-Please check the version of Metro you are using and report the issue at http://www.github.com/getsentry/sentry-react-native/issues
-`);
-  }
 
   return { baseJSBundle, bundleToString, sourceMapString };
 }
