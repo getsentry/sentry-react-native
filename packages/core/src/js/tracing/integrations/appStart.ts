@@ -744,10 +744,8 @@ export const appStartIntegration = ({
       ? event.start_timestamp * 1000 - originalAppStartEndTimestampMs
       : 0;
     if (!standalone && !__DEV__ && appReadyToFirstDisplayGapMs > MAX_APP_START_TO_FIRST_DISPLAY_GAP_MS) {
-      debug.log(
-        '[AppStart] First navigation is delayed past the app start end. Reporting the app start measurement ' +
-          'only and leaving the screen TTID/TTFD anchored to the navigation start.',
-      );
+      debug.log(`[AppStart] First navigation is delayed past the app start end.
+Reporting the app start measurement only and leaving the screen TTID/TTFD anchored to the navigation start.`);
       const measurementKey = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
       event.measurements = event.measurements || {};
       event.measurements[measurementKey] = {
