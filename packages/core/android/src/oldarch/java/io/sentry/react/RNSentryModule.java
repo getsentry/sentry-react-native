@@ -114,6 +114,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void removeContext(final String key) {
+    this.impl.removeContext(key);
+  }
+
+  @ReactMethod
   public void setTag(String key, String value) {
     this.impl.setTag(key, value);
   }

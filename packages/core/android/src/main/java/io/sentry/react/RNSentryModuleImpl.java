@@ -710,6 +710,19 @@ public class RNSentryModuleImpl {
         });
   }
 
+  public void removeContext(final String key) {
+    if (key == null) {
+      logger.log(
+          SentryLevel.ERROR, "RNSentry.removeContext called with null key, can't remove context.");
+      return;
+    }
+
+    Sentry.configureScope(
+        scope -> {
+          scope.removeContexts(key);
+        });
+  }
+
   public void setTag(String key, String value) {
     Sentry.configureScope(
         scope -> {
