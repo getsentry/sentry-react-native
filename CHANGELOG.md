@@ -15,7 +15,7 @@
 
 ### Fixes
 
-- No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#6651](https://github.com/getsentry/sentry-react-native/pull/6651))
 
 ### Dependencies
 
