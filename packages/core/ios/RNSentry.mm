@@ -776,9 +776,8 @@ RCT_EXPORT_METHOD(removeContext : (NSString *)key)
         return;
     }
 
-    [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        [scope removeContextForKey:key];
-    }];
+    [SentrySDKWrapper
+        configureScope:^(SentryScope *_Nonnull scope) { [scope removeContextForKey:key]; }];
 }
 
 RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
