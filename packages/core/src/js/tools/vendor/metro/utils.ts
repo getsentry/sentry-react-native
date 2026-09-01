@@ -39,10 +39,11 @@ type SourceMapStringFunction = (
   },
 ) => string;
 
+// baseJSBundle and bundleToString are needed on every build (hot/dev and production). sourceMapString
+// is resolved separately and lazily — see resolveSourceMapString and createDefaultMetroSerializer.
 interface ResolvedMetroInternals {
   baseJSBundle: typeof baseJSBundleType;
   bundleToString: typeof bundleToStringType;
-  sourceMapString: SourceMapStringFunction;
 }
 
 /**
@@ -123,15 +124,23 @@ function resolveMetroInternals(projectRoot: string | undefined): ResolvedMetroIn
     'bundleToString',
   );
 
-  const sourceMapString: SourceMapStringFunction = toCallable(
+  return { baseJSBundle, bundleToString };
+}
+
+/**
+ * Resolves Metro's `sourceMapString` internal. Kept separate from resolveMetroInternals and resolved
+ * lazily on the first non-hot build: source maps are only generated for production bundles, so a Metro
+ * whose `sourceMapString` shape/path we can't resolve must not break the dev server (`yarn start`),
+ * where this function is never called.
+ */
+function resolveSourceMapString(projectRoot: string | undefined): SourceMapStringFunction {
+  return toCallable(
     requireMetroModule(
       ['metro/private/DeltaBundler/Serializers/sourceMapString', 'metro/src/DeltaBundler/Serializers/sourceMapString'],
       projectRoot,
     ),
     'sourceMapString',
   );
-
-  return { baseJSBundle, bundleToString, sourceMapString };
 }
 
 /**
@@ -171,12 +180,14 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
   // crucially, until `options.projectRoot` is available so we can resolve the Metro used by the
   // app being bundled. Resolved once and memoized for subsequent bundles.
   let internals: ResolvedMetroInternals | undefined;
+  // Resolved lazily on the first non-hot build (see resolveSourceMapString) and memoized after.
+  let sourceMapString: SourceMapStringFunction | undefined;
 
   return (entryPoint, preModules, graph, options) => {
     if (!internals) {
       internals = resolveMetroInternals(options.projectRoot);
     }
-    const { baseJSBundle, bundleToString, sourceMapString } = internals;
+    const { baseJSBundle, bundleToString } = internals;
 
     // baseJSBundle assigns IDs to modules in a consistent order
     let bundle = baseJSBundle(entryPoint, preModules, graph, options);
@@ -190,7 +201,12 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
       return code;
     }
 
-    // Always generate source maps, can't use Sentry without source maps
+    // Always generate source maps, can't use Sentry without source maps. sourceMapString is resolved
+    // here rather than with the other internals so that an unresolvable sourceMapString can't break
+    // the dev server (`yarn start`), where this non-hot path never runs.
+    if (!sourceMapString) {
+      sourceMapString = resolveSourceMapString(options.projectRoot);
+    }
     const map = sourceMapString([...preModules, ...getSortedModules(graph, options)], {
       processModuleFilter: options.processModuleFilter,
       shouldAddToIgnoreList: options.shouldAddToIgnoreList || (() => false),
