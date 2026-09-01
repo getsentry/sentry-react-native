@@ -100,7 +100,7 @@ import Foundation
     // Accepts `Data?` (nil-safe) rather than `Data` so the ObjC bridge boundary
     // doesn't force-unwrap a nil `NSData*` from a failed base64 decode — that
     // would crash before we ever get a chance to check the result. Matches the
-    // nil-tolerant behaviour of the deprecated `PrivateSentrySDKOnly.envelopeWithData:`.
+    // nil-tolerant behavior of the previous Objective-C envelope API.
     @_spi(Private) @objc public static func envelope(fromData data: Data?) -> SentryEnvelope? {
         guard let data = data else { return nil }
         return SentrySDK.internal.envelope.deserialize(from: data)
@@ -116,16 +116,7 @@ import Foundation
 
     // MARK: - Screenshot / view hierarchy / screen
 
-    // sentry-cocoa's `SentryInternalScreen/Screenshot/ViewHierarchyApi` are all
-    // gated to `(os(iOS) || os(tvOS)) && !SENTRY_NO_UI_FRAMEWORK`. On visionOS
-    // the new hybrid-SDK surface is intentionally absent, but the same
-    // functionality still lives on `PrivateSentrySDKOnly` (gated by
-    // `SENTRY_HAS_UIKIT`, which covers visionOS). Route the visionOS bridge
-    // through the deprecated SPI so we preserve pre-migration behaviour and
-    // keep this PR non-breaking. Remove the fallback once sentry-cocoa
-    // exposes these APIs on visionOS in the hybrid surface — or once cocoa
-    // drops `PrivateSentrySDKOnly` in a future major and forces our hand.
-    #if os(iOS) || os(tvOS)
+    #if os(iOS) || os(tvOS) || os(visionOS)
     @_spi(Private) @objc public static var captureScreenshots: [Data]? {
         SentrySDK.internal.screenshot.capture()
     }
@@ -136,18 +127,6 @@ import Foundation
 
     @_spi(Private) @objc public static func setCurrentScreen(_ screenName: String?) {
         SentrySDK.internal.screen.setCurrent(screenName)
-    }
-    #elseif os(visionOS)
-    @_spi(Private) @objc public static var captureScreenshots: [Data]? {
-        PrivateSentrySDKOnly.captureScreenshots()
-    }
-
-    @_spi(Private) @objc public static var captureViewHierarchy: Data? {
-        PrivateSentrySDKOnly.captureViewHierarchy()
-    }
-
-    @_spi(Private) @objc public static func setCurrentScreen(_ screenName: String?) {
-        PrivateSentrySDKOnly.setCurrentScreen(screenName)
     }
     #else
     @_spi(Private) @objc public static var captureScreenshots: [Data]? { nil }

@@ -64,7 +64,7 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
         RNSentryReplay.updateOptions(optionsDict)
-        let actualOptions = try! PrivateSentrySDKOnly.options(with: optionsDict as! [String: Any])
+        let actualOptions = try! SentrySDK.internal.options(fromDictionary: optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.sessionReplay.networkDetailAllowUrls.count, 1)
         XCTAssertEqual(actualOptions.sessionReplay.networkDetailDenyUrls.count, 1)
@@ -84,7 +84,7 @@ final class RNSentryReplayOptions: XCTestCase {
         ] as NSDictionary).mutableCopy() as! NSMutableDictionary
 
         RNSentryReplay.updateOptions(optionsDict)
-        let actualOptions = try! PrivateSentrySDKOnly.options(with: optionsDict as! [String: Any])
+        let actualOptions = try! SentrySDK.internal.options(fromDictionary: optionsDict as! [String: Any])
 
         XCTAssertEqual(actualOptions.sessionReplay.networkDetailAllowUrls.count, 1)
         XCTAssertFalse(actualOptions.sessionReplay.networkCaptureBodies)

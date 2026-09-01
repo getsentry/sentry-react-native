@@ -66,5 +66,5 @@ through a Swift bridge in `RNSentryInternal.swift`. The bridge imports Sentry
 with `@_spi(Private)` because several sub-APIs (`performance.currentScreenFrames`,
 `replay.configure`, `envelope.{store,capture,deserialize}`) are SPI-gated.
 `.m`/`.mm` callers import the auto-generated `RNSentry-Swift.h` and route
-through `[RNSentryInternal …]` instead of touching `PrivateSentrySDKOnly`
-(deprecated since cocoa 9.19.0 and slated for removal in the next major).
+through `[RNSentryInternal …]` instead of accessing sentry-cocoa internals
+directly.

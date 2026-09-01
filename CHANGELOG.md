@@ -55,7 +55,7 @@
 
 ### Changes
 
-- Migrate iOS internals from the deprecated `PrivateSentrySDKOnly` SPI to `SentrySDK.internal` ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
+- Migrate the remaining iOS internals from the deprecated Objective-C SPI to `SentrySDK.internal` ([#6541](https://github.com/getsentry/sentry-react-native/pull/6541))
 
   Re-lands [#6380](https://github.com/getsentry/sentry-react-native/pull/6380), reverted in 8.20.0 by [#6491](https://github.com/getsentry/sentry-react-native/pull/6491) because it broke iOS screenshot capture. The underlying sentry-cocoa bug is fixed in 9.24.0.
 
@@ -227,7 +227,7 @@
 
 ### Internal
 
-- Migrate iOS code from the deprecated `PrivateSentrySDKOnly` SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6380](https://github.com/getsentry/sentry-react-native/pull/6380))
+- Migrate iOS code from the deprecated Objective-C SPI (and `SentrySwizzle.h` macro) to the new `SentrySDK.internal` Swift API exposed by sentry-cocoa 9.19.0, via a thin in-pod ObjC↔Swift bridge ([#6380](https://github.com/getsentry/sentry-react-native/pull/6380))
 
 ### Dependencies
 
