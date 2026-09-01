@@ -10,6 +10,7 @@
 
 ### Features
 
+- Copy `app.vitals.start.screen` and `app.vitals.start.type` onto standalone `app.start` children, including user spans under `app.start.extended` ([#6631](https://github.com/getsentry/sentry-react-native/pull/6631))
 - `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
 
 ### Fixes
@@ -24,6 +25,12 @@
 - Bump Cocoa SDK from v9.24.0 to v9.26.1 ([#6623](https://github.com/getsentry/sentry-react-native/pull/6623))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9261)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.1)
+- Bump CLI from v3.6.2 to v3.7.0 ([#6632](https://github.com/getsentry/sentry-react-native/pull/6632))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#370)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.2...3.7.0)
+- Bump JavaScript SDK from v10.71.0 to v10.73.0 ([#6634](https://github.com/getsentry/sentry-react-native/pull/6634), [#6642](https://github.com/getsentry/sentry-react-native/pull/6642))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10730)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.71.0...10.73.0)
 
 ## 8.24.0
 

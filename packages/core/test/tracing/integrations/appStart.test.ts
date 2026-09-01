@@ -168,6 +168,7 @@ describe('App Start Integration', () => {
           expectEventWithStandaloneColdAppStart(actualEvent, { timeOriginMilliseconds, appStartTimeMilliseconds }),
         );
         expect(actualEvent?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN]).toBe('HomeScreen');
+        expectStandaloneChildrenHaveAppStartVitals(actualEvent, { type: 'cold', screen: 'HomeScreen' });
       } finally {
         screenSpy.mockRestore();
       }
@@ -178,6 +179,14 @@ describe('App Start Integration', () => {
 
       const actualEvent = await captureStandAloneAppStart();
       expect(actualEvent?.contexts?.trace?.data).not.toHaveProperty(SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN);
+      expectStandaloneChildrenHaveAppStartVitals(actualEvent, { type: 'cold' });
+    });
+
+    it('copies app.vitals.start.type onto standalone children including native spans', async () => {
+      mockAppStart({ cold: false, enableNativeSpans: true });
+
+      const actualEvent = await captureStandAloneAppStart();
+      expectStandaloneChildrenHaveAppStartVitals(actualEvent, { type: 'warm' });
     });
 
     it('Does not add any spans or measurements when App Start Span is longer than threshold', async () => {
@@ -271,6 +280,7 @@ describe('App Start Integration', () => {
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_OP,
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+            [SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE]: 'cold',
           },
         }),
       );
@@ -299,6 +309,7 @@ describe('App Start Integration', () => {
           data: {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_OP,
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
+            [SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE]: 'cold',
           },
         }),
       );
@@ -327,6 +338,7 @@ describe('App Start Integration', () => {
             [SEMANTIC_ATTRIBUTE_SENTRY_OP]: APP_START_OP,
             [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: SPAN_ORIGIN_AUTO_APP_START,
             [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_MAIN,
+            [SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE]: 'cold',
           },
         }),
       );
@@ -1354,6 +1366,42 @@ describe('Extended App Start', () => {
     expect(childSpan?.parent_span_id).toBe(extended?.span_id);
   });
 
+  it('copies app start vitals onto the extended span, user children, and nested descendants', async () => {
+    mockAppStart({ cold: true });
+    const screenSpy = jest
+      .spyOn(ReactNativeTracing, 'getCurrentReactNativeTracingIntegration')
+      .mockReturnValue({ state: { currentRoute: 'HomeScreen' } } as ReturnType<
+        typeof ReactNativeTracing.getCurrentReactNativeTracingIntegration
+      >);
+    const { integration, client } = setupStandaloneIntegration();
+
+    try {
+      integration.extendAppStart();
+      const extendedSpan = integration.getExtendedAppStartSpan();
+      const child = startInactiveSpan({ parentSpan: extendedSpan, op: 'app.init', name: 'load config' });
+      const grandchild = startInactiveSpan({ parentSpan: child, op: 'app.init', name: 'parse flags' });
+      grandchild.end();
+      child.end();
+
+      await integration.finishExtendedAppStart();
+
+      const event = client.event as TransactionEvent;
+      expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE]).toBe('cold');
+      expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN]).toBe('HomeScreen');
+      expectStandaloneChildrenHaveAppStartVitals(event, { type: 'cold', screen: 'HomeScreen' });
+
+      const extended = event?.spans?.find(s => s.op === APP_START_EXTENDED_OP);
+      const childSpan = event?.spans?.find(s => s.description === 'load config');
+      const grandchildSpan = event?.spans?.find(s => s.description === 'parse flags');
+      expect(extended).toBeDefined();
+      expect(childSpan).toBeDefined();
+      expect(grandchildSpan).toBeDefined();
+      expect(grandchildSpan?.parent_span_id).toBe(childSpan?.span_id);
+    } finally {
+      screenSpy.mockRestore();
+    }
+  });
+
   it('trims the transaction end to the last child span', async () => {
     const [timeOriginMilliseconds] = mockAppStart({ cold: true });
     const { integration, client } = setupStandaloneIntegration();
@@ -1453,6 +1501,9 @@ describe('Extended App Start', () => {
     const event = client.eventQueue[0] as TransactionEvent;
     expect(event?.contexts?.trace?.op).toBe(APP_START_OP);
     expect(event?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE]).toBeUndefined();
+    expect(event?.contexts?.trace?.data).not.toHaveProperty(SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE);
+    expect(event?.contexts?.trace?.data).not.toHaveProperty(SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN);
+    expectStandaloneChildrenHaveAppStartVitals(event, {});
   });
 
   it('does not claim the run when the standalone transaction is not recording (falls back to normal capture)', async () => {
@@ -2374,6 +2425,26 @@ function processEvent(event: Event): PromiseLike<Event | null> | Event | null {
   const integration = setupIntegration();
   (integration as AppStartIntegrationTest).setFirstStartedActiveRootSpanId(event.contexts?.trace?.span_id);
   return processEventWithIntegration(integration, event);
+}
+
+function expectStandaloneChildrenHaveAppStartVitals(
+  event: Event | null | undefined,
+  { type, screen }: { type?: string; screen?: string } = {},
+): void {
+  expect(event?.spans?.length).toBeGreaterThan(0);
+  for (const span of event!.spans!) {
+    if (type !== undefined) {
+      expect(span.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE]).toBe(type);
+    } else {
+      expect(span.data).not.toHaveProperty(SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE);
+    }
+    if (screen !== undefined) {
+      expect(span.data?.[SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN]).toBe(screen);
+    } else {
+      expect(span.data).not.toHaveProperty(SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN);
+    }
+    expect(span.data).not.toHaveProperty(SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE);
+  }
 }
 
 async function captureStandAloneAppStart(): Promise<PromiseLike<Event | null> | Event | null> {

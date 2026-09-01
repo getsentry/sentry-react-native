@@ -30,6 +30,11 @@ jsEngine: graaljs
 - tapOn: "What's the bug? What did you expect?"
 - inputText: 'This is a test feedback message with a screenshot from CI e2e tests'
 
+# Hide keyboard by tapping on a non-tappable element. Under RN 0.87 edge-to-edge
+# the open keyboard occludes 'Take a screenshot' on shorter viewports (e.g. the
+# CI emulator), so dismiss it before scrolling — mirrors the pre-submit step below.
+- tapOn: 'Email'
+
 # Take screenshot
 - scrollUntilVisible:
     element:

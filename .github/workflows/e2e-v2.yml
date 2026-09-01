@@ -14,7 +14,7 @@ concurrency:
 
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  MAESTRO_VERSION: '2.9.0'
+  MAESTRO_VERSION: '2.10.0'
   IOS_DEVICE: "iPhone 17"
   IOS_VERSION: ">=18.0"
 
@@ -104,11 +104,11 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
-          distribution: "adopt"
+          distribution: "temurin"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -232,7 +232,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ["0.71.19", "0.86.2"]
+        rn-version: ["0.71.19", "0.87.0"]
         rn-architecture: ["legacy", "new"]
         platform: ["android", "ios"]
         build-type: ["production"]
@@ -245,7 +245,7 @@ jobs:
             runs-on: macos-15-xlarge
           # Use Xcode 26 (macos-26) for newer RN versions
           - platform: ios
-            rn-version: "0.86.2"
+            rn-version: "0.87.0"
             runs-on: macos-26-xlarge
           - platform: android
             runs-on: ubuntu-24.04
@@ -315,7 +315,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
-          node-version: 20
+          node-version: ${{ startsWith(matrix.rn-version, '0.71') && '20' || '22' }}
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
@@ -323,11 +323,11 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
-          distribution: "adopt"
+          distribution: "temurin"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -385,7 +385,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ["0.86.2"]
+        rn-version: ["0.87.0"]
         rn-architecture: ["legacy", "new"]
         platform: ["android", "ios"]
         build-type: ["production"]
@@ -446,7 +446,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
-          node-version: 20
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
@@ -460,11 +460,11 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
-          distribution: "adopt"
+          distribution: "temurin"
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}

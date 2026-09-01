@@ -866,6 +866,10 @@ Reporting the app start measurement only and leaving the screen TTID/TTFD anchor
     children.push(...appStartSpans);
     debug.log('[AppStart] Added app start spans to transaction event.', JSON.stringify(appStartSpans, undefined, 2));
 
+    if (standalone) {
+      copyStandaloneAppStartVitalsToChildren(event);
+    }
+
     if (!standalone && !suppressMeasurement) {
       const measurementKey = appStart.type === 'cold' ? APP_START_COLD_MEASUREMENT : APP_START_WARM_MEASUREMENT;
       const measurementValue = {
@@ -1090,6 +1094,34 @@ Reporting the app start measurement only and leaving the screen TTID/TTFD anchor
     setFirstStartedActiveRootSpanId,
   } as AppStartIntegration;
 };
+
+/**
+ * Copies `app.vitals.start.type` and `app.vitals.start.screen` from the standalone `app.start`
+ * root onto every child span so mobile-vitals queries can group/drill down by those dimensions.
+ * `app.vitals.start.value` stays on the root only. Screen is omitted when the root has none.
+ */
+function copyStandaloneAppStartVitalsToChildren(event: TransactionEvent): void {
+  const rootData = event.contexts?.trace?.data;
+  if (!rootData) {
+    return;
+  }
+
+  const type = rootData[SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE];
+  const screen = rootData[SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN];
+  if (type === undefined && screen === undefined) {
+    return;
+  }
+
+  for (const span of event.spans || []) {
+    span.data = span.data || {};
+    if (type !== undefined) {
+      span.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE] = type;
+    }
+    if (screen !== undefined) {
+      span.data[SEMANTIC_ATTRIBUTE_APP_VITALS_START_SCREEN] = screen;
+    }
+  }
+}
 
 function setSpanDurationAsMeasurementOnTransactionEvent(event: TransactionEvent, label: string, span: SpanJSON): void {
   if (!span.timestamp || !span.start_timestamp) {
