@@ -66,6 +66,10 @@ function requireMetroModule(candidates: string[], projectRoot: string | undefine
   for (const root of roots) {
     for (const candidate of candidates) {
       try {
+        // the line below resolves `candidate` as Node would if
+        // required from `root`, without actually requiring it from there. That's what lets us
+        // pick up the app's node_modules Metro instead of the SDK's own, even though this code
+        // itself lives inside the SDK.
         return require(require.resolve(candidate, { paths: [root] }));
       } catch (e) {
         lastError = e;
