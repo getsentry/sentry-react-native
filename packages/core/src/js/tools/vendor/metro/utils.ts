@@ -47,10 +47,9 @@ interface ResolvedMetroInternals {
 
 /**
  * Requires a Metro internal module, preferring the Metro used by the project being bundled
- * (`projectRoot`) over the one resolvable from the SDK. In a normal install these are the same
- * Metro instance, so behavior is unchanged. In this monorepo the SDK has its own Metro dev
- * dependency that would otherwise shadow the app's Metro and generate source maps with a
- * mismatched (older) Metro version.
+ * (`projectRoot`) over the SDK's own Metro dev dependency, which would otherwise generate source
+ * maps with a mismatched (older) Metro version. In a normal install both resolve to the same Metro
+ * instance, so behavior is unchanged.
  *
  * Resolution is location-first: every candidate path shape is tried against the app
  * (`projectRoot`) before falling back to the SDK's own location. Within a single location the
