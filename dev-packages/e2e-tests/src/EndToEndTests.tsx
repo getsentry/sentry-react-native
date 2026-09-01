@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
-import { Text, View } from 'react-native';
+import { StatusBar, Text, View } from 'react-native';
 
 const E2E_TESTS_READY_TEXT = 'E2E Tests Ready';
 
@@ -67,7 +67,11 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
   ];
 
   return (
-    <View>
+    // RN 0.87 enables edge-to-edge by default, drawing content behind the
+    // status bar. Offset by its height so "E2E Tests Ready" (and the rest of
+    // the harness UI) stays visible to Maestro's assertVisible. StatusBar
+    // .currentHeight is Android-only; falls back to 0 on iOS.
+    <View style={{ paddingTop: StatusBar.currentHeight ?? 0 }}>
       <Text>{isReady ? E2E_TESTS_READY_TEXT : 'Loading...'}</Text>
       <Text>{error}</Text>
       {eventId ? <Text testID='eventId'>{eventId}</Text> : <Text>No event ID</Text>}

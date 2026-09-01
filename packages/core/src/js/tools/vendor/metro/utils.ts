@@ -39,18 +39,18 @@ type SourceMapStringFunction = (
   },
 ) => string;
 
+// baseJSBundle and bundleToString are needed on every build (hot/dev and production). sourceMapString
+// is resolved separately and lazily — see resolveSourceMapString and createDefaultMetroSerializer.
 interface ResolvedMetroInternals {
   baseJSBundle: typeof baseJSBundleType;
   bundleToString: typeof bundleToStringType;
-  sourceMapString: SourceMapStringFunction;
 }
 
 /**
  * Requires a Metro internal module, preferring the Metro used by the project being bundled
- * (`projectRoot`) over the one resolvable from the SDK. In a normal install these are the same
- * Metro instance, so behavior is unchanged. In this monorepo the SDK has its own Metro dev
- * dependency that would otherwise shadow the app's Metro and generate source maps with a
- * mismatched (older) Metro version.
+ * (`projectRoot`) over the SDK's own Metro dev dependency, which would otherwise generate source
+ * maps with a mismatched (older) Metro version. In a normal install both resolve to the same Metro
+ * instance, so behavior is unchanged.
  *
  * Resolution is location-first: every candidate path shape is tried against the app
  * (`projectRoot`) before falling back to the SDK's own location. Within a single location the
@@ -66,6 +66,10 @@ function requireMetroModule(candidates: string[], projectRoot: string | undefine
   for (const root of roots) {
     for (const candidate of candidates) {
       try {
+        // the line below resolves `candidate` as Node would if
+        // required from `root`, without actually requiring it from there. That's what lets us
+        // pick up the app's node_modules Metro instead of the SDK's own, even though this code
+        // itself lives inside the SDK.
         return require(require.resolve(candidate, { paths: [root] }));
       } catch (e) {
         lastError = e;
@@ -88,14 +92,22 @@ function requireMetroModule(candidates: string[], projectRoot: string | undefine
 
 /**
  * Normalizes a Metro internal module to its callable export, tolerating the different export
- * shapes Metro has used over versions (bare function, named export, or default export).
+ * shapes Metro has used over versions (bare function, named export, or default export). Throws a
+ * descriptive error when no callable can be found, so an unsupported Metro version fails loudly
+ * with an actionable message instead of a later opaque "x is not a function".
  */
 // oxlint-disable-next-line typescript-eslint(no-explicit-any)
 function toCallable(metroModule: any, namedExport: string): any {
-  if (typeof metroModule === 'function') {
-    return metroModule;
+  const callable =
+    typeof metroModule === 'function' ? metroModule : (metroModule?.[namedExport] ?? metroModule?.default);
+  if (typeof callable !== 'function') {
+    throw new Error(
+      `[@sentry/react-native/metro] Could not resolve the '${namedExport}' function from Metro's internals. ` +
+        `Please check the version of Metro you are using and report the issue at ` +
+        `http://www.github.com/getsentry/sentry-react-native/issues`,
+    );
   }
-  return metroModule?.[namedExport] ?? metroModule?.default;
+  return callable;
 }
 
 function resolveMetroInternals(projectRoot: string | undefined): ResolvedMetroInternals {
@@ -112,21 +124,23 @@ function resolveMetroInternals(projectRoot: string | undefined): ResolvedMetroIn
     'bundleToString',
   );
 
-  const sourceMapString: SourceMapStringFunction = toCallable(
+  return { baseJSBundle, bundleToString };
+}
+
+/**
+ * Resolves Metro's `sourceMapString` internal. Kept separate from resolveMetroInternals and resolved
+ * lazily on the first non-hot build: source maps are only generated for production bundles, so a Metro
+ * whose `sourceMapString` shape/path we can't resolve must not break the dev server (`yarn start`),
+ * where this function is never called.
+ */
+function resolveSourceMapString(projectRoot: string | undefined): SourceMapStringFunction {
+  return toCallable(
     requireMetroModule(
       ['metro/private/DeltaBundler/Serializers/sourceMapString', 'metro/src/DeltaBundler/Serializers/sourceMapString'],
       projectRoot,
     ),
     'sourceMapString',
   );
-  if (typeof sourceMapString !== 'function') {
-    throw new Error(`
-[@sentry/react-native/metro] Cannot find sourceMapString function in 'metro/src/DeltaBundler/Serializers/sourceMapString'.
-Please check the version of Metro you are using and report the issue at http://www.github.com/getsentry/sentry-react-native/issues
-`);
-  }
-
-  return { baseJSBundle, bundleToString, sourceMapString };
 }
 
 /**
@@ -166,12 +180,14 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
   // crucially, until `options.projectRoot` is available so we can resolve the Metro used by the
   // app being bundled. Resolved once and memoized for subsequent bundles.
   let internals: ResolvedMetroInternals | undefined;
+  // Resolved lazily on the first non-hot build (see resolveSourceMapString) and memoized after.
+  let sourceMapString: SourceMapStringFunction | undefined;
 
   return (entryPoint, preModules, graph, options) => {
     if (!internals) {
       internals = resolveMetroInternals(options.projectRoot);
     }
-    const { baseJSBundle, bundleToString, sourceMapString } = internals;
+    const { baseJSBundle, bundleToString } = internals;
 
     // baseJSBundle assigns IDs to modules in a consistent order
     let bundle = baseJSBundle(entryPoint, preModules, graph, options);
@@ -185,7 +201,12 @@ export const createDefaultMetroSerializer = (): MetroSerializer => {
       return code;
     }
 
-    // Always generate source maps, can't use Sentry without source maps
+    // Always generate source maps, can't use Sentry without source maps. sourceMapString is resolved
+    // here rather than with the other internals so that an unresolvable sourceMapString can't break
+    // the dev server (`yarn start`), where this non-hot path never runs.
+    if (!sourceMapString) {
+      sourceMapString = resolveSourceMapString(options.projectRoot);
+    }
     const map = sourceMapString([...preModules, ...getSortedModules(graph, options)], {
       processModuleFilter: options.processModuleFilter,
       shouldAddToIgnoreList: options.shouldAddToIgnoreList || (() => false),

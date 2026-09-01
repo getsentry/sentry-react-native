@@ -278,7 +278,7 @@ describe('Sentry Metro Serializer', () => {
     // Writes a fake `metro` package to a temp project root, exposing the three internals the default
     // serializer needs. `layout` selects whether they are exposed via the newer `metro/private/*` path
     // or the legacy `metro/src/*` path. Each internal is a sentinel so we can assert which Metro ran.
-    function writeFakeMetro(marker: string, layout: 'private' | 'src'): string {
+    function writeFakeMetro(marker: string, layout: 'private' | 'src', brokenSourceMap = false): string {
       const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'sentry-metro-fixture-')));
       createdFixtures.push(root);
 
@@ -298,10 +298,26 @@ describe('Sentry Metro Serializer', () => {
       write('lib/bundleToString.js', `module.exports = { bundleToString: () => ({ code: '${marker}_CODE' }) };`);
       write(
         'DeltaBundler/Serializers/sourceMapString.js',
-        `module.exports = { sourceMapString: () => '${marker}_MAP' };`,
+        // `brokenSourceMap` exposes a non-callable sourceMapString to simulate a Metro whose shape/path
+        // we can't resolve, used to assert the hot path doesn't touch it.
+        brokenSourceMap
+          ? 'module.exports = { notSourceMapString: 1 };'
+          : `module.exports = { sourceMapString: () => '${marker}_MAP' };`,
       );
 
       return root;
+    }
+
+    function serializeWithProjectRootHot(projectRoot: string): unknown {
+      const { createDefaultMetroSerializer } = require('../../src/js/tools/vendor/metro/utils');
+      const serializer = createDefaultMetroSerializer();
+      const [entryPoint, preModules, graph, options] = mockMinSerializerArgs();
+      return serializer(
+        entryPoint,
+        preModules,
+        { ...graph, transformOptions: { ...graph.transformOptions, hot: true } },
+        { ...options, projectRoot, sentryBundleCallback: undefined },
+      );
     }
 
     function serializeWithProjectRoot(projectRoot: string): { code: unknown; map: unknown } {
@@ -340,6 +356,24 @@ describe('Sentry Metro Serializer', () => {
 
       expect(result.code).toBe('APPSRC_CODE');
       expect(result.map).toBe('APPSRC_MAP');
+    });
+
+    test('resolves sourceMapString lazily, so the hot/dev path works even if sourceMapString is unresolvable', () => {
+      // Regression guard for the dev-server break: sourceMapString is only used for non-hot (production)
+      // builds, so an unresolvable sourceMapString must not throw during `yarn start`.
+      const appRoot = writeFakeMetro('HOT', 'private', /* brokenSourceMap */ true);
+
+      const result = serializeWithProjectRootHot(appRoot);
+
+      // Hot path returns code only and must not have thrown resolving the broken sourceMapString.
+      expect(result).toBe('HOT_CODE');
+    });
+
+    test('still throws for an unresolvable sourceMapString on the non-hot path', () => {
+      // The guard must still fire where sourceMapString is actually needed.
+      const appRoot = writeFakeMetro('COLD', 'private', /* brokenSourceMap */ true);
+
+      expect(() => serializeWithProjectRoot(appRoot)).toThrow(/sourceMapString/);
     });
   });
 });
