@@ -15,7 +15,7 @@
 
 ### Fixes
 
-- Fix Metro bundler crash on Expo static/EAS Update exports ([#6650](https://github.com/getsentry/sentry-react-native/issues/6650))
+- Fix Metro bundler crash on Expo static/EAS Update exports ([#6652](https://github.com/getsentry/sentry-react-native/pull/6652))
 
 ### Dependencies
 
