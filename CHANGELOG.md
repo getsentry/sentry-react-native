@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump Android SDK from v8.43.3 to v8.44.1 ([#6646](https://github.com/getsentry/sentry-react-native/pull/6646))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8441)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.43.3...8.44.1)
+
 ## 8.14.2
 
 ### Fixes
