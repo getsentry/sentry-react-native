@@ -3,9 +3,6 @@ import type { Event, Measurements, SentrySpan, StartSpanOptions } from '@sentry/
 import * as core from '@sentry/core';
 import {
   getActiveSpan,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';

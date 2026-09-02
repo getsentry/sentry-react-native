@@ -2,9 +2,6 @@ import type { Event, Measurements, Span, SpanJSON } from '@sentry/core';
 
 import {
   debug,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
   setCurrentClient,
   spanToJSON,
   startSpan,

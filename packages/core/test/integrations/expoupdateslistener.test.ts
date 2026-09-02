@@ -1,8 +1,5 @@
 import {
   addBreadcrumb,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
   type Span,
   SPAN_STATUS_ERROR,
   SPAN_STATUS_OK,

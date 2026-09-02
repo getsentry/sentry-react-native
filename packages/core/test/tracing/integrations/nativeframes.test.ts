@@ -1,6 +1,6 @@
 import type { Event, Measurements } from '@sentry/core';
 
-import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpan } from '@sentry/core';
+import { setCurrentClient, startSpan } from '@sentry/core';
 
 import { nativeFramesIntegration } from '../../../src/js';
 import { NATIVE } from '../../../src/js/wrapper';

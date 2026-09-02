@@ -1,6 +1,5 @@
 import type { TransactionEvent } from '@sentry/core';
 
-import { getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
 
 import { handleSpanLifecycle } from '../../src/js/integrations/expoupdateslistener';
 import { SPAN_ORIGIN_AUTO_EXPO_UPDATES } from '../../src/js/tracing/origin';

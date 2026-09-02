@@ -3,9 +3,6 @@ import type { EmitterSubscription } from 'react-native';
 
 import {
   getActiveSpan,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
   setCurrentClient,
   spanToJSON,
 } from '@sentry/core';

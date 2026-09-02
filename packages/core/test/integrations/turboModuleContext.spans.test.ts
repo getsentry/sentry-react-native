@@ -15,9 +15,6 @@
 import type { Event, Span, TransactionEvent } from '@sentry/core';
 
 import {
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
   setCurrentClient,
   spanToJSON,
   startNewTrace,

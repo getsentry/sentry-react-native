@@ -1,9 +1,6 @@
 import type { Span } from '@sentry/core';
 
 import {
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
   setCurrentClient,
   startIdleSpan,
   startSpan,

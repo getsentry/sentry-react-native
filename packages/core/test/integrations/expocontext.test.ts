@@ -1,4 +1,4 @@
-import { type Client, type Event, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
+import { type Client, type Event } from '@sentry/core';
 
 import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 
