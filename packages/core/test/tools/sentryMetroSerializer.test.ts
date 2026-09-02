@@ -3,6 +3,8 @@ import type { MixedOutput, Module } from 'metro';
 import * as fs from 'fs';
 import CountingSet from 'metro/private/lib/CountingSet';
 import countLines from 'metro/private/lib/countLines';
+import * as os from 'os';
+import * as path from 'path';
 import { minify } from 'uglify-js';
 
 import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
@@ -257,6 +259,122 @@ describe('Sentry Metro Serializer', () => {
     // Both code and map should exist (even if minimal for empty bundle)
     expect(result.code).toBeDefined();
     expect(result.map).toBeDefined();
+  });
+
+  describe('resolves Metro internals from the project root', () => {
+    // See: https://github.com/getsentry/sentry-react-native/pull/6625
+    // The default serializer must load Metro internals from the app being bundled (`options.projectRoot`)
+    // rather than the Metro resolvable from the SDK's own location. Otherwise, when a different Metro
+    // version is nested under the SDK (monorepo / from-source install), source maps are generated with
+    // the wrong Metro.
+    const createdFixtures: string[] = [];
+
+    afterEach(() => {
+      while (createdFixtures.length) {
+        fs.rmSync(createdFixtures.pop() as string, { recursive: true, force: true });
+      }
+    });
+
+    // Writes a fake `metro` package to a temp project root, exposing the three internals the default
+    // serializer needs. `layout` selects whether they are exposed via the newer `metro/private/*` path
+    // or the legacy `metro/src/*` path. Each internal is a sentinel so we can assert which Metro ran.
+    function writeFakeMetro(marker: string, layout: 'private' | 'src', brokenSourceMap = false): string {
+      const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'sentry-metro-fixture-')));
+      createdFixtures.push(root);
+
+      const write = (rel: string, contents: string): void => {
+        const abs = path.join(root, 'node_modules', 'metro', layout, rel);
+        fs.mkdirSync(path.dirname(abs), { recursive: true });
+        fs.writeFileSync(abs, contents);
+      };
+
+      // No `exports` map: subpaths resolve directly to real files under the chosen layout.
+      fs.mkdirSync(path.join(root, 'node_modules', 'metro'), { recursive: true });
+      fs.writeFileSync(
+        path.join(root, 'node_modules', 'metro', 'package.json'),
+        JSON.stringify({ name: 'metro', version: `0.0.0-${marker}` }),
+      );
+      write('DeltaBundler/Serializers/baseJSBundle.js', 'module.exports = { baseJSBundle: () => ({}) };');
+      write('lib/bundleToString.js', `module.exports = { bundleToString: () => ({ code: '${marker}_CODE' }) };`);
+      write(
+        'DeltaBundler/Serializers/sourceMapString.js',
+        // `brokenSourceMap` exposes a non-callable sourceMapString to simulate a Metro whose shape/path
+        // we can't resolve, used to assert the hot path doesn't touch it.
+        brokenSourceMap
+          ? 'module.exports = { notSourceMapString: 1 };'
+          : `module.exports = { sourceMapString: () => '${marker}_MAP' };`,
+      );
+
+      return root;
+    }
+
+    function serializeWithProjectRootHot(projectRoot: string): unknown {
+      const { createDefaultMetroSerializer } = require('../../src/js/tools/vendor/metro/utils');
+      const serializer = createDefaultMetroSerializer();
+      const [entryPoint, preModules, graph, options] = mockMinSerializerArgs();
+      return serializer(
+        entryPoint,
+        preModules,
+        { ...graph, transformOptions: { ...graph.transformOptions, hot: true } },
+        { ...options, projectRoot, sentryBundleCallback: undefined },
+      );
+    }
+
+    function serializeWithProjectRoot(projectRoot: string): { code: unknown; map: unknown } {
+      const { createDefaultMetroSerializer } = require('../../src/js/tools/vendor/metro/utils');
+      const serializer = createDefaultMetroSerializer();
+      const [entryPoint, preModules, graph, options] = mockMinSerializerArgs();
+      return serializer(
+        entryPoint,
+        preModules,
+        { ...graph, transformOptions: { ...graph.transformOptions, hot: false } },
+        {
+          ...options,
+          projectRoot,
+          sentryBundleCallback: undefined,
+        },
+      );
+    }
+
+    test("prefers the app's Metro at projectRoot over the SDK's Metro", () => {
+      const appRoot = writeFakeMetro('APP', 'private');
+
+      const result = serializeWithProjectRoot(appRoot);
+
+      // Sentinel output proves the fake Metro at projectRoot ran, not the real Metro resolvable from the SDK.
+      expect(result.code).toBe('APP_CODE');
+      expect(result.map).toBe('APP_MAP');
+    });
+
+    test("uses the app's Metro even when it only exposes internals via metro/src/* and the SDK exposes metro/private/*", () => {
+      // Regression guard for the resolution-order bug: the app's Metro must win by location, even though
+      // the SDK's real Metro exposes the newer `metro/private/*` path shape and the app's only exposes
+      // the legacy `metro/src/*` path shape. Ordering path shape above location would pick the SDK's Metro.
+      const appRoot = writeFakeMetro('APPSRC', 'src');
+
+      const result = serializeWithProjectRoot(appRoot);
+
+      expect(result.code).toBe('APPSRC_CODE');
+      expect(result.map).toBe('APPSRC_MAP');
+    });
+
+    test('resolves sourceMapString lazily, so the hot/dev path works even if sourceMapString is unresolvable', () => {
+      // Regression guard for the dev-server break: sourceMapString is only used for non-hot (production)
+      // builds, so an unresolvable sourceMapString must not throw during `yarn start`.
+      const appRoot = writeFakeMetro('HOT', 'private', /* brokenSourceMap */ true);
+
+      const result = serializeWithProjectRootHot(appRoot);
+
+      // Hot path returns code only and must not have thrown resolving the broken sourceMapString.
+      expect(result).toBe('HOT_CODE');
+    });
+
+    test('still throws for an unresolvable sourceMapString on the non-hot path', () => {
+      // The guard must still fire where sourceMapString is actually needed.
+      const appRoot = writeFakeMetro('COLD', 'private', /* brokenSourceMap */ true);
+
+      expect(() => serializeWithProjectRoot(appRoot)).toThrow(/sourceMapString/);
+    });
   });
 });
 
