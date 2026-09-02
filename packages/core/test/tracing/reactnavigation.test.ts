@@ -40,6 +40,7 @@ import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
 import { createMockNavigationAndAttachTo, createMockNavigationWithNestedState } from './reactnavigationutils';
+import { clearAllScopes } from '../testutils';
 
 const dummyRoute = {
   name: 'Route',
@@ -122,9 +123,7 @@ describe('ReactNavigationInstrumentation', () => {
     jest.clearAllMocks();
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
 
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
   });
 
   test('transaction set on initialize', async () => {

@@ -10,7 +10,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   SPAN_STATUS_ERROR,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
 import { AppState, Platform } from 'react-native';
@@ -70,14 +70,14 @@ export const startIdleNavigationSpan = (
   if (isActiveSpanInteraction && isAppRestart) {
     debug.log(
       `[startIdleNavigationSpan] Not canceling ${
-        spanToJSON(activeSpan).op
+        spanToStaticSpanJSON(activeSpan).op
       } transaction because navigation is from app restart - preserving error context.`,
     );
     // Don't end the span - it will timeout naturally and remains available for error/replay processing
   } else if (isActiveSpanInteraction) {
     debug.log(
       `[startIdleNavigationSpan] Canceling ${
-        spanToJSON(activeSpan).op
+        spanToStaticSpanJSON(activeSpan).op
       } transaction because of a new navigation root span.`,
     );
     activeSpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
@@ -150,7 +150,7 @@ export function getDefaultIdleNavigationSpanOptions(): StartSpanOptions {
  * Checks if the span is a Sentry User Interaction span.
  */
 export function isSentryInteractionSpan(span: Span): boolean {
-  return [SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION].includes(spanToJSON(span).origin || '');
+  return [SPAN_ORIGIN_AUTO_INTERACTION, SPAN_ORIGIN_MANUAL_INTERACTION].includes(spanToStaticSpanJSON(span).origin || '');
 }
 
 export const SCOPE_SPAN_FIELD = '_sentrySpan';
@@ -172,7 +172,7 @@ export function clearActiveSpanFromScope(scope: ScopeWithMaybeSpan): void {
  */
 export function addDefaultOpForSpanFrom(client: Client): void {
   client.on('spanStart', (span: Span) => {
-    if (!spanToJSON(span).op) {
+    if (!spanToStaticSpanJSON(span).op) {
       span.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_OP, 'default');
     }
   });
@@ -188,7 +188,7 @@ export const SPAN_THREAD_NAME_JAVASCRIPT = 'javascript';
  */
 export function addThreadInfoToSpan(client: Client): void {
   client.on('spanStart', (span: Span) => {
-    if (!spanToJSON(span).data?.[SPAN_THREAD_NAME]) {
+    if (!spanToStaticSpanJSON(span).data?.[SPAN_THREAD_NAME]) {
       span.setAttribute(SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT);
     }
   });

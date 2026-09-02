@@ -1,7 +1,7 @@
 /* oxlint-disable eslint(max-lines) */
 import type { Client, Event, Integration, Span, TransactionEvent } from '@sentry/core';
 
-import { addBreadcrumb, debug, spanToJSON } from '@sentry/core';
+import { addBreadcrumb, debug, spanToStaticSpanJSON } from '@sentry/core';
 
 import {
   addTurboModuleCallStartObserver,
@@ -438,7 +438,7 @@ function attachWindowToSpan(
   window.writtenPerMethodKeys = nextKeys;
 
   if (rows.length > topN) {
-    const spanId = spanToJSON(span).span_id;
+    const spanId = spanToStaticSpanJSON(span).span_id;
     debug.log(
       `[TurboModuleContext] Span ${spanId ?? '(unknown)'} touched ${rows.length} unique TurboModule methods, ` +
         `truncated to top ${topN} by duration. Summary attributes still reflect the full totals.`,
@@ -447,7 +447,7 @@ function attachWindowToSpan(
 
   span.setAttributes(attributes);
 
-  const spanId = spanToJSON(span).span_id;
+  const spanId = spanToStaticSpanJSON(span).span_id;
   if (spanId) {
     if (!pendingSpanAttributes.has(spanId) && pendingSpanAttributes.size >= MAX_PENDING_SPAN_ATTRIBUTES) {
       const oldest = pendingSpanAttributes.keys().next().value;

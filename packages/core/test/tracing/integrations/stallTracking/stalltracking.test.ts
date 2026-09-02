@@ -14,6 +14,7 @@ import {
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';
 import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
+import { clearAllScopes } from '../../../testutils';
 
 jest.useFakeTimers({
   advanceTimers: true,
@@ -35,9 +36,7 @@ describe('StallTracking', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
@@ -229,9 +228,7 @@ describe('StallTracking', () => {
   });
 
   it('does not track stalls for unsampled spans', async () => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const unsampledOptions = getDefaultTestClientOptions({
       tracesSampleRate: 0,

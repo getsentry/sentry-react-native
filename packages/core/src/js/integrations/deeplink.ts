@@ -6,6 +6,7 @@ import type { DeepLinkSource } from '../tracing/pendingDeepLink';
 
 import { setPendingDeepLink } from '../tracing/pendingDeepLink';
 import { sanitizeUrl } from '../tracing/utils';
+import type { ReactNativeClientOptions } from '../options';
 
 export const INTEGRATION_NAME = 'DeepLink';
 
@@ -57,7 +58,7 @@ export function sanitizeDeepLinkUrl(url: string): string {
  * When PII is disabled, query strings and ID-like path segments are removed.
  */
 function getBreadcrumbUrl(url: string): string {
-  const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
+  const sendDefaultPii = (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
   return sendDefaultPii ? url : sanitizeDeepLinkUrl(url);
 }
 

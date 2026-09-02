@@ -12,6 +12,7 @@ import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { expectStallMeasurements } from './integrations/stallTracking/stalltrackingutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
+import { clearAllScopes } from '../testutils';
 
 jest.useFakeTimers({
   advanceTimers: true,
@@ -25,9 +26,7 @@ describe('StallTracking with ReactNavigation', () => {
   beforeEach(() => {
     RN_GLOBAL_OBJ.__sentry_rn_v5_registered = false;
 
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const rnavigation = reactNavigationIntegration();
     mockNavigation = createMockNavigationAndAttachTo(rnavigation);

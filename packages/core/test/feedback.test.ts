@@ -12,11 +12,12 @@ import {
 } from '@sentry/core';
 
 import { getDefaultTestClientOptions, TestClient } from './mocks/client';
+import { clearAllScopes } from './testutils';
 
 describe('captureFeedback', () => {
   beforeEach(() => {
     getCurrentScope().setClient(undefined);
-    getCurrentScope().clear();
+    clearAllScopes();
   });
 
   test('it works without a client', () => {

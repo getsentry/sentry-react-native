@@ -511,6 +511,17 @@ export interface BaseReactNativeOptions {
   propagateTraceparent?: boolean;
 
   /**
+   * Enables sending log events to Sentry.
+   *
+   * On the JavaScript layer this used to be a `@sentry/core` option. As of JS SDK v11 the option
+   * was removed from core (logs are captured on-usage there), so the React Native SDK owns it to
+   * keep gating native log capture and its `logsOrigin` orchestration.
+   *
+   * @default false
+   */
+  enableLogs?: boolean;
+
+  /**
    * Controls which log origin is captured when `enableLogs` is set to true.
    * 'all' will log all origins.
    * 'js' will capture only JavaScript logs.

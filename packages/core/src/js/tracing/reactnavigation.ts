@@ -9,7 +9,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SPAN_STATUS_OK,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -45,6 +45,8 @@ import {
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
 import { addTimeToInitialDisplayFallback } from './timeToDisplayFallback';
+
+import type { ReactNativeClientOptions } from '../options';
 
 export const INTEGRATION_NAME = 'ReactNavigation';
 
@@ -655,7 +657,7 @@ export const reactNavigationIntegration = ({
       navigationProcessingSpan = startInactiveSpan({
         op: 'navigation.processing',
         name: 'Navigation dispatch to navigation cancelled or screen mounted',
-        startTime: spanToJSON(latestNavigationSpan).start_timestamp,
+        startTime: spanToStaticSpanJSON(latestNavigationSpan).start_timestamp,
       });
       navigationProcessingSpan.setAttribute(
         SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
@@ -813,7 +815,7 @@ export const reactNavigationIntegration = ({
     if (!latestNavigationSpanNameCustomized) {
       latestNavigationSpan.updateName(routeName);
     }
-    const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
+    const sendDefaultPii = (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
     latestNavigationSpan.setAttributes({
       'route.name': routeName,
       'route.key': route.key,
@@ -945,7 +947,8 @@ function tagSpanWithDeepLink(span: Span, link: PendingDeepLink): boolean {
   }
   taggedDeepLinkSpans.add(span);
 
-  const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
+  const sendDefaultPii =
+    (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
   const url = sendDefaultPii ? link.url : sanitizeDeepLinkUrl(link.url);
 
   span.setAttributes({
@@ -961,7 +964,7 @@ function tagSpanWithDeepLink(span: Span, link: PendingDeepLink): boolean {
 
 /** Returns true if the span is still recording (has not been ended). */
 function isSpanRecording(span: Span): boolean {
-  return spanToJSON(span).timestamp === undefined;
+  return spanToStaticSpanJSON(span).timestamp === undefined;
 }
 
 /**

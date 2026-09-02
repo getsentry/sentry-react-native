@@ -17,6 +17,7 @@ import {
 import { SPAN_ORIGIN_AUTO_EXPO_UPDATES } from '../../src/js/tracing/origin';
 import * as environment from '../../src/js/utils/environment';
 import { setupTestClient } from '../mocks/client';
+import { clearAllScopes } from '../testutils';
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
 jest.mock('@sentry/core', () => {
@@ -64,9 +65,7 @@ describe('ExpoUpdatesListener Integration', () => {
       isRestarting: false,
     };
 
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
   });
 
   describe('setup', () => {

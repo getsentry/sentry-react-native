@@ -2,6 +2,7 @@ import { addBreadcrumb, getClient, SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInact
 
 import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION, SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from './origin';
 import { clearPendingExpoRouterNavigation, setPendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
+import type { ReactNativeClientOptions } from '../options';
 
 type ExpoRouterHref = string | { pathname?: string; params?: Record<string, unknown> };
 
@@ -239,5 +240,5 @@ function serializeHref(href: unknown): string {
 }
 
 function isSendDefaultPiiEnabled(): boolean {
-  return getClient()?.getOptions()?.sendDefaultPii ?? false;
+  return (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
 }

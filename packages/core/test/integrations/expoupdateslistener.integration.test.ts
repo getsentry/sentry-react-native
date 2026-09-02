@@ -5,6 +5,7 @@ import { getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core
 import { handleSpanLifecycle } from '../../src/js/integrations/expoupdateslistener';
 import { SPAN_ORIGIN_AUTO_EXPO_UPDATES } from '../../src/js/tracing/origin';
 import { setupTestClient } from '../mocks/client';
+import { clearAllScopes } from '../testutils';
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
 
@@ -21,9 +22,7 @@ describe('ExpoUpdatesListener Integration (real spans)', () => {
   };
 
   afterEach(() => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
   });
 
   it('check span produces a transaction with correct op, origin, and ok status', () => {

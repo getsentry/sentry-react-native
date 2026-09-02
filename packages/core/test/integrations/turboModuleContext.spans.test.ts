@@ -29,6 +29,7 @@ import { _resetTurboModuleAggregator } from '../../src/js/turbomodule/turboModul
 import { _resetTurboModuleTracker } from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetWrappedModules } from '../../src/js/turbomodule/wrapTurboModule';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { clearAllScopes } from '../testutils';
 
 const SYNC_CALL_COUNT = 5;
 
@@ -37,9 +38,7 @@ describe('turboModuleContextIntegration with real spans', () => {
     _resetTurboModuleTracker();
     _resetTurboModuleAggregator();
     _resetWrappedModules();
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
   });
 
   afterEach(() => {
