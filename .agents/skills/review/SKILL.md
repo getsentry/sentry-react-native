@@ -57,6 +57,7 @@ Send one message with three `Agent` tool calls (a general-purpose subagent each)
 >   - **Arch/platform parity**: logic that works on one of New/Old Arch or iOS/Android but not the other.
 >   - **Recursion/hot path**: wrapping `RNSentry` scope-sync methods, or using the Logs API `logger` (vs `debug`) in the TurboModule wrap path — see `packages/core/AGENTS.md`.
 >   - **Resource growth**: unbounded buffers/queues/caches; a periodic flush timer that re-arms forever.
+>   - **Supply-chain / dependency provenance**: for every dependency, `.vscode/extensions.json` recommendation, GitHub Action, or native dependency (Podfile/Gemfile/Gradle) *added or changed* in the diff, confirm it resolves to a real published artifact **and** that its namespace/publisher is trusted — flag an unscoped npm name shadowing an internal/`@sentry` package (dependency confusion), a typosquatted name, a VS Code extension whose publisher segment isn't the tool's official owner (e.g. `nickelpack.oxlint` vs `oxc.oxc-vscode`), or an action from an unknown org / floating tag (unpinned). See `.agents/skills/code-guidelines/references/supply-chain.md`.
 > For each finding give file:line, a one-line severity (critical/high/medium/low), why it's real (not already handled, no covering test), and a concrete fix. Skip anything the linters or existing tests already catch. Under 400 words.
 
 ## 4. Aggregate

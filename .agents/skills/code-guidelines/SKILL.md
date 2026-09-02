@@ -85,6 +85,10 @@ When adding something you want measured, make sure it lands as a named, register
 - Removing or changing the signature/behavior of an exported symbol or option is a **semver-major breaking change**. Prefer **deprecation with a migration path** (`@deprecated` JSDoc + a working shim) over immediate removal.
 - Bridge/ABI changes (see Codegen) are breaking even when the JS surface looks unchanged — an app can ship new JS against an older cached native binary.
 
+### Adding dependencies
+
+When adding or changing any third-party reference — an npm dependency, a `.vscode/extensions.json` recommendation, a GitHub Action (`uses:`), or a native dependency (Podfile / Gemfile / Gradle) — verify it is published by its legitimate owner **before** referencing it. The tool being real is not enough: the *namespace* must be one the project trusts. Prefer Sentry's own scope/org (`@sentry/*`, `getsentry/*`), then the artifact's documented official publisher, and pin to an exact version / full commit SHA rather than a floating tag. Treat an unscoped or unfamiliar-publisher name as a supply-chain risk until proven otherwise — a claimable namespace lets an attacker ship code to every contributor. Provenance is necessary but not sufficient: a legitimate owner's account or CI can be compromised and ship a malicious *version*, so pin to an immutable ref (lockfile integrity hash / full SHA) and check advisories for that specific version, not just the publisher. See [references/supply-chain.md](references/supply-chain.md) for the surface-by-surface checklist and verification commands.
+
 ## File Organization
 
 **Group by feature, not by type.** A processor or helper a feature owns lives with that feature (the TurboModule files sit together as `turbomodule/` + `integrations/turboModuleContext*.ts`). The `integrations/` directory is a **type-bucket** — it collects things that share the `Integration` type. Don't treat "it's an integration" as the whole home for a cohesive subsystem; keep the subsystem's own logic together and let the integration file be thin wiring.
