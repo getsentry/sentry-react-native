@@ -16,6 +16,11 @@
 ### Fixes
 
 - No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#6651](https://github.com/getsentry/sentry-react-native/pull/6651))
+- `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
+
+### Internal
+
+- Resolve Metro from the app's project root when generating source maps ([#6625](https://github.com/getsentry/sentry-react-native/pull/6625))
 
 ### Dependencies
 
