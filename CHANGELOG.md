@@ -13,6 +13,10 @@
 - Copy `app.vitals.start.screen` and `app.vitals.start.type` onto standalone `app.start` children, including user spans under `app.start.extended` ([#6631](https://github.com/getsentry/sentry-react-native/pull/6631))
 - `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
 
+### Fixes
+
+- `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
+
 ### Internal
 
 - Resolve Metro from the app's project root when generating source maps ([#6625](https://github.com/getsentry/sentry-react-native/pull/6625))
