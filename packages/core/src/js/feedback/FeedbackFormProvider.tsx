@@ -44,6 +44,15 @@ import { isModalSupported, isNativeDriverSupportedForColorAnimations } from './u
 
 const useNativeDriverForColorAnimations = isNativeDriverSupportedForColorAnimations();
 
+// react-native >=0.87 types Easing's helpers (`quad`, `in`, `out`) as methods rather than plain
+// function properties. Passing `Easing.quad` as an `EasingFunction` is safe — it's a pure function
+// with no `this` — but the unbound-method lint rule can't know that, so compute the easing curves
+// once here and reference them from the animations below.
+// oxlint-disable-next-line typescript-eslint(unbound-method)
+const SHOW_EASING = Easing.in(Easing.quad);
+// oxlint-disable-next-line typescript-eslint(unbound-method)
+const HIDE_EASING = Easing.out(Easing.quad);
+
 export interface FeedbackFormProviderProps {
   children: React.ReactNode;
   styles?: FeedbackFormStyles;
@@ -153,13 +162,13 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
           toValue: 1,
           duration: BACKGROUND_ANIMATION_DURATION,
           useNativeDriver: useNativeDriverForColorAnimations,
-          easing: Easing.in(Easing.quad),
+          easing: SHOW_EASING,
         }),
         Animated.timing(this.state.panY, {
           toValue: 0,
           duration: SLIDE_ANIMATION_DURATION,
           useNativeDriver: true,
-          easing: Easing.in(Easing.quad),
+          easing: SHOW_EASING,
         }),
       ]).start(() => {
         debug.log('FeedbackFormProvider componentDidUpdate');
@@ -242,13 +251,13 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
           toValue: Dimensions.get('screen').height,
           duration: SLIDE_ANIMATION_DURATION,
           useNativeDriver: true,
-          easing: Easing.out(Easing.quad),
+          easing: HIDE_EASING,
         }),
         Animated.timing(this.state.backgroundOpacity, {
           toValue: 0,
           duration: BACKGROUND_ANIMATION_DURATION,
           useNativeDriver: useNativeDriverForColorAnimations,
-          easing: Easing.out(Easing.quad),
+          easing: HIDE_EASING,
         }),
       ]).start(() => {
         // Change of the state unmount the component
