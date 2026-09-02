@@ -14,12 +14,7 @@
  */
 import type { Event, Span, TransactionEvent } from '@sentry/core';
 
-import {
-  setCurrentClient,
-  spanToJSON,
-  startNewTrace,
-  startSpanManual,
-} from '@sentry/core';
+import { setCurrentClient, spanToJSON, startNewTrace, startSpanManual } from '@sentry/core';
 
 import { turboModuleContextIntegration } from '../../src/js/integrations/turboModuleContext';
 import { _resetTurboModuleAggregator } from '../../src/js/turbomodule/turboModuleAggregator';

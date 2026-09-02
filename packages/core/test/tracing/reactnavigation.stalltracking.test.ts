@@ -10,9 +10,9 @@ import { stallTrackingIntegration } from '../../src/js/tracing/integrations/stal
 import { isNearToNow } from '../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { clearAllScopes } from '../testutils';
 import { expectStallMeasurements } from './integrations/stallTracking/stalltrackingutils';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
-import { clearAllScopes } from '../testutils';
 
 jest.useFakeTimers({
   advanceTimers: true,

@@ -2,11 +2,11 @@ import type { IntegrationFn } from '@sentry/core';
 
 import { addBreadcrumb, defineIntegration, getClient } from '@sentry/core';
 
+import type { ReactNativeClientOptions } from '../options';
 import type { DeepLinkSource } from '../tracing/pendingDeepLink';
 
 import { setPendingDeepLink } from '../tracing/pendingDeepLink';
 import { sanitizeUrl } from '../tracing/utils';
-import type { ReactNativeClientOptions } from '../options';
 
 export const INTEGRATION_NAME = 'DeepLink';
 

@@ -1,10 +1,4 @@
-import {
-  addBreadcrumb,
-  type Span,
-  SPAN_STATUS_ERROR,
-  SPAN_STATUS_OK,
-  startInactiveSpan,
-} from '@sentry/core';
+import { addBreadcrumb, type Span, SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 
 import {
   expoUpdatesListenerIntegration,

@@ -1,11 +1,7 @@
 import type { Event, Measurements, SentrySpan, StartSpanOptions } from '@sentry/core';
 
 import * as core from '@sentry/core';
-import {
-  getActiveSpan,
-  setCurrentClient,
-  spanToJSON,
-} from '@sentry/core';
+import { getActiveSpan, setCurrentClient, spanToJSON } from '@sentry/core';
 
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import type { UnsafeAction } from '../../src/js/vendor/react-navigation/types';
@@ -35,9 +31,9 @@ import { RN_GLOBAL_OBJ } from '../../src/js/utils/worldwide';
 import { mockAppRegistryIntegration } from '../mocks/appRegistryIntegrationMock';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
+import { clearAllScopes } from '../testutils';
 import { getDevServer } from './../../src/js/integrations/debugsymbolicatorutils';
 import { createMockNavigationAndAttachTo, createMockNavigationWithNestedState } from './reactnavigationutils';
-import { clearAllScopes } from '../testutils';
 
 const dummyRoute = {
   name: 'Route',

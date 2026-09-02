@@ -1,17 +1,11 @@
 import type { Span } from '@sentry/core';
 
-import {
-  setCurrentClient,
-  startIdleSpan,
-  startSpan,
-  startSpanManual,
-  timestampInSeconds,
-} from '@sentry/core';
+import { setCurrentClient, startIdleSpan, startSpan, startSpanManual, timestampInSeconds } from '@sentry/core';
 
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';
-import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
 import { clearAllScopes } from '../../../testutils';
+import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
 
 jest.useFakeTimers({
   advanceTimers: true,

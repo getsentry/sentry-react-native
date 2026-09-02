@@ -3,6 +3,7 @@ import type { Event, EventHint, Integration, Outcome, ParameterizedString, Sessi
 import { Client, createTransport, initAndBind, resolvedSyncPromise, setCurrentClient } from '@sentry/core';
 
 import type { ReactNativeClientOptions } from '../../src/js/options';
+
 import { clearAllScopes } from '../testutils';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {

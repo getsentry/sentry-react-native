@@ -1,12 +1,6 @@
 import type { Event, Measurements, Span, SpanJSON } from '@sentry/core';
 
-import {
-  debug,
-  setCurrentClient,
-  spanToJSON,
-  startSpan,
-  startSpanManual,
-} from '@sentry/core';
+import { debug, setCurrentClient, spanToJSON, startSpan, startSpanManual } from '@sentry/core';
 
 jest.spyOn(debug, 'warn');
 

@@ -1,8 +1,9 @@
 import { addBreadcrumb, getClient, SPAN_STATUS_ERROR, SPAN_STATUS_OK, startInactiveSpan } from '@sentry/core';
 
+import type { ReactNativeClientOptions } from '../options';
+
 import { SPAN_ORIGIN_AUTO_EXPO_ROUTER_NAVIGATION, SPAN_ORIGIN_AUTO_EXPO_ROUTER_PREFETCH } from './origin';
 import { clearPendingExpoRouterNavigation, setPendingExpoRouterNavigation } from './pendingExpoRouterNavigation';
-import type { ReactNativeClientOptions } from '../options';
 
 type ExpoRouterHref = string | { pathname?: string; params?: Record<string, unknown> };
 

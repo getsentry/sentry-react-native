@@ -226,7 +226,9 @@ export function startTimeToInitialDisplaySpan(
     return undefined;
   }
 
-  const existingSpan = getSpanDescendants(activeSpan).find(span => spanToStaticSpanJSON(span).op === 'ui.load.initial_display');
+  const existingSpan = getSpanDescendants(activeSpan).find(
+    span => spanToStaticSpanJSON(span).op === 'ui.load.initial_display',
+  );
   if (existingSpan) {
     debug.log('[TimeToDisplay] Found existing ui.load.initial_display span.');
     return existingSpan;
@@ -391,7 +393,9 @@ export function updateInitialDisplaySpan(
     .then(() => {
       span.end(frameTimestampSeconds);
       span.setStatus({ code: SPAN_STATUS_OK });
-      debug.log(`[TimeToDisplay] ${spanToStaticSpanJSON(span).description} span updated with end timestamp and frame data.`);
+      debug.log(
+        `[TimeToDisplay] ${spanToStaticSpanJSON(span).description} span updated with end timestamp and frame data.`,
+      );
 
       if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
         fullDisplayBeforeInitialDisplay.delete(activeSpan);
@@ -477,7 +481,8 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
   const existingInitialDisplaySpan =
     passedInitialDisplaySpan ||
     getSpanDescendants(activeSpan).find(span => spanToStaticSpanJSON(span).op === 'ui.load.initial_display');
-  const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToStaticSpanJSON(existingInitialDisplaySpan).timestamp;
+  const initialDisplayEndTimestamp =
+    existingInitialDisplaySpan && spanToStaticSpanJSON(existingInitialDisplaySpan).timestamp;
   if (!initialDisplayEndTimestamp) {
     fullDisplayBeforeInitialDisplay.set(activeSpan, true);
     debug.warn(

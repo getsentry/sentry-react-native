@@ -14,6 +14,7 @@ import {
   timestampInSeconds,
 } from '@sentry/core';
 
+import type { ReactNativeClientOptions } from '../options';
 import type { UnsafeAction } from '../vendor/react-navigation/types';
 import type { PendingDeepLink } from './pendingDeepLink';
 import type { ReactNativeTracingIntegration } from './reactnativetracing';
@@ -45,8 +46,6 @@ import {
   startIdleNavigationSpan as startGenericIdleNavigationSpan,
 } from './span';
 import { addTimeToInitialDisplayFallback } from './timeToDisplayFallback';
-
-import type { ReactNativeClientOptions } from '../options';
 
 export const INTEGRATION_NAME = 'ReactNavigation';
 
@@ -947,8 +946,7 @@ function tagSpanWithDeepLink(span: Span, link: PendingDeepLink): boolean {
   }
   taggedDeepLinkSpans.add(span);
 
-  const sendDefaultPii =
-    (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
+  const sendDefaultPii = (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
   const url = sendDefaultPii ? link.url : sanitizeDeepLinkUrl(link.url);
 
   span.setAttributes({

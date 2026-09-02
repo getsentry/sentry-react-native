@@ -13,9 +13,10 @@ import {
 } from '@sentry/core';
 import * as React from 'react';
 
+import type { ReactNativeClientOptions } from '../options';
+
 import { registerFeatureMarker } from '../utils/featureMarkers';
 import { getCurrentExpoRouterRouteInfo } from './expoRouterStore';
-import type { ReactNativeClientOptions } from '../options';
 
 export const EXPO_ROUTER_ERROR_BOUNDARY_INTEGRATION_NAME = 'ExpoRouterErrorBoundary';
 

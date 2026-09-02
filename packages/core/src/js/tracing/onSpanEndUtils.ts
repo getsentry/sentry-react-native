@@ -256,7 +256,9 @@ export const cancelInBackground = (client: Client, span: Span): void => {
       clearTimeout(inactiveTimeout);
       inactiveTimeout = undefined;
     }
-    debug.log(`Setting ${spanToStaticSpanJSON(span).op} transaction to cancelled because the app is in the background.`);
+    debug.log(
+      `Setting ${spanToStaticSpanJSON(span).op} transaction to cancelled because the app is in the background.`,
+    );
 
     // End still-recording http.client children at the time the app left
     // the foreground, not when the deferred timer fires. On iOS, the JS
