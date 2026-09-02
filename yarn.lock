@@ -10339,7 +10339,7 @@ __metadata:
     "@testing-library/react-native": "npm:^13.2.2"
     "@types/jest": "npm:^29.5.13"
     "@types/node": "npm:^20.9.3"
-    "@types/react": "npm:^19.1.0"
+    "@types/react": "npm:^19.2.0"
     "@types/react-test-renderer": "npm:^19.1.0"
     "@types/uglify-js": "npm:^3.17.2"
     "@types/xmlhttprequest": "npm:^1.8.2"
@@ -10357,9 +10357,9 @@ __metadata:
     oxfmt: "npm:^0.42.0"
     oxlint: "npm:^1.56.0"
     oxlint-tsgolint: "npm:^0.17.4"
-    react: "npm:19.1.0"
+    react: "npm:19.2.3"
     react-native: "npm:0.87.1"
-    react-test-renderer: "npm:19.1.0"
+    react-test-renderer: "npm:19.2.3"
     rimraf: "npm:^4.1.1"
     ts-jest: "npm:^29.3.1"
     typescript: "npm:~5.9.3"
@@ -11050,6 +11050,15 @@ __metadata:
   dependencies:
     csstype: "npm:^3.2.2"
   checksum: 10c0/bc2c4af96b3e480604424de70d5ebda90c5f4b485df471858c0bc2d7d70364b606ec3c4d8579f94f01aa0c6c0591f56bcf14cba5689f5eea4b74250ccdc3a232
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^19.2.0":
+  version: 19.2.18
+  resolution: "@types/react@npm:19.2.18"
+  dependencies:
+    csstype: "npm:^3.2.2"
+  checksum: 10c0/d04216172b4b4362b310017c210dfbe019fb4f4e7dffd0313e70b3acb3051d5c3e76e7e84e3cf4c6a3c824993ffadfe3949e589a6398a09d4200e7670e2962de
   languageName: node
   linkType: hard
 
@@ -27140,18 +27149,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-test-renderer@npm:19.1.0":
-  version: 19.1.0
-  resolution: "react-test-renderer@npm:19.1.0"
-  dependencies:
-    react-is: "npm:^19.1.0"
-    scheduler: "npm:^0.26.0"
-  peerDependencies:
-    react: ^19.1.0
-  checksum: 10c0/34ed4a37ba8b0beb96c048de6ff28574f018a18dd1042c24f8f46142d48eb5b27f82ff7c2823d082932fd3983c5a3529ab8cc8f15191d4306df0082f9f84678f
-  languageName: node
-  linkType: hard
-
 "react-test-renderer@npm:19.2.3":
   version: 19.2.3
   resolution: "react-test-renderer@npm:19.2.3"
@@ -27161,13 +27158,6 @@ __metadata:
   peerDependencies:
     react: ^19.2.3
   checksum: 10c0/842b82239dbddbc536083a6260c3e1b0507c02a3400bd05879fc19160468fd0f8ab79fec5dceffa6113b131835cc7621212f8415b46ea5156ab66bbfd7e24297
-  languageName: node
-  linkType: hard
-
-"react@npm:19.1.0":
-  version: 19.1.0
-  resolution: "react@npm:19.1.0"
-  checksum: 10c0/530fb9a62237d54137a13d2cfb67a7db6a2156faed43eecc423f4713d9b20c6f2728b026b45e28fcd72e8eadb9e9ed4b089e99f5e295d2f0ad3134251bdd3698
   languageName: node
   linkType: hard
 
@@ -28220,7 +28210,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:0.26.0, scheduler@npm:^0.26.0":
+"scheduler@npm:0.26.0":
   version: 0.26.0
   resolution: "scheduler@npm:0.26.0"
   checksum: 10c0/5b8d5bfddaae3513410eda54f2268e98a376a429931921a81b5c3a2873aab7ca4d775a8caac5498f8cbc7d0daeab947cf923dbd8e215d61671f9f4e392d34356
