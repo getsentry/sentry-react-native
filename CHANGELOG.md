@@ -15,6 +15,7 @@
 
 ### Fixes
 
+- Prevent silently dropped logs and spans on iOS with React Native >= 0.86 caused by an unreliable `performance.timeOrigin` ([#6654](https://github.com/getsentry/sentry-react-native/pull/6654))
 - `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
 
 ### Internal
