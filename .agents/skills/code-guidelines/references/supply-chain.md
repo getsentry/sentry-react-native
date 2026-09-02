@@ -26,6 +26,14 @@ The tool being real is not enough. A claimable namespace lets an attacker publis
 
 Treat an unscoped or unfamiliar-publisher name as a supply-chain risk until proven otherwise.
 
+## Provenance is necessary but not sufficient
+
+A correct namespace proves *who normally publishes* the artifact — not that *this specific version* is safe. A legitimate owner's npm/marketplace account or CI can be compromised (account takeover, a stolen token, a poisoned release pipeline) and ship a malicious version under a namespace that passes every check above. So the version itself, not just the publisher, has to be pinned down:
+
+1. **Pin to an immutable ref and trust the lockfile hash.** An exact version + the lockfile's integrity hash (or a full commit SHA for Actions) means a later re-publish under the *same* version can't silently swap the bytes you reviewed. A range (`^`, `~`, `latest`, a branch) re-opens that door on every install.
+2. **Check advisories for that specific version**, not the package in general — `npm audit`, GitHub Advisories / Dependabot, and `osv.dev` are queryable by version. This is the concrete, checkable form of "is this release known-bad" (don't rely on having *heard* about a compromise — absence of news is the default state for a fresh one).
+3. **Be wary of the freshly-published bump.** A version published hours ago, a new maintainer/owner on the package, or a release after long dormancy is the compromise signature worth a second look before you pin to it.
+
 ## Surfaces to check (all of these in RN)
 
 | Surface | File(s) | Provenance tell |
@@ -59,6 +67,7 @@ So the diff-time provenance check — especially for editor extensions — is on
 
 - [ ] The artifact exists and is currently published
 - [ ] Its scope/publisher/org is Sentry's or the artifact's documented official owner (not a lookalike)
-- [ ] Pinned to an exact version / full SHA, not a floating tag
+- [ ] Pinned to an exact version / full SHA, not a floating tag (lockfile integrity hash present)
+- [ ] The specific version is clear of advisories (`npm audit` / GitHub Advisories / `osv.dev`) — provenance alone doesn't clear a compromised release
 - [ ] If it shadows an internal name, the scope makes confusion impossible
 - [ ] For a `.vscode` recommendation: the `publisher` segment is verified against the tool's own docs
