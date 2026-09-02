@@ -8938,16 +8938,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/babel-plugin-codegen@npm:0.86.2":
-  version: 0.86.2
-  resolution: "@react-native/babel-plugin-codegen@npm:0.86.2"
-  dependencies:
-    "@babel/traverse": "npm:^7.29.0"
-    "@react-native/codegen": "npm:0.86.2"
-  checksum: 10c0/ea2faab711f07578f0d0b1a62ccc731a60fdb21b0bf3924209fa055d62f597d6104f6646b5cbf416da4dc1a012f5c708e7d58694ddfafab9325dd60b0bf495f2
-  languageName: node
-  linkType: hard
-
 "@react-native/babel-plugin-codegen@npm:0.87.1":
   version: 0.87.1
   resolution: "@react-native/babel-plugin-codegen@npm:0.87.1"
@@ -9065,49 +9055,6 @@ __metadata:
   peerDependencies:
     "@babel/core": "*"
   checksum: 10c0/9d629d786a7310b207222044d702604d3017325d74feb1c362e17e278059c794a2b3ec76271d6a6cbc42f91543e235adae2f6a545114fa9722e0ffe1fba646bd
-  languageName: node
-  linkType: hard
-
-"@react-native/babel-preset@npm:0.86.2":
-  version: 0.86.2
-  resolution: "@react-native/babel-preset@npm:0.86.2"
-  dependencies:
-    "@babel/core": "npm:^7.25.2"
-    "@babel/plugin-proposal-export-default-from": "npm:^7.24.7"
-    "@babel/plugin-syntax-dynamic-import": "npm:^7.8.3"
-    "@babel/plugin-syntax-export-default-from": "npm:^7.24.7"
-    "@babel/plugin-syntax-nullish-coalescing-operator": "npm:^7.8.3"
-    "@babel/plugin-syntax-optional-chaining": "npm:^7.8.3"
-    "@babel/plugin-transform-async-generator-functions": "npm:^7.25.4"
-    "@babel/plugin-transform-async-to-generator": "npm:^7.24.7"
-    "@babel/plugin-transform-block-scoping": "npm:^7.25.0"
-    "@babel/plugin-transform-class-properties": "npm:^7.25.4"
-    "@babel/plugin-transform-classes": "npm:^7.25.4"
-    "@babel/plugin-transform-destructuring": "npm:^7.24.8"
-    "@babel/plugin-transform-flow-strip-types": "npm:^7.25.2"
-    "@babel/plugin-transform-for-of": "npm:^7.24.7"
-    "@babel/plugin-transform-modules-commonjs": "npm:^7.24.8"
-    "@babel/plugin-transform-named-capturing-groups-regex": "npm:^7.24.7"
-    "@babel/plugin-transform-nullish-coalescing-operator": "npm:^7.24.7"
-    "@babel/plugin-transform-optional-catch-binding": "npm:^7.24.7"
-    "@babel/plugin-transform-optional-chaining": "npm:^7.24.8"
-    "@babel/plugin-transform-private-methods": "npm:^7.24.7"
-    "@babel/plugin-transform-private-property-in-object": "npm:^7.24.7"
-    "@babel/plugin-transform-react-display-name": "npm:^7.24.7"
-    "@babel/plugin-transform-react-jsx": "npm:^7.25.2"
-    "@babel/plugin-transform-react-jsx-self": "npm:^7.24.7"
-    "@babel/plugin-transform-react-jsx-source": "npm:^7.24.7"
-    "@babel/plugin-transform-regenerator": "npm:^7.24.7"
-    "@babel/plugin-transform-runtime": "npm:^7.24.7"
-    "@babel/plugin-transform-typescript": "npm:^7.25.2"
-    "@babel/plugin-transform-unicode-regex": "npm:^7.24.7"
-    "@react-native/babel-plugin-codegen": "npm:0.86.2"
-    babel-plugin-syntax-hermes-parser: "npm:0.36.0"
-    babel-plugin-transform-flow-enums: "npm:^0.0.2"
-    react-refresh: "npm:^0.14.0"
-  peerDependencies:
-    "@babel/core": "*"
-  checksum: 10c0/12358b3898771cf7340c3fa0199e3608b9aca03fd33d6f10af59d0acef65181d9893acab51c068adc816231df9e5baff360b042963e633fc5f24a73faf6387b2
   languageName: node
   linkType: hard
 
@@ -9489,21 +9436,6 @@ __metadata:
   version: 0.87.1
   resolution: "@react-native/gradle-plugin@npm:0.87.1"
   checksum: 10c0/281e6d62b5b4a9cc9043ce31a5628cee4666d415d3b69eedf6fa481437f70d0f85d78622bf9d4a3db3e248b27f16747b8bc02536da8aac609c1d1e450ed835d1
-  languageName: node
-  linkType: hard
-
-"@react-native/jest-preset@npm:0.86.2":
-  version: 0.86.2
-  resolution: "@react-native/jest-preset@npm:0.86.2"
-  dependencies:
-    "@jest/create-cache-key-function": "npm:^29.7.0"
-    "@react-native/js-polyfills": "npm:0.86.2"
-    babel-jest: "npm:^29.7.0"
-    jest-environment-node: "npm:^29.7.0"
-    regenerator-runtime: "npm:^0.13.2"
-  peerDependencies:
-    react: ^19.2.3
-  checksum: 10c0/ae6b0665a74f98a86c04eb761360bc854258f98b35f2eb1977cdad7b3e50cee66f6c7c6a9b4486d1eec5102f9c8ac68ba234fcee18ea9ca44ba3737d406ed8ec
   languageName: node
   linkType: hard
 
@@ -10393,8 +10325,8 @@ __metadata:
     "@expo/metro-config": "npm:~0.20.0"
     "@microsoft/api-extractor": "npm:^7.58.7"
     "@mswjs/interceptors": "npm:^0.25.15"
-    "@react-native/babel-preset": "npm:0.86.2"
-    "@react-native/jest-preset": "npm:0.86.2"
+    "@react-native/babel-preset": "npm:0.87.1"
+    "@react-native/jest-preset": "npm:0.87.1"
     "@sentry/browser": "npm:10.73.0"
     "@sentry/bundler-plugins": "npm:10.73.0"
     "@sentry/cli": "npm:3.7.0"
