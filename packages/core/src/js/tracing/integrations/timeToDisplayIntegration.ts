@@ -11,7 +11,7 @@ import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../span';
 import { _popImperativeTtfdTimestamp } from '../timetodisplay';
 import { clearSpan as clearTimeToDisplayCoordinatorSpan } from '../timeToDisplayCoordinator';
 import { getTimeToInitialDisplayFallback } from '../timeToDisplayFallback';
-import { createSpanJSON } from '../utils';
+import { addMeasurement, createSpanJSON } from '../utils';
 
 export const INTEGRATION_NAME = 'TimeToDisplay';
 
@@ -56,7 +56,6 @@ export const timeToDisplayIntegration = (): Integration => {
       }
 
       event.spans = event.spans || [];
-      event.measurements = event.measurements || {};
 
       const ttidSpan = await addTimeToInitialDisplay({
         event,
@@ -80,10 +79,10 @@ export const timeToDisplayIntegration = (): Integration => {
       const ttidDeadlineExceeded = ttidDurationMs !== undefined && isDeadlineExceeded(ttidDurationMs);
 
       if (ttidDurationMs !== undefined && !ttidDeadlineExceeded) {
-        event.measurements['time_to_initial_display'] = {
+        addMeasurement(event, 'time_to_initial_display', {
           value: ttidDurationMs,
           unit: 'millisecond',
-        };
+        });
       }
 
       const ttfdDurationMs =
@@ -94,14 +93,15 @@ export const timeToDisplayIntegration = (): Integration => {
 
       if (ttfdDurationMs !== undefined) {
         if (ttfdDeadlineExceeded) {
-          if (event.measurements['time_to_initial_display']) {
-            event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
+          const ttidMeasurement = event.measurements?.['time_to_initial_display'];
+          if (ttidMeasurement) {
+            addMeasurement(event, 'time_to_full_display', ttidMeasurement);
           }
         } else {
-          event.measurements['time_to_full_display'] = {
+          addMeasurement(event, 'time_to_full_display', {
             value: ttfdDurationMs,
             unit: 'millisecond',
-          };
+          });
         }
       }
 

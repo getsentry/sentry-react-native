@@ -776,6 +776,101 @@ describe('App Start Integration', () => {
       );
     });
 
+    it('Reports app start measurement but keeps TTID anchored to navigation when first navigation is delayed', async () => {
+      set__DEV__(false);
+      const { appStartTimeMilliseconds, appStartDurationMilliseconds, navigationStartTimestampSeconds } =
+        mockAppStartWithFirstNavigationGap({ cold: true, gapMilliseconds: 16000 });
+
+      const actualEvent = (await processEvent(
+        getMinimalTransactionEvent({ startTimestampSeconds: navigationStartTimestampSeconds }),
+      )) as TransactionEvent;
+
+      // Start timestamp is NOT rewritten to process init — it stays at the navigation start so
+      // TTID/TTFD (derived from it by the timeToDisplay integration) measure the real screen render.
+      expect(actualEvent.start_timestamp).toBe(navigationStartTimestampSeconds);
+      expect(actualEvent.start_timestamp).not.toBe(appStartTimeMilliseconds / 1000);
+
+      // The app start vital is still reported.
+      expect(actualEvent.measurements?.[APP_START_COLD_MEASUREMENT]).toEqual({
+        value: appStartDurationMilliseconds,
+        unit: 'millisecond',
+      });
+
+      // The carrier transaction is marked as a screen load.
+      expect(actualEvent.contexts?.trace?.op).toBe(UI_LOAD);
+      expect(actualEvent.contexts?.trace?.origin).toBe(SPAN_ORIGIN_AUTO_APP_START);
+
+      // No process-init-anchored breakdown span is added (it would be out of the transaction bounds).
+      expect(actualEvent.spans?.find(({ description }) => description === 'Cold Start')).toBeUndefined();
+      // The original span is left untouched, and no span starts before the (navigation) transaction start.
+      expect(actualEvent.spans).toEqual([
+        {
+          start_timestamp: 100,
+          timestamp: 200,
+          op: 'test',
+          description: 'Test',
+          span_id: '123',
+          trace_id: '456',
+          data: {},
+        },
+      ]);
+    });
+
+    it('Keeps app-start-anchored behavior when the first navigation follows app start promptly', async () => {
+      set__DEV__(false);
+      const { appStartTimeMilliseconds, appStartEndTimestampMilliseconds, navigationStartTimestampSeconds } =
+        mockAppStartWithFirstNavigationGap({ cold: true, gapMilliseconds: 4000 });
+
+      const actualEvent = (await processEvent(
+        getMinimalTransactionEvent({ startTimestampSeconds: navigationStartTimestampSeconds }),
+      )) as TransactionEvent;
+
+      // Gap is under the threshold, so this is treated as the cold start's initial display: the
+      // transaction start is re-anchored to process init and the Cold Start breakdown span is added.
+      expect(actualEvent.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
+      expect(actualEvent).toEqual(
+        expectEventWithAttachedColdAppStart({
+          timeOriginMilliseconds: appStartEndTimestampMilliseconds,
+          appStartTimeMilliseconds,
+        }),
+      );
+    });
+
+    it('Reports warm app start measurement while keeping TTID anchored on a delayed first navigation', async () => {
+      set__DEV__(false);
+      const { appStartDurationMilliseconds, navigationStartTimestampSeconds } = mockAppStartWithFirstNavigationGap({
+        cold: false,
+        gapMilliseconds: 16000,
+      });
+
+      const actualEvent = (await processEvent(
+        getMinimalTransactionEvent({ startTimestampSeconds: navigationStartTimestampSeconds }),
+      )) as TransactionEvent;
+
+      expect(actualEvent.start_timestamp).toBe(navigationStartTimestampSeconds);
+      expect(actualEvent.measurements?.[APP_START_WARM_MEASUREMENT]).toEqual({
+        value: appStartDurationMilliseconds,
+        unit: 'millisecond',
+      });
+      expect(actualEvent.spans?.find(({ description }) => description === 'Warm Start')).toBeUndefined();
+    });
+
+    it('Does not apply the delayed-first-navigation branch in development builds', async () => {
+      set__DEV__(true);
+      const { appStartTimeMilliseconds, navigationStartTimestampSeconds } = mockAppStartWithFirstNavigationGap({
+        cold: true,
+        gapMilliseconds: 16000,
+      });
+
+      const actualEvent = (await processEvent(
+        getMinimalTransactionEvent({ startTimestampSeconds: navigationStartTimestampSeconds }),
+      )) as TransactionEvent;
+
+      // Dev builds keep the existing behavior (start re-anchored, breakdown span added).
+      expect(actualEvent.start_timestamp).toBe(appStartTimeMilliseconds / 1000);
+      expect(actualEvent.spans?.find(({ description }) => description === 'Cold Start')).toBeDefined();
+    });
+
     it('Does not create app start transaction if has_fetched == true', async () => {
       mockAppStart({ has_fetched: true });
 
@@ -2661,6 +2756,47 @@ function mockTooOldAppStart() {
   mockFunction(timestampInSeconds).mockReturnValue(timeOriginMilliseconds / 1000 + 65);
 
   return [timeOriginMilliseconds, appStartTimeMilliseconds, appStartDurationMilliseconds];
+}
+
+/**
+ * Mocks an app start followed by a first navigation that begins `gapMilliseconds` after the app
+ * finished starting. Used to exercise the delayed-first-navigation branch, where the app start
+ * measurement is still reported but the screen TTID/TTFD stays anchored to the navigation start.
+ *
+ * The app start itself is short (2s) and recent, so the existing age (60s) and duration (60s) guards
+ * do not fire — the only discriminator is the gap between app start end and the navigation start.
+ */
+function mockAppStartWithFirstNavigationGap({
+  cold = true,
+  gapMilliseconds,
+}: {
+  cold?: boolean;
+  gapMilliseconds: number;
+}) {
+  const appStartTimeMilliseconds = Date.now();
+  const appStartEndTimestampMilliseconds = appStartTimeMilliseconds + 2000;
+  const appStartDurationMilliseconds = appStartEndTimestampMilliseconds - appStartTimeMilliseconds;
+  const navigationStartTimestampSeconds = (appStartEndTimestampMilliseconds + gapMilliseconds) / 1000;
+  const mockAppStartResponse: NativeAppStartResponse = {
+    type: cold ? 'cold' : 'warm',
+    app_start_timestamp_ms: appStartTimeMilliseconds,
+    has_fetched: false,
+    spans: [],
+  };
+
+  _setAppStartEndData({
+    timestampMs: appStartEndTimestampMilliseconds,
+    endFrames: null,
+  });
+  mockFunction(getTimeOriginMilliseconds).mockReturnValue(appStartEndTimestampMilliseconds);
+  mockFunction(NATIVE.fetchNativeAppStart).mockResolvedValue(mockAppStartResponse);
+
+  return {
+    appStartTimeMilliseconds,
+    appStartEndTimestampMilliseconds,
+    appStartDurationMilliseconds,
+    navigationStartTimestampSeconds,
+  };
 }
 
 /**
