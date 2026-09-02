@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@react-native-vector-icons/ionicons": "^12.3.0",
+    "@react-native/assets-registry": "0.87.1",
     "@react-native/new-app-screen": "0.87.1",
     "@react-navigation/bottom-tabs": "^7.4.5",
     "@react-navigation/native": "^7.1.17",
