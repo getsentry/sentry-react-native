@@ -15,6 +15,8 @@
 
 ### Fixes
 
+- Fix Metro bundler crash on Expo static/EAS Update exports ([#6652](https://github.com/getsentry/sentry-react-native/pull/6652))
+- No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#6651](https://github.com/getsentry/sentry-react-native/pull/6651))
 - `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
 
 ### Internal
@@ -23,9 +25,9 @@
 
 ### Dependencies
 
-- Bump Android SDK from v8.53.0 to v8.54.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8540)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.53.0...8.54.0)
+- Bump Android SDK from v8.53.0 to v8.55.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624), [#6658](https://github.com/getsentry/sentry-react-native/pull/6658))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8550)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.53.0...8.55.0)
 - Bump Cocoa SDK from v9.24.0 to v9.26.1 ([#6623](https://github.com/getsentry/sentry-react-native/pull/6623))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9261)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.1)

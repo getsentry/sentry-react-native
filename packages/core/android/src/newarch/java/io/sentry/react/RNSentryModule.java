@@ -114,6 +114,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void removeContext(final String key) {
+    this.impl.removeContext(key);
+  }
+
+  @Override
   public void setTag(String key, String value) {
     this.impl.setTag(key, value);
   }
