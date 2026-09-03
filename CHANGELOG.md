@@ -16,6 +16,7 @@
 ### Fixes
 
 - Fix Metro bundler crash on Expo static/EAS Update exports ([#6652](https://github.com/getsentry/sentry-react-native/pull/6652))
+- No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#6651](https://github.com/getsentry/sentry-react-native/pull/6651))
 - `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
 
 ### Internal

@@ -17,6 +17,6 @@
   "compilerOptions": {
     "rootDir": ".",
     "jsx": "react",
-    "types": ["jest", "react-native"]
+    "types": ["jest"]
   }
 }

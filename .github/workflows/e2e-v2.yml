@@ -232,7 +232,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ["0.71.19", "0.87.0"]
+        rn-version: ["0.71.19", "0.87.1"]
         rn-architecture: ["legacy", "new"]
         platform: ["android", "ios"]
         build-type: ["production"]
@@ -245,7 +245,7 @@ jobs:
             runs-on: macos-15-xlarge
           # Use Xcode 26 (macos-26) for newer RN versions
           - platform: ios
-            rn-version: "0.87.0"
+            rn-version: "0.87.1"
             runs-on: macos-26-xlarge
           - platform: android
             runs-on: ubuntu-24.04
@@ -385,7 +385,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ["0.87.0"]
+        rn-version: ["0.87.1"]
         rn-architecture: ["legacy", "new"]
         platform: ["android", "ios"]
         build-type: ["production"]
