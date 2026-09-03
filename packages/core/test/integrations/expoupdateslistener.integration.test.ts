@@ -68,7 +68,10 @@ describe('ExpoUpdatesListener Integration (real spans)', () => {
     const event = client.event as TransactionEvent | undefined;
     expect(event).toBeDefined();
     expect(event?.contexts?.trace?.op).toBe('app.update.check');
-    expect(event?.contexts?.trace?.status).toBe('Network failed');
+    // JS v11 surfaces only canonical span status messages; a non-canonical
+    // message like the raw error text ('Network failed') reports as
+    // 'internal_error'. The failure is still recorded as an error status.
+    expect(event?.contexts?.trace?.status).toBe('internal_error');
   });
 
   it('download span produces a transaction with correct op and update id', () => {

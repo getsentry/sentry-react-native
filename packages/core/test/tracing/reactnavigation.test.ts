@@ -1,7 +1,7 @@
 import type { Event, Measurements, SentrySpan, StartSpanOptions } from '@sentry/core';
 
 import * as core from '@sentry/core';
-import { getActiveSpan, setCurrentClient, spanToJSON } from '@sentry/core';
+import { getActiveSpan, setCurrentClient, spanToStaticSpanJSON } from '@sentry/core';
 
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
 import type { UnsafeAction } from '../../src/js/vendor/react-navigation/types';
@@ -895,7 +895,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       await jest.runOnlyPendingTimersAsync();
 
-      expect(spanToJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBeUndefined();
+      expect(spanToStaticSpanJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBeUndefined();
       expect(mockTransaction['_sampled']).not.toBe(false);
     });
 
@@ -919,7 +919,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       const span = getActiveSpan();
       expect(span).toBeDefined();
-      expect(spanToJSON(span)).toEqual(
+      expect(spanToStaticSpanJSON(span)).toEqual(
         expect.objectContaining({
           description: DEFAULT_NAVIGATION_SPAN_NAME,
           op: 'navigation',
@@ -986,7 +986,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       const span = getActiveSpan();
       expect(span).toBeDefined();
-      expect(spanToJSON(span!).description).toBe('Route');
+      expect(spanToStaticSpanJSON(span!).description).toBe('Route');
 
       await jest.runOnlyPendingTimersAsync();
       await client.flush();
@@ -1126,7 +1126,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       const span = getActiveSpan();
       expect(span).toBeDefined();
-      expect(spanToJSON(span!).op).toBe('navigation');
+      expect(spanToStaticSpanJSON(span!).op).toBe('navigation');
     });
   });
 
@@ -1150,7 +1150,7 @@ describe('ReactNavigationInstrumentation', () => {
 
       expect(mockTransaction['_sampled']).toBe(true);
       expect(mockTransaction['_name']).toBe(DEFAULT_NAVIGATION_SPAN_NAME);
-      expect(spanToJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBeUndefined();
+      expect(spanToStaticSpanJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBeUndefined();
 
       jest.advanceTimersByTime(20);
 
@@ -1160,7 +1160,7 @@ describe('ReactNavigationInstrumentation', () => {
       // `ignoreEmptyRouteChangeTransactions` runs after `_discardLatestTransaction`
       // and overwrites the reason with the more specific `no_route_info`.
       expect(mockTransaction['_sampled']).toBe(true);
-      expect(spanToJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBe('no_route_info');
+      expect(spanToStaticSpanJSON(mockTransaction).data?.['sentry.rn.discard_reason']).toBe('no_route_info');
     });
   });
 

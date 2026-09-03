@@ -1,6 +1,9 @@
 import type { Span } from '@sentry/core';
 
-import { setCurrentClient, startIdleSpan, startSpan, startSpanManual, timestampInSeconds } from '@sentry/core';
+import { setCurrentClient, startSpan, startSpanManual, timestampInSeconds } from '@sentry/core';
+// `startIdleSpan` moved from the `@sentry/core` root entry to its `browser`
+// subpath in JS v11 (the entry point was split into shared/browser/server).
+import { startIdleSpan } from '@sentry/core/browser';
 
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';

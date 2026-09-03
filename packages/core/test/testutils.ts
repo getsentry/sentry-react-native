@@ -94,7 +94,7 @@ export const secondInFutureTimestampMs = (): number => {
  * intentionally left intact. Reaching into the `_`-prefixed fields is deliberate
  * and confined to test setup.
  */
-function resetScope(scope: Scope): void {
+export function resetScope(scope: Scope): void {
   const internal = scope as unknown as {
     _breadcrumbs: unknown[];
     _tags: Record<string, unknown>;

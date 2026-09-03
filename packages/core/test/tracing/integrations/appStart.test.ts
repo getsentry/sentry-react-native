@@ -9,7 +9,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   setCurrentClient,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -1340,7 +1340,7 @@ describe('Extended App Start', () => {
 
     integration.extendAppStart();
     const extendedSpan = integration.getExtendedAppStartSpan();
-    expect(spanToJSON(extendedSpan).op).toBe(APP_START_EXTENDED_OP);
+    expect(spanToStaticSpanJSON(extendedSpan).op).toBe(APP_START_EXTENDED_OP);
 
     const child = startInactiveSpan({ parentSpan: extendedSpan, op: 'app.init', name: 'load config' });
     child.end();
@@ -1424,7 +1424,7 @@ describe('Extended App Start', () => {
       name: 'work',
     });
     child.end();
-    const childEndSeconds = spanToJSON(child).timestamp as number;
+    const childEndSeconds = spanToStaticSpanJSON(child).timestamp as number;
 
     // A gap between the last child finishing and the app declaring itself ready.
     await new Promise(resolve => setTimeout(resolve, 100));

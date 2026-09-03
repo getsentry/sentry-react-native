@@ -62,6 +62,11 @@ const DEFAULT_OPTIONS: ReactNativeOptions = {
   enableStallTracking: true,
   enableUserInteractionTracing: false,
   propagateTraceparent: false,
+  // Mobile keeps the classic (v8) trace lifecycle: spans are sent on their
+  // transaction rather than streamed. JS v11 defaults to `'stream'`; opting
+  // mobile into `'static'` preserves the transaction-envelope shape, the
+  // classic `spanToJSON`/`beforeSendSpan` behavior, and native-SDK ingestion.
+  traceLifecycle: 'static',
 };
 
 /**

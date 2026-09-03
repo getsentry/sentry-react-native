@@ -14,7 +14,7 @@
  */
 import type { Event, Span, TransactionEvent } from '@sentry/core';
 
-import { setCurrentClient, spanToJSON, startNewTrace, startSpanManual } from '@sentry/core';
+import { setCurrentClient, spanToStaticSpanJSON, startNewTrace, startSpanManual } from '@sentry/core';
 
 import { turboModuleContextIntegration } from '../../src/js/integrations/turboModuleContext';
 import { _resetTurboModuleAggregator } from '../../src/js/turbomodule/turboModuleAggregator';
@@ -81,7 +81,7 @@ describe('turboModuleContextIntegration with real spans', () => {
         // `SentrySpan.end()` emits `spanEnd` — where the integration writes the
         // attributes — before it seals the span, and spans created through the
         // core span API are never sealed at all, so this read sees them.
-        onSpanData = (spanToJSON(span).data ?? {}) as Record<string, unknown>;
+        onSpanData = (spanToStaticSpanJSON(span).data ?? {}) as Record<string, unknown>;
       });
     });
     const transaction = (await sentEvent) as TransactionEvent;

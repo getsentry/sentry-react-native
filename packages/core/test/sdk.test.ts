@@ -1096,7 +1096,9 @@ describe('Tests the SDK functionality', () => {
     it('adds react default integrations', () => {
       init({});
 
-      expectIntegration('InboundFilters');
+      // `InboundFilters` was renamed to `EventFilters` in JS v11 (the integration's
+      // internal `name`). RN still re-exports the factory as `inboundFiltersIntegration`.
+      expectIntegration('EventFilters');
       expectIntegration('FunctionToString');
       expectIntegration('Breadcrumbs');
       expectIntegration('Dedupe');

@@ -1,6 +1,7 @@
 import type { Client, Scope, Span, SpanJSON, StartSpanOptions } from '@sentry/core';
 
 import {
+  _INTERNAL_setSpanForScope,
   debug,
   generateTraceId,
   getActiveSpan,
@@ -157,18 +158,16 @@ export function isSentryInteractionSpan(span: Span): boolean {
   );
 }
 
-export const SCOPE_SPAN_FIELD = '_sentrySpan';
-
-export type ScopeWithMaybeSpan = Scope & {
-  [SCOPE_SPAN_FIELD]?: Span;
-};
-
 /**
  * Removes the active span from the scope.
+ *
+ * JS v11 no longer stores the active span on a `_sentrySpan` scope property; it
+ * keeps a `WeakRef` under `scope.refs.span`. Deleting the old field is a no-op,
+ * so we must clear via the official helper — otherwise the previous span stays
+ * active and becomes the parent of the next root (navigation/interaction) span.
  */
-export function clearActiveSpanFromScope(scope: ScopeWithMaybeSpan): void {
-  // oxlint-disable-next-line typescript-eslint(no-dynamic-delete)
-  delete scope[SCOPE_SPAN_FIELD];
+export function clearActiveSpanFromScope(scope: Scope): void {
+  _INTERNAL_setSpanForScope(scope, undefined);
 }
 
 /**

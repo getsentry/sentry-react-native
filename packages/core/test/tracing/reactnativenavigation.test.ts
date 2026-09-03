@@ -1,7 +1,7 @@
 import type { Event, StartSpanOptions } from '@sentry/core';
 import type { EmitterSubscription } from 'react-native';
 
-import { getActiveSpan, setCurrentClient, spanToJSON } from '@sentry/core';
+import { getActiveSpan, setCurrentClient, spanToStaticSpanJSON } from '@sentry/core';
 
 import type {
   BottomTabPressedEvent,
@@ -153,7 +153,7 @@ describe('React Native Navigation Instrumentation', () => {
 
     mockEventsRegistry.onCommand('root', {});
 
-    expect(spanToJSON(getActiveSpan()!).description).toEqual('Route Change');
+    expect(spanToStaticSpanJSON(getActiveSpan()!).description).toEqual('Route Change');
     expect(getActiveSpan()!.isRecording()).toBe(true);
 
     await jest.runAllTimersAsync();
