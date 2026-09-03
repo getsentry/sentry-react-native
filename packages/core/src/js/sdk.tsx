@@ -37,6 +37,7 @@ import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
 import { registerFeatureMarker } from './utils/featureMarkers';
+import { ensureReliablePerformanceTimeOrigin } from './utils/performanceclock';
 import { getDefaultRelease } from './utils/release';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { checkSentryJsSdkVersionMismatch } from './utils/sdkVersionCheck';
@@ -76,6 +77,12 @@ export function init(passedOptions: ReactNativeOptions): void {
   if (isRunningInMetroDevServer()) {
     return;
   }
+
+  // Guard against an unreliable `performance.timeOrigin` before any span or log is
+  // timestamped by `@sentry/core` (it caches the origin on first use). See #6630 and
+  // `ensureReliablePerformanceTimeOrigin`. The warning is deferred until after
+  // `initAndBind` enables the debug logger.
+  const timeOriginDriftMs = ensureReliablePerformanceTimeOrigin();
 
   const userOptions = {
     ...RN_GLOBAL_OBJ.__SENTRY_OPTIONS__,
@@ -188,8 +195,14 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
-  // Must run after `initAndBind`: that is where `@sentry/core` enables the debug logger
-  // (`debug.enable()` when `debug: true`), so `debug.warn` is a no-op before it.
+  // The following must run after `initAndBind`: that is where `@sentry/core` enables the debug
+  // logger (`debug.enable()` when `debug: true`), so `debug.warn` is a no-op before it.
+  if (timeOriginDriftMs !== undefined) {
+    debug.warn(
+      `[ReactNative] performance.timeOrigin diverged from Date.now() by ${Math.round(timeOriginDriftMs)}ms; ` +
+        'falling back to Date.now() for span and log timestamps (see #6630).',
+    );
+  }
   warnIfReplayIntegrationMissing(options);
   if (__DEV__) {
     checkSentryJsSdkVersionMismatch();

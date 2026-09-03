@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.25.0
 
 ### Features
 
@@ -15,6 +15,7 @@
 
 ### Fixes
 
+- Prevent silently dropped logs and spans on iOS with React Native >= 0.86 caused by an unreliable `performance.timeOrigin` ([#6654](https://github.com/getsentry/sentry-react-native/pull/6654))
 - Fix Metro bundler crash on Expo static/EAS Update exports ([#6652](https://github.com/getsentry/sentry-react-native/pull/6652))
 - No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#6651](https://github.com/getsentry/sentry-react-native/pull/6651))
 - `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
