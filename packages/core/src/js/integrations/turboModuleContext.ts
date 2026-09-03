@@ -104,6 +104,7 @@ const RNSENTRY_SKIP = [
   'addListener',
   'removeListeners',
   'setContext',
+  'removeContext',
   'setTag',
   'addFeatureFlag',
   'setExtra',
