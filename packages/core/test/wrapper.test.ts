@@ -44,6 +44,7 @@ jest.mock('react-native', () => {
       }),
     ),
     setContext: jest.fn(),
+    removeContext: jest.fn(),
     setExtra: jest.fn(),
     setTag: jest.fn(),
     addFeatureFlag: jest.fn(),
@@ -1159,6 +1160,36 @@ describe('Tests Native Wrapper', () => {
     });
   });
 
+  describe('setTag', () => {
+    test('passes string value to native method', () => {
+      NATIVE.setTag('key', 'string value');
+      expect(RNSentry.setTag).toHaveBeenCalledWith('key', 'string value');
+      expect(RNSentry.setTag).toHaveBeenCalledOnce();
+    });
+
+    test('coerces an undefined value to a string so null never crosses the native bridge', () => {
+      // `scope.setTag(key, undefined)` reaches here via `primitiveProcessor`. Without coercion
+      // `JSON.stringify(undefined)` is `undefined`, which triggers an RCTConvert warning against
+      // the non-nullable native `value` parameter on the New Architecture. See #6645.
+      NATIVE.setTag('key', undefined);
+      expect(RNSentry.setTag).toHaveBeenCalledWith('key', 'undefined');
+      expect(RNSentry.setTag).toHaveBeenCalledOnce();
+    });
+
+    test('stringifies a non-string value before passing to native method', () => {
+      // `primitiveProcessor` forwards non-string primitives unchanged, so a number can reach here.
+      NATIVE.setTag('key', 42 as unknown as string);
+      expect(RNSentry.setTag).toHaveBeenCalledWith('key', '42');
+      expect(RNSentry.setTag).toHaveBeenCalledOnce();
+    });
+
+    test('does not call native method when enableNative is false', () => {
+      NATIVE.enableNative = false;
+      NATIVE.setTag('key', 'value');
+      expect(RNSentry.setTag).not.toHaveBeenCalled();
+    });
+  });
+
   describe('addFeatureFlag', () => {
     test('passes name and boolean value to native method', () => {
       NATIVE.addFeatureFlag('my-flag', true);
@@ -1222,10 +1253,26 @@ describe('Tests Native Wrapper', () => {
       expect(RNSentry.setContext).toHaveBeenCalledOnce();
     });
 
-    test('handles null value by passing null to native method', () => {
+    test('handles null value by calling the native removeContext method', () => {
       NATIVE.setContext('key', null);
-      expect(RNSentry.setContext).toHaveBeenCalledWith('key', null);
-      expect(RNSentry.setContext).toHaveBeenCalledOnce();
+      // `null` must not reach `setContext`: on the New Architecture that would cross the bridge as
+      // `NSNull` and trigger an RCTConvert warning. See #6645.
+      expect(RNSentry.removeContext).toHaveBeenCalledWith('key');
+      expect(RNSentry.removeContext).toHaveBeenCalledOnce();
+      expect(RNSentry.setContext).not.toHaveBeenCalled();
+    });
+
+    test('falls back to setContext(key, null) when native removeContext is unavailable', () => {
+      const original = RNSentry.removeContext;
+      // Simulate a stale native binary that predates the `removeContext` method.
+      (RNSentry as unknown as { removeContext: unknown }).removeContext = undefined;
+      try {
+        NATIVE.setContext('key', null);
+        expect(RNSentry.setContext).toHaveBeenCalledWith('key', null);
+        expect(RNSentry.setContext).toHaveBeenCalledOnce();
+      } finally {
+        (RNSentry as unknown as { removeContext: unknown }).removeContext = original;
+      }
     });
 
     test('handles undefined value by converting to object with "value" key', () => {

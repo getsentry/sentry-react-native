@@ -33,6 +33,7 @@ export interface Spec extends TurboModule {
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
   setUser(defaultUserKeys: UnsafeObject | null, otherUserKeys: UnsafeObject | null): void;
   setContext(key: string, value: UnsafeObject | null): void;
+  removeContext(key: string): void;
   setExtra(key: string, value: string): void;
   setTag(key: string, value: string): void;
   addFeatureFlag(name: string, value: boolean): void;
