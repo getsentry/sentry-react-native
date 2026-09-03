@@ -10,14 +10,23 @@ yarn ios      # Run iOS app (separate terminal)
 yarn android  # Run Android app (separate terminal)
 ```
 
-## New vs Old Architecture
+## iOS: pod install build matrix
 
-The sample runs on either architecture — toggle, then reinstall pods / rebuild:
+The iOS build varies on three axes, and there's a `yarn` script per combination. Install pods through one of these rather than a bare `pod install` — each exports the env the Podfile and `pod update` read (`USE_FRAMEWORKS`, `ENABLE_PROD`, `ENABLE_NEW_ARCH`):
 
-- **iOS:** `RCT_NEW_ARCH_ENABLED=1 npx pod-install` (unset for Old Arch).
-- **Android:** `newArchEnabled` in `android/gradle.properties`.
+```
+yarn pod-install-<debug|release>-<static|dynamic>[-legacy]
+```
 
-A native change is only verified once it runs on both.
+- **debug / release** → `ENABLE_PROD` (0/1)
+- **static / dynamic** → `USE_FRAMEWORKS` framework linkage
+- **New Arch (default) / `-legacy`** → `ENABLE_NEW_ARCH` (1/0)
+
+e.g. `yarn pod-install-debug-static` (New Arch, static frameworks) or `yarn pod-install-release-dynamic-legacy` (Old Arch, dynamic frameworks). A native change is only verified once it runs across the arch and linkage combinations it can affect.
+
+## Android: architecture toggle
+
+Set `newArchEnabled` (`true`/`false`) in `android/gradle.properties`, then rebuild.
 
 ## Troubleshooting
 
