@@ -11,8 +11,10 @@ import {
   SentryNonRecordingSpan,
   SPAN_STATUS_ERROR,
   spanToStaticSpanJSON,
-  startIdleSpan as coreStartIdleSpan,
 } from '@sentry/core';
+// `startIdleSpan` moved from the `@sentry/core` root entry to its `browser`
+// subpath in JS v11 (the entry point was split into shared/browser/server).
+import { startIdleSpan as coreStartIdleSpan } from '@sentry/core/browser';
 import { AppState, Platform } from 'react-native';
 
 import { isRootSpan } from '../utils/span';

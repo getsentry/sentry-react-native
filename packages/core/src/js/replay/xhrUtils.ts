@@ -1,4 +1,7 @@
-import type { Breadcrumb, BreadcrumbHint, XhrBreadcrumbHint } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint } from '@sentry/core';
+// `XhrBreadcrumbHint` moved from the `@sentry/core` root entry to its `browser`
+// subpath in JS v11 (the entry point was split into shared/browser/server).
+import type { XhrBreadcrumbHint } from '@sentry/core/browser';
 
 import { dropUndefinedKeys } from '@sentry/core';
 
