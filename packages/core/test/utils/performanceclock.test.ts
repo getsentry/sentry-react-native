@@ -136,6 +136,19 @@ describe('ensureReliablePerformanceTimeOrigin against the real @sentry/core time
     expect(timestampInSeconds()).toBeCloseTo(NOW / 1000, 5);
   });
 
+  it('importing @sentry/core before the guard does not pre-cache the origin, so the guard still forces the Date.now() fallback', () => {
+    jest.isolateModules(() => {
+      // Realistic startup order: @sentry/core is imported at app boot, before init() runs the
+      // guard. Importing it must NOT capture the origin — only the first timestampInSeconds() does.
+      const { timestampInSeconds } = require('@sentry/core');
+
+      ensureReliablePerformanceTimeOrigin();
+
+      // First call happens after the guard, so the closure captures the zeroed origin.
+      expect(timestampInSeconds()).toBeCloseTo(NOW / 1000, 5);
+    });
+  });
+
   it('is order-dependent: running after the first timestamp cannot repair the cached closure', () => {
     // @sentry/core caches the drifted closure on first use, before the guard runs.
     const timestampInSeconds = requireFreshTimestampInSeconds();
