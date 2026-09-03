@@ -2,7 +2,7 @@ import type { MixedOutput, Module, ReadOnlyGraph } from 'metro';
 
 import * as crypto from 'crypto';
 
-import type { Bundle, MetroSerializer, MetroSerializerOutput, SerializedBundle, VirtualJSOutput } from './utils';
+import type { Bundle, MetroSerializer, SerializedBundle, VirtualJSOutput } from './utils';
 
 import {
   createDebugIdSnippet,
@@ -73,8 +73,18 @@ export const createSentryMetroSerializer = (customSerializer?: MetroSerializer):
     const modifiedPreModules = prependModule(preModules, debugIdModule);
 
     // Run wrapped serializer
-    const serializerResult = serializer(entryPoint, modifiedPreModules, graph, options);
-    const { code: bundleCode, map: bundleMapString } = await extractSerializerResult(serializerResult);
+    const serializerResult = await serializer(entryPoint, modifiedPreModules, graph, options);
+    const bundle = extractSerializerResult(serializerResult);
+    if (!bundle) {
+      // The wrapped serializer returned a non-standard output that is not a single
+      // `{ code, map }` bundle (for example Expo's static/EAS Update export, which returns an
+      // array of serial assets). We can't inject a Sentry Debug ID into such output here, so we
+      // return it untouched to avoid crashing the bundler. Debug IDs for these outputs are added
+      // by Expo's own serializer.
+      // https://github.com/getsentry/sentry-react-native/issues/6650
+      return serializerResult;
+    }
+    const { code: bundleCode, map: bundleMapString } = bundle;
 
     // Add debug id comment to the bundle
     let debugId = determineDebugIdFromBundleSource(bundleCode);
@@ -133,21 +143,31 @@ function createSentryBundleCallback(debugIdModule: Module<VirtualJSOutput> & { s
   };
 }
 
-async function extractSerializerResult(serializerResult: MetroSerializerOutput): Promise<SerializedBundle> {
+/**
+ * Normalizes an (already awaited) Metro serializer result into a `{ code, map }` bundle.
+ *
+ * Returns `null` when the result is not a standard single bundle (for example an array of serial
+ * assets produced by Expo's static export), so callers can skip Debug ID injection instead of
+ * crashing. We must not use `'map' in result` to detect a bundle: for arrays that is always `true`
+ * because of `Array.prototype.map`, which would yield `{ code: undefined }`.
+ * https://github.com/getsentry/sentry-react-native/issues/6650
+ */
+function extractSerializerResult(serializerResult: unknown): SerializedBundle | null {
   if (typeof serializerResult === 'string') {
     return { code: serializerResult, map: '{}' };
   }
 
-  if ('map' in serializerResult) {
-    return { code: serializerResult.code, map: serializerResult.map };
+  if (
+    serializerResult !== null &&
+    typeof serializerResult === 'object' &&
+    !Array.isArray(serializerResult) &&
+    typeof (serializerResult as Partial<SerializedBundle>).code === 'string'
+  ) {
+    const { code, map } = serializerResult as SerializedBundle;
+    return { code, map: typeof map === 'string' ? map : '{}' };
   }
 
-  const awaitedResult = await serializerResult;
-  if (typeof awaitedResult === 'string') {
-    return { code: awaitedResult, map: '{}' };
-  }
-
-  return { code: awaitedResult.code, map: awaitedResult.map };
+  return null;
 }
 
 function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSource: (code: string) => void } {

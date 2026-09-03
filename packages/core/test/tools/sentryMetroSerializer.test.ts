@@ -111,6 +111,32 @@ describe('Sentry Metro Serializer', () => {
     }
   });
 
+  test('does not crash when wrapped serializer returns an array (Expo static export)', async () => {
+    // Expo's Metro serializer returns a non-standard output (e.g. an array of serial assets)
+    // when doing a static/EAS Update export. The array must not be mistaken for a { code, map }
+    // bundle. Note `'map' in []` is `true` because of Array.prototype.map, which used to make the
+    // serializer return `{ code: undefined }` and crash in determineDebugIdFromBundleSource.
+    // https://github.com/getsentry/sentry-react-native/issues/6650
+    const serialAssets = [{ filename: 'index.js', source: 'console.log("a");' }];
+    const customSerializer = (() => serialAssets) as unknown as MetroSerializer;
+
+    const serializer = createSentryMetroSerializer(customSerializer);
+    const bundle = await serializer(...mockMinSerializerArgs());
+
+    // The original non-standard result is returned untouched (no debug ID injection, no crash).
+    expect(bundle).toBe(serialAssets);
+  });
+
+  test('does not crash when wrapped serializer returns a promise resolving to an array', async () => {
+    const serialAssets = [{ filename: 'index.js', source: 'console.log("a");' }];
+    const customSerializer = (() => Promise.resolve(serialAssets)) as unknown as MetroSerializer;
+
+    const serializer = createSentryMetroSerializer(customSerializer);
+    const bundle = await serializer(...mockMinSerializerArgs());
+
+    expect(bundle).toBe(serialAssets);
+  });
+
   describe('calculateDebugId', () => {
     // We need to access the private function for testing
     const crypto = require('crypto');
