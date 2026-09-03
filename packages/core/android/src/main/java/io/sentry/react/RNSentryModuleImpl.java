@@ -1,6 +1,5 @@
 package io.sentry.react;
 
-import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
 import static io.sentry.vendor.Base64.NO_PADDING;
 import static io.sentry.vendor.Base64.NO_WRAP;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -10,8 +9,10 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.SparseIntArray;
+import android.view.View;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.app.FrameMetricsAggregator;
 import androidx.fragment.app.FragmentActivity;
@@ -47,10 +48,15 @@ import io.sentry.android.core.InternalSentrySdk;
 import io.sentry.android.core.SentryAndroidDateProvider;
 import io.sentry.android.core.SentryAndroidOptions;
 import io.sentry.android.core.SentryFramesDelayResult;
+import io.sentry.android.core.SentryScreenshotOptions;
 import io.sentry.android.core.SentryShakeDetector;
 import io.sentry.android.core.ViewHierarchyEventProcessor;
 import io.sentry.android.core.internal.debugmeta.AssetsDebugMetaLoader;
+import io.sentry.android.core.internal.util.ScreenshotUtils;
 import io.sentry.android.core.internal.util.SentryFrameMetricsCollector;
+import io.sentry.android.replay.util.MaskRenderer;
+import io.sentry.android.replay.util.ViewsKt;
+import io.sentry.android.replay.viewhierarchy.ViewHierarchyNode;
 import io.sentry.android.core.performance.AppStartMetrics;
 import io.sentry.profilemeasurements.ProfileMeasurement;
 import io.sentry.profilemeasurements.ProfileMeasurementValue;
@@ -546,7 +552,7 @@ public class RNSentryModuleImpl {
     final byte[][] bytesWrapper = {{}}; // wrapper to be able to set the value in the runnable
     final Runnable runTakeScreenshot =
         () -> {
-          bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
+          bytesWrapper[0] = takeMaskedScreenshot(activity);
           doneSignal.countDown();
         };
 
@@ -564,6 +570,84 @@ public class RNSentryModuleImpl {
     }
 
     return bytesWrapper[0];
+  }
+
+  private static @Nullable byte[] takeMaskedScreenshot(final @NotNull Activity activity) {
+    final @Nullable Bitmap screenshot =
+        ScreenshotUtils.captureScreenshot(activity, logger, buildInfo);
+    if (screenshot == null) {
+      return null;
+    }
+
+    final @Nullable SentryScreenshotOptions maskingOptions = screenshotMaskingOptions();
+    if (maskingOptions == null) {
+      return ScreenshotUtils.compressBitmapToPng(screenshot, logger);
+    }
+
+    final @Nullable Bitmap masked = maskScreenshot(activity, screenshot, maskingOptions);
+    if (masked == null) {
+      return null;
+    }
+
+    return ScreenshotUtils.compressBitmapToPng(masked, logger);
+  }
+
+  private static @Nullable SentryScreenshotOptions screenshotMaskingOptions() {
+    final @NotNull SentryOptions options = ScopesAdapter.getInstance().getOptions();
+    if (!(options instanceof SentryAndroidOptions)) {
+      return null;
+    }
+
+    return ((SentryAndroidOptions) options).getScreenshot();
+  }
+
+  private static @Nullable Bitmap maskScreenshot(
+      final @NotNull Activity activity,
+      final @NotNull Bitmap screenshot,
+      final @NotNull SentryScreenshotOptions maskingOptions) {
+    Bitmap mutableScreenshot = screenshot;
+    boolean createdCopy = false;
+    try {
+      final @Nullable View rootView =
+          activity.getWindow() != null && activity.getWindow().peekDecorView() != null
+              ? activity.getWindow().peekDecorView().getRootView()
+              : null;
+      if (rootView == null) {
+        screenshot.recycle();
+        return null;
+      }
+
+      final @NotNull ViewHierarchyNode rootNode =
+          ViewHierarchyNode.Companion.fromView(rootView, null, 0, maskingOptions);
+      ViewsKt.traverse(rootView, rootNode, maskingOptions, logger, null);
+
+      if (!screenshot.isMutable()) {
+        mutableScreenshot = screenshot.copy(Bitmap.Config.ARGB_8888, true);
+        if (mutableScreenshot == null) {
+          screenshot.recycle();
+          return null;
+        }
+        createdCopy = true;
+      }
+
+      try (final MaskRenderer maskRenderer = new MaskRenderer()) {
+        maskRenderer.renderMasks(mutableScreenshot, rootNode, null);
+      }
+
+      if (createdCopy && !screenshot.isRecycled()) {
+        screenshot.recycle();
+      }
+      return mutableScreenshot;
+    } catch (Throwable e) { // NOPMD - masking must never crash the screenshot flow
+      logger.log(SentryLevel.ERROR, "Failed to mask screenshot.", e);
+      if (createdCopy && !mutableScreenshot.isRecycled()) {
+        mutableScreenshot.recycle();
+      }
+      if (!screenshot.isRecycled()) {
+        screenshot.recycle();
+      }
+      return null;
+    }
   }
 
   public void fetchViewHierarchy(Promise promise) {
