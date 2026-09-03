@@ -35,7 +35,7 @@ Android native code supports both React Native architectures — a bridge-method
 
 ## Native Bridge Pattern (Java)
 
-Catch everything at the boundary and reject — never let a native exception reach the app. The reject error code is the shared `"SentryReactNative"`, not a per-method code:
+Catch `Throwable` at the boundary — not just `Exception`, so an `Error` can't crash the app either (the module code catches `Throwable` throughout) — and reject with the shared `"SentryReactNative"` code, not a per-method one:
 
 ```java
 @ReactMethod
@@ -43,7 +43,7 @@ public void nativeOperation(String param, Promise promise) {
   try {
     boolean result = performOperation(param);
     promise.resolve(result);
-  } catch (Exception e) {
+  } catch (Throwable e) {
     promise.reject("SentryReactNative", e.getMessage(), e);
   }
 }
@@ -53,7 +53,7 @@ public void nativeOperation(String param, Promise promise) {
 
 **✅ Always**
 - Land a bridge-method change in **both** `src/oldarch/` and `src/newarch/` — one arch is not done.
-- Catch exceptions at every `@ReactMethod` and `promise.reject(...)` — an uncaught native exception crashes the host app.
+- Catch `Throwable` at every `@ReactMethod` and `promise.reject(...)` — an uncaught throwable crashes the host app.
 - Gate any user data added to events/breadcrumbs/spans on `sendDefaultPii`.
 
 **🚫 Never**
