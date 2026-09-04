@@ -110,7 +110,8 @@ export type NativeStackFrames = {
 };
 
 export type NativeAppStartResponse = {
-  type: 'cold' | 'warm' | 'unknown';
+  /** 'cold' | 'warm' | 'unknown' */
+  type: string;
   has_fetched: boolean;
   app_start_timestamp_ms?: number;
   spans: {
