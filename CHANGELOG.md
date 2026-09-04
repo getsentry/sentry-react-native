@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- A throwing `beforeBreadcrumb` now drops the breadcrumb, and a throwing `tracesSampler` now falls back to the configured `tracesSampleRate` instead of forcing 0% sampling ([#6675](https://github.com/getsentry/sentry-react-native/pull/6675))
+- A throwing `beforeBreadcrumb` now drops the breadcrumb, and a throwing `tracesSampler` now falls back to the configured `tracesSampleRate` ([#6675](https://github.com/getsentry/sentry-react-native/pull/6675))
 
 ### Dependencies
 
