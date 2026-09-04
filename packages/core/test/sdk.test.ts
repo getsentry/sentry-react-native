@@ -408,17 +408,20 @@ describe('Tests the SDK functionality', () => {
       }).not.toThrow();
       expect(mockInitialScope).toHaveBeenCalledTimes(1);
     });
-    test('beforeBreadcrumb callback is safe after init', () => {
+    test('beforeBreadcrumb callback is safe after init and drops the breadcrumb on error', () => {
       const mockBeforeBreadcrumb = jest.fn(() => {
         throw 'Test error';
       });
 
       init({ beforeBreadcrumb: mockBeforeBreadcrumb });
 
+      let result: ReturnType<NonNullable<ReturnType<typeof usedOptions>>['beforeBreadcrumb']> | undefined;
       expect(() => {
-        usedOptions()?.beforeBreadcrumb?.({} as any);
+        result = usedOptions()?.beforeBreadcrumb?.({ message: 'test' } as any);
       }).not.toThrow();
       expect(mockBeforeBreadcrumb).toHaveBeenCalledTimes(1);
+      // Per the Callback Error Isolation spec the breadcrumb is dropped (null) on error.
+      expect(result).toBeNull();
     });
 
     test('integrations callback should not crash init', () => {
@@ -432,17 +435,21 @@ describe('Tests the SDK functionality', () => {
       expect(mockIntegrations).toHaveBeenCalledTimes(1);
     });
 
-    test('tracesSampler callback is safe after init', () => {
+    test('tracesSampler callback is safe after init and falls back to tracesSampleRate on error', () => {
       const mockTraceSampler = jest.fn(() => {
         throw 'Test error';
       });
 
-      init({ tracesSampler: mockTraceSampler });
+      init({ tracesSampler: mockTraceSampler, tracesSampleRate: 0.42 });
 
+      let result: number | boolean | undefined;
       expect(() => {
-        usedOptions()?.tracesSampler?.({} as any);
+        result = usedOptions()?.tracesSampler?.({} as any);
       }).not.toThrow();
       expect(mockTraceSampler).toHaveBeenCalledTimes(1);
+      // Per the Callback Error Isolation spec the sampler falls back to the configured
+      // tracesSampleRate rather than substituting a hardcoded 0.
+      expect(result).toBe(0.42);
     });
   });
 
