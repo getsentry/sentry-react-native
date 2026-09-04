@@ -22,7 +22,13 @@
       // subpath export, which classic `node` resolution can't follow. Point directly at its types.
       "@sentry/bundler-plugins/babel-plugin": [
         "./node_modules/@sentry/bundler-plugins/build/types/babel-plugin/index.d.ts"
-      ]
+      ],
+      // react-native >=0.87 dropped its root `types` field; its type definitions are now only
+      // reachable through the package `exports` map, which classic `node` resolution can't follow.
+      // Point directly at the shipped legacy type definitions (what earlier RN versions' root
+      // `types` field resolved to), so both `import ... from 'react-native'` and the global types
+      // keep resolving.
+      "react-native": ["./node_modules/react-native/types/index.d.ts"]
     },
     "outDir": "dist",
     "rootDir": "src",
@@ -30,9 +36,9 @@
       "es7"
     ],
     "jsx": "react",
-    "types": [
-      "react-native"
-    ],
+    // react-native's global types are pulled in via the `paths` mapping above; classic `node`
+    // resolution can no longer discover them through the removed root `types` field.
+    "types": [],
     "target": "es6",
     "module": "es6",
     "skipLibCheck": true,

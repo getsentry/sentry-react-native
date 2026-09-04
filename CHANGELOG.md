@@ -8,25 +8,44 @@
 
 ## Unreleased
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9270)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.26.1...9.27.0)
+
+## 8.25.0
+
 ### Features
 
 - Copy `app.vitals.start.screen` and `app.vitals.start.type` onto standalone `app.start` children, including user spans under `app.start.extended` ([#6631](https://github.com/getsentry/sentry-react-native/pull/6631))
 - `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
 
+### Fixes
+
+- Prevent silently dropped logs and spans on iOS with React Native >= 0.86 caused by an unreliable `performance.timeOrigin` ([#6654](https://github.com/getsentry/sentry-react-native/pull/6654))
+- Fix Metro bundler crash on Expo static/EAS Update exports ([#6652](https://github.com/getsentry/sentry-react-native/pull/6652))
+- No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#6651](https://github.com/getsentry/sentry-react-native/pull/6651))
+- `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
+
+### Internal
+
+- Resolve Metro from the app's project root when generating source maps ([#6625](https://github.com/getsentry/sentry-react-native/pull/6625))
+
 ### Dependencies
 
-- Bump Android SDK from v8.53.0 to v8.54.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8540)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.53.0...8.54.0)
+- Bump Android SDK from v8.53.0 to v8.55.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624), [#6658](https://github.com/getsentry/sentry-react-native/pull/6658))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8550)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.53.0...8.55.0)
 - Bump Cocoa SDK from v9.24.0 to v9.26.1 ([#6623](https://github.com/getsentry/sentry-react-native/pull/6623))
   - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9261)
   - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.1)
 - Bump CLI from v3.6.2 to v3.7.0 ([#6632](https://github.com/getsentry/sentry-react-native/pull/6632))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#370)
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.2...3.7.0)
-- Bump JavaScript SDK from v10.71.0 to v10.72.0 ([#6634](https://github.com/getsentry/sentry-react-native/pull/6634))
-  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10720)
-  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.71.0...10.72.0)
+- Bump JavaScript SDK from v10.71.0 to v10.73.0 ([#6634](https://github.com/getsentry/sentry-react-native/pull/6634), [#6642](https://github.com/getsentry/sentry-react-native/pull/6642))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10730)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.71.0...10.73.0)
 
 ## 8.24.0
 
