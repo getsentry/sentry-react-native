@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Internal
+
+- Add tvOS sample app ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))

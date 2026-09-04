@@ -317,6 +317,84 @@ jobs:
           name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
           path: samples/react-native-macos/macos/*.log
 
+  build-tvos:
+    name: Build new tvos ${{ matrix.build-type }}
+    runs-on: macos-26-xlarge
+    needs: [diff_check, detect-changes]
+    if: >-
+      ${{
+        needs.diff_check.outputs.skip_ci != 'true'
+        && needs.detect-changes.outputs.needs_sample_react_native == 'true'
+        && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
+      }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: ["dev", "production"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
+        with:
+          working-directory: samples/react-native-tvos
+          ruby-version: "3.3.0" # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
+
+      - name: Setup Global Xcode Tools
+        run: which xcbeautify || brew install xcbeautify
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Install App Pods
+        working-directory: samples/react-native-tvos
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
+          export ENABLE_NEW_ARCH=1
+
+          ./scripts/pod-install.sh
+
+      - name: Build tvOS App
+        working-directory: samples/react-native-tvos/ios
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
+          echo "Building $CONFIG"
+          mkdir -p "DerivedData"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          set -o pipefail && xcodebuild \
+            -workspace TVOSSample.xcworkspace \
+            -configuration "$CONFIG" \
+            -scheme TVOSSample \
+            -destination 'generic/platform=tvOS Simulator' \
+            ONLY_ACTIVE_ARCH=yes \
+            -derivedDataPath "$derivedData" \
+            build \
+            | tee xcodebuild.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: build-sample-new-tvos-${{ matrix.build-type }}-no-frameworks-logs
+          path: samples/react-native-tvos/ios/*.log
+
   test-ios:
     name: Test ios production REV2
     runs-on: ["bitrise_pool_name:tahoe"]
