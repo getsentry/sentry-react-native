@@ -1,0 +1,41 @@
+{
+  "name": "sentry-react-native-visionos-sample",
+  "version": "8.25.0",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "lint": "npx oxlint",
+    "fix": "npx oxlint --fix",
+    "type-check": "tsc --noEmit",
+    "pod-install-legacy": "cd visionos; bundle exec pod install; cd ..",
+    "pod-install-legacy-production": "cd visionos; PRODUCTION=1 bundle exec pod install; cd ..",
+    "clean-visionos": "cd visionos; rm -rf Podfile.lock Pods build; cd ..",
+    "clean-watchman": "watchman watch-del-all"
+  },
+  "dependencies": {
+    "@callstack/react-native-visionos": "0.79.6",
+    "@sentry/react-native": "8.25.0",
+    "react": "19.0.0",
+    "react-native": "0.79.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@callstack/out-of-tree-platforms": "0.77.0",
+    "@react-native-community/cli": "18.0.0",
+    "@react-native-community/cli-platform-android": "18.0.0",
+    "@react-native-community/cli-platform-apple": "18.0.0",
+    "@react-native-community/cli-platform-ios": "18.0.0",
+    "@react-native/babel-preset": "0.79.6",
+    "@react-native/metro-config": "0.79.6",
+    "@react-native/typescript-config": "0.79.6",
+    "@types/react": "^19.0.0",
+    "jest": "^29.6.3",
+    "sentry-react-native-samples-utils": "workspace:^",
+    "typescript": "5.0.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
