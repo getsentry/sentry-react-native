@@ -317,6 +317,95 @@ jobs:
           name: build-sample-legacy-macos-${{ matrix.build-type }}-no-frameworks-logs
           path: samples/react-native-macos/macos/*.log
 
+  build-visionos:
+    name: Build new visionos ${{ matrix.build-type }}
+    # visionOS ships with Xcode 26; macos-26 runners have the visionOS
+    # Simulator SDK preinstalled, so a build-only job needs no runtime download.
+    runs-on: macos-26-xlarge
+    needs: [diff_check, detect-changes]
+    if: >-
+      ${{
+        needs.diff_check.outputs.skip_ci != 'true'
+        && needs.detect-changes.outputs.needs_sample_react_native == 'true'
+        && (needs.detect-changes.outputs.sample_react_native == 'true' || needs.detect-changes.outputs.needs_ios == 'true')
+      }}
+    env:
+      SENTRY_DISABLE_AUTO_UPLOAD: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        # @callstack/react-native-visionos is New Architecture only.
+        build-type: ["dev", "production"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1
+        with:
+          working-directory: samples/react-native-visionos
+          ruby-version: "3.3.0" # based on what is used in the sample
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          cache-version: 1 # cache the installed gems
+
+      - name: Setup Global Xcode Tools
+        run: which xcbeautify || brew install xcbeautify
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Install App Pods
+        working-directory: samples/react-native-visionos
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export ENABLE_PROD=1 || export ENABLE_PROD=0
+          export ENABLE_NEW_ARCH=1
+
+          ./scripts/pod-install.sh
+
+      - name: Build visionOS App
+        working-directory: samples/react-native-visionos/visionos
+        env:
+          # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
+          # missing Swift compatibility libraries (swiftCompatibility56, etc.)
+          # See: https://github.com/actions/runner-images/issues/13135
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
+          echo "Building $CONFIG"
+          # Build for a generic simulator destination — a compile gate only, so no
+          # booted simulator or runtime image is required. A separate derivedDataPath
+          # keeps pod-install's `build/generated/ios` codegen intact.
+          mkdir -p "DerivedData"
+          derivedData="$(cd "DerivedData" ; pwd -P)"
+          set -o pipefail && xcodebuild \
+            -workspace VisionSample.xcworkspace \
+            -configuration "$CONFIG" \
+            -scheme VisionSample \
+            -destination 'generic/platform=visionOS Simulator' \
+            ONLY_ACTIVE_ARCH=yes \
+            -derivedDataPath "$derivedData" \
+            build \
+            | tee xcodebuild.log \
+            | xcbeautify --quieter --is-ci --disable-colored-output
+
+      - name: Upload logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: build-sample-new-visionos-${{ matrix.build-type }}-no-frameworks-logs
+          path: samples/react-native-visionos/visionos/*.log
+
   test-ios:
     name: Test ios production REV2
     runs-on: ["bitrise_pool_name:tahoe"]

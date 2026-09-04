@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix visionOS compilation ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))

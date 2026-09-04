@@ -55,6 +55,7 @@ js_test:
 sample_react_native:
   - 'samples/react-native/**'
   - 'samples/react-native-macos/**'
+  - 'samples/react-native-visionos/**'
 
 # Changes to the Expo sample app.
 # Triggers: sample-application-expo.yml only.
