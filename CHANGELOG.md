@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add `anrProfilingSampleRate` option to profile ANRs on Android ([#6672](https://github.com/getsentry/sentry-react-native/pull/6672))
+- Add `anrProfilingSampleRate` option to profile ANRs on Android ([#6673](https://github.com/getsentry/sentry-react-native/pull/6673))
 
 ### Dependencies
 
