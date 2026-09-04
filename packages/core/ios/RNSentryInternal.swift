@@ -117,6 +117,11 @@ import Foundation
     // MARK: - Screenshot / view hierarchy / screen
 
     #if os(iOS) || os(tvOS) || os(visionOS)
+    @_spi(Private) @objc public static func setCurrentScreen(_ screenName: String?) {
+        SentrySDK.internal.screen.setCurrent(screenName)
+    }
+
+    #if os(iOS) || os(tvOS)
     @_spi(Private) @objc public static var captureScreenshots: [Data]? {
         SentrySDK.internal.screenshot.capture()
     }
@@ -124,14 +129,10 @@ import Foundation
     @_spi(Private) @objc public static var captureViewHierarchy: Data? {
         SentrySDK.internal.viewHierarchy.capture()
     }
-
-    @_spi(Private) @objc public static func setCurrentScreen(_ screenName: String?) {
-        SentrySDK.internal.screen.setCurrent(screenName)
-    }
     #else
     @_spi(Private) @objc public static var captureScreenshots: [Data]? { nil }
     @_spi(Private) @objc public static var captureViewHierarchy: Data? { nil }
-    @_spi(Private) @objc public static func setCurrentScreen(_ screenName: String?) {}
+    #endif
     #endif
 
     // MARK: - Replay
