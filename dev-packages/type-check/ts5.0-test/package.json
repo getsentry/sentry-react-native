@@ -1,8 +1,8 @@
 {
-  "name": "sentry-react-native-ts-3-8-test",
+  "name": "sentry-react-native-ts-5-0-test",
   "version": "0.0.0",
   "private": true,
-  "description": "Sentry React Native TypeScript 3.8 Test",
+  "description": "Sentry React Native TypeScript 5.0 Test",
   "main": "index.ts",
   "scripts": {
     "type-check": "tsc --project tsconfig.build.json"
@@ -11,7 +11,7 @@
   "devDependencies": {
     "@types/react": "17.0.83",
     "@types/react-native": "0.65.30",
-    "typescript": "3.8.3"
+    "typescript": "5.0.4"
   },
   "dependencies": {
     "@sentry/expo-upload-sourcemaps": "file:.yalc/@sentry/expo-upload-sourcemaps",

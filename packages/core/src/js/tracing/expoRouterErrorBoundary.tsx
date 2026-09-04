@@ -9,9 +9,11 @@ import {
   getClient,
   getRootSpan,
   SPAN_STATUS_ERROR,
-  spanToJSON,
+  spanToStaticSpanJSON,
 } from '@sentry/core';
 import * as React from 'react';
+
+import type { ReactNativeClientOptions } from '../options';
 
 import { registerFeatureMarker } from '../utils/featureMarkers';
 import { getCurrentExpoRouterRouteInfo } from './expoRouterStore';
@@ -110,7 +112,7 @@ export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryPro
 }
 
 function reportRouterBoundaryError(error: Error): void {
-  const sendPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
+  const sendPii = (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
   const route = getCurrentExpoRouterRouteInfo();
 
   const templatedPath = route?.templatedPath;
@@ -160,7 +162,7 @@ function markActiveNavigationSpanErrored(): void {
     return;
   }
   const root = getRootSpan(active);
-  const origin = spanToJSON(root).origin;
+  const origin = spanToStaticSpanJSON(root).origin;
   if (typeof origin !== 'string' || !origin.startsWith('auto.navigation.')) {
     return;
   }

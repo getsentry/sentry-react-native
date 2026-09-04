@@ -1,8 +1,21 @@
-import type { Breadcrumb, BreadcrumbHint, SentryWrappedXMLHttpRequest, XhrBreadcrumbHint } from '@sentry/core';
+import type { Breadcrumb, BreadcrumbHint } from '@sentry/core';
+// `XhrBreadcrumbHint` moved from the `@sentry/core` root entry to its `browser`
+// subpath in JS v11 (the entry point was split into shared/browser/server).
+import type { XhrBreadcrumbHint } from '@sentry/core/browser';
 
 import { dropUndefinedKeys } from '@sentry/core';
 
 import type { NetworkBody, RequestBody, ResolvedNetworkOptions } from './networkUtils';
+
+// `SentryWrappedXMLHttpRequest` / `SentryXhrData` were removed from `@sentry/core` in
+// JS v11. Declare the subset this module relies on locally.
+interface SentryXhrData {
+  request_headers: Record<string, string>;
+}
+
+interface SentryWrappedXMLHttpRequest {
+  __sentry_xhr_v3__?: SentryXhrData;
+}
 
 import {
   decodeUtf8,

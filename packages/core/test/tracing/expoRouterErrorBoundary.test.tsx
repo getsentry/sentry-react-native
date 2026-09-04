@@ -30,7 +30,7 @@ jest.mock('@sentry/core', () => {
     }),
     getActiveSpan: () => mockActiveSpan,
     getRootSpan: (span: unknown) => span,
-    spanToJSON: (span: { __origin?: string } | undefined) => ({ origin: span?.__origin }),
+    spanToStaticSpanJSON: (span: { __origin?: string } | undefined) => ({ origin: span?.__origin }),
   };
 });
 

@@ -1,6 +1,6 @@
 import type { Span } from '@sentry/core';
 
-import { getCurrentScope, spanToJSON, startSpanManual } from '@sentry/core';
+import { getCurrentScope, spanToStaticSpanJSON, startSpanManual } from '@sentry/core';
 
 import { reactNativeTracingIntegration } from '../../src/js';
 import { setupTestClient, type TestClient } from '../mocks/client';
@@ -17,7 +17,7 @@ describe('Tracing extensions', () => {
   test('transaction has default op', async () => {
     const transaction = startSpanManual({ name: 'parent' }, span => span);
 
-    expect(spanToJSON(transaction)).toEqual(
+    expect(spanToStaticSpanJSON(transaction)).toEqual(
       expect.objectContaining({
         op: 'default',
       }),
@@ -27,7 +27,7 @@ describe('Tracing extensions', () => {
   test('transaction does not overwrite custom op', async () => {
     const transaction = startSpanManual({ name: 'parent', op: 'custom' }, span => span);
 
-    expect(spanToJSON(transaction)).toEqual(
+    expect(spanToStaticSpanJSON(transaction)).toEqual(
       expect.objectContaining({
         op: 'custom',
       }),
@@ -38,7 +38,7 @@ describe('Tracing extensions', () => {
     startSpanManual({ name: 'parent', scope: getCurrentScope() }, () => {});
     const span = startSpanManual({ name: 'child', scope: getCurrentScope() }, span => span);
 
-    expect(spanToJSON(span)).toEqual(
+    expect(spanToStaticSpanJSON(span)).toEqual(
       expect.objectContaining({
         op: 'default',
       }),
@@ -49,7 +49,7 @@ describe('Tracing extensions', () => {
     startSpanManual({ name: 'parent', op: 'custom', scope: getCurrentScope() }, () => {});
     const span = startSpanManual({ name: 'child', op: 'custom', scope: getCurrentScope() }, span => span);
 
-    expect(spanToJSON(span)).toEqual(
+    expect(spanToStaticSpanJSON(span)).toEqual(
       expect.objectContaining({
         op: 'custom',
       }),
@@ -75,9 +75,9 @@ describe('Tracing extensions', () => {
         }),
       }),
     );
-    expect(spanToJSON(childSpan)).toEqual(
+    expect(spanToStaticSpanJSON(childSpan)).toEqual(
       expect.objectContaining({
-        parent_span_id: spanToJSON(transaction).span_id,
+        parent_span_id: spanToStaticSpanJSON(transaction).span_id,
       }),
     );
   });

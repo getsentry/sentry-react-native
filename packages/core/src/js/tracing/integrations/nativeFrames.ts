@@ -1,6 +1,6 @@
 import type { Client, Event, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
 
-import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
+import { debug, getRootSpan, spanIsSampled, spanToStaticSpanJSON, timestampInSeconds } from '@sentry/core';
 
 import type { NativeFramesResponse } from '../../NativeRNSentry';
 
@@ -134,7 +134,7 @@ export const nativeFramesIntegration = (): Integration => {
     let childEndFramesPromise: Promise<NativeFramesResponse> | undefined;
     if (!isRootSpan(span)) {
       const rootSpanId = getRootSpan(span).spanContext().spanId;
-      const spanTimestamp = spanToJSON(span).timestamp;
+      const spanTimestamp = spanToStaticSpanJSON(span).timestamp;
       if (spanTimestamp) {
         childEndFramesPromise = fetchNativeFrames();
         _lastChildSpanEndFramesByRootSpan.set(
@@ -195,7 +195,7 @@ export const nativeFramesIntegration = (): Integration => {
           `[${INTEGRATION_NAME}] Attached frame data to span ${spanId}: total=${totalFrames}, slow=${slowFrames}, frozen=${frozenFrames}`,
         );
 
-        const spanJson = spanToJSON(span);
+        const spanJson = spanToStaticSpanJSON(span);
         if (spanJson.start_timestamp && spanJson.timestamp) {
           try {
             const delay = await fetchNativeFramesDelay(spanJson.start_timestamp, spanJson.timestamp);

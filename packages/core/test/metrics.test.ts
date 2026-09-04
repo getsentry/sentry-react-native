@@ -24,13 +24,15 @@ describe('Metrics', () => {
   });
 
   describe('beforeSendMetric', () => {
-    it('is called when enableMetrics is true and a metric is sent', async () => {
+    // JS v11 removed the `enableMetrics` option: metrics are captured whenever a
+    // metric API is used, so there is no longer a flag that suppresses them. The
+    // previous `enableMetrics: false` suppression test was dropped accordingly.
+    it('is called when a metric is sent', async () => {
       const beforeSendMetric = jest.fn(metric => metric);
 
       const client = new ReactNativeClient({
         ...getDefaultTestClientOptions({
           dsn: EXAMPLE_DSN,
-          enableMetrics: true,
           beforeSendMetric,
         }),
       });
@@ -43,27 +45,6 @@ describe('Metrics', () => {
 
       jest.advanceTimersByTime(10000);
       expect(beforeSendMetric).toHaveBeenCalled();
-    });
-
-    it('is not called when enableMetrics is false', async () => {
-      const beforeSendMetric = jest.fn(metric => metric);
-
-      const client = new ReactNativeClient({
-        ...getDefaultTestClientOptions({
-          dsn: EXAMPLE_DSN,
-          enableMetrics: false,
-          beforeSendMetric,
-        }),
-      });
-
-      setCurrentClient(client);
-      client.init();
-
-      // Send a metric
-      metrics.count('test_metric', 1);
-
-      jest.advanceTimersByTime(10000);
-      expect(beforeSendMetric).not.toHaveBeenCalled();
     });
 
     it('is called when enableMetrics is undefined (metrics are enabled by default)', async () => {

@@ -1,14 +1,7 @@
 import type { Event, StartSpanOptions } from '@sentry/core';
 import type { EmitterSubscription } from 'react-native';
 
-import {
-  getActiveSpan,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-  spanToJSON,
-} from '@sentry/core';
+import { getActiveSpan, setCurrentClient, spanToStaticSpanJSON } from '@sentry/core';
 
 import type {
   BottomTabPressedEvent,
@@ -35,6 +28,7 @@ import {
 } from '../../src/js/tracing/semanticAttributes';
 import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../../src/js/tracing/span';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { clearAllScopes } from '../testutils';
 
 interface MockEventsRegistry extends EventsRegistry {
   componentWillAppearListener?: (event: ComponentWillAppearEvent) => void;
@@ -55,9 +49,7 @@ describe('React Native Navigation Instrumentation', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
   });
 
   test('Correctly instruments a route change', async () => {
@@ -161,7 +153,7 @@ describe('React Native Navigation Instrumentation', () => {
 
     mockEventsRegistry.onCommand('root', {});
 
-    expect(spanToJSON(getActiveSpan()!).description).toEqual('Route Change');
+    expect(spanToStaticSpanJSON(getActiveSpan()!).description).toEqual('Route Change');
     expect(getActiveSpan()!.isRecording()).toBe(true);
 
     await jest.runAllTimersAsync();

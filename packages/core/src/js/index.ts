@@ -50,35 +50,13 @@ export {
   addEventProcessor,
   lastEventId,
   consoleSandbox,
-  instrumentOpenAiClient,
-  instrumentAnthropicAiClient,
-  instrumentGoogleGenAIClient,
-  createLangChainCallbackHandler,
-  instrumentStateGraph,
-  instrumentStateGraphCompile,
   addConsoleInstrumentationFilter,
 } from '@sentry/core';
 
-/** @deprecated Use `instrumentStateGraph` instead. `instrumentLangGraph` will be removed in a future major version. */
-export { instrumentLangGraph } from '@sentry/core';
-
-export type {
-  OpenAiClient,
-  OpenAiOptions,
-  InstrumentedMethod,
-  AnthropicAiClient,
-  AnthropicAiOptions,
-  AnthropicAiInstrumentedMethod,
-  AnthropicAiResponse,
-  GoogleGenAIClient,
-  GoogleGenAIChat,
-  GoogleGenAIOptions,
-  LangChainOptions,
-  LangChainIntegration,
-  LangGraphOptions,
-  LangGraphIntegration,
-  CompiledGraph,
-} from '@sentry/core';
+// NOTE: The AI instrumentation helpers (OpenAI, Anthropic, Google GenAI, LangChain,
+// LangGraph) and their types were removed from `@sentry/core` in JS v11 and moved to
+// the server-only `@sentry/server-utils` package, which React Native does not depend
+// on. They are therefore no longer re-exported here.
 
 export {
   ErrorBoundary,

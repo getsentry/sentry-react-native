@@ -14,21 +14,14 @@
  */
 import type { Event, Span, TransactionEvent } from '@sentry/core';
 
-import {
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-  spanToJSON,
-  startNewTrace,
-  startSpanManual,
-} from '@sentry/core';
+import { setCurrentClient, spanToStaticSpanJSON, startNewTrace, startSpanManual } from '@sentry/core';
 
 import { turboModuleContextIntegration } from '../../src/js/integrations/turboModuleContext';
 import { _resetTurboModuleAggregator } from '../../src/js/turbomodule/turboModuleAggregator';
 import { _resetTurboModuleTracker } from '../../src/js/turbomodule/turboModuleTracker';
 import { _resetWrappedModules } from '../../src/js/turbomodule/wrapTurboModule';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
+import { clearAllScopes } from '../testutils';
 
 const SYNC_CALL_COUNT = 5;
 
@@ -37,9 +30,7 @@ describe('turboModuleContextIntegration with real spans', () => {
     _resetTurboModuleTracker();
     _resetTurboModuleAggregator();
     _resetWrappedModules();
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
   });
 
   afterEach(() => {
@@ -90,7 +81,7 @@ describe('turboModuleContextIntegration with real spans', () => {
         // `SentrySpan.end()` emits `spanEnd` — where the integration writes the
         // attributes — before it seals the span, and spans created through the
         // core span API are never sealed at all, so this read sees them.
-        onSpanData = (spanToJSON(span).data ?? {}) as Record<string, unknown>;
+        onSpanData = (spanToStaticSpanJSON(span).data ?? {}) as Record<string, unknown>;
       });
     });
     const transaction = (await sentEvent) as TransactionEvent;

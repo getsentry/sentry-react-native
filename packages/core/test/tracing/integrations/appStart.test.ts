@@ -9,7 +9,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
   setCurrentClient,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -53,7 +53,7 @@ import { RN_GLOBAL_OBJ } from '../../../src/js/utils/worldwide';
 import { NATIVE } from '../../../src/js/wrapper';
 import { mockAppRegistryIntegration } from '../../mocks/appRegistryIntegrationMock';
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
-import { mockFunction } from '../../testutils';
+import { clearAllScopes, mockFunction } from '../../testutils';
 
 type AppStartIntegrationTest = ReturnType<typeof appStartIntegration> & {
   setFirstStartedActiveRootSpanId: (spanId: string | undefined) => void;
@@ -413,9 +413,7 @@ describe('App Start Integration', () => {
     });
 
     it('Does not add app start span twice', async () => {
-      getCurrentScope().clear();
-      getIsolationScope().clear();
-      getGlobalScope().clear();
+      clearAllScopes();
 
       const [timeOriginMilliseconds, appStartTimeMilliseconds] = mockAppStart({ cold: true });
 
@@ -467,9 +465,7 @@ describe('App Start Integration', () => {
       // starts a navigation transaction before the standalone app start transaction is created.
       // The fix ensures that when standalone: true, the span ID check is skipped so app start
       // can be attached to the standalone transaction even if a navigation transaction started first.
-      getCurrentScope().clear();
-      getIsolationScope().clear();
-      getGlobalScope().clear();
+      clearAllScopes();
 
       mockAppStart({ cold: true });
 
@@ -519,9 +515,7 @@ describe('App Start Integration', () => {
     });
 
     it('Connects the standalone app start transaction to the active trace', async () => {
-      getCurrentScope().clear();
-      getIsolationScope().clear();
-      getGlobalScope().clear();
+      clearAllScopes();
 
       mockAppStart({ cold: true });
 
@@ -1302,9 +1296,7 @@ describe('Extended App Start', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockReactNativeBundleExecutionStartTimestamp();
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
     _clearAppStartEndData();
     _clearRootComponentCreationTimestampMs();
   });
@@ -1348,7 +1340,7 @@ describe('Extended App Start', () => {
 
     integration.extendAppStart();
     const extendedSpan = integration.getExtendedAppStartSpan();
-    expect(spanToJSON(extendedSpan).op).toBe(APP_START_EXTENDED_OP);
+    expect(spanToStaticSpanJSON(extendedSpan).op).toBe(APP_START_EXTENDED_OP);
 
     const child = startInactiveSpan({ parentSpan: extendedSpan, op: 'app.init', name: 'load config' });
     child.end();
@@ -1432,7 +1424,7 @@ describe('Extended App Start', () => {
       name: 'work',
     });
     child.end();
-    const childEndSeconds = spanToJSON(child).timestamp as number;
+    const childEndSeconds = spanToStaticSpanJSON(child).timestamp as number;
 
     // A gap between the last child finishing and the app declaring itself ready.
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -1895,9 +1887,7 @@ describe('appLoaded() standalone mode', () => {
   });
 
   it('triggers standalone app start capture via appLoaded()', async () => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const [, appStartTimeMilliseconds] = mockAppStart({ cold: true });
 
@@ -1930,9 +1920,7 @@ describe('appLoaded() standalone mode', () => {
   });
 
   it('overrides already-flushed standalone transaction when appLoaded() is called after auto-capture', async () => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const [, appStartTimeMilliseconds] = mockAppStart({ cold: true });
 
@@ -1974,9 +1962,7 @@ describe('appLoaded() standalone mode', () => {
   it('sends deferred standalone transaction when appLoaded() is not called', async () => {
     jest.useFakeTimers();
 
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const [, appStartTimeMilliseconds] = mockAppStart({ cold: true });
 
@@ -2014,9 +2000,7 @@ describe('appLoaded() standalone mode', () => {
   it('does not send a second standalone transaction when appLoaded() arrives after the deferred auto-capture fired', async () => {
     jest.useFakeTimers();
 
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     mockAppStart({ cold: true });
 
@@ -2050,9 +2034,7 @@ describe('appLoaded() standalone mode', () => {
   });
 
   it('does not send a second standalone transaction when appLoaded() races an in-flight capture', async () => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
     // Reset module-level state so the test is hermetic (clears isAppLoadedManuallyInvoked so
     // appLoaded() actually runs its capture, and any leaked app start end data).
     _clearAppStartEndData();
@@ -2104,9 +2086,7 @@ describe('appLoaded() standalone mode', () => {
   });
 
   it('captures once per run and re-captures for a new run after runApplication', async () => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
     _clearAppStartEndData();
     _clearRootComponentCreationTimestampMs();
 
@@ -2144,9 +2124,7 @@ describe('appLoaded() standalone mode', () => {
   });
 
   it('allows auto-capture again after isAppLoadedManuallyInvoked is reset', async () => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     mockAppStart({ cold: true });
 
@@ -2448,9 +2426,7 @@ function expectStandaloneChildrenHaveAppStartVitals(
 }
 
 async function captureStandAloneAppStart(): Promise<PromiseLike<Event | null> | Event | null> {
-  getCurrentScope().clear();
-  getIsolationScope().clear();
-  getGlobalScope().clear();
+  clearAllScopes();
 
   const integration = appStartIntegration({
     standalone: true,
