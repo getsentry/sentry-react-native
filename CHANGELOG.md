@@ -10,7 +10,7 @@
 
 ### Features
 
-- Expose the iOS `enableMemoryIntrospection` option to omit memory contents from native crash reports ([#6547](https://github.com/getsentry/sentry-react-native/issues/6547))
+- Expose the iOS `enableMemoryIntrospection` option to omit memory contents from native crash reports ([#6547](https://github.com/getsentry/sentry-react-native/pull/6674))
 
 ### Dependencies
 
