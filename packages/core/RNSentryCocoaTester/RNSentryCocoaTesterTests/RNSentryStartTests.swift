@@ -226,6 +226,25 @@ final class RNSentryStartTests: XCTestCase {
         XCTAssertTrue(actualOptions.screenshot.maskAllImages)
     }
 
+    func testMemoryIntrospectionOption() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            "enableMemoryIntrospection": true
+        ])
+
+        let actualOptions = SentrySDK.internal.options
+        XCTAssertTrue(actualOptions.enableMemoryIntrospection)
+    }
+
+    func testMemoryIntrospectionOptionDefault() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456"
+        ])
+
+        let actualOptions = SentrySDK.internal.options
+        XCTAssertFalse(actualOptions.enableMemoryIntrospection)
+    }
+
     func startFromRN(options: [String: Any]) throws {
         var error: NSError?
         RNSentryStart.start(options: options, error: &error)

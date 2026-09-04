@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Expose the iOS `enableMemoryIntrospection` option to omit memory contents from native crash reports ([#6547](https://github.com/getsentry/sentry-react-native/issues/6547))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))

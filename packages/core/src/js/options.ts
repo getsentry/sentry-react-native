@@ -238,6 +238,21 @@ export interface BaseReactNativeOptions {
   enableMetricKit?: boolean;
 
   /**
+   * When enabled, `SentryCrash` reads memory near the crash site while capturing a native crash
+   * (e.g. `EXC_BAD_ACCESS`) and embeds string-based stack contents in the event. This can help
+   * with debugging, but may also expose sensitive information (such as user IDs or personal data),
+   * which can even surface in the issue title.
+   *
+   * Disable this option to keep native crash reporting while omitting memory contents.
+   *
+   * iOS only
+   *
+   * @default false
+   * @platform ios
+   */
+  enableMemoryIntrospection?: boolean;
+
+  /**
    * The max queue size for capping the number of envelopes waiting to be sent by Transport.
    */
   maxQueueSize?: number;
