@@ -1,5 +1,7 @@
 # packages/core/android — Java & Kotlin
 
+> **Depth lives in the skills.** `code-guidelines` (`.agents/skills/`, esp. `references/native-bridge.md`) is authoritative for bridge and native conventions — load it before non-trivial work. This file is the quick reference for the Android surface; where a convention here overlaps a skill, the skill wins.
+
 ## Formatting & Linting
 
 | Task | Command |
@@ -25,12 +27,15 @@
 
 ## Architecture Variants
 
-Android native code supports both old and new React Native architectures:
+Android native code supports both React Native architectures — a bridge-method change usually has to land in **both**:
+
 - `src/oldarch/` — Legacy bridge implementation
 - `src/newarch/` — TurboModule / Fabric implementation
-- `src/main/` — Shared code
+- `src/main/` — Shared code (`io.sentry.react`)
 
 ## Native Bridge Pattern (Java)
+
+Catch `Throwable` at the boundary — not just `Exception`, so an `Error` can't crash the app either (the module code catches `Throwable` throughout) — and reject with the shared `"SentryReactNative"` code, not a per-method one:
 
 ```java
 @ReactMethod
@@ -38,11 +43,22 @@ public void nativeOperation(String param, Promise promise) {
   try {
     boolean result = performOperation(param);
     promise.resolve(result);
-  } catch (Exception e) {
-    promise.reject("OPERATION_FAILED", "Operation failed: " + e.getMessage(), e);
+  } catch (Throwable e) {
+    promise.reject("SentryReactNative", e.getMessage(), e);
   }
 }
 ```
+
+## Boundaries
+
+**✅ Always**
+- Land a bridge-method change in **both** `src/oldarch/` and `src/newarch/` — one arch is not done.
+- Catch `Throwable` at every `@ReactMethod` and `promise.reject(...)` — an uncaught throwable crashes the host app.
+- Gate any user data added to events/breadcrumbs/spans on `sendDefaultPii`.
+
+**🚫 Never**
+- Change the codegen bridge ABI without mirroring it in JS + iOS and keeping it backward-compatible with an older cached native binary.
+- Bump the bundled `io.sentry:sentry-android` version by hand — go through `scripts/update-android.sh`.
 
 ## Working with Local sentry-java
 
