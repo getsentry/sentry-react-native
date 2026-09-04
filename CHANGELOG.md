@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- A throwing `beforeBreadcrumb` now drops the breadcrumb, and a throwing `tracesSampler` now falls back to the configured `tracesSampleRate` instead of forcing 0% sampling ([#6668](https://github.com/getsentry/sentry-react-native/issues/6668))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))
