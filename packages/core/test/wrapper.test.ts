@@ -336,6 +336,41 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE.enableNative).toBe(true);
     });
 
+    test('passes enableMemoryIntrospection to the Native SDK when set', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableMemoryIntrospection: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).toEqual(expect.objectContaining({ enableMemoryIntrospection: true }));
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('does not pass enableMemoryIntrospection to the Native SDK when not set', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('enableMemoryIntrospection');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
     test('does not initialize with autoInitializeNativeSdk: false', async () => {
       NATIVE.enableNative = false;
       debug.warn = jest.fn();
