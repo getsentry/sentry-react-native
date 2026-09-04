@@ -594,7 +594,7 @@
 					" ",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/@callstack/react-native-visionos";
-				SDKROOT = iphoneos;
+				SDKROOT = xros;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				USE_HERMES = true;
 			};
@@ -666,7 +666,7 @@
 					" ",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/@callstack/react-native-visionos";
-				SDKROOT = iphoneos;
+				SDKROOT = xros;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};

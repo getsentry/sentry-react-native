@@ -26,9 +26,31 @@
     return NO;
 }
 
+// The visionOS app uses the SwiftUI `@main` + `RCTMainWindow` lifecycle, so there is no
+// `AppDelegate.window`. Reach the root view controller through the active window scene instead.
+- (UIViewController *)rootViewController
+{
+    for (UIScene *scene in RCTSharedApplication().connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        for (UIWindow *window in windowScene.windows) {
+            if (window.isKeyWindow && window.rootViewController) {
+                return window.rootViewController;
+            }
+        }
+        for (UIWindow *window in windowScene.windows) {
+            if (window.rootViewController) {
+                return window.rootViewController;
+            }
+        }
+    }
+    return nil;
+}
+
 - (void)testRendersWelcomeScreen
 {
-    UIViewController *vc = [[[RCTSharedApplication() delegate] window] rootViewController];
     NSDate *date = [NSDate dateWithTimeIntervalSinceNow:TIMEOUT_SECONDS];
     BOOL foundElement = NO;
 
@@ -48,6 +70,7 @@
         [[NSRunLoop mainRunLoop] runMode:NSRunLoopCommonModes
                               beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
 
+        UIViewController *vc = [self rootViewController];
         foundElement =
             [self findSubviewInView:vc.view
                            matching:^BOOL(UIView *view) {
