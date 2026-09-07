@@ -177,6 +177,23 @@ describe('Tests Native Wrapper', () => {
       expect(debug.warn).toHaveBeenLastCalledWith('Note: Native Sentry SDK is disabled.');
     });
 
+    test('forwards anrProfilingSampleRate to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        anrProfilingSampleRate: 0.5,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.anrProfilingSampleRate).toBe(0.5);
+    });
+
     test('filter beforeSend when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,
@@ -333,6 +350,41 @@ describe('Tests Native Wrapper', () => {
       // @ts-expect-error mock value
       const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
       expect(initParameter).not.toHaveProperty('enableMetricKit');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('passes enableMemoryIntrospection to the Native SDK when set', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableMemoryIntrospection: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).toEqual(expect.objectContaining({ enableMemoryIntrospection: true }));
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('does not pass enableMemoryIntrospection to the Native SDK when not set', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('enableMemoryIntrospection');
       expect(NATIVE.enableNative).toBe(true);
     });
 
