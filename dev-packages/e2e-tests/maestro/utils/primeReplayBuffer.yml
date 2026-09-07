@@ -1,0 +1,16 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+# Buffer-mode replay (replaysOnErrorSampleRate) only attaches a replay_id to the
+# error event if the native replay buffer captured at least one frame before the
+# error fired. Immediately after launch the buffer can still be empty on slow CI
+# simulators, so the event is sent without a replay_id and no server-side retry
+# can recover it. Tap the "Replay Ping" counter repeatedly to mutate the view
+# hierarchy (and spend a few seconds of wall-clock while Maestro re-reads the UI
+# between taps) so the native capture records frames before the exception is
+# captured. If this proves insufficient on CI, increase the repeat count.
+- repeat:
+    times: 8
+    commands:
+      - tapOn:
+          id: 'replayPing'
