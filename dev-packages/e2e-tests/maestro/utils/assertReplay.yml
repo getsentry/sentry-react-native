@@ -20,4 +20,7 @@ jsEngine: graaljs
 - assertTrue: ${output.replayId}
 - assertTrue: ${output.replayDuration}
 - assertTrue: ${output.replaySegments}
-- assertTrue: ${output.replayCodec == "ftypmp42"}
+# Assert a valid MP4 container was produced (the "ftyp" box at byte offset 4)
+# rather than a platform-specific major brand: iOS (AVAssetWriter) emits "mp42"
+# while Android (MediaMuxer) may emit a different brand such as "isom".
+- assertTrue: ${output.replayCodec.startsWith("ftyp")}
