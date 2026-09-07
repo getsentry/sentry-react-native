@@ -11,6 +11,7 @@
 ### Features
 
 - Expose the iOS `enableMemoryIntrospection` option to omit memory contents from native crash reports ([#6547](https://github.com/getsentry/sentry-react-native/pull/6674))
+- Add `anrProfilingSampleRate` option to profile ANRs on Android ([#6673](https://github.com/getsentry/sentry-react-native/pull/6673))
 
 ### Dependencies
 
