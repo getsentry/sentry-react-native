@@ -104,6 +104,21 @@ export interface BaseReactNativeOptions {
   enableAnrFingerprinting?: boolean;
 
   /**
+   * Sample rate for profiling ANR (Application Not Responding) events.
+   *
+   * When set to a value greater than `0.0`, the SDK profiles the main thread while an ANR is
+   * happening and attaches the resulting profile to the ANR event. The value is the probability
+   * (`0.0`–`1.0`) that any given ANR is profiled.
+   *
+   * Requires ANR detection, which is enabled by default. This is independent of UI/transaction
+   * profiling configured via `profilesSampleRate` and `_experiments.profilingOptions`.
+   *
+   * @default undefined (ANR profiling disabled)
+   * @platform android
+   */
+  anrProfilingSampleRate?: number;
+
+  /**
    * When enabled, all the threads are automatically attached to all logged events on Android
    *
    * @platform android

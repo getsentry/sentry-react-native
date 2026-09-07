@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add `anrProfilingSampleRate` option to profile ANRs on Android ([#6673](https://github.com/getsentry/sentry-react-native/pull/6673))
+
 ### Dependencies
 
 - Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))
