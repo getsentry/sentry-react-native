@@ -9096,6 +9096,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-tvos/virtualized-lists@npm:0.87.1-0":
+  version: 0.87.1-0
+  resolution: "@react-native-tvos/virtualized-lists@npm:0.87.1-0"
+  dependencies:
+    invariant: "npm:^2.2.4"
+    nullthrows: "npm:^1.1.1"
+  peerDependencies:
+    "@types/react": ^19.2.0
+    react: "*"
+    react-native: 0.87.1
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/0e0eeea810ea71bb10734f6cc39d055a91742ad9541ae8f967c03a4589e39faf587021577a1dbdeacc26abf8f26d9e646db7007a512d7a8c47505882acfd9bd7
+  languageName: node
+  linkType: hard
+
 "@react-native-vector-icons/common@npm:^12.3.0":
   version: 12.3.0
   resolution: "@react-native-vector-icons/common@npm:12.3.0"
@@ -27658,6 +27675,52 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native@npm:react-native-tvos@0.87.1-0":
+  version: 0.87.1-0
+  resolution: "react-native-tvos@npm:0.87.1-0"
+  dependencies:
+    "@react-native-tvos/virtualized-lists": "npm:0.87.1-0"
+    "@react-native/asset-utils": "npm:0.87.1"
+    "@react-native/codegen": "npm:0.87.1"
+    "@react-native/community-cli-plugin": "npm:0.87.1"
+    "@react-native/gradle-plugin": "npm:0.87.1"
+    "@react-native/normalize-colors": "npm:0.87.1"
+    anser: "npm:^1.4.9"
+    ansi-regex: "npm:^5.0.0"
+    babel-plugin-syntax-hermes-parser: "npm:0.36.1"
+    base64-js: "npm:^1.5.1"
+    commander: "npm:^12.0.0"
+    flow-enums-runtime: "npm:^0.0.6"
+    hermes-compiler: "npm:250829098.0.17"
+    invariant: "npm:^2.2.4"
+    memoize-one: "npm:^5.0.0"
+    metro-runtime: "npm:^0.87.0"
+    metro-source-map: "npm:^0.87.0"
+    nullthrows: "npm:^1.1.1"
+    pretty-format: "npm:^29.7.0"
+    promise: "npm:^8.3.0"
+    react-devtools-core: "npm:^6.1.5"
+    react-refresh: "npm:^0.14.0"
+    regenerator-runtime: "npm:^0.13.2"
+    scheduler: "npm:0.27.0"
+    semver: "npm:^7.1.3"
+    stacktrace-parser: "npm:^0.1.10"
+    tinyglobby: "npm:^0.2.15"
+    whatwg-fetch: "npm:^3.0.0"
+    ws: "npm:^7.5.10"
+    yargs: "npm:^17.6.2"
+  peerDependencies:
+    "@types/react": ^19.1.1
+    react: ^19.2.3
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  bin:
+    react-native: cli.js
+  checksum: 10c0/9aa0b7b2cab22031df2b093df870a5023b3bcf571903cbee87ed74f54f6e12887998f6921a99b31cd3e565ee22d2d98f8aefa894ad4ba5b8451d149c474f30d0
+  languageName: node
+  linkType: hard
+
 "react-redux@npm:^9.2.0":
   version: 9.2.0
   resolution: "react-redux@npm:9.2.0"
@@ -29218,6 +29281,29 @@ __metadata:
   resolution: "sentry-react-native-samples-utils@workspace:dev-packages/utils"
   dependencies:
     metro-config: "npm:^0.82.2"
+  languageName: unknown
+  linkType: soft
+
+"sentry-react-native-tvos-sample@workspace:samples/react-native-tvos":
+  version: 0.0.0-use.local
+  resolution: "sentry-react-native-tvos-sample@workspace:samples/react-native-tvos"
+  dependencies:
+    "@babel/core": "npm:^7.25.2"
+    "@babel/preset-env": "npm:^7.25.3"
+    "@babel/runtime": "npm:^7.25.0"
+    "@react-native-community/cli": "npm:20.1.3"
+    "@react-native-community/cli-platform-android": "npm:20.1.3"
+    "@react-native-community/cli-platform-ios": "npm:20.1.3"
+    "@react-native/babel-preset": "npm:0.87.1"
+    "@react-native/metro-config": "npm:0.87.1"
+    "@react-native/typescript-config": "npm:0.87.1"
+    "@sentry/react-native": "npm:8.25.0"
+    "@types/react": "npm:^19.0.0"
+    jest: "npm:^29.6.3"
+    react: "npm:19.2.3"
+    react-native: "npm:react-native-tvos@0.87.1-0"
+    sentry-react-native-samples-utils: "workspace:^"
+    typescript: "npm:5.0.4"
   languageName: unknown
   linkType: soft
 

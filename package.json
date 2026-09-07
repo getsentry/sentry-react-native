@@ -50,6 +50,7 @@
     "samples/react-native",
     "samples/react-native-macos",
     "samples/react-native-visionos",
+    "samples/react-native-tvos",
     "samples/expo",
     "performance-tests/TestAppPlain",
     "performance-tests/TestAppSentry"
