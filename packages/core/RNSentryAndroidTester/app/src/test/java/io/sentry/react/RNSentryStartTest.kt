@@ -401,6 +401,38 @@ class RNSentryStartTest {
     }
 
     @Test
+    fun `when anrProfilingSampleRate is set, the ANR profiling sample rate is applied`() {
+        val rnOptions = JavaOnlyMap.of("anrProfilingSampleRate", 0.5)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals(0.5, options.anrProfilingSampleRate!!, 0.0)
+        assertTrue("ANR profiling should be enabled", options.isAnrProfilingEnabled)
+    }
+
+    @Test
+    fun `when anrProfilingSampleRate is not set, it remains at default (disabled)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertNull("ANR profiling sample rate should be null by default", options.anrProfilingSampleRate)
+        assertFalse("ANR profiling should be disabled by default", options.isAnrProfilingEnabled)
+    }
+
+    @Test
+    fun `when anrProfilingSampleRate is not a number, it is ignored`() {
+        val rnOptions = JavaOnlyMap.of("anrProfilingSampleRate", "invalid")
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertNull("ANR profiling sample rate should remain null", options.anrProfilingSampleRate)
+    }
+
+    @Test
     fun `network detail replay options are forwarded to the native replay options`() {
         val mobileReplayOptions =
             JavaOnlyMap.of(

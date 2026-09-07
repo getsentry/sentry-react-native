@@ -1,4 +1,5 @@
 #import "SentryNativeInitializer.h"
+@import RNSentry.Swift;
 @import Sentry;
 
 @implementation SentryNativeInitializer
@@ -27,9 +28,9 @@
         // Enable the App start and Frames tracking measurements
         // If this is disabled the app start and frames tracking
         // won't be passed from native to JS transactions
-        PrivateSentrySDKOnly.appStartMeasurementHybridSDKMode = true;
+        RNSentryInternal.appStartMeasurementHybridSDKMode = true;
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
-        PrivateSentrySDKOnly.framesTrackingMeasurementHybridSDKMode = true;
+        RNSentryInternal.framesTrackingMeasurementHybridSDKMode = true;
 #endif
     }];
 }
