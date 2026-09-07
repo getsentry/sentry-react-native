@@ -105,6 +105,24 @@ function patchBoostIfNeeded(rnVersion, patchScriptsDir) {
   });
 }
 
+// RN < 0.72 runs its iOS codegen while CocoaPods evaluates the Podfile
+// (`use_react_native!`), and that codegen passes `quirks_mode: true` to the
+// json gem. json 3.0.0 removed the `quirks_mode` option, so a fresh
+// `bundle install` (the rn-diff-purge Gemfile pins cocoapods but not json)
+// resolves json 3.0.0 and pod install fails with
+// "Invalid `Podfile` file: unknown keyword: quirks_mode.". Pin json below 3.0
+// for these older RN versions. Newer RN codegen dropped the option and is
+// unaffected.
+function pinJsonGemIfNeeded(rnVersion, appDir) {
+  const versionNumber = parseFloat(rnVersion.replace(/[^\d.]/g, ''));
+  const gemfilePath = `${appDir}/Gemfile`;
+  if (platform !== 'ios' || versionNumber >= 0.72 || !fs.existsSync(gemfilePath)) {
+    return;
+  }
+  console.log(`Pinning json gem < 3.0 for React Native ${rnVersion}`);
+  fs.appendFileSync(gemfilePath, `\ngem 'json', '< 3.0'\n`, { encoding: 'utf-8' });
+}
+
 // Build and publish the SDK - we only need to do this once in CI.
 // Locally, we may want to get updates from the latest build so do it on every app build.
 if (actions.includes('create') || (env.CI === undefined && actions.includes('build'))) {
@@ -244,6 +262,8 @@ if (actions.includes('create')) {
     if (fs.existsSync(`${appDir}/ios/Podfile.lock`)) {
       fs.rmSync(`${appDir}/ios/Podfile.lock`);
     }
+
+    pinJsonGemIfNeeded(RNVersion, appDir);
 
     if (fs.existsSync(`${appDir}/Gemfile`)) {
       execSync(`bundle install`, { stdio: 'inherit', cwd: appDir, env: env });

@@ -5,10 +5,10 @@
 #import "SentrySDKWrapper.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryProfilingConditionals.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
+@import RNSentry.Swift;
 @import Sentry;
 
 @interface RNSentryInitNativeSdkTests : XCTestCase
@@ -283,7 +283,7 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 }
 ;
 [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
-SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
+SentryOptions *actualOptions = RNSentryInternal.options;
 XCTAssertNotNil(actualOptions, @"Did not create sentry options");
 XCTAssertNil(error, @"Should not pass no error");
 XCTAssertNotNil(
@@ -303,7 +303,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
     [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
-    SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
+    SentryOptions *actualOptions = RNSentryInternal.options;
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -638,7 +638,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         },
     };
     [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
-    SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
+    SentryOptions *actualOptions = RNSentryInternal.options;
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
