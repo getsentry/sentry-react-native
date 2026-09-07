@@ -104,6 +104,21 @@ export interface BaseReactNativeOptions {
   enableAnrFingerprinting?: boolean;
 
   /**
+   * Sample rate for profiling ANR (Application Not Responding) events.
+   *
+   * When set to a value greater than `0.0`, the SDK profiles the main thread while an ANR is
+   * happening and attaches the resulting profile to the ANR event. The value is the probability
+   * (`0.0`–`1.0`) that any given ANR is profiled.
+   *
+   * Requires ANR detection, which is enabled by default. This is independent of UI/transaction
+   * profiling configured via `profilesSampleRate` and `_experiments.profilingOptions`.
+   *
+   * @default undefined (ANR profiling disabled)
+   * @platform android
+   */
+  anrProfilingSampleRate?: number;
+
+  /**
    * When enabled, all the threads are automatically attached to all logged events on Android
    *
    * @platform android
@@ -236,6 +251,21 @@ export interface BaseReactNativeOptions {
    * @platform ios
    */
   enableMetricKit?: boolean;
+
+  /**
+   * When enabled, `SentryCrash` reads memory near the crash site while capturing a native crash
+   * (e.g. `EXC_BAD_ACCESS`) and embeds string-based stack contents in the event. This can help
+   * with debugging, but may also expose sensitive information (such as user IDs or personal data),
+   * which can even surface in the issue title.
+   *
+   * Disable this option to keep native crash reporting while omitting memory contents.
+   *
+   * iOS only
+   *
+   * @default false
+   * @platform ios
+   */
+  enableMemoryIntrospection?: boolean;
 
   /**
    * The max queue size for capping the number of envelopes waiting to be sent by Transport.
