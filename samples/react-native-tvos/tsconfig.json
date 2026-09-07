@@ -1,0 +1,17 @@
+// prettier-ignore
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig.json to read more about this file */
+
+    /* Completeness */
+    "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
+    "baseUrl": ".",
+    /* react-native-tvos@0.87.1-0 ships a broken exports "types" pointer
+       (./types_generated/index.d.ts is missing from the package); map
+       react-native to the legacy typings that do ship. */
+    "paths": {
+      "react-native": ["./node_modules/react-native/types/index.d.ts"],
+    },
+  },
+}
