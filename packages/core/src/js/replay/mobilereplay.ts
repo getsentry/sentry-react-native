@@ -362,23 +362,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   // `captureReplay`). If that roll misses, the event carries a `replay_id` for a
   // replay that is never uploaded. A fully-correct fix requires the native SDKs
   // to decouple the on-error sampling decision from the buffer upload.
-  const MAX_PENDING_REPLAY_FLUSHES = 100;
-
-  // event_ids linked to a buffered replay in `beforeSend` that still need the
-  // native replay flushed once the event survives sampling (in `afterSendEvent`).
-  const eventsPendingReplayFlush = new Set<string>();
-
-  function markEventPendingReplayFlush(eventId: string): void {
-    // Bound the set: errors dropped by sampling never reach `afterSendEvent`,
-    // so their entries would otherwise accumulate. Evict oldest-first.
-    if (eventsPendingReplayFlush.size >= MAX_PENDING_REPLAY_FLUSHES) {
-      const oldest = eventsPendingReplayFlush.values().next().value;
-      if (oldest !== undefined) {
-        eventsPendingReplayFlush.delete(oldest);
-      }
-    }
-    eventsPendingReplayFlush.add(eventId);
-  }
 
   function tagEventWithReplayId(event: ErrorEvent, hint: EventHint): ErrorEvent {
     const hasException = event.exception?.values && event.exception.values.length > 0;
@@ -417,9 +400,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
         ...event.contexts.replay,
         replay_id: replayId,
       };
-      if (event.event_id) {
-        markEventPendingReplayFlush(event.event_id);
-      }
       debug.log(
         `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} linked replay ${replayId} to event ${event.event_id}; flush deferred until after sampling.`,
       );
@@ -433,10 +413,13 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
   async function flushReplayForSentEvent(event: Event): Promise<void> {
     const eventId = event.event_id;
-    if (!eventId || !eventsPendingReplayFlush.has(eventId)) {
+    // Only flush for events that were linked to a buffered replay in
+    // `beforeSend`. The link lives on the event itself, so no shared bookkeeping
+    // is needed: events dropped by sampling never reach this hook and cannot
+    // affect the flush decision for other events.
+    if (!eventId || !event.contexts?.replay?.replay_id) {
       return;
     }
-    eventsPendingReplayFlush.delete(eventId);
 
     try {
       const replayId = await NATIVE.captureReplay(isHardCrash(event));
@@ -446,6 +429,10 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
           `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} flushed recording replay ${replayId} for sent event ${eventId}.`,
         );
       } else {
+        // No replay was uploaded (e.g. an on-error sampling miss). Re-read the
+        // current recording id so the cache stops exposing an id that was never
+        // uploaded; it resolves to the still-active buffer id, or null.
+        updateCachedReplayId(NATIVE.getCurrentReplayId());
         debug.log(
           `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${eventId} (replaysOnErrorSampleRate).`,
         );

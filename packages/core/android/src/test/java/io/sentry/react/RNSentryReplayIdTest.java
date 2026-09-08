@@ -6,10 +6,12 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import io.sentry.IScope;
 import io.sentry.IScopes;
@@ -46,9 +48,11 @@ public class RNSentryReplayIdTest {
   }
 
   /**
-   * Wires {@code Sentry.getCurrentScopes().getOptions().getReplayController()} to return the id.
+   * Wires {@code Sentry.getCurrentScopes().getOptions().getReplayController()} to return the id and
+   * hands back the mocked controller so callers can verify interactions with it.
    */
-  private void stubControllerReplayId(final MockedStatic<Sentry> sentry, final SentryId id) {
+  private ReplayController stubControllerReplayId(
+      final MockedStatic<Sentry> sentry, final SentryId id) {
     final ReplayController replayController = mock(ReplayController.class);
     when(replayController.getReplayId()).thenReturn(id);
     final SentryOptions options = mock(SentryOptions.class);
@@ -56,6 +60,7 @@ public class RNSentryReplayIdTest {
     final IScopes scopes = mock(IScopes.class);
     when(scopes.getOptions()).thenReturn(options);
     sentry.when(Sentry::getCurrentScopes).thenReturn(scopes);
+    return replayController;
   }
 
   @Test
@@ -112,6 +117,50 @@ public class RNSentryReplayIdTest {
       internal.when(InternalSentrySdk::getCurrentScope).thenReturn(null);
 
       assertNull(module.getCurrentReplayId());
+    }
+  }
+
+  @Test
+  public void captureReplayResolvesNullOnSamplingMissEvenWhileBuffering() {
+    // On an on-error sampling miss the controller still holds the buffered id, but the scope has
+    // none because nothing was uploaded. captureReplay must resolve null (matching iOS), rather
+    // than leak the buffered id as if a replay had been sent.
+    final SentryId bufferedId = new SentryId();
+
+    try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class);
+        MockedStatic<InternalSentrySdk> internal = mockStatic(InternalSentrySdk.class)) {
+      final ReplayController replayController = stubControllerReplayId(sentry, bufferedId);
+      final IScope scope = mock(IScope.class);
+      when(scope.getReplayId()).thenReturn(SentryId.EMPTY_ID);
+      internal.when(InternalSentrySdk::getCurrentScope).thenReturn(scope);
+
+      final Promise promise = mock(Promise.class);
+      module.captureReplay(true, promise);
+
+      verify(replayController).captureReplay(true);
+      verify(promise).resolve(null);
+    }
+  }
+
+  @Test
+  public void captureReplayResolvesScopeIdWhenReplayWasSent() {
+    // When a replay is actually sent the scope carries its id; captureReplay resolves that, not the
+    // controller's id, so JS learns the real uploaded replay id.
+    final SentryId bufferedId = new SentryId();
+    final SentryId scopeId = new SentryId();
+
+    try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class);
+        MockedStatic<InternalSentrySdk> internal = mockStatic(InternalSentrySdk.class)) {
+      final ReplayController replayController = stubControllerReplayId(sentry, bufferedId);
+      final IScope scope = mock(IScope.class);
+      when(scope.getReplayId()).thenReturn(scopeId);
+      internal.when(InternalSentrySdk::getCurrentScope).thenReturn(scope);
+
+      final Promise promise = mock(Promise.class);
+      module.captureReplay(false, promise);
+
+      verify(replayController).captureReplay(false);
+      verify(promise).resolve(scopeId.toString());
     }
   }
 }
