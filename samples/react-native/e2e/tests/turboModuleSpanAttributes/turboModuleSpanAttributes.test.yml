@@ -1,0 +1,51 @@
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      isE2ETest: true
+
+# App launches on ErrorsTab (first tab)
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# The entry button is below the fold on smaller devices
+- scrollUntilVisible:
+    element: 'TurboModule Playground'
+    timeout: 10000
+    direction: DOWN
+- tapOn: 'TurboModule Playground'
+
+- assertVisible:
+    id: 'turbo-module-status'
+
+- tapOn: 'Run TurboModule calls'
+
+# Sync C++ calls + one async platform call, wrapped in a manual root span
+- extendedWaitUntil:
+    visible: 'Status: Done'
+    timeout: 30000
+
+- assertVisible: 'Sync: add x5 = 15'
+- assertVisible: 'Async: getPlatform = .*'
+
+- tapOn: 'Throw from native platform'
+- extendedWaitUntil:
+    visible: 'Throw: captured platform throw as .*'
+    timeout: 30000
+
+# The `turbo_module.*` attributes the TurboModuleContext integration attached
+# to the root span are rendered on screen. Scroll it into view before asserting.
+# The exact aggregate counts are asserted against the transaction envelope
+# in turboModuleSpanAttributes.test.ts, which is the authoritative source.
+- scrollUntilVisible:
+    element:
+      text: 'turbo_module.total_call_count: .*'
+    direction: DOWN
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: 'turbo_module.total_error_count: 0'
+    direction: DOWN
+    timeout: 10000

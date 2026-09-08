@@ -12,6 +12,18 @@
 
 import type { TurboModuleCallKind } from './turboModuleTracker';
 
+/**
+ * The React Native architecture the wrapped module lives under.
+ *
+ * `'new'` — TurboModule (New Architecture). Records come from `wrapTurboModule`
+ * against `TurboModuleRegistry`-resolved modules.
+ *
+ * `'legacy'` — bridge NativeModule (Old Architecture). Records come from the
+ * legacy wrapper (`wrapNativeModules`) which mirrors the same instrumentation
+ * surface on top of `NativeModules.*`.
+ */
+export type TurboModuleArch = 'new' | 'legacy';
+
 /** Upper-exclusive bucket boundaries in milliseconds, matching the issue. */
 export const HISTOGRAM_BUCKETS_MS: readonly number[] = [1, 5, 20, 100, 500];
 
@@ -26,7 +38,7 @@ export const HISTOGRAM_BUCKET_LABELS: readonly string[] = [
 ];
 
 /**
- * Aggregate counters for a single `(module, method, kind)` triplet.
+ * Aggregate counters for a single `(module, method, kind, arch)` tuple.
  */
 export interface TurboModuleAggregate {
   /** TurboModule name, e.g. `RNSentry`. */
@@ -35,6 +47,8 @@ export interface TurboModuleAggregate {
   method: string;
   /** Whether the invocation was `sync` (blocking) or `async` (returns a Promise). */
   kind: TurboModuleCallKind;
+  /** Which architecture the module lives under. */
+  arch: TurboModuleArch;
   /** Number of calls recorded since the last drain. */
   callCount: number;
   /** Number of calls that threw / rejected since the last drain. */
@@ -54,16 +68,45 @@ interface MutableAggregate extends TurboModuleAggregate {
   buckets: number[];
 }
 
+export interface TurboModuleRecord {
+  name: string;
+  method: string;
+  kind: TurboModuleCallKind;
+  arch: TurboModuleArch;
+  durationMs: number;
+  errored: boolean;
+  /**
+   * Correlator returned by {@link notifyTurboModuleCallStart}. Present when the
+   * wrap layer paired the record with a start notification; missing when a
+   * caller invokes `recordTurboModuleCall` directly (tests, external hooks).
+   */
+  recordId?: number;
+}
+
+export interface TurboModuleCallStart {
+  recordId: number;
+  name: string;
+  method: string;
+  kind: TurboModuleCallKind;
+  arch: TurboModuleArch;
+}
+
+export type TurboModuleRecordObserver = (record: TurboModuleRecord) => void;
+export type TurboModuleCallStartObserver = (start: TurboModuleCallStart) => void;
+
 const aggregates = new Map<string, MutableAggregate>();
 const ignoredModules = new Set<string>();
 let onFirstRecordAfterEmpty: (() => void) | undefined;
+const observers: Set<TurboModuleRecordObserver> = new Set();
+const startObservers: Set<TurboModuleCallStartObserver> = new Set();
+let nextRecordId = 0;
 // When `false`, `recordTurboModuleCall` is a no-op. The integration flips
 // this off when `enableAggregateStats: false` so wrapped TurboModule calls
 // don't accumulate into a map that nothing ever drains.
 let recordingEnabled = true;
 
-function makeKey(name: string, method: string, kind: TurboModuleCallKind): string {
-  return `${name}|${method}|${kind}`;
+function makeKey(name: string, method: string, kind: TurboModuleCallKind, arch: TurboModuleArch): string {
+  return `${name}|${method}|${kind}|${arch}`;
 }
 
 function bucketIndexForDuration(durationMs: number): number {
@@ -109,55 +152,131 @@ export function recordTurboModuleCall(args: {
   kind: TurboModuleCallKind;
   durationMs: number;
   errored: boolean;
+  recordId?: number;
+  /** Defaults to `'new'` for backward compatibility with the pre-legacy callers. */
+  arch?: TurboModuleArch;
 }): void {
-  if (!recordingEnabled) {
-    return;
-  }
   if (ignoredModules.has(args.name)) {
     return;
   }
 
-  const wasEmpty = aggregates.size === 0;
+  const arch: TurboModuleArch = args.arch ?? 'new';
   const duration = args.durationMs > 0 ? args.durationMs : 0;
-  const key = makeKey(args.name, args.method, args.kind);
 
-  let entry = aggregates.get(key);
-  if (!entry) {
-    entry = {
+  if (recordingEnabled) {
+    const wasEmpty = aggregates.size === 0;
+    const key = makeKey(args.name, args.method, args.kind, arch);
+
+    let entry = aggregates.get(key);
+    if (!entry) {
+      entry = {
+        name: args.name,
+        method: args.method,
+        kind: args.kind,
+        arch,
+        callCount: 0,
+        errorCount: 0,
+        totalDurationMs: 0,
+        maxDurationMs: 0,
+        buckets: new Array(HISTOGRAM_BUCKETS_MS.length + 1).fill(0) as number[],
+      };
+      aggregates.set(key, entry);
+    }
+
+    entry.callCount += 1;
+    if (args.errored) {
+      entry.errorCount += 1;
+    }
+    entry.totalDurationMs += duration;
+    if (duration > entry.maxDurationMs) {
+      entry.maxDurationMs = duration;
+    }
+
+    const bucket = bucketIndexForDuration(duration);
+    entry.buckets[bucket] = (entry.buckets[bucket] ?? 0) + 1;
+
+    if (wasEmpty && onFirstRecordAfterEmpty) {
+      try {
+        onFirstRecordAfterEmpty();
+      } catch {
+        // intentionally swallowed
+      }
+    }
+  }
+
+  // Observers fire regardless of `recordingEnabled` so span attribution and
+  // slow-call breadcrumbs work even when aggregate stats are opted out.
+  if (observers.size > 0) {
+    const record: TurboModuleRecord = {
       name: args.name,
       method: args.method,
       kind: args.kind,
-      callCount: 0,
-      errorCount: 0,
-      totalDurationMs: 0,
-      maxDurationMs: 0,
-      buckets: new Array(HISTOGRAM_BUCKETS_MS.length + 1).fill(0) as number[],
+      arch,
+      durationMs: duration,
+      errored: args.errored,
+      recordId: args.recordId,
     };
-    aggregates.set(key, entry);
-  }
-
-  entry.callCount += 1;
-  if (args.errored) {
-    entry.errorCount += 1;
-  }
-  entry.totalDurationMs += duration;
-  if (duration > entry.maxDurationMs) {
-    entry.maxDurationMs = duration;
-  }
-
-  const bucket = bucketIndexForDuration(duration);
-  // Bucket index is bounded by `bucketIndexForDuration`; `?? 0` here only
-  // exists to satisfy `noUncheckedIndexedAccess`.
-  entry.buckets[bucket] = (entry.buckets[bucket] ?? 0) + 1;
-
-  if (wasEmpty && onFirstRecordAfterEmpty) {
-    // Don't let a misbehaving observer corrupt the aggregate.
-    try {
-      onFirstRecordAfterEmpty();
-    } catch {
-      // intentionally swallowed
+    for (const observer of observers) {
+      try {
+        observer(record);
+      } catch {
+        // A misbehaving observer must not drop records for others.
+      }
     }
   }
+}
+
+/**
+ * Subscribes to per-record notifications. Fires for records that survive the
+ * `setAggregateRecordingEnabled` / `setIgnoredTurboModules` filters — the same
+ * set that reaches the aggregate map. Observers run synchronously on the wrap
+ * hot path, so must be O(1); thrown errors are swallowed.
+ */
+export function addTurboModuleRecordObserver(observer: TurboModuleRecordObserver): void {
+  observers.add(observer);
+}
+
+export function removeTurboModuleRecordObserver(observer: TurboModuleRecordObserver): void {
+  observers.delete(observer);
+}
+
+/**
+ * Notifies start observers that a TurboModule call is about to run and returns
+ * a `recordId` correlator. The paired {@link recordTurboModuleCall} passes the
+ * same id back so consumers (e.g. per-span attribution) can associate the
+ * settle-time record with state captured at call-start time — matters for
+ * async calls that outlive the span they started in.
+ *
+ * Returns the `recordId` even for ignored modules so the wrap layer never has
+ * to branch — the paired record for an ignored module will be filtered out.
+ */
+export function notifyTurboModuleCallStart(
+  name: string,
+  method: string,
+  kind: TurboModuleCallKind,
+  arch: TurboModuleArch = 'new',
+): number {
+  const recordId = nextRecordId++;
+  if (ignoredModules.has(name) || startObservers.size === 0) {
+    return recordId;
+  }
+  const event: TurboModuleCallStart = { recordId, name, method, kind, arch };
+  for (const observer of startObservers) {
+    try {
+      observer(event);
+    } catch {
+      // A misbehaving observer must not drop the start signal for others.
+    }
+  }
+  return recordId;
+}
+
+export function addTurboModuleCallStartObserver(observer: TurboModuleCallStartObserver): void {
+  startObservers.add(observer);
+}
+
+export function removeTurboModuleCallStartObserver(observer: TurboModuleCallStartObserver): void {
+  startObservers.delete(observer);
 }
 
 /**
@@ -204,6 +323,7 @@ export function drainTurboModuleAggregate(): TurboModuleAggregate[] {
       name: entry.name,
       method: entry.method,
       kind: entry.kind,
+      arch: entry.arch,
       callCount: entry.callCount,
       errorCount: entry.errorCount,
       totalDurationMs: entry.totalDurationMs,
@@ -230,5 +350,8 @@ export function _resetTurboModuleAggregator(): void {
   aggregates.clear();
   ignoredModules.clear();
   onFirstRecordAfterEmpty = undefined;
+  observers.clear();
+  startObservers.clear();
+  nextRecordId = 0;
   recordingEnabled = true;
 }

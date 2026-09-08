@@ -1,9 +1,11 @@
 export { debugSymbolicatorIntegration } from './debugsymbolicator';
+export { featureFlagsIntegration } from './featureFlags';
 export { deviceContextIntegration } from './devicecontext';
 export { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 export { nativeLinkedErrorsIntegration } from './nativelinkederrors';
 export { nativeReleaseIntegration } from './release';
 export { eventOriginIntegration } from './eventorigin';
+export { debugMetaIntegration } from './debugmeta';
 export { sdkInfoIntegration } from './sdkinfo';
 export { reactNativeInfoIntegration } from './reactnativeinfo';
 export { modulesLoaderIntegration } from './modulesloader';

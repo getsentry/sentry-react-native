@@ -94,6 +94,7 @@ exports[`App Start Integration Standalone App Start matches the locked standalon
   "spans": [
     {
       "data": {
+        "app.vitals.start.type": "cold",
         "sentry.op": "app.start",
         "sentry.origin": "auto.app.start",
       },

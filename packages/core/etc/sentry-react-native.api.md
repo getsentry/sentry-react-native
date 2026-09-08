@@ -39,7 +39,6 @@ import type { EventHint } from '@sentry/core';
 import { Exception } from '@sentry/core';
 import { extraErrorDataIntegration } from '@sentry/react';
 import { FeatureFlagsIntegration } from '@sentry/browser';
-import { featureFlagsIntegration } from '@sentry/browser';
 import type { FeedbackFormData } from '@sentry/core';
 import { functionToStringIntegration } from '@sentry/react';
 import { getActiveSpan } from '@sentry/core';
@@ -51,14 +50,17 @@ import { getRootSpan } from '@sentry/core';
 import { GoogleGenAIChat } from '@sentry/core';
 import { GoogleGenAIClient } from '@sentry/core';
 import { GoogleGenAIOptions } from '@sentry/core';
+import type { HostComponent } from 'react-native';
 import { httpClientIntegration } from '@sentry/react';
 import { httpContextIntegration } from '@sentry/react';
+import type { ImageStyle } from 'react-native';
 import { inboundFiltersIntegration } from '@sentry/react';
 import { instrumentAnthropicAiClient } from '@sentry/core';
 import { InstrumentedMethod } from '@sentry/core';
 import { instrumentGoogleGenAIClient } from '@sentry/core';
 import { instrumentLangGraph } from '@sentry/core';
 import { instrumentOpenAiClient } from '@sentry/core';
+import { instrumentStateGraph } from '@sentry/core';
 import { instrumentStateGraphCompile } from '@sentry/core';
 import { Integration } from '@sentry/core';
 import { LangChainIntegration } from '@sentry/core';
@@ -66,8 +68,6 @@ import { LangChainOptions } from '@sentry/core';
 import { LangGraphIntegration } from '@sentry/core';
 import { LangGraphOptions } from '@sentry/core';
 import { lastEventId } from '@sentry/core';
-import type { ListRenderItem } from '@react-native/virtualized-lists';
-import type { ListRenderItemInfo } from '@react-native/virtualized-lists';
 import { logger } from '@sentry/browser';
 import type { makeFetchTransport } from '@sentry/browser';
 import { Metric } from '@sentry/core';
@@ -105,16 +105,15 @@ import { startSpan } from '@sentry/core';
 import { startSpanManual } from '@sentry/core';
 import type { StartSpanOptions } from '@sentry/core';
 import { suppressTracing } from '@sentry/core';
+import type { TextStyle } from 'react-native';
 import { Thread } from '@sentry/core';
 import { TransactionEvent } from '@sentry/core';
 import type { TransportMakeRequestResponse } from '@sentry/core';
 import { useProfiler } from '@sentry/react';
 import { User } from '@sentry/core';
 import { UserFeedback } from '@sentry/core';
-import type { ViewabilityConfig } from '@react-native/virtualized-lists';
-import type { ViewToken } from '@react-native/virtualized-lists';
-import type { VirtualizedListProps } from '@react-native/virtualized-lists';
-import type { VirtualizedListWithoutRenderItemProps } from '@react-native/virtualized-lists';
+import type { ViewProps } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import { withActiveSpan } from '@sentry/core';
 import { withErrorBoundary } from '@sentry/react';
 import { withProfiler } from '@sentry/react';
@@ -208,6 +207,9 @@ export function createTimeToFullDisplay(input: {
 export function createTimeToInitialDisplay(input: {
     useFocusEffect: (callback: () => void) => void;
 }): React_2.ComponentType<TimeToDisplayProps>;
+
+// @public
+export const debugMetaIntegration: () => Integration;
 
 // @public
 export const debugSymbolicatorIntegration: () => Integration;
@@ -312,7 +314,8 @@ export { extraErrorDataIntegration }
 
 export { FeatureFlagsIntegration }
 
-export { featureFlagsIntegration }
+// @public
+export const featureFlagsIntegration: () => FeatureFlagsIntegration;
 
 // Warning: (ae-forgotten-export) The symbol "FeedbackButtonProps" needs to be exported by the entry point index.d.ts
 //
@@ -465,6 +468,8 @@ export { instrumentLangGraph }
 
 export { instrumentOpenAiClient }
 
+export { instrumentStateGraph }
+
 export { instrumentStateGraphCompile }
 
 export { LangChainIntegration }
@@ -482,9 +487,6 @@ export const logEnricherIntegration: () => Integration;
 
 export { logger }
 
-// Warning: (ae-forgotten-export) The symbol "HostComponent" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ViewProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const Mask: HostComponent<ViewProps> | React_2.ComponentType<ViewProps>;
 
@@ -854,6 +856,9 @@ export class TouchEventBoundary extends React_2.Component<TouchEventBoundaryProp
 export { TransactionEvent }
 
 // @public
+export type TurboModuleArch = 'new' | 'legacy';
+
+// @public
 export interface TurboModuleCall {
     callId: number;
     kind: TurboModuleCallKind;
@@ -872,12 +877,18 @@ export const turboModuleContextIntegration: (options?: TurboModuleContextOptions
 export interface TurboModuleContextOptions {
     aggregateFlushIntervalMs?: number;
     enableAggregateStats?: boolean;
+    enableLegacyNativeModules?: boolean;
+    enableSpanAttribution?: boolean;
     ignoreTurboModules?: ReadonlyArray<string>;
+    legacyModulesSkip?: ReadonlyArray<string>;
+    legacyModulesSkipMethods?: Readonly<Record<string, ReadonlyArray<string>>>;
+    maxTopModulesPerSpan?: number;
     modules?: Array<{
         name: string;
         module: object | null | undefined;
         skipMethods?: ReadonlyArray<string>;
     }>;
+    slowCallThresholdMs?: number;
 }
 
 // @public (undocumented)
@@ -930,6 +941,7 @@ export function wrapExpoRouterErrorBoundary<P extends ExpoRouterErrorBoundaryPro
 // @public
 export function wrapTurboModule<T extends object>(name: string, module: T | null | undefined, options?: {
     skip?: ReadonlyArray<string>;
+    arch?: TurboModuleArch;
 }): T | null | undefined;
 
 // Warnings were encountered during analysis:

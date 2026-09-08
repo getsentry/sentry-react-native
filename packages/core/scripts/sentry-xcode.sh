@@ -67,7 +67,8 @@ exitCode=0
 
 if [ "$SENTRY_DISABLE_AUTO_UPLOAD" == true ]; then
   echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
-  /bin/sh -c "$REACT_NATIVE_XCODE"
+  # Re-quote so a project path containing spaces is not word-split when re-parsed by `sh -c`. See #6583.
+  /bin/sh -c "\"$REACT_NATIVE_XCODE\""
 elif echo "$CONFIGURATION" | grep -iq "debug"; then # case insensitive check for "debug"
   # Skip the source maps upload for *Debug* configuration, matching the behavior of the
   # native debug files upload (sentry-xcode-debug-files.sh) and the Android Gradle plugin.
@@ -75,7 +76,8 @@ elif echo "$CONFIGURATION" | grep -iq "debug"; then # case insensitive check for
   # bundling step so the build itself succeeds.
   # See: https://github.com/getsentry/sentry-react-native/issues/6399
   echo "Skipping source maps upload for *Debug* configuration"
-  /bin/sh -c "$REACT_NATIVE_XCODE"
+  # Re-quote so a project path containing spaces is not word-split when re-parsed by `sh -c`. See #6583.
+  /bin/sh -c "\"$REACT_NATIVE_XCODE\""
 else
   # 'warning:' triggers a warning in Xcode, 'error:' triggers an error
   set +x +e # disable printing commands otherwise we might print `error:` by accident and allow continuing on error

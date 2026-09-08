@@ -7,3 +7,102 @@ github_orgs = ["getsentry"]
 [[skills]]
 name = "warden"
 source = "getsentry/warden"
+
+# getsentry/skills — core development
+[[skills]]
+name = "commit"
+source = "getsentry/skills"
+
+[[skills]]
+name = "pr-writer"
+source = "getsentry/skills"
+
+[[skills]]
+name = "create-branch"
+source = "getsentry/skills"
+
+[[skills]]
+name = "iterate-pr"
+source = "getsentry/skills"
+
+[[skills]]
+name = "code-simplifier"
+source = "getsentry/skills"
+
+[[skills]]
+name = "agents-md"
+source = "getsentry/skills"
+
+[[skills]]
+name = "skill-writer"
+source = "getsentry/skills"
+
+[[skills]]
+name = "skill-scanner"
+source = "getsentry/skills"
+
+[[skills]]
+name = "claude-settings-audit"
+source = "getsentry/skills"
+
+[[skills]]
+name = "security-review"
+source = "getsentry/skills"
+
+[[skills]]
+name = "gha-security-review"
+source = "getsentry/skills"
+
+[[skills]]
+name = "gh-review-requests"
+source = "getsentry/skills"
+
+# getsentry/sdk-skills — SDK-specific
+[[skills]]
+name = "sdk-feature-implementation"
+source = "getsentry/sdk-skills"
+
+[[skills]]
+name = "span-convention-review"
+source = "getsentry/sdk-skills"
+
+[[skills]]
+name = "linear-initiative"
+source = "getsentry/sdk-skills"
+
+[[skills]]
+name = "linear-type-labeler"
+source = "getsentry/sdk-skills"
+
+[[skills]]
+name = "linear-sdk-telemetry-labeler"
+source = "getsentry/sdk-skills"
+
+[[skills]]
+name = "contributing-md"
+source = "getsentry/sdk-skills"
+
+# Local — Sentry React Native SDK guidelines (see .agents/skills/)
+[[skills]]
+name = "spec"
+source = "path:.agents/skills/spec"
+
+[[skills]]
+name = "design-first"
+source = "path:.agents/skills/design-first"
+
+[[skills]]
+name = "code-guidelines"
+source = "path:.agents/skills/code-guidelines"
+
+[[skills]]
+name = "test-guidelines"
+source = "path:.agents/skills/test-guidelines"
+
+[[skills]]
+name = "diagnosing-bugs"
+source = "path:.agents/skills/diagnosing-bugs"
+
+[[skills]]
+name = "review"
+source = "path:.agents/skills/review"

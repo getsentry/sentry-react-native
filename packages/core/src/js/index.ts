@@ -54,10 +54,13 @@ export {
   instrumentAnthropicAiClient,
   instrumentGoogleGenAIClient,
   createLangChainCallbackHandler,
-  instrumentLangGraph,
+  instrumentStateGraph,
   instrumentStateGraphCompile,
   addConsoleInstrumentationFilter,
 } from '@sentry/core';
+
+/** @deprecated Use `instrumentStateGraph` instead. `instrumentLangGraph` will be removed in a future major version. */
+export { instrumentLangGraph } from '@sentry/core';
 
 export type {
   OpenAiClient,
@@ -86,13 +89,7 @@ export {
   withProfiler,
 } from '@sentry/react';
 
-export {
-  logger,
-  consoleLoggingIntegration,
-  featureFlagsIntegration,
-  type FeatureFlagsIntegration,
-  metrics,
-} from '@sentry/browser';
+export { logger, consoleLoggingIntegration, type FeatureFlagsIntegration, metrics } from '@sentry/browser';
 
 export * from './integrations/exports';
 
@@ -172,4 +169,4 @@ export {
   pushTurboModuleCall,
   wrapTurboModule,
 } from './turbomodule';
-export type { TurboModuleCall, TurboModuleCallKind } from './turbomodule';
+export type { TurboModuleArch, TurboModuleCall, TurboModuleCallKind } from './turbomodule';

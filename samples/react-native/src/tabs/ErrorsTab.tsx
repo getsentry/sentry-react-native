@@ -8,6 +8,7 @@ import { Provider } from 'react-redux';
 
 import ErrorsScreen from '../Screens/ErrorsScreen';
 import GlobalErrorBoundaryScreen from '../Screens/GlobalErrorBoundaryScreen';
+import TurboModuleScreen from '../Screens/TurboModuleScreen';
 import store from '../store';
 
 const styles = StyleSheet.create({
@@ -32,6 +33,11 @@ export default function getErrorsTab(Navigator: TypedNavigator<any, any>) {
                 name="GlobalErrorBoundary"
                 component={GlobalErrorBoundaryScreen}
                 options={{ title: 'Global Error Boundary' }}
+              />
+              <Navigator.Screen
+                name="TurboModule"
+                component={TurboModuleScreen}
+                options={{ title: 'TurboModule' }}
               />
               <Navigator.Screen
                 name="FeedbackForm"

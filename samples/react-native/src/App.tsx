@@ -17,6 +17,8 @@ import getErrorsTab from './tabs/ErrorsTab';
 import getPerformanceTab from './tabs/PerformanceTab';
 import getPlaygroundTab from './tabs/PlaygroundTab';
 import { logWithoutTracing, shouldUseAutoStart } from './utils';
+import NativePlatformSampleModule from '../tm/NativePlatformSampleModule';
+import NativeSampleModule from '../tm/NativeSampleModule';
 
 LogBox.ignoreAllLogs();
 const isMobileOs = Platform.OS === 'android' || Platform.OS === 'ios';
@@ -35,6 +37,20 @@ const reactNavigationIntegration = Sentry.reactNavigationIntegration({
 
 const sampleFeatureFlagsIntegration = Sentry.featureFlagsIntegration();
 sampleFeatureFlagsIntegration.addFeatureFlag('sample-test-flag', true);
+
+// Replaces the default `TurboModuleContext` integration so the sample's own
+// TurboModules are instrumented too, not just `RNSentry`. Exercised by the
+// "TurboModule Playground" screen on the Errors tab.
+const sampleTurboModuleContextIntegration =
+  Sentry.turboModuleContextIntegration({
+    modules: [
+      { name: 'NativeSampleModule', module: NativeSampleModule },
+      {
+        name: 'NativePlatformSampleModule',
+        module: NativePlatformSampleModule,
+      },
+    ],
+  });
 
 const StackNavigator: TypedNavigator<any, any> = isMobileOs
   ? createNativeStackNavigator()
@@ -141,8 +157,15 @@ Sentry.init({
       }),
       Sentry.extraErrorDataIntegration(),
       sampleFeatureFlagsIntegration,
+      sampleTurboModuleContextIntegration,
     );
-    return integrations.filter(i => i.name !== 'Dedupe');
+    return integrations.filter(
+      i =>
+        i.name !== 'Dedupe' &&
+        // Drop the default TurboModuleContext in favour of the configured one.
+        (i.name !== 'TurboModuleContext' ||
+          i === sampleTurboModuleContextIntegration),
+    );
   },
   enableAutoSessionTracking: true,
   // For testing, session close when 5 seconds (instead of the default 30) in the background.

@@ -202,6 +202,17 @@ final class RNSentryStart {
     if (rnOptions.hasKey("enableAnrFingerprinting")) {
       options.setEnableAnrFingerprinting(rnOptions.getBoolean("enableAnrFingerprinting"));
     }
+    if (rnOptions.hasKey("anrProfilingSampleRate")
+        && rnOptions.getType("anrProfilingSampleRate") == ReadableType.Number) {
+      options.setAnrProfilingSampleRate(rnOptions.getDouble("anrProfilingSampleRate"));
+    }
+    if (rnOptions.hasKey("enableNdkAppHangTracking")) {
+      options.setEnableNdkAppHangTracking(rnOptions.getBoolean("enableNdkAppHangTracking"));
+    }
+    if (rnOptions.hasKey("ndkAppHangTimeoutIntervalMillis")) {
+      options.setNdkAppHangTimeoutIntervalMillis(
+          rnOptions.getInt("ndkAppHangTimeoutIntervalMillis"));
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));

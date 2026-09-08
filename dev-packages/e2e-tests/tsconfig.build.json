@@ -12,8 +12,13 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "types": [
-      "react-native",
-    ],
+    // react-native >=0.87 dropped its root `types` field; its type definitions are now only
+    // reachable through the package `exports` map, which classic `node` resolution can't follow.
+    // Point directly at the shipped legacy type definitions (what earlier RN versions' root
+    // `types` field resolved to) so `import ... from 'react-native'` keeps resolving.
+    "paths": {
+      "react-native": ["./node_modules/react-native/types/index.d.ts"],
+    },
+    "types": [],
   }
 }

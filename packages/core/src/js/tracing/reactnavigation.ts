@@ -237,6 +237,10 @@ export const reactNavigationIntegration = ({
 
   let latestNavigationSpan: Span | undefined;
   let latestNavigationSpanNameCustomized: boolean = false;
+  // Action type of the dispatch that started `latestNavigationSpan`. Tracked
+  // independently of the (flag-gated) span attribute so the same-route discard
+  // works even when `useDispatchedActionData` is off.
+  let latestNavigationActionType: string | undefined;
   let navigationProcessingSpan: Span | undefined;
   /**
    * The first nav span that successfully completed a state change — i.e. the
@@ -443,6 +447,32 @@ export const reactNavigationIntegration = ({
   };
 
   /**
+   * Returns `true` when the given route name is focused at some level of the
+   * current navigation state — i.e. it is on the chain of active routes from
+   * the root navigator down to the leaf. Falls back to comparing against the
+   * leaf route only when the full state is not available.
+   */
+  const isRouteFocused = (routeName: string): boolean => {
+    try {
+      const rootState = navigationContainer?.getState();
+      let currentState: NavigationState | undefined = rootState;
+      while (currentState) {
+        const route: NavigationRoute | undefined = currentState.routes[currentState.index ?? 0];
+        if (route?.name === routeName) {
+          return true;
+        }
+        currentState = route?.state;
+      }
+      if (!rootState) {
+        return navigationContainer?.getCurrentRoute()?.name === routeName;
+      }
+    } catch (e) {
+      debug.warn(`${INTEGRATION_NAME} Failed to read navigation state to check focused route.`, e);
+    }
+    return false;
+  };
+
+  /**
    * To be called on every React-Navigation action dispatch.
    * It does not name the transaction or populate it with route information. Instead, it waits for the state to fully change
    * and gets the route information from there, @see updateLatestNavigationSpanWithCurrentRoute
@@ -537,6 +567,37 @@ export const reactNavigationIntegration = ({
       return;
     }
 
+    // A `POP_TO` that both targets an already-focused route AND carries the
+    // `withAnchor` marker (`params.initial === false`) is not a user-facing
+    // navigation — it's Expo Router's bookkeeping dispatch, emitted right after
+    // a `withAnchor` navigation purely to stamp `initial: false` onto the
+    // destination it just navigated to. Starting a span here would either
+    // discard the real navigation's in-flight span (state changes are applied
+    // in a deferred microtask, see #6436) or ship a spurious duplicate
+    // transaction that steals the real navigation's child spans (#6434).
+    //
+    // Requiring the `initial === false` marker (only ever set by `withAnchor`,
+    // see expo-router's `getNavigationAction`) is what keeps a genuine `popTo`
+    // to an earlier *same-named* route in the stack (e.g. `[id]` → `[id]`) from
+    // being wrongly skipped: those carry no `initial` param. The `route.key`
+    // check in `updateLatestNavigationSpanWithCurrentRoute` backstops any
+    // bookkeeping dispatch that slips past this filter.
+    // Driven off `actionType` (parsed unconditionally), not `navigationActionType`,
+    // so it also applies to the default `expoRouterIntegration` setup where
+    // `useDispatchedActionData` is off — that is where this bug was reported.
+    const popToParams = (event?.data?.action?.payload as { params?: { initial?: boolean } } | undefined)?.params;
+    if (
+      actionType === 'POP_TO' &&
+      targetRouteName &&
+      popToParams?.initial === false &&
+      isRouteFocused(targetRouteName)
+    ) {
+      debug.log(
+        `${INTEGRATION_NAME} POP_TO targets the already focused route ${targetRouteName}, not starting navigation span.`,
+      );
+      return;
+    }
+
     // Extract route name from dispatch action payload when available
     const dispatchedRouteName = useDispatchedActionData ? targetRouteName : undefined;
     if (useDispatchedActionData && event && !dispatchedRouteName && !isAppRestart) {
@@ -562,6 +623,7 @@ export const reactNavigationIntegration = ({
     latestNavigationSpanNameCustomized = finalSpanOptions.name !== originalName;
 
     latestNavigationSpan = startGenericIdleNavigationSpan(finalSpanOptions, { ...idleSpanOptions, isAppRestart });
+    latestNavigationActionType = actionType;
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN, SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION);
     latestNavigationSpan?.setAttribute(SEMANTIC_ATTRIBUTE_NAVIGATION_ACTION_TYPE, navigationActionType);
 
@@ -657,17 +719,50 @@ export const reactNavigationIntegration = ({
 
     if (previousRoute?.key === route.key) {
       debug.log(`[${INTEGRATION_NAME}] Navigation state changed, but route is the same as previous.`);
-      // Even a same-route state change is a legitimate destination for a
-      // deep link (e.g. deep-linking to the screen you're already on). Make
-      // sure the pending link still gets attributed before we drop the span
-      // reference.
+      // Attribute a pending deep link even to a same-route change (e.g. a deep
+      // link to the screen you're already on) before deciding on the span.
       applyPendingDeepLinkToSpan(latestNavigationSpan, routeChangeTimeoutMs);
-      pushRecentRouteKey(route.key);
-      latestRoute = route;
 
-      // Clear the latest transaction as it has been handled.
-      latestNavigationSpan = undefined;
-      return undefined;
+      // A `POP_TO` span that landed on the route we were already on (same
+      // `route.key`) was a params-only bookkeeping dispatch — e.g. Expo
+      // Router's `withAnchor` anchor stamping — that slipped past the
+      // dispatch-time filter (for instance a nested destination whose payload
+      // name matches none of the focused route names). Letting the span run
+      // would ship a spurious duplicate transaction that collects the real
+      // navigation's in-flight child spans, so discard it unless it carries a
+      // deep link (#6434). We check `taggedDeepLinkSpans` rather than the
+      // just-attached result so a span tagged earlier via the synchronous
+      // late-arrival listener is also preserved. Keyed on `route.key`, this
+      // never affects a genuine navigation that actually changed the route.
+      if (!taggedDeepLinkSpans.has(latestNavigationSpan) && latestNavigationActionType === 'POP_TO') {
+        debug.log(`[${INTEGRATION_NAME}] Discarding POP_TO navigation span that did not change the route.`);
+        pushRecentRouteKey(route.key);
+        latestRoute = route;
+        clearStateChangeTimeout();
+        _discardLatestTransaction();
+        return undefined;
+      }
+
+      // Same key and unchanged params is a no-op (drawer toggle, empty
+      // SET_PARAMS, deep link to the current screen): keep the idle-path
+      // behaviour and let the span end via the idle timeout. Clear the pending
+      // discard timeout and end the processing span here so a leftover timer
+      // cannot fire later and discard the next navigation's span.
+      if (!haveRouteParamsChanged(previousRoute?.params, route.params)) {
+        pushRecentRouteKey(route.key);
+        latestRoute = route;
+        clearStateChangeTimeout();
+        navigationProcessingSpan?.setStatus({ code: SPAN_STATUS_OK });
+        navigationProcessingSpan?.end(stateChangedTimestamp);
+        navigationProcessingSpan = undefined;
+        latestNavigationSpan = undefined;
+        return undefined;
+      }
+
+      // Same key but changed params is a genuine navigation onto the focused
+      // route (e.g. navigate('Chat', { id: 2 }) from Chat/id:1). Fall through
+      // to name and finalize the transaction instead of leaking an unnamed
+      // "Route Change" (#6593).
     }
 
     const routeHasBeenSeen = recentRouteKeys.includes(route.key);
@@ -777,6 +872,10 @@ export const reactNavigationIntegration = ({
       latestNavigationSpan = undefined;
     }
     if (navigationProcessingSpan) {
+      // End before dropping the reference so we don't leave an unfinished span
+      // dangling. It is a child of the (now discarded) navigation span, so it
+      // is dropped with the transaction rather than sent on its own.
+      navigationProcessingSpan.end();
       navigationProcessingSpan = undefined;
     }
   };
@@ -877,6 +976,28 @@ function getRouteNameFromAction(event: UnsafeAction | undefined): string | undef
     return payload.name;
   }
   return undefined;
+}
+
+/**
+ * Shallow-compares two route param bags to tell a genuine re-navigation onto
+ * the already-focused route (same `route.key`, changed params) apart from a
+ * no-op same-route state change (#6593). Missing and empty bags are equal.
+ */
+function haveRouteParamsChanged(
+  a: Record<string, unknown> | undefined,
+  b: Record<string, unknown> | undefined,
+): boolean {
+  const aKeys = a ? Object.keys(a) : [];
+  const bKeys = b ? Object.keys(b) : [];
+  if (aKeys.length !== bKeys.length) {
+    return true;
+  }
+  // Counts are equal, so `a` non-empty implies `b` non-empty. Require every key
+  // to exist on `b` too — otherwise disjoint bags with matching `undefined`
+  // values (e.g. `{ x: undefined }` vs `{ y: undefined }`) would compare equal.
+  const aBag = a ?? {};
+  const bBag = b ?? {};
+  return aKeys.some(key => !Object.prototype.hasOwnProperty.call(bBag, key) || !Object.is(aBag[key], bBag[key]));
 }
 
 /**

@@ -11,6 +11,7 @@ import {
 } from '@sentry/core';
 
 import type { NavigationRoute } from '../../src/js/tracing/reactnavigation';
+import type { UnsafeAction } from '../../src/js/vendor/react-navigation/types';
 
 import { nativeFramesIntegration, reactNativeTracingIntegration } from '../../src/js';
 import { SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION } from '../../src/js/tracing/origin';
@@ -1274,6 +1275,372 @@ describe('ReactNavigationInstrumentation', () => {
           expect(client.event === undefined).toBe(useDispatchedActionData);
         },
       );
+    });
+  });
+
+  describe('withAnchor POP_TO bookkeeping dispatch (#6434)', () => {
+    // `router.dismissTo('/ScreenB', { withAnchor: true })` navigates to ScreenB
+    // (a real POP_TO) and, on some expo-router versions, immediately issues a
+    // second POP_TO to the same route purely to stamp `initial: false`. That
+    // bookkeeping dispatch carries no state change of its own and must not
+    // produce a second, spurious navigation transaction.
+    const realPopTo: UnsafeAction = {
+      data: {
+        action: { type: 'POP_TO', payload: { name: 'ScreenB', params: {} } },
+        noop: false,
+        stack: undefined,
+      },
+    };
+    const bookkeepingPopTo: UnsafeAction = {
+      data: {
+        action: { type: 'POP_TO', payload: { name: 'ScreenB', params: { initial: false } } },
+        noop: false,
+        stack: undefined,
+      },
+    };
+
+    function countTransactionsNamed(name: string): number {
+      return client.eventQueue.filter(e => e.type === 'transaction' && e.transaction === name).length;
+    }
+
+    test('does not create a second transaction for the bookkeeping dispatch', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers(); // Flush the initial navigation span
+      client.eventQueue = [];
+
+      // Real navigation to ScreenB — resolves via a state change.
+      mockNavigation.emitWithStateChange(realPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+
+      // withAnchor bookkeeping POP_TO to the same route. It only flips
+      // `params.initial`, which React Navigation reports as a state change to
+      // the same route key.
+      mockNavigation.emitWithStateChange(bookkeepingPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('ScreenB')).toBe(1);
+    });
+
+    test('does not create a second transaction with useDispatchedActionData disabled (default Expo setup)', async () => {
+      // The guards are driven off `actionType`, not the opt-in flag, so the
+      // default `expoRouterIntegration` setup (flag off) is fixed too.
+      setupTestClient({ useDispatchedActionData: false });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(realPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+
+      mockNavigation.emitWithStateChange(bookkeepingPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.filter(e => e.type === 'transaction').length).toBe(1);
+    });
+
+    test('still creates a transaction for a genuine popTo navigation', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers(); // Flush the initial navigation span
+      client.eventQueue = [];
+
+      // A real dismissTo/popTo to a different route must still be traced.
+      mockNavigation.emitWithStateChange(realPopTo, { key: 'screen_b', name: 'ScreenB' });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('ScreenB')).toBe(1);
+    });
+
+    test('still creates a span for a popTo to an earlier same-named route in the stack', async () => {
+      // Stack with a repeated route name (e.g. Expo Router `[id]`): on Detail(#2),
+      // popTo the earlier Detail(#1). The target name matches the focused leaf
+      // name, but the bookkeeping marker (`initial: false`) is absent, so this
+      // real, key-changing navigation must NOT be filtered.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(
+        { data: { action: { type: 'PUSH', payload: { name: 'Detail' } }, noop: false, stack: undefined } },
+        { key: 'detail_2', name: 'Detail' },
+      );
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(
+        { data: { action: { type: 'POP_TO', payload: { name: 'Detail' } }, noop: false, stack: undefined } },
+        { key: 'detail_1', name: 'Detail' },
+      );
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('Detail')).toBe(1);
+    });
+
+    test('discards a bookkeeping POP_TO that slips past the dispatch-time filter (same route key)', async () => {
+      // Payload name matches no focused route (e.g. a parent navigator name),
+      // so the dispatch-time filter misses, but the state change lands on the
+      // same route key — the state-change guard must discard the span.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: '(app)', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.eventQueue.filter(e => e.type === 'transaction').length).toBe(0);
+    });
+
+    test('keeps a same-route POP_TO span that carries a deep link', async () => {
+      // A same-route POP_TO that is actually a deep link to the screen you are
+      // already on must NOT be discarded by the bookkeeping guard.
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+      client.eventQueue = [];
+
+      setPendingDeepLink('myapp://initial-screen', 'warm-open');
+      mockNavigation.emitWithStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: '(app)', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(client.event?.contexts?.trace?.data?.['navigation.trigger']).toBe('deeplink');
+      clearPendingDeepLink();
+    });
+
+    test('a focused-route bookkeeping POP_TO does not tear down an in-flight navigation span', async () => {
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimers();
+
+      // Start a real, still-in-flight navigation (dispatch with a route name in
+      // the payload, but no state change yet).
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'NAVIGATE', payload: { name: 'New Screen' } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+      const activeSpan = getActiveSpan();
+      expect(activeSpan).toBeDefined();
+
+      // The withAnchor bookkeeping POP_TO to the already-focused route must not
+      // discard that in-flight span via the "noop transaction" branch.
+      mockNavigation.emitWithoutStateChange({
+        data: {
+          action: { type: 'POP_TO', payload: { name: 'Initial Screen', params: { initial: false } } },
+          noop: false,
+          stack: undefined,
+        },
+      });
+
+      expect(getActiveSpan()).toBe(activeSpan);
+    });
+  });
+
+  describe('NAVIGATE onto the already-focused route with new params (#6593)', () => {
+    // navigate('Chat', { id: 2 }) while Chat/id:1 is focused keeps the same
+    // route.key (only params change), but is a genuine screen entry and must
+    // ship a named transaction, not an unnamed "Route Change".
+    const navigateToChat: UnsafeAction = {
+      data: {
+        action: { type: 'NAVIGATE', payload: { name: 'Chat' } },
+        noop: false,
+        stack: undefined,
+      },
+    };
+
+    function countTransactionsNamed(name: string): number {
+      return client.eventQueue.filter(e => e.type === 'transaction' && e.transaction === name).length;
+    }
+
+    test('ships a named transaction instead of an unnamed "Route Change"', async () => {
+      // ignoreEmptyBackNavigationTransactions: false isolates the naming
+      // behaviour from the empty-back-navigation discard.
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        ignoreEmptyBackNavigationTransactions: false,
+        useDispatchedActionData: true,
+      });
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      mockNavigation = createMockNavigationAndAttachTo(instrumentation);
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      // Enter Chat for conversation 1.
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 1 } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      // Tap a notification for conversation 2 — same route key, new params.
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 2 } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('Chat')).toBe(1);
+      expect(countTransactionsNamed(DEFAULT_NAVIGATION_SPAN_NAME)).toBe(0);
+      const chat = client.eventQueue.find(e => e.type === 'transaction' && e.transaction === 'Chat');
+      expect(chat?.contexts?.trace?.op).toBe('navigation');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('Chat');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_KEY]).toBe('chat');
+    });
+
+    test('detects a param change when only disjoint undefined-valued keys differ', async () => {
+      // { a: undefined } -> { b: undefined }: same key count, disjoint keys.
+      // haveRouteParamsChanged must still report a change, so the span goes
+      // through the naming path (which sets route.key/route.name) rather than
+      // the no-op idle path (which does not).
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        ignoreEmptyBackNavigationTransactions: false,
+        useDispatchedActionData: true,
+      });
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      mockNavigation = createMockNavigationAndAttachTo(instrumentation);
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { a: undefined } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { b: undefined } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      const chat = client.eventQueue.find(e => e.type === 'transaction' && e.transaction === 'Chat');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_KEY]).toBe('chat');
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBe('Chat');
+    });
+
+    test('does not leak an unnamed transaction when the re-navigation is empty (default config)', async () => {
+      // Under the default config an empty same-key re-nav is discarded as an
+      // empty back navigation, not leaked as an unnamed "Route Change".
+      setupTestClient({ useDispatchedActionData: true });
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 1 } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      // Re-navigate onto the already-focused "Chat" with new params (same key).
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 2 } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      // Under the default config the re-nav is intentionally discarded as an
+      // empty back navigation, so neither an unnamed nor a named "Chat"
+      // transaction ships.
+      expect(countTransactionsNamed(DEFAULT_NAVIGATION_SPAN_NAME)).toBe(0);
+      expect(countTransactionsNamed('Chat')).toBe(0);
+    });
+
+    test('names the transaction with useDispatchedActionData off (true #6593 repro)', async () => {
+      // With useDispatchedActionData off the idle span starts unnamed
+      // (DEFAULT_NAVIGATION_SPAN_NAME). Before the fix, the same-key/changed-
+      // params branch dropped the span reference without naming it, so it
+      // self-finalized as an unnamed "Route Change". This is the actual bug
+      // mode; the fix must derive the name from the mounted route instead.
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        ignoreEmptyBackNavigationTransactions: false,
+        useDispatchedActionData: false,
+      });
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      mockNavigation = createMockNavigationAndAttachTo(instrumentation);
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 1 } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 2 } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      expect(countTransactionsNamed('Chat')).toBe(1);
+      expect(countTransactionsNamed(DEFAULT_NAVIGATION_SPAN_NAME)).toBe(0);
+    });
+
+    test('takes the no-op idle path when the same-key re-nav does not change params', async () => {
+      // Same key and unchanged params ({ id: 1 } -> { id: 1 }) is a no-op: the
+      // span must end via the idle timeout without going through the naming
+      // path. useDispatchedActionData keeps it named "Chat" (from dispatch), so
+      // the discriminator is the absence of the route.key/route.name attributes
+      // that only the naming path sets.
+      const instrumentation = reactNavigationIntegration({
+        routeChangeTimeoutMs: 200,
+        ignoreEmptyBackNavigationTransactions: false,
+        useDispatchedActionData: true,
+      });
+      const options = getDefaultTestClientOptions({
+        enableNativeFramesTracking: false,
+        enableStallTracking: false,
+        tracesSampleRate: 1.0,
+        integrations: [instrumentation],
+        enableAppStartTracking: false,
+      });
+      client = new TestClient(options);
+      setCurrentClient(client);
+      client.init();
+
+      mockNavigation = createMockNavigationAndAttachTo(instrumentation);
+      await jest.runOnlyPendingTimersAsync(); // Flush the initial span
+
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 1 } });
+      await jest.runOnlyPendingTimersAsync();
+      client.eventQueue = [];
+
+      // Re-dispatch onto the focused route with identical params.
+      mockNavigation.emitWithStateChange(navigateToChat, { key: 'chat', name: 'Chat', params: { id: 1 } });
+      await jest.runOnlyPendingTimersAsync();
+      await client.flush();
+
+      const chat = client.eventQueue.find(e => e.type === 'transaction' && e.transaction === 'Chat');
+      expect(chat).toBeDefined();
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_KEY]).toBeUndefined();
+      expect(chat?.contexts?.trace?.data?.[SEMANTIC_ATTRIBUTE_ROUTE_NAME]).toBeUndefined();
     });
   });
 

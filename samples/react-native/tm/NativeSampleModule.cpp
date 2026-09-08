@@ -7,6 +7,12 @@ NativeSampleModule::NativeSampleModule(std::shared_ptr<CallInvoker> jsInvoker)
 {
 }
 
+double
+NativeSampleModule::add(jsi::Runtime &rt, double a, double b)
+{
+    return a + b;
+}
+
 void
 NativeSampleModule::crash(jsi::Runtime &rt)
 {
