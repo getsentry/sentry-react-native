@@ -210,11 +210,13 @@ export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
  * native HTTP instrumentation (OkHttp on Android, URLSession on iOS) attaches
  * the correct traceId and appears in the same trace as the JS transaction.
  *
- * Only fires for root spans; child spans are skipped to avoid bridge spam.
+ * Fires for every root span, including unsampled ones, so that the native scope
+ * is always up to date and doesn't retain a stale traceId from a previous span.
+ * Child spans are skipped to avoid bridge spam.
  */
 export function syncPropagationContextToNative(client: Client): void {
   client.on('spanStart', (span: Span) => {
-    if (!isRootSpan(span) || !span.isRecording()) return;
+    if (!isRootSpan(span)) return;
     const ctx = span.spanContext();
     const propagationCtx = getCurrentScope().getPropagationContext();
     NATIVE.setCurrentScopePropagationContext({

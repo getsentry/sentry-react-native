@@ -1137,13 +1137,14 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)sp
     return @YES; // The return ensures that the method is synchronous
 }
 
-RCT_EXPORT_METHOD(setCurrentScopePropagationContext : (NSDictionary *)ctx)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setCurrentScopePropagationContext : (NSDictionary *)ctx)
 {
     NSString *traceId = ctx[@"traceId"];
     NSString *spanId = ctx[@"spanId"];
     if (traceId && spanId) {
         [RNSentryInternal setCurrentScopePropagationContextWithTraceId:traceId spanId:spanId];
     }
+    return @YES;
 }
 
 RCT_EXPORT_METHOD(encodeToBase64 : (NSArray *)array resolver : (

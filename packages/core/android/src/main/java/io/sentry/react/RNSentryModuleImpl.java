@@ -678,14 +678,14 @@ public class RNSentryModuleImpl {
     return true; // The return ensure RN executes the code synchronously
   }
 
-  public void setCurrentScopePropagationContext(@Nullable ReadableMap ctx) {
+  public boolean setCurrentScopePropagationContext(@Nullable ReadableMap ctx) {
     if (ctx == null || !ctx.hasKey("traceId") || !ctx.hasKey("spanId")) {
-      return;
+      return false;
     }
     String traceId = ctx.getString("traceId");
     String spanId = ctx.getString("spanId");
     if (traceId == null || spanId == null) {
-      return;
+      return false;
     }
     // sampled is a boolean on the JS side; the Java SDK expects the actual sample rate (0.0–1.0),
     // which we don't have here, so we pass null and let sampleRand carry the sampling context.
@@ -694,6 +694,7 @@ public class RNSentryModuleImpl {
     PropagationContext propagationContext =
         PropagationContext.fromExistingTrace(traceId, spanId, null, sampleRand);
     Sentry.configureScope(scope -> scope.setPropagationContext(propagationContext));
+    return true; // The return ensures RN executes the method synchronously
   }
 
   public void setExtra(String key, String extra) {

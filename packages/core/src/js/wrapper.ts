@@ -151,7 +151,7 @@ interface SentryNativeWrapper {
     spanId: string;
     sampled: boolean;
     sampleRand: number;
-  }): void;
+  }): boolean;
 
   encodeToBase64(data: Uint8Array): Promise<string | null>;
 
@@ -962,14 +962,15 @@ export const NATIVE: SentryNativeWrapper = {
     }
   },
 
-  setCurrentScopePropagationContext(ctx): void {
+  setCurrentScopePropagationContext(ctx): boolean {
     if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
-      return;
+      return false;
     }
     try {
-      RNSentry.setCurrentScopePropagationContext(ctx);
+      return !!RNSentry.setCurrentScopePropagationContext(ctx);
     } catch (error) {
       debug.error('Error:', error);
+      return false;
     }
   },
 

@@ -59,11 +59,18 @@ describe('syncPropagationContextToNative', () => {
     root.end();
   });
 
-  it('does not call NATIVE.setCurrentScopePropagationContext for SentryNonRecordingSpan', () => {
+  it('calls NATIVE.setCurrentScopePropagationContext for SentryNonRecordingSpan to prevent stale native context', () => {
     const nonRecording = new SentryNonRecordingSpan();
+    const ctx = nonRecording.spanContext();
     client.emit('spanStart', nonRecording);
 
-    expect(mockSetPropagationContext).not.toHaveBeenCalled();
+    expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
+    expect(mockSetPropagationContext).toHaveBeenCalledWith(
+      expect.objectContaining({
+        traceId: ctx.traceId,
+        spanId: ctx.spanId,
+      }),
+    );
   });
 
   it('passes sampled and sampleRand from the scope propagation context', () => {

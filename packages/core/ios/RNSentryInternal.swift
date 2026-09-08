@@ -249,6 +249,9 @@ import Foundation
 
     // MARK: - Scope propagation context
 
+    // Note: sampled and sampleRand from the JS propagation context are not applied here.
+    // SentrySDK.internal.setTrace only accepts traceId/spanId; wiring sampling fields
+    // through would require a sentry-cocoa API change.
     @_spi(Private) @objc public static func setCurrentScopePropagationContext(traceId: String, spanId: String) {
         let sentryTraceId = SentryId(uuidString: traceId)
         let sentrySpanId = SpanId(value: spanId)

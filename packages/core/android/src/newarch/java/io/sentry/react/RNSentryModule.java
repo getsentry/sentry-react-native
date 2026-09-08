@@ -235,8 +235,8 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
-  public void setCurrentScopePropagationContext(ReadableMap ctx) {
-    this.impl.setCurrentScopePropagationContext(ctx);
+  public boolean setCurrentScopePropagationContext(ReadableMap ctx) {
+    return this.impl.setCurrentScopePropagationContext(ctx);
   }
 
   @Override
