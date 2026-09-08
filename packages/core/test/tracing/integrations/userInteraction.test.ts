@@ -60,6 +60,7 @@ jest.mock('../../../src/js/wrapper', () => {
       fetchNativeFrames: jest.fn(() => Promise.resolve()),
       disableNativeFramesTracking: jest.fn(() => Promise.resolve()),
       enableNativeFramesTracking: jest.fn(() => Promise.resolve()),
+      setCurrentScopePropagationContext: jest.fn(),
       enableNative: true,
     },
   };

@@ -256,4 +256,12 @@ import Foundation
     ) -> [String: Any]? { nil }
     @_spi(Private) @objc public static func discardProfiler(forTrace traceId: SentryId) {}
     #endif
+
+    // MARK: - Scope propagation context
+
+    @_spi(Private) @objc public static func setCurrentScopePropagationContext(traceId: String, spanId: String) {
+        let sentryTraceId = SentryId(uuidString: traceId)
+        let sentrySpanId = SpanId(value: spanId)
+        SentrySDK.internal.setTrace(sentryTraceId, spanId: sentrySpanId)
+    }
 }

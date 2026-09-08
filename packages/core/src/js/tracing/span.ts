@@ -9,6 +9,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
+  spanIsSampled,
   SPAN_STATUS_ERROR,
   spanToJSON,
   startIdleSpan as coreStartIdleSpan,
@@ -16,6 +17,7 @@ import {
 import { AppState, Platform } from 'react-native';
 
 import { isRootSpan } from '../utils/span';
+import { NATIVE } from '../wrapper';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import {
   SPAN_ORIGIN_AUTO_INTERACTION,
@@ -201,4 +203,25 @@ export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
   spanJSON.data = spanJSON.data || {};
   spanJSON.data[SPAN_THREAD_NAME] = SPAN_THREAD_NAME_MAIN;
   return spanJSON;
+}
+
+/**
+ * Pushes the JS root span's propagation context to the native scope so that
+ * native HTTP instrumentation (OkHttp on Android, URLSession on iOS) attaches
+ * the correct traceId and appears in the same trace as the JS transaction.
+ *
+ * Only fires for root spans; child spans are skipped to avoid bridge spam.
+ */
+export function syncPropagationContextToNative(client: Client): void {
+  client.on('spanStart', (span: Span) => {
+    if (!isRootSpan(span) || !span.isRecording()) return;
+    const ctx = span.spanContext();
+    const propagationCtx = getCurrentScope().getPropagationContext();
+    NATIVE.setCurrentScopePropagationContext({
+      traceId: ctx.traceId,
+      spanId: ctx.spanId,
+      sampled: spanIsSampled(span),
+      sampleRand: propagationCtx.sampleRand ?? Math.random(),
+    });
+  });
 }

@@ -31,6 +31,7 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import io.sentry.ILogger;
 import io.sentry.IScope;
+import io.sentry.PropagationContext;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
 import io.sentry.ScopesAdapter;
@@ -675,6 +676,17 @@ public class RNSentryModuleImpl {
   public boolean setActiveSpanId(@Nullable String spanId) {
     RNSentryTimeToDisplay.setActiveSpanId(spanId);
     return true; // The return ensure RN executes the code synchronously
+  }
+
+  public void setCurrentScopePropagationContext(ReadableMap ctx) {
+    String traceId = ctx.getString("traceId");
+    String spanId = ctx.getString("spanId");
+    Double sampled = ctx.hasKey("sampled") ? (ctx.getBoolean("sampled") ? 1.0 : 0.0) : null;
+    Double sampleRand = ctx.hasKey("sampleRand") ? ctx.getDouble("sampleRand") : null;
+
+    PropagationContext propagationContext =
+        PropagationContext.fromExistingTrace(traceId, spanId, sampled, sampleRand);
+    Sentry.configureScope(scope -> scope.setPropagationContext(propagationContext));
   }
 
   public void setExtra(String key, String extra) {
