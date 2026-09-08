@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Sync JS scope propagation context to native scope ([#6686](https://github.com/getsentry/sentry-react-native/pull/6686))
+  - Native HTTP spans (OkHttp on Android, URLSession on iOS) now automatically share the same `trace_id` as the active JS navigation transaction, linking them in the Sentry trace waterfall.
+
 ### Fixes
 
 - Make `copySentryJsonConfiguration` and the `*_SentryUpload` Gradle tasks compatible with the Gradle Configuration Cache ([#6469](https://github.com/getsentry/sentry-react-native/pull/6469))
