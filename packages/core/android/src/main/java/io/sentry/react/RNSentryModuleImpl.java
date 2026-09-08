@@ -485,6 +485,17 @@ public class RNSentryModuleImpl {
   }
 
   public @Nullable String getCurrentReplayId() {
+    // Prefer the replay controller's id: it is assigned when recording starts
+    // (buffer or session) and is therefore available BEFORE a replay is
+    // flushed. The scope's replayId is only populated once a replay is sent, so
+    // it stays empty while a buffer (on-error) replay is recording (issue
+    // #6598).
+    final @NotNull SentryId controllerId =
+        Sentry.getCurrentScopes().getOptions().getReplayController().getReplayId();
+    if (controllerId != SentryId.EMPTY_ID) {
+      return controllerId.toString();
+    }
+
     final @Nullable IScope scope = InternalSentrySdk.getCurrentScope();
     if (scope == null) {
       return null;
