@@ -309,8 +309,6 @@ export function serializeNetworkDetailUrlsForNative(urls: (string | RegExp)[] | 
  *  })],
  * });
  * ```
- *
- * @experimental
  */
 export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defaultOptions): MobileReplayIntegration => {
   if (isExpoGo()) {

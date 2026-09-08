@@ -16,6 +16,12 @@
 ### Fixes
 
 - Fix visionOS compilation ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
+- A throwing `beforeBreadcrumb` now drops the breadcrumb, and a throwing `tracesSampler` now falls back to the configured `tracesSampleRate` ([#6675](https://github.com/getsentry/sentry-react-native/pull/6675))
+
+### Internal
+
+- Add visionOS sample app and CI tests ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
+- Add tvOS sample app and CI tests ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
 
 ### Dependencies
 
