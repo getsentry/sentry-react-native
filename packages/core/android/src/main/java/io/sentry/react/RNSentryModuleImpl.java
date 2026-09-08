@@ -31,9 +31,9 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import io.sentry.ILogger;
 import io.sentry.IScope;
-import io.sentry.PropagationContext;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
+import io.sentry.PropagationContext;
 import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
 import io.sentry.SentryAttributes;
@@ -678,14 +678,21 @@ public class RNSentryModuleImpl {
     return true; // The return ensure RN executes the code synchronously
   }
 
-  public void setCurrentScopePropagationContext(ReadableMap ctx) {
+  public void setCurrentScopePropagationContext(@Nullable ReadableMap ctx) {
+    if (ctx == null || !ctx.hasKey("traceId") || !ctx.hasKey("spanId")) {
+      return;
+    }
     String traceId = ctx.getString("traceId");
     String spanId = ctx.getString("spanId");
-    Double sampled = ctx.hasKey("sampled") ? (ctx.getBoolean("sampled") ? 1.0 : 0.0) : null;
+    if (traceId == null || spanId == null) {
+      return;
+    }
+    // sampled is a boolean on the JS side; the Java SDK expects the actual sample rate (0.0–1.0),
+    // which we don't have here, so we pass null and let sampleRand carry the sampling context.
     Double sampleRand = ctx.hasKey("sampleRand") ? ctx.getDouble("sampleRand") : null;
 
     PropagationContext propagationContext =
-        PropagationContext.fromExistingTrace(traceId, spanId, sampled, sampleRand);
+        PropagationContext.fromExistingTrace(traceId, spanId, null, sampleRand);
     Sentry.configureScope(scope -> scope.setPropagationContext(propagationContext));
   }
 

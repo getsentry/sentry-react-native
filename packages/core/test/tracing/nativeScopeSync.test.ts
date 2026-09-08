@@ -1,10 +1,6 @@
 import type { Client } from '@sentry/core';
 
-import {
-  getCurrentScope,
-  SentryNonRecordingSpan,
-  startInactiveSpan,
-} from '@sentry/core';
+import { getCurrentScope, SentryNonRecordingSpan, startInactiveSpan } from '@sentry/core';
 
 jest.mock('../../src/js/wrapper', () => ({
   NATIVE: {
@@ -22,8 +18,8 @@ jest.mock('react-native', () => ({
   NativeModules: { RNSentry: {} },
 }));
 
-import { NATIVE } from '../../src/js/wrapper';
 import { syncPropagationContextToNative } from '../../src/js/tracing/span';
+import { NATIVE } from '../../src/js/wrapper';
 import { setupTestClient } from '../mocks/client';
 
 const mockSetPropagationContext = NATIVE.setCurrentScopePropagationContext as jest.Mock;
@@ -92,11 +88,7 @@ describe('syncPropagationContextToNative', () => {
     span2.end();
 
     expect(mockSetPropagationContext).toHaveBeenCalledTimes(2);
-    expect(mockSetPropagationContext.mock.calls[0][0].spanId).toBe(
-      span1.spanContext().spanId,
-    );
-    expect(mockSetPropagationContext.mock.calls[1][0].spanId).toBe(
-      span2.spanContext().spanId,
-    );
+    expect(mockSetPropagationContext.mock.calls[0][0].spanId).toBe(span1.spanContext().spanId);
+    expect(mockSetPropagationContext.mock.calls[1][0].spanId).toBe(span2.spanContext().spanId);
   });
 });

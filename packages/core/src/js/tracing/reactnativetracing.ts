@@ -6,7 +6,12 @@ import { debug, getClient } from '@sentry/core';
 import { isExpoFetchEnabled, isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
 import { getTransactionEventDiscardReason } from './onSpanEndUtils';
-import { addDefaultOpForSpanFrom, addThreadInfoToSpan, defaultIdleOptions, syncPropagationContextToNative } from './span';
+import {
+  addDefaultOpForSpanFrom,
+  addThreadInfoToSpan,
+  defaultIdleOptions,
+  syncPropagationContextToNative,
+} from './span';
 
 export const INTEGRATION_NAME = 'ReactNativeTracing';
 

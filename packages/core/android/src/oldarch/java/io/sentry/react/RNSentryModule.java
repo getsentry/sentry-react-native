@@ -235,6 +235,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void setCurrentScopePropagationContext(ReadableMap ctx) {
+    this.impl.setCurrentScopePropagationContext(ctx);
+  }
+
+  @ReactMethod
   public void enableShakeDetection() {
     this.impl.enableShakeDetection();
   }
