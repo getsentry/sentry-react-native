@@ -253,7 +253,17 @@ import Foundation
     // SentrySDK.internal.setTrace only accepts traceId/spanId; wiring sampling fields
     // through would require a sentry-cocoa API change.
     @_spi(Private) @objc public static func setCurrentScopePropagationContext(traceId: String, spanId: String) {
-        let sentryTraceId = SentryId(uuidString: traceId)
+        // JS traceId is a 32-char hex string without hyphens; SentryId(uuidString:) requires
+        // the standard hyphenated UUID format (8-4-4-4-12), otherwise it silently produces
+        // an empty SentryId and trace linking breaks.
+        let hyphenated: String
+        if traceId.count == 32 {
+            let s = traceId
+            hyphenated = "\(s.prefix(8))-\(s.dropFirst(8).prefix(4))-\(s.dropFirst(12).prefix(4))-\(s.dropFirst(16).prefix(4))-\(s.dropFirst(20))"
+        } else {
+            hyphenated = traceId
+        }
+        let sentryTraceId = SentryId(uuidString: hyphenated)
         let sentrySpanId = SpanId(value: spanId)
         SentrySDK.internal.setTrace(sentryTraceId, spanId: sentrySpanId)
     }
