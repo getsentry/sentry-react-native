@@ -116,6 +116,8 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   const userBeforeBreadcrumb = safeFactory(userOptions.beforeBreadcrumb, {
     loggerMessage: 'The beforeBreadcrumb threw an error',
+    // Per the Callback Error Isolation spec, drop the breadcrumb when the callback throws.
+    onError: () => null,
   });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
@@ -180,7 +182,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 
   if ('tracesSampler' in options) {
-    options.tracesSampler = safeTracesSampler(options.tracesSampler);
+    options.tracesSampler = safeTracesSampler(options.tracesSampler, options.tracesSampleRate);
   }
 
   if (!('environment' in options)) {

@@ -8,6 +8,12 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
   const [isReady, setIsReady] = React.useState(false);
   const [eventId, setEventId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>('No error');
+  // Buffer-mode replay (replaysOnErrorSampleRate) only attaches a replay_id to
+  // an error event if the native replay buffer captured at least one frame
+  // before the error fired. This counter is tapped by the captureReplay e2e
+  // flow to mutate the view hierarchy (side-effect free, no events sent) so the
+  // buffer records frames before the exception is captured.
+  const [replayPingCount, setReplayPingCount] = React.useState(0);
 
   React.useEffect(() => {
     const client: Sentry.ReactNativeClient | undefined = Sentry.getClient();
@@ -77,6 +83,9 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
       {eventId ? <Text testID='eventId'>{eventId}</Text> : <Text>No event ID</Text>}
       <Text onPress={() => setEventId(null)}>
         Clear Event Id
+      </Text>
+      <Text testID='replayPing' onPress={() => setReplayPingCount((count) => count + 1)}>
+        Replay Ping {replayPingCount}
       </Text>
       {testCases.map((testCase) => (
         <Text key={testCase.id} onPress={testCase.action}>
