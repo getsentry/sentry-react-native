@@ -5,5 +5,16 @@ jsEngine: graaljs
     file: utils/launchTestAppClear.yml
     env:
       replaysOnErrorSampleRate: 1.0
+# Prime the native replay buffer before capturing the exception so a replay_id
+# is attached to the event (iOS only; Android does not reliably capture replays
+# in CI — see https://github.com/getsentry/sentry-react-native/pull/4277).
+- runFlow:
+    file: utils/primeReplayBuffer.yml
+    when:
+      platform: iOS
 - tapOn: "Capture Exception"
 - runFlow: utils/assertEventIdVisible.yml
+- runFlow:
+    file: utils/assertReplay.yml
+    when:
+      platform: iOS
