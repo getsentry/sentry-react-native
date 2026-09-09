@@ -229,12 +229,12 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.popTimeToDisplayFor(key, promise);
   }
 
-  @ReactMethod
+  @ReactMethod(isBlockingSynchronousMethod = true)
   public boolean setActiveSpanId(String spanId) {
     return this.impl.setActiveSpanId(spanId);
   }
 
-  @ReactMethod
+  @ReactMethod(isBlockingSynchronousMethod = true)
   public boolean setCurrentScopePropagationContext(ReadableMap ctx) {
     return this.impl.setCurrentScopePropagationContext(ctx);
   }
