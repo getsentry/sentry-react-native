@@ -15,6 +15,7 @@
 
 ### Fixes
 
+- Time to initial display is no longer understated on Android in optimized release builds ([#6692](https://github.com/getsentry/sentry-react-native/pull/6692))
 - Fix visionOS compilation ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
 - A throwing `beforeBreadcrumb` now drops the breadcrumb, and a throwing `tracesSampler` now falls back to the configured `tracesSampleRate` ([#6675](https://github.com/getsentry/sentry-react-native/pull/6675))
 
