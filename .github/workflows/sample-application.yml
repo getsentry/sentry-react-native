@@ -59,7 +59,7 @@ jobs:
       matrix:
         rn-architecture: ["new"]
         ios-use-frameworks: ["no-frameworks"]
-        build-type: ["production"]
+        build-type: ["dev", "production"]
         sentry-consumption: ["xcframework"]
         # `xcframework` is the default: RNSentry vendors a prebuilt
         # `Sentry-Dynamic.xcframework` downloaded from sentry-cocoa's release.
