@@ -4,6 +4,7 @@ import { getCurrentScope } from '@sentry/core';
 
 import { featureFlagsIntegration } from '../../src/js/integrations/featureFlags';
 import { NATIVE } from '../../src/js/wrapper';
+import { clearAllScopes } from '../testutils';
 
 jest.mock('../../src/js/wrapper');
 
@@ -12,12 +13,12 @@ describe('Feature Flags Integration', () => {
 
   beforeEach(() => {
     integration = featureFlagsIntegration();
-    getCurrentScope().clear();
+    clearAllScopes();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    getCurrentScope().clear();
+    clearAllScopes();
   });
 
   it('registers under the shared FeatureFlags name', () => {

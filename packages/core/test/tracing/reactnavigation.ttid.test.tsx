@@ -1,6 +1,6 @@
-import type { Scope, Span, SpanJSON, TransactionEvent, Transport } from '@sentry/core';
+import type { SpanJSON, TransactionEvent, Transport } from '@sentry/core';
 
-import { getActiveSpan, spanToJSON, timestampInSeconds } from '@sentry/core';
+import { _INTERNAL_setSpanForScope, getActiveSpan, spanToStaticSpanJSON, timestampInSeconds } from '@sentry/core';
 import * as TestRenderer from '@testing-library/react-native';
 import * as React from 'react';
 
@@ -29,12 +29,6 @@ import { MOCK_DSN } from '../mockDsn';
 import { nowInSeconds, secondInFutureTimestampMs } from '../testutils';
 import { mockRecordedTimeToDisplay } from './mockedtimetodisplaynative';
 import { createMockNavigationAndAttachTo } from './reactnavigationutils';
-
-const SCOPE_SPAN_FIELD = '_sentrySpan';
-
-type ScopeWithMaybeSpan = Scope & {
-  [SCOPE_SPAN_FIELD]?: Span;
-};
 
 describe('React Navigation - TTID', () => {
   let transportSendMock: jest.Mock<ReturnType<Transport['send']>, Parameters<Transport['send']>>;
@@ -117,7 +111,7 @@ describe('React Navigation - TTID', () => {
 
       mockedNavigation.navigateToNewScreen();
       mockAutomaticTimeToDisplay();
-      (Sentry.getCurrentScope() as ScopeWithMaybeSpan)[SCOPE_SPAN_FIELD] = undefined;
+      _INTERNAL_setSpanForScope(Sentry.getCurrentScope(), undefined);
       jest.runOnlyPendingTimers(); // Flush transaction
 
       const transaction = getLastTransaction(transportSendMock);
@@ -154,7 +148,10 @@ describe('React Navigation - TTID', () => {
 
       mockedNavigation.navigateToNewScreen();
       mockAutomaticTimeToDisplay();
-      (Sentry.getCurrentScope() as ScopeWithMaybeSpan)[SCOPE_SPAN_FIELD] = startSpanManual({ name: 'test' }, s => s);
+      _INTERNAL_setSpanForScope(
+        Sentry.getCurrentScope(),
+        startSpanManual({ name: 'test' }, s => s),
+      );
       jest.runOnlyPendingTimers(); // Flush transaction
 
       const transaction = getLastTransaction(transportSendMock);
@@ -223,7 +220,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'navigation.processing',
                 'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
-                'sentry.source': 'custom',
+                // JS v11 no longer sets a default `sentry.source: 'custom'` on
+                // child spans; source now lives on the segment only.
                 [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
               },
               description: 'Navigation dispatch to screen New Screen mounted',
@@ -252,7 +250,8 @@ describe('React Navigation - TTID', () => {
               data: {
                 'sentry.op': 'navigation.processing',
                 'sentry.origin': SPAN_ORIGIN_AUTO_NAVIGATION_REACT_NAVIGATION,
-                'sentry.source': 'custom',
+                // JS v11 no longer sets a default `sentry.source: 'custom'` on
+                // child spans; source now lives on the segment only.
                 [SPAN_THREAD_NAME]: SPAN_THREAD_NAME_JAVASCRIPT,
               },
               description: 'Navigation dispatch to screen Initial Screen mounted',
@@ -304,10 +303,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
+          [spanToStaticSpanJSON(getActiveSpan()).span_id]: nowInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
+          [spanToStaticSpanJSON(getActiveSpan()).span_id]: nowInSeconds(),
         },
       });
 
@@ -383,10 +382,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
+          [spanToStaticSpanJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds() - 1,
+          [spanToStaticSpanJSON(getActiveSpan()).span_id]: timestampInSeconds() - 1,
         },
       });
 
@@ -412,10 +411,10 @@ describe('React Navigation - TTID', () => {
       TestRenderer.render(<TimeToFullDisplay record />);
       mockRecordedTimeToDisplay({
         ttidNavigation: {
-          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
+          [spanToStaticSpanJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
         ttfd: {
-          [spanToJSON(getActiveSpan()).span_id]: timestampInSeconds(),
+          [spanToStaticSpanJSON(getActiveSpan()).span_id]: timestampInSeconds(),
         },
       });
 
@@ -451,8 +450,8 @@ describe('React Navigation - TTID', () => {
       jest.runOnlyPendingTimers(); // Flush app start transaction
 
       mockedNavigation.navigateToNewScreen();
-      const activeSpanId = spanToJSON(getActiveSpan()).span_id;
-      const transactionStartTimestamp = spanToJSON(getActiveSpan()).start_timestamp;
+      const activeSpanId = spanToStaticSpanJSON(getActiveSpan()).span_id;
+      const transactionStartTimestamp = spanToStaticSpanJSON(getActiveSpan()).start_timestamp;
 
       // Simulate a stale TTID 60 seconds after the transaction start
       mockRecordedTimeToDisplay({
@@ -551,7 +550,7 @@ describe('React Navigation - TTID', () => {
       timeToDisplayComponent.update(<TimeToInitialDisplay record />);
       mockRecordedTimeToDisplay({
         ttid: {
-          [spanToJSON(getActiveSpan()).span_id]: manualInitialDisplayEndTimestampMs / 1_000,
+          [spanToStaticSpanJSON(getActiveSpan()).span_id]: manualInitialDisplayEndTimestampMs / 1_000,
         },
       });
 
@@ -742,7 +741,7 @@ describe('React Navigation - TTID', () => {
 function mockAutomaticTimeToDisplay(): void {
   mockRecordedTimeToDisplay({
     ttidNavigation: {
-      [spanToJSON(getActiveSpan()).span_id]: nowInSeconds(),
+      [spanToStaticSpanJSON(getActiveSpan()).span_id]: nowInSeconds(),
     },
   });
 }

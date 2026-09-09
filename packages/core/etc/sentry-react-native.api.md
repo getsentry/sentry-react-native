@@ -8,10 +8,6 @@ import { addBreadcrumb } from '@sentry/core';
 import { addConsoleInstrumentationFilter } from '@sentry/core';
 import { addEventProcessor } from '@sentry/core';
 import { addIntegration } from '@sentry/core';
-import { AnthropicAiClient } from '@sentry/core';
-import { AnthropicAiInstrumentedMethod } from '@sentry/core';
-import { AnthropicAiOptions } from '@sentry/core';
-import { AnthropicAiResponse } from '@sentry/core';
 import { Breadcrumb } from '@sentry/core';
 import { browserApiErrorsIntegration } from '@sentry/react';
 import { globalHandlersIntegration as browserGlobalHandlersIntegration } from '@sentry/react';
@@ -24,10 +20,8 @@ import { captureFeedback } from '@sentry/core';
 import { captureMessage } from '@sentry/core';
 import { Client } from '@sentry/core';
 import type { ClientOptions } from '@sentry/core';
-import { CompiledGraph } from '@sentry/core';
 import { consoleLoggingIntegration } from '@sentry/browser';
 import { consoleSandbox } from '@sentry/core';
-import { createLangChainCallbackHandler } from '@sentry/core';
 import { createReduxEnhancer } from '@sentry/react';
 import { dedupeIntegration } from '@sentry/react';
 import type { Envelope } from '@sentry/core';
@@ -47,33 +41,17 @@ import { getCurrentScope } from '@sentry/core';
 import { getGlobalScope } from '@sentry/core';
 import { getIsolationScope } from '@sentry/core';
 import { getRootSpan } from '@sentry/core';
-import { GoogleGenAIChat } from '@sentry/core';
-import { GoogleGenAIClient } from '@sentry/core';
-import { GoogleGenAIOptions } from '@sentry/core';
 import type { HostComponent } from 'react-native';
 import { httpClientIntegration } from '@sentry/react';
 import { httpContextIntegration } from '@sentry/react';
 import type { ImageStyle } from 'react-native';
-import { inboundFiltersIntegration } from '@sentry/react';
-import { instrumentAnthropicAiClient } from '@sentry/core';
-import { InstrumentedMethod } from '@sentry/core';
-import { instrumentGoogleGenAIClient } from '@sentry/core';
-import { instrumentLangGraph } from '@sentry/core';
-import { instrumentOpenAiClient } from '@sentry/core';
-import { instrumentStateGraph } from '@sentry/core';
-import { instrumentStateGraphCompile } from '@sentry/core';
+import { eventFiltersIntegration as inboundFiltersIntegration } from '@sentry/react';
 import { Integration } from '@sentry/core';
-import { LangChainIntegration } from '@sentry/core';
-import { LangChainOptions } from '@sentry/core';
-import { LangGraphIntegration } from '@sentry/core';
-import { LangGraphOptions } from '@sentry/core';
 import { lastEventId } from '@sentry/core';
 import { logger } from '@sentry/browser';
 import type { makeFetchTransport } from '@sentry/browser';
 import { Metric } from '@sentry/core';
 import { metrics } from '@sentry/browser';
-import { OpenAiClient } from '@sentry/core';
-import { OpenAiOptions } from '@sentry/core';
 import type { Options } from '@sentry/core';
 import { Profiler } from '@sentry/react';
 import * as React_2 from 'react';
@@ -126,14 +104,6 @@ export { addEventProcessor }
 
 export { addIntegration }
 
-export { AnthropicAiClient }
-
-export { AnthropicAiInstrumentedMethod }
-
-export { AnthropicAiOptions }
-
-export { AnthropicAiResponse }
-
 // @public
 export function appLoaded(): void;
 
@@ -179,16 +149,12 @@ export { captureMessage }
 // @public
 export function close(): Promise<void>;
 
-export { CompiledGraph }
-
 export { consoleLoggingIntegration }
 
 export { consoleSandbox }
 
 // @public
 export function crashedLastRun(): Promise<boolean | null>;
-
-export { createLangChainCallbackHandler }
 
 // @public (undocumented)
 export const createNativeFramesIntegrations: (enable: boolean | undefined) => Integration | undefined;
@@ -430,12 +396,6 @@ export type GlobalErrorBoundaryProps = ErrorBoundaryProps & {
     includeUnhandledRejections?: boolean;
 };
 
-export { GoogleGenAIChat }
-
-export { GoogleGenAIClient }
-
-export { GoogleGenAIOptions }
-
 // Warning: (ae-forgotten-export) The symbol "GraphQLReactNativeIntegrationOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -457,28 +417,6 @@ export { inboundFiltersIntegration }
 
 // @public
 export function init(passedOptions: ReactNativeOptions): void;
-
-export { instrumentAnthropicAiClient }
-
-export { InstrumentedMethod }
-
-export { instrumentGoogleGenAIClient }
-
-export { instrumentLangGraph }
-
-export { instrumentOpenAiClient }
-
-export { instrumentStateGraph }
-
-export { instrumentStateGraphCompile }
-
-export { LangChainIntegration }
-
-export { LangChainOptions }
-
-export { LangGraphIntegration }
-
-export { LangGraphOptions }
 
 export { lastEventId }
 
@@ -551,10 +489,6 @@ export interface NavigationTheme {
         heavy: FontStyle;
     };
 }
-
-export { OpenAiClient }
-
-export { OpenAiOptions }
 
 // @public
 export function pauseAppHangTracking(): void;
@@ -949,7 +883,7 @@ export function wrapTurboModule<T extends object>(name: string, module: T | null
 // src/js/feedback/integration.ts:21:5 - (ae-forgotten-export) The symbol "ScreenshotButtonProps" needs to be exported by the entry point index.d.ts
 // src/js/feedback/integration.ts:23:5 - (ae-forgotten-export) The symbol "FeedbackFormTheme" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnativetracing.ts:90:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
-// src/js/tracing/reactnavigation.ts:228:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
+// src/js/tracing/reactnavigation.ts:229:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

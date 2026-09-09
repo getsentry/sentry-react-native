@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { StackNavigationProp } from '@react-navigation/stack';
-import { spanToJSON, startNewTrace } from '@sentry/core';
+import { spanToStaticSpanJSON, startNewTrace } from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 
 import NativePlatformSampleModule from '../../tm/NativePlatformSampleModule';
@@ -34,7 +34,9 @@ interface Props {
 const isNewArchitecture = !!NativeSampleModule && !!NativePlatformSampleModule;
 
 function collectTurboModuleAttributes(span: Sentry.Span): string[] {
-  const data = spanToJSON(span).data ?? {};
+  // JS v11's `spanToJSON` returns the streamed shape (no `.data`); the classic
+  // `.data` bag of span attributes now lives on `spanToStaticSpanJSON`.
+  const data = spanToStaticSpanJSON(span).data ?? {};
   return Object.keys(data)
     .filter(key => key.startsWith(ATTRIBUTE_PREFIX))
     .sort()

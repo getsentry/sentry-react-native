@@ -2,6 +2,7 @@ import type { IntegrationFn } from '@sentry/core';
 
 import { addBreadcrumb, defineIntegration, getClient } from '@sentry/core';
 
+import type { ReactNativeClientOptions } from '../options';
 import type { DeepLinkSource } from '../tracing/pendingDeepLink';
 
 import { setPendingDeepLink } from '../tracing/pendingDeepLink';
@@ -57,7 +58,7 @@ export function sanitizeDeepLinkUrl(url: string): string {
  * When PII is disabled, query strings and ID-like path segments are removed.
  */
 function getBreadcrumbUrl(url: string): string {
-  const sendDefaultPii = getClient()?.getOptions()?.sendDefaultPii ?? false;
+  const sendDefaultPii = (getClient()?.getOptions() as ReactNativeClientOptions | undefined)?.sendDefaultPii ?? false;
   return sendDefaultPii ? url : sanitizeDeepLinkUrl(url);
 }
 

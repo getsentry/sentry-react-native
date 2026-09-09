@@ -1,15 +1,6 @@
 import type { Event, Measurements, Span, SpanJSON } from '@sentry/core';
 
-import {
-  debug,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-  spanToJSON,
-  startSpan,
-  startSpanManual,
-} from '@sentry/core';
+import { debug, setCurrentClient, spanToJSON, startSpan, startSpanManual } from '@sentry/core';
 
 jest.spyOn(debug, 'warn');
 
@@ -42,7 +33,7 @@ import {
 } from '../../src/js/tracing/timetodisplay';
 import { _resetTimeToDisplayCoordinator } from '../../src/js/tracing/timeToDisplayCoordinator';
 import { getDefaultTestClientOptions, TestClient } from '../mocks/client';
-import { nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
+import { clearAllScopes, nowInSeconds, secondAgoTimestampMs, secondInFutureTimestampMs } from '../testutils';
 
 jest.mock('../../src/js/utils/environment', () => ({
   isWeb: jest.fn().mockReturnValue(false),
@@ -81,9 +72,7 @@ describe('TimeToDisplay', () => {
   beforeEach(() => {
     clearMockedOnDrawReportedProps();
     _resetTimeToDisplayCoordinator();
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
@@ -534,9 +523,7 @@ describe('Frame Data', () => {
 
   beforeEach(() => {
     clearMockedOnDrawReportedProps();
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
@@ -1004,9 +991,7 @@ describe('reportFullyDisplayed', () => {
     clearMockedOnDrawReportedProps();
     _resetTimeToDisplayCoordinator();
     _resetImperativeTtfdTimestamps();
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,

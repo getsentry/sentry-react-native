@@ -6,7 +6,7 @@ import {
   getClient,
   getCurrentScope,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  spanToJSON,
+  spanToStaticSpanJSON,
 } from '@sentry/core';
 
 import type { ReactNativeClientOptions } from '../../options';
@@ -63,7 +63,7 @@ export const startUserInteractionSpan = (userInteractionId: {
   if (activeTransaction && activeTransactionIsNotInteraction) {
     debug.warn(
       `[${INTEGRATION_NAME}] Did not create ${op} transaction because active transaction ${
-        spanToJSON(activeTransaction).description
+        spanToStaticSpanJSON(activeTransaction).description
       } exists on the scope.`,
     );
     return undefined;
@@ -72,12 +72,12 @@ export const startUserInteractionSpan = (userInteractionId: {
   const name = `${tracing.state.currentRoute}.${elementId}`;
   if (
     activeTransaction &&
-    spanToJSON(activeTransaction).description === name &&
-    spanToJSON(activeTransaction).op === op
+    spanToStaticSpanJSON(activeTransaction).description === name &&
+    spanToStaticSpanJSON(activeTransaction).op === op
   ) {
     debug.warn(
       `[${INTEGRATION_NAME}] Did not create ${op} transaction because it the same transaction ${
-        spanToJSON(activeTransaction).description
+        spanToStaticSpanJSON(activeTransaction).description
       } already exists on the scope.`,
     );
     return undefined;

@@ -91,23 +91,28 @@ function walkErrorTree(
 
   let exception: Exception;
   let exceptionDebugImages: DebugImage[] | undefined;
+  // `error[key]` is `unknown` since JS v11 tightened `ExtendedError`'s index
+  // signature from `any` to `unknown`; the branches below runtime-check its
+  // shape before narrowing, and cast to the concrete native shapes the helpers
+  // expect (this data originates untyped from the native layer).
   if (isString(linkedError)) {
     exception = {
       value: linkedError,
     };
-  } else if ('stackElements' in linkedError) {
+  } else if (isPlainObject(linkedError) && 'stackElements' in linkedError) {
     // isJavaException
-    exception = exceptionFromJavaStackElements(linkedError);
-  } else if ('stackReturnAddresses' in linkedError) {
+    exception = exceptionFromJavaStackElements(linkedError as Parameters<typeof exceptionFromJavaStackElements>[0]);
+  } else if (isPlainObject(linkedError) && 'stackReturnAddresses' in linkedError) {
     // isObjCException
-    const { appleException, appleDebugImages } = exceptionFromAppleStackReturnAddresses(linkedError);
+    const { appleException, appleDebugImages } = exceptionFromAppleStackReturnAddresses(
+      linkedError as Parameters<typeof exceptionFromAppleStackReturnAddresses>[0],
+    );
     exception = appleException;
     exceptionDebugImages = appleDebugImages;
   } else if (isInstanceOf(linkedError, Error)) {
-    exception = exceptionFromError(parser, error[key]);
+    exception = exceptionFromError(parser, linkedError);
   } else if (isPlainObject(linkedError)) {
-    // oxlint-disable-next-line typescript-eslint(no-unnecessary-type-assertion)
-    const plainError = linkedError as Record<string, unknown>;
+    const plainError = linkedError;
     exception = {
       type: typeof plainError.name === 'string' ? plainError.name : undefined,
       value: typeof plainError.message === 'string' ? plainError.message : undefined,
@@ -122,7 +127,7 @@ function walkErrorTree(
   return walkErrorTree(
     parser,
     limit,
-    linkedError,
+    linkedError as ExtendedError,
     key,
     [...exceptions, exception],
     [...debugImages, ...(exceptionDebugImages || [])],

@@ -5,8 +5,8 @@ import {
   getClient,
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
-  SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
-  spanToJSON,
+  SENTRY_SEGMENT_NAME_SOURCE as SEMANTIC_ATTRIBUTE_SENTRY_SOURCE,
+  spanToStaticSpanJSON,
 } from '@sentry/core';
 
 import type { EmitterSubscription } from '../utils/rnlibrariesinterface';
@@ -175,7 +175,7 @@ export const reactNativeNavigationIntegration = ({
 
     const routeHasBeenSeen = recentComponentIds.includes(event.componentId);
 
-    if (spanToJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
+    if (spanToStaticSpanJSON(latestNavigationSpan).description === DEFAULT_NAVIGATION_SPAN_NAME) {
       latestNavigationSpan.updateName(event.componentName);
     }
     latestNavigationSpan.setAttributes({

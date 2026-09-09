@@ -1,6 +1,6 @@
 import type { Breadcrumb } from '@sentry/core';
 
-import { getActiveSpan, spanToJSON, startSpan } from '@sentry/core';
+import { getActiveSpan, spanToStaticSpanJSON, startSpan } from '@sentry/core';
 
 import type { ReactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
 
@@ -88,7 +88,7 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       expect(transaction).toBeDefined();
-      expect(spanToJSON(transaction!)).toEqual(
+      expect(spanToStaticSpanJSON(transaction!)).toEqual(
         expect.objectContaining({
           timestamp: expect.any(Number),
           op: `${UI_ACTION}.mock`,
@@ -107,7 +107,7 @@ describe('GestureTracing', () => {
       jest.runAllTimers();
 
       expect(transaction).toBeDefined();
-      expect(spanToJSON(transaction!)).toEqual(
+      expect(spanToStaticSpanJSON(transaction!)).toEqual(
         expect.objectContaining({
           timestamp: expect.any(Number),
           op: `${UI_ACTION}.gesture`,

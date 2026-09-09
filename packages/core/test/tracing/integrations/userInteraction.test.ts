@@ -5,7 +5,7 @@ import {
   getActiveSpan,
   getCurrentScope,
   SPAN_STATUS_ERROR,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   startSpanManual,
 } from '@sentry/core';
@@ -117,7 +117,7 @@ describe('User Interaction Tracing', () => {
       startUserInteractionSpan(mockedUserInteractionId);
 
       const actualTransaction = getActiveSpan();
-      const actualTransactionContext = spanToJSON(actualTransaction!);
+      const actualTransactionContext = spanToStaticSpanJSON(actualTransaction!);
       expect(client.getOptions().enableUserInteractionTracing).toBeTruthy();
       expect(actualTransactionContext).toEqual(
         expect.objectContaining({
@@ -147,7 +147,7 @@ describe('User Interaction Tracing', () => {
       mockedAppState.setState('background');
       jest.runAllTimers();
 
-      const actualTransactionContext = spanToJSON(actualTransaction!);
+      const actualTransactionContext = spanToStaticSpanJSON(actualTransaction!);
       expect(actualTransactionContext).toEqual(
         expect.objectContaining({
           timestamp: expect.any(Number),
@@ -165,11 +165,14 @@ describe('User Interaction Tracing', () => {
 
       jest.runAllTimers();
 
-      const actualTransactionContext = spanToJSON(actualTransaction!);
+      const actualTransactionContext = spanToStaticSpanJSON(actualTransaction!);
+      // The pre-set error status survives the idle-span finish (it is not
+      // overwritten to 'ok'). JS v11 surfaces only canonical status messages, so
+      // a non-canonical message like 'mocked_status' reports as 'internal_error'.
       expect(actualTransactionContext).toEqual(
         expect.objectContaining({
           timestamp: expect.any(Number),
-          status: 'mocked_status',
+          status: 'internal_error',
         }),
       );
     });
@@ -183,7 +186,7 @@ describe('User Interaction Tracing', () => {
       startUserInteractionSpan(mockedUserInteractionId);
       jest.advanceTimersByTime(timeoutCloseToActualIdleTimeoutMs);
 
-      expect(spanToJSON(actualTransaction!).timestamp).toEqual(expect.any(Number));
+      expect(spanToStaticSpanJSON(actualTransaction!).timestamp).toEqual(expect.any(Number));
     });
 
     test('different UI event and same element finish first and start new transaction', () => {
@@ -213,13 +216,15 @@ describe('User Interaction Tracing', () => {
       );
 
       expect(secondTransaction).toBeDefined();
-      expect(spanToJSON(secondTransaction!)).toEqual(
+      expect(spanToStaticSpanJSON(secondTransaction!)).toEqual(
         expect.objectContaining({
           timestamp: expect.any(Number),
           op: 'different.op',
         }),
       );
-      expect(firstTransactionEvent.timestamp).toBeGreaterThanOrEqual(spanToJSON(secondTransaction).start_timestamp);
+      expect(firstTransactionEvent.timestamp).toBeGreaterThanOrEqual(
+        spanToStaticSpanJSON(secondTransaction).start_timestamp,
+      );
     });
 
     test('different UI event and same element finish first transaction with last span', () => {
@@ -257,8 +262,8 @@ describe('User Interaction Tracing', () => {
       const secondTransaction = getActiveSpan();
       jest.runAllTimers();
 
-      const firstTransactionContext = spanToJSON(firstTransaction!);
-      const secondTransactionContext = spanToJSON(secondTransaction!);
+      const firstTransactionContext = spanToStaticSpanJSON(firstTransaction!);
+      const secondTransactionContext = spanToStaticSpanJSON(secondTransaction!);
       expect(firstTransactionContext.timestamp).toEqual(expect.any(Number));
       expect(secondTransactionContext.timestamp).toEqual(expect.any(Number));
       expect(firstTransactionContext.span_id).not.toEqual(secondTransactionContext.span_id);
@@ -291,8 +296,8 @@ describe('User Interaction Tracing', () => {
       });
       jest.runAllTimers();
 
-      const interactionTransactionContext = spanToJSON(interactionTransaction!);
-      const routingTransactionContext = spanToJSON(routingTransaction!);
+      const interactionTransactionContext = spanToStaticSpanJSON(interactionTransaction!);
+      const routingTransactionContext = spanToStaticSpanJSON(routingTransaction!);
       expect(interactionTransactionContext).toEqual(
         expect.objectContaining({
           timestamp: expect.any(Number),

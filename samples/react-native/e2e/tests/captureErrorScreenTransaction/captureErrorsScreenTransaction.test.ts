@@ -74,7 +74,9 @@ describe('Capture Errors Screen Transaction', () => {
               'sentry.op': 'ui.load',
               'sentry.origin': 'auto.app.start',
               'sentry.sample_rate': 1,
-              'sentry.source': 'component',
+              // JS v11 removed `sentry.source`; the transaction name source now
+              // lives under `sentry.segment.name.source` on the segment span.
+              'sentry.segment.name.source': 'component',
               'thread.name': 'javascript',
             }),
             op: 'ui.load',

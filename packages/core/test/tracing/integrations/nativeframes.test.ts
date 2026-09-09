@@ -1,11 +1,11 @@
 import type { Event, Measurements } from '@sentry/core';
 
-import { getCurrentScope, getGlobalScope, getIsolationScope, setCurrentClient, startSpan } from '@sentry/core';
+import { setCurrentClient, startSpan } from '@sentry/core';
 
 import { nativeFramesIntegration } from '../../../src/js';
 import { NATIVE } from '../../../src/js/wrapper';
 import { getDefaultTestClientOptions, TestClient } from '../../mocks/client';
-import { mockFunction } from '../../testutils';
+import { clearAllScopes, mockFunction } from '../../testutils';
 
 jest.mock('../../../src/js/wrapper', () => {
   return {
@@ -34,9 +34,7 @@ describe('NativeFramesInstrumentation', () => {
   beforeEach(() => {
     global.Date.now = jest.fn(() => mockDate.getTime());
 
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
@@ -469,7 +467,7 @@ describe('NativeFramesInstrumentation', () => {
         // Start and complete txn-2 during txn-1's event processing.
         // With a global variable (old code), txn-2's child end would overwrite txn-1's data.
         // Clear scope so txn-2 is a new root span, not a child of txn-1.
-        getCurrentScope().clear();
+        clearAllScopes();
         await startSpan({ name: 'txn-2' }, async () => {
           startSpan({ name: 'txn-2-child' }, () => {});
           await Promise.resolve();
@@ -528,9 +526,7 @@ describe('NativeFramesInstrumentation', () => {
     beforeEach(() => {
       global.Date.now = jest.fn(() => mockDate.getTime());
 
-      getCurrentScope().clear();
-      getIsolationScope().clear();
-      getGlobalScope().clear();
+      clearAllScopes();
 
       const options = getDefaultTestClientOptions({
         tracesSampleRate: 0,

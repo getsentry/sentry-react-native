@@ -272,7 +272,7 @@ jobs:
           echo "OK: scripts/sentry-xcode.sh executable"
 
   job_type_check:
-    name: Type Check Typescript 3.8
+    name: Type Check Typescript 5.0
     runs-on: ubuntu-latest
     needs: [job_build, diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
