@@ -210,14 +210,16 @@ export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
  * native HTTP instrumentation (OkHttp on Android, URLSession on iOS) attaches
  * the correct traceId and appears in the same trace as the JS transaction.
  *
- * Only fires for the active root span to avoid inactive forceTransaction roots
- * (app start, expo-updates) clobbering the native trace of an in-flight
- * navigation span. Child spans are skipped to avoid bridge spam.
+ * Fires for every root span so that the native scope is always up to date and
+ * doesn't retain a stale traceId from a previous span. Child spans are skipped
+ * to avoid bridge spam.
+ *
+ * Note: `spanStart` fires before idle spans are made active, so an active-span
+ * guard here would skip every navigation span. Sync happens for all root spans.
  */
 export function syncPropagationContextToNative(client: Client): void {
   client.on('spanStart', (span: Span) => {
     if (!isRootSpan(span)) return;
-    if (getActiveSpan() !== span) return;
     const ctx = span.spanContext();
     const propagationCtx = getCurrentScope().getPropagationContext();
     NATIVE.setCurrentScopePropagationContext({
