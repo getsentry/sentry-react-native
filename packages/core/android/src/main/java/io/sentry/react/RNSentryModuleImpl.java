@@ -496,7 +496,7 @@ public class RNSentryModuleImpl {
     // sent, so it stays empty while a buffer replay is recording (issue #6598).
     final @NotNull SentryId controllerId =
         Sentry.getCurrentScopes().getOptions().getReplayController().getReplayId();
-    if (controllerId != SentryId.EMPTY_ID) {
+    if (!SentryId.EMPTY_ID.equals(controllerId)) {
       return controllerId.toString();
     }
 
@@ -510,7 +510,7 @@ public class RNSentryModuleImpl {
     }
 
     final @NotNull SentryId id = scope.getReplayId();
-    if (id == SentryId.EMPTY_ID) {
+    if (SentryId.EMPTY_ID.equals(id)) {
       return null;
     }
     return id.toString();
