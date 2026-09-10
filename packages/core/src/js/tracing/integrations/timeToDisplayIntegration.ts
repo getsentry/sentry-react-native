@@ -11,7 +11,7 @@ import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_JAVASCRIPT } from '../span';
 import { _popImperativeTtfdTimestamp } from '../timetodisplay';
 import { clearSpan as clearTimeToDisplayCoordinatorSpan } from '../timeToDisplayCoordinator';
 import { getTimeToInitialDisplayFallback } from '../timeToDisplayFallback';
-import { createSpanJSON } from '../utils';
+import { addMeasurement, createSpanJSON } from '../utils';
 
 export const INTEGRATION_NAME = 'TimeToDisplay';
 
@@ -56,7 +56,6 @@ export const timeToDisplayIntegration = (): Integration => {
       }
 
       event.spans = event.spans || [];
-      event.measurements = event.measurements || {};
 
       const ttidSpan = await addTimeToInitialDisplay({
         event,
@@ -80,10 +79,10 @@ export const timeToDisplayIntegration = (): Integration => {
       const ttidDeadlineExceeded = ttidDurationMs !== undefined && isDeadlineExceeded(ttidDurationMs);
 
       if (ttidDurationMs !== undefined && !ttidDeadlineExceeded) {
-        event.measurements['time_to_initial_display'] = {
+        addMeasurement(event, 'time_to_initial_display', {
           value: ttidDurationMs,
           unit: 'millisecond',
-        };
+        });
       }
 
       const ttfdDurationMs =
@@ -94,14 +93,15 @@ export const timeToDisplayIntegration = (): Integration => {
 
       if (ttfdDurationMs !== undefined) {
         if (ttfdDeadlineExceeded) {
-          if (event.measurements['time_to_initial_display']) {
-            event.measurements['time_to_full_display'] = event.measurements['time_to_initial_display'];
+          const ttidMeasurement = event.measurements?.['time_to_initial_display'];
+          if (ttidMeasurement) {
+            addMeasurement(event, 'time_to_full_display', ttidMeasurement);
           }
         } else {
-          event.measurements['time_to_full_display'] = {
+          addMeasurement(event, 'time_to_full_display', {
             value: ttfdDurationMs,
             unit: 'millisecond',
-          };
+          });
         }
       }
 
@@ -112,6 +112,26 @@ export const timeToDisplayIntegration = (): Integration => {
       );
       if (newTransactionEndTimestampSeconds !== -1) {
         event.timestamp = newTransactionEndTimestampSeconds;
+      }
+
+      // Deadline-exceeded TTID/TTFD spans deliberately do NOT extend the
+      // transaction end above (that would inflate its duration by up to the 30s
+      // deadline). Without a guard this leaves a child span ending after the
+      // transaction end — an out-of-bounds span that Relay rejects as
+      // `invalid_transaction`, dropping the whole transaction and any attached
+      // profile (#6597). Clamp such spans to the transaction end so they always
+      // stay within the transaction bounds.
+      const transactionEndTimestampSeconds = event.timestamp;
+      if (transactionEndTimestampSeconds !== undefined) {
+        for (const span of [ttidSpan, ttfdSpan]) {
+          if (span?.timestamp !== undefined && span.timestamp > transactionEndTimestampSeconds) {
+            debug.warn(
+              `[${INTEGRATION_NAME}] Clamping ${span.op} span end (${span.timestamp}) to the transaction end ` +
+                `(${transactionEndTimestampSeconds}) to keep it within the transaction bounds.`,
+            );
+            span.timestamp = transactionEndTimestampSeconds;
+          }
+        }
       }
 
       clearTimeToDisplayCoordinatorSpan(rootSpanId);

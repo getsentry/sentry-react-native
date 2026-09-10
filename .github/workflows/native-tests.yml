@@ -32,21 +32,16 @@ jobs:
       caller_ref: ${{ github.ref }}
 
   test-ios:
-    name: ios on ${{matrix.runner_provider}}
-    runs-on: ${{ matrix.runner_provider == 'bitrise' && fromJSON('["bitrise_pool_name:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-tahoe-xcode:26.2.0", "runner_group_id:10"]') }}
-    continue-on-error: ${{ matrix.runner_provider == 'bitrise' }}
+    name: ios
+    runs-on: ["bitrise_pool_name:tahoe"]
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_ios == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        runner_provider: ["cirrus", "bitrise"]
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Enable Corepack
         run: corepack enable
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           package-manager-cache: false
           node-version: 18
@@ -54,7 +49,6 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Setup asdf Node.js (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
         run: |
           asdf global nodejs system
           corepack enable
@@ -63,34 +57,15 @@ jobs:
         run: yarn install
 
       - uses: actions/cache@v6
-        name: Cache Ruby
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          path: |
-            ~/.rbenv/versions
-            ~/.rbenv/cache
-          key: ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
-
-      - uses: actions/cache@v6
         name: Cache Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
         with:
           path: ~/.asdf/installs/ruby
           key: asdf-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.ruby-version') }}
 
       - name: Install Ruby (Bitrise)
-        if: matrix.runner_provider == 'bitrise'
         run: |
           asdf install ruby 3.3.0
           asdf local ruby 3.3.0
-
-      - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1
-        if: matrix.runner_provider != 'bitrise'
-        with:
-          ruby-version: "3.3.0"
-        env:
-          # Disable rbenv to avoid .ruby-version conflicts
-          RBENV_VERSION: system
 
       - name: Install CocoaPods
         run: gem install cocoapods
@@ -138,22 +113,21 @@ jobs:
 
   test-android:
     name: android
-    runs-on:
-      ["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04", "runner_group_id:10"]
+    runs-on: ubuntu-24.04
     needs: [diff_check, detect-changes]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_android == 'true' }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: ./.github/actions/disk-cleanup
 
-      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
         with:
           java-version: "17"
-          distribution: "adopt"
+          distribution: "temurin"
 
       - name: Gradle cache
-        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
 
       - name: Run unit tests
         working-directory: packages/core/RNSentryAndroidTester

@@ -36,7 +36,7 @@ For a list of which SDK versions are bundled with each release, see [SDK-VERSION
 - Automatic Native Crash Error Tracking (using [sentry-cocoa](https://github.com/getsentry/sentry-cocoa) & [sentry-android](https://github.com/getsentry/sentry-java) under the hood)
 - Offline storage of events
 - On Device symbolication for JS (in Debug)
-- [Autolinking](https://facebook.github.io/react-native/blog/2019/07/03/version-60#native-modules-are-now-autolinked)
+- [Autolinking](https://reactnative.dev/blog/2019/07/03/version-60#native-modules-are-now-autolinked)
 - Events with enriched device data
 - RAM bundle support
 - Hermes support
@@ -78,17 +78,17 @@ If you are coming from `react-native-sentry` which was our SDK `< 1.0` you shoul
 
 ## Blog posts
 
-[Introducing Mobile Screenshots and Suspect Commits](https://blog.sentry.io/2022/07/07/introducing-mobile-screenshots-and-suspect-commits).
+[Introducing Mobile Screenshots and Suspect Commits](https://blog.sentry.io/introducing-mobile-screenshots-and-suspect-commits).
 
-[Tips for Optimizing React Native Application Performance - Part 2: Using Sentry SDK for Performance Monitoring](https://blog.sentry.io/2022/06/28/tips-for-optimizing-react-native-application-performance-part-2-using-sentry).
+[Tips for Optimizing React Native Application Performance - Part 2: Using Sentry SDK for Performance Monitoring](https://blog.sentry.io/tips-for-optimizing-react-native-application-performance-part-2-using-sentry).
 
-[Tips for Optimizing React Native Application Performance: Part 1](https://blog.sentry.io/2022/06/01/tips-for-optimizing-react-native-application-performance-part-1).
+[Tips for Optimizing React Native Application Performance: Part 1](https://blog.sentry.io/tips-for-optimizing-react-native-application-performance-part-1).
 
-[Tracking Stability in a Bluetooth Low Energy-Based React-Native App](https://blog.sentry.io/2022/02/22/tracking-stability-in-a-bluetooth-low-energy-based-react-native-app).
+[Tracking Stability in a Bluetooth Low Energy-Based React-Native App](https://blog.sentry.io/tracking-stability-in-a-bluetooth-low-energy-based-react-native-app).
 
-[Mobile Vitals - Four Metrics Every Mobile Developer Should Care About](https://blog.sentry.io/2021/08/23/mobile-vitals-four-metrics-every-mobile-developer-should-care-about/).
+[Mobile Vitals - Four Metrics Every Mobile Developer Should Care About](https://blog.sentry.io/mobile-vitals-four-metrics-every-mobile-developer-should-care-about/).
 
-[Performance Monitoring Support for React Native](https://blog.sentry.io/2021/03/11/performance-monitoring-support-for-react-native/?utm_source=github&utm_medium=readme&utm_campaign=sentry-react-native).
+[Performance Monitoring Support for React Native](https://blog.sentry.io/performance-monitoring-support-for-react-native/?utm_source=github&utm_medium=readme&utm_campaign=sentry-react-native).
 
 ## Resources
 

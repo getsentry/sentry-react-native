@@ -1,4 +1,4 @@
-import { withAppBuildGradle, withProjectBuildGradle } from '@expo/config-plugins';
+import { withAppBuildGradle, withProjectBuildGradle } from 'expo/config-plugins';
 
 import type { SentryAndroidGradlePluginOptions } from '../../plugin/src/withSentryAndroidGradlePlugin';
 
@@ -8,7 +8,7 @@ import {
   withSentryAndroidGradlePlugin,
 } from '../../plugin/src/withSentryAndroidGradlePlugin';
 
-jest.mock('@expo/config-plugins', () => ({
+jest.mock('expo/config-plugins', () => ({
   withProjectBuildGradle: jest.fn(),
   withAppBuildGradle: jest.fn(),
 }));

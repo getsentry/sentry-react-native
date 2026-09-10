@@ -174,6 +174,12 @@ const ErrorsScreen = (_props: Props) => {
           }}
         />
         <Button
+          title="TurboModule Playground"
+          onPress={() => {
+            _props.navigation.navigate('TurboModule');
+          }}
+        />
+        <Button
           title="Log console"
           onPress={() => {
             Sentry.logger.info('info log');

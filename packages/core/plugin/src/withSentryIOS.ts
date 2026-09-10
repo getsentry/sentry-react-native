@@ -29,17 +29,15 @@ export const withSentryIOS: ConfigPlugin<{
       'PBXShellScriptBuildPhase',
     );
     if (!sentryBuildPhase) {
-      const debugFilesScript = disableAutoUpload
-        ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`
-        : `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}`;
       xcodeProject.addBuildPhase([], 'PBXShellScriptBuildPhase', 'Upload Debug Symbols to Sentry', null, {
         shellPath: '/bin/sh',
-        shellScript: debugFilesScript,
+        shellScript: getDebugFilesUploadScript(disableAutoUpload),
       });
-    } else if (disableAutoUpload) {
-      addDisableAutoUploadToExistingScript(sentryBuildPhase);
     } else {
-      removeDisableAutoUploadFromExistingScript(sentryBuildPhase);
+      // The "Upload Debug Symbols to Sentry" phase is entirely Sentry-owned, so rewrite it to the
+      // freshly generated script. This keeps in-place upgrades (without `expo prebuild --clean`) in
+      // sync: they pick up the space-safe quoting fix (#6583) and the correct disableAutoUpload state.
+      overwriteDebugFilesUploadScript(sentryBuildPhase, disableAutoUpload);
     }
 
     const bundleReactNativePhase = xcodeProject.pbxItemByComment(
@@ -72,6 +70,9 @@ Please open a bug report at https://github.com/getsentry/sentry-react-native`,
   }
 
   if (script.shellScript.includes('sentry-xcode.sh')) {
+    // Re-quote an existing (possibly pre-fix) Sentry bundle line so in-place upgrades without
+    // `expo prebuild --clean` also pick up the space-safe quoting fix (#6583).
+    requoteExistingSentryBundleScript(script);
     if (disableAutoUpload) {
       addDisableAutoUploadToExistingScript(script);
     } else {
@@ -98,10 +99,57 @@ export function addSentryWithBundledScriptsToBundleShellScript(
   disableAutoUpload: boolean = false,
 ): string {
   const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
+  // Match through end-of-line so the full react-native-xcode.sh invocation (which in the bare/monorepo
+  // templates is a backtick command substitution ending in `'"` + backtick) stays inside `${match}`.
+  // Both the Sentry script path and the original invocation are wrapped in double quotes so paths
+  // containing spaces are passed as single arguments instead of being word-split. See issue #6583.
   return script.replace(
-    /^.*?(packager|scripts)\/react-native-xcode\.sh\s*(\\'\\\\")?/m,
-    (match: string) => `${disableAutoUploadExport}/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} ${match}`,
+    /^.*?(packager|scripts)\/react-native-xcode\.sh.*$/m,
+    (match: string) => `${disableAutoUploadExport}/bin/sh "${SENTRY_REACT_NATIVE_XCODE_PATH}" "${match}"`,
   );
+}
+
+export function getDebugFilesUploadScript(disableAutoUpload: boolean = false): string {
+  // The resolved script path is wrapped in double quotes so a project path containing spaces is
+  // passed to `/bin/sh` as a single argument instead of being word-split. See issue #6583.
+  const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
+  return `${disableAutoUploadExport}/bin/sh "${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}"`;
+}
+
+export function requoteExistingSentryBundleScript(script: BuildPhase): void {
+  try {
+    const code = JSON.parse(script.shellScript);
+    script.shellScript = JSON.stringify(requoteSentryBundleLine(code));
+  } catch {
+    script.shellScript = requoteSentryBundleLine(script.shellScript);
+  }
+}
+
+function requoteSentryBundleLine(code: string): string {
+  const quotedPrefix = `/bin/sh "${SENTRY_REACT_NATIVE_XCODE_PATH}"`;
+  // Already quoted (current form) or an unknown/custom line: leave it untouched.
+  if (code.includes(quotedPrefix)) {
+    return code;
+  }
+  const unquotedPrefix = `/bin/sh ${SENTRY_REACT_NATIVE_XCODE_PATH} `;
+  const start = code.indexOf(unquotedPrefix);
+  if (start === -1) {
+    return code;
+  }
+  const newlineIndex = code.indexOf('\n', start);
+  const end = newlineIndex === -1 ? code.length : newlineIndex;
+  // Everything after the Sentry script path to end-of-line is the react-native-xcode.sh invocation
+  // (a plain path in the default template, a backtick command substitution in the bare/monorepo one).
+  const invocation = code.slice(start + unquotedPrefix.length, end);
+  const requotedLine = `/bin/sh "${SENTRY_REACT_NATIVE_XCODE_PATH}" "${invocation}"`;
+  return code.slice(0, start) + requotedLine + code.slice(end);
+}
+
+export function overwriteDebugFilesUploadScript(script: BuildPhase, disableAutoUpload: boolean = false): void {
+  // Existing phases are stored JSON-encoded by the `xcode` library (see the create path, which passes a
+  // raw string that the library encodes on write). Re-encode the freshly generated script the same way so
+  // it is written back verbatim without double-encoding.
+  script.shellScript = JSON.stringify(getDebugFilesUploadScript(disableAutoUpload));
 }
 
 export function addDisableAutoUploadToExistingScript(script: BuildPhase): void {

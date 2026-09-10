@@ -2,13 +2,7 @@
 #import <RNSentry/RNSentry.h>
 #import <RNSentry/RNSentryReplay.h>
 
-@class SentryOptions;
 @class SentryUser;
-
-@interface SentrySDKInternal (PrivateTests)
-
-+ (nullable SentryOptions *)options;
-@end
 
 @interface RNSentry (PrivateTests)
 

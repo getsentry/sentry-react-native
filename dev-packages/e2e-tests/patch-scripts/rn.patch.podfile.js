@@ -71,7 +71,7 @@ let modularPatched = false;
 if (!content.includes('use_modular_headers!')) {
   const patched = content.replace(
     /prepare_react_native_project!\s*\n/,
-    "prepare_react_native_project!\nuse_modular_headers!\n",
+    'prepare_react_native_project!\nuse_modular_headers!\n',
   );
   if (patched !== content) {
     content = patched;

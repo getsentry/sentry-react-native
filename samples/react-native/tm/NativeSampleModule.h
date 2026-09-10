@@ -14,6 +14,8 @@ class NativeSampleModule : public NativeSampleModuleCxxSpec<NativeSampleModule> 
 public:
     NativeSampleModule(std::shared_ptr<CallInvoker> jsInvoker);
 
+    double add(jsi::Runtime &rt, double a, double b);
+
     void crash(jsi::Runtime &rt);
 };
 

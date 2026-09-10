@@ -22,6 +22,8 @@ import { FeedbackFormProvider } from './feedback/FeedbackFormProvider';
 import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { getDefaultIntegrations } from './integrations/default';
 import { shouldEnableNativeNagger } from './options';
+import { BROWSER_REPLAY_INTEGRATION_NAME } from './replay/browserReplay';
+import { MOBILE_REPLAY_INTEGRATION_NAME } from './replay/mobilereplay';
 import { enableSyncToNative } from './scopeSync';
 import { TouchEventBoundary } from './touchevents';
 import { ReactNativeProfiler } from './tracing';
@@ -35,6 +37,7 @@ import { useEncodePolyfill } from './transports/encodePolyfill';
 import { DEFAULT_BUFFER_SIZE, makeNativeTransportFactory } from './transports/native';
 import { getDefaultEnvironment, isExpoGo, isRunningInMetroDevServer, isWeb } from './utils/environment';
 import { registerFeatureMarker } from './utils/featureMarkers';
+import { ensureReliablePerformanceTimeOrigin } from './utils/performanceclock';
 import { getDefaultRelease } from './utils/release';
 import { safeFactory, safeTracesSampler } from './utils/safe';
 import { checkSentryJsSdkVersionMismatch } from './utils/sdkVersionCheck';
@@ -70,6 +73,12 @@ export function init(passedOptions: ReactNativeOptions): void {
     return;
   }
 
+  // Guard against an unreliable `performance.timeOrigin` before any span or log is
+  // timestamped by `@sentry/core` (it caches the origin on first use). See #6630 and
+  // `ensureReliablePerformanceTimeOrigin`. The warning is deferred until after
+  // `initAndBind` enables the debug logger.
+  const timeOriginDriftMs = ensureReliablePerformanceTimeOrigin();
+
   const userOptions = {
     ...RN_GLOBAL_OBJ.__SENTRY_OPTIONS__,
     ...passedOptions,
@@ -102,6 +111,8 @@ export function init(passedOptions: ReactNativeOptions): void {
 
   const userBeforeBreadcrumb = safeFactory(userOptions.beforeBreadcrumb, {
     loggerMessage: 'The beforeBreadcrumb threw an error',
+    // Per the Callback Error Isolation spec, drop the breadcrumb when the callback throws.
+    onError: () => null,
   });
 
   // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
@@ -166,7 +177,7 @@ export function init(passedOptions: ReactNativeOptions): void {
   }
 
   if ('tracesSampler' in options) {
-    options.tracesSampler = safeTracesSampler(options.tracesSampler);
+    options.tracesSampler = safeTracesSampler(options.tracesSampler, options.tracesSampleRate);
   }
 
   if (!('environment' in options)) {
@@ -181,6 +192,15 @@ export function init(passedOptions: ReactNativeOptions): void {
     defaultIntegrations,
   });
   initAndBind(ReactNativeClient, options);
+  // The following must run after `initAndBind`: that is where `@sentry/core` enables the debug
+  // logger (`debug.enable()` when `debug: true`), so `debug.warn` is a no-op before it.
+  if (timeOriginDriftMs !== undefined) {
+    debug.warn(
+      `[ReactNative] performance.timeOrigin diverged from Date.now() by ${Math.round(timeOriginDriftMs)}ms; ` +
+        'falling back to Date.now() for span and log timestamps (see #6630).',
+    );
+  }
+  warnIfReplayIntegrationMissing(options);
   if (__DEV__) {
     checkSentryJsSdkVersionMismatch();
   }
@@ -197,6 +217,44 @@ export function init(passedOptions: ReactNativeOptions): void {
     // it into JS as `__SENTRY_OPTIONS__`, and native reads it before JS runs).
     registerFeatureMarker(CAPTURE_APP_START_ERRORS_INTEGRATION_NAME);
   }
+}
+
+/**
+ * Warns when replay sample rates are configured but the matching Replay integration is missing.
+ *
+ * The mobile integration is auto-added by `getDefaultIntegrations` when sample rates are set, but
+ * that path is skipped when the user supplies their own `defaultIntegrations`. On web the browser
+ * integration is never auto-added. In both cases replay would otherwise fail silently.
+ */
+function warnIfReplayIntegrationMissing(options: ReactNativeClientOptions): void {
+  // Only a rate > 0 actually enables replay; `0` is a valid way to keep it off, so it must not warn.
+  const isEnabledRate = (rate: number | undefined): boolean => typeof rate === 'number' && rate > 0;
+  const experiments = options._experiments;
+  const hasReplayOptions = [
+    options.replaysOnErrorSampleRate,
+    options.replaysSessionSampleRate,
+    experiments?.replaysOnErrorSampleRate,
+    experiments?.replaysSessionSampleRate,
+  ].some(isEnabledRate);
+
+  if (!hasReplayOptions) {
+    return;
+  }
+
+  const web = isWeb();
+  const expectedIntegrationName = web ? BROWSER_REPLAY_INTEGRATION_NAME : MOBILE_REPLAY_INTEGRATION_NAME;
+  const hasReplayIntegration = options.integrations.some(integration => integration.name === expectedIntegrationName);
+
+  if (hasReplayIntegration) {
+    return;
+  }
+
+  const factoryName = web ? 'browserReplayIntegration()' : 'mobileReplayIntegration()';
+  debug.warn(
+    `[Sentry] \`replaysSessionSampleRate\` or \`replaysOnErrorSampleRate\` is set but the \`${expectedIntegrationName}\` integration is missing. ` +
+      `Session Replay may not work as expected. Add \`Sentry.${factoryName}\` to the \`integrations\` option to enable it. ` +
+      `See https://docs.sentry.io/platforms/react-native/session-replay/#set-up`,
+  );
 }
 
 /**

@@ -1,8 +1,18 @@
-import type { Client, DynamicSamplingContext, ErrorEvent, Event, EventHint } from '@sentry/core';
+import type {
+  Breadcrumb,
+  BreadcrumbHint,
+  Client,
+  DynamicSamplingContext,
+  ErrorEvent,
+  Event,
+  EventHint,
+} from '@sentry/core';
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
+import { REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY } from '../../src/js/replay/xhrUtils';
+import * as scopeSync from '../../src/js/scopeSync';
 import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
 
@@ -575,6 +585,150 @@ describe('Mobile Replay Integration', () => {
 
       expect(mockAddIntegration).toHaveBeenCalledWith({ name: 'MobileReplayNetworkDetails' });
       expect(mockAddIntegration).not.toHaveBeenCalledWith({ name: 'MobileReplayNetworkBodies' });
+    });
+  });
+
+  describe('beforeBreadcrumb wrapping (async binary response bodies)', () => {
+    let mockDeferBreadcrumbNativeSync: jest.SpiedFunction<typeof scopeSync.deferBreadcrumbNativeSync>;
+    let mockSyncBreadcrumbToNative: jest.SpiedFunction<typeof scopeSync.syncBreadcrumbToNative>;
+    let wrapClientOptions: {
+      beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null;
+    };
+    let wrapClient: jest.Mocked<Client>;
+
+    const flushMicrotasks = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
+
+    const setupIntegration = (options?: Parameters<typeof mobileReplayIntegration>[0]): void => {
+      const integration = mobileReplayIntegration({
+        networkDetailAllowUrls: ['api.example.com'],
+        ...options,
+      });
+      integration.setup?.(wrapClient);
+    };
+
+    const getBinaryXhrBreadcrumbAndHint = (body = '{"ok":true}'): { breadcrumb: Breadcrumb; hint: BreadcrumbHint } => ({
+      breadcrumb: { category: 'xhr', timestamp: 123, data: { url: 'https://api.example.com/users' } },
+      hint: {
+        startTimestamp: 1,
+        endTimestamp: 2,
+        xhr: {
+          __sentry_xhr_v3__: {
+            method: 'GET',
+            url: 'https://api.example.com/users',
+            request_headers: {},
+          },
+          getResponseHeader: (key: string) => (key === 'content-type' ? 'application/json' : null),
+          getAllResponseHeaders: () => 'content-type: application/json',
+          response: new TextEncoder().encode(body).buffer,
+          responseType: 'arraybuffer',
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockDeferBreadcrumbNativeSync = jest.spyOn(scopeSync, 'deferBreadcrumbNativeSync').mockImplementation(() => {});
+      mockSyncBreadcrumbToNative = jest.spyOn(scopeSync, 'syncBreadcrumbToNative').mockImplementation(() => {});
+      wrapClientOptions = {};
+      wrapClient = {
+        on: jest.fn(),
+        getOptions: jest.fn(() => wrapClientOptions),
+        getIntegrationByName: jest.fn().mockReturnValue(undefined),
+        addIntegration: jest.fn(),
+      } as unknown as jest.Mocked<Client>;
+    });
+
+    it('keeps the breadcrumb on the scope and defers only the native sync', async () => {
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      // Arrange/Act: the breadcrumb must not be dropped — error events captured
+      // while the body read is in flight need to keep it.
+      const result = wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint);
+
+      expect(result).toBe(breadcrumb);
+      expect(mockDeferBreadcrumbNativeSync).toHaveBeenCalledWith(breadcrumb);
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
+
+      await flushMicrotasks();
+
+      expect(mockSyncBreadcrumbToNative).toHaveBeenCalledTimes(1);
+    });
+
+    it('syncs a copy carrying the resolved body, leaving the scope breadcrumb untouched', async () => {
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint);
+      await flushMicrotasks();
+
+      const synced = mockSyncBreadcrumbToNative.mock.calls[0]?.[0] as Breadcrumb;
+      expect(synced).not.toBe(breadcrumb);
+      expect(synced.timestamp).toBe(123);
+      expect((synced.data?.response as { body?: string }).body).toBe('{"ok":true}');
+      expect(synced.data?.response_body_size).toBe(11);
+      // The scope copy keeps whatever the synchronous enrichment produced.
+      expect(breadcrumb.data?.response).toBeUndefined();
+    });
+
+    it('passes through breadcrumbs that do not need an async body read', async () => {
+      setupIntegration();
+      const breadcrumb: Breadcrumb = { category: 'console', message: 'hello' };
+
+      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, {})).toBe(breadcrumb);
+
+      await flushMicrotasks();
+      expect(mockDeferBreadcrumbNativeSync).not.toHaveBeenCalled();
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
+    });
+
+    it('does not defer again for a hint that already carries a resolved body', async () => {
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+      const resolvedHint = { ...hint, [REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY]: { body: { body: '{"ok":true}' } } };
+
+      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, resolvedHint)).toBe(breadcrumb);
+
+      await flushMicrotasks();
+      expect(mockDeferBreadcrumbNativeSync).not.toHaveBeenCalled();
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
+    });
+
+    it('runs the user beforeBreadcrumb exactly once', async () => {
+      const userBeforeBreadcrumb = jest.fn((breadcrumb: Breadcrumb) => breadcrumb);
+      wrapClientOptions.beforeBreadcrumb = userBeforeBreadcrumb as (
+        breadcrumb: Breadcrumb,
+        hint?: BreadcrumbHint,
+      ) => Breadcrumb | null;
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint);
+      await flushMicrotasks();
+
+      expect(userBeforeBreadcrumb).toHaveBeenCalledTimes(1);
+    });
+
+    it('respects a user beforeBreadcrumb that drops the breadcrumb', async () => {
+      wrapClientOptions.beforeBreadcrumb = () => null;
+      setupIntegration();
+      const { breadcrumb, hint } = getBinaryXhrBreadcrumbAndHint();
+
+      expect(wrapClientOptions.beforeBreadcrumb?.(breadcrumb, hint)).toBeNull();
+
+      await flushMicrotasks();
+      expect(mockDeferBreadcrumbNativeSync).not.toHaveBeenCalled();
+      expect(mockSyncBreadcrumbToNative).not.toHaveBeenCalled();
+    });
+
+    it('does not wrap beforeBreadcrumb when body capture is disabled', () => {
+      setupIntegration({ networkCaptureBodies: false });
+      expect(wrapClientOptions.beforeBreadcrumb).toBeUndefined();
+    });
+
+    it('does not wrap beforeBreadcrumb when no URLs are allow-listed', () => {
+      const integration = mobileReplayIntegration({ networkDetailAllowUrls: [] });
+      integration.setup?.(wrapClient);
+      expect(wrapClientOptions.beforeBreadcrumb).toBeUndefined();
     });
   });
 

@@ -27,11 +27,24 @@ set-version)
     if [[ "$version" == "$tagPrefix"* ]]; then
         version="${version:${#tagPrefix}}"
     fi
+    # Only first-party @sentry/* packages are safe to adopt immediately (see below).
+    allFirstParty=true
     for i in ${!packages[@]}; do
         list+="${packages[$i]}@$version "
+        if [[ "${packages[$i]}" != @sentry/* ]]; then
+            allFirstParty=false
+        fi
     done
     (
         cd "${monorepoRoot}"
+        # The updater's job is to adopt the just-published version immediately, but
+        # Yarn 4's npmMinimalAgeGate (default 1 day, auto-enabled on CI) quarantines a
+        # fresh release and fails `yarn up`. For first-party @sentry/* packages there's
+        # no supply-chain risk, so disable the gate. Third-party packages (e.g.
+        # react-native via update-rn.sh) keep the gate.
+        if [[ "$allFirstParty" == true ]]; then
+            export YARN_NPM_MINIMAL_AGE_GATE=0
+        fi
         yarn up $list
     )
     ;;

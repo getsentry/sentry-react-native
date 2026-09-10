@@ -348,6 +348,91 @@ class RNSentryStartTest {
     }
 
     @Test
+    fun `when enableNdkAppHangTracking is true, NDK app hang tracking is enabled`() {
+        val rnOptions = JavaOnlyMap.of("enableNdkAppHangTracking", true)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertTrue("NDK app hang tracking should be enabled", options.isEnableNdkAppHangTracking)
+    }
+
+    @Test
+    fun `when enableNdkAppHangTracking is false, NDK app hang tracking is disabled`() {
+        val rnOptions = JavaOnlyMap.of("enableNdkAppHangTracking", false)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse("NDK app hang tracking should be disabled", options.isEnableNdkAppHangTracking)
+    }
+
+    @Test
+    fun `when enableNdkAppHangTracking is not set, it remains at default (disabled)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertFalse(
+            "NDK app hang tracking should be disabled by default",
+            options.isEnableNdkAppHangTracking,
+        )
+    }
+
+    @Test
+    fun `when ndkAppHangTimeoutIntervalMillis is set, the timeout interval is applied`() {
+        val rnOptions = JavaOnlyMap.of("ndkAppHangTimeoutIntervalMillis", 3000)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals(3000L, options.ndkAppHangTimeoutIntervalMillis)
+    }
+
+    @Test
+    fun `when ndkAppHangTimeoutIntervalMillis is not set, it remains at default (5000)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals(5000L, options.ndkAppHangTimeoutIntervalMillis)
+    }
+
+    @Test
+    fun `when anrProfilingSampleRate is set, the ANR profiling sample rate is applied`() {
+        val rnOptions = JavaOnlyMap.of("anrProfilingSampleRate", 0.5)
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertEquals(0.5, options.anrProfilingSampleRate!!, 0.0)
+        assertTrue("ANR profiling should be enabled", options.isAnrProfilingEnabled)
+    }
+
+    @Test
+    fun `when anrProfilingSampleRate is not set, it remains at default (disabled)`() {
+        val rnOptions = JavaOnlyMap()
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertNull("ANR profiling sample rate should be null by default", options.anrProfilingSampleRate)
+        assertFalse("ANR profiling should be disabled by default", options.isAnrProfilingEnabled)
+    }
+
+    @Test
+    fun `when anrProfilingSampleRate is not a number, it is ignored`() {
+        val rnOptions = JavaOnlyMap.of("anrProfilingSampleRate", "invalid")
+        val options = SentryAndroidOptions()
+
+        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
+
+        assertNull("ANR profiling sample rate should remain null", options.anrProfilingSampleRate)
+    }
+
+    @Test
     fun `network detail replay options are forwarded to the native replay options`() {
         val mobileReplayOptions =
             JavaOnlyMap.of(

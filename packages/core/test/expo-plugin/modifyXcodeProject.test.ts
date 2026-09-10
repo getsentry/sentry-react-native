@@ -2,7 +2,9 @@ import { warnOnce } from '../../plugin/src/logger';
 import {
   addDisableAutoUploadToExistingScript,
   addSentryWithBundledScriptsToBundleShellScript,
+  getDebugFilesUploadScript,
   modifyExistingXcodeBuildScript,
+  overwriteDebugFilesUploadScript,
   removeDisableAutoUploadFromExistingScript,
 } from '../../plugin/src/withSentryIOS';
 
@@ -18,7 +20,7 @@ export NODE_BINARY=node
 const buildScriptWithSentry = {
   shellScript: JSON.stringify(`"
 export NODE_BINARY=node
-/bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` ../node_modules/react-native/scripts/react-native-xcode.sh
+/bin/sh "\`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\`" "../node_modules/react-native/scripts/react-native-xcode.sh"
 "`),
 };
 
@@ -32,7 +34,7 @@ export NODE_BINARY=node
 const monorepoBuildScriptWithSentry = {
   shellScript: JSON.stringify(`"
 export NODE_BINARY=node
-/bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` \`node --print "require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'"\`
+/bin/sh "\`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\`" "\`node --print "require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'"\`"
 "`),
 };
 
@@ -126,9 +128,14 @@ export NODE_BINARY=node
 /bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` ../node_modules/react-native/scripts/react-native-xcode.sh
 "`),
     };
-    const before = scriptWithExport.shellScript;
     modifyExistingXcodeBuildScript(scriptWithExport, true);
-    expect(scriptWithExport.shellScript).toBe(before);
+    const parsed = JSON.parse(scriptWithExport.shellScript);
+    // Export is kept exactly once (not duplicated)...
+    expect(parsed.match(/export SENTRY_DISABLE_AUTO_UPLOAD=true/g)).toHaveLength(1);
+    // ...and the pre-fix unquoted line is re-quoted on upgrade (issue #6583).
+    expect(parsed).toContain('/bin/sh "`');
+    expect(parsed).toContain('"../node_modules/react-native/scripts/react-native-xcode.sh"');
+    expect(parsed).not.toMatch(/\/bin\/sh `/);
   });
 
   it('Does not modify already-configured script when disableAutoUpload is false', () => {
@@ -287,7 +294,7 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
   let mockXcodeProject: any;
   let addBuildPhaseSpy: jest.Mock;
   const expectedShellScript =
-    "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
+    "/bin/sh \"`${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`\"";
 
   const getOptions = () => {
     const callArgs = addBuildPhaseSpy.mock.calls[0];
@@ -387,5 +394,153 @@ describe('Upload Debug Symbols to Sentry build phase', () => {
       expect(options.shellPath).toBe('/bin/sh');
       expect(options.shellScript).toBe(expectedShellScript);
     });
+  });
+});
+
+describe('Bundle phase re-quoted on in-place upgrade (issue #6583)', () => {
+  let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]], any>;
+
+  beforeEach(() => {
+    consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleWarnMock.mockRestore();
+  });
+
+  // The unquoted forms a pre-fix plugin version left behind in an existing bundle phase.
+  const oldUnquotedBundleScript = {
+    shellScript: JSON.stringify(`"
+export NODE_BINARY=node
+/bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` ../node_modules/react-native/scripts/react-native-xcode.sh
+"`),
+  };
+
+  const oldUnquotedMonorepoBundleScript = {
+    shellScript: JSON.stringify(`"
+export NODE_BINARY=node
+/bin/sh \`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\` \`node --print "require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'"\`
+"`),
+  };
+
+  it('re-quotes an existing unquoted default-template bundle line', () => {
+    const script = Object.assign({}, oldUnquotedBundleScript);
+    modifyExistingXcodeBuildScript(script);
+    expect(JSON.parse(script.shellScript)).toStrictEqual(JSON.parse(buildScriptWithSentry.shellScript));
+  });
+
+  it('re-quotes an existing unquoted monorepo-template bundle line', () => {
+    const script = Object.assign({}, oldUnquotedMonorepoBundleScript);
+    modifyExistingXcodeBuildScript(script);
+    expect(JSON.parse(script.shellScript)).toStrictEqual(JSON.parse(monorepoBuildScriptWithSentry.shellScript));
+  });
+
+  it('re-quotes and still injects the export when disableAutoUpload is true', () => {
+    const script = Object.assign({}, oldUnquotedBundleScript);
+    modifyExistingXcodeBuildScript(script, true);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).toContain('export SENTRY_DISABLE_AUTO_UPLOAD=true');
+    expect(parsed).toContain('/bin/sh "`');
+    expect(parsed).not.toMatch(/\/bin\/sh `/);
+  });
+
+  it('leaves an already-quoted bundle line unchanged (idempotent)', () => {
+    const script = Object.assign({}, buildScriptWithSentry);
+    modifyExistingXcodeBuildScript(script);
+    expect(JSON.parse(script.shellScript)).toStrictEqual(JSON.parse(buildScriptWithSentry.shellScript));
+  });
+});
+
+describe('overwriteDebugFilesUploadScript: existing phase re-quoted on upgrade (issue #6583)', () => {
+  // The unquoted form a pre-fix plugin version left behind in an existing project.
+  const oldUnquotedDebugFiles =
+    "/bin/sh `${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
+
+  it('rewrites an existing unquoted phase to the quoted, space-safe form', () => {
+    const script = { shellScript: JSON.stringify(oldUnquotedDebugFiles) };
+    overwriteDebugFilesUploadScript(script);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).toBe(getDebugFilesUploadScript(false));
+    expect(parsed).toContain('/bin/sh "`');
+    expect(parsed).not.toMatch(/\/bin\/sh `/);
+  });
+
+  it('rewrites and injects the disable-auto-upload export when requested', () => {
+    const script = { shellScript: JSON.stringify(oldUnquotedDebugFiles) };
+    overwriteDebugFilesUploadScript(script, true);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).toBe(getDebugFilesUploadScript(true));
+    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n\/bin\/sh "`/);
+  });
+
+  it('drops a previously injected export when disableAutoUpload is toggled back to false', () => {
+    const script = { shellScript: JSON.stringify(getDebugFilesUploadScript(true)) };
+    overwriteDebugFilesUploadScript(script, false);
+    const parsed = JSON.parse(script.shellScript);
+    expect(parsed).not.toContain('SENTRY_DISABLE_AUTO_UPLOAD');
+    expect(parsed).toContain('/bin/sh "`');
+  });
+
+  it('is idempotent when the phase is already quoted', () => {
+    const script = { shellScript: JSON.stringify(getDebugFilesUploadScript(false)) };
+    overwriteDebugFilesUploadScript(script);
+    expect(JSON.parse(script.shellScript)).toBe(getDebugFilesUploadScript(false));
+  });
+});
+
+describe('Project paths with spaces are quoted (issue #6583)', () => {
+  let consoleWarnMock: jest.SpyInstance<void, [message?: any, ...optionalParams: any[]], any>;
+
+  beforeEach(() => {
+    consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleWarnMock.mockRestore();
+  });
+
+  it('wraps the Sentry script path and the react-native-xcode.sh invocation in double quotes', () => {
+    const input = `"
+export NODE_BINARY=node
+../node_modules/react-native/scripts/react-native-xcode.sh
+"`;
+    const result = addSentryWithBundledScriptsToBundleShellScript(input);
+
+    // The Sentry wrapper path (backtick command substitution) must be wrapped in double quotes.
+    expect(result).toContain('/bin/sh "`');
+    // The original react-native-xcode.sh invocation must be wrapped in double quotes.
+    expect(result).toContain('"../node_modules/react-native/scripts/react-native-xcode.sh"');
+    // No unquoted `/bin/sh ` followed directly by a backtick (the pre-fix, word-splitting form).
+    expect(result).not.toMatch(/\/bin\/sh `/);
+  });
+
+  it('keeps the full backtick invocation inside the added quotes for the bare/monorepo template', () => {
+    // In the bare/monorepo template the invocation is itself a backtick command substitution
+    // ending in `'"` + backtick. Matching to end-of-line keeps it balanced inside the quotes.
+    const input = `"
+export NODE_BINARY=node
+\`node --print "require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'"\`
+"`;
+    const result = addSentryWithBundledScriptsToBundleShellScript(input);
+
+    expect(result).toContain(
+      `"\`node --print "require.resolve('react-native/package.json').slice(0, -13) + '/scripts/react-native-xcode.sh'"\`"`,
+    );
+    // Balanced backticks: the substitution opened after the quote is also closed before it.
+    expect((result.match(/`/g) || []).length % 2).toBe(0);
+  });
+
+  it('quotes the debug files upload script path', () => {
+    const result = getDebugFilesUploadScript();
+    expect(result).toContain('/bin/sh "`');
+    expect(result).toContain('sentry-xcode-debug-files.sh');
+    expect(result).not.toMatch(/\/bin\/sh `/);
+  });
+
+  it('quotes the debug files upload script path with disableAutoUpload', () => {
+    const result = getDebugFilesUploadScript(true);
+    expect(result).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n\/bin\/sh "`/);
+    expect(result).toContain('sentry-xcode-debug-files.sh');
+    expect(result).not.toMatch(/\/bin\/sh `/);
   });
 });

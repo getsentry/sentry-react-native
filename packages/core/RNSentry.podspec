@@ -63,7 +63,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES'
   }
 
-  sentry_cocoa_version = '9.19.1'
+  sentry_cocoa_version = '9.28.0'
 
   # Consume sentry-cocoa as a prebuilt `Sentry.xcframework` by default.
   #
@@ -78,7 +78,13 @@ Pod::Spec.new do |s|
   # (`Signatures/*.signature` collision during archive).
   #
   # Set `SENTRY_USE_XCFRAMEWORK=0` to fall back to the source-built
-  # `Sentry` CocoaPod (e.g. for offline builds behind a restrictive proxy).
+  # `Sentry` CocoaPod. This fallback is unavailable for sentry-cocoa
+  # >= 9.20.0: upstream deleted `Sentry.podspec` and dropped the
+  # `cocoapods` publishing target in that release, so 9.19.1 is the last
+  # version on the CocoaPods trunk. Opting out therefore raises below
+  # with an explanation rather than letting CocoaPods fail with an
+  # opaque "None of your spec sources contain a spec satisfying the
+  # dependency: `Sentry (= x.y.z)`".
   #
   # `SENTRY_USE_SPM` was the name in earlier drafts of this PR; honor it as a
   # deprecated alias so CI or local envs still exporting `SENTRY_USE_SPM=0`
@@ -122,23 +128,74 @@ Pod::Spec.new do |s|
     # sentry-cocoa's `Sentry.xcframework` layout is stable across releases.
     # Add a slice there if a future release ships one.
     #
-    # Point the search paths at the pod-install-time absolute path to the
-    # xcframework. `${PODS_TARGET_SRCROOT}` is only defined in per-pod
-    # xcconfigs, not in aggregate/user-target xcconfigs, and a
-    # `${PODS_ROOT}`-relative fallback works for one Podfile layout but
-    # breaks for another (e.g. the RN sample apps put node_modules at a
-    # different depth from RNSentryCocoaTester). Using the absolute path
-    # avoids the layout-detection dance — the path is regenerated on
-    # every `pod install`, so it's not something anyone commits.
+    # Reference the xcframework through a `Pods/sentry-xcframeworks/…`
+    # symlink so the search paths are machine-independent (see
+    # `stage_sentry_xcframework_in_pods`) — the values below feed the
+    # `RNSentry` SPEC CHECKSUM in `Podfile.lock`, so an absolute
+    # `~/Library/Caches/…` path here made the lockfile churn between
+    # machines (#6467). `${PODS_TARGET_SRCROOT}` can't be used instead: it
+    # is only defined in per-pod xcconfigs, not in aggregate/user-target
+    # xcconfigs, and a `${PODS_ROOT}`-relative path to node_modules works
+    # for one Podfile layout but breaks for another (e.g. the RN sample
+    # apps put node_modules at a different depth from RNSentryCocoaTester).
+    # When the link can't be staged — or the podspec is evaluated outside a
+    # `pod install`, where `$(PODS_ROOT)` would point at an unrelated
+    # sandbox — fall back to the absolute pod-install-time path: functional,
+    # but with a machine-specific checksum.
+    sentry_xcframework_ref =
+      stage_sentry_xcframework_in_pods(sentry_xcframework_dir, sentry_cocoa_version, 'Sentry') ||
+      sentry_xcframework_dir
     xcframework_search_paths = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
-      paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_dir, slice)}") }
+      paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_ref, slice)}") }
       acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
     end
 
+    # Force-load the Sentry static archive so its ObjC category methods survive
+    # linking. We link Sentry statically with no whole-archive flag, so symbols
+    # reachable only through an ObjC category (what a Swift `@objc extension`
+    # compiles to, e.g. `SentryReplayNetworkDetails+Capture` in sentry-cocoa
+    # 9.25/9.26, #6609) or through Swift-only metadata get dead-stripped and
+    # crash at runtime with "unrecognized selector" — the consumer's job to fix
+    # at link time, per Apple QA1490
+    # (https://developer.apple.com/library/archive/qa/qa1490/_index.html).
+    # `-force_load` beats `-ObjC`/`-all_load`: it is scoped to Sentry and also
+    # keeps Swift-only metadata, guarding against future strippable upstream
+    # changes, not just today's category.
+    #
+    # The flag must ride whichever target's link does the stripping, which
+    # depends on linkage: static libs (the default) absorb Sentry into the app
+    # binary → app link → `user_target_xcconfig`; `:linkage => :dynamic` absorbs
+    # it into the RNSentry dylib → that link → `pod_target_xcconfig`. Never
+    # both, or a second copy of Sentry lands in the app. Detected via
+    # `ENV['USE_FRAMEWORKS']`.
+    force_load_flags = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
+      loads = slice_ids.map do |slice|
+        %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
+      end
+      acc["OTHER_LDFLAGS[sdk=#{sdk}*]"] = (['$(inherited)'] + loads).join(' ')
+    end
+
     pod_target_xcconfig.merge!(xcframework_search_paths)
-    s.user_target_xcconfig = xcframework_search_paths
+    user_target_xcconfig = xcframework_search_paths.dup
+    if ENV['USE_FRAMEWORKS'] == 'dynamic'
+      pod_target_xcconfig.merge!(force_load_flags)
+    else
+      user_target_xcconfig.merge!(force_load_flags)
+    end
+    s.user_target_xcconfig = user_target_xcconfig
   else
-    s.dependency 'Sentry', sentry_cocoa_version
+    raise <<~MSG
+      [Sentry] SENTRY_USE_XCFRAMEWORK=0 is no longer supported.
+
+      sentry-cocoa stopped publishing to the CocoaPods trunk in 9.20.0
+      (`Sentry.podspec` was removed upstream), so `pod 'Sentry', '#{sentry_cocoa_version}'`
+      cannot resolve — 9.19.1 is the last version available there.
+
+      Unset SENTRY_USE_XCFRAMEWORK to use the prebuilt `Sentry.xcframework`.
+      For builds without network access to GitHub Releases, pre-populate the
+      cache on a machine that has access and point the build at it with
+      SENTRY_XCFRAMEWORK_CACHE_DIR.
+    MSG
   end
 
   # Assign before `install_modules_dependencies` so it can merge its

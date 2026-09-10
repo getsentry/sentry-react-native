@@ -110,6 +110,7 @@ interface SentryNativeWrapper {
   setExtra(key: string, extra: unknown): void;
   setUser(user: User | null): void;
   setTag(key: string, value?: string): void;
+  addFeatureFlag(name: string, value: boolean): void;
   setAttribute(key: string, value: string | number | boolean): void;
   setAttributes(attributes: Record<string, string | number | boolean>): void;
   removeAttribute(key: string): void;
@@ -488,9 +489,30 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
-    const stringifiedValue = typeof value === 'string' ? value : JSON.stringify(value);
+    // `JSON.stringify(undefined)` returns `undefined` (same for functions/symbols). Forwarding
+    // that to the non-nullable native `value` parameter crosses the New Architecture bridge as
+    // `null` and triggers an RCTConvert warning (`JSON value '<null>' ... cannot be converted to
+    // NSString`). Always send a string, mirroring `setExtra`. See #6645.
+    const stringifiedValue = typeof value === 'string' ? value : (JSON.stringify(value) ?? 'undefined');
 
     RNSentry.setTag(key, stringifiedValue);
+  },
+
+  /**
+   * Forwards a feature flag evaluation to the native scope so it is attached to
+   * native crashes and native error events.
+   * @param name string
+   * @param value boolean
+   */
+  addFeatureFlag(name: string, value: boolean): void {
+    if (!this.enableNative) {
+      return;
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      throw this._NativeClientError;
+    }
+
+    RNSentry.addFeatureFlag(name, value);
   },
 
   /**
@@ -575,8 +597,18 @@ export const NATIVE: SentryNativeWrapper = {
       throw this._NativeClientError;
     }
 
+    // Clearing a context must go through the dedicated `removeContext` native method rather than
+    // `setContext(key, null)`. On the New Architecture, forwarding `null` for the `NSDictionary`
+    // parameter crosses the bridge as `NSNull` and RN's interop layer logs an RCTConvert warning
+    // (`JSON value '<null>' of type NSNull cannot be converted to NSDictionary`) *before* our native
+    // method runs — even though the parameter is nullable. See #6645.
     if (context === null) {
-      return RNSentry.setContext(key, null);
+      // `removeContext` is a newer native method. Guard against a stale native binary (JS updated
+      // without a native rebuild) where it would be `undefined`, and fall back to the legacy
+      // `setContext(key, null)` path so clearing a context never throws.
+      return typeof RNSentry.removeContext === 'function'
+        ? RNSentry.removeContext(key)
+        : RNSentry.setContext(key, null);
     }
 
     let normalizedContext: Record<string, unknown> | undefined;

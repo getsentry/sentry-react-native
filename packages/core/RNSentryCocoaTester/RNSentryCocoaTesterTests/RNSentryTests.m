@@ -2,12 +2,13 @@
 #import "RNSentry+Test.h"
 #import "RNSentryReplay.h"
 #import "RNSentryStart+Test.h"
+#import "SentrySDKWrapper.h"
 #import <OCMock/OCMock.h>
 #import <RNSentry/RNSentry.h>
-#import <Sentry/PrivateSentrySDKOnly.h>
 #import <Sentry/SentryProfilingConditionals.h>
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
+@import RNSentry.Swift;
 @import Sentry;
 
 @interface RNSentryInitNativeSdkTests : XCTestCase
@@ -68,11 +69,8 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 
 - (void)prepareNativeFrameMocksWithLocalSymbolication:(BOOL)debug
 {
-    SentryOptions *sentryOptions = [[SentryOptions alloc] init];
-    sentryOptions.debug = debug; // no local symbolication
-
-    id sentrySDKMock = OCMClassMock([SentrySDKInternal class]);
-    OCMStub([(Class)sentrySDKMock options]).andReturn(sentryOptions);
+    id sentrySDKWrapperMock = OCMClassMock([SentrySDKWrapper class]);
+    OCMStub(ClassMethod([sentrySDKWrapperMock debug])).andReturn(debug);
 
     id sentryDependencyContainerMock = OCMClassMock([SentryDependencyContainer class]);
     OCMStub(ClassMethod([sentryDependencyContainerMock sharedInstance]))
@@ -285,7 +283,7 @@ sucessfulSymbolicate(const void *, Dl_info *info)
 }
 ;
 [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
-SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
+SentryOptions *actualOptions = RNSentryInternal.options;
 XCTAssertNotNil(actualOptions, @"Did not create sentry options");
 XCTAssertNil(error, @"Should not pass no error");
 XCTAssertNotNil(
@@ -305,7 +303,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
     };
     [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
-    SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
+    SentryOptions *actualOptions = RNSentryInternal.options;
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");
@@ -401,6 +399,50 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     XCTAssertNil(error, @"Should not pass no error");
     XCTAssertEqual(actualOptions.enableAutoPerformanceTracing, false,
         @"Did not disable Auto Performance Tracing");
+}
+
+- (void)testStartCreateOptionsWithDictionaryMetricKitEnabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableMetricKit" : @YES,
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertTrue(actualOptions.enableMetricKit, @"Did not enable MetricKit");
+}
+
+- (void)testStartCreateOptionsWithDictionaryMetricKitDisabled
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+        @"enableMetricKit" : @NO,
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.enableMetricKit, @"Did not disable MetricKit");
+}
+
+- (void)testStartCreateOptionsWithDictionaryMetricKitDefault
+{
+    NSError *error = nil;
+
+    NSDictionary *_Nonnull mockedReactNativeDictionary = @{
+        @"dsn" : @"https://abcd@efgh.ingest.sentry.io/123456",
+    };
+    SentryOptions *actualOptions =
+        [RNSentryStart createOptionsWithDictionary:mockedReactNativeDictionary error:&error];
+    XCTAssertNotNil(actualOptions, @"Did not create sentry options");
+    XCTAssertNil(error, @"Should not pass no error");
+    XCTAssertFalse(actualOptions.enableMetricKit, @"MetricKit should be disabled by default");
 }
 
 - (void)testStartCreateOptionsWithDictionarySpotlightEnabled
@@ -596,7 +638,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
         },
     };
     [RNSentryStart startWithOptions:mockedReactNativeDictionary error:&error];
-    SentryOptions *actualOptions = PrivateSentrySDKOnly.options;
+    SentryOptions *actualOptions = RNSentryInternal.options;
 
     XCTAssertNotNil(actualOptions, @"Did not create sentry options");
     XCTAssertNil(error, @"Should not pass no error");

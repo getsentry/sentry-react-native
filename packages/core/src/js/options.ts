@@ -104,6 +104,21 @@ export interface BaseReactNativeOptions {
   enableAnrFingerprinting?: boolean;
 
   /**
+   * Sample rate for profiling ANR (Application Not Responding) events.
+   *
+   * When set to a value greater than `0.0`, the SDK profiles the main thread while an ANR is
+   * happening and attaches the resulting profile to the ANR event. The value is the probability
+   * (`0.0`–`1.0`) that any given ANR is profiled.
+   *
+   * Requires ANR detection, which is enabled by default. This is independent of UI/transaction
+   * profiling configured via `profilesSampleRate` and `_experiments.profilingOptions`.
+   *
+   * @default undefined (ANR profiling disabled)
+   * @platform android
+   */
+  anrProfilingSampleRate?: number;
+
+  /**
    * When enabled, all the threads are automatically attached to all logged events on Android
    *
    * @platform android
@@ -195,6 +210,62 @@ export interface BaseReactNativeOptions {
    * @platform ios
    */
   appHangTimeoutInterval?: number;
+
+  /**
+   * When enabled, the SDK uses sentry-native's heartbeat-based app-hang detection
+   * to track when the application stops responding for a specific amount of time
+   * defined by the `ndkAppHangTimeoutIntervalMillis` option.
+   *
+   * This is independent of the JVM-based ANR detection and requires NDK to be enabled.
+   *
+   * @default false
+   * @platform android
+   */
+  enableNdkAppHangTracking?: boolean;
+
+  /**
+   * The minimum amount of time in milliseconds an app should be unresponsive to be
+   * classified as an App Hang when using NDK app-hang detection.
+   *
+   * Only has an effect if `enableNdkAppHangTracking` is `true`.
+   *
+   * @default 5000
+   * @platform android
+   */
+  ndkAppHangTimeoutIntervalMillis?: number;
+
+  /**
+   * Use this feature to enable the Sentry MetricKit integration.
+   *
+   * When enabled, the SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and
+   * `MXHangDiagnostic` to Sentry. Requires iOS 15 or later, because only on these versions MetricKit
+   * delivers diagnostic reports immediately. On earlier versions this option has no effect.
+   *
+   * MetricKit hang diagnostics are reported by the operating system and are distinct from the app
+   * hangs captured by `enableAppHangTracking`. Enabling both can result in the same hang being
+   * reported twice, from two different sources.
+   *
+   * iOS only
+   *
+   * @default false
+   * @platform ios
+   */
+  enableMetricKit?: boolean;
+
+  /**
+   * When enabled, `SentryCrash` reads memory near the crash site while capturing a native crash
+   * (e.g. `EXC_BAD_ACCESS`) and embeds string-based stack contents in the event. This can help
+   * with debugging, but may also expose sensitive information (such as user IDs or personal data),
+   * which can even surface in the issue title.
+   *
+   * Disable this option to keep native crash reporting while omitting memory contents.
+   *
+   * iOS only
+   *
+   * @default false
+   * @platform ios
+   */
+  enableMemoryIntrospection?: boolean;
 
   /**
    * The max queue size for capping the number of envelopes waiting to be sent by Transport.
@@ -303,25 +374,32 @@ export interface BaseReactNativeOptions {
   enableStallTracking?: boolean;
 
   /**
-   * Install Sentry's native `TurboModulePerfLogger` and forward every Turbo
-   * Module lifecycle callback (`moduleCreate*`, sync/async method call
-   * start/end/fail, execution start/end/fail) to the higher-level Sentry
-   * instrumentation (crash attribution, per-module spans, aggregated stats).
+   * Claim React Native's `NativeModulePerfLogger` slot with Sentry's native
+   * `TurboModulePerfLogger` and forward every Turbo Module lifecycle callback
+   * (`moduleCreate*`, sync/async method call start/end/fail, execution
+   * start/end/fail) to the C++ sink installed via
+   * `SentryTurboModulePerfController::setSink`.
    *
-   * Only takes effect on React Native 0.75+ New Architecture. On Old Architecture
-   * this option is a no-op.
+   * Enabling this on its own emits nothing: the SDK ships no production sink
+   * yet, so every forwarded callback is dropped. The flag exists so the native
+   * install path can land ahead of the features that will consume it.
    *
-   * The native perf logger is installed lazily on the first opt-in: while
-   * this flag is off (the default), Sentry never claims React Native's
-   * `NativeModulePerfLogger` slot and incurs no native-library mapping
-   * cost. The first `initNativeSdk` call with `enableTurboModuleTracking:
-   * true` loads the native library, installs the logger, and starts
-   * forwarding callbacks to the Sentry sink. Off by default because the
-   * higher-level features building on top of this hook ship in follow-up
-   * releases.
+   * This is **not** the switch for the TurboModule instrumentation users can
+   * see today. Crash attribution, span attribution, slow-call breadcrumbs and
+   * the call aggregate all come from `turboModuleContextIntegration()`, which
+   * is a JS-side wrapper enabled by default whenever `enableNative` is `true`
+   * and never reads this option.
+   *
+   * Only takes effect on React Native 0.75+ New Architecture. On Old
+   * Architecture this option is a no-op.
+   *
+   * The native perf logger is installed lazily on the first opt-in: while this
+   * flag is off (the default), Sentry never claims the slot and incurs no
+   * native-library mapping cost.
    *
    * @default false
    * @experimental
+   * @internal
    */
   enableTurboModuleTracking?: boolean;
 

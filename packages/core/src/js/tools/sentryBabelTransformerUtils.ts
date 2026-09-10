@@ -1,4 +1,4 @@
-import componentAnnotatePlugin from '@sentry/babel-plugin-component-annotate';
+import componentAnnotatePlugin from '@sentry/bundler-plugins/babel-plugin';
 import { debug } from '@sentry/core';
 import * as process from 'process';
 
