@@ -26,9 +26,15 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9270)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.26.1...9.27.0)
+- Bump Cocoa SDK from v9.26.1 to v9.28.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670), [#6693](https://github.com/getsentry/sentry-react-native/pull/6693))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9280)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.26.1...9.28.0)
+- Bump JavaScript SDK from v10.73.0 to v10.74.0 ([#6695](https://github.com/getsentry/sentry-react-native/pull/6695))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10740)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.73.0...10.74.0)
+- Bump Android SDK from v8.55.0 to v8.56.0 ([#6694](https://github.com/getsentry/sentry-react-native/pull/6694))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8560)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.55.0...8.56.0)
 
 ## 8.25.0
 
