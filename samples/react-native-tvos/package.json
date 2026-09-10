@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-tvos-sample",
-  "version": "8.25.0",
+  "version": "8.26.0",
   "private": true,
   "scripts": {
     "start": "react-native start",
@@ -13,7 +13,7 @@
     "clean-watchman": "watchman watch-del-all"
   },
   "dependencies": {
-    "@sentry/react-native": "8.25.0",
+    "@sentry/react-native": "8.26.0",
     "react": "19.2.3",
     "react-native": "npm:react-native-tvos@0.87.1-0"
   },

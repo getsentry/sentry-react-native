@@ -1,6 +1,6 @@
 {
   "name": "sentry-react-native-visionos-sample",
-  "version": "8.25.0",
+  "version": "8.26.0",
   "private": true,
   "scripts": {
     "start": "react-native start",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@callstack/react-native-visionos": "0.79.6",
-    "@sentry/react-native": "8.25.0",
+    "@sentry/react-native": "8.26.0",
     "react": "19.0.0",
     "react-native": "0.79.6"
   },
