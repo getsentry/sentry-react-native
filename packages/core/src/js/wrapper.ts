@@ -146,6 +146,13 @@ interface SentryNativeWrapper {
 
   setActiveSpanId(spanId: string): void;
 
+  setCurrentScopePropagationContext(ctx: {
+    traceId: string;
+    spanId: string;
+    sampled: boolean;
+    sampleRand: number;
+  }): boolean;
+
   encodeToBase64(data: Uint8Array): Promise<string | null>;
 
   primitiveProcessor(value: Primitive): string;
@@ -952,6 +959,18 @@ export const NATIVE: SentryNativeWrapper = {
     } catch (error) {
       debug.error('Error:', error);
       return undefined;
+    }
+  },
+
+  setCurrentScopePropagationContext(ctx): boolean {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return false;
+    }
+    try {
+      return !!RNSentry.setCurrentScopePropagationContext(ctx);
+    } catch (error) {
+      debug.error('Error:', error);
+      return false;
     }
   },
 

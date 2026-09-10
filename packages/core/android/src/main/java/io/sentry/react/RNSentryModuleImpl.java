@@ -33,6 +33,7 @@ import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
+import io.sentry.PropagationContext;
 import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
 import io.sentry.SentryAttributes;
@@ -694,6 +695,25 @@ public class RNSentryModuleImpl {
   public boolean setActiveSpanId(@Nullable String spanId) {
     RNSentryTimeToDisplay.setActiveSpanId(spanId);
     return true; // The return ensure RN executes the code synchronously
+  }
+
+  public boolean setCurrentScopePropagationContext(@Nullable ReadableMap ctx) {
+    if (ctx == null || !ctx.hasKey("traceId") || !ctx.hasKey("spanId")) {
+      return false;
+    }
+    String traceId = ctx.getString("traceId");
+    String spanId = ctx.getString("spanId");
+    if (traceId == null || spanId == null) {
+      return false;
+    }
+    Double sampleRand = ctx.hasKey("sampleRand") ? ctx.getDouble("sampleRand") : null;
+    Boolean sampled = ctx.hasKey("sampled") ? ctx.getBoolean("sampled") : null;
+
+    PropagationContext propagationContext =
+        PropagationContext.fromExistingTrace(traceId, spanId, null, sampleRand);
+    propagationContext.setSampled(sampled);
+    Sentry.configureScope(scope -> scope.setPropagationContext(propagationContext));
+    return true; // The return ensures RN executes the method synchronously
   }
 
   public void setExtra(String key, String extra) {

@@ -235,6 +235,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public boolean setCurrentScopePropagationContext(ReadableMap ctx) {
+    return this.impl.setCurrentScopePropagationContext(ctx);
+  }
+
+  @Override
   public void enableShakeDetection() {
     this.impl.enableShakeDetection();
   }
