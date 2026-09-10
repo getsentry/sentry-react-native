@@ -25,9 +25,9 @@
 
 ### Dependencies
 
-- Bump Cocoa SDK from v9.26.1 to v9.27.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9270)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.26.1...9.27.0)
+- Bump Cocoa SDK from v9.26.1 to v9.28.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670), [#6693](https://github.com/getsentry/sentry-react-native/pull/6693))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9280)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.26.1...9.28.0)
 
 ## 8.25.0
 
