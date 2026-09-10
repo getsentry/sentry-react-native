@@ -22,6 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallbacks {
+  /**
+   * The name react-native-screens uses for its screen appear event. Matching on the class name
+   * instead would break, because R8 can merge several event classes into one.
+   */
   private static final String SCREEN_APPEAR_EVENT_NAME = "topAppear";
 
   private @NotNull final BuildInfoProvider buildInfoProvider;
