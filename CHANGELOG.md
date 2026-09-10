@@ -10,6 +10,8 @@
 
 ### Features
 
+- Sync JS scope propagation context to native scope ([#6686](https://github.com/getsentry/sentry-react-native/pull/6686))
+  - Native HTTP spans (OkHttp on Android, URLSession on iOS) now automatically share the same `trace_id` as the active JS navigation transaction, linking them in the Sentry trace waterfall.
 - Expose the iOS `enableMemoryIntrospection` option to omit memory contents from native crash reports ([#6547](https://github.com/getsentry/sentry-react-native/pull/6674))
 - Add `anrProfilingSampleRate` option to profile ANRs on Android ([#6673](https://github.com/getsentry/sentry-react-native/pull/6673))
 

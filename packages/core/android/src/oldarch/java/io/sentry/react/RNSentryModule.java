@@ -234,6 +234,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     return this.impl.setActiveSpanId(spanId);
   }
 
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  public boolean setCurrentScopePropagationContext(ReadableMap ctx) {
+    return this.impl.setCurrentScopePropagationContext(ctx);
+  }
+
   @ReactMethod
   public void enableShakeDetection() {
     this.impl.enableShakeDetection();
