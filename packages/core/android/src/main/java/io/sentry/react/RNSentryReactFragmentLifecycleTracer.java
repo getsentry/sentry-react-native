@@ -22,6 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallbacks {
+  /**
+   * The name react-native-screens uses for its screen appear event. Matching on the class name
+   * instead would break, because R8 can merge several event classes into one.
+   */
+  private static final String SCREEN_APPEAR_EVENT_NAME = "topAppear";
 
   private @NotNull final BuildInfoProvider buildInfoProvider;
   private @NotNull final Runnable emitNewFrameEvent;
@@ -90,8 +95,7 @@ public class RNSentryReactFragmentLifecycleTracer extends FragmentLifecycleCallb
         new EventDispatcherListenerWrapper(eventDispatcher) {
           @Override
           public void onEventDispatch(Event event) {
-            if ("com.swmansion.rnscreens.events.ScreenAppearEvent"
-                .equals(event.getClass().getCanonicalName())) {
+            if (SCREEN_APPEAR_EVENT_NAME.equals(event.getEventName())) {
               this.dispatcher.removeListener(this);
               listenerWrapperMap.remove(f);
               FirstDrawDoneListener.registerForNextDraw(v, emitNewFrameEvent, buildInfoProvider);
