@@ -142,6 +142,30 @@ import Foundation
         SentrySDK.internal.replay.capture()
     }
 
+    @_spi(Private) @objc public static func startReplay() {
+        SentrySDK.internal.replay.start()
+    }
+
+    @_spi(Private) @objc public static func startReplayBuffering() {
+        SentrySDK.internal.replay.startBuffering()
+    }
+
+    @_spi(Private) @objc public static func stopReplay() {
+        SentrySDK.internal.replay.stop()
+    }
+
+    @_spi(Private) @objc public static func pauseReplay() {
+        SentrySDK.internal.replay.pause()
+    }
+
+    @_spi(Private) @objc public static func resumeReplay() {
+        SentrySDK.internal.replay.resume()
+    }
+
+    @_spi(Private) @objc public static func flushReplay() {
+        SentrySDK.internal.replay.flush()
+    }
+
     @_spi(Private) @objc public static var replayId: String? {
         SentrySDK.internal.replay.replayId
     }
@@ -164,6 +188,12 @@ import Foundation
     }
     #else
     @_spi(Private) @objc public static func captureReplay() -> Bool { false }
+    @_spi(Private) @objc public static func startReplay() {}
+    @_spi(Private) @objc public static func startReplayBuffering() {}
+    @_spi(Private) @objc public static func stopReplay() {}
+    @_spi(Private) @objc public static func pauseReplay() {}
+    @_spi(Private) @objc public static func resumeReplay() {}
+    @_spi(Private) @objc public static func flushReplay() {}
     @_spi(Private) @objc public static var replayId: String? { nil }
     @_spi(Private) @objc public static func setReplayRedactContainerClass(_ containerClass: AnyClass) {}
     @_spi(Private) @objc public static func setReplayIgnoreContainerClass(_ containerClass: AnyClass) {}

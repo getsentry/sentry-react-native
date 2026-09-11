@@ -6,13 +6,13 @@ import type {
   ErrorEvent,
   Event,
   EventHint,
-  Integration,
   Metric,
 } from '@sentry/core';
 
 import { debug } from '@sentry/core';
 
 import type { ResolvedNetworkOptions } from './networkUtils';
+import type { Replay } from './replayInterface';
 
 import { isHardCrash } from '../misc';
 import { deferBreadcrumbNativeSync, syncBreadcrumbToNative } from '../scopeSync';
@@ -274,7 +274,7 @@ function mergeOptions(initOptions: Partial<MobileReplayOptions>): MobileReplayOp
   return merged;
 }
 
-type MobileReplayIntegration = Integration & {
+type MobileReplayIntegration = Replay & {
   options: MobileReplayOptions;
   getReplayId: () => string | null;
 };
@@ -556,20 +556,42 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     return getCachedReplayId();
   }
 
-  // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
-  // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     setup,
     options: options,
     getReplayId: getReplayId,
+    start: () => fireReplayControl(NATIVE.startReplay(), 'start'),
+    startBuffering: () => fireReplayControl(NATIVE.startReplayBuffering(), 'startBuffering'),
+    stop: () => NATIVE.stopReplay(),
+    pause: () => fireReplayControl(NATIVE.pauseReplay(), 'pause'),
+    resume: () => fireReplayControl(NATIVE.resumeReplay(), 'resume'),
+    flush: () => NATIVE.flushReplay(),
   };
 };
+
+/**
+ * Runs a fire-and-forget replay control (`start`/`startBuffering`/`pause`/
+ * `resume`) whose public signature is synchronous (`void`) to match the web
+ * Replay API. The underlying native call is async, so we swallow and log any
+ * rejection here to avoid an unhandled promise rejection.
+ */
+function fireReplayControl(promise: Promise<void>, method: string): void {
+  promise.then(undefined, (error: unknown) => {
+    debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to ${method} replay`, error);
+  });
+}
 
 const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     options: defaultOptions,
     getReplayId: () => null, // Mock implementation for noop version
+    start: () => {},
+    startBuffering: () => {},
+    stop: () => Promise.resolve(),
+    pause: () => {},
+    resume: () => {},
+    flush: () => Promise.resolve(),
   };
 };
