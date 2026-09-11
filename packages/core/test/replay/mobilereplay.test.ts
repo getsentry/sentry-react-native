@@ -710,6 +710,27 @@ describe('Mobile Replay Integration', () => {
       expect(NATIVE.flushReplay).toHaveBeenCalledTimes(1);
     });
 
+    it('flush() keeps recording by default (does not call stopReplay)', async () => {
+      const integration = mobileReplayIntegration();
+      await integration.flush();
+      expect(NATIVE.flushReplay).toHaveBeenCalledTimes(1);
+      expect(NATIVE.stopReplay).not.toHaveBeenCalled();
+    });
+
+    it('flush({ continueRecording: true }) keeps recording (does not call stopReplay)', async () => {
+      const integration = mobileReplayIntegration();
+      await integration.flush({ continueRecording: true });
+      expect(NATIVE.flushReplay).toHaveBeenCalledTimes(1);
+      expect(NATIVE.stopReplay).not.toHaveBeenCalled();
+    });
+
+    it('flush({ continueRecording: false }) flushes then stops recording', async () => {
+      const integration = mobileReplayIntegration();
+      await integration.flush({ continueRecording: false });
+      expect(NATIVE.flushReplay).toHaveBeenCalledTimes(1);
+      expect(NATIVE.stopReplay).toHaveBeenCalledTimes(1);
+    });
+
     it('swallows and logs a rejected fire-and-forget control', async () => {
       const error = new Error('native boom');
       (NATIVE.startReplay as jest.Mock).mockRejectedValue(error as never);
