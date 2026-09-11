@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+# Session Replay runtime-controls e2e. Launches with buffer-mode replay OFF
+# (replaysOnErrorSampleRate: 0) and no session sampling, so nothing is recorded
+# automatically — a replay_id can only be attached to the error event if
+# Sentry.getReplay().start() actually drove native recording. This exercises the
+# full manual-control chain (JS getReplay() -> bridge -> native SDK -> Sentry
+# ingest) that the Jest/native unit tests can't cover, because they stop at the
+# bridge. Runs on both platforms, reusing the existing prime + assert utilities.
+- runFlow:
+    file: utils/launchTestAppClear.yml
+    env:
+      replaysOnErrorSampleRate: 0
+- tapOn:
+    id: 'startReplay'
+# Churn the view hierarchy so the now-active session replay records frames before
+# the exception is captured (same rationale as buffer-mode priming).
+- runFlow: utils/primeReplayBuffer.yml
+- tapOn: 'Capture Exception'
+- runFlow: utils/assertEventIdVisible.yml
+- runFlow: utils/assertReplay.yml
