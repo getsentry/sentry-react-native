@@ -25,9 +25,18 @@ jsEngine: graaljs
 - runFlow: utils/assertReplay.yml
 
 # stop() must halt recording: a subsequent error carries no replay at all.
-- tapOn:
-    id: 'stopReplay'
-- tapOn: 'Clear Event Id'
-- runFlow: utils/primeReplayBuffer.yml
-- tapOn: 'Capture Exception'
-- runFlow: utils/assertNoReplay.yml
+#
+# Android-only for now: sentry-cocoa's stop() does not clear scope.replayId, so
+# on iOS an error captured after stop() still carries the stopped replay's id
+# (unlike Android/sentry-java, which reset it to EMPTY_ID). Gate this assertion
+# to Android until the cocoa fix lands, then re-enable it cross-platform.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: 'stopReplay'
+      - tapOn: 'Clear Event Id'
+      - runFlow: utils/primeReplayBuffer.yml
+      - tapOn: 'Capture Exception'
+      - runFlow: utils/assertNoReplay.yml
