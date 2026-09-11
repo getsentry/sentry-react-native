@@ -9,6 +9,7 @@ import type {
 } from '@sentry/core';
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { debug } from '@sentry/core';
 
 import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
 import { REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY } from '../../src/js/replay/xhrUtils';
@@ -660,6 +661,66 @@ describe('Mobile Replay Integration', () => {
       // The first event is finally sent: it must still flush its replay.
       await fireAfterSendEvent(first as Event);
       expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('runtime controls', () => {
+    beforeEach(() => {
+      (NATIVE.startReplay as jest.Mock).mockResolvedValue(undefined as never);
+      (NATIVE.startReplayBuffering as jest.Mock).mockResolvedValue(undefined as never);
+      (NATIVE.stopReplay as jest.Mock).mockResolvedValue(undefined as never);
+      (NATIVE.pauseReplay as jest.Mock).mockResolvedValue(undefined as never);
+      (NATIVE.resumeReplay as jest.Mock).mockResolvedValue(undefined as never);
+      (NATIVE.flushReplay as jest.Mock).mockResolvedValue(undefined as never);
+    });
+
+    it('start() calls the native startReplay control', () => {
+      const integration = mobileReplayIntegration();
+      integration.start();
+      expect(NATIVE.startReplay).toHaveBeenCalledTimes(1);
+    });
+
+    it('startBuffering() calls the native startReplayBuffering control', () => {
+      const integration = mobileReplayIntegration();
+      integration.startBuffering();
+      expect(NATIVE.startReplayBuffering).toHaveBeenCalledTimes(1);
+    });
+
+    it('stop() calls the native stopReplay control and resolves', async () => {
+      const integration = mobileReplayIntegration();
+      await integration.stop();
+      expect(NATIVE.stopReplay).toHaveBeenCalledTimes(1);
+    });
+
+    it('pause() calls the native pauseReplay control', () => {
+      const integration = mobileReplayIntegration();
+      integration.pause();
+      expect(NATIVE.pauseReplay).toHaveBeenCalledTimes(1);
+    });
+
+    it('resume() calls the native resumeReplay control', () => {
+      const integration = mobileReplayIntegration();
+      integration.resume();
+      expect(NATIVE.resumeReplay).toHaveBeenCalledTimes(1);
+    });
+
+    it('flush() calls the native flushReplay control and resolves', async () => {
+      const integration = mobileReplayIntegration();
+      await integration.flush();
+      expect(NATIVE.flushReplay).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows and logs a rejected fire-and-forget control', async () => {
+      const error = new Error('native boom');
+      (NATIVE.startReplay as jest.Mock).mockRejectedValue(error as never);
+      const debugError = jest.spyOn(debug, 'error').mockImplementation(() => {});
+
+      const integration = mobileReplayIntegration();
+      // Must not throw synchronously despite the underlying rejection.
+      expect(() => integration.start()).not.toThrow();
+
+      await new Promise(resolve => setImmediate(resolve));
+      expect(debugError).toHaveBeenCalledWith(expect.stringContaining('Failed to start replay'), error);
     });
   });
 

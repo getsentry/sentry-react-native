@@ -55,6 +55,12 @@ export interface Spec extends TurboModule {
   initNativeReactNavigationNewFrameTracking(): Promise<void>;
   captureReplay(isHardCrash: boolean): Promise<string | undefined | null>;
   getCurrentReplayId(): string | undefined | null;
+  startReplay(): Promise<void>;
+  startReplayBuffering(): Promise<void>;
+  stopReplay(): Promise<void>;
+  pauseReplay(): Promise<void>;
+  resumeReplay(): Promise<void>;
+  flushReplay(): Promise<void>;
   crashedLastRun(): Promise<boolean | undefined | null>;
   getDataFromUri(uri: string): Promise<number[]>;
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;

@@ -489,6 +489,36 @@ public class RNSentryModuleImpl {
     promise.resolve(getReplayIdFromScope());
   }
 
+  public void startReplay(Promise promise) {
+    Sentry.replay().start();
+    promise.resolve(null);
+  }
+
+  public void startReplayBuffering(Promise promise) {
+    Sentry.replay().startBuffering();
+    promise.resolve(null);
+  }
+
+  public void stopReplay(Promise promise) {
+    Sentry.replay().stop();
+    promise.resolve(null);
+  }
+
+  public void pauseReplay(Promise promise) {
+    Sentry.replay().pause();
+    promise.resolve(null);
+  }
+
+  public void resumeReplay(Promise promise) {
+    Sentry.replay().resume();
+    promise.resolve(null);
+  }
+
+  public void flushReplay(Promise promise) {
+    Sentry.replay().flush();
+    promise.resolve(null);
+  }
+
   public @Nullable String getCurrentReplayId() {
     // Prefer the replay controller's id: it is assigned when recording starts
     // (buffer or session) and is therefore available BEFORE a replay is

@@ -870,6 +870,60 @@ RCT_EXPORT_METHOD(captureReplay : (BOOL)isHardCrash resolver : (
 #endif
 }
 
+RCT_EXPORT_METHOD(
+    startReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryInternal startReplay];
+#endif
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(
+    startReplayBuffering : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryInternal startReplayBuffering];
+#endif
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(
+    stopReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryInternal stopReplay];
+#endif
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(
+    pauseReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryInternal pauseReplay];
+#endif
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(
+    resumeReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryInternal resumeReplay];
+#endif
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(
+    flushReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    [RNSentryInternal flushReplay];
+#endif
+    resolve(nil);
+}
+
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
 static BOOL
 RNSentryIsPathUnderAllowedRoots(NSString *path)
