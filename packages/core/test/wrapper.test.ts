@@ -63,6 +63,12 @@ jest.mock('react-native', () => {
     stopProfiling: jest.fn(),
     pauseAppHangTracking: jest.fn(),
     resumeAppHangTracking: jest.fn(),
+    startReplay: jest.fn(() => Promise.resolve()),
+    startReplayBuffering: jest.fn(() => Promise.resolve()),
+    stopReplay: jest.fn(() => Promise.resolve()),
+    pauseReplay: jest.fn(() => Promise.resolve()),
+    resumeReplay: jest.fn(() => Promise.resolve()),
+    flushReplay: jest.fn(() => Promise.resolve()),
   };
 
   return {
@@ -1415,6 +1421,80 @@ describe('Tests Native Wrapper', () => {
       NATIVE.resumeAppHangTracking();
       expect(RNSentry.resumeAppHangTracking).not.toHaveBeenCalled();
     });
+  });
+
+  describe('replay controls', () => {
+    const controls: {
+      name: 'start' | 'startBuffering' | 'stop' | 'pause' | 'resume' | 'flush';
+      call: () => Promise<void>;
+      native: jest.Mock;
+    }[] = [
+      { name: 'start', call: () => NATIVE.startReplay(), native: RNSentry.startReplay as jest.Mock },
+      {
+        name: 'startBuffering',
+        call: () => NATIVE.startReplayBuffering(),
+        native: RNSentry.startReplayBuffering as jest.Mock,
+      },
+      { name: 'stop', call: () => NATIVE.stopReplay(), native: RNSentry.stopReplay as jest.Mock },
+      { name: 'pause', call: () => NATIVE.pauseReplay(), native: RNSentry.pauseReplay as jest.Mock },
+      { name: 'resume', call: () => NATIVE.resumeReplay(), native: RNSentry.resumeReplay as jest.Mock },
+      { name: 'flush', call: () => NATIVE.flushReplay(), native: RNSentry.flushReplay as jest.Mock },
+    ];
+
+    it.each(controls)('$name calls the native replay control when enabled', async ({ call, native }) => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      await call();
+      expect(native).toHaveBeenCalled();
+    });
+
+    it.each(controls)('$name does not call native when enableNative is false', async ({ call, native }) => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      await call();
+      expect(native).not.toHaveBeenCalled();
+    });
+
+    it.each(controls)(
+      '$name resolves without calling native when the method is missing on the binary',
+      async ({ name, call, native }) => {
+        await NATIVE.initNativeSdk({
+          dsn: VALID_DSN,
+          enableNative: true,
+          devServerUrl: undefined,
+          defaultSidecarUrl: undefined,
+          mobileReplayOptions: undefined,
+        });
+        const methodName = (
+          {
+            start: 'startReplay',
+            startBuffering: 'startReplayBuffering',
+            stop: 'stopReplay',
+            pause: 'pauseReplay',
+            resume: 'resumeReplay',
+            flush: 'flushReplay',
+          } as const
+        )[name];
+        const original = (RNSentry as unknown as Record<string, unknown>)[methodName];
+        (RNSentry as unknown as Record<string, unknown>)[methodName] = undefined;
+        try {
+          await expect(call()).resolves.toBeUndefined();
+          expect(native).not.toHaveBeenCalled();
+        } finally {
+          (RNSentry as unknown as Record<string, unknown>)[methodName] = original;
+        }
+      },
+    );
   });
 
   describe('primitiveProcessor and _setPrimitiveProcessor', () => {

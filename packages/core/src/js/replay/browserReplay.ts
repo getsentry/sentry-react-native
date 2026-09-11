@@ -1,3 +1,4 @@
+import { debug } from '@sentry/core';
 import { replayIntegration } from '@sentry/react';
 
 import type { Replay } from './replayInterface';
@@ -28,11 +29,31 @@ const browserReplayIntegration = (options: ReplayConfiguration = {}): Replay => 
     return browserReplayIntegrationNoop();
   }
 
-  return replayIntegration({
+  // `replayIntegration` returns a class instance whose controls (`start`,
+  // `stop`, `flush`, …) and lifecycle hooks (`afterAllSetup`, `processSpan`)
+  // live on the prototype. It must NOT be spread — a spread would drop every
+  // prototype method and break the integration. We attach `pause`/`resume`
+  // directly on the instance instead.
+  const integration = replayIntegration({
     ...options,
     mask: ['.sentry-react-native-mask', ...(options.mask || [])],
     unmask: ['.sentry-react-native-unmask:not(.sentry-react-native-mask *) > *', ...(options.unmask || [])],
-  });
+  }) as unknown as Replay;
+
+  // `pause`/`resume` are part of the shared `Replay` interface (native-backed on
+  // mobile) but the browser Session Replay SDK does not expose them, so they are
+  // no-ops that log on Web to keep the cross-platform API interchangeable.
+  integration.pause = pauseNoop;
+  integration.resume = resumeNoop;
+  return integration;
+};
+
+const pauseNoop = (): void => {
+  debug.log(`[${INTEGRATION_NAME}] \`pause()\` is not supported on Web. No-op.`);
+};
+
+const resumeNoop = (): void => {
+  debug.log(`[${INTEGRATION_NAME}] \`resume()\` is not supported on Web. No-op.`);
 };
 
 const browserReplayIntegrationNoop = (): Replay => {
@@ -41,9 +62,10 @@ const browserReplayIntegrationNoop = (): Replay => {
     start: () => {},
     startBuffering: () => {},
     stop: () => Promise.resolve(),
+    pause: () => {},
+    resume: () => {},
     flush: () => Promise.resolve(),
     getReplayId: () => undefined,
-    getRecordingMode: () => undefined,
   };
 };
 

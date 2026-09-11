@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		332D33472CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */; };
 		3339C4812D6625570088EB3A /* RNSentryUserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3339C4802D6625570088EB3A /* RNSentryUserTests.m */; };
+		3339C4832D6625570088EB3A /* RNSentryReplayControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3339C4822D6625570088EB3A /* RNSentryReplayControlTests.m */; };
 		336084392C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */; };
 		3380C6C42CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3380C6C32CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift */; };
 		33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */; };
@@ -33,6 +34,7 @@
 		332D334A2CDCC8EB00547D76 /* RNSentryCocoaTesterTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentryCocoaTesterTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		3339C47F2D6625260088EB3A /* RNSentry+Test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNSentry+Test.h"; sourceTree = "<group>"; };
 		3339C4802D6625570088EB3A /* RNSentryUserTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryUserTests.m; sourceTree = "<group>"; };
+		3339C4822D6625570088EB3A /* RNSentryReplayControlTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryReplayControlTests.m; sourceTree = "<group>"; };
 		336084382C32E382008CC412 /* RNSentryReplayBreadcrumbConverterTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNSentryReplayBreadcrumbConverterTests.swift; sourceTree = "<group>"; };
 		3360843A2C32E3A8008CC412 /* RNSentryReplayBreadcrumbConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryReplayBreadcrumbConverter.h; path = ../ios/RNSentryReplayBreadcrumbConverter.h; sourceTree = "<group>"; };
 		3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryBreadcrumbTests.swift; sourceTree = "<group>"; };
@@ -115,6 +117,7 @@
 				33F58ACF2977037D008F60EA /* RNSentryTests.m */,
 				33F58ACE2977037D008F60EB /* RNSentryScreenshotSourceTests.swift */,
 				3339C4802D6625570088EB3A /* RNSentryUserTests.m */,
+				3339C4822D6625570088EB3A /* RNSentryReplayControlTests.m */,
 				3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */,
 				E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */,
 				33AFDFEC2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m */,
@@ -272,6 +275,7 @@
 				33F58AD02977037D008F60EA /* RNSentryTests.m in Sources */,
 				33F58AD12977037D008F60EB /* RNSentryScreenshotSourceTests.swift in Sources */,
 				3339C4812D6625570088EB3A /* RNSentryUserTests.m in Sources */,
+				3339C4832D6625570088EB3A /* RNSentryReplayControlTests.m in Sources */,
 				B4DEB41739F14AA38202D4D4 /* RNSentryUriValidationTests.m in Sources */,
 				2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */,
 				33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */,
