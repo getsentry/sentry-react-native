@@ -52,6 +52,11 @@ export interface Replay extends Integration {
   /**
    * Flush the current replay data to Sentry, or start a full-session replay if
    * recording is stopped.
+   *
+   * @param options.continueRecording When `false`, recording stops after the
+   * flush; otherwise (the default) recording continues. On mobile this stops
+   * recording in every mode, whereas on Web it only applies when a buffered
+   * replay is being converted to a session.
    */
   flush(options?: { continueRecording?: boolean }): Promise<void>;
 

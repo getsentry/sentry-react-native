@@ -575,7 +575,15 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     stop: () => NATIVE.stopReplay().then(invalidateCachedReplayId),
     pause: () => fireReplayControl(NATIVE.pauseReplay(), 'pause'),
     resume: () => fireReplayControl(NATIVE.resumeReplay(), 'resume'),
-    flush: () => NATIVE.flushReplay().then(invalidateCachedReplayId),
+    flush: (options?: { continueRecording?: boolean }) => {
+      // The native `flushReplay()` always keeps recording after the flush (a
+      // buffered replay is converted to a session and continues), which matches
+      // the web default of `continueRecording: true`. When the caller opts out,
+      // stop the replay once the flush has completed.
+      const flushed = NATIVE.flushReplay();
+      const settled = options?.continueRecording === false ? flushed.then(() => NATIVE.stopReplay()) : flushed;
+      return settled.then(invalidateCachedReplayId);
+    },
   };
 };
 
