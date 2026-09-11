@@ -490,33 +490,63 @@ public class RNSentryModuleImpl {
   }
 
   public void startReplay(Promise promise) {
-    Sentry.replay().start();
-    promise.resolve(null);
+    try {
+      Sentry.replay().start();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to start replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
   }
 
   public void startReplayBuffering(Promise promise) {
-    Sentry.replay().startBuffering();
-    promise.resolve(null);
+    try {
+      Sentry.replay().startBuffering();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to start replay buffering", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
   }
 
   public void stopReplay(Promise promise) {
-    Sentry.replay().stop();
-    promise.resolve(null);
+    try {
+      Sentry.replay().stop();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to stop replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
   }
 
   public void pauseReplay(Promise promise) {
-    Sentry.replay().pause();
-    promise.resolve(null);
+    try {
+      Sentry.replay().pause();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to pause replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
   }
 
   public void resumeReplay(Promise promise) {
-    Sentry.replay().resume();
-    promise.resolve(null);
+    try {
+      Sentry.replay().resume();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to resume replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
   }
 
   public void flushReplay(Promise promise) {
-    Sentry.replay().flush();
-    promise.resolve(null);
+    try {
+      Sentry.replay().flush();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to flush replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
   }
 
   public @Nullable String getCurrentReplayId() {

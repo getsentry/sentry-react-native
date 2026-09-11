@@ -78,6 +78,7 @@ import type { Options } from '@sentry/core';
 import { Profiler } from '@sentry/react';
 import * as React_2 from 'react';
 import { replayIntegration } from '@sentry/react';
+import type { ReplayRecordingMode } from '@sentry/core';
 import { rewriteFramesIntegration } from '@sentry/react';
 import { Scope } from '@sentry/core';
 import { SdkInfo } from '@sentry/core';
@@ -641,6 +642,7 @@ export interface Replay extends Integration {
     flush(options?: {
         continueRecording?: boolean;
     }): Promise<void>;
+    getRecordingMode?(): ReplayRecordingMode | undefined;
     getReplayId(): string | undefined | null;
     pause(): void;
     resume(): void;

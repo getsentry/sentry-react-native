@@ -722,6 +722,44 @@ describe('Mobile Replay Integration', () => {
       await new Promise(resolve => setImmediate(resolve));
       expect(debugError).toHaveBeenCalledWith(expect.stringContaining('Failed to start replay'), error);
     });
+
+    it('stop() invalidates the cached replay id so getReplayId re-reads native', async () => {
+      const integration = mobileReplayIntegration();
+      // Prime the cache with an active replay id.
+      mockGetCurrentReplayId.mockReturnValue('old-replay-id');
+      expect(integration.getReplayId()).toBe('old-replay-id');
+
+      // After stop the native replay is gone; the stale id must not be returned.
+      mockGetCurrentReplayId.mockReturnValue(null);
+      await integration.stop();
+
+      expect(integration.getReplayId()).toBeNull();
+    });
+
+    it('start() invalidates the cached replay id so getReplayId reflects the new session', async () => {
+      const integration = mobileReplayIntegration();
+      // Prime the cache with a previous session id.
+      mockGetCurrentReplayId.mockReturnValue('old-replay-id');
+      expect(integration.getReplayId()).toBe('old-replay-id');
+
+      // A new session is created; getReplayId must pick up the fresh id.
+      mockGetCurrentReplayId.mockReturnValue('new-replay-id');
+      integration.start();
+      await new Promise(resolve => setImmediate(resolve));
+
+      expect(integration.getReplayId()).toBe('new-replay-id');
+    });
+
+    it('flush() invalidates the cached replay id so getReplayId re-reads native', async () => {
+      const integration = mobileReplayIntegration();
+      mockGetCurrentReplayId.mockReturnValue('old-replay-id');
+      expect(integration.getReplayId()).toBe('old-replay-id');
+
+      mockGetCurrentReplayId.mockReturnValue('flushed-replay-id');
+      await integration.flush();
+
+      expect(integration.getReplayId()).toBe('flushed-replay-id');
+    });
   });
 
   describe('network detail feature markers', () => {
