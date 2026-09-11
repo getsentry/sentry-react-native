@@ -87,6 +87,13 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
       <Text testID='replayPing' onPress={() => setReplayPingCount((count) => count + 1)}>
         Replay Ping {replayPingCount}
       </Text>
+      {/* Manually starts a session replay via the runtime controls. The
+          manualReplay e2e flow taps this with both sample rates off, so a
+          replay_id can only reach the error event if getReplay().start()
+          actually drove native recording across the bridge. */}
+      <Text testID='startReplay' onPress={() => Sentry.getReplay()?.start()}>
+        Start Replay
+      </Text>
       {testCases.map((testCase) => (
         <Text key={testCase.id} onPress={testCase.action}>
           {testCase.name}
