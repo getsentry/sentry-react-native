@@ -1,4 +1,5 @@
 export { debugSymbolicatorIntegration } from './debugsymbolicator';
+export { featureFlagsIntegration } from './featureFlags';
 export { deviceContextIntegration } from './devicecontext';
 export { reactNativeErrorHandlersIntegration } from './reactnativeerrorhandlers';
 export { nativeLinkedErrorsIntegration } from './nativelinkederrors';

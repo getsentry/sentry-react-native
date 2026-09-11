@@ -39,7 +39,6 @@ import type { EventHint } from '@sentry/core';
 import { Exception } from '@sentry/core';
 import { extraErrorDataIntegration } from '@sentry/react';
 import { FeatureFlagsIntegration } from '@sentry/browser';
-import { featureFlagsIntegration } from '@sentry/browser';
 import type { FeedbackFormData } from '@sentry/core';
 import { functionToStringIntegration } from '@sentry/react';
 import { getActiveSpan } from '@sentry/core';
@@ -51,8 +50,10 @@ import { getRootSpan } from '@sentry/core';
 import { GoogleGenAIChat } from '@sentry/core';
 import { GoogleGenAIClient } from '@sentry/core';
 import { GoogleGenAIOptions } from '@sentry/core';
+import type { HostComponent } from 'react-native';
 import { httpClientIntegration } from '@sentry/react';
 import { httpContextIntegration } from '@sentry/react';
+import type { ImageStyle } from 'react-native';
 import { inboundFiltersIntegration } from '@sentry/react';
 import { instrumentAnthropicAiClient } from '@sentry/core';
 import { InstrumentedMethod } from '@sentry/core';
@@ -67,8 +68,6 @@ import { LangChainOptions } from '@sentry/core';
 import { LangGraphIntegration } from '@sentry/core';
 import { LangGraphOptions } from '@sentry/core';
 import { lastEventId } from '@sentry/core';
-import type { ListRenderItem } from '@react-native/virtualized-lists';
-import type { ListRenderItemInfo } from '@react-native/virtualized-lists';
 import { logger } from '@sentry/browser';
 import type { makeFetchTransport } from '@sentry/browser';
 import { Metric } from '@sentry/core';
@@ -106,16 +105,15 @@ import { startSpan } from '@sentry/core';
 import { startSpanManual } from '@sentry/core';
 import type { StartSpanOptions } from '@sentry/core';
 import { suppressTracing } from '@sentry/core';
+import type { TextStyle } from 'react-native';
 import { Thread } from '@sentry/core';
 import { TransactionEvent } from '@sentry/core';
 import type { TransportMakeRequestResponse } from '@sentry/core';
 import { useProfiler } from '@sentry/react';
 import { User } from '@sentry/core';
 import { UserFeedback } from '@sentry/core';
-import type { ViewabilityConfig } from '@react-native/virtualized-lists';
-import type { ViewToken } from '@react-native/virtualized-lists';
-import type { VirtualizedListProps } from '@react-native/virtualized-lists';
-import type { VirtualizedListWithoutRenderItemProps } from '@react-native/virtualized-lists';
+import type { ViewProps } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import { withActiveSpan } from '@sentry/core';
 import { withErrorBoundary } from '@sentry/react';
 import { withProfiler } from '@sentry/react';
@@ -335,7 +333,8 @@ export { extraErrorDataIntegration }
 
 export { FeatureFlagsIntegration }
 
-export { featureFlagsIntegration }
+// @public
+export const featureFlagsIntegration: () => FeatureFlagsIntegration;
 
 // Warning: (ae-forgotten-export) The symbol "FeedbackButtonProps" needs to be exported by the entry point index.d.ts
 //
@@ -507,9 +506,6 @@ export const logEnricherIntegration: () => Integration;
 
 export { logger }
 
-// Warning: (ae-forgotten-export) The symbol "HostComponent" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "ViewProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const Mask: HostComponent<ViewProps> | React_2.ComponentType<ViewProps>;
 
@@ -971,7 +967,7 @@ export function wrapTurboModule<T extends object>(name: string, module: T | null
 //
 // src/js/feedback/integration.ts:21:5 - (ae-forgotten-export) The symbol "ScreenshotButtonProps" needs to be exported by the entry point index.d.ts
 // src/js/feedback/integration.ts:23:5 - (ae-forgotten-export) The symbol "FeedbackFormTheme" needs to be exported by the entry point index.d.ts
-// src/js/tracing/reactnativetracing.ts:90:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
+// src/js/tracing/reactnativetracing.ts:95:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnavigation.ts:228:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)

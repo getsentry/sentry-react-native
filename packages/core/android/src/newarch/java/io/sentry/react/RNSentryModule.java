@@ -114,8 +114,18 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void removeContext(final String key) {
+    this.impl.removeContext(key);
+  }
+
+  @Override
   public void setTag(String key, String value) {
     this.impl.setTag(key, value);
+  }
+
+  @Override
+  public void addFeatureFlag(String name, boolean value) {
+    this.impl.addFeatureFlag(name, value);
   }
 
   @Override
@@ -222,6 +232,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   @Override
   public boolean setActiveSpanId(String spanId) {
     return this.impl.setActiveSpanId(spanId);
+  }
+
+  @Override
+  public boolean setCurrentScopePropagationContext(ReadableMap ctx) {
+    return this.impl.setCurrentScopePropagationContext(ctx);
   }
 
   @Override

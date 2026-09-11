@@ -770,10 +770,25 @@ RCT_EXPORT_METHOD(setContext : (NSString *)key context : (NSDictionary *)context
     }];
 }
 
+RCT_EXPORT_METHOD(removeContext : (NSString *)key)
+{
+    if (key == nil) {
+        return;
+    }
+
+    [SentrySDKWrapper
+        configureScope:^(SentryScope *_Nonnull scope) { [scope removeContextForKey:key]; }];
+}
+
 RCT_EXPORT_METHOD(setTag : (NSString *)key value : (NSString *)value)
 {
     [SentrySDKWrapper
         configureScope:^(SentryScope *_Nonnull scope) { [scope setTagValue:value forKey:key]; }];
+}
+
+RCT_EXPORT_METHOD(addFeatureFlag : (NSString *)name value : (BOOL)value)
+{
+    [RNSentryInternal addFeatureFlag:name value:value];
 }
 
 RCT_EXPORT_METHOD(setAttribute : (NSString *)key value : (NSString *)value)
@@ -1120,6 +1135,17 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, setActiveSpanId : (NSString *)sp
 {
     [RNSentryTimeToDisplay setActiveSpanId:spanId];
     return @YES; // The return ensures that the method is synchronous
+}
+
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(
+    NSNumber *, setCurrentScopePropagationContext : (NSDictionary *)ctx)
+{
+    NSString *traceId = ctx[@"traceId"];
+    NSString *spanId = ctx[@"spanId"];
+    if (traceId && spanId) {
+        [RNSentryInternal setCurrentScopePropagationContextWithTraceId:traceId spanId:spanId];
+    }
+    return @YES;
 }
 
 RCT_EXPORT_METHOD(encodeToBase64 : (NSArray *)array resolver : (

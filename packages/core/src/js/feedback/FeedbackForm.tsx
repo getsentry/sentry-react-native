@@ -308,7 +308,9 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     return (
       <TouchableWithoutFeedback
-        onPress={notWeb() ? Keyboard.dismiss : undefined}
+        // Wrapped rather than passing `Keyboard.dismiss` directly: react-native >=0.87 types it as a
+        // method, which trips the unbound-method lint rule even though it uses no `this`.
+        onPress={notWeb() ? () => Keyboard.dismiss() : undefined}
         accessible={false}
         accessibilityElementsHidden={false}
       >

@@ -127,7 +127,9 @@ describe('turboModuleContextIntegration', () => {
           'addListener',
           'removeListeners',
           'setContext',
+          'removeContext',
           'setTag',
+          'addFeatureFlag',
           'setExtra',
           'setUser',
           'addBreadcrumb',
@@ -145,6 +147,7 @@ describe('turboModuleContextIntegration', () => {
     // RNSentry must be in the skip list, otherwise scope writes recurse.
     const fakeModule = {
       setContext: jest.fn(),
+      removeContext: jest.fn(),
       setTag: jest.fn(),
       setExtra: jest.fn(),
       setUser: jest.fn(),
@@ -166,6 +169,7 @@ describe('turboModuleContextIntegration', () => {
     expect((fakeModule.crash as { _isMockFunction?: boolean })._isMockFunction).toBeUndefined();
     for (const method of [
       'setContext',
+      'removeContext',
       'setTag',
       'setExtra',
       'setUser',

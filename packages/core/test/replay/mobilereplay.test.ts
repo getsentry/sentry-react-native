@@ -49,8 +49,22 @@ describe('Mobile Replay Integration', () => {
     jest.restoreAllMocks();
   });
 
+  // Let deferred async work (the native flush in `afterSendEvent`) settle.
+  const flushAsync = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
+
+  // The native replay flush now happens in the `afterSendEvent` client hook,
+  // which only fires for events that survive sampling and are actually sent.
+  // Fire it explicitly to simulate an event being sent, then wait for the
+  // deferred flush to settle.
+  async function fireAfterSendEvent(event: Event): Promise<void> {
+    const call = mockOn.mock.calls.find(c => c[0] === 'afterSendEvent');
+    const handler = call?.[1] as ((event: Event, response?: unknown) => void) | undefined;
+    handler?.(event);
+    await flushAsync();
+  }
+
   describe('beforeSend wrapping', () => {
-    it('should capture replay after beforeSend processes the event', async () => {
+    it('links the event to the buffered replay in beforeSend and flushes it on send', async () => {
       const integration = mobileReplayIntegration();
       integration.setup?.(mockClient);
 
@@ -64,9 +78,14 @@ describe('Mobile Replay Integration', () => {
 
       const result = await clientOptions.beforeSend?.(event, hint);
 
+      // beforeSend only links the event to the buffered replay; it does not flush.
       expect(result).toBeDefined();
-      expect(mockCaptureReplay).toHaveBeenCalled();
       expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
+
+      // The flush happens once the event survives sampling and is sent.
+      await fireAfterSendEvent(result as Event);
+      expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
     });
 
     it('should not capture replay when beforeSend returns null', async () => {
@@ -115,9 +134,11 @@ describe('Mobile Replay Integration', () => {
 
       expect(result).toBeDefined();
       expect(userBeforeSend).toHaveBeenCalledWith(event, hint);
-      expect(mockCaptureReplay).toHaveBeenCalled();
       expect(result?.tags).toEqual({ modified: 'true' });
       expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
+
+      await fireAfterSendEvent(result as Event);
+      expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
     it('should work when no user beforeSend is provided', async () => {
@@ -135,8 +156,10 @@ describe('Mobile Replay Integration', () => {
       const result = await clientOptions.beforeSend?.(event, hint);
 
       expect(result).toBeDefined();
-      expect(mockCaptureReplay).toHaveBeenCalled();
       expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
+
+      await fireAfterSendEvent(result as Event);
+      expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
     it('should not process non-error events', async () => {
@@ -156,9 +179,11 @@ describe('Mobile Replay Integration', () => {
       expect(result?.contexts?.replay).toBeUndefined();
     });
 
-    it('should handle errors in processEvent and return original event', async () => {
-      // Mock captureReplay to throw an error BEFORE setting up integration
-      mockCaptureReplay.mockRejectedValue(new Error('Native bridge error'));
+    it('should handle errors while linking the replay and return the original event', async () => {
+      // First call (during setup) succeeds; the call inside beforeSend throws.
+      mockGetCurrentReplayId.mockReturnValueOnce('test-replay-id').mockImplementation(() => {
+        throw new Error('Native bridge error');
+      });
 
       const integration = mobileReplayIntegration();
       integration.setup?.(mockClient);
@@ -173,10 +198,9 @@ describe('Mobile Replay Integration', () => {
 
       const result = await clientOptions.beforeSend?.(event, hint);
 
-      // Should return the original event even when processEvent fails
+      // Should return the original event even when linking fails
       expect(result).toBeDefined();
       expect(result?.event_id).toBe('test-event-id');
-      expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
     it('should not crash the event pipeline when processEvent throws', async () => {
@@ -219,6 +243,8 @@ describe('Mobile Replay Integration', () => {
 
       expect(result).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
+
+      await fireAfterSendEvent(result as Event);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
@@ -262,6 +288,8 @@ describe('Mobile Replay Integration', () => {
 
       expect(result).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
+
+      await fireAfterSendEvent(result as Event);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
@@ -280,6 +308,8 @@ describe('Mobile Replay Integration', () => {
       const result = await clientOptions.beforeSend?.(event, hint);
 
       expect(result).toBeDefined();
+
+      await fireAfterSendEvent(result as Event);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
@@ -291,6 +321,11 @@ describe('Mobile Replay Integration', () => {
       });
       const integration = mobileReplayIntegration({ beforeErrorSampling });
       integration.setup?.(mockClient);
+
+      // Capture the afterSendEvent handler before the mid-test mock clear wipes
+      // the registration record.
+      const afterSendEventCall = mockOn.mock.calls.find(c => c[0] === 'afterSendEvent');
+      const afterSendEvent = afterSendEventCall![1] as (event: Event) => void;
 
       // Test with handled error
       const handledEvent = {
@@ -311,6 +346,10 @@ describe('Mobile Replay Integration', () => {
 
       expect(result1).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(handledEvent, hint);
+
+      // The handled error was filtered out, so it is never linked or flushed.
+      afterSendEvent(result1 as Event);
+      await flushAsync();
       expect(mockCaptureReplay).not.toHaveBeenCalled();
 
       jest.clearAllMocks();
@@ -333,6 +372,9 @@ describe('Mobile Replay Integration', () => {
 
       expect(result2).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(unhandledEvent, hint);
+
+      afterSendEvent(result2 as Event);
+      await flushAsync();
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
@@ -373,7 +415,9 @@ describe('Mobile Replay Integration', () => {
 
       expect(result).toBeDefined();
       expect(beforeErrorSampling).toHaveBeenCalledWith(event, hint);
+
       // Should proceed with replay capture despite callback error
+      await fireAfterSendEvent(result as Event);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
@@ -393,9 +437,12 @@ describe('Mobile Replay Integration', () => {
       const hint: EventHint = {};
 
       // Should not throw
-      await expect(clientOptions.beforeSend?.(event, hint)).resolves.toBeDefined();
+      const result = await clientOptions.beforeSend?.(event, hint);
+      expect(result).toBeDefined();
 
       expect(beforeErrorSampling).toHaveBeenCalled();
+
+      await fireAfterSendEvent(result as Event);
       expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
@@ -425,9 +472,11 @@ describe('Mobile Replay Integration', () => {
       expect(result).toBeDefined();
       expect(userBeforeSend).toHaveBeenCalledWith(event, hint);
       expect(beforeErrorSampling).toHaveBeenCalled();
-      expect(mockCaptureReplay).toHaveBeenCalled();
       expect(result?.tags).toEqual({ modified: 'true' });
       expect(result?.contexts?.replay?.replay_id).toBe('test-replay-id');
+
+      await fireAfterSendEvent(result as Event);
+      expect(mockCaptureReplay).toHaveBeenCalled();
     });
 
     it('should not capture replay when user beforeSend drops event even if beforeErrorSampling returns true', async () => {
@@ -456,8 +505,8 @@ describe('Mobile Replay Integration', () => {
     });
   });
 
-  describe('captureReplay returns null (native capture failed)', () => {
-    it('should not set replay_id when captureReplay returns null and no ongoing recording', async () => {
+  describe('native replay flush on send', () => {
+    it('does not link or flush when there is no active recording', async () => {
       mockCaptureReplay.mockResolvedValue(null);
       mockGetCurrentReplayId.mockReturnValue(null);
 
@@ -480,14 +529,18 @@ describe('Mobile Replay Integration', () => {
 
       const result = await clientOptions.beforeSend?.(event, hint);
 
+      // No buffered recording => nothing to link...
       expect(result).toBeDefined();
-      expect(mockCaptureReplay).toHaveBeenCalledWith(true); // isHardCrash
       expect(result?.contexts?.replay?.replay_id).toBeUndefined();
+
+      // ...and nothing to flush, even after the event is sent.
+      await fireAfterSendEvent(result as Event);
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
     });
 
-    it('should use ongoing recording when captureReplay returns null but recording exists', async () => {
+    it('links the event to the ongoing recording and flushes it as a hard crash on send', async () => {
       mockCaptureReplay.mockResolvedValue(null);
-      // First call during setup returns initial ID, second call during processEvent returns ongoing ID
+      // First call during setup returns no ID, the call inside beforeSend returns the ongoing ID.
       mockGetCurrentReplayId.mockReturnValueOnce(null).mockReturnValue('ongoing-replay-id');
 
       const integration = mobileReplayIntegration();
@@ -509,15 +562,18 @@ describe('Mobile Replay Integration', () => {
 
       const result = await clientOptions.beforeSend?.(event, hint);
 
+      // The event is linked to the ongoing recording in beforeSend.
       expect(result).toBeDefined();
-      expect(mockCaptureReplay).toHaveBeenCalled();
-      // Should fall back to ongoing recording ID
       expect(result?.contexts?.replay?.replay_id).toBe('ongoing-replay-id');
+
+      // The flush happens on send, propagating the hard-crash flag.
+      await fireAfterSendEvent(result as Event);
+      expect(mockCaptureReplay).toHaveBeenCalledWith(true); // isHardCrash
     });
 
-    it('should set replay_id when captureReplay succeeds', async () => {
+    it('updates the cached replay id from the flushed replay after send', async () => {
       mockCaptureReplay.mockResolvedValue('new-replay-id');
-      mockGetCurrentReplayId.mockReturnValue(null);
+      mockGetCurrentReplayId.mockReturnValue('buffered-replay-id');
 
       const integration = mobileReplayIntegration();
       integration.setup?.(mockClient);
@@ -538,9 +594,72 @@ describe('Mobile Replay Integration', () => {
 
       const result = await clientOptions.beforeSend?.(event, hint);
 
+      // The event is linked to the buffered id at beforeSend time (stable through flush).
       expect(result).toBeDefined();
+      expect(result?.contexts?.replay?.replay_id).toBe('buffered-replay-id');
+
+      // Once flushed on send, the cache reflects the id returned by the native flush.
+      await fireAfterSendEvent(result as Event);
       expect(mockCaptureReplay).toHaveBeenCalled();
-      expect(result?.contexts?.replay?.replay_id).toBe('new-replay-id');
+      expect(integration.getReplayId()).toBe('new-replay-id');
+    });
+
+    it('re-reads the current recording id when the flush uploads nothing (on-error sampling miss)', async () => {
+      // A buffered replay is linked in beforeSend, but the native flush uploads
+      // nothing (an on-error sampling miss resolves null). The cache must not be
+      // left exposing the linked id as if it had been uploaded.
+      mockGetCurrentReplayId.mockReturnValue('buffered-replay-id');
+      mockCaptureReplay.mockResolvedValue(null);
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const event = {
+        event_id: 'test-event-id',
+        exception: {
+          values: [{ type: 'Error', value: 'Test error', mechanism: { handled: false, type: 'onerror' } }],
+        },
+      } as ErrorEvent;
+
+      const result = await clientOptions.beforeSend?.(event, {});
+      expect(result?.contexts?.replay?.replay_id).toBe('buffered-replay-id');
+
+      // After the miss, the still-active recording reports a fresh id.
+      mockGetCurrentReplayId.mockReturnValue('still-recording-id');
+      await fireAfterSendEvent(result as Event);
+
+      // The cache was refreshed from the current recording, not left stale.
+      expect(integration.getReplayId()).toBe('still-recording-id');
+    });
+
+    it('flushes a sent event regardless of how many other events were linked first', async () => {
+      // Regression for the eviction race: the flush decision must live on the
+      // event itself, so a linked event still flushes after many other events
+      // (e.g. errors later dropped by sampling that never reach afterSendEvent)
+      // were linked in beforeSend.
+      mockGetCurrentReplayId.mockReturnValue('buffered-replay-id');
+
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      const makeEvent = (id: string) =>
+        ({
+          event_id: id,
+          exception: { values: [{ type: 'Error', value: 'Test error' }] },
+        }) as ErrorEvent;
+
+      // Link the first event but do not send it yet.
+      const first = await clientOptions.beforeSend?.(makeEvent('first-event-id'), {});
+      expect(first?.contexts?.replay?.replay_id).toBe('buffered-replay-id');
+
+      // Link many more events afterwards without sending them.
+      for (let i = 0; i < 200; i++) {
+        await clientOptions.beforeSend?.(makeEvent(`event-${i}`), {});
+      }
+
+      // The first event is finally sent: it must still flush its replay.
+      await fireAfterSendEvent(first as Event);
+      expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -851,9 +970,13 @@ describe('Mobile Replay Integration', () => {
       } as ErrorEvent;
       const hint: EventHint = {};
 
-      await clientOptions.beforeSend?.(event, hint);
+      const result = await clientOptions.beforeSend?.(event, hint);
 
-      // Verify cache was updated by checking getReplayId
+      // Before the flush, the cache holds the buffered id linked in beforeSend.
+      expect(integration.getReplayId()).toBe(initialReplayId);
+
+      // The flush on send returns the final id and updates the cache.
+      await fireAfterSendEvent(result as Event);
       expect(integration.getReplayId()).toBe(newReplayId);
 
       // Extract the createDsc handler BEFORE clearing mocks

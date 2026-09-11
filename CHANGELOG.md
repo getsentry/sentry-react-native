@@ -14,6 +14,95 @@
 
   Enable it by passing `captureAssertions: true` (or an options object) to `withSentryConfig` in your `metro.config.js`; omit it or set `captureAssertions: false` to disable. Hard preconditions (`invariant`/`assert`) still throw after reporting — you gain a readable, grouped event, not crash suppression.
 
+## 8.26.0
+
+### Features
+
+- Sync JS scope propagation context to native scope ([#6686](https://github.com/getsentry/sentry-react-native/pull/6686))
+  - Native HTTP spans (OkHttp on Android, URLSession on iOS) now automatically share the same `trace_id` as the active JS navigation transaction, linking them in the Sentry trace waterfall.
+- Expose the iOS `enableMemoryIntrospection` option to omit memory contents from native crash reports ([#6547](https://github.com/getsentry/sentry-react-native/pull/6674))
+- Add `anrProfilingSampleRate` option to profile ANRs on Android ([#6673](https://github.com/getsentry/sentry-react-native/pull/6673))
+
+### Fixes
+
+- Time to initial display is no longer understated on Android in optimized release builds ([#6692](https://github.com/getsentry/sentry-react-native/pull/6692))
+- Fix visionOS compilation ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
+- A throwing `beforeBreadcrumb` now drops the breadcrumb, and a throwing `tracesSampler` now falls back to the configured `tracesSampleRate` ([#6675](https://github.com/getsentry/sentry-react-native/pull/6675))
+- Stop uploading on-error Session Replays for errors dropped by `sampleRate` ([#6685](https://github.com/getsentry/sentry-react-native/pull/6685))
+
+### Internal
+
+- Add visionOS sample app and CI tests ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
+- Add tvOS sample app and CI tests ([#6676](https://github.com/getsentry/sentry-react-native/pull/6676))
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.26.1 to v9.28.0 ([#6670](https://github.com/getsentry/sentry-react-native/pull/6670), [#6693](https://github.com/getsentry/sentry-react-native/pull/6693))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9280)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.26.1...9.28.0)
+- Bump JavaScript SDK from v10.73.0 to v10.74.0 ([#6695](https://github.com/getsentry/sentry-react-native/pull/6695))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10740)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.73.0...10.74.0)
+- Bump Android SDK from v8.55.0 to v8.56.0 ([#6694](https://github.com/getsentry/sentry-react-native/pull/6694))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8560)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.55.0...8.56.0)
+
+## 8.25.0
+
+### Features
+
+- Copy `app.vitals.start.screen` and `app.vitals.start.type` onto standalone `app.start` children, including user spans under `app.start.extended` ([#6631](https://github.com/getsentry/sentry-react-native/pull/6631))
+- `featureFlagsIntegration` now forwards flag evaluations to the native SDKs, so flags are attached to native crashes too ([#6613](https://github.com/getsentry/sentry-react-native/pull/6613))
+
+### Fixes
+
+- Prevent silently dropped logs and spans on iOS with React Native >= 0.86 caused by an unreliable `performance.timeOrigin` ([#6654](https://github.com/getsentry/sentry-react-native/pull/6654))
+- Fix Metro bundler crash on Expo static/EAS Update exports ([#6652](https://github.com/getsentry/sentry-react-native/pull/6652))
+- No longer logs `NSNull cannot be converted` warnings on iOS with the New Architecture when clearing a scope context ([#6651](https://github.com/getsentry/sentry-react-native/pull/6651))
+- `time_to_initial_display`/`time_to_full_display` now measure the actual screen render for apps whose first navigation happens well after app start ([#6626](https://github.com/getsentry/sentry-react-native/pull/6626))
+
+### Internal
+
+- Resolve Metro from the app's project root when generating source maps ([#6625](https://github.com/getsentry/sentry-react-native/pull/6625))
+
+### Dependencies
+
+- Bump Android SDK from v8.53.0 to v8.55.0 ([#6624](https://github.com/getsentry/sentry-react-native/pull/6624), [#6658](https://github.com/getsentry/sentry-react-native/pull/6658))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8550)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.53.0...8.55.0)
+- Bump Cocoa SDK from v9.24.0 to v9.26.1 ([#6623](https://github.com/getsentry/sentry-react-native/pull/6623))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9261)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.24.0...9.26.1)
+- Bump CLI from v3.6.2 to v3.7.0 ([#6632](https://github.com/getsentry/sentry-react-native/pull/6632))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#370)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.6.2...3.7.0)
+- Bump JavaScript SDK from v10.71.0 to v10.73.0 ([#6634](https://github.com/getsentry/sentry-react-native/pull/6634), [#6642](https://github.com/getsentry/sentry-react-native/pull/6642))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10730)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.71.0...10.73.0)
+
+## 8.24.0
+
+### Features
+
+- Add `enableNdkAppHangTracking` and `ndkAppHangTimeoutIntervalMillis` options to enable Android NDK app hang tracking ([#6548](https://github.com/getsentry/sentry-react-native/pull/6548))
+
+### Fixes
+
+- Warn when replay sample rates are set but the Replay integration is missing ([#6612](https://github.com/getsentry/sentry-react-native/pull/6612))
+- Fix time to display spans causing transactions to be dropped by Relay ([#6608](https://github.com/getsentry/sentry-react-native/pull/6608))
+- Fix Expo iOS build failing when the project path contains spaces ([#6604](https://github.com/getsentry/sentry-react-native/pull/6604))
+- Fix Android fragment memory leak in `RNSentryReactFragmentLifecycleTracer` ([#6599](https://github.com/getsentry/sentry-react-native/pull/6599))
+- Ship a named navigation transaction when re-navigating to the focused route with new params, instead of an unnamed "Route Change" ([#6606](https://github.com/getsentry/sentry-react-native/pull/6606))
+
+### Dependencies
+
+- Bump Android SDK from v8.52.0 to v8.53.0 ([#6586](https://github.com/getsentry/sentry-react-native/pull/6586))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8530)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.52.0...8.53.0)
+- Bump JavaScript SDK from v10.69.0 to v10.71.0 ([#6580](https://github.com/getsentry/sentry-react-native/pull/6580), [#6610](https://github.com/getsentry/sentry-react-native/pull/6610))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10710)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.69.0...10.71.0)
+
 ## 8.23.0
 
 ### Changes

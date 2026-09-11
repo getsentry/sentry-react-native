@@ -1,5 +1,7 @@
 # packages/core — TypeScript/JavaScript SDK
 
+> **Depth lives in the skills.** The `code-guidelines` and `test-guidelines` skills (`.agents/skills/`) hold the authoritative, current guidance on code style, API/integration design, the bridge, and tests — load them before non-trivial work. This file covers the package's build/test commands, quick-reference conventions, and the **TurboModule subsystem**, which is documented nowhere else. Where a convention here overlaps a skill, the skill wins.
+
 ## Build & Test
 
 ```bash
@@ -95,14 +97,18 @@ describe('MyComponent', () => {
 
 ## Common Patterns
 
+> Diagnostics use **`debug`** from `@sentry/core`, not `logger` — `logger` is the Logs API and emits log *events* (and recurses in the bridge hot path). See *TurboModule Instrumentation* below.
+
 ### Error Handling
 
 ```typescript
+import { debug } from '@sentry/core';
+
 try {
   const result = await riskyOperation();
   return result;
 } catch (error) {
-  logger.error('Operation failed', error);
+  debug.error('Operation failed', error);
   // Don't throw - log and return fallback
   return fallbackValue;
 }
@@ -117,14 +123,14 @@ const { RNSentry } = NativeModules;
 
 export async function nativeOperation(param: string): Promise<boolean> {
   if (!RNSentry) {
-    logger.warn('Native module not available');
+    debug.warn('Native module not available');
     return false;
   }
 
   try {
     return await RNSentry.nativeOperation(param);
   } catch (error) {
-    logger.error('Native operation failed', error);
+    debug.error('Native operation failed', error);
     return false;
   }
 }

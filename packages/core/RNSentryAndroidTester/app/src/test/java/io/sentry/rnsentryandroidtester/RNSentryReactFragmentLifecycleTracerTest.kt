@@ -5,10 +5,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.uimanager.events.EventDispatcherListener
 import com.swmansion.rnscreens.ScreenStackFragment
+import com.swmansion.rnscreens.events.ScreenAppearEvent
 import io.sentry.ILogger
 import io.sentry.android.core.BuildInfoProvider
+import io.sentry.android.core.internal.util.FirstDrawDoneListener
 import io.sentry.react.RNSentryReactFragmentLifecycleTracer
 import org.junit.After
 import org.junit.Test
@@ -18,7 +22,9 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.MockedStatic
 import org.mockito.Mockito.mockStatic
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -39,6 +45,63 @@ class RNSentryReactFragmentLifecycleTracerTest {
 
         callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithReactContext())
         verify(mockEventDispatcher, times(1)).addListener(any())
+    }
+
+    @Test
+    fun tracerListensForFirstDrawOnScreenAppearEvent() {
+        val mockEventDispatcher = mock<EventDispatcher>()
+        mockUIManager(mockEventDispatcher)
+
+        mockStatic(FirstDrawDoneListener::class.java).use { firstDrawDoneListener ->
+            callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithReactContext())
+
+            dispatchEventNamed("topAppear", mockEventDispatcher)
+
+            firstDrawDoneListener.verify {
+                FirstDrawDoneListener.registerForNextDraw(
+                    any(View::class.java),
+                    any(Runnable::class.java),
+                    any(BuildInfoProvider::class.java),
+                )
+            }
+            verify(mockEventDispatcher, times(1)).removeListener(any())
+        }
+    }
+
+    @Test
+    fun tracerDoesNotListenForFirstDrawOnOtherEvents() {
+        val mockEventDispatcher = mock<EventDispatcher>()
+        mockUIManager(mockEventDispatcher)
+
+        mockStatic(FirstDrawDoneListener::class.java).use { firstDrawDoneListener ->
+            callOnFragmentViewCreated(mock<ScreenStackFragment>(), mockScreenViewWithReactContext())
+
+            dispatchEvent(ScreenAppearEvent("topWillAppear"), mockEventDispatcher)
+
+            firstDrawDoneListener.verify({
+                FirstDrawDoneListener.registerForNextDraw(
+                    any(View::class.java),
+                    any(Runnable::class.java),
+                    any(BuildInfoProvider::class.java),
+                )
+            }, never())
+            verify(mockEventDispatcher, never()).removeListener(any())
+        }
+    }
+
+    @Test
+    fun tracerRemovesListenerWhenFragmentViewDestroyed() {
+        val mockEventDispatcher = mock<EventDispatcher>()
+        val fragment = mock<ScreenStackFragment>()
+
+        val tracer = createSutWith()
+        mockUIManager(mockEventDispatcher)
+
+        callOnFragmentViewCreated(fragment, mockScreenViewWithReactContext(), tracer)
+        verify(mockEventDispatcher, times(1)).addListener(any())
+
+        callOnFragmentViewDestroyed(fragment, tracer)
+        verify(mockEventDispatcher, times(1)).removeListener(any())
     }
 
     @Test
@@ -87,13 +150,40 @@ class RNSentryReactFragmentLifecycleTracerTest {
     private fun callOnFragmentViewCreated(
         mockFragment: Fragment,
         mockView: View,
+        tracer: RNSentryReactFragmentLifecycleTracer = createSutWith(),
     ) {
-        createSutWith().onFragmentViewCreated(
+        tracer.onFragmentViewCreated(
             mock(),
             mockFragment,
             mockView,
             null,
         )
+    }
+
+    private fun callOnFragmentViewDestroyed(
+        mockFragment: Fragment,
+        tracer: RNSentryReactFragmentLifecycleTracer = createSutWith(),
+    ) {
+        tracer.onFragmentViewDestroyed(mock(), mockFragment)
+    }
+
+    private fun dispatchEventNamed(
+        eventName: String,
+        mockEventDispatcher: EventDispatcher,
+    ) = dispatchEvent(
+        mock<Event<*>> {
+            whenever(it.eventName).thenReturn(eventName)
+        },
+        mockEventDispatcher,
+    )
+
+    private fun dispatchEvent(
+        event: Event<*>,
+        mockEventDispatcher: EventDispatcher,
+    ) {
+        val listener = argumentCaptor<EventDispatcherListener>()
+        verify(mockEventDispatcher, times(1)).addListener(listener.capture())
+        listener.firstValue.onEventDispatch(event)
     }
 
     private fun createSutWith(): RNSentryReactFragmentLifecycleTracer {

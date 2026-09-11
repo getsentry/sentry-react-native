@@ -89,13 +89,7 @@ export {
   withProfiler,
 } from '@sentry/react';
 
-export {
-  logger,
-  consoleLoggingIntegration,
-  featureFlagsIntegration,
-  type FeatureFlagsIntegration,
-  metrics,
-} from '@sentry/browser';
+export { logger, consoleLoggingIntegration, type FeatureFlagsIntegration, metrics } from '@sentry/browser';
 
 export * from './integrations/exports';
 

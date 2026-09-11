@@ -33,8 +33,10 @@ export interface Spec extends TurboModule {
   initNativeSdk(options: UnsafeObject): Promise<boolean>;
   setUser(defaultUserKeys: UnsafeObject | null, otherUserKeys: UnsafeObject | null): void;
   setContext(key: string, value: UnsafeObject | null): void;
+  removeContext(key: string): void;
   setExtra(key: string, value: string): void;
   setTag(key: string, value: string): void;
+  addFeatureFlag(name: string, value: boolean): void;
   setAttribute(key: string, value: string): void;
   setAttributes(attributes: UnsafeObject): void;
   removeAttribute(key: string): void;
@@ -57,6 +59,7 @@ export interface Spec extends TurboModule {
   getDataFromUri(uri: string): Promise<number[]>;
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;
   setActiveSpanId(spanId: string): boolean;
+  setCurrentScopePropagationContext(ctx: UnsafeObject): boolean;
   encodeToBase64(data: number[]): Promise<string | undefined | null>;
   enableShakeDetection(): void;
   disableShakeDetection(): void;

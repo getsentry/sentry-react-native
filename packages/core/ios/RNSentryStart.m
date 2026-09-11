@@ -3,6 +3,16 @@
 #import "RNSentryReplay.h"
 #import "RNSentryVersion.h"
 
+// `postDidBecomeActiveNotification` below references `UIApplication`/`NSApplication`
+// directly. On iOS/tvOS these types were pulled in transitively, but visionOS's
+// stricter module compilation requires the owning framework to be imported before
+// use. Import it explicitly, mirroring the platform guard at the usage site.
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+#    import <UIKit/UIKit.h>
+#else
+#    import <AppKit/AppKit.h>
+#endif
+
 #if __has_include(<RNSentry/RNSentry-Swift.h>)
 #    import <RNSentry/RNSentry-Swift.h>
 #else
