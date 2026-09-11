@@ -83,6 +83,20 @@ switch (fetch) {
     });
     break;
   }
+  case 'noReplay': {
+    // Inverse of 'replay': assert the event carries NO replay association, i.e.
+    // recording was not active when it was captured (e.g. after stop()). Used to
+    // prove a runtime control actually halted recording, not just that it did
+    // not crash.
+    const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
+    const rawReplayId = (event.contexts && event.contexts.replay && event.contexts.replay.replay_id)
+      || (event._dsc && event._dsc.replay_id);
+    if (rawReplayId) {
+      throw new Error(`Expected no replay on the event, but found replay_id ${rawReplayId}`);
+    }
+    setOutput({ noReplay: true });
+    break;
+  }
   default:
     throw new Error(`Unknown "fetch" value: '${fetch}'`);
 }
