@@ -1,4 +1,4 @@
-import type { Integration } from '@sentry/core';
+import type { Integration, ReplayRecordingMode } from '@sentry/core';
 
 // Based on Replay Class https://github.com/getsentry/sentry-javascript/blob/e00cb04f1bbf494067cd8475d392266ba296987a/packages/replay-internal/src/integration.ts#L50
 
@@ -60,4 +60,14 @@ export interface Replay extends Integration {
    * active.
    */
   getReplayId(): string | undefined | null;
+
+  /**
+   * Get the current recording mode (`'session'` or `'buffer'`), or `undefined`
+   * if no replay is active.
+   *
+   * @note Web only. The browser Session Replay integration exposes this; the
+   * mobile integrations do not implement it, so it is optional on the shared
+   * interface.
+   */
+  getRecordingMode?(): ReplayRecordingMode | undefined;
 }

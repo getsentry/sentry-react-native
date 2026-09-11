@@ -334,6 +334,14 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     cachedReplayId = replayId;
   }
 
+  // Invalidate the cache so the next `getReplayId()` re-reads the native replay
+  // id. The runtime controls (`start`/`startBuffering`/`stop`/`flush`) change the
+  // native replay identity, so a previously cached id would otherwise go stale and
+  // link traces/logs/metrics to an inactive or previous replay.
+  function invalidateCachedReplayId(): void {
+    cachedReplayId = null;
+  }
+
   function getCachedReplayId(): string | null {
     if (cachedReplayId !== null) {
       return cachedReplayId;
@@ -561,12 +569,13 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     setup,
     options: options,
     getReplayId: getReplayId,
-    start: () => fireReplayControl(NATIVE.startReplay(), 'start'),
-    startBuffering: () => fireReplayControl(NATIVE.startReplayBuffering(), 'startBuffering'),
-    stop: () => NATIVE.stopReplay(),
+    start: () => fireReplayControl(NATIVE.startReplay().then(invalidateCachedReplayId), 'start'),
+    startBuffering: () =>
+      fireReplayControl(NATIVE.startReplayBuffering().then(invalidateCachedReplayId), 'startBuffering'),
+    stop: () => NATIVE.stopReplay().then(invalidateCachedReplayId),
     pause: () => fireReplayControl(NATIVE.pauseReplay(), 'pause'),
     resume: () => fireReplayControl(NATIVE.resumeReplay(), 'resume'),
-    flush: () => NATIVE.flushReplay(),
+    flush: () => NATIVE.flushReplay().then(invalidateCachedReplayId),
   };
 };
 
