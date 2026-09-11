@@ -178,6 +178,112 @@ describe('SentryBabelTransformer', () => {
     );
   });
 
+  test('transform adds the capture assertions plugin with its options', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      captureAssertions: { pragmas: ['invariant', 'assert'] },
+    });
+
+    createSentryBabelTransformer().transform?.(createMinimalMockedTransformOptions());
+
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          [expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), { pragmas: ['invariant', 'assert'] }],
+        ]),
+      }),
+    );
+  });
+
+  test('transform does not add the capture assertions plugin for node_modules by default', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({ captureAssertions: {} });
+
+    createSentryBabelTransformer().transform?.({
+      ...createMinimalMockedTransformOptions(),
+      filename: '/project/node_modules/dep/index.js',
+    });
+
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
+    const calledArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
+    expect(calledArgs.plugins).not.toEqual(
+      expect.arrayContaining([[expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), expect.anything()]]),
+    );
+  });
+
+  test('transform adds the capture assertions plugin for node_modules when includeNodeModules is set', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      captureAssertions: { includeNodeModules: true },
+    });
+
+    createSentryBabelTransformer().transform?.({
+      ...createMinimalMockedTransformOptions(),
+      filename: '/project/node_modules/dep/index.js',
+    });
+
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledTimes(1);
+    expect(MockDefaultBabelTransformer.transform).toHaveBeenCalledWith(
+      expect.objectContaining({
+        plugins: expect.arrayContaining([
+          [expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), { includeNodeModules: true }],
+        ]),
+      }),
+    );
+  });
+
+  test('transform honors an includeNodeModules array allowlist for node_modules', () => {
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      captureAssertions: { includeNodeModules: ['react-native/Libraries/Utilities'] },
+    });
+
+    // A non-allowlisted dependency is not instrumented.
+    createSentryBabelTransformer().transform?.({
+      ...createMinimalMockedTransformOptions(),
+      filename: '/project/node_modules/other-dep/index.js',
+    });
+    const excludedArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
+    expect(excludedArgs.plugins).not.toEqual(
+      expect.arrayContaining([[expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }), expect.anything()]]),
+    );
+
+    // An allowlisted dependency path is instrumented.
+    createSentryBabelTransformer().transform?.({
+      ...createMinimalMockedTransformOptions(),
+      filename: '/project/node_modules/react-native/Libraries/Utilities/Dimensions.js',
+    });
+    const includedArgs = MockDefaultBabelTransformer.transform.mock.calls[1][0] as BabelTransformerArgs;
+    expect(includedArgs.plugins).toEqual(
+      expect.arrayContaining([
+        [
+          expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }),
+          { includeNodeModules: ['react-native/Libraries/Utilities'] },
+        ],
+      ]),
+    );
+  });
+
+  test('transform honors an includeNodeModules array allowlist on Windows-style paths', () => {
+    // Babel/Metro pass backslash filenames on Windows; the allowlist fragments
+    // are written with forward slashes. The gate must normalize before matching,
+    // or an allowlisted dependency is silently skipped on Windows.
+    process.env[SENTRY_BABEL_TRANSFORMER_OPTIONS] = JSON.stringify({
+      captureAssertions: { includeNodeModules: ['react-native/Libraries/Utilities'] },
+    });
+
+    createSentryBabelTransformer().transform?.({
+      ...createMinimalMockedTransformOptions(),
+      filename: 'C:\\project\\node_modules\\react-native\\Libraries\\Utilities\\Dimensions.js',
+    });
+    const includedArgs = MockDefaultBabelTransformer.transform.mock.calls[0][0] as BabelTransformerArgs;
+    expect(includedArgs.plugins).toEqual(
+      expect.arrayContaining([
+        [
+          expect.objectContaining({ name: 'sentryAssertionBabelPlugin' }),
+          { includeNodeModules: ['react-native/Libraries/Utilities'] },
+        ],
+      ]),
+    );
+  });
+
   test.each([
     [
       {

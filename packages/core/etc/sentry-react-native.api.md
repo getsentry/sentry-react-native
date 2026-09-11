@@ -149,6 +149,19 @@ export const appStartIntegration: (input?: {
     standalone?: boolean;
 }) => AppStartIntegration;
 
+// @public (undocumented)
+export interface AssertionViolationOptions {
+    condition?: string;
+    error?: Error;
+    message?: string;
+    messageArgs?: unknown[];
+    once?: boolean;
+    pragma?: string;
+    rethrow?: boolean;
+    siteId?: string;
+    values?: Record<string, unknown>;
+}
+
 export { Breadcrumb }
 
 // Warning: (ae-forgotten-export) The symbol "BreadcrumbsOptions" needs to be exported by the entry point index.d.ts
@@ -167,6 +180,9 @@ export { browserLinkedErrorsIntegration }
 //
 // @public
 export const browserReplayIntegration: (options?: ReplayConfiguration) => Replay;
+
+// @public
+export function captureAssertionViolation(options?: AssertionViolationOptions): string;
 
 export { captureEvent }
 
@@ -220,6 +236,9 @@ export { dedupeIntegration }
 export const deeplinkIntegration: (...args: any[]) => Integration & {
     name: string;
 };
+
+// @public
+export const DEFAULT_ASSERTION_MECHANISM = "assertion";
 
 // @public
 export const deviceContextIntegration: () => Integration;

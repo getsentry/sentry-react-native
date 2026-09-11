@@ -198,6 +198,28 @@ describe('ReactNativeErrorHandlers', () => {
       expect(error.stack).toBe(originalStack);
     });
 
+    test('skips reporting an error already captured by Sentry and re-thrown', async () => {
+      // e.g. a "loud invariant" that reports a handled event before re-throwing,
+      // or user code doing `captureException(e); throw e;`. The re-thrown error
+      // carries `__sentry_captured__`, so the handler must not report it again.
+      const defaultHandler = jest.fn();
+      (RN_GLOBAL_OBJ.ErrorUtils!.getGlobalHandler as jest.Mock).mockReturnValue(defaultHandler);
+
+      const integration = reactNativeErrorHandlersIntegration();
+      integration.setupOnce!();
+
+      const error = new Error('Loud invariant') as Error & { __sentry_captured__?: boolean };
+      error.__sentry_captured__ = true;
+
+      await errorHandlerCallback!(error, true);
+      await client.flush();
+
+      // No second event is produced for the already-captured error...
+      expect(client.event).toBeUndefined();
+      // ...but the platform default handler still runs (redbox in dev, teardown in prod).
+      expect(defaultHandler).toHaveBeenCalledWith(error, true);
+    });
+
     describe('GlobalErrorBoundary integration', () => {
       let publishSpy: jest.SpyInstance;
       let hasSubscribersSpy: jest.SpyInstance;

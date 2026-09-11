@@ -2,8 +2,10 @@ import componentAnnotatePlugin from '@sentry/bundler-plugins/babel-plugin';
 import { debug } from '@sentry/core';
 import * as process from 'process';
 
+import type { SentryAssertionBabelPluginOptions } from './sentryAssertionBabelPlugin';
 import type { BabelTransformer, BabelTransformerArgs } from './vendor/metro/metroBabelTransformer';
 
+import sentryAssertionBabelPlugin from './sentryAssertionBabelPlugin';
 import sentryExpoRouterAutoWrapBabelPlugin from './sentryExpoRouterAutoWrapBabelPlugin';
 
 export type SentryBabelTransformerOptions = {
@@ -13,6 +15,7 @@ export type SentryBabelTransformerOptions = {
     textComponentNames?: string[];
   };
   autoWrapExpoRouterErrorBoundary?: boolean;
+  captureAssertions?: SentryAssertionBabelPluginOptions;
 };
 
 export const SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH = 'SENTRY_DEFAULT_BABEL_TRANSFORMER_PATH';
@@ -106,6 +109,9 @@ export function createSentryBabelTransformer(): BabelTransformer {
     if (options?.autoWrapExpoRouterErrorBoundary) {
       addSentryExpoRouterAutoWrapPlugin(transformerArgs);
     }
+    if (options?.captureAssertions !== undefined) {
+      addSentryCaptureAssertionsPlugin(transformerArgs, options.captureAssertions);
+    }
 
     return defaultTransformer.transform(...args);
   };
@@ -141,4 +147,32 @@ function addSentryExpoRouterAutoWrapPlugin(args: BabelTransformerArgs | undefine
     return undefined;
   }
   args.plugins.push([sentryExpoRouterAutoWrapBabelPlugin, {}]);
+}
+
+function addSentryCaptureAssertionsPlugin(
+  args: BabelTransformerArgs | undefined,
+  options: NonNullable<SentryBabelTransformerOptions['captureAssertions']>,
+): void {
+  if (!args || typeof args.filename !== 'string' || !Array.isArray(args.plugins)) {
+    return undefined;
+  }
+  // The plugin applies its own `includeNodeModules` and SDK-self-exclusion
+  // guards; this early return just avoids pushing the plugin for dependency
+  // files it would skip anyway. Mirror the plugin's `boolean | string[]`
+  // semantics: `false`/absent skips all node_modules, an array allowlists by
+  // path substring, `true` instruments all.
+  const inc = options.includeNodeModules;
+  // Normalize separators so the allowlist (written with forward slashes) matches
+  // on Windows, where Babel/Metro pass backslash paths — mirroring the plugin's
+  // own `toPosixPath` normalization in `isNodeModulesExcluded`.
+  const normalizedFilename = args.filename.replace(/\\/g, '/');
+  if (normalizedFilename.includes('node_modules')) {
+    if (!inc) {
+      return undefined;
+    }
+    if (Array.isArray(inc) && !inc.some(fragment => normalizedFilename.includes(fragment))) {
+      return undefined;
+    }
+  }
+  args.plugins.push([sentryAssertionBabelPlugin, options]);
 }
