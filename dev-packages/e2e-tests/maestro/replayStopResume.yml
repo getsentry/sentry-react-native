@@ -1,0 +1,33 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+# Exercises the pause / resume / stop Session Replay runtime controls end-to-end,
+# building on the start() coverage in manualReplay.yml. Buffer-mode replay is off
+# (replaysOnErrorSampleRate: 0) and there is no session sampling, so a replay can
+# only exist while a manually-started session is actively recording — which lets
+# the assertions isolate what each control did.
+- runFlow:
+    file: utils/launchTestAppClear.yml
+    env:
+      replaysOnErrorSampleRate: 0
+
+# pause() then resume() must not crash the app and must leave recording active:
+# after resuming, a captured error still carries a replay.
+- tapOn:
+    id: 'startReplay'
+- tapOn:
+    id: 'pauseReplay'
+- tapOn:
+    id: 'resumeReplay'
+- runFlow: utils/primeReplayBuffer.yml
+- tapOn: 'Capture Exception'
+- runFlow: utils/assertEventIdVisible.yml
+- runFlow: utils/assertReplay.yml
+
+# stop() must halt recording: a subsequent error carries no replay at all.
+- tapOn:
+    id: 'stopReplay'
+- tapOn: 'Clear Event Id'
+- runFlow: utils/primeReplayBuffer.yml
+- tapOn: 'Capture Exception'
+- runFlow: utils/assertNoReplay.yml

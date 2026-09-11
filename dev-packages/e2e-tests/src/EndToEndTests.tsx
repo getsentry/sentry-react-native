@@ -94,6 +94,19 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
       <Text testID='startReplay' onPress={() => Sentry.getReplay()?.start()}>
         Start Replay
       </Text>
+      {/* The replayStopResume e2e flow drives pause/resume/stop through the
+          same runtime controls. pause() + resume() must not crash and must
+          leave recording active; stop() must halt it (a later error then
+          carries no replay). */}
+      <Text testID='pauseReplay' onPress={() => Sentry.getReplay()?.pause()}>
+        Pause Replay
+      </Text>
+      <Text testID='resumeReplay' onPress={() => Sentry.getReplay()?.resume()}>
+        Resume Replay
+      </Text>
+      <Text testID='stopReplay' onPress={() => Sentry.getReplay()?.stop()}>
+        Stop Replay
+      </Text>
       {testCases.map((testCase) => (
         <Text key={testCase.id} onPress={testCase.action}>
           {testCase.name}
