@@ -5,8 +5,8 @@ import * as SentryCore from '@sentry/core';
 
 import type { Replay } from '../../src/js/replay/replayInterface';
 
-import * as environment from '../../src/js/utils/environment';
 import { getReplay } from '../../src/js/replay/getReplay';
+import * as environment from '../../src/js/utils/environment';
 
 describe('getReplay', () => {
   afterEach(() => {
