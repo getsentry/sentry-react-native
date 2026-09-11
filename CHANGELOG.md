@@ -10,7 +10,7 @@
 
 ### Features
 
-- Add Session Replay runtime controls to start, stop, and manage recording manually ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Add Session Replay runtime controls to start, stop, and manage recording manually ([#6703](https://github.com/getsentry/sentry-react-native/pull/6703))
   - Use `Sentry.getReplay()` to access the active replay and control it at runtime with the same API on iOS, Android, and Web:
 
     ```js
