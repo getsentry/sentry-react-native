@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+# Exercises the startBuffering() + flush() runtime controls end-to-end WITHOUT
+# capturing an error event. Launches with buffer-mode replay OFF
+# (replaysOnErrorSampleRate: 0) and no session sampling, so nothing records
+# automatically. A manual startBuffering() records a buffer regardless of sample
+# rate; flush() then converts that buffer to a session replay and uploads it —
+# no error required. The app surfaces getReplay().getReplayId(), so the replay is
+# asserted by querying it directly, not by finding a replay_id on a sent error.
+- runFlow:
+    file: utils/launchTestAppClear.yml
+    env:
+      replaysOnErrorSampleRate: 0
+- tapOn:
+    id: 'startBufferingReplay'
+# Churn the view hierarchy so the buffer records frames before it is flushed
+# (same rationale as buffer-mode priming for the error path).
+- runFlow: utils/primeReplayBuffer.yml
+- tapOn:
+    id: 'flushReplay'
+- runFlow: utils/assertReplayById.yml

@@ -83,6 +83,22 @@ switch (fetch) {
     });
     break;
   }
+  case 'replayById': {
+    // Assert a replay directly by its id, without going through an event. Used
+    // by the flush path (startBuffering() + flush()), where the app surfaces
+    // getReplay().getReplayId() itself, so no error event carries a replay_id.
+    const normalizedReplayId = replayId.replace(/\-/g, '');
+    const replay = json(fetchFromSentry(`${baseUrl}/replays/${normalizedReplayId}/`));
+    const segment = fetchFromSentry(`${baseUrl}/replays/${normalizedReplayId}/videos/0/`);
+
+    setOutput({
+      replayId: replay.data.id,
+      replayDuration: replay.data.duration,
+      replaySegments: replay.data.count_segments,
+      replayCodec: segment.slice(4, 12)
+    });
+    break;
+  }
   case 'noReplay': {
     // Inverse of 'replay': assert the event carries NO replay association, i.e.
     // recording was not active when it was captured (e.g. after stop()). Used to

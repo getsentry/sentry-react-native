@@ -1,0 +1,30 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+# Like assertReplay.yml, but keyed on a replay id rendered directly by the app
+# (from getReplay().getReplayId()) instead of a replay_id discovered on a sent
+# error event. This is what lets the flush path be verified without ever
+# capturing an error: the app hands us the id, we query the replay itself.
+- extendedWaitUntil:
+    visible:
+      id: "replayId"
+    timeout: 60_000 # 60 seconds
+
+- copyTextFrom:
+    id: "replayId"
+- assertTrue: ${maestro.copiedText}
+
+- runScript:
+    file: sentryApi.js
+    env:
+      fetch: replayById
+      replayId: ${maestro.copiedText}
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+- assertTrue: ${output.replayId}
+- assertTrue: ${output.replayDuration}
+- assertTrue: ${output.replaySegments}
+# Assert a valid MP4 container was produced (the "ftyp" box at byte offset 4)
+# rather than a platform-specific major brand: iOS (AVAssetWriter) emits "mp42"
+# while Android (MediaMuxer) may emit a different brand such as "isom".
+- assertTrue: ${output.replayCodec.startsWith("ftyp")}

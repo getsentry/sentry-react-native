@@ -14,6 +14,10 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
   // flow to mutate the view hierarchy (side-effect free, no events sent) so the
   // buffer records frames before the exception is captured.
   const [replayPingCount, setReplayPingCount] = React.useState(0);
+  // Surfaced by the flush path (startBuffering() + flush()) so the
+  // bufferedReplayFlush e2e flow can query the replay directly by id, instead
+  // of discovering it through a replay_id attached to a sent error event.
+  const [replayId, setReplayId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const client: Sentry.ReactNativeClient | undefined = Sentry.getClient();
@@ -84,6 +88,7 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
       <Text onPress={() => setEventId(null)}>
         Clear Event Id
       </Text>
+      {replayId ? <Text testID='replayId'>{replayId}</Text> : <Text>No replay ID</Text>}
       <Text testID='replayPing' onPress={() => setReplayPingCount((count) => count + 1)}>
         Replay Ping {replayPingCount}
       </Text>
@@ -106,6 +111,24 @@ const EndToEndTestsScreen = (): React.JSX.Element => {
       </Text>
       <Text testID='stopReplay' onPress={() => Sentry.getReplay()?.stop()}>
         Stop Replay
+      </Text>
+      {/* The bufferedReplayFlush e2e flow taps these to exercise the no-error
+          path: startBuffering() records a buffer regardless of sample rate, and
+          flush() converts it to a session replay and uploads it immediately,
+          without an error event ever being captured. The flush handler then
+          renders getReplay().getReplayId() so the flow can query that replay
+          directly, instead of discovering it through a sent error. */}
+      <Text testID='startBufferingReplay' onPress={() => Sentry.getReplay()?.startBuffering()}>
+        Start Buffering Replay
+      </Text>
+      <Text
+        testID='flushReplay'
+        onPress={async () => {
+          const replay = Sentry.getReplay();
+          await replay?.flush();
+          setReplayId(replay?.getReplayId() ?? null);
+        }}>
+        Flush Replay
       </Text>
       {testCases.map((testCase) => (
         <Text key={testCase.id} onPress={testCase.action}>
