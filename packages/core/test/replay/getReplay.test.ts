@@ -1,10 +1,11 @@
 import type { Client } from '@sentry/core';
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as SentryCore from '@sentry/core';
 
 import type { Replay } from '../../src/js/replay/replayInterface';
 
+import * as environment from '../../src/js/utils/environment';
 import { getReplay } from '../../src/js/replay/getReplay';
 
 describe('getReplay', () => {
@@ -50,5 +51,30 @@ describe('getReplay', () => {
   it('returns undefined when no replay integration is installed', () => {
     jest.spyOn(SentryCore, 'getClient').mockReturnValue(mockClient({}) as unknown as Client);
     expect(getReplay()).toBeUndefined();
+  });
+
+  describe('on Web (React Native Web)', () => {
+    beforeEach(() => {
+      // On Web the mobile integration is only a no-op stub, so the browser one
+      // must be preferred even when both are installed (universal apps).
+      jest.spyOn(environment, 'notMobileOs').mockReturnValue(true);
+    });
+
+    it('prefers the browser replay integration over the mobile no-op when both are installed', () => {
+      const mobile = asReplay('MobileReplay');
+      const browser = asReplay('Replay');
+      jest
+        .spyOn(SentryCore, 'getClient')
+        .mockReturnValue(mockClient({ MobileReplay: mobile, Replay: browser }) as unknown as Client);
+
+      expect(getReplay()).toBe(browser);
+    });
+
+    it('falls back to the mobile integration when the browser one is absent', () => {
+      const mobile = asReplay('MobileReplay');
+      jest.spyOn(SentryCore, 'getClient').mockReturnValue(mockClient({ MobileReplay: mobile }) as unknown as Client);
+
+      expect(getReplay()).toBe(mobile);
+    });
   });
 });
