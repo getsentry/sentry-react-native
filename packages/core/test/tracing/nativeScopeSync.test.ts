@@ -1,5 +1,3 @@
-import type { Client } from '@sentry/core';
-
 import { getCurrentScope, SentryNonRecordingSpan, startInactiveSpan } from '@sentry/core';
 
 jest.mock('../../src/js/wrapper', () => ({
@@ -18,24 +16,23 @@ jest.mock('react-native', () => ({
   NativeModules: { RNSentry: {} },
 }));
 
-import { syncPropagationContextToNative } from '../../src/js/tracing/span';
+import { startIdleNavigationSpan, syncPropagationContextToNative } from '../../src/js/tracing/span';
 import { NATIVE } from '../../src/js/wrapper';
 import { setupTestClient } from '../mocks/client';
 
 const mockSetPropagationContext = NATIVE.setCurrentScopePropagationContext as jest.Mock;
 
 describe('syncPropagationContextToNative', () => {
-  let client: Client;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    client = setupTestClient({ tracesSampleRate: 1.0 });
-    syncPropagationContextToNative(client);
+    setupTestClient({ tracesSampleRate: 1.0 });
   });
 
-  it('calls NATIVE.setCurrentScopePropagationContext when a root span starts', () => {
+  it('calls NATIVE.setCurrentScopePropagationContext with the span traceId and spanId', () => {
     const span = startInactiveSpan({ name: 'root', forceTransaction: true });
     const ctx = span.spanContext();
+
+    syncPropagationContextToNative(span);
 
     expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
     expect(mockSetPropagationContext).toHaveBeenCalledWith(
@@ -48,21 +45,11 @@ describe('syncPropagationContextToNative', () => {
     span.end();
   });
 
-  it('does not call NATIVE.setCurrentScopePropagationContext for child spans', () => {
-    const root = startInactiveSpan({ name: 'root', forceTransaction: true });
-    mockSetPropagationContext.mockClear();
-
-    const child = startInactiveSpan({ name: 'child', parentSpan: root });
-    expect(mockSetPropagationContext).not.toHaveBeenCalled();
-
-    child.end();
-    root.end();
-  });
-
-  it('calls NATIVE.setCurrentScopePropagationContext for SentryNonRecordingSpan to prevent stale native context', () => {
+  it('calls NATIVE.setCurrentScopePropagationContext for a SentryNonRecordingSpan', () => {
     const nonRecording = new SentryNonRecordingSpan();
     const ctx = nonRecording.spanContext();
-    client.emit('spanStart', nonRecording);
+
+    syncPropagationContextToNative(nonRecording);
 
     expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
     expect(mockSetPropagationContext).toHaveBeenCalledWith(
@@ -73,9 +60,11 @@ describe('syncPropagationContextToNative', () => {
     );
   });
 
-  it('passes sampled and sampleRand from the scope propagation context', () => {
+  it('passes sampled and sampleRand from the current scope propagation context', () => {
     const span = startInactiveSpan({ name: 'root', forceTransaction: true });
     const propagationCtx = getCurrentScope().getPropagationContext();
+
+    syncPropagationContextToNative(span);
 
     expect(mockSetPropagationContext).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -87,15 +76,35 @@ describe('syncPropagationContextToNative', () => {
     span.end();
   });
 
-  it('fires once per root span start', () => {
-    const span1 = startInactiveSpan({ name: 'first', forceTransaction: true });
-    span1.end();
+  it('does not call NATIVE.setCurrentScopePropagationContext just from creating an inactive forceTransaction root span', () => {
+    // Regression test for background roots (app-start, expo-updates) created via
+    // startInactiveSpan({ forceTransaction: true }) - they must not sync to native
+    // on their own; only startIdleSpan calls syncPropagationContextToNative explicitly.
+    const span = startInactiveSpan({ name: 'app-start', forceTransaction: true });
 
-    const span2 = startInactiveSpan({ name: 'second', forceTransaction: true });
-    span2.end();
+    expect(mockSetPropagationContext).not.toHaveBeenCalled();
 
-    expect(mockSetPropagationContext).toHaveBeenCalledTimes(2);
-    expect(mockSetPropagationContext.mock.calls[0][0].spanId).toBe(span1.spanContext().spanId);
-    expect(mockSetPropagationContext.mock.calls[1][0].spanId).toBe(span2.spanContext().spanId);
+    span.end();
+  });
+
+  it('does not overwrite an active navigation trace in native when an app-start-like background root starts', () => {
+    // Regression test: a background root (app-start / expo-updates, both created via
+    // startInactiveSpan({ forceTransaction: true })) used to clobber the native
+    // propagation context of an already-active navigation trace.
+    const navSpan = startIdleNavigationSpan({ name: 'test' });
+    const navCtx = navSpan!.spanContext();
+
+    expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
+    expect(mockSetPropagationContext).toHaveBeenLastCalledWith(
+      expect.objectContaining({ traceId: navCtx.traceId, spanId: navCtx.spanId }),
+    );
+
+    const appStartSpan = startInactiveSpan({ name: 'App Start', forceTransaction: true, op: 'app.start.cold' });
+
+    // The background app-start root must not have pushed its own trace to native.
+    expect(mockSetPropagationContext).toHaveBeenCalledTimes(1);
+
+    appStartSpan.end();
+    navSpan!.end();
   });
 });

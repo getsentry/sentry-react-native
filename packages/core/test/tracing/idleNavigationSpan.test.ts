@@ -62,6 +62,34 @@ describe('startIdleNavigationSpan', () => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  describe('native propagation context sync', () => {
+    it('syncs the native scope with the idle navigation span once it is active', () => {
+      const setCurrentScopePropagationContext = jest
+        .spyOn(NATIVE, 'setCurrentScopePropagationContext')
+        .mockReturnValue(true);
+
+      const navSpan = startIdleNavigationSpan({ name: 'test' });
+      const ctx = navSpan!.spanContext();
+
+      expect(navSpan).toBe(getActiveSpan());
+      expect(setCurrentScopePropagationContext).toHaveBeenCalledWith(
+        expect.objectContaining({ traceId: ctx.traceId, spanId: ctx.spanId }),
+      );
+    });
+
+    it('does not sync the native scope when the app is already in background', () => {
+      mockedAppState.currentState = 'background';
+      const setCurrentScopePropagationContext = jest
+        .spyOn(NATIVE, 'setCurrentScopePropagationContext')
+        .mockReturnValue(true);
+
+      startIdleNavigationSpan({ name: 'test' });
+
+      expect(setCurrentScopePropagationContext).not.toHaveBeenCalled();
+    });
   });
 
   it('Cancels route transaction when app goes to background', async () => {
