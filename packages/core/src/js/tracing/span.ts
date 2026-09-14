@@ -132,6 +132,7 @@ export const startIdleSpan = (
   getCurrentScope().setPropagationContext({ traceId: generateTraceId(), sampleRand: Math.random() });
 
   const span = coreStartIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
+  syncPropagationContextToNative(span);
   cancelInBackground(client, span);
   return span;
 };
@@ -206,27 +207,24 @@ export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
 }
 
 /**
- * Pushes the JS root span's propagation context to the native scope so that
+ * Pushes a root span's propagation context to the native scope so that
  * native HTTP instrumentation (OkHttp on Android, URLSession on iOS) attaches
  * the correct traceId and appears in the same trace as the JS transaction.
  *
- * Fires for every root span so that the native scope is always up to date and
- * doesn't retain a stale traceId from a previous span. Child spans are skipped
- * to avoid bridge spam.
- *
- * Note: `spanStart` fires before idle spans are made active, so an active-span
- * guard here would skip every navigation span. Sync happens for all root spans.
+ * Called directly from `startIdleSpan`, right after the idle span (navigation
+ * or user interaction) becomes the active span on the scope. Background roots
+ * like app-start or expo-updates, which are created with plain
+ * `startInactiveSpan({ forceTransaction: true })` and never go through
+ * `startIdleSpan`, are naturally excluded and so never clobber an in-flight
+ * idle span's native context.
  */
-export function syncPropagationContextToNative(client: Client): void {
-  client.on('spanStart', (span: Span) => {
-    if (!isRootSpan(span)) return;
-    const ctx = span.spanContext();
-    const propagationCtx = getCurrentScope().getPropagationContext();
-    NATIVE.setCurrentScopePropagationContext({
-      traceId: ctx.traceId,
-      spanId: ctx.spanId,
-      sampled: spanIsSampled(span),
-      sampleRand: propagationCtx.sampleRand ?? Math.random(),
-    });
+export function syncPropagationContextToNative(span: Span): void {
+  const ctx = span.spanContext();
+  const propagationCtx = getCurrentScope().getPropagationContext();
+  NATIVE.setCurrentScopePropagationContext({
+    traceId: ctx.traceId,
+    spanId: ctx.spanId,
+    sampled: spanIsSampled(span),
+    sampleRand: propagationCtx.sampleRand ?? Math.random(),
   });
 }
