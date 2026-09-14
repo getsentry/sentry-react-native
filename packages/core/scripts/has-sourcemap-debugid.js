@@ -18,7 +18,7 @@ try {
   sourceMap = JSON.parse(fs.readFileSync(sourceMapPath, 'utf8'));
 } catch (e) {
   console.log(`Sourcemap at ${sourceMapPath} was unable to be read.`, e);
-  process.exist(1);
+  process.exit(1);
 }
 
 if (typeof sourceMap.debugId === 'string' && sourceMap.debugId.length > 0) {
@@ -27,5 +27,5 @@ if (typeof sourceMap.debugId === 'string' && sourceMap.debugId.length > 0) {
   console.log(sourceMap.debug_id);
 } else {
   console.log(`${sourceMapPath} does not contain 'debugId' nor 'debug_id'.`);
-  process.exist(1);
+  process.exit(1);
 }
