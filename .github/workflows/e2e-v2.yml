@@ -420,10 +420,6 @@ jobs:
         with:
           version: ${{env.MAESTRO_VERSION}}
 
-      - name: Install iDB Companion
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
-        run: brew tap facebook/fb && brew install facebook/fb/idb-companion
-
       - uses: ./.github/actions/disk-cleanup
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
 
