@@ -102,7 +102,7 @@ class RNSentryTimeToDisplayTest {
         RNSentryTimeToDisplay.rejectSafely(promise, settled, "boom", null, logger)
 
         verify(promise, times(1)).resolve(1.0)
-        verify(promise, never()).reject(any<String>())
+        verify(promise, never()).reject(any<String>(), any<String>())
     }
 
     @Test
@@ -112,7 +112,7 @@ class RNSentryTimeToDisplayTest {
         val settled = AtomicBoolean(false)
         doThrow(RuntimeException("JavaCallback was already settled. Cannot invoke it again"))
             .whenever(promise)
-            .reject(any<String>())
+            .reject(any<String>(), any<String>())
 
         RNSentryTimeToDisplay.rejectSafely(promise, settled, "boom", null, logger)
 
@@ -143,7 +143,7 @@ class RNSentryTimeToDisplayTest {
         shadowOf(Looper.getMainLooper()).idle()
 
         verify(promise, times(1)).resolve(2.0)
-        verify(promise, never()).reject(any<String>())
+        verify(promise, never()).reject(any<String>(), any<String>())
     }
 
     @Test

@@ -124,7 +124,9 @@ public final class RNSentryTimeToDisplay {
       if (cause != null) {
         promise.reject(message, cause);
       } else {
-        promise.reject(message);
+        // Use the coded overload rather than the deprecated reject(String) so JS receives a
+        // specific error code instead of the generic "EUNSPECIFIED".
+        promise.reject("SentryTimeToDisplay", message);
       }
     } catch (Throwable t) { // NOPMD - We don't want to crash the host app
       logger.log(SentryLevel.WARNING, "Failed to reject time to display measurement.", t);
