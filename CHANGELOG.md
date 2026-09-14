@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Prevent a fatal `JavaCallback was already settled` crash from `getNewScreenTimeToDisplay` under rapid navigation on Android ([#6709](https://github.com/getsentry/sentry-react-native/issues/6709))
+- Prevent a fatal `JavaCallback was already settled` crash from `getNewScreenTimeToDisplay` under rapid navigation on Android ([#6722](https://github.com/getsentry/sentry-react-native/pull/6722))
 
 ## 8.26.0
 
