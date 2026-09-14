@@ -781,6 +781,36 @@ describe('Mobile Replay Integration', () => {
 
       expect(integration.getReplayId()).toBe('flushed-replay-id');
     });
+
+    it('stop() invalidates the cached replay id and rejects even when native stopReplay fails', async () => {
+      const error = new Error('native stop boom');
+      (NATIVE.stopReplay as jest.Mock).mockRejectedValue(error as never);
+
+      const integration = mobileReplayIntegration();
+      mockGetCurrentReplayId.mockReturnValue('old-replay-id');
+      expect(integration.getReplayId()).toBe('old-replay-id');
+
+      // The rejection is owned by the caller and must propagate.
+      await expect(integration.stop()).rejects.toThrow(error);
+
+      // The cache must still be invalidated so a stale id is not returned.
+      mockGetCurrentReplayId.mockReturnValue(null);
+      expect(integration.getReplayId()).toBeNull();
+    });
+
+    it('flush({ continueRecording: false }) invalidates the cached id and rejects when the trailing stopReplay fails', async () => {
+      const error = new Error('native stop boom');
+      (NATIVE.stopReplay as jest.Mock).mockRejectedValue(error as never);
+
+      const integration = mobileReplayIntegration();
+      mockGetCurrentReplayId.mockReturnValue('old-replay-id');
+      expect(integration.getReplayId()).toBe('old-replay-id');
+
+      await expect(integration.flush({ continueRecording: false })).rejects.toThrow(error);
+
+      mockGetCurrentReplayId.mockReturnValue(null);
+      expect(integration.getReplayId()).toBeNull();
+    });
   });
 
   describe('network detail feature markers', () => {

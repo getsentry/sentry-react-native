@@ -353,6 +353,19 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     return nativeReplayId;
   }
 
+  // Run a native control that changes the replay identity (`stop`/`flush`) and
+  // invalidate the cached id whether the native call resolves or rejects, then
+  // preserve the original outcome for the caller. On failure the native replay
+  // identity is unknown, so dropping the cache and letting the next
+  // `getReplayId()` re-read from native is always safe and prevents a stale id
+  // from lingering.
+  function settleAndInvalidateReplayId(promise: Promise<void>): Promise<void> {
+    return promise.then(invalidateCachedReplayId, (error: unknown) => {
+      invalidateCachedReplayId();
+      throw error;
+    });
+  }
+
   // Error `sampleRate` sampling runs AFTER `beforeSend` in `@sentry/core`
   // (since 10.70.0, getsentry/sentry-javascript#22819). Flushing the buffered
   // replay inside `beforeSend` therefore uploads a replay even for errors that
@@ -572,7 +585,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     start: () => fireReplayControl(NATIVE.startReplay().then(invalidateCachedReplayId), 'start'),
     startBuffering: () =>
       fireReplayControl(NATIVE.startReplayBuffering().then(invalidateCachedReplayId), 'startBuffering'),
-    stop: () => NATIVE.stopReplay().then(invalidateCachedReplayId),
+    stop: () => settleAndInvalidateReplayId(NATIVE.stopReplay()),
     pause: () => fireReplayControl(NATIVE.pauseReplay(), 'pause'),
     resume: () => fireReplayControl(NATIVE.resumeReplay(), 'resume'),
     flush: (options?: { continueRecording?: boolean }) => {
@@ -582,7 +595,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       // stop the replay once the flush has completed.
       const flushed = NATIVE.flushReplay();
       const settled = options?.continueRecording === false ? flushed.then(() => NATIVE.stopReplay()) : flushed;
-      return settled.then(invalidateCachedReplayId);
+      return settleAndInvalidateReplayId(settled);
     },
   };
 };
