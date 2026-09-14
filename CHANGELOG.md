@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Prevent a fatal `JavaCallback was already settled` crash from `getNewScreenTimeToDisplay` under rapid navigation on Android ([#6709](https://github.com/getsentry/sentry-react-native/issues/6709))
+
 ## 8.26.0
 
 ### Features

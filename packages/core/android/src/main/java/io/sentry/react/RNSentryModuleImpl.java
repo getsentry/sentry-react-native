@@ -874,7 +874,7 @@ public class RNSentryModuleImpl {
   }
 
   public void getNewScreenTimeToDisplay(Promise promise) {
-    RNSentryTimeToDisplay.getTimeToDisplay(promise, dateProvider);
+    RNSentryTimeToDisplay.getTimeToDisplay(promise, dateProvider, logger);
   }
 
   private String getProfilingTracesDirPath() {
