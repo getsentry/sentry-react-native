@@ -147,6 +147,7 @@
     "deepmerge-ts": "^8.0.0",
     "browserslist": "^4.28.7",
     "fast-uri": "^3.1.6",
+    "smol-toml": "^1.7.1",
     "joi": "^17.13.6"
   },
   "version": "0.0.0",
