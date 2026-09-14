@@ -6,13 +6,13 @@ import type {
   ErrorEvent,
   Event,
   EventHint,
-  Integration,
   Metric,
 } from '@sentry/core';
 
 import { debug } from '@sentry/core';
 
 import type { ResolvedNetworkOptions } from './networkUtils';
+import type { Replay } from './replayInterface';
 
 import { isHardCrash } from '../misc';
 import { deferBreadcrumbNativeSync, syncBreadcrumbToNative } from '../scopeSync';
@@ -274,7 +274,7 @@ function mergeOptions(initOptions: Partial<MobileReplayOptions>): MobileReplayOp
   return merged;
 }
 
-type MobileReplayIntegration = Integration & {
+type MobileReplayIntegration = Replay & {
   options: MobileReplayOptions;
   getReplayId: () => string | null;
 };
@@ -334,6 +334,14 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     cachedReplayId = replayId;
   }
 
+  // Invalidate the cache so the next `getReplayId()` re-reads the native replay
+  // id. The runtime controls (`start`/`startBuffering`/`stop`/`flush`) change the
+  // native replay identity, so a previously cached id would otherwise go stale and
+  // link traces/logs/metrics to an inactive or previous replay.
+  function invalidateCachedReplayId(): void {
+    cachedReplayId = null;
+  }
+
   function getCachedReplayId(): string | null {
     if (cachedReplayId !== null) {
       return cachedReplayId;
@@ -343,6 +351,19 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       cachedReplayId = nativeReplayId;
     }
     return nativeReplayId;
+  }
+
+  // Run a native control that changes the replay identity (`stop`/`flush`) and
+  // invalidate the cached id whether the native call resolves or rejects, then
+  // preserve the original outcome for the caller. On failure the native replay
+  // identity is unknown, so dropping the cache and letting the next
+  // `getReplayId()` re-read from native is always safe and prevents a stale id
+  // from lingering.
+  function settleAndInvalidateReplayId(promise: Promise<void>): Promise<void> {
+    return promise.then(invalidateCachedReplayId, (error: unknown) => {
+      invalidateCachedReplayId();
+      throw error;
+    });
   }
 
   // Error `sampleRate` sampling runs AFTER `beforeSend` in `@sentry/core`
@@ -556,20 +577,51 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     return getCachedReplayId();
   }
 
-  // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
-  // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     setup,
     options: options,
     getReplayId: getReplayId,
+    start: () => fireReplayControl(NATIVE.startReplay().then(invalidateCachedReplayId), 'start'),
+    startBuffering: () =>
+      fireReplayControl(NATIVE.startReplayBuffering().then(invalidateCachedReplayId), 'startBuffering'),
+    stop: () => settleAndInvalidateReplayId(NATIVE.stopReplay()),
+    pause: () => fireReplayControl(NATIVE.pauseReplay(), 'pause'),
+    resume: () => fireReplayControl(NATIVE.resumeReplay(), 'resume'),
+    flush: (options?: { continueRecording?: boolean }) => {
+      // The native `flushReplay()` always keeps recording after the flush (a
+      // buffered replay is converted to a session and continues), which matches
+      // the web default of `continueRecording: true`. When the caller opts out,
+      // stop the replay once the flush has completed.
+      const flushed = NATIVE.flushReplay();
+      const settled = options?.continueRecording === false ? flushed.then(() => NATIVE.stopReplay()) : flushed;
+      return settleAndInvalidateReplayId(settled);
+    },
   };
 };
+
+/**
+ * Runs a fire-and-forget replay control (`start`/`startBuffering`/`pause`/
+ * `resume`) whose public signature is synchronous (`void`) to match the web
+ * Replay API. The underlying native call is async, so we swallow and log any
+ * rejection here to avoid an unhandled promise rejection.
+ */
+function fireReplayControl(promise: Promise<void>, method: string): void {
+  promise.then(undefined, (error: unknown) => {
+    debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to ${method} replay`, error);
+  });
+}
 
 const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     options: defaultOptions,
     getReplayId: () => null, // Mock implementation for noop version
+    start: () => {},
+    startBuffering: () => {},
+    stop: () => Promise.resolve(),
+    pause: () => {},
+    resume: () => {},
+    flush: () => Promise.resolve(),
   };
 };

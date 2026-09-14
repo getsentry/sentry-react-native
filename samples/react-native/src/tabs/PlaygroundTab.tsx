@@ -105,6 +105,58 @@ export default function getPlaygroundTab() {
                     }}
                   />
                   <Separator />
+                  <Text>Replay Controls:</Text>
+                  <Button
+                    title="Replay: start"
+                    onPress={() => {
+                      Sentry.getReplay()?.start();
+                      console.log(
+                        'Replay start(), id:',
+                        Sentry.getReplay()?.getReplayId(),
+                      );
+                    }}
+                  />
+                  <Separator />
+                  <Button
+                    title="Replay: startBuffering"
+                    onPress={() => {
+                      Sentry.getReplay()?.startBuffering();
+                      console.log('Replay startBuffering()');
+                    }}
+                  />
+                  <Separator />
+                  <Button
+                    title="Replay: stop"
+                    onPress={async () => {
+                      await Sentry.getReplay()?.stop();
+                      console.log('Replay stop() completed');
+                    }}
+                  />
+                  <Separator />
+                  <Button
+                    title="Replay: pause"
+                    onPress={() => {
+                      Sentry.getReplay()?.pause();
+                      console.log('Replay pause()');
+                    }}
+                  />
+                  <Separator />
+                  <Button
+                    title="Replay: resume"
+                    onPress={() => {
+                      Sentry.getReplay()?.resume();
+                      console.log('Replay resume()');
+                    }}
+                  />
+                  <Separator />
+                  <Button
+                    title="Replay: flush"
+                    onPress={async () => {
+                      await Sentry.getReplay()?.flush();
+                      console.log('Replay flush() completed');
+                    }}
+                  />
+                  <Separator />
                   <Text>Custom Mask:</Text>
                   <View>
                     <Sentry.Unmask>

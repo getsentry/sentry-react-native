@@ -8,6 +8,21 @@
 
 ## Unreleased
 
+### Features
+
+- Add Session Replay runtime controls to start, stop, and manage recording manually ([#6703](https://github.com/getsentry/sentry-react-native/pull/6703))
+  - Use `Sentry.getReplay()` to access the active replay and control it at runtime with the same API on iOS, Android, and Web:
+
+    ```js
+    const replay = Sentry.getReplay();
+    replay?.start(); // start recording a session replay
+    replay?.startBuffering(); // start recording in buffering mode
+    replay?.stop(); // stop recording
+    replay?.pause(); // pause recording (no-op on Web)
+    replay?.resume(); // resume a paused recording (no-op on Web)
+    replay?.flush(); // flush the buffered replay to Sentry
+    ```
+
 ### Fixes
 
 - Background root spans (app-start, expo-updates) no longer overwrite the native propagation context of an active navigation trace ([#6720](https://github.com/getsentry/sentry-react-native/pull/6720))

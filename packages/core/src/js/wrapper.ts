@@ -81,6 +81,9 @@ interface SentryNativeWrapper {
   _processLevel(level: SeverityLevel): SeverityLevel;
   _serializeObject(data: { [key: string]: unknown }): { [key: string]: string };
   _isModuleLoaded(module: Spec | undefined): module is Spec;
+  _callReplayControl(
+    method: 'startReplay' | 'startReplayBuffering' | 'stopReplay' | 'pauseReplay' | 'resumeReplay' | 'flushReplay',
+  ): Promise<void>;
 
   isNativeAvailable(): boolean;
 
@@ -137,6 +140,12 @@ interface SentryNativeWrapper {
 
   captureReplay(isHardCrash: boolean): Promise<string | null>;
   getCurrentReplayId(): string | null;
+  startReplay(): Promise<void>;
+  startReplayBuffering(): Promise<void>;
+  stopReplay(): Promise<void>;
+  pauseReplay(): Promise<void>;
+  resumeReplay(): Promise<void>;
+  flushReplay(): Promise<void>;
 
   crashedLastRun(): Promise<boolean | null>;
   getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
@@ -901,6 +910,54 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry.getCurrentReplayId() || null;
+  },
+
+  startReplay(): Promise<void> {
+    return this._callReplayControl('startReplay');
+  },
+
+  startReplayBuffering(): Promise<void> {
+    return this._callReplayControl('startReplayBuffering');
+  },
+
+  stopReplay(): Promise<void> {
+    return this._callReplayControl('stopReplay');
+  },
+
+  pauseReplay(): Promise<void> {
+    return this._callReplayControl('pauseReplay');
+  },
+
+  resumeReplay(): Promise<void> {
+    return this._callReplayControl('resumeReplay');
+  },
+
+  flushReplay(): Promise<void> {
+    return this._callReplayControl('flushReplay');
+  },
+
+  /**
+   * Invokes a native Session Replay runtime control, degrading gracefully when
+   * native is disabled, the module isn't linked, or the running (possibly
+   * cached, older) native binary predates the method - it never throws.
+   */
+  _callReplayControl(
+    method: 'startReplay' | 'startReplayBuffering' | 'stopReplay' | 'pauseReplay' | 'resumeReplay' | 'flushReplay',
+  ): Promise<void> {
+    if (!this.enableNative) {
+      debug.warn(`[NATIVE] \`${method}\` is not available when native is disabled.`);
+      return Promise.resolve();
+    }
+    if (!this._isModuleLoaded(RNSentry)) {
+      debug.warn(`[NATIVE] \`${method}\` is not available when native is not available.`);
+      return Promise.resolve();
+    }
+    if (typeof RNSentry[method] !== 'function') {
+      debug.warn(`[NATIVE] \`${method}\` is not available in the current native SDK version.`);
+      return Promise.resolve();
+    }
+
+    return RNSentry[method]();
   },
 
   async crashedLastRun(): Promise<boolean | null> {
