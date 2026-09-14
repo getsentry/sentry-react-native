@@ -23,6 +23,10 @@
     replay?.flush(); // flush the buffered replay to Sentry
     ```
 
+### Fixes
+
+- Background root spans (app-start, expo-updates) no longer overwrite the native propagation context of an active navigation trace ([#6720](https://github.com/getsentry/sentry-react-native/pull/6720))
+
 ## 8.26.0
 
 ### Features
