@@ -874,54 +874,96 @@ RCT_EXPORT_METHOD(
     startReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryInternal startReplay];
-#endif
+    @try {
+        [RNSentryInternal startReplay];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call startReplay: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
     resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(
     startReplayBuffering : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryInternal startReplayBuffering];
-#endif
+    @try {
+        [RNSentryInternal startReplayBuffering];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call startReplayBuffering: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
     resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(
     stopReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryInternal stopReplay];
-#endif
+    @try {
+        [RNSentryInternal stopReplay];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call stopReplay: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
     resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(
     pauseReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryInternal pauseReplay];
-#endif
+    @try {
+        [RNSentryInternal pauseReplay];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call pauseReplay: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
     resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(
     resumeReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryInternal resumeReplay];
-#endif
+    @try {
+        [RNSentryInternal resumeReplay];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call resumeReplay: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
     resolve(nil);
+#endif
 }
 
 RCT_EXPORT_METHOD(
     flushReplay : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-    [RNSentryInternal flushReplay];
-#endif
+    @try {
+        [RNSentryInternal flushReplay];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call flushReplay: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+#else
     resolve(nil);
+#endif
 }
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
