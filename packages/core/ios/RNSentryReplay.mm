@@ -67,6 +67,11 @@
     }
     if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
         [classesToRedact addObject:@"RCTImageView"];
+        // New Architecture (Fabric) renders <Image> as RCTImageComponentView, which is
+        // neither a UIImageView subclass nor named RCTImageView, so the old-arch class
+        // name alone leaves images unmasked. Resolved via NSClassFromString on Fabric;
+        // harmlessly dropped on the old architecture where RCTImageView applies.
+        [classesToRedact addObject:@"RCTImageComponentView"];
     }
     if ([replayOptions[@"maskAllText"] boolValue] == YES) {
         [classesToRedact addObject:@"RCTTextView"];

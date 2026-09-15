@@ -164,6 +164,24 @@ final class RNSentryReplayOptions: XCTestCase {
         assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
     }
 
+    func testMaskAllImagesIncludesNewArchImageClass() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "maskAllImages": true ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        // Assert on the raw class-name payload (not the resolved classes) so the check holds
+        // even when the RN image views are not loaded in the test target: `assertContainsClass`
+        // skips unloaded classes, which would hide a missing New Architecture entry.
+        let sessionReplay = optionsDict["sessionReplay"] as! [String: Any]
+        let maskedViewClasses = sessionReplay["maskedViewClasses"] as! [String]
+        XCTAssertTrue(maskedViewClasses.contains("RCTImageView")) // Old Architecture
+        XCTAssertTrue(maskedViewClasses.contains("RCTImageComponentView")) // New Architecture (Fabric)
+    }
+
     func testMaskAllImagesFalse() {
         let optionsDict = ([
             "dsn": "https://abc@def.ingest.sentry.io/1234567",
