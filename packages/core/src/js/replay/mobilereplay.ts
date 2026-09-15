@@ -20,7 +20,7 @@ import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
 import { registerFeatureMarker } from '../utils/featureMarkers';
 import { NATIVE } from '../wrapper';
-import { attachForegroundReplayGuard } from './foregroundReplayGuard';
+import { setupForegroundReplayGuard } from './foregroundReplayGuard';
 import {
   buildResolvedNetworkBreadcrumb,
   makeEnrichXhrBreadcrumbsForMobileReplay,
@@ -528,7 +528,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     cachedReplayId = NATIVE.getCurrentReplayId();
 
     if (options.avoidForegroundResumeHang) {
-      attachForegroundReplayGuard(options.avoidForegroundResumeHangDelayMs);
+      setupForegroundReplayGuard(
+        client,
+        options.avoidForegroundResumeHangDelayMs ?? 1000,
+        NATIVE,
+        invalidateCachedReplayId,
+      );
     }
 
     client.on('createDsc', (dsc: DynamicSamplingContext) => {

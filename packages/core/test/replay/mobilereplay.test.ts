@@ -11,7 +11,7 @@ import type {
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { debug } from '@sentry/core';
 
-import { attachForegroundReplayGuard } from '../../src/js/replay/foregroundReplayGuard';
+import { setupForegroundReplayGuard } from '../../src/js/replay/foregroundReplayGuard';
 import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
 import { REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY } from '../../src/js/replay/xhrUtils';
 import * as scopeSync from '../../src/js/scopeSync';
@@ -816,19 +816,25 @@ describe('Mobile Replay Integration', () => {
   });
 
   describe('avoidForegroundResumeHang', () => {
-    it('attaches the foreground replay guard with the configured delay when enabled', () => {
+    it('sets up the foreground replay guard with the configured delay when enabled', () => {
       const integration = mobileReplayIntegration({
         avoidForegroundResumeHang: true,
         avoidForegroundResumeHangDelayMs: 500,
       });
       integration.setup?.(mockClient);
-      expect(attachForegroundReplayGuard).toHaveBeenCalledWith(500);
+      expect(setupForegroundReplayGuard).toHaveBeenCalledWith(mockClient, 500, NATIVE, expect.any(Function));
     });
 
-    it('does not attach the foreground replay guard by default', () => {
+    it('defaults the delay to 1000ms when not configured', () => {
+      const integration = mobileReplayIntegration({ avoidForegroundResumeHang: true });
+      integration.setup?.(mockClient);
+      expect(setupForegroundReplayGuard).toHaveBeenCalledWith(mockClient, 1000, NATIVE, expect.any(Function));
+    });
+
+    it('does not set up the foreground replay guard by default', () => {
       const integration = mobileReplayIntegration();
       integration.setup?.(mockClient);
-      expect(attachForegroundReplayGuard).not.toHaveBeenCalled();
+      expect(setupForegroundReplayGuard).not.toHaveBeenCalled();
     });
   });
 

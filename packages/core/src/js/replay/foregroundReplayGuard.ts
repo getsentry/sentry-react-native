@@ -1,11 +1,26 @@
+import type { Client } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 
 import { debug } from '@sentry/core';
 import { AppState, Platform } from 'react-native';
 
-import { NATIVE } from '../wrapper';
+// iOS may suspend the JS runtime between 'inactive' and 'background', so
+// 'background' can arrive late or not at all while the app is still
+// responsive. Mirrors the same fallback pattern (and delay) as
+// `cancelInBackground` in `../tracing/onSpanEndUtils.ts`: on 'inactive',
+// schedule the action after a delay, cancelable by a subsequent 'active'.
+const IOS_INACTIVE_STOP_DELAY_MS = 5_000;
 
-const DEFAULT_DELAY_MS = 1000;
+/**
+ * The native calls this guard needs. Callers must invalidate their own cached
+ * replay id inside `stopReplay`/`startReplayBuffering` - this module has no
+ * knowledge of that cache.
+ */
+export interface ForegroundReplayGuardDependencies {
+  getCurrentReplayId: () => string | null;
+  stopReplay: () => Promise<void>;
+  startReplayBuffering: () => Promise<void>;
+}
 
 /**
  * On iOS, sentry-cocoa resumes Session Replay capture synchronously on
@@ -20,9 +35,9 @@ const DEFAULT_DELAY_MS = 1000;
  *
  * `stopReplay()` is different: it tears down the native replay session
  * entirely, so the automatic resume becomes a no-op. This guard stops replay
- * just before the app backgrounds, and restarts it (in buffer mode) a short
- * delay after the app returns to the foreground - safely outside the
- * watchdog window. See getsentry/sentry-react-native#6701.
+ * before the app backgrounds, and restarts it (in buffer mode) a short delay
+ * after the app returns to the foreground - safely outside the watchdog
+ * window. See getsentry/sentry-react-native#6701.
  */
 export interface ForegroundReplayGuardState {
   handleAppStateChange: (state: AppStateStatus) => void;
@@ -34,50 +49,83 @@ export interface ForegroundReplayGuardState {
  * drive `handleAppStateChange` directly instead of going through React
  * Native's `AppState` emitter.
  */
-export function createForegroundReplayGuardState(delayMs: number): ForegroundReplayGuardState {
-  let pendingResume = false;
+export function createForegroundReplayGuardState(
+  delayMs: number,
+  deps: ForegroundReplayGuardDependencies,
+): ForegroundReplayGuardState {
+  // True from the moment we ask native to stop until a restart completes.
+  // Guards against stopping twice, and lets a background event skip the
+  // (redundant) `getCurrentReplayId` check while already stopped.
+  let stoppedByGuard = false;
+  let inactiveStopTimeout: ReturnType<typeof setTimeout> | null = null;
   let resumeTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  function clearPendingResume(): void {
+  function clearInactiveStopTimeout(): void {
+    if (inactiveStopTimeout !== null) {
+      clearTimeout(inactiveStopTimeout);
+      inactiveStopTimeout = null;
+    }
+  }
+
+  function clearResumeTimeout(): void {
     if (resumeTimeout !== null) {
       clearTimeout(resumeTimeout);
       resumeTimeout = null;
     }
   }
 
-  function handleAppStateChange(state: AppStateStatus): void {
-    clearPendingResume();
-
-    if (state === 'background') {
-      // Only stop (and later restart) a replay we actually found running. If
-      // the user already stopped it themselves, or it was never sampled in,
-      // there is nothing to protect and nothing to restart.
-      if (!NATIVE.getCurrentReplayId()) {
-        pendingResume = false;
-        return;
-      }
-
-      pendingResume = true;
-      NATIVE.stopReplay().then(undefined, (error: unknown) => {
-        debug.error('[Sentry] Failed to stop replay before backgrounding', error);
-      });
+  function stopIfNeeded(): void {
+    if (stoppedByGuard) {
+      return;
+    }
+    // Only stop (and later restart) a replay we actually found running. If
+    // the user already stopped it themselves, or it was never sampled in,
+    // there is nothing to protect and nothing to restart.
+    if (!deps.getCurrentReplayId()) {
       return;
     }
 
-    if (state === 'active' && pendingResume) {
-      pendingResume = false;
-      resumeTimeout = setTimeout(() => {
-        resumeTimeout = null;
-        NATIVE.startReplayBuffering().then(undefined, (error: unknown) => {
-          debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
-        });
-      }, delayMs);
+    stoppedByGuard = true;
+    deps.stopReplay().then(undefined, (error: unknown) => {
+      debug.error('[Sentry] Failed to stop replay before backgrounding', error);
+    });
+  }
+
+  function handleAppStateChange(state: AppStateStatus): void {
+    if (state === 'background') {
+      clearInactiveStopTimeout();
+      clearResumeTimeout();
+      stopIfNeeded();
+      return;
+    }
+
+    if (state === 'inactive') {
+      if (Platform.OS === 'ios' && inactiveStopTimeout === null) {
+        inactiveStopTimeout = setTimeout(() => {
+          inactiveStopTimeout = null;
+          stopIfNeeded();
+        }, IOS_INACTIVE_STOP_DELAY_MS);
+      }
+      return;
+    }
+
+    if (state === 'active') {
+      clearInactiveStopTimeout();
+      if (stoppedByGuard && resumeTimeout === null) {
+        resumeTimeout = setTimeout(() => {
+          resumeTimeout = null;
+          stoppedByGuard = false;
+          deps.startReplayBuffering().then(undefined, (error: unknown) => {
+            debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
+          });
+        }, delayMs);
+      }
     }
   }
 
   function detach(): void {
-    clearPendingResume();
-    pendingResume = false;
+    clearInactiveStopTimeout();
+    clearResumeTimeout();
   }
 
   return { handleAppStateChange, detach };
@@ -87,16 +135,50 @@ export function createForegroundReplayGuardState(delayMs: number): ForegroundRep
  * Wires {@link createForegroundReplayGuardState} to React Native's `AppState`.
  * iOS-only; a no-op everywhere else.
  */
-export function attachForegroundReplayGuard(delayMs: number = DEFAULT_DELAY_MS): () => void {
+export function attachForegroundReplayGuard(delayMs: number, deps: ForegroundReplayGuardDependencies): () => void {
   if (Platform.OS !== 'ios' || !AppState?.isAvailable) {
     return () => {};
   }
 
-  const { handleAppStateChange, detach } = createForegroundReplayGuardState(delayMs);
+  const { handleAppStateChange, detach } = createForegroundReplayGuardState(delayMs, deps);
   const subscription = AppState.addEventListener('change', handleAppStateChange);
 
   return () => {
     detach();
     subscription?.remove?.();
   };
+}
+
+/**
+ * The native replay bridge calls the guard needs. Passed by reference (e.g.
+ * the `NATIVE` singleton) - never spread/destructured, since its methods rely
+ * on their receiver (`this.enableNative`, etc.) to read live state.
+ */
+export interface ForegroundReplayGuardNativeControls {
+  getCurrentReplayId: () => string | null;
+  stopReplay: () => Promise<void>;
+  startReplayBuffering: () => Promise<void>;
+}
+
+/**
+ * Attaches the guard to `client`, composing `native`'s calls with
+ * `invalidateCachedReplayId` (the cache invalidation only the integration
+ * knows how to do), and detaches it when the client closes.
+ */
+export function setupForegroundReplayGuard(
+  client: Client,
+  delayMs: number,
+  native: ForegroundReplayGuardNativeControls,
+  invalidateCachedReplayId: () => void,
+): void {
+  const detach = attachForegroundReplayGuard(delayMs, {
+    getCurrentReplayId: () => native.getCurrentReplayId(),
+    stopReplay: () =>
+      native.stopReplay().then(invalidateCachedReplayId, (error: unknown) => {
+        invalidateCachedReplayId();
+        throw error;
+      }),
+    startReplayBuffering: () => native.startReplayBuffering().then(invalidateCachedReplayId),
+  });
+  client.on('close', detach);
 }
