@@ -23,7 +23,7 @@
     replay?.flush(); // flush the buffered replay to Sentry
     ```
 
-- Add per-class Session Replay masking via `maskedViewClasses` / `unmaskedViewClasses` on `mobileReplayIntegration`
+- Add per-class Session Replay masking via `maskedViewClasses` / `unmaskedViewClasses` on `mobileReplayIntegration` ([#6725](https://github.com/getsentry/sentry-react-native/pull/6725))
 
 ### Fixes
 
