@@ -43,7 +43,7 @@ describe('createForegroundReplayGuardState', () => {
     jest.useRealTimers();
   });
 
-  it('stops replay on background and restarts it in buffer mode after the delay on foreground', () => {
+  it('stops replay on background and restarts it in buffer mode after the delay on foreground', async () => {
     // Arrange
     const deps = createDeps('active-replay-id');
     const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
@@ -57,7 +57,7 @@ describe('createForegroundReplayGuardState', () => {
     // Assert
     expect(deps.stopReplay).toHaveBeenCalledTimes(1);
     expect(deps.startReplayBuffering).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(1000);
+    await jest.advanceTimersByTimeAsync(1000);
     expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
   });
 
@@ -102,7 +102,7 @@ describe('createForegroundReplayGuardState', () => {
     expect(deps.stopReplay).not.toHaveBeenCalled();
   });
 
-  it('cancels a pending restart if backgrounded again first, then still restarts once truly foregrounded', () => {
+  it('cancels a pending restart if backgrounded again first, then still restarts once truly foregrounded', async () => {
     // Arrange
     const deps = createDeps('active-replay-id');
     const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
@@ -114,7 +114,7 @@ describe('createForegroundReplayGuardState', () => {
 
     // Act
     handleAppStateChange('active');
-    jest.advanceTimersByTime(1000);
+    await jest.advanceTimersByTimeAsync(1000);
 
     // Assert
     expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
@@ -129,7 +129,8 @@ describe('createForegroundReplayGuardState', () => {
     const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
     handleAppStateChange('background');
     handleAppStateChange('active');
-    jest.advanceTimersByTime(1000); // startReplayBuffering() now in flight
+    await jest.advanceTimersByTimeAsync(1000); // resume timer fires; startReplayBuffering() now in flight
+    expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
 
     // Act: background again before the in-flight restart resolves.
     deps.getCurrentReplayId.mockReturnValue('new-replay-id');
@@ -176,6 +177,29 @@ describe('createForegroundReplayGuardState', () => {
 
     // Assert
     expect(deps.startReplayBuffering).not.toHaveBeenCalled();
+  });
+
+  it('does not stop replay again after detach, even if a restart was still in flight', async () => {
+    // Arrange - regression: detach() only cleared timers, so an in-flight
+    // restart's own resolution could still fire a stopReplay() call post-close.
+    const deps = createDeps('active-replay-id');
+    const startDeferred = createDeferred<void>();
+    deps.startReplayBuffering.mockReturnValue(startDeferred.promise);
+    const { handleAppStateChange, detach } = createForegroundReplayGuardState(1000, deps);
+    handleAppStateChange('background');
+    handleAppStateChange('active');
+    await jest.advanceTimersByTimeAsync(1000); // restart in flight
+    deps.getCurrentReplayId.mockReturnValue('new-replay-id');
+    handleAppStateChange('background'); // marks the in-flight restart for a follow-up stop
+
+    // Act
+    detach();
+    startDeferred.resolve();
+    await startDeferred.promise;
+    await Promise.resolve();
+
+    // Assert: no follow-up stop after detach.
+    expect(deps.stopReplay).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -277,8 +301,7 @@ describe('setupForegroundReplayGuard', () => {
 
     // Act: foreground restarts it.
     simulateAppStateChange('active');
-    jest.advanceTimersByTime(1000);
-    await Promise.resolve();
+    await jest.advanceTimersByTimeAsync(1000);
 
     // Assert
     expect(invalidateCachedReplayId).toHaveBeenCalledTimes(2);
