@@ -53,10 +53,15 @@ export function createForegroundReplayGuardState(
   delayMs: number,
   deps: ForegroundReplayGuardDependencies,
 ): ForegroundReplayGuardState {
-  // True from the moment we ask native to stop until a restart completes.
-  // Guards against stopping twice, and lets a background event skip the
-  // (redundant) `getCurrentReplayId` check while already stopped.
+  // True whenever we don't currently trust a guarded replay is running: from
+  // a successful stop until a restart successfully completes, or after a
+  // stop/restart attempt failed and native state became unknown.
   let stoppedByGuard = false;
+  // True while a scheduled restart's `startReplayBuffering()` call is in
+  // flight, so a background event that lands mid-restart can mark itself
+  // instead of missing the new (unprotected) session entirely.
+  let restartInFlight = false;
+  let backgroundedDuringRestart = false;
   let inactiveStopTimeout: ReturnType<typeof setTimeout> | null = null;
   let resumeTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -75,6 +80,12 @@ export function createForegroundReplayGuardState(
   }
 
   function stopIfNeeded(): void {
+    if (restartInFlight) {
+      // A restart is already underway; stop the just-started session once it
+      // settles instead of leaving it unprotected.
+      backgroundedDuringRestart = true;
+      return;
+    }
     if (stoppedByGuard) {
       return;
     }
@@ -87,8 +98,29 @@ export function createForegroundReplayGuardState(
 
     stoppedByGuard = true;
     deps.stopReplay().then(undefined, (error: unknown) => {
+      // Native state is unknown after a failed stop - don't act as if it's guarded.
+      stoppedByGuard = false;
       debug.error('[Sentry] Failed to stop replay before backgrounding', error);
     });
+  }
+
+  function restart(): void {
+    restartInFlight = true;
+    deps.startReplayBuffering().then(
+      () => {
+        restartInFlight = false;
+        stoppedByGuard = false;
+        if (backgroundedDuringRestart) {
+          backgroundedDuringRestart = false;
+          stopIfNeeded();
+        }
+      },
+      (error: unknown) => {
+        restartInFlight = false;
+        backgroundedDuringRestart = false;
+        debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
+      },
+    );
   }
 
   function handleAppStateChange(state: AppStateStatus): void {
@@ -111,13 +143,10 @@ export function createForegroundReplayGuardState(
 
     if (state === 'active') {
       clearInactiveStopTimeout();
-      if (stoppedByGuard && resumeTimeout === null) {
+      if (stoppedByGuard && resumeTimeout === null && !restartInFlight) {
         resumeTimeout = setTimeout(() => {
           resumeTimeout = null;
-          stoppedByGuard = false;
-          deps.startReplayBuffering().then(undefined, (error: unknown) => {
-            debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
-          });
+          restart();
         }, delayMs);
       }
     }
@@ -167,7 +196,7 @@ export interface ForegroundReplayGuardNativeControls {
  */
 export function setupForegroundReplayGuard(
   client: Client,
-  delayMs: number,
+  delayMs: number = 1000,
   native: ForegroundReplayGuardNativeControls,
   invalidateCachedReplayId: () => void,
 ): void {

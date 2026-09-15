@@ -825,10 +825,10 @@ describe('Mobile Replay Integration', () => {
       expect(setupForegroundReplayGuard).toHaveBeenCalledWith(mockClient, 500, NATIVE, expect.any(Function));
     });
 
-    it('defaults the delay to 1000ms when not configured', () => {
+    it('passes the configured delay through as-is, letting setupForegroundReplayGuard default it when undefined', () => {
       const integration = mobileReplayIntegration({ avoidForegroundResumeHang: true });
       integration.setup?.(mockClient);
-      expect(setupForegroundReplayGuard).toHaveBeenCalledWith(mockClient, 1000, NATIVE, expect.any(Function));
+      expect(setupForegroundReplayGuard).toHaveBeenCalledWith(mockClient, undefined, NATIVE, expect.any(Function));
     });
 
     it('does not set up the foreground replay guard by default', () => {
