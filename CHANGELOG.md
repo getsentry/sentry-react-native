@@ -23,6 +23,8 @@
     replay?.flush(); // flush the buffered replay to Sentry
     ```
 
+- Add per-class Session Replay masking via `maskedViewClasses` / `unmaskedViewClasses` on `mobileReplayIntegration`
+
 ### Fixes
 
 - Background root spans (app-start, expo-updates) no longer overwrite the native propagation context of an active navigation trace ([#6720](https://github.com/getsentry/sentry-react-native/pull/6720))
