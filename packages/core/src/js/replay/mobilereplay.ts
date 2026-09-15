@@ -20,6 +20,7 @@ import { hasHooks } from '../utils/clientutils';
 import { isExpoGo, notMobileOs } from '../utils/environment';
 import { registerFeatureMarker } from '../utils/featureMarkers';
 import { NATIVE } from '../wrapper';
+import { attachForegroundReplayGuard } from './foregroundReplayGuard';
 import {
   buildResolvedNetworkBreadcrumb,
   makeEnrichXhrBreadcrumbsForMobileReplay,
@@ -268,6 +269,30 @@ export interface MobileReplayOptions {
    * @default []
    */
   networkResponseHeaders?: string[];
+
+  /**
+   * Mitigates a fatal iOS App Hang (watchdog kill) that can occur when Session
+   * Replay resumes capture on returning to the foreground with a heavy view
+   * hierarchy on screen. When enabled, recording is stopped just before the app
+   * backgrounds and restarted in buffer mode shortly after it foregrounds.
+   *
+   * @note A full-session recording is downgraded to buffer mode after every
+   * background/foreground cycle while this is enabled. See
+   * https://github.com/getsentry/sentry-react-native/issues/6701.
+   *
+   * @default false
+   * @platform ios
+   */
+  avoidForegroundResumeHang?: boolean;
+
+  /**
+   * Delay, in milliseconds, before replay recording restarts after the app
+   * returns to the foreground, when `avoidForegroundResumeHang` is enabled.
+   *
+   * @default 1000
+   * @platform ios
+   */
+  avoidForegroundResumeHangDelayMs?: number;
 }
 
 const defaultOptions: MobileReplayOptions = {
@@ -501,6 +526,10 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
     // Initialize the cached replay ID on setup
     cachedReplayId = NATIVE.getCurrentReplayId();
+
+    if (options.avoidForegroundResumeHang) {
+      attachForegroundReplayGuard(options.avoidForegroundResumeHangDelayMs);
+    }
 
     client.on('createDsc', (dsc: DynamicSamplingContext) => {
       if (dsc.replay_id) {
