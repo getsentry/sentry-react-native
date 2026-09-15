@@ -62,6 +62,11 @@ export function createForegroundReplayGuardState(
   // instead of missing the new (unprotected) session entirely.
   let restartInFlight = false;
   let backgroundedDuringRestart = false;
+  let detached = false;
+  // The in-flight `stopReplay()` call, if any. `restart()` waits for it so a
+  // slow stop can never overlap with `startReplayBuffering()` - the fixed
+  // delay alone isn't a guarantee.
+  let pendingStop: Promise<unknown> | null = null;
   let inactiveStopTimeout: ReturnType<typeof setTimeout> | null = null;
   let resumeTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -80,6 +85,9 @@ export function createForegroundReplayGuardState(
   }
 
   function stopIfNeeded(): void {
+    if (detached) {
+      return;
+    }
     if (restartInFlight) {
       // A restart is already underway; stop the just-started session once it
       // settles instead of leaving it unprotected.
@@ -97,7 +105,7 @@ export function createForegroundReplayGuardState(
     }
 
     stoppedByGuard = true;
-    deps.stopReplay().then(undefined, (error: unknown) => {
+    pendingStop = deps.stopReplay().then(undefined, (error: unknown) => {
       // Native state is unknown after a failed stop - don't act as if it's guarded.
       stoppedByGuard = false;
       debug.error('[Sentry] Failed to stop replay before backgrounding', error);
@@ -106,21 +114,26 @@ export function createForegroundReplayGuardState(
 
   function restart(): void {
     restartInFlight = true;
-    deps.startReplayBuffering().then(
-      () => {
-        restartInFlight = false;
-        stoppedByGuard = false;
-        if (backgroundedDuringRestart) {
+    // Wait for any in-flight stop to actually settle first - startReplayBuffering()
+    // must never overlap with a still-running stopReplay() call. `pendingStop`
+    // always resolves (its own rejection handler never rethrows).
+    Promise.resolve(pendingStop)
+      .then(() => deps.startReplayBuffering())
+      .then(
+        () => {
+          restartInFlight = false;
+          stoppedByGuard = false;
+          if (backgroundedDuringRestart && !detached) {
+            backgroundedDuringRestart = false;
+            stopIfNeeded();
+          }
+        },
+        (error: unknown) => {
+          restartInFlight = false;
           backgroundedDuringRestart = false;
-          stopIfNeeded();
-        }
-      },
-      (error: unknown) => {
-        restartInFlight = false;
-        backgroundedDuringRestart = false;
-        debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
-      },
-    );
+          debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
+        },
+      );
   }
 
   function handleAppStateChange(state: AppStateStatus): void {
@@ -153,6 +166,7 @@ export function createForegroundReplayGuardState(
   }
 
   function detach(): void {
+    detached = true;
     clearInactiveStopTimeout();
     clearResumeTimeout();
   }
