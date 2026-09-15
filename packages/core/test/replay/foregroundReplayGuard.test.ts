@@ -47,12 +47,13 @@ describe('createForegroundReplayGuardState', () => {
   });
 
   describe('when the app backgrounds', () => {
-    it('stops replay when a replay is currently active', () => {
+    it('stops replay when active, and only once for repeated background events', () => {
       // Arrange
       const deps = createDeps('active-replay-id');
       const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
 
       // Act
+      handleAppStateChange('background');
       handleAppStateChange('background');
 
       // Assert
@@ -69,19 +70,6 @@ describe('createForegroundReplayGuardState', () => {
 
       // Assert
       expect(deps.stopReplay).not.toHaveBeenCalled();
-    });
-
-    it('does not stop replay twice for repeated background events', () => {
-      // Arrange
-      const deps = createDeps('active-replay-id');
-      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
-      handleAppStateChange('background');
-
-      // Act
-      handleAppStateChange('background');
-
-      // Assert
-      expect(deps.stopReplay).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -115,30 +103,16 @@ describe('createForegroundReplayGuardState', () => {
       expect(deps.startReplayBuffering).not.toHaveBeenCalled();
     });
 
-    it('does not schedule a second restart for a repeated active event', () => {
+    it('does not schedule extra restarts for repeated active events, before or after the delay fires', () => {
       // Arrange
       const deps = createDeps('active-replay-id');
       const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
       handleAppStateChange('background');
       handleAppStateChange('active');
 
-      // Act
+      // Act: a repeat before the timer fires, then another after it already has.
       handleAppStateChange('active');
       jest.advanceTimersByTime(1000);
-
-      // Assert
-      expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not restart again for a subsequent active event once already restarted', () => {
-      // Arrange
-      const deps = createDeps('active-replay-id');
-      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
-      handleAppStateChange('background');
-      handleAppStateChange('active');
-      jest.advanceTimersByTime(1000);
-
-      // Act
       handleAppStateChange('active');
       jest.advanceTimersByTime(1000);
 
@@ -147,8 +121,8 @@ describe('createForegroundReplayGuardState', () => {
     });
   });
 
-  describe('when an inactive transition is not followed by background or active', () => {
-    it('stops replay after the iOS inactive fallback delay', () => {
+  describe('the iOS inactive fallback (background may never arrive if JS suspends)', () => {
+    it('stops replay after the fallback delay when inactive is not followed by background or active', () => {
       // Arrange
       const deps = createDeps('active-replay-id');
       const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
@@ -161,26 +135,22 @@ describe('createForegroundReplayGuardState', () => {
       jest.advanceTimersByTime(5000);
       expect(deps.stopReplay).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe('when active follows inactive before the fallback delay elapses', () => {
-    it('cancels the fallback stop', () => {
-      // Arrange
+    it('cancels the fallback stop when active follows before the delay elapses', () => {
+      // Arrange: a brief interruption, not a real backgrounding.
       const deps = createDeps('active-replay-id');
       const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
       handleAppStateChange('inactive');
 
-      // Act: a brief interruption, not a real backgrounding.
+      // Act
       handleAppStateChange('active');
       jest.advanceTimersByTime(5000);
 
       // Assert
       expect(deps.stopReplay).not.toHaveBeenCalled();
     });
-  });
 
-  describe('when background follows inactive before the fallback delay elapses', () => {
-    it('stops immediately and does not double-stop when the fallback timer would have fired', () => {
+    it('stops once (not twice) when background follows before the fallback delay elapses', () => {
       // Arrange
       const deps = createDeps('active-replay-id');
       const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
@@ -196,7 +166,7 @@ describe('createForegroundReplayGuardState', () => {
   });
 
   describe('when the app backgrounds again before the delayed restart fires', () => {
-    it('cancels the pending restart and does not restart when eventually foregrounded past the original delay', () => {
+    it('cancels the pending restart while still backgrounded, then still restarts once foregrounded again', () => {
       // Arrange
       const deps = createDeps('active-replay-id');
       const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
@@ -210,21 +180,12 @@ describe('createForegroundReplayGuardState', () => {
       // Assert: the original restart never fires while backgrounded.
       expect(deps.startReplayBuffering).not.toHaveBeenCalled();
       expect(deps.stopReplay).toHaveBeenCalledTimes(1);
-    });
 
-    it('still restarts once foregrounded again', () => {
-      // Arrange
-      const deps = createDeps('active-replay-id');
-      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
-      handleAppStateChange('background');
-      handleAppStateChange('active');
-      handleAppStateChange('background');
-
-      // Act
+      // Act: foreground again.
       handleAppStateChange('active');
       jest.advanceTimersByTime(1000);
 
-      // Assert
+      // Assert: this time the restart goes through.
       expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
     });
   });
@@ -275,12 +236,13 @@ describe('createForegroundReplayGuardState', () => {
     });
   });
 
-  describe('when stopReplay rejects', () => {
-    it('does not schedule a restart on a later active event', async () => {
-      // Arrange
+  describe('error handling', () => {
+    it('logs and does not schedule a restart when stopReplay rejects', async () => {
+      // Arrange: the guard isn't confident replay actually stopped, so it
+      // doesn't restart it on a later active event.
       const deps = createDeps('active-replay-id');
       deps.stopReplay.mockReturnValue(Promise.reject(new Error('native error')));
-      jest.spyOn(debug, 'error').mockImplementation(() => {});
+      const debugErrorSpy = jest.spyOn(debug, 'error').mockImplementation(() => {});
       const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
       handleAppStateChange('background');
       await Promise.resolve();
@@ -290,8 +252,27 @@ describe('createForegroundReplayGuardState', () => {
       handleAppStateChange('active');
       jest.advanceTimersByTime(1000);
 
-      // Assert: the guard isn't confident replay actually stopped, so it doesn't restart it.
+      // Assert
+      expect(debugErrorSpy).toHaveBeenCalled();
       expect(deps.startReplayBuffering).not.toHaveBeenCalled();
+    });
+
+    it('logs and does not throw when startReplayBuffering rejects', async () => {
+      // Arrange
+      const deps = createDeps('active-replay-id');
+      deps.startReplayBuffering.mockReturnValue(Promise.reject(new Error('native error')));
+      const debugErrorSpy = jest.spyOn(debug, 'error').mockImplementation(() => {});
+      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
+      handleAppStateChange('background');
+      handleAppStateChange('active');
+
+      // Act
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Assert
+      expect(debugErrorSpy).toHaveBeenCalled();
     });
   });
 
@@ -323,42 +304,6 @@ describe('createForegroundReplayGuardState', () => {
 
       // Assert
       expect(deps.stopReplay).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('error handling', () => {
-    it('logs and does not throw when stopReplay rejects', async () => {
-      // Arrange
-      const deps = createDeps('active-replay-id');
-      deps.stopReplay.mockReturnValue(Promise.reject(new Error('native error')));
-      const debugErrorSpy = jest.spyOn(debug, 'error').mockImplementation(() => {});
-      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
-
-      // Act
-      handleAppStateChange('background');
-      await Promise.resolve();
-      await Promise.resolve();
-
-      // Assert
-      expect(debugErrorSpy).toHaveBeenCalled();
-    });
-
-    it('logs and does not throw when startReplayBuffering rejects', async () => {
-      // Arrange
-      const deps = createDeps('active-replay-id');
-      deps.startReplayBuffering.mockReturnValue(Promise.reject(new Error('native error')));
-      const debugErrorSpy = jest.spyOn(debug, 'error').mockImplementation(() => {});
-      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
-      handleAppStateChange('background');
-      handleAppStateChange('active');
-
-      // Act
-      jest.advanceTimersByTime(1000);
-      await Promise.resolve();
-      await Promise.resolve();
-
-      // Assert
-      expect(debugErrorSpy).toHaveBeenCalled();
     });
   });
 });
@@ -489,29 +434,19 @@ describe('setupForegroundReplayGuard', () => {
     jest.useRealTimers();
   });
 
-  it('invalidates the cached replay id after stopping on background', async () => {
-    // Arrange
-    const { setup, client, native, invalidateCachedReplayId, simulateAppStateChange } = setUp();
-    setup(client as unknown as Client, 1000, native, invalidateCachedReplayId);
-
-    // Act
-    simulateAppStateChange('background');
-    await Promise.resolve();
-
-    // Assert
-    expect(native.stopReplay).toHaveBeenCalledTimes(1);
-    expect(invalidateCachedReplayId).toHaveBeenCalledTimes(1);
-  });
-
-  it('invalidates the cached replay id again after restarting on foreground', async () => {
+  it('invalidates the cached replay id on both the stop and the restart', async () => {
     // Arrange
     jest.useFakeTimers();
     const { setup, client, native, invalidateCachedReplayId, simulateAppStateChange } = setUp();
     setup(client as unknown as Client, 1000, native, invalidateCachedReplayId);
+
+    // Act: background stops replay.
     simulateAppStateChange('background');
     await Promise.resolve();
+    expect(native.stopReplay).toHaveBeenCalledTimes(1);
+    expect(invalidateCachedReplayId).toHaveBeenCalledTimes(1);
 
-    // Act
+    // Act: foreground restarts it.
     simulateAppStateChange('active');
     jest.advanceTimersByTime(1000);
     await Promise.resolve();
