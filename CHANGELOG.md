@@ -23,7 +23,7 @@
     replay?.flush(); // flush the buffered replay to Sentry
     ```
 
-- Add `avoidForegroundResumeHang` (iOS) to `mobileReplayIntegration` to work around a fatal App Hang that can occur when Session Replay resumes capture on returning to the foreground with a heavy view hierarchy on screen ([#6725](https://github.com/getsentry/sentry-react-native/pull/6725))
+- Add `avoidForegroundResumeHang` (iOS) to `mobileReplayIntegration` to work around a fatal App Hang that can occur when Session Replay resumes capture on returning to the foreground with a heavy view hierarchy on screen ([#6727](https://github.com/getsentry/sentry-react-native/pull/6727))
 
 ### Fixes
 
