@@ -91,12 +91,13 @@ final class RNSentryReplayOptions: XCTestCase {
     }
 
     func assertAllDefaultReplayOptionsAreNotNil(replayOptions: [String: Any]) {
-        XCTAssertEqual(replayOptions.count, 16)
+        XCTAssertEqual(replayOptions.count, 17)
         XCTAssertNotNil(replayOptions["sessionSampleRate"])
         XCTAssertNotNil(replayOptions["errorSampleRate"])
         XCTAssertNotNil(replayOptions["maskAllImages"])
         XCTAssertNotNil(replayOptions["maskAllText"])
         XCTAssertNotNil(replayOptions["maskedViewClasses"])
+        XCTAssertNotNil(replayOptions["unmaskedViewClasses"])
         XCTAssertNotNil(replayOptions["sdkInfo"])
         XCTAssertNotNil(replayOptions["enableViewRendererV2"])
         XCTAssertNotNil(replayOptions["enableFastViewRendering"])
@@ -219,6 +220,52 @@ final class RNSentryReplayOptions: XCTestCase {
 
         XCTAssertEqual(actualOptions.sessionReplay.maskAllText, false)
         XCTAssertEqual(actualOptions.sessionReplay.maskedViewClasses.count, 0)
+    }
+
+    func testUserMaskedViewClasses() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "maskedViewClasses": ["UILabel"] ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentrySDK.internal.options(fromDictionary: optionsDict as! [String: Any])
+
+        assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "UILabel")
+    }
+
+    func testUserMaskedViewClassesAppendedOnTopOfMaskAllDefaults() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [
+                "maskAllImages": true,
+                "maskedViewClasses": ["UILabel"]
+            ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentrySDK.internal.options(fromDictionary: optionsDict as! [String: Any])
+
+        assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "RCTImageView")
+        assertContainsClass(classArray: actualOptions.sessionReplay.maskedViewClasses, stringClass: "UILabel")
+    }
+
+    func testUnmaskedViewClasses() {
+        let optionsDict = ([
+            "dsn": "https://abc@def.ingest.sentry.io/1234567",
+            "replaysOnErrorSampleRate": 0.75,
+            "mobileReplayOptions": [ "unmaskedViewClasses": ["UIView"] ]
+        ] as NSDictionary).mutableCopy() as! NSMutableDictionary
+
+        RNSentryReplay.updateOptions(optionsDict)
+
+        let actualOptions = try! SentrySDK.internal.options(fromDictionary: optionsDict as! [String: Any])
+
+        assertContainsClass(classArray: actualOptions.sessionReplay.unmaskedViewClasses, stringClass: "UIView")
     }
 
     func testEnableViewRendererV2Default() {
