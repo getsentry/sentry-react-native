@@ -143,6 +143,31 @@ describe('createForegroundReplayGuardState', () => {
     expect(deps.stopReplay).toHaveBeenCalledTimes(2);
   });
 
+  it('does not stop the newly-started replay if foregrounded again before the in-flight restart resolves', async () => {
+    // Arrange - regression: a background event landing while the restart was
+    // still waiting on the prior stop (before startReplayBuffering() was even
+    // called) used to latch a stale "stop it again" flag, even if the app was
+    // back in the foreground by the time the restart actually finished.
+    const deps = createDeps('active-replay-id');
+    const stopDeferred = createDeferred<void>();
+    deps.stopReplay.mockReturnValue(stopDeferred.promise);
+    const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
+    handleAppStateChange('background'); // stopReplay() in flight
+    handleAppStateChange('active');
+    await jest.advanceTimersByTimeAsync(1000); // resume timer fires; restart() now waiting on the stop
+
+    // Act: background then active again before the still-pending stop settles.
+    handleAppStateChange('background');
+    handleAppStateChange('active');
+    stopDeferred.resolve();
+    await stopDeferred.promise;
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Assert: we ended up foregrounded, so the just-started replay stays running.
+    expect(deps.stopReplay).toHaveBeenCalledTimes(1);
+  });
+
   it('does not restart after a failed stop, and logs the failure', async () => {
     // Arrange - regression: a rejected stopReplay() must not leave the guard
     // thinking it stopped, or it schedules a restart against a session that

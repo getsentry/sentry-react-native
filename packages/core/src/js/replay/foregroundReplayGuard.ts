@@ -61,7 +61,11 @@ export function createForegroundReplayGuardState(
   // flight, so a background event that lands mid-restart can mark itself
   // instead of missing the new (unprotected) session entirely.
   let restartInFlight = false;
-  let backgroundedDuringRestart = false;
+  // The app's current state, updated on every transition - checked (not
+  // latched) once a restart resolves, so a background/active toggle that
+  // happens mid-restart is judged by where we ended up, not where we were
+  // when the restart started.
+  let isBackgrounded = false;
   let detached = false;
   // The in-flight `stopReplay()` call, if any. `restart()` waits for it so a
   // slow stop can never overlap with `startReplayBuffering()` - the fixed
@@ -89,9 +93,8 @@ export function createForegroundReplayGuardState(
       return;
     }
     if (restartInFlight) {
-      // A restart is already underway; stop the just-started session once it
-      // settles instead of leaving it unprotected.
-      backgroundedDuringRestart = true;
+      // A restart is already underway; its own resolution checks
+      // `isBackgrounded` and stops the just-started session if still needed.
       return;
     }
     if (stoppedByGuard) {
@@ -123,14 +126,12 @@ export function createForegroundReplayGuardState(
         () => {
           restartInFlight = false;
           stoppedByGuard = false;
-          if (backgroundedDuringRestart && !detached) {
-            backgroundedDuringRestart = false;
+          if (isBackgrounded && !detached) {
             stopIfNeeded();
           }
         },
         (error: unknown) => {
           restartInFlight = false;
-          backgroundedDuringRestart = false;
           debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
         },
       );
@@ -138,6 +139,7 @@ export function createForegroundReplayGuardState(
 
   function handleAppStateChange(state: AppStateStatus): void {
     if (state === 'background') {
+      isBackgrounded = true;
       clearInactiveStopTimeout();
       clearResumeTimeout();
       stopIfNeeded();
@@ -155,6 +157,7 @@ export function createForegroundReplayGuardState(
     }
 
     if (state === 'active') {
+      isBackgrounded = false;
       clearInactiveStopTimeout();
       if (stoppedByGuard && resumeTimeout === null && !restartInFlight) {
         resumeTimeout = setTimeout(() => {
