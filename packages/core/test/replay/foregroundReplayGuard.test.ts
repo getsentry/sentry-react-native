@@ -22,6 +22,21 @@ function createDeps(replayId: string | null = 'active-replay-id'): ForegroundRep
   };
 }
 
+/** A promise whose resolution is controlled from outside, to pin down in-flight timing precisely. */
+function createDeferred<T = void>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (error: unknown) => void;
+} {
+  let resolve!: (value: T) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 describe('createForegroundReplayGuardState', () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -214,6 +229,72 @@ describe('createForegroundReplayGuardState', () => {
     });
   });
 
+  describe('when the app backgrounds while a scheduled restart is already in flight', () => {
+    it('stops the newly-started replay once the in-flight restart resolves', async () => {
+      // Arrange
+      const deps = createDeps('active-replay-id');
+      const startDeferred = createDeferred<void>();
+      deps.startReplayBuffering.mockReturnValue(startDeferred.promise);
+      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
+      handleAppStateChange('background');
+      handleAppStateChange('active');
+      jest.advanceTimersByTime(1000);
+      expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
+
+      // Act: background again while the restart is still in flight - must not
+      // be missed just because `startReplayBuffering()` hasn't resolved yet.
+      deps.getCurrentReplayId.mockReturnValue('new-replay-id');
+      handleAppStateChange('background');
+      expect(deps.stopReplay).toHaveBeenCalledTimes(1);
+
+      startDeferred.resolve();
+      await startDeferred.promise;
+      await Promise.resolve();
+
+      // Assert: the just-restarted session gets stopped instead of left running unprotected.
+      expect(deps.stopReplay).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not double-schedule a restart for an active event received while restarting', () => {
+      // Arrange
+      const deps = createDeps('active-replay-id');
+      const startDeferred = createDeferred<void>();
+      deps.startReplayBuffering.mockReturnValue(startDeferred.promise);
+      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
+      handleAppStateChange('background');
+      handleAppStateChange('active');
+      jest.advanceTimersByTime(1000);
+      expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
+
+      // Act: a spurious/duplicate active event while the restart is in flight.
+      handleAppStateChange('active');
+      jest.advanceTimersByTime(1000);
+
+      // Assert
+      expect(deps.startReplayBuffering).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('when stopReplay rejects', () => {
+    it('does not schedule a restart on a later active event', async () => {
+      // Arrange
+      const deps = createDeps('active-replay-id');
+      deps.stopReplay.mockReturnValue(Promise.reject(new Error('native error')));
+      jest.spyOn(debug, 'error').mockImplementation(() => {});
+      const { handleAppStateChange } = createForegroundReplayGuardState(1000, deps);
+      handleAppStateChange('background');
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Act
+      handleAppStateChange('active');
+      jest.advanceTimersByTime(1000);
+
+      // Assert: the guard isn't confident replay actually stopped, so it doesn't restart it.
+      expect(deps.startReplayBuffering).not.toHaveBeenCalled();
+    });
+  });
+
   describe('detach', () => {
     it('cancels a pending restart', () => {
       // Arrange
@@ -388,6 +469,24 @@ describe('setupForegroundReplayGuard', () => {
 
     // Assert
     expect(client.on).toHaveBeenCalledWith('close', expect.any(Function));
+  });
+
+  it('defaults the restart delay to 1000ms when not given', () => {
+    // Arrange
+    jest.useFakeTimers();
+    const { setup, client, native, invalidateCachedReplayId, simulateAppStateChange } = setUp();
+
+    // Act
+    setup(client as unknown as Client, undefined, native, invalidateCachedReplayId);
+    simulateAppStateChange('background');
+    simulateAppStateChange('active');
+    jest.advanceTimersByTime(999);
+    expect(native.startReplayBuffering).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(1);
+
+    // Assert
+    expect(native.startReplayBuffering).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
   });
 
   it('invalidates the cached replay id after stopping on background', async () => {
