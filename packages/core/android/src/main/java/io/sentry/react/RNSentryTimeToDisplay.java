@@ -121,12 +121,13 @@ public final class RNSentryTimeToDisplay {
       return;
     }
     try {
+      // Always pass an explicit error code ("SentryReactNative", matching the rest of the module)
+      // so JS receives a stable code. Without a code, reject(String, Throwable) would treat the
+      // message as the code and reject(String) would fall back to the generic "EUNSPECIFIED".
       if (cause != null) {
-        promise.reject(message, cause);
+        promise.reject("SentryReactNative", message, cause);
       } else {
-        // Use the coded overload rather than the deprecated reject(String) so JS receives a
-        // specific error code instead of the generic "EUNSPECIFIED".
-        promise.reject("SentryTimeToDisplay", message);
+        promise.reject("SentryReactNative", message);
       }
     } catch (Throwable t) { // NOPMD - We don't want to crash the host app
       logger.log(SentryLevel.WARNING, "Failed to reject time to display measurement.", t);

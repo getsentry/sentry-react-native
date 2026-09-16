@@ -119,6 +119,36 @@ class RNSentryTimeToDisplayTest {
         verify(logger).log(eq(SentryLevel.WARNING), any<String>(), any<Throwable>())
     }
 
+    @Test
+    fun `rejectSafely with a cause passes an explicit error code to the coded overload`() {
+        val promise = mock<Promise>()
+        val logger = mock<ILogger>()
+        val settled = AtomicBoolean(false)
+        val cause = RuntimeException("boom")
+
+        RNSentryTimeToDisplay.rejectSafely(promise, settled, "message", cause, logger)
+
+        // The code must be the stable "SentryReactNative" identifier, not the descriptive message -
+        // reject(String, Throwable) would otherwise use the message as the error code.
+        verify(promise, times(1)).reject(eq("SentryReactNative"), eq("message"), eq(cause))
+    }
+
+    @Test
+    fun `resolveSafely swallows failures that are not the already-settled case`() {
+        val promise = mock<Promise>()
+        val logger = mock<ILogger>()
+        val settled = AtomicBoolean(false)
+        // The guard must degrade on any settle failure, not only the literal "already settled"
+        // message - e.g. a torn-down Catalyst instance - so it can never crash the host app.
+        doThrow(IllegalStateException("Tried to access a JS module after the React instance was destroyed"))
+            .whenever(promise)
+            .resolve(any())
+
+        RNSentryTimeToDisplay.resolveSafely(promise, settled, 1.0, logger)
+
+        verify(logger).log(eq(SentryLevel.WARNING), any<String>(), any<Throwable>())
+    }
+
     // End-to-end tests that drive the real getTimeToDisplay path (main-thread Handler post +
     // Choreographer frame callback), so the crashing production code - not just the helpers - is
     // covered.
