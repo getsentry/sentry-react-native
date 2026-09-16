@@ -23,6 +23,8 @@
     replay?.flush(); // flush the buffered replay to Sentry
     ```
 
+- Add per-class Session Replay masking via `maskedViewClasses` / `unmaskedViewClasses` on `mobileReplayIntegration` ([#6725](https://github.com/getsentry/sentry-react-native/pull/6725))
+
 ### Fixes
 
 - Mask React Native `<Image>` in Session Replay on the iOS New Architecture when `maskAllImages` is enabled ([#6726](https://github.com/getsentry/sentry-react-native/pull/6726))

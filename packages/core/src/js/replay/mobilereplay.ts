@@ -134,6 +134,30 @@ export interface MobileReplayOptions {
   excludedViewClasses?: string[];
 
   /**
+   * Array of native view class names to mask during Session Replay.
+   *
+   * Views that are instances of these classes (or subclasses) are redacted, in addition to the
+   * classes implied by `maskAllText`/`maskAllImages`/`maskAllVectors`. Class names are the native
+   * class names (e.g. `'RCTTextView'` on iOS, `'android.widget.TextView'` on Android), not React
+   * component names.
+   *
+   * @default undefined
+   */
+  maskedViewClasses?: string[];
+
+  /**
+   * Array of native view class names to unmask during Session Replay.
+   *
+   * Views that are instances of these classes (or subclasses) are not redacted, taking precedence
+   * over the classes implied by `maskAllText`/`maskAllImages`/`maskAllVectors`. Class names are the
+   * native class names (e.g. `'RCTTextView'` on iOS, `'android.widget.TextView'` on Android), not
+   * React component names.
+   *
+   * @default undefined
+   */
+  unmaskedViewClasses?: string[];
+
+  /**
    * Sets the screenshot strategy used by the Session Replay integration on Android.
    *
    * If your application has strict PII requirements we recommend using `'canvas'`.

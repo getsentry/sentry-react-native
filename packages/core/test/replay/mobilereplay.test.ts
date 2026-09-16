@@ -857,6 +857,28 @@ describe('Mobile Replay Integration', () => {
     });
   });
 
+  describe('per-class masking options', () => {
+    // `client._initNativeSdk` spreads `integration.options` into the native
+    // `mobileReplayOptions` payload, so preserving these arrays on `options` is
+    // what carries them across the bridge to the native per-class masking APIs.
+    it('carries maskedViewClasses and unmaskedViewClasses onto integration options', () => {
+      const integration = mobileReplayIntegration({
+        maskedViewClasses: ['RCTTextView', 'android.widget.TextView'],
+        unmaskedViewClasses: ['RCTImageView'],
+      });
+
+      expect(integration.options.maskedViewClasses).toEqual(['RCTTextView', 'android.widget.TextView']);
+      expect(integration.options.unmaskedViewClasses).toEqual(['RCTImageView']);
+    });
+
+    it('leaves both class lists undefined when not provided', () => {
+      const integration = mobileReplayIntegration();
+
+      expect(integration.options.maskedViewClasses).toBeUndefined();
+      expect(integration.options.unmaskedViewClasses).toBeUndefined();
+    });
+  });
+
   describe('beforeBreadcrumb wrapping (async binary response bodies)', () => {
     let mockDeferBreadcrumbNativeSync: jest.SpiedFunction<typeof scopeSync.deferBreadcrumbNativeSync>;
     let mockSyncBreadcrumbToNative: jest.SpiedFunction<typeof scopeSync.syncBreadcrumbToNative>;
