@@ -78,6 +78,7 @@
     "expo-router": "*",
     "expo-updates": "*",
     "metro": "*",
+    "metro-config": "*",
     "metro-resolver": "*",
     "open": "*",
     "promise": "*",
@@ -94,6 +95,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.7",
+    "@expo/config": "^11.0.8",
+    "@expo/config-types": "^53.0.3",
     "@expo/metro-config": "~0.20.0",
     "@microsoft/api-extractor": "^7.58.7",
     "@mswjs/interceptors": "^0.25.15",
@@ -120,9 +123,12 @@
     "jest-extended": "^4.0.2",
     "madge": "^6.1.0",
     "metro": "0.84.4",
+    "metro-config": "0.84.4",
+    "metro-resolver": "0.84.4",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.56.0",
     "oxlint-tsgolint": "^0.17.4",
+    "promise": "^8.3.0",
     "react": "19.2.3",
     "react-native": "0.87.1",
     "react-test-renderer": "19.2.3",
@@ -169,6 +175,9 @@
       "optional": true
     },
     "metro": {
+      "optional": true
+    },
+    "metro-config": {
       "optional": true
     },
     "metro-resolver": {
