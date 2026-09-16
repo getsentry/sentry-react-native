@@ -68,7 +68,19 @@
     "When bumping make sure to update the version of react, i.e:  https://github.com/facebook/react-native/blob/v0.56.0/package.json"
   ],
   "peerDependencies": {
+    "@babel/core": ">=7.0.0",
+    "@expo/config": "*",
+    "@expo/config-types": "*",
+    "@expo/env": "*",
+    "@react-navigation/native": "*",
+    "dotenv": "*",
     "expo": ">=49.0.0",
+    "expo-router": "*",
+    "expo-updates": "*",
+    "metro": "*",
+    "metro-resolver": "*",
+    "open": "*",
+    "promise": "*",
     "react": ">=17.0.0",
     "react-native": ">=0.65.0"
   },
@@ -129,7 +141,43 @@
     }
   },
   "peerDependenciesMeta": {
+    "@babel/core": {
+      "optional": true
+    },
+    "@expo/config": {
+      "optional": true
+    },
+    "@expo/config-types": {
+      "optional": true
+    },
+    "@expo/env": {
+      "optional": true
+    },
+    "@react-navigation/native": {
+      "optional": true
+    },
+    "dotenv": {
+      "optional": true
+    },
     "expo": {
+      "optional": true
+    },
+    "expo-router": {
+      "optional": true
+    },
+    "expo-updates": {
+      "optional": true
+    },
+    "metro": {
+      "optional": true
+    },
+    "metro-resolver": {
+      "optional": true
+    },
+    "open": {
+      "optional": true
+    },
+    "promise": {
       "optional": true
     }
   }
