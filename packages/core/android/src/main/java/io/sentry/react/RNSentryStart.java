@@ -404,7 +404,9 @@ final class RNSentryStart {
         || replayOptions.getOnErrorSampleRate() != null;
   }
 
-  private static SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
+  // Package-private for unit testing (see RNSentryReplayOptionsTest), matching the other
+  // testable static helpers in this class.
+  static SentryReplayOptions getReplayOptions(@NotNull ReadableMap rnOptions) {
     final SdkVersion replaySdkVersion =
         new SdkVersion(
             RNSentryVersion.REACT_NATIVE_SDK_NAME,
@@ -447,6 +449,25 @@ final class RNSentryStart {
             || rnMobileReplayOptions.getBoolean("maskAllVectors");
     if (redactVectors) {
       androidReplayOptions.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
+    }
+
+    if (rnMobileReplayOptions.hasKey("maskedViewClasses")) {
+      @Nullable
+      final ReadableArray maskedClasses = rnMobileReplayOptions.getArray("maskedViewClasses");
+      if (maskedClasses != null) {
+        for (int i = 0; i < maskedClasses.size(); i++) {
+          androidReplayOptions.addMaskViewClass(maskedClasses.getString(i));
+        }
+      }
+    }
+    if (rnMobileReplayOptions.hasKey("unmaskedViewClasses")) {
+      @Nullable
+      final ReadableArray unmaskedClasses = rnMobileReplayOptions.getArray("unmaskedViewClasses");
+      if (unmaskedClasses != null) {
+        for (int i = 0; i < unmaskedClasses.size(); i++) {
+          androidReplayOptions.addUnmaskViewClass(unmaskedClasses.getString(i));
+        }
+      }
     }
 
     if (rnMobileReplayOptions.hasKey("captureSurfaceViews")) {

@@ -17,6 +17,7 @@ const NATIVE: MockInterface<NativeType> = {
   _processLevel: jest.fn(),
   _serializeObject: jest.fn(),
   _isModuleLoaded: <NativeType['_isModuleLoaded'] & jest.Mock>jest.fn(),
+  _callReplayControl: jest.fn(),
   _setPrimitiveProcessor: jest.fn(),
 
   isNativeAvailable: jest.fn(),
@@ -64,6 +65,12 @@ const NATIVE: MockInterface<NativeType> = {
 
   captureReplay: jest.fn(),
   getCurrentReplayId: jest.fn(),
+  startReplay: jest.fn(),
+  startReplayBuffering: jest.fn(),
+  stopReplay: jest.fn(),
+  pauseReplay: jest.fn(),
+  resumeReplay: jest.fn(),
+  flushReplay: jest.fn(),
 
   crashedLastRun: jest.fn(),
   getNewScreenTimeToDisplay: jest.fn(),
@@ -97,6 +104,12 @@ NATIVE.fetchNativeStackFramesBy.mockReturnValue(null);
 NATIVE.initNativeReactNavigationNewFrameTracking.mockReturnValue(Promise.resolve());
 NATIVE.captureReplay.mockResolvedValue(null);
 NATIVE.getCurrentReplayId.mockReturnValue(null);
+NATIVE.startReplay.mockResolvedValue(undefined);
+NATIVE.startReplayBuffering.mockResolvedValue(undefined);
+NATIVE.stopReplay.mockResolvedValue(undefined);
+NATIVE.pauseReplay.mockResolvedValue(undefined);
+NATIVE.resumeReplay.mockResolvedValue(undefined);
+NATIVE.flushReplay.mockResolvedValue(undefined);
 NATIVE.crashedLastRun.mockResolvedValue(false);
 NATIVE.popTimeToDisplayFor.mockResolvedValue(null);
 NATIVE.getNewScreenTimeToDisplay.mockResolvedValue(null);

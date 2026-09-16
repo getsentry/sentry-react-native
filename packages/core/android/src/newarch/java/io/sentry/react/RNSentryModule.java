@@ -205,6 +205,36 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void startReplay(Promise promise) {
+    this.impl.startReplay(promise);
+  }
+
+  @Override
+  public void startReplayBuffering(Promise promise) {
+    this.impl.startReplayBuffering(promise);
+  }
+
+  @Override
+  public void stopReplay(Promise promise) {
+    this.impl.stopReplay(promise);
+  }
+
+  @Override
+  public void pauseReplay(Promise promise) {
+    this.impl.pauseReplay(promise);
+  }
+
+  @Override
+  public void resumeReplay(Promise promise) {
+    this.impl.resumeReplay(promise);
+  }
+
+  @Override
+  public void flushReplay(Promise promise) {
+    this.impl.flushReplay(promise);
+  }
+
+  @Override
   public void crashedLastRun(Promise promise) {
     this.impl.crashedLastRun(promise);
   }

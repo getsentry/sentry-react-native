@@ -8,10 +8,29 @@
 
 ## Unreleased
 
+### Features
+
+- Add Session Replay runtime controls to start, stop, and manage recording manually ([#6703](https://github.com/getsentry/sentry-react-native/pull/6703))
+  - Use `Sentry.getReplay()` to access the active replay and control it at runtime with the same API on iOS, Android, and Web:
+
+    ```js
+    const replay = Sentry.getReplay();
+    replay?.start(); // start recording a session replay
+    replay?.startBuffering(); // start recording in buffering mode
+    replay?.stop(); // stop recording
+    replay?.pause(); // pause recording (no-op on Web)
+    replay?.resume(); // resume a paused recording (no-op on Web)
+    replay?.flush(); // flush the buffered replay to Sentry
+    ```
+
+- Add per-class Session Replay masking via `maskedViewClasses` / `unmaskedViewClasses` on `mobileReplayIntegration` ([#6725](https://github.com/getsentry/sentry-react-native/pull/6725))
+
 ### Fixes
 
 - Prevent a fatal `JavaCallback was already settled` crash from `getNewScreenTimeToDisplay` under rapid navigation on Android ([#6722](https://github.com/getsentry/sentry-react-native/pull/6722))
+- Mask React Native `<Image>` in Session Replay on the iOS New Architecture when `maskAllImages` is enabled ([#6726](https://github.com/getsentry/sentry-react-native/pull/6726))
 - Background root spans (app-start, expo-updates) no longer overwrite the native propagation context of an active navigation trace ([#6720](https://github.com/getsentry/sentry-react-native/pull/6720))
+- Honor the host app's pinned `ndkVersion` on Android instead of letting AGP download its own default NDK for the module's native code ([#6724](https://github.com/getsentry/sentry-react-native/pull/6724))
 
 ## 8.26.0
 

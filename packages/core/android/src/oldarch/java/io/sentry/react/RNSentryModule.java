@@ -205,6 +205,36 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void startReplay(Promise promise) {
+    this.impl.startReplay(promise);
+  }
+
+  @ReactMethod
+  public void startReplayBuffering(Promise promise) {
+    this.impl.startReplayBuffering(promise);
+  }
+
+  @ReactMethod
+  public void stopReplay(Promise promise) {
+    this.impl.stopReplay(promise);
+  }
+
+  @ReactMethod
+  public void pauseReplay(Promise promise) {
+    this.impl.pauseReplay(promise);
+  }
+
+  @ReactMethod
+  public void resumeReplay(Promise promise) {
+    this.impl.resumeReplay(promise);
+  }
+
+  @ReactMethod
+  public void flushReplay(Promise promise) {
+    this.impl.flushReplay(promise);
+  }
+
+  @ReactMethod
   public void crashedLastRun(Promise promise) {
     this.impl.crashedLastRun(promise);
   }

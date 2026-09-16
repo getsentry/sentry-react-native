@@ -145,6 +145,8 @@ export {
 export type { TimeToDisplayProps, ExpoRouter, ExpoRouterErrorBoundaryProps, ExpoImage, ExpoAsset } from './tracing';
 
 export { Mask, Unmask } from './replay/CustomMask';
+export { getReplay } from './replay/getReplay';
+export type { Replay } from './replay/replayInterface';
 
 /** @deprecated The `FeedbackButton` component will be removed in a future major version. */
 export { FeedbackButton } from './feedback/FeedbackButton';
