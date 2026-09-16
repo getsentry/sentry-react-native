@@ -83,6 +83,36 @@ switch (fetch) {
     });
     break;
   }
+  case 'replayById': {
+    // Assert a replay directly by its id, without going through an event. Used
+    // by the flush path (startBuffering() + flush()), where the app surfaces
+    // getReplay().getReplayId() itself, so no error event carries a replay_id.
+    const normalizedReplayId = replayId.replace(/\-/g, '');
+    const replay = json(fetchFromSentry(`${baseUrl}/replays/${normalizedReplayId}/`));
+    const segment = fetchFromSentry(`${baseUrl}/replays/${normalizedReplayId}/videos/0/`);
+
+    setOutput({
+      replayId: replay.data.id,
+      replayDuration: replay.data.duration,
+      replaySegments: replay.data.count_segments,
+      replayCodec: segment.slice(4, 12)
+    });
+    break;
+  }
+  case 'noReplay': {
+    // Inverse of 'replay': assert the event carries NO replay association, i.e.
+    // recording was not active when it was captured (e.g. after stop()). Used to
+    // prove a runtime control actually halted recording, not just that it did
+    // not crash.
+    const event = json(fetchFromSentry(`${baseUrl}/events/${eventId}/json/`));
+    const rawReplayId = (event.contexts && event.contexts.replay && event.contexts.replay.replay_id)
+      || (event._dsc && event._dsc.replay_id);
+    if (rawReplayId) {
+      throw new Error(`Expected no replay on the event, but found replay_id ${rawReplayId}`);
+    }
+    setOutput({ noReplay: true });
+    break;
+  }
   default:
     throw new Error(`Unknown "fetch" value: '${fetch}'`);
 }

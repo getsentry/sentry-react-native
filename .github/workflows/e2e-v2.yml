@@ -104,7 +104,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
-      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
@@ -323,7 +323,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
-      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"
@@ -420,10 +420,6 @@ jobs:
         with:
           version: ${{env.MAESTRO_VERSION}}
 
-      - name: Install iDB Companion
-        if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
-        run: brew tap facebook/fb && brew install facebook/fb/idb-companion
-
       - uses: ./.github/actions/disk-cleanup
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
 
@@ -460,7 +456,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         run: sudo apt-get update && sudo apt-get install -y ninja-build
 
-      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
         with:
           java-version: "17"

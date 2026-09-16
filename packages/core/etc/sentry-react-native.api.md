@@ -133,7 +133,6 @@ export { browserGlobalHandlersIntegration }
 export { browserLinkedErrorsIntegration }
 
 // Warning: (ae-forgotten-export) The symbol "ReplayConfiguration" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "Replay" needs to be exported by the entry point index.d.ts
 //
 // @public
 export const browserReplayIntegration: (options?: ReplayConfiguration) => Replay;
@@ -369,6 +368,9 @@ export { getIsolationScope }
 // @public
 export function getReactNativeTracingIntegration(client: Client): ReactNativeTracingIntegration | undefined;
 
+// @public
+export function getReplay(): Replay | undefined;
+
 export { getRootSpan }
 
 // @public
@@ -568,6 +570,20 @@ export const reactNavigationIntegration: (input?: Partial<ReactNavigationIntegra
     _setRouteOverrideProvider: (provider: RouteOverrideProvider | undefined) => void;
     options: ReactNavigationIntegrationOptions;
 };
+
+// @public
+export interface Replay extends Integration {
+    flush(options?: {
+        continueRecording?: boolean;
+    }): Promise<void>;
+    getRecordingMode?(): ReplayRecordingMode | undefined;
+    getReplayId(): string | undefined | null;
+    pause(): void;
+    resume(): void;
+    start(): void;
+    startBuffering(): void;
+    stop(): Promise<void>;
+}
 
 // @public
 export function reportFullyDisplayed(): void;

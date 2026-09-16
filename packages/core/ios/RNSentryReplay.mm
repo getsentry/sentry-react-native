@@ -42,6 +42,7 @@
         @"enableViewRendererV2" : replayOptions[@"enableViewRendererV2"] ?: [NSNull null],
         @"enableFastViewRendering" : replayOptions[@"enableFastViewRendering"] ?: [NSNull null],
         @"maskedViewClasses" : [RNSentryReplay getReplayRNRedactClasses:replayOptions],
+        @"unmaskedViewClasses" : replayOptions[@"unmaskedViewClasses"] ?: [NSNull null],
         @"includedViewClasses" : includedViewClasses ?: [NSNull null],
         @"excludedViewClasses" : excludedViewClasses ?: [NSNull null],
         // Forwarded so the native SDK emits the rrweb options event that tells the
@@ -67,10 +68,27 @@
     }
     if ([replayOptions[@"maskAllImages"] boolValue] == YES) {
         [classesToRedact addObject:@"RCTImageView"];
+        // New Architecture (Fabric) renders <Image> as RCTImageComponentView, which is
+        // neither a UIImageView subclass nor named RCTImageView, so the old-arch class
+        // name alone leaves images unmasked. Resolved via NSClassFromString on Fabric;
+        // harmlessly dropped on the old architecture where RCTImageView applies.
+        [classesToRedact addObject:@"RCTImageComponentView"];
     }
     if ([replayOptions[@"maskAllText"] boolValue] == YES) {
         [classesToRedact addObject:@"RCTTextView"];
         [classesToRedact addObject:@"RCTParagraphComponentView"];
+    }
+
+    // Append user-supplied classes so per-class masking applies on top of the
+    // maskAll* defaults. Class names are resolved via NSClassFromString by the
+    // native SDK's SentryReplayOptions(dictionary:) initializer.
+    id userMaskedViewClasses = replayOptions[@"maskedViewClasses"];
+    if ([userMaskedViewClasses isKindOfClass:[NSArray class]]) {
+        for (id className in userMaskedViewClasses) {
+            if ([className isKindOfClass:[NSString class]]) {
+                [classesToRedact addObject:className];
+            }
+        }
     }
 
     return classesToRedact;

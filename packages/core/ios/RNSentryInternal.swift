@@ -142,6 +142,30 @@ import Foundation
         SentrySDK.internal.replay.capture()
     }
 
+    @_spi(Private) @objc public static func startReplay() {
+        SentrySDK.internal.replay.start()
+    }
+
+    @_spi(Private) @objc public static func startReplayBuffering() {
+        SentrySDK.internal.replay.startBuffering()
+    }
+
+    @_spi(Private) @objc public static func stopReplay() {
+        SentrySDK.internal.replay.stop()
+    }
+
+    @_spi(Private) @objc public static func pauseReplay() {
+        SentrySDK.internal.replay.pause()
+    }
+
+    @_spi(Private) @objc public static func resumeReplay() {
+        SentrySDK.internal.replay.resume()
+    }
+
+    @_spi(Private) @objc public static func flushReplay() {
+        SentrySDK.internal.replay.flush()
+    }
+
     @_spi(Private) @objc public static var replayId: String? {
         SentrySDK.internal.replay.replayId
     }
@@ -164,6 +188,12 @@ import Foundation
     }
     #else
     @_spi(Private) @objc public static func captureReplay() -> Bool { false }
+    @_spi(Private) @objc public static func startReplay() {}
+    @_spi(Private) @objc public static func startReplayBuffering() {}
+    @_spi(Private) @objc public static func stopReplay() {}
+    @_spi(Private) @objc public static func pauseReplay() {}
+    @_spi(Private) @objc public static func resumeReplay() {}
+    @_spi(Private) @objc public static func flushReplay() {}
     @_spi(Private) @objc public static var replayId: String? { nil }
     @_spi(Private) @objc public static func setReplayRedactContainerClass(_ containerClass: AnyClass) {}
     @_spi(Private) @objc public static func setReplayIgnoreContainerClass(_ containerClass: AnyClass) {}
@@ -246,4 +276,25 @@ import Foundation
     ) -> [String: Any]? { nil }
     @_spi(Private) @objc public static func discardProfiler(forTrace traceId: SentryId) {}
     #endif
+
+    // MARK: - Scope propagation context
+
+    // Note: sampled and sampleRand from the JS propagation context are not applied here.
+    // SentrySDK.internal.setTrace only accepts traceId/spanId; wiring sampling fields
+    // through would require a sentry-cocoa API change.
+    @_spi(Private) @objc public static func setCurrentScopePropagationContext(traceId: String, spanId: String) {
+        // JS traceId is a 32-char hex string without hyphens; SentryId(uuidString:) requires
+        // the standard hyphenated UUID format (8-4-4-4-12), otherwise it silently produces
+        // an empty SentryId and trace linking breaks.
+        let hyphenated: String
+        if traceId.count == 32 {
+            let s = traceId
+            hyphenated = "\(s.prefix(8))-\(s.dropFirst(8).prefix(4))-\(s.dropFirst(12).prefix(4))-\(s.dropFirst(16).prefix(4))-\(s.dropFirst(20))"
+        } else {
+            hyphenated = traceId
+        }
+        let sentryTraceId = SentryId(uuidString: hyphenated)
+        let sentrySpanId = SpanId(value: spanId)
+        SentrySDK.internal.setTrace(sentryTraceId, spanId: sentrySpanId)
+    }
 }

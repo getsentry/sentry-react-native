@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+jsEngine: graaljs
+---
+# Inverse of assertReplay.yml: waits for the most recently captured event, then
+# asserts it carries NO replay association. Used to prove a runtime control
+# (e.g. stop()) actually halted recording, rather than only not crashing.
+- extendedWaitUntil:
+    visible:
+      id: "eventId"
+    timeout: 60_000 # 60 seconds
+
+- copyTextFrom:
+    id: "eventId"
+- assertTrue: ${maestro.copiedText}
+
+- runScript:
+    file: sentryApi.js
+    env:
+      fetch: noReplay
+      eventId: ${maestro.copiedText}
+      sentryAuthToken: ${SENTRY_AUTH_TOKEN}
+
+- assertTrue: ${output.noReplay}

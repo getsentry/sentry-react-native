@@ -6,13 +6,13 @@ import type {
   ErrorEvent,
   Event,
   EventHint,
-  Integration,
   Metric,
 } from '@sentry/core';
 
 import { debug } from '@sentry/core';
 
 import type { ResolvedNetworkOptions } from './networkUtils';
+import type { Replay } from './replayInterface';
 
 import { isHardCrash } from '../misc';
 import { deferBreadcrumbNativeSync, syncBreadcrumbToNative } from '../scopeSync';
@@ -132,6 +132,30 @@ export interface MobileReplayOptions {
    * @platform ios
    */
   excludedViewClasses?: string[];
+
+  /**
+   * Array of native view class names to mask during Session Replay.
+   *
+   * Views that are instances of these classes (or subclasses) are redacted, in addition to the
+   * classes implied by `maskAllText`/`maskAllImages`/`maskAllVectors`. Class names are the native
+   * class names (e.g. `'RCTTextView'` on iOS, `'android.widget.TextView'` on Android), not React
+   * component names.
+   *
+   * @default undefined
+   */
+  maskedViewClasses?: string[];
+
+  /**
+   * Array of native view class names to unmask during Session Replay.
+   *
+   * Views that are instances of these classes (or subclasses) are not redacted, taking precedence
+   * over the classes implied by `maskAllText`/`maskAllImages`/`maskAllVectors`. Class names are the
+   * native class names (e.g. `'RCTTextView'` on iOS, `'android.widget.TextView'` on Android), not
+   * React component names.
+   *
+   * @default undefined
+   */
+  unmaskedViewClasses?: string[];
 
   /**
    * Sets the screenshot strategy used by the Session Replay integration on Android.
@@ -274,7 +298,7 @@ function mergeOptions(initOptions: Partial<MobileReplayOptions>): MobileReplayOp
   return merged;
 }
 
-type MobileReplayIntegration = Integration & {
+type MobileReplayIntegration = Replay & {
   options: MobileReplayOptions;
   getReplayId: () => string | null;
 };
@@ -334,6 +358,14 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     cachedReplayId = replayId;
   }
 
+  // Invalidate the cache so the next `getReplayId()` re-reads the native replay
+  // id. The runtime controls (`start`/`startBuffering`/`stop`/`flush`) change the
+  // native replay identity, so a previously cached id would otherwise go stale and
+  // link traces/logs/metrics to an inactive or previous replay.
+  function invalidateCachedReplayId(): void {
+    cachedReplayId = null;
+  }
+
   function getCachedReplayId(): string | null {
     if (cachedReplayId !== null) {
       return cachedReplayId;
@@ -345,7 +377,38 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     return nativeReplayId;
   }
 
-  async function processEvent(event: ErrorEvent, hint: EventHint): Promise<ErrorEvent> {
+  // Run a native control that changes the replay identity (`stop`/`flush`) and
+  // invalidate the cached id whether the native call resolves or rejects, then
+  // preserve the original outcome for the caller. On failure the native replay
+  // identity is unknown, so dropping the cache and letting the next
+  // `getReplayId()` re-read from native is always safe and prevents a stale id
+  // from lingering.
+  function settleAndInvalidateReplayId(promise: Promise<void>): Promise<void> {
+    return promise.then(invalidateCachedReplayId, (error: unknown) => {
+      invalidateCachedReplayId();
+      throw error;
+    });
+  }
+
+  // Error `sampleRate` sampling runs AFTER `beforeSend` in `@sentry/core`
+  // (since 10.70.0, getsentry/sentry-javascript#22819). Flushing the buffered
+  // replay inside `beforeSend` therefore uploads a replay even for errors that
+  // are then dropped by `sampleRate`, orphaning the replay (issue #6598).
+  //
+  // The work is split in two:
+  //   1. `tagEventWithReplayId` runs in the `beforeSend` wrapper and only links
+  //      the event to the buffered replay id (no flush).
+  //   2. `flushReplayForSentEvent` runs in `afterSendEvent`, which fires only
+  //      for events that survive sampling and are actually sent, and performs
+  //      the native flush there.
+  //
+  // Trade-off: the link is tagged optimistically from the buffered id before the
+  // native `replaysOnErrorSampleRate` roll (which still happens at flush time in
+  // `captureReplay`). If that roll misses, the event carries a `replay_id` for a
+  // replay that is never uploaded. A fully-correct fix requires the native SDKs
+  // to decouple the on-error sampling decision from the buffer upload.
+
+  function tagEventWithReplayId(event: ErrorEvent, hint: EventHint): ErrorEvent {
     const hasException = event.exception?.values && event.exception.values.length > 0;
     if (!hasException) {
       // Event is not an error, will not capture replay
@@ -370,39 +433,58 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       }
     }
 
-    const replayId = await NATIVE.captureReplay(isHardCrash(event));
+    // Read the buffered replay id WITHOUT flushing. The native bridge returns
+    // the id assigned when recording started (buffer or full session), so the
+    // event can be linked to the replay that will be flushed after sampling.
+    const replayId = NATIVE.getCurrentReplayId();
     if (replayId) {
       updateCachedReplayId(replayId);
-      debug.log(
-        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Captured recording replay ${replayId} for event ${event.event_id}.`,
-      );
       // Add replay_id to error event contexts to link replays to events/traces
       event.contexts = event.contexts || {};
       event.contexts.replay = {
         ...event.contexts.replay,
         replay_id: replayId,
       };
+      debug.log(
+        `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} linked replay ${replayId} to event ${event.event_id}; flush deferred until after sampling.`,
+      );
     } else {
-      // Check if there's an ongoing recording and update cache if found
-      const recordingReplayId = NATIVE.getCurrentReplayId();
-      if (recordingReplayId) {
-        updateCachedReplayId(recordingReplayId);
-        debug.log(
-          `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} assign already recording replay ${recordingReplayId} for event ${event.event_id}.`,
-        );
-        // Add replay_id to error event contexts to link replays to events/traces
-        event.contexts = event.contexts || {};
-        event.contexts.replay = {
-          ...event.contexts.replay,
-          replay_id: recordingReplayId,
-        };
-      } else {
-        updateCachedReplayId(null);
-        debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${event.event_id}.`);
-      }
+      updateCachedReplayId(null);
+      debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} no active recording for event ${event.event_id}.`);
     }
 
     return event;
+  }
+
+  async function flushReplayForSentEvent(event: Event): Promise<void> {
+    const eventId = event.event_id;
+    // Only flush for events that were linked to a buffered replay in
+    // `beforeSend`. The link lives on the event itself, so no shared bookkeeping
+    // is needed: events dropped by sampling never reach this hook and cannot
+    // affect the flush decision for other events.
+    if (!eventId || !event.contexts?.replay?.replay_id) {
+      return;
+    }
+
+    try {
+      const replayId = await NATIVE.captureReplay(isHardCrash(event));
+      if (replayId) {
+        updateCachedReplayId(replayId);
+        debug.log(
+          `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} flushed recording replay ${replayId} for sent event ${eventId}.`,
+        );
+      } else {
+        // No replay was uploaded (e.g. an on-error sampling miss). Re-read the
+        // current recording id so the cache stops exposing an id that was never
+        // uploaded; it resolves to the still-active buffer id, or null.
+        updateCachedReplayId(NATIVE.getCurrentReplayId());
+        debug.log(
+          `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} not sampled for event ${eventId} (replaysOnErrorSampleRate).`,
+        );
+      }
+    } catch (error) {
+      debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for sent event ${eventId}`, error);
+    }
   }
 
   function setup(client: Client): void {
@@ -498,32 +580,72 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
         }
       }
       try {
-        return await processEvent(result, hint);
+        return tagEventWithReplayId(result, hint);
       } catch (error) {
-        debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to process event for replay`, error);
+        debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to link event to replay`, error);
         return result;
       }
     };
+
+    // Flush the buffered replay only for events that survive sampling. This hook
+    // fires after the error `sampleRate` roll in `@sentry/core`, so an error
+    // dropped by sampling never triggers a replay upload (issue #6598).
+    client.on('afterSendEvent', (event: Event) => {
+      flushReplayForSentEvent(event).then(undefined, () => {
+        // errors are logged inside flushReplayForSentEvent
+      });
+    });
   }
 
   function getReplayId(): string | null {
     return getCachedReplayId();
   }
 
-  // TODO: When adding manual API, ensure overlap with the web replay so users can use the same API interchangeably
-  // https://github.com/getsentry/sentry-javascript/blob/develop/packages/replay-internal/src/integration.ts#L45
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     setup,
     options: options,
     getReplayId: getReplayId,
+    start: () => fireReplayControl(NATIVE.startReplay().then(invalidateCachedReplayId), 'start'),
+    startBuffering: () =>
+      fireReplayControl(NATIVE.startReplayBuffering().then(invalidateCachedReplayId), 'startBuffering'),
+    stop: () => settleAndInvalidateReplayId(NATIVE.stopReplay()),
+    pause: () => fireReplayControl(NATIVE.pauseReplay(), 'pause'),
+    resume: () => fireReplayControl(NATIVE.resumeReplay(), 'resume'),
+    flush: (options?: { continueRecording?: boolean }) => {
+      // The native `flushReplay()` always keeps recording after the flush (a
+      // buffered replay is converted to a session and continues), which matches
+      // the web default of `continueRecording: true`. When the caller opts out,
+      // stop the replay once the flush has completed.
+      const flushed = NATIVE.flushReplay();
+      const settled = options?.continueRecording === false ? flushed.then(() => NATIVE.stopReplay()) : flushed;
+      return settleAndInvalidateReplayId(settled);
+    },
   };
 };
+
+/**
+ * Runs a fire-and-forget replay control (`start`/`startBuffering`/`pause`/
+ * `resume`) whose public signature is synchronous (`void`) to match the web
+ * Replay API. The underlying native call is async, so we swallow and log any
+ * rejection here to avoid an unhandled promise rejection.
+ */
+function fireReplayControl(promise: Promise<void>, method: string): void {
+  promise.then(undefined, (error: unknown) => {
+    debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to ${method} replay`, error);
+  });
+}
 
 const mobileReplayIntegrationNoop = (): MobileReplayIntegration => {
   return {
     name: MOBILE_REPLAY_INTEGRATION_NAME,
     options: defaultOptions,
     getReplayId: () => null, // Mock implementation for noop version
+    start: () => {},
+    startBuffering: () => {},
+    stop: () => Promise.resolve(),
+    pause: () => {},
+    resume: () => {},
+    flush: () => Promise.resolve(),
   };
 };

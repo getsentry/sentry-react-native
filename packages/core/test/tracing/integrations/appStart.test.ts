@@ -47,7 +47,7 @@ import {
   SEMANTIC_ATTRIBUTE_APP_VITALS_START_TYPE,
   SEMANTIC_ATTRIBUTE_APP_VITALS_START_VALUE,
 } from '../../../src/js/tracing/semanticAttributes';
-import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_MAIN } from '../../../src/js/tracing/span';
+import { SPAN_THREAD_NAME, SPAN_THREAD_NAME_MAIN, startIdleNavigationSpan } from '../../../src/js/tracing/span';
 import { getTimeOriginMilliseconds } from '../../../src/js/tracing/utils';
 import { RN_GLOBAL_OBJ } from '../../../src/js/utils/worldwide';
 import { NATIVE } from '../../../src/js/wrapper';
@@ -69,6 +69,7 @@ jest.mock('../../../src/js/wrapper', () => {
       fetchNativeFramesDelay: jest.fn(() => Promise.resolve(null)),
       disableNativeFramesTracking: jest.fn(() => Promise.resolve()),
       enableNativeFramesTracking: jest.fn(() => Promise.resolve()),
+      setCurrentScopePropagationContext: jest.fn(),
       enableNative: true,
     },
   };
@@ -706,6 +707,38 @@ describe('App Start Integration', () => {
         }),
       );
       expect((actualEvent as TransactionEvent)?.measurements?.[APP_START_COLD_MEASUREMENT]).toBeDefined();
+    });
+
+    it('does not overwrite the native propagation context of an active navigation span', () => {
+      const client = new TestClient({
+        ...getDefaultTestClientOptions(),
+        enableAppStartTracking: true,
+        tracesSampleRate: 1.0,
+      });
+      setCurrentClient(client);
+
+      const setCurrentScopePropagationContext = NATIVE.setCurrentScopePropagationContext as jest.Mock;
+
+      // A navigation trace is already active and synced to native.
+      const navSpan = startIdleNavigationSpan({ name: 'test' });
+      const navCtx = navSpan!.spanContext();
+      expect(setCurrentScopePropagationContext).toHaveBeenLastCalledWith(
+        expect.objectContaining({ traceId: navCtx.traceId, spanId: navCtx.spanId }),
+      );
+      const callsBeforeAppStart = setCurrentScopePropagationContext.mock.calls.length;
+
+      // App start is a background/inactive root span - it must not clobber the
+      // native propagation context that already points at the navigation trace.
+      const appStartSpan = startInactiveSpan({
+        name: 'App Start',
+        forceTransaction: true,
+        op: APP_START_COLD_OP,
+      });
+
+      expect(setCurrentScopePropagationContext).toHaveBeenCalledTimes(callsBeforeAppStart);
+
+      appStartSpan.end();
+      navSpan!.end();
     });
 
     it('Adds Cold App Start Span to Active Span', async () => {

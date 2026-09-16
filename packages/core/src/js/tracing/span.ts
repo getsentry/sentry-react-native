@@ -10,6 +10,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_OP,
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SentryNonRecordingSpan,
+  spanIsSampled,
   SPAN_STATUS_ERROR,
   spanToStaticSpanJSON,
 } from '@sentry/core';
@@ -19,6 +20,7 @@ import { startIdleSpan as coreStartIdleSpan } from '@sentry/core/browser';
 import { AppState, Platform } from 'react-native';
 
 import { isRootSpan } from '../utils/span';
+import { NATIVE } from '../wrapper';
 import { adjustTransactionDuration, cancelInBackground } from './onSpanEndUtils';
 import {
   SPAN_ORIGIN_AUTO_INTERACTION,
@@ -133,6 +135,7 @@ export const startIdleSpan = (
   getCurrentScope().setPropagationContext({ traceId: generateTraceId(), sampleRand: Math.random() });
 
   const span = coreStartIdleSpan(startSpanOption, { finalTimeout, idleTimeout });
+  syncPropagationContextToNative(span);
   cancelInBackground(client, span);
   return span;
 };
@@ -204,4 +207,27 @@ export function setMainThreadInfo(spanJSON: SpanJSON): SpanJSON {
   spanJSON.data = spanJSON.data || {};
   spanJSON.data[SPAN_THREAD_NAME] = SPAN_THREAD_NAME_MAIN;
   return spanJSON;
+}
+
+/**
+ * Pushes a root span's propagation context to the native scope so that
+ * native HTTP instrumentation (OkHttp on Android, URLSession on iOS) attaches
+ * the correct traceId and appears in the same trace as the JS transaction.
+ *
+ * Called directly from `startIdleSpan`, right after the idle span (navigation
+ * or user interaction) becomes the active span on the scope. Background roots
+ * like app-start or expo-updates, which are created with plain
+ * `startInactiveSpan({ forceTransaction: true })` and never go through
+ * `startIdleSpan`, are naturally excluded and so never clobber an in-flight
+ * idle span's native context.
+ */
+export function syncPropagationContextToNative(span: Span): void {
+  const ctx = span.spanContext();
+  const propagationCtx = getCurrentScope().getPropagationContext();
+  NATIVE.setCurrentScopePropagationContext({
+    traceId: ctx.traceId,
+    spanId: ctx.spanId,
+    sampled: spanIsSampled(span),
+    sampleRand: propagationCtx.sampleRand ?? Math.random(),
+  });
 }

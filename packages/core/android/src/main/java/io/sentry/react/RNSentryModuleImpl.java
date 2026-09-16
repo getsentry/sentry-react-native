@@ -33,6 +33,7 @@ import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
+import io.sentry.PropagationContext;
 import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
 import io.sentry.SentryAttributes;
@@ -481,17 +482,96 @@ public class RNSentryModuleImpl {
 
   public void captureReplay(boolean isHardCrash, Promise promise) {
     Sentry.getCurrentScopes().getOptions().getReplayController().captureReplay(isHardCrash);
-    promise.resolve(getCurrentReplayId());
+    // Resolve with the scope's replayId, which is populated only when a replay
+    // was actually sent. Returning the controller's buffered id here would make
+    // JS treat an on-error sampling miss as a successful flush, diverging from
+    // iOS (which resolves nil unless a replay was captured).
+    promise.resolve(getReplayIdFromScope());
+  }
+
+  public void startReplay(Promise promise) {
+    try {
+      Sentry.replay().start();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to start replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void startReplayBuffering(Promise promise) {
+    try {
+      Sentry.replay().startBuffering();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to start replay buffering", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void stopReplay(Promise promise) {
+    try {
+      Sentry.replay().stop();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to stop replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void pauseReplay(Promise promise) {
+    try {
+      Sentry.replay().pause();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to pause replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void resumeReplay(Promise promise) {
+    try {
+      Sentry.replay().resume();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to resume replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void flushReplay(Promise promise) {
+    try {
+      Sentry.replay().flush();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to flush replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
   }
 
   public @Nullable String getCurrentReplayId() {
+    // Prefer the replay controller's id: it is assigned when recording starts
+    // (buffer or session) and is therefore available BEFORE a replay is
+    // flushed, so a buffered (on-error) replay can be linked to the event in
+    // `beforeSend`. The scope's replayId is only populated once a replay is
+    // sent, so it stays empty while a buffer replay is recording (issue #6598).
+    final @NotNull SentryId controllerId =
+        Sentry.getCurrentScopes().getOptions().getReplayController().getReplayId();
+    if (!SentryId.EMPTY_ID.equals(controllerId)) {
+      return controllerId.toString();
+    }
+
+    return getReplayIdFromScope();
+  }
+
+  private @Nullable String getReplayIdFromScope() {
     final @Nullable IScope scope = InternalSentrySdk.getCurrentScope();
     if (scope == null) {
       return null;
     }
 
     final @NotNull SentryId id = scope.getReplayId();
-    if (id == SentryId.EMPTY_ID) {
+    if (SentryId.EMPTY_ID.equals(id)) {
       return null;
     }
     return id.toString();
@@ -675,6 +755,25 @@ public class RNSentryModuleImpl {
   public boolean setActiveSpanId(@Nullable String spanId) {
     RNSentryTimeToDisplay.setActiveSpanId(spanId);
     return true; // The return ensure RN executes the code synchronously
+  }
+
+  public boolean setCurrentScopePropagationContext(@Nullable ReadableMap ctx) {
+    if (ctx == null || !ctx.hasKey("traceId") || !ctx.hasKey("spanId")) {
+      return false;
+    }
+    String traceId = ctx.getString("traceId");
+    String spanId = ctx.getString("spanId");
+    if (traceId == null || spanId == null) {
+      return false;
+    }
+    Double sampleRand = ctx.hasKey("sampleRand") ? ctx.getDouble("sampleRand") : null;
+    Boolean sampled = ctx.hasKey("sampled") ? ctx.getBoolean("sampled") : null;
+
+    PropagationContext propagationContext =
+        PropagationContext.fromExistingTrace(traceId, spanId, null, sampleRand);
+    propagationContext.setSampled(sampled);
+    Sentry.configureScope(scope -> scope.setPropagationContext(propagationContext));
+    return true; // The return ensures RN executes the method synchronously
   }
 
   public void setExtra(String key, String extra) {
