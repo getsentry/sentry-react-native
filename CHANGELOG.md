@@ -31,6 +31,10 @@
 - Background root spans (app-start, expo-updates) no longer overwrite the native propagation context of an active navigation trace ([#6720](https://github.com/getsentry/sentry-react-native/pull/6720))
 - Honor the host app's pinned `ndkVersion` on Android instead of letting AGP download its own default NDK for the module's native code ([#6724](https://github.com/getsentry/sentry-react-native/pull/6724))
 
+### Internal
+
+- Export already-public option and configuration types from the entry point so their full shape is tracked in the API report ([#6731](https://github.com/getsentry/sentry-react-native/pull/6731))
+
 ## 8.26.0
 
 ### Features

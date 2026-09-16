@@ -5,7 +5,7 @@ import { debug, serializeEnvelope } from '@sentry/core';
 import { ReactNativeLibraries } from '../utils/rnlibraries';
 import { createStealthXhr, XHR_READYSTATE_DONE } from '../utils/xhr';
 
-type SpotlightReactNativeIntegrationOptions = {
+export type SpotlightReactNativeIntegrationOptions = {
   /**
    * The URL of the Sidecar instance to connect and forward events to.
    * If not set, Spotlight will try to connect to the Sidecar running on localhost:8969.

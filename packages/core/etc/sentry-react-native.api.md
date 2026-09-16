@@ -149,12 +149,96 @@ export const appStartIntegration: (input?: {
     standalone?: boolean;
 }) => AppStartIntegration;
 
+// @public (undocumented)
+export interface BaseReactNativeOptions {
+    anrProfilingSampleRate?: number;
+    appHangTimeoutInterval?: number;
+    attachAllThreads?: boolean;
+    attachScreenshot?: boolean;
+    attachThreads?: boolean;
+    attachViewHierarchy?: boolean;
+    autoInitializeNativeSdk?: boolean;
+    beforeScreenshot?: (event: Event_2, hint: EventHint) => boolean;
+    enableAnrFingerprinting?: boolean;
+    enableAppHangTracking?: boolean;
+    enableAppStartTracking?: boolean;
+    enableAutoConsoleLogs?: boolean;
+    enableAutoPerformanceTracing?: boolean;
+    enableAutoSessionTracking?: boolean;
+    enableCaptureFailedRequests?: boolean;
+    enableHistoricalTombstoneReporting?: boolean;
+    enableMemoryIntrospection?: boolean;
+    enableMetricKit?: boolean;
+    enableNative?: boolean;
+    enableNativeCrashHandling?: boolean;
+    enableNativeFramesTracking?: boolean;
+    enableNativeNagger?: boolean;
+    enableNdk?: boolean;
+    enableNdkAppHangTracking?: boolean;
+    enableNdkScopeSync?: boolean;
+    enableStallTracking?: boolean;
+    enableTombstone?: boolean;
+    // @internal
+    enableTurboModuleTracking?: boolean;
+    enableUserInteractionTracing?: boolean;
+    enableWatchdogTerminationTracking?: boolean;
+    // Warning: (ae-forgotten-export) The symbol "SharedExperimentsSubset" needs to be exported by the entry point index.d.ts
+    _experiments?: SharedExperimentsSubset & {
+        [key: string]: unknown;
+        replaysSessionSampleRate?: number;
+        replaysOnErrorSampleRate?: number;
+        enableUnhandledCPPExceptionsV2?: boolean;
+        profilingOptions?: ProfilingOptions;
+        androidProfilingOptions?: ProfilingOptions;
+        enableStandaloneAppStartTracing?: boolean;
+    };
+    // @deprecated
+    initialScope?: CaptureContext;
+    logsOrigin?: 'all' | 'js' | 'native';
+    maxCacheItems?: number;
+    maxQueueSize?: number;
+    ndkAppHangTimeoutIntervalMillis?: number;
+    onNativeLog?: (log: NativeLogEntry) => void;
+    onReady?: (response: {
+        didCallNativeInit: boolean;
+    }) => void;
+    patchGlobalPromise?: boolean;
+    profilesSampleRate?: number;
+    propagateTraceparent?: boolean;
+    replaysOnErrorSampleRate?: number;
+    replaysSessionQuality?: SentryReplayQuality;
+    replaysSessionSampleRate?: number;
+    screenshot?: {
+        maskAllText?: boolean;
+        maskAllImages?: boolean;
+        maskedViewClasses?: string[];
+        unmaskedViewClasses?: string[];
+    };
+    sendDefaultPii?: boolean;
+    sessionTrackingIntervalMillis?: number;
+    shutdownTimeout?: number;
+    spotlight?: boolean | string;
+    // @deprecated
+    useThreadsForMessageStack?: boolean;
+}
+
 export { Breadcrumb }
 
-// Warning: (ae-forgotten-export) The symbol "BreadcrumbsOptions" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const breadcrumbsIntegration: (options?: Partial<BreadcrumbsOptions>) => Integration;
+
+// @public (undocumented)
+export interface BreadcrumbsOptions {
+    console: boolean;
+    dom: boolean | {
+        serializeAttribute?: string | string[];
+        maxStringLength?: number;
+    };
+    fetch: boolean;
+    history: boolean;
+    sentry: boolean;
+    xhr: boolean;
+}
 
 export { browserApiErrorsIntegration }
 
@@ -162,8 +246,6 @@ export { browserGlobalHandlersIntegration }
 
 export { browserLinkedErrorsIntegration }
 
-// Warning: (ae-forgotten-export) The symbol "ReplayConfiguration" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const browserReplayIntegration: (options?: ReplayConfiguration) => Replay;
 
@@ -298,10 +380,11 @@ export interface ExpoRouterErrorBoundaryProps {
     retry: () => Promise<void>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ExpoRouterIntegrationOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const expoRouterIntegration: (options?: ExpoRouterIntegrationOptions) => Integration;
+
+// @public (undocumented)
+export type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationIntegration>[0];
 
 // @public
 export const expoUpdatesListenerIntegration: () => Integration;
@@ -326,7 +409,16 @@ export class FeedbackButton extends React_2.Component<FeedbackButtonProps> {
     render(): React_2.ReactNode;
 }
 
-// Warning: (ae-forgotten-export) The symbol "FeedbackFormProps" needs to be exported by the entry point index.d.ts
+// @public
+export interface FeedbackCallbacks {
+    onAddScreenshot: (addScreenshot: (uri: string) => void) => void;
+    onFormClose: () => void;
+    onFormOpen: () => void;
+    onFormSubmitted: () => void;
+    onSubmitError: (error: Error) => void;
+    onSubmitSuccess: (data: FeedbackFormData) => void;
+}
+
 // Warning: (ae-forgotten-export) The symbol "FeedbackFormState" needs to be exported by the entry point index.d.ts
 //
 // @beta
@@ -346,6 +438,79 @@ class FeedbackForm extends React_2.Component<FeedbackFormProps, FeedbackFormStat
 export { FeedbackForm }
 export { FeedbackForm as FeedbackWidget }
 
+// @public
+export interface FeedbackFormProps extends FeedbackGeneralConfiguration, FeedbackTextConfiguration, FeedbackCallbacks, ImagePickerConfiguration {
+    // (undocumented)
+    styles?: FeedbackFormStyles;
+}
+
+// @public
+export interface FeedbackFormStyles {
+    // (undocumented)
+    cancelButton?: ViewStyle;
+    // (undocumented)
+    cancelText?: TextStyle;
+    // (undocumented)
+    container?: ViewStyle;
+    // (undocumented)
+    input?: TextStyle;
+    // (undocumented)
+    label?: TextStyle;
+    // (undocumented)
+    screenshotButton?: ViewStyle;
+    // (undocumented)
+    screenshotContainer?: ViewStyle;
+    // (undocumented)
+    screenshotText?: TextStyle;
+    // (undocumented)
+    screenshotThumbnail?: ImageStyle;
+    // (undocumented)
+    sentryLogo?: ImageStyle;
+    // (undocumented)
+    submitButton?: ViewStyle;
+    // (undocumented)
+    submitText?: TextStyle;
+    // (undocumented)
+    takeScreenshotButton?: ViewStyle;
+    // (undocumented)
+    takeScreenshotText?: TextStyle;
+    // (undocumented)
+    textArea?: TextStyle;
+    // (undocumented)
+    title?: TextStyle;
+    // (undocumented)
+    titleContainer?: ViewStyle;
+}
+
+// @public (undocumented)
+export interface FeedbackFormTheme {
+    accentBackground?: string;
+    accentForeground?: string;
+    background: string;
+    border?: string;
+    feedbackIcon?: string;
+    foreground: string;
+    sentryLogo?: string;
+}
+
+// @public
+export interface FeedbackGeneralConfiguration {
+    autoCorrect?: boolean;
+    enableScreenshot: boolean;
+    enableTakeScreenshot?: boolean;
+    isEmailRequired: boolean;
+    isNameRequired: boolean;
+    shouldValidateEmail: boolean;
+    showBranding: boolean;
+    showEmail: boolean;
+    showName: boolean;
+    spellCheck?: boolean;
+    useSentryUser?: {
+        email: string;
+        name: string;
+    };
+}
+
 // Warning: (ae-forgotten-export) The symbol "FeedbackIntegration" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -357,6 +522,29 @@ export const feedbackIntegration: (initOptions?: Partial<FeedbackFormProps> & {
     themeDark?: Partial<FeedbackFormTheme>;
     enableShakeToReport?: boolean;
 }) => FeedbackIntegration;
+
+// @public
+export interface FeedbackTextConfiguration {
+    addScreenshotButtonLabel: string;
+    cancelButtonLabel: string;
+    captureScreenshotButtonLabel?: string;
+    captureScreenshotError: string;
+    emailError: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    errorTitle: string;
+    formError: string;
+    formTitle: string;
+    genericError: string;
+    isRequiredLabel: string;
+    messageLabel: string;
+    messagePlaceholder?: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    removeScreenshotButtonLabel: string;
+    submitButtonLabel: string;
+    successMessageText: string;
+}
 
 // @public
 export function finishExtendedAppStart(): Promise<void>;
@@ -438,15 +626,22 @@ export { GoogleGenAIClient }
 
 export { GoogleGenAIOptions }
 
-// Warning: (ae-forgotten-export) The symbol "GraphQLReactNativeIntegrationOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function graphqlIntegration(options: GraphQLReactNativeIntegrationOptions): Integration;
 
-// Warning: (ae-forgotten-export) The symbol "HermesProfilingOptions" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface GraphQLReactNativeIntegrationOptions {
+    // (undocumented)
+    endpoints: Array<string | RegExp>;
+}
+
 // @public
 export const hermesProfilingIntegration: (initOptions?: HermesProfilingOptions) => Integration;
+
+// @public (undocumented)
+export interface HermesProfilingOptions {
+    platformProfilers?: boolean;
+}
 
 // @public @deprecated (undocumented)
 export const hideFeedbackButton: () => void;
@@ -454,6 +649,25 @@ export const hideFeedbackButton: () => void;
 export { httpClientIntegration }
 
 export { httpContextIntegration }
+
+// @public (undocumented)
+export interface ImagePicker {
+    // Warning: (ae-forgotten-export) The symbol "ReactNativeImageLibraryOptions" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    launchImageLibrary?: (options: ReactNativeImageLibraryOptions) => Promise<ImagePickerResponse>;
+    // Warning: (ae-forgotten-export) The symbol "ExpoImageLibraryOptions" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ImagePickerResponse" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    launchImageLibraryAsync?: (options?: ExpoImageLibraryOptions) => Promise<ImagePickerResponse>;
+}
+
+// @public
+export interface ImagePickerConfiguration {
+    // (undocumented)
+    imagePicker?: ImagePicker;
+}
 
 export { inboundFiltersIntegration }
 
@@ -485,6 +699,14 @@ export { LangGraphOptions }
 export { lastEventId }
 
 // @public (undocumented)
+export interface LinkedErrorsOptions {
+    // (undocumented)
+    key: string;
+    // (undocumented)
+    limit: number;
+}
+
+// @public (undocumented)
 export const logEnricherIntegration: () => Integration;
 
 export { logger }
@@ -496,11 +718,33 @@ export { Metric }
 
 export { metrics }
 
-// Warning: (ae-forgotten-export) The symbol "MobileReplayOptions" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "MobileReplayIntegration" needs to be exported by the entry point index.d.ts
 //
 // @public
 export const mobileReplayIntegration: (initOptions?: MobileReplayOptions) => MobileReplayIntegration;
+
+// @public (undocumented)
+export interface MobileReplayOptions {
+    beforeErrorSampling?: (event: Event_2, hint: EventHint) => boolean;
+    captureSurfaceViews?: boolean;
+    // @deprecated
+    enableExperimentalViewRenderer?: boolean;
+    enableFastViewRendering?: boolean;
+    enableViewRendererV2?: boolean;
+    excludedViewClasses?: string[];
+    includedViewClasses?: string[];
+    maskAllImages?: boolean;
+    maskAllText?: boolean;
+    maskAllVectors?: boolean;
+    maskedViewClasses?: string[];
+    networkCaptureBodies?: boolean;
+    networkDetailAllowUrls?: (string | RegExp)[];
+    networkDetailDenyUrls?: (string | RegExp)[];
+    networkRequestHeaders?: string[];
+    networkResponseHeaders?: string[];
+    screenshotStrategy?: ScreenshotStrategy;
+    unmaskedViewClasses?: string[];
+}
 
 // @public
 export const modulesLoaderIntegration: () => Integration;
@@ -511,8 +755,6 @@ export function nativeCrash(): void;
 // @public
 export const nativeFramesIntegration: () => Integration;
 
-// Warning: (ae-forgotten-export) The symbol "LinkedErrorsOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const nativeLinkedErrorsIntegration: (options?: Partial<LinkedErrorsOptions>) => Integration;
 
@@ -570,6 +812,16 @@ export const primitiveTagIntegration: () => Integration;
 export { Profiler }
 
 // @public
+export type ProfilingLifecycle = 'trace' | 'manual';
+
+// @public
+export interface ProfilingOptions {
+    lifecycle?: ProfilingLifecycle;
+    profileSessionSampleRate?: number;
+    startOnAppStart?: boolean;
+}
+
+// @public
 export function pushTurboModuleCall(args: {
     name: string;
     method: string;
@@ -599,28 +851,39 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
     sendEnvelope(envelope: Envelope): PromiseLike<TransportMakeRequestResponse>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ReactNativeErrorHandlersOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const reactNativeErrorHandlersIntegration: (options?: Partial<ReactNativeErrorHandlersOptions>) => Integration;
 
 // @public
+export interface ReactNativeErrorHandlersOptions {
+    // (undocumented)
+    onerror: boolean;
+    // (undocumented)
+    onunhandledrejection: boolean;
+    // (undocumented)
+    patchGlobalPromise: boolean;
+}
+
+// @public
 export const reactNativeInfoIntegration: () => Integration;
 
-// Warning: (ae-forgotten-export) The symbol "ReactNativeNavigationOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export const reactNativeNavigationIntegration: (input: ReactNativeNavigationOptions) => Integration;
 
+// @public (undocumented)
+export interface ReactNativeNavigationOptions {
+    enableTabsInstrumentation?: boolean;
+    ignoreEmptyBackNavigationTransactions?: boolean;
+    navigation: unknown;
+    routeChangeTimeoutMs?: number;
+}
+
 // Warning: (ae-forgotten-export) The symbol "ReactNativeTransportOptions" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "BaseReactNativeOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
 export interface ReactNativeOptions extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection'>, BaseReactNativeOptions {
 }
 
-// Warning: (ae-forgotten-export) The symbol "ReactNativeTracingOptions" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export const reactNativeTracingIntegration: (options?: Partial<ReactNativeTracingOptions>) => Integration & {
     options: ReactNativeTracingOptions;
@@ -628,14 +891,41 @@ export const reactNativeTracingIntegration: (options?: Partial<ReactNativeTracin
     setCurrentRoute: (route: string) => void;
 };
 
-// Warning: (ae-forgotten-export) The symbol "ReactNavigationIntegrationOptions" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface ReactNativeTracingOptions {
+    beforeStartSpan?: (options: StartSpanOptions) => StartSpanOptions;
+    enableHTTPTimings: boolean;
+    finalTimeoutMs?: number;
+    idleTimeoutMs?: number;
+    shouldCreateSpanForRequest?(this: void, url: string): boolean;
+    traceFetch: boolean;
+    traceXHR: boolean;
+}
+
+// @public (undocumented)
+export interface ReactNativeWrapperOptions {
+    // Warning: (ae-forgotten-export) The symbol "ProfilerProps" needs to be exported by the entry point index.d.ts
+    profilerProps?: Omit<ProfilerProps, 'updateProps' | 'children' | 'name'>;
+    touchEventBoundaryProps?: TouchEventBoundaryProps;
+}
+
 // @public
 export const reactNavigationIntegration: (input?: Partial<ReactNavigationIntegrationOptions>) => Integration & {
     registerNavigationContainer: (navigationContainerRef: unknown) => void;
     _setRouteOverrideProvider: (provider: RouteOverrideProvider | undefined) => void;
     options: ReactNavigationIntegrationOptions;
 };
+
+// @public (undocumented)
+export interface ReactNavigationIntegrationOptions {
+    enablePrefetchTracking: boolean;
+    enableTimeToInitialDisplay: boolean;
+    enableTimeToInitialDisplayForPreloadedRoutes: boolean;
+    ignoreEmptyBackNavigationTransactions: boolean;
+    routeChangeTimeoutMs: number;
+    useDispatchedActionData: boolean;
+    useFullPathsForNavigationRoutes: boolean;
+}
 
 // @public
 export interface Replay extends Integration {
@@ -652,6 +942,9 @@ export interface Replay extends Integration {
 }
 
 // @public
+export type ReplayConfiguration = Parameters<typeof replayIntegration>[0];
+
+// @public
 export function reportFullyDisplayed(): void;
 
 // @public
@@ -662,7 +955,32 @@ export { rewriteFramesIntegration }
 export { Scope }
 
 // @public
+export interface ScreenshotButtonProps extends ScreenshotButtonTextConfiguration {
+    // (undocumented)
+    styles?: ScreenshotButtonStyles;
+}
+
+// @public
+export interface ScreenshotButtonStyles {
+    // (undocumented)
+    triggerButton?: ViewStyle;
+    // (undocumented)
+    triggerIcon?: ImageStyle;
+    // (undocumented)
+    triggerText?: TextStyle;
+}
+
+// @public
+export interface ScreenshotButtonTextConfiguration {
+    triggerAriaLabel?: string;
+    triggerLabel?: string;
+}
+
+// @public
 export const screenshotIntegration: () => Integration;
+
+// @public
+export type ScreenshotStrategy = 'canvas' | 'pixelCopy';
 
 // @public (undocumented)
 export const SDK_NAME = "sentry.javascript.react-native";
@@ -741,6 +1059,9 @@ export interface SentryNavigationContainerProps {
     theme?: NavigationTheme;
 }
 
+// @public (undocumented)
+export type SentryReplayQuality = 'low' | 'medium' | 'high';
+
 // @public
 export function sentryTraceGesture<GestureT>(
 label: string, gesture: GestureT): GestureT;
@@ -781,10 +1102,13 @@ export { spanIsSampled }
 
 export { spanToJSON }
 
-// Warning: (ae-forgotten-export) The symbol "SpotlightReactNativeIntegrationOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function spotlightIntegration(input?: SpotlightReactNativeIntegrationOptions): Integration;
+
+// @public (undocumented)
+export type SpotlightReactNativeIntegrationOptions = {
+    sidecarUrl?: string;
+};
 
 export { StackFrame }
 
@@ -827,10 +1151,13 @@ export function startTimeToInitialDisplaySpan(options?: Omit<StartSpanOptions, '
     isAutoInstrumented?: boolean;
 }): Span | undefined;
 
-// Warning: (ae-forgotten-export) The symbol "SupabaseReactNativeIntegrationOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function supabaseIntegration(options: SupabaseReactNativeIntegrationOptions): Integration;
+
+// @public (undocumented)
+export type SupabaseReactNativeIntegrationOptions = {
+    supabaseClient: unknown;
+};
 
 export { suppressTracing }
 
@@ -852,8 +1179,6 @@ export function TimeToFullDisplay(props: TimeToDisplayProps): React_2.ReactEleme
 // @public
 export function TimeToInitialDisplay(props: TimeToDisplayProps): React_2.ReactElement;
 
-// Warning: (ae-forgotten-export) The symbol "TouchEventBoundaryProps" needs to be exported by the entry point index.d.ts
-//
 // @public
 export class TouchEventBoundary extends React_2.Component<TouchEventBoundaryProps> {
     constructor(props: TouchEventBoundaryProps);
@@ -868,6 +1193,22 @@ export class TouchEventBoundary extends React_2.Component<TouchEventBoundaryProp
     // (undocumented)
     render(): React_2.ReactNode;
 }
+
+// @public (undocumented)
+export type TouchEventBoundaryProps = {
+    breadcrumbCategory?: string;
+    breadcrumbType?: string;
+    maxComponentTreeSize?: number;
+    ignoreNames?: Array<string | RegExp>;
+    ignoredDisplayNames?: Array<string | RegExp>;
+    children?: React_2.ReactNode;
+    labelName?: string;
+    spanAttributes?: Record<string, SpanAttributeValue>;
+    enableRageTapDetection?: boolean;
+    rageTapThreshold?: number;
+    rageTapTimeWindow?: number;
+    extractTextFromChildren?: boolean;
+};
 
 export { TransactionEvent }
 
@@ -937,8 +1278,6 @@ export function withScope<T>(callback: (scope: Scope) => T): T | undefined;
 // @public
 export const withTouchEventBoundary: (InnerComponent: React_2.ComponentType<any>, boundaryProps?: TouchEventBoundaryProps) => React_2.FunctionComponent;
 
-// Warning: (ae-forgotten-export) The symbol "ReactNativeWrapperOptions" needs to be exported by the entry point index.d.ts
-//
 // @public
 export function wrap<P extends Record<string, unknown>>(RootComponent: React_2.ComponentType<P>, options?: ReactNativeWrapperOptions): React_2.ComponentType<P>;
 
@@ -962,8 +1301,6 @@ export function wrapTurboModule<T extends object>(name: string, module: T | null
 
 // Warnings were encountered during analysis:
 //
-// src/js/feedback/integration.ts:21:5 - (ae-forgotten-export) The symbol "ScreenshotButtonProps" needs to be exported by the entry point index.d.ts
-// src/js/feedback/integration.ts:23:5 - (ae-forgotten-export) The symbol "FeedbackFormTheme" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnativetracing.ts:90:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnavigation.ts:228:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
 

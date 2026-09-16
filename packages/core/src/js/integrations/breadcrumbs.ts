@@ -4,7 +4,7 @@ import { breadcrumbsIntegration as browserBreadcrumbsIntegration } from '@sentry
 
 import { isExpoFetchEnabled, isWeb } from '../utils/environment';
 
-interface BreadcrumbsOptions {
+export interface BreadcrumbsOptions {
   /**
    * Log calls to console.log, console.debug, and so on.
    */

@@ -15,7 +15,7 @@ export const INTEGRATION_NAME = 'ExpoRouter';
 const POLL_INTERVAL_MS = 50;
 const POLL_MAX_DURATION_MS = 5_000;
 
-type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationIntegration>[0];
+export type ExpoRouterIntegrationOptions = Parameters<typeof reactNavigationIntegration>[0];
 
 /**
  * Integration that connects Expo Router with `reactNavigationIntegration` without

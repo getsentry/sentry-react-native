@@ -22,7 +22,7 @@ const INTEGRATION_NAME = 'NativeLinkedErrors';
 const DEFAULT_KEY = 'cause';
 const DEFAULT_LIMIT = 5;
 
-interface LinkedErrorsOptions {
+export interface LinkedErrorsOptions {
   key: string;
   limit: number;
 }

@@ -10,7 +10,7 @@ import { notWeb } from '../utils/environment';
  *
  * See the [Configuration documentation](https://docs.sentry.io/platforms/javascript/session-replay/configuration/) for more information.
  */
-type ReplayConfiguration = Parameters<typeof replayIntegration>[0];
+export type ReplayConfiguration = Parameters<typeof replayIntegration>[0];
 
 // https://github.com/getsentry/sentry-javascript/blob/e00cb04f1bbf494067cd8475d392266ba296987a/packages/replay-internal/src/integration.ts#L109
 const INTEGRATION_NAME = 'Replay';
