@@ -132,6 +132,8 @@ export function createForegroundReplayGuardState(
         },
         (error: unknown) => {
           restartInFlight = false;
+          // stoppedByGuard stays true on purpose: the next 'active' event
+          // retries the restart. Resetting it here would suppress that retry.
           debug.error('[Sentry] Failed to restart replay after returning to the foreground', error);
         },
       );
