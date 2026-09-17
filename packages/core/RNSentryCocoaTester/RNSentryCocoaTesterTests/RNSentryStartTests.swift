@@ -245,6 +245,27 @@ final class RNSentryStartTests: XCTestCase {
         XCTAssertFalse(actualOptions.enableMemoryIntrospection)
     }
 
+    func testShutdownTimeoutMapsMillisecondsToSeconds() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456",
+            // JS passes milliseconds; Cocoa's shutdownTimeInterval is in seconds
+            "shutdownTimeout": 5_000
+        ])
+
+        let actualOptions = SentrySDK.internal.options
+        XCTAssertEqual(actualOptions.shutdownTimeInterval, 5.0)
+    }
+
+    func testShutdownTimeoutDefault() throws {
+        try startFromRN(options: [
+            "dsn": "https://abcd@efgh.ingest.sentry.io/123456"
+        ])
+
+        let actualOptions = SentrySDK.internal.options
+        // Cocoa's default shutdownTimeInterval is 2 seconds
+        XCTAssertEqual(actualOptions.shutdownTimeInterval, 2.0)
+    }
+
     func startFromRN(options: [String: Any]) throws {
         var error: NSError?
         RNSentryStart.start(options: options, error: &error)
