@@ -527,9 +527,8 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     // Initialize the cached replay ID on setup
     cachedReplayId = NATIVE.getCurrentReplayId();
 
-    if (options.avoidForegroundResumeHang) {
+    if (options.avoidForegroundResumeHang)
       setupForegroundReplayGuard(client, options.avoidForegroundResumeHangDelayMs, NATIVE, invalidateCachedReplayId);
-    }
 
     client.on('createDsc', (dsc: DynamicSamplingContext) => {
       if (dsc.replay_id) {
