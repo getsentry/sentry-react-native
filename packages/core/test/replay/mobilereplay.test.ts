@@ -11,6 +11,7 @@ import type {
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { debug } from '@sentry/core';
 
+import { setupForegroundReplayGuard } from '../../src/js/replay/foregroundReplayGuard';
 import { mobileReplayIntegration, serializeNetworkDetailUrlsForNative } from '../../src/js/replay/mobilereplay';
 import { REPLAY_RESOLVED_RESPONSE_BODY_HINT_KEY } from '../../src/js/replay/xhrUtils';
 import * as scopeSync from '../../src/js/scopeSync';
@@ -18,6 +19,7 @@ import * as environment from '../../src/js/utils/environment';
 import { NATIVE } from '../../src/js/wrapper';
 
 jest.mock('../../src/js/wrapper');
+jest.mock('../../src/js/replay/foregroundReplayGuard');
 
 describe('Mobile Replay Integration', () => {
   let mockCaptureReplay: jest.MockedFunction<typeof NATIVE.captureReplay>;
@@ -810,6 +812,29 @@ describe('Mobile Replay Integration', () => {
 
       mockGetCurrentReplayId.mockReturnValue(null);
       expect(integration.getReplayId()).toBeNull();
+    });
+  });
+
+  describe('avoidForegroundResumeHang', () => {
+    it('sets up the foreground replay guard with the configured delay when enabled', () => {
+      const integration = mobileReplayIntegration({
+        avoidForegroundResumeHang: true,
+        avoidForegroundResumeHangDelayMs: 500,
+      });
+      integration.setup?.(mockClient);
+      expect(setupForegroundReplayGuard).toHaveBeenCalledWith(mockClient, 500, NATIVE, expect.any(Function));
+    });
+
+    it('passes the configured delay through as-is, letting setupForegroundReplayGuard default it when undefined', () => {
+      const integration = mobileReplayIntegration({ avoidForegroundResumeHang: true });
+      integration.setup?.(mockClient);
+      expect(setupForegroundReplayGuard).toHaveBeenCalledWith(mockClient, undefined, NATIVE, expect.any(Function));
+    });
+
+    it('does not set up the foreground replay guard by default', () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+      expect(setupForegroundReplayGuard).not.toHaveBeenCalled();
     });
   });
 
