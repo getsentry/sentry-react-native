@@ -725,6 +725,8 @@ export const mobileReplayIntegration: (initOptions?: MobileReplayOptions) => Mob
 
 // @public (undocumented)
 export interface MobileReplayOptions {
+    avoidForegroundResumeHang?: boolean;
+    avoidForegroundResumeHangDelayMs?: number;
     beforeErrorSampling?: (event: Event_2, hint: EventHint) => boolean;
     captureSurfaceViews?: boolean;
     // @deprecated
