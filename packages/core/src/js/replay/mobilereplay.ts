@@ -282,6 +282,8 @@ export interface MobileReplayOptions {
    *
    * @default false
    * @platform ios
+   * @experimental This is a stopgap mitigation and may change or be removed
+   * once the underlying issue is addressed upstream in sentry-cocoa.
    */
   avoidForegroundResumeHang?: boolean;
 
@@ -291,6 +293,8 @@ export interface MobileReplayOptions {
    *
    * @default 1000
    * @platform ios
+   * @experimental This is a stopgap mitigation and may change or be removed
+   * once the underlying issue is addressed upstream in sentry-cocoa.
    */
   avoidForegroundResumeHangDelayMs?: number;
 }
