@@ -1,5 +1,6 @@
 package io.sentry.react
 
+import android.os.SystemClock
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
@@ -46,7 +47,7 @@ class RNSentryAppStartTest {
         logger = mock(ILogger::class.java)
 
         metrics = AppStartMetrics()
-        metrics.appStartTimeSpan.start()
+        metrics.appStartTimeSpan.setStartedAt(SystemClock.uptimeMillis())
         metrics.appStartTimeSpan.stop()
         metricsDataBag = mapOf()
 
