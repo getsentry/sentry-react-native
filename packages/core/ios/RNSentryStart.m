@@ -197,6 +197,15 @@
         }
     }
 
+    // JS `shutdownTimeout` is in milliseconds (matching Android's `setShutdownTimeoutMillis`),
+    // while Cocoa's `shutdownTimeInterval` is an NSTimeInterval in seconds. The Cocoa dictionary
+    // parser only reads `shutdownTimeInterval`, so without this mapping the JS option is ignored on
+    // iOS and the native default is always used.
+    id shutdownTimeoutValue = [mutableOptions valueForKey:@"shutdownTimeout"];
+    if ([shutdownTimeoutValue isKindOfClass:[NSNumber class]]) {
+        sentryOptions.shutdownTimeInterval = [shutdownTimeoutValue doubleValue] / 1000.0;
+    }
+
     return sentryOptions;
 }
 
