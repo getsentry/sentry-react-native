@@ -1,17 +1,10 @@
 import type { Event, EventHint, Integration, Outcome, ParameterizedString, Session, SeverityLevel } from '@sentry/core';
 
-import {
-  Client,
-  createTransport,
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  initAndBind,
-  resolvedSyncPromise,
-  setCurrentClient,
-} from '@sentry/core';
+import { Client, createTransport, initAndBind, resolvedSyncPromise, setCurrentClient } from '@sentry/core';
 
 import type { ReactNativeClientOptions } from '../../src/js/options';
+
+import { clearAllScopes } from '../testutils';
 
 export function getDefaultTestClientOptions(options: Partial<TestClientOptions> = {}): TestClientOptions {
   return {
@@ -19,6 +12,7 @@ export function getDefaultTestClientOptions(options: Partial<TestClientOptions> 
     enabled: true,
     integrations: [],
     sendClientReports: true,
+    traceLifecycle: 'static',
     transport: () =>
       createTransport(
         {
@@ -106,9 +100,7 @@ export function init(options: TestClientOptions): void {
 }
 
 export function setupTestClient(options: Partial<TestClientOptions> = {}): TestClient {
-  getCurrentScope().clear();
-  getIsolationScope().clear();
-  getGlobalScope().clear();
+  clearAllScopes();
 
   const finalOptions = getDefaultTestClientOptions({ tracesSampleRate: 1.0, ...options });
   const client = new TestClient(finalOptions);

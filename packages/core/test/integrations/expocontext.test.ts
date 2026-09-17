@@ -1,4 +1,4 @@
-import { type Client, type Event, getCurrentScope, getGlobalScope, getIsolationScope } from '@sentry/core';
+import { type Client, type Event } from '@sentry/core';
 
 import type { ExpoUpdates } from '../../src/js/utils/expoglobalobject';
 
@@ -12,6 +12,7 @@ import { getExpoDevice } from '../../src/js/utils/expomodules';
 import * as expoModules from '../../src/js/utils/expomodules';
 import { setupTestClient, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
+import { clearAllScopes } from '../testutils';
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
 jest.mock('../../src/js/utils/expomodules');
@@ -20,9 +21,7 @@ describe('Expo Context Integration', () => {
   afterEach(() => {
     jest.clearAllMocks();
 
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
   });
 
   describe('Set Native Context after init()', () => {

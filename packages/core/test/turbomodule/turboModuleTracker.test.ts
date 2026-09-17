@@ -8,6 +8,8 @@ import {
   pushTurboModuleCall,
   relabelTurboModuleCallKind,
 } from '../../src/js/turbomodule/turboModuleTracker';
+// JS v11 removed `Scope.clear()`; `resetScope` mirrors exactly what it reset.
+import { resetScope } from '../testutils';
 
 describe('turboModuleTracker', () => {
   let scope: Scope;
@@ -192,7 +194,7 @@ describe('turboModuleTracker', () => {
     // forked current scope never reach the native SDKs — and native crashes
     // captured during a TurboModule call lose the `turbo_module` attribution.
     const isolation = getIsolationScope();
-    isolation.clear();
+    resetScope(isolation);
 
     const id = pushTurboModuleCall({ name: 'RNSentry', method: 'crash', kind: 'sync' });
 
@@ -205,7 +207,7 @@ describe('turboModuleTracker', () => {
     expect(isolation.getScopeData().tags['turbo_module.method']).toBe('crash');
 
     popTurboModuleCall(id);
-    isolation.clear();
+    resetScope(isolation);
   });
 
   it('is a no-op when popping an unknown id', () => {

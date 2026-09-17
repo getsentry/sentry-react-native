@@ -19,7 +19,7 @@ import {
   setMeasurement,
   SPAN_STATUS_ERROR,
   SPAN_STATUS_OK,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   timestampInSeconds,
   uuid4,
@@ -60,7 +60,7 @@ export function isNearToNow(timestamp: number | undefined): boolean {
  * Uses `setMeasurement` function from @sentry/core.
  */
 export function setSpanDurationAsMeasurement(name: string, span: Span): void {
-  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToJSON(span);
+  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToStaticSpanJSON(span);
   if (!spanEnd || !spanStart) {
     return;
   }
@@ -73,7 +73,7 @@ export function setSpanDurationAsMeasurement(name: string, span: Span): void {
  * Uses `setMeasurement` function from @sentry/core.
  */
 export function setSpanDurationAsMeasurementOnSpan(name: string, span: Span, on: Span): void {
-  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToJSON(span);
+  const { timestamp: spanEnd, start_timestamp: spanStart } = spanToStaticSpanJSON(span);
   if (!spanEnd || !spanStart) {
     return;
   }
@@ -104,7 +104,7 @@ export function setSpanMeasurement(span: Span, key: string, value: number, unit:
  */
 export function getLatestChildSpanEndTimestamp(span: Span): number | undefined {
   const childEndTimestamps = getSpanDescendants(span)
-    .map(span => spanToJSON(span).timestamp)
+    .map(span => spanToStaticSpanJSON(span).timestamp)
     .filter(timestamp => !!timestamp) as number[];
 
   return childEndTimestamps.length ? Math.max(...childEndTimestamps) : undefined;

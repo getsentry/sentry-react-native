@@ -1,18 +1,13 @@
 import type { Span } from '@sentry/core';
 
-import {
-  getCurrentScope,
-  getGlobalScope,
-  getIsolationScope,
-  setCurrentClient,
-  startIdleSpan,
-  startSpan,
-  startSpanManual,
-  timestampInSeconds,
-} from '@sentry/core';
+import { setCurrentClient, startSpan, startSpanManual, timestampInSeconds } from '@sentry/core';
+// `startIdleSpan` moved from the `@sentry/core` root entry to its `browser`
+// subpath in JS v11 (the entry point was split into shared/browser/server).
+import { startIdleSpan } from '@sentry/core/browser';
 
 import { stallTrackingIntegration } from '../../../../src/js/tracing/integrations/stalltracking';
 import { getDefaultTestClientOptions, TestClient } from '../../../mocks/client';
+import { clearAllScopes } from '../../../testutils';
 import { expectNonZeroStallMeasurements, expectStallMeasurements } from './stalltrackingutils';
 
 jest.useFakeTimers({
@@ -35,9 +30,7 @@ describe('StallTracking', () => {
   let client: TestClient;
 
   beforeEach(() => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const options = getDefaultTestClientOptions({
       tracesSampleRate: 1.0,
@@ -229,9 +222,7 @@ describe('StallTracking', () => {
   });
 
   it('does not track stalls for unsampled spans', async () => {
-    getCurrentScope().clear();
-    getIsolationScope().clear();
-    getGlobalScope().clear();
+    clearAllScopes();
 
     const unsampledOptions = getDefaultTestClientOptions({
       tracesSampleRate: 0,

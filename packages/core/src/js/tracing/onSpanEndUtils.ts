@@ -1,7 +1,7 @@
 import type { Client, Event, Span } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 
-import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToJSON, timestampInSeconds } from '@sentry/core';
+import { debug, getSpanDescendants, SPAN_STATUS_ERROR, spanToStaticSpanJSON, timestampInSeconds } from '@sentry/core';
 import { AppState, Platform } from 'react-native';
 
 import { isRootSpan, isSentrySpan } from '../utils/span';
@@ -38,7 +38,7 @@ export function markRootSpanForDiscard(span: Span, reason: SentryDiscardReason):
  * Returns the SDK-side discard reason recorded on a root span, if any.
  */
 export function getRootSpanDiscardReason(span: Span): SentryDiscardReason | undefined {
-  const value = spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE];
+  const value = spanToStaticSpanJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE];
   return typeof value === 'string' ? (value as SentryDiscardReason) : undefined;
 }
 
@@ -81,8 +81,8 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
     }
     unsubscribe();
 
-    const endTimestamp = spanToJSON(span).timestamp;
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const endTimestamp = spanToStaticSpanJSON(span).timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     if (!endTimestamp || !startTimestamp) {
       return;
     }
@@ -106,8 +106,8 @@ function getMeaningfulChildSpans(span: Span): Span[] {
   return children.filter(
     child =>
       child.spanContext().spanId !== span.spanContext().spanId &&
-      spanToJSON(child).op !== 'ui.load.initial_display' &&
-      spanToJSON(child).op !== 'navigation.processing',
+      spanToStaticSpanJSON(child).op !== 'ui.load.initial_display' &&
+      spanToStaticSpanJSON(child).op !== 'navigation.processing',
   );
 }
 
@@ -157,7 +157,7 @@ export const ignoreEmptyBackNavigation = (client: Client | undefined, span: Span
     client,
     span,
     // Only discard if route has been seen before
-    span => spanToJSON(span).data?.['route.has_been_seen'] === true,
+    span => spanToStaticSpanJSON(span).data?.['route.has_been_seen'] === true,
     // Log message and mark the span for discard via the event processor.
     span => {
       debug.log(
@@ -190,7 +190,7 @@ export const ignoreEmptyRouteChangeTransactions = (
     // 2. No route information was set
     // 3. Still being tracked (state listener never called)
     span => {
-      const spanJSON = spanToJSON(span);
+      const spanJSON = spanToStaticSpanJSON(span);
       return (
         spanJSON.description === defaultNavigationSpanName && !spanJSON.data?.['route.name'] && isSpanStillTracked()
       );
@@ -226,7 +226,7 @@ export const onlySampleIfChildSpans = (client: Client, span: Span): void => {
 
     if (children.length <= 1) {
       // Span always has at lest one child, itself
-      debug.log(`Not sampling as ${spanToJSON(span).op} transaction has no child spans.`);
+      debug.log(`Not sampling as ${spanToStaticSpanJSON(span).op} transaction has no child spans.`);
       markRootSpanForDiscard(span, 'no_child_spans');
     }
   });
@@ -256,7 +256,9 @@ export const cancelInBackground = (client: Client, span: Span): void => {
       clearTimeout(inactiveTimeout);
       inactiveTimeout = undefined;
     }
-    debug.log(`Setting ${spanToJSON(span).op} transaction to cancelled because the app is in the background.`);
+    debug.log(
+      `Setting ${spanToStaticSpanJSON(span).op} transaction to cancelled because the app is in the background.`,
+    );
 
     // End still-recording http.client children at the time the app left
     // the foreground, not when the deferred timer fires. On iOS, the JS
@@ -266,7 +268,7 @@ export const cancelInBackground = (client: Client, span: Span): void => {
     const childEndTimestamp = leftForegroundTimestamp ?? timestampInSeconds();
     const children = getSpanDescendants(span);
     for (const child of children) {
-      if (child !== span && child.isRecording() && spanToJSON(child).op === 'http.client') {
+      if (child !== span && child.isRecording() && spanToStaticSpanJSON(child).op === 'http.client') {
         child.setStatus({ code: SPAN_STATUS_ERROR, message: 'cancelled' });
         child.end(childEndTimestamp);
       }
@@ -305,7 +307,7 @@ export const cancelInBackground = (client: Client, span: Span): void => {
         return;
       }
       unsubscribe();
-      debug.log(`Removing AppState listener for ${spanToJSON(span).op} transaction.`);
+      debug.log(`Removing AppState listener for ${spanToStaticSpanJSON(span).op} transaction.`);
       if (inactiveTimeout !== undefined) {
         clearTimeout(inactiveTimeout);
         inactiveTimeout = undefined;

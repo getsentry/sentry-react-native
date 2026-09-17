@@ -1,6 +1,6 @@
 import type { Client, Span } from '@sentry/core';
 
-import { getClient, spanToJSON, startSpan, startSpanManual } from '@sentry/core';
+import { getClient, spanToStaticSpanJSON, startSpan, startSpanManual } from '@sentry/core';
 
 import {
   adjustTransactionDuration,
@@ -141,7 +141,7 @@ describe('onSpanEndUtils', () => {
       ignoreEmptyBackNavigation(client, span);
       span.end();
 
-      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('empty_back_navigation');
+      expect(spanToStaticSpanJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('empty_back_navigation');
       expect(span._sampled).not.toBe(false);
     });
 
@@ -152,7 +152,7 @@ describe('onSpanEndUtils', () => {
       ignoreEmptyBackNavigation(client, span);
       span.end();
 
-      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
+      expect(spanToStaticSpanJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
     });
 
     it('does not mark the span when meaningful child spans exist', () => {
@@ -165,7 +165,7 @@ describe('onSpanEndUtils', () => {
         startSpan({ name: 'meaningful child' }, () => undefined);
       });
 
-      expect(spanToJSON(parent!).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
+      expect(spanToStaticSpanJSON(parent!).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
     });
   });
 
@@ -189,7 +189,7 @@ describe('onSpanEndUtils', () => {
       ignoreEmptyRouteChangeTransactions(client, span, 'Route Change', () => true);
       span.end();
 
-      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('no_route_info');
+      expect(spanToStaticSpanJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('no_route_info');
       expect(span._sampled).not.toBe(false);
     });
 
@@ -201,7 +201,7 @@ describe('onSpanEndUtils', () => {
       ignoreEmptyRouteChangeTransactions(client, span, 'Route Change', () => true);
       span.end();
 
-      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
+      expect(spanToStaticSpanJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBeUndefined();
     });
   });
 
@@ -225,7 +225,7 @@ describe('onSpanEndUtils', () => {
       onlySampleIfChildSpans(client, span);
       span.end();
 
-      expect(spanToJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('no_child_spans');
+      expect(spanToStaticSpanJSON(span).data?.[SENTRY_DISCARD_REASON_ATTRIBUTE]).toBe('no_child_spans');
       expect(span._sampled).not.toBe(false);
     });
   });

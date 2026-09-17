@@ -1,7 +1,7 @@
 import type { Client, Integration, Measurements, MeasurementUnit, Span } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 
-import { debug, getRootSpan, spanIsSampled, spanToJSON, timestampInSeconds } from '@sentry/core';
+import { debug, getRootSpan, spanIsSampled, spanToStaticSpanJSON, timestampInSeconds } from '@sentry/core';
 import { AppState } from 'react-native';
 
 import { STALL_COUNT, STALL_LONGEST_TIME, STALL_TOTAL_TIME } from '../../measurements';
@@ -163,7 +163,7 @@ export const stallTrackingIntegration = ({
 
     // The endTimestamp is always set, but type-wise it's optional
     // https://github.com/getsentry/sentry-javascript/blob/38bd57b0785c97c413f36f89ff931d927e469078/packages/core/src/tracing/sentrySpan.ts#L170
-    const endTimestamp = spanToJSON(rootSpan).timestamp;
+    const endTimestamp = spanToStaticSpanJSON(rootSpan).timestamp;
 
     let statsOnFinish: StallMeasurements | undefined;
     if (isNearToNow(endTimestamp)) {
@@ -232,7 +232,7 @@ export const stallTrackingIntegration = ({
   const _onChildSpanEnd = (childSpan: Span): void => {
     const rootSpan = getRootSpan(childSpan);
 
-    const finalEndTimestamp = spanToJSON(childSpan).timestamp;
+    const finalEndTimestamp = spanToStaticSpanJSON(childSpan).timestamp;
     if (finalEndTimestamp) {
       _markSpanFinish(rootSpan, finalEndTimestamp);
     }

@@ -10,7 +10,7 @@ import {
   SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
   SPAN_STATUS_ERROR,
   SPAN_STATUS_OK,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -82,7 +82,7 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
     manualInitialDisplaySpans.set(activeSpan, true);
   }
 
-  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  const parentSpanId = activeSpan && spanToStaticSpanJSON(activeSpan).span_id;
   const initialDisplay = useCoordinatedDisplay('ttid', parentSpanId, props);
 
   return (
@@ -101,7 +101,7 @@ export function TimeToInitialDisplay(props: TimeToDisplayProps): React.ReactElem
  */
 export function TimeToFullDisplay(props: TimeToDisplayProps): React.ReactElement {
   const activeSpan = getActiveSpan();
-  const parentSpanId = activeSpan && spanToJSON(activeSpan).span_id;
+  const parentSpanId = activeSpan && spanToStaticSpanJSON(activeSpan).span_id;
   const fullDisplay = useCoordinatedDisplay('ttfd', parentSpanId, props);
 
   return (
@@ -226,7 +226,9 @@ export function startTimeToInitialDisplaySpan(
     return undefined;
   }
 
-  const existingSpan = getSpanDescendants(activeSpan).find(span => spanToJSON(span).op === 'ui.load.initial_display');
+  const existingSpan = getSpanDescendants(activeSpan).find(
+    span => spanToStaticSpanJSON(span).op === 'ui.load.initial_display',
+  );
   if (existingSpan) {
     debug.log('[TimeToDisplay] Found existing ui.load.initial_display span.');
     return existingSpan;
@@ -235,7 +237,7 @@ export function startTimeToInitialDisplaySpan(
   const initialDisplaySpan = startInactiveSpan({
     op: 'ui.load.initial_display',
     name: 'Time To Initial Display',
-    startTime: spanToJSON(activeSpan).start_timestamp,
+    startTime: spanToStaticSpanJSON(activeSpan).start_timestamp,
     ...options,
   });
 
@@ -284,13 +286,13 @@ export function startTimeToFullDisplaySpan(
 
   const descendantSpans = getSpanDescendants(activeSpan);
 
-  const initialDisplaySpan = descendantSpans.find(span => spanToJSON(span).op === 'ui.load.initial_display');
+  const initialDisplaySpan = descendantSpans.find(span => spanToStaticSpanJSON(span).op === 'ui.load.initial_display');
   if (!initialDisplaySpan) {
     debug.warn('[TimeToDisplay] No initial display span found to attach ui.load.full_display to.');
     return undefined;
   }
 
-  const existingSpan = descendantSpans.find(span => spanToJSON(span).op === 'ui.load.full_display');
+  const existingSpan = descendantSpans.find(span => spanToStaticSpanJSON(span).op === 'ui.load.full_display');
   if (existingSpan) {
     debug.log('[TimeToDisplay] Found existing ui.load.full_display span.');
     return existingSpan;
@@ -299,7 +301,7 @@ export function startTimeToFullDisplaySpan(
   const fullDisplaySpan = startInactiveSpan({
     op: 'ui.load.full_display',
     name: 'Time To Full Display',
-    startTime: spanToJSON(initialDisplaySpan).start_timestamp,
+    startTime: spanToStaticSpanJSON(initialDisplaySpan).start_timestamp,
     ...options,
   });
   if (!fullDisplaySpan) {
@@ -314,12 +316,12 @@ export function startTimeToFullDisplaySpan(
   });
 
   const timeout = setTimeout(() => {
-    if (spanToJSON(fullDisplaySpan).timestamp) {
+    if (spanToStaticSpanJSON(fullDisplaySpan).timestamp) {
       return;
     }
     fullDisplaySpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
 
-    const fullDisplayEndTimestamp = spanToJSON(initialDisplaySpan).timestamp;
+    const fullDisplayEndTimestamp = spanToStaticSpanJSON(initialDisplaySpan).timestamp;
     captureEndFramesAndAttachToSpan(fullDisplaySpan, fullDisplayEndTimestamp)
       .then(() => {
         debug.log(`[TimeToDisplay] span ${fullDisplaySpan.spanContext().spanId} updated with frame data.`);
@@ -330,7 +332,7 @@ export function startTimeToFullDisplaySpan(
         debug.warn(
           `[TimeToDisplay] Failed to capture end frames for full display span (${fullDisplaySpan.spanContext().spanId}).`,
         );
-        fullDisplaySpan.end(spanToJSON(initialDisplaySpan).timestamp);
+        fullDisplaySpan.end(spanToStaticSpanJSON(initialDisplaySpan).timestamp);
         setSpanDurationAsMeasurement('time_to_full_display', fullDisplaySpan);
       });
 
@@ -377,13 +379,13 @@ export function updateInitialDisplaySpan(
     return;
   }
 
-  if (spanToJSON(span).parent_span_id !== spanToJSON(activeSpan).span_id) {
+  if (spanToStaticSpanJSON(span).parent_span_id !== spanToStaticSpanJSON(activeSpan).span_id) {
     debug.warn('[TimeToDisplay] Initial display span is not a child of current active span.');
     return;
   }
 
-  if (spanToJSON(span).timestamp) {
-    debug.warn(`[TimeToDisplay] ${spanToJSON(span).description} span already ended.`);
+  if (spanToStaticSpanJSON(span).timestamp) {
+    debug.warn(`[TimeToDisplay] ${spanToStaticSpanJSON(span).description} span already ended.`);
     return;
   }
 
@@ -391,7 +393,9 @@ export function updateInitialDisplaySpan(
     .then(() => {
       span.end(frameTimestampSeconds);
       span.setStatus({ code: SPAN_STATUS_OK });
-      debug.log(`[TimeToDisplay] ${spanToJSON(span).description} span updated with end timestamp and frame data.`);
+      debug.log(
+        `[TimeToDisplay] ${spanToStaticSpanJSON(span).description} span updated with end timestamp and frame data.`,
+      );
 
       if (fullDisplayBeforeInitialDisplay.has(activeSpan)) {
         fullDisplayBeforeInitialDisplay.delete(activeSpan);
@@ -443,7 +447,7 @@ export function reportFullyDisplayed(): void {
     return;
   }
   const rootSpan = getRootSpan(activeSpan);
-  const rootSpanId = spanToJSON(rootSpan).span_id;
+  const rootSpanId = spanToStaticSpanJSON(rootSpan).span_id;
   if (rootSpanId && !_imperativeTtfdTimestamps.has(rootSpanId)) {
     if (_imperativeTtfdTimestamps.size >= MAX_IMPERATIVE_TTFD_ENTRIES) {
       const oldestKey = _imperativeTtfdTimestamps.keys().next().value;
@@ -476,8 +480,9 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
 
   const existingInitialDisplaySpan =
     passedInitialDisplaySpan ||
-    getSpanDescendants(activeSpan).find(span => spanToJSON(span).op === 'ui.load.initial_display');
-  const initialDisplayEndTimestamp = existingInitialDisplaySpan && spanToJSON(existingInitialDisplaySpan).timestamp;
+    getSpanDescendants(activeSpan).find(span => spanToStaticSpanJSON(span).op === 'ui.load.initial_display');
+  const initialDisplayEndTimestamp =
+    existingInitialDisplaySpan && spanToStaticSpanJSON(existingInitialDisplaySpan).timestamp;
   if (!initialDisplayEndTimestamp) {
     fullDisplayBeforeInitialDisplay.set(activeSpan, true);
     debug.warn(
@@ -494,7 +499,7 @@ function updateFullDisplaySpan(frameTimestampSeconds: number, passedInitialDispl
     return;
   }
 
-  const spanJSON = spanToJSON(span);
+  const spanJSON = spanToStaticSpanJSON(span);
   if (spanJSON.timestamp) {
     debug.warn(`[TimeToDisplay] ${spanJSON.description} (${spanJSON.span_id}) span already ended.`);
     return;
@@ -678,10 +683,10 @@ async function captureEndFramesAndAttachToSpan(span: Span, spanEndTimestampSecon
 
     attachFrameDataToSpan(span, frameData.startFrames, endFrames);
 
-    const spanStartTimestamp = spanToJSON(span).start_timestamp;
+    const spanStartTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     if (spanStartTimestamp) {
       try {
-        const endTimestamp = spanEndTimestampSeconds || spanToJSON(span).timestamp || Date.now() / 1000;
+        const endTimestamp = spanEndTimestampSeconds || spanToStaticSpanJSON(span).timestamp || Date.now() / 1000;
         const framesDelay = await Promise.race([
           NATIVE.fetchNativeFramesDelay(spanStartTimestamp, endTimestamp),
           new Promise<null>(resolve => setTimeout(() => resolve(null), FETCH_FRAMES_TIMEOUT_MS)),

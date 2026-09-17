@@ -12,7 +12,7 @@ cd "${__dirpath}/../../packages/core"
 
 yalc publish
 
-cd "${__dirpath}/ts3.8-test"
+cd "${__dirpath}/ts5.0-test"
 
 # Add yalc packages (creates .yalc/ directory and updates package.json)
 yalc add @sentry/expo-upload-sourcemaps

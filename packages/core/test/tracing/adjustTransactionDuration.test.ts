@@ -1,4 +1,4 @@
-import { getClient, spanToJSON, startSpanManual } from '@sentry/core';
+import { getClient, spanToStaticSpanJSON, startSpanManual } from '@sentry/core';
 
 import { adjustTransactionDuration } from '../../src/js/tracing/onSpanEndUtils';
 import { setupTestClient } from '../mocks/client';
@@ -34,11 +34,11 @@ describe('adjustTransactionDuration', () => {
     adjustTransactionDuration(client, span, maxDurationMs);
 
     // End the span 120 seconds after it started (exceeds 60s max)
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     span.end(startTimestamp + 120);
 
-    expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
+    expect(spanToStaticSpanJSON(span).status).toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not mark span as deadline_exceeded when duration is within maxDurationMs', () => {
@@ -49,11 +49,11 @@ describe('adjustTransactionDuration', () => {
     adjustTransactionDuration(client, span, maxDurationMs);
 
     // End the span 30 seconds after it started (within 60s max)
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     span.end(startTimestamp + 30);
 
-    expect(spanToJSON(span).status).not.toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
+    expect(spanToStaticSpanJSON(span).status).not.toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not mark span as deadline_exceeded when duration equals maxDurationMs exactly', () => {
@@ -64,11 +64,11 @@ describe('adjustTransactionDuration', () => {
     adjustTransactionDuration(client, span, maxDurationMs);
 
     // End the span exactly 60 seconds after it started
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     span.end(startTimestamp + 60);
 
-    expect(spanToJSON(span).status).not.toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
+    expect(spanToStaticSpanJSON(span).status).not.toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('marks span as deadline_exceeded when duration is negative', () => {
@@ -79,11 +79,11 @@ describe('adjustTransactionDuration', () => {
     adjustTransactionDuration(client, span, maxDurationMs);
 
     // End the span before it started (negative duration)
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     span.end(startTimestamp - 10);
 
-    expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
+    expect(spanToStaticSpanJSON(span).status).toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('correctly handles maxDurationMs in milliseconds not seconds', () => {
@@ -95,11 +95,11 @@ describe('adjustTransactionDuration', () => {
     const maxDurationMs = 600_000;
     adjustTransactionDuration(client, span, maxDurationMs);
 
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     span.end(startTimestamp + 601);
 
-    expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
+    expect(spanToStaticSpanJSON(span).status).toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not mark span when duration is 599 seconds with 600_000ms max', () => {
@@ -111,11 +111,11 @@ describe('adjustTransactionDuration', () => {
     const maxDurationMs = 600_000;
     adjustTransactionDuration(client, span, maxDurationMs);
 
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     span.end(startTimestamp + 599);
 
-    expect(spanToJSON(span).status).not.toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
+    expect(spanToStaticSpanJSON(span).status).not.toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not affect spans from other transactions', () => {
@@ -127,17 +127,17 @@ describe('adjustTransactionDuration', () => {
     adjustTransactionDuration(client, trackedSpan, maxDurationMs);
 
     // End the other span with a duration that exceeds the limit
-    const otherStartTimestamp = spanToJSON(otherSpan).start_timestamp;
+    const otherStartTimestamp = spanToStaticSpanJSON(otherSpan).start_timestamp;
     otherSpan.end(otherStartTimestamp + 120);
 
     // Other span should not be affected by adjustTransactionDuration
-    expect(spanToJSON(otherSpan).status).not.toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(otherSpan).status).not.toBe('deadline_exceeded');
 
     // End tracked span within limits
-    const trackedStartTimestamp = spanToJSON(trackedSpan).start_timestamp;
+    const trackedStartTimestamp = spanToStaticSpanJSON(trackedSpan).start_timestamp;
     trackedSpan.end(trackedStartTimestamp + 30);
 
-    expect(spanToJSON(trackedSpan).status).not.toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(trackedSpan).status).not.toBe('deadline_exceeded');
   });
 
   it('handles very short maxDurationMs values', () => {
@@ -149,10 +149,10 @@ describe('adjustTransactionDuration', () => {
     adjustTransactionDuration(client, span, maxDurationMs);
 
     // End after 1 second (1000ms > 100ms)
-    const startTimestamp = spanToJSON(span).start_timestamp;
+    const startTimestamp = spanToStaticSpanJSON(span).start_timestamp;
     span.end(startTimestamp + 1);
 
-    expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
+    expect(spanToStaticSpanJSON(span).status).toBe('deadline_exceeded');
+    expect(spanToStaticSpanJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 });

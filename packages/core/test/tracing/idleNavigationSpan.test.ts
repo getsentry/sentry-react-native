@@ -1,19 +1,19 @@
 import type { Span } from '@sentry/core';
+import type { Scope } from '@sentry/core';
 import type { AppStateStatus } from 'react-native';
 
 import {
+  _INTERNAL_setSpanForScope,
   getActiveSpan,
   getCurrentScope,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   startSpanManual,
   timestampInSeconds,
 } from '@sentry/core';
 import { AppState } from 'react-native';
 
-import type { ScopeWithMaybeSpan } from '../../src/js/tracing/span';
-
-import { SCOPE_SPAN_FIELD, startIdleNavigationSpan } from '../../src/js/tracing/span';
+import { startIdleNavigationSpan } from '../../src/js/tracing/span';
 import { NATIVE } from '../../src/js/wrapper';
 import { setupTestClient } from '../mocks/client';
 
@@ -102,7 +102,7 @@ describe('startIdleNavigationSpan', () => {
     jest.runAllTimers();
 
     expect(routeTransaction).toBeDefined();
-    expect(spanToJSON(routeTransaction!).status).toBe('cancelled');
+    expect(spanToStaticSpanJSON(routeTransaction!).status).toBe('cancelled');
     expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
   });
 
@@ -121,7 +121,7 @@ describe('startIdleNavigationSpan', () => {
 
     jest.runAllTimers();
 
-    expect(spanToJSON(transaction!).timestamp).toBeDefined();
+    expect(spanToStaticSpanJSON(transaction!).timestamp).toBeDefined();
   });
 
   it('Returns non-recording span when app is already in background', () => {
@@ -181,15 +181,15 @@ describe('startIdleNavigationSpan', () => {
       mockedAppState.setState('inactive');
 
       // Span should still be open — not cancelled immediately
-      expect(spanToJSON(routeTransaction!).status).not.toBe('cancelled');
-      expect(spanToJSON(routeTransaction!).timestamp).toBeUndefined();
+      expect(spanToStaticSpanJSON(routeTransaction!).status).not.toBe('cancelled');
+      expect(spanToStaticSpanJSON(routeTransaction!).timestamp).toBeUndefined();
 
       // Advance past the deferred cancellation timeout (5 seconds)
       jest.advanceTimersByTime(5_000);
 
       // Now the deferred cancellation should have fired
-      expect(spanToJSON(routeTransaction!).status).toBe('cancelled');
-      expect(spanToJSON(routeTransaction!).timestamp).toBeDefined();
+      expect(spanToStaticSpanJSON(routeTransaction!).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(routeTransaction!).timestamp).toBeDefined();
       expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
     });
 
@@ -211,7 +211,7 @@ describe('startIdleNavigationSpan', () => {
       jest.advanceTimersByTime(10_000);
 
       // Span should NOT be cancelled — it's still recording
-      expect(spanToJSON(routeTransaction!).status).not.toBe('cancelled');
+      expect(spanToStaticSpanJSON(routeTransaction!).status).not.toBe('cancelled');
     });
 
     it('Cancels immediately on background even if inactive timeout is pending', () => {
@@ -227,8 +227,8 @@ describe('startIdleNavigationSpan', () => {
       mockedAppState.setState('background');
 
       // Span should be cancelled immediately
-      expect(spanToJSON(routeTransaction!).status).toBe('cancelled');
-      expect(spanToJSON(routeTransaction!).timestamp).toBeDefined();
+      expect(spanToStaticSpanJSON(routeTransaction!).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(routeTransaction!).timestamp).toBeDefined();
       expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
     });
 
@@ -248,7 +248,7 @@ describe('startIdleNavigationSpan', () => {
       // AppState listener should be cleaned up
       expect(mockedAppState.removeSubscription).toHaveBeenCalledTimes(1);
       // Span should not have the cancelled status since it ended normally
-      expect(spanToJSON(routeTransaction!).status).not.toBe('cancelled');
+      expect(spanToStaticSpanJSON(routeTransaction!).status).not.toBe('cancelled');
     });
   });
 
@@ -256,7 +256,7 @@ describe('startIdleNavigationSpan', () => {
     it('ends http.client child at the time the app went inactive, not when the deferred timer fires', () => {
       const navSpan = startIdleNavigationSpan({ name: 'test' });
       const httpSpan = startInactiveSpan({ name: 'GET /api/data', op: 'http.client' });
-      const httpStartTime = spanToJSON(httpSpan).start_timestamp;
+      const httpStartTime = spanToStaticSpanJSON(httpSpan).start_timestamp;
 
       // App goes inactive at a known time (e.g. user presses home on iOS)
       mockedAppState.setState('inactive');
@@ -266,14 +266,14 @@ describe('startIdleNavigationSpan', () => {
       // while the app is in the background, then resumed much later.
       jest.advanceTimersByTime(30_000);
 
-      expect(spanToJSON(navSpan!).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(navSpan!).status).toBe('cancelled');
 
       // The http.client span should be ended at approximately when the app
       // went inactive, NOT 30 seconds later when the timer fired.
-      const httpEndTime = spanToJSON(httpSpan).timestamp!;
+      const httpEndTime = spanToStaticSpanJSON(httpSpan).timestamp!;
       const httpDuration = httpEndTime - httpStartTime;
       expect(httpDuration).toBeLessThan(1);
-      expect(spanToJSON(httpSpan).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(httpSpan).status).toBe('cancelled');
     });
 
     it('uses fresh timestamp after inactive → active → background cycle', () => {
@@ -295,7 +295,7 @@ describe('startIdleNavigationSpan', () => {
       const backgroundTime = timestampInSeconds();
       mockedAppState.setState('background');
 
-      const httpEndTime = spanToJSON(httpSpan).timestamp!;
+      const httpEndTime = spanToStaticSpanJSON(httpSpan).timestamp!;
 
       // The end time should match the background event, not the earlier inactive event.
       // Use toBeCloseTo because timestampInSeconds() may advance slightly between calls.
@@ -315,9 +315,9 @@ describe('startIdleNavigationSpan', () => {
       // App goes directly to background (Android, or iOS without inactive)
       mockedAppState.setState('background');
 
-      expect(spanToJSON(navSpan!).status).toBe('cancelled');
-      expect(spanToJSON(httpSpan).timestamp).toBeDefined();
-      expect(spanToJSON(httpSpan).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(navSpan!).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(httpSpan).timestamp).toBeDefined();
+      expect(spanToStaticSpanJSON(httpSpan).status).toBe('cancelled');
     });
 
     it('preserves already-ended http.client spans when app backgrounds', () => {
@@ -328,16 +328,16 @@ describe('startIdleNavigationSpan', () => {
       httpSpan.setStatus({ code: 1 }); // OK
       httpSpan.end();
 
-      const httpEndTimeBefore = spanToJSON(httpSpan).timestamp;
+      const httpEndTimeBefore = spanToStaticSpanJSON(httpSpan).timestamp;
 
       // App goes to background
       mockedAppState.setState('background');
 
-      expect(spanToJSON(navSpan!).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(navSpan!).status).toBe('cancelled');
 
       // The already-ended http.client span should be untouched
-      expect(spanToJSON(httpSpan).status).toBe('ok');
-      expect(spanToJSON(httpSpan).timestamp).toBe(httpEndTimeBefore);
+      expect(spanToStaticSpanJSON(httpSpan).status).toBe('ok');
+      expect(spanToStaticSpanJSON(httpSpan).timestamp).toBe(httpEndTimeBefore);
     });
 
     it('still cancels non-http.client children when app backgrounds', () => {
@@ -348,11 +348,11 @@ describe('startIdleNavigationSpan', () => {
 
       mockedAppState.setState('background');
 
-      expect(spanToJSON(navSpan!).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(navSpan!).status).toBe('cancelled');
 
       // Non-http.client children should still be cancelled by idle span logic
-      expect(spanToJSON(uiSpan).timestamp).toBeDefined();
-      expect(spanToJSON(uiSpan).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(uiSpan).timestamp).toBeDefined();
+      expect(spanToStaticSpanJSON(uiSpan).status).toBe('cancelled');
     });
   });
 
@@ -375,7 +375,7 @@ describe('startIdleNavigationSpan', () => {
       });
 
       expect(secondSpan).toBe(getActiveSpan());
-      expect(spanToJSON(secondSpan!).parent_span_id).toBeUndefined();
+      expect(spanToStaticSpanJSON(secondSpan!).parent_span_id).toBeUndefined();
     });
 
     it('Starts a new span when current active navigation span is ended', () => {
@@ -390,7 +390,7 @@ describe('startIdleNavigationSpan', () => {
       });
 
       expect(secondSpan).toBe(getActiveSpan());
-      expect(spanToJSON(secondSpan!).parent_span_id).toBeUndefined();
+      expect(spanToStaticSpanJSON(secondSpan!).parent_span_id).toBeUndefined();
     });
 
     it('Starts a new span when current active span is not a navigation span', () => {
@@ -406,7 +406,7 @@ describe('startIdleNavigationSpan', () => {
         name: 'test',
       });
       expect(newSpan).toBe(getActiveSpan());
-      expect(spanToJSON(newSpan!).parent_span_id).toBeUndefined();
+      expect(spanToStaticSpanJSON(newSpan!).parent_span_id).toBeUndefined();
     });
 
     it('Cancels user interaction span during normal navigation', () => {
@@ -426,8 +426,8 @@ describe('startIdleNavigationSpan', () => {
         name: 'test',
       });
 
-      expect(spanToJSON(userInteractionSpan).timestamp).toBeDefined();
-      expect(spanToJSON(userInteractionSpan).status).toBe('cancelled');
+      expect(spanToStaticSpanJSON(userInteractionSpan).timestamp).toBeDefined();
+      expect(spanToStaticSpanJSON(userInteractionSpan).status).toBe('cancelled');
 
       expect(navigationSpan).toBe(getActiveSpan());
     });
@@ -454,8 +454,8 @@ describe('startIdleNavigationSpan', () => {
       );
 
       // User interaction span should NOT be cancelled/ended - preserving it for replay capture
-      expect(spanToJSON(userInteractionSpan).timestamp).toBeUndefined();
-      expect(spanToJSON(userInteractionSpan).status).not.toBe('cancelled');
+      expect(spanToStaticSpanJSON(userInteractionSpan).timestamp).toBeUndefined();
+      expect(spanToStaticSpanJSON(userInteractionSpan).status).not.toBe('cancelled');
 
       expect(navigationSpan).toBeDefined();
       expect(getActiveSpan()).toBe(navigationSpan);
@@ -463,6 +463,8 @@ describe('startIdleNavigationSpan', () => {
   });
 });
 
-export function setActiveSpanOnScope(scope: ScopeWithMaybeSpan, span: Span): void {
-  scope[SCOPE_SPAN_FIELD] = span;
+export function setActiveSpanOnScope(scope: Scope, span: Span): void {
+  // JS v11 stores the active span in a `WeakRef` under `scope.refs.span`; use the
+  // official helper instead of assigning the removed `_sentrySpan` property.
+  _INTERNAL_setSpanForScope(scope, span);
 }

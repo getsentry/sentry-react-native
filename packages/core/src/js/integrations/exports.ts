@@ -42,7 +42,9 @@ export {
   globalHandlersIntegration as browserGlobalHandlersIntegration,
   httpClientIntegration,
   httpContextIntegration,
-  inboundFiltersIntegration,
+  // `inboundFiltersIntegration` was renamed to `eventFiltersIntegration` in JS v11.
+  // Keep the existing public name to avoid breaking the SDK's own API surface.
+  eventFiltersIntegration as inboundFiltersIntegration,
   linkedErrorsIntegration as browserLinkedErrorsIntegration,
   rewriteFramesIntegration,
   extraErrorDataIntegration,

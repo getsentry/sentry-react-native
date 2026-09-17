@@ -11,7 +11,7 @@ import {
   SentryNonRecordingSpan,
   SPAN_STATUS_ERROR,
   spanIsSampled,
-  spanToJSON,
+  spanToStaticSpanJSON,
   startInactiveSpan,
   timestampInSeconds,
 } from '@sentry/core';
@@ -819,6 +819,9 @@ Reporting the app start measurement only and leaving the screen TTID/TTFD anchor
       breakdownParent = {
         op: traceOp,
         origin,
+        // `status` became a required field on `SpanJSON` in JS v11. The breakdown
+        // helpers don't read it (see comment above), so mirror `createSpanJSON`'s default.
+        status: 'ok',
         span_id: event.contexts.trace.span_id,
         trace_id: event.contexts.trace.trace_id,
         start_timestamp: appStartTimestampSeconds,
@@ -903,7 +906,7 @@ Reporting the app start measurement only and leaving the screen TTID/TTFD anchor
       return;
     }
     for (const child of getSpanDescendants(extendedAppStartSpan)) {
-      if (child === extendedAppStartSpan || spanToJSON(child).timestamp !== undefined) {
+      if (child === extendedAppStartSpan || spanToStaticSpanJSON(child).timestamp !== undefined) {
         continue; // the extended span itself, or an already-finished child
       }
       child.setStatus({ code: SPAN_STATUS_ERROR, message: statusMessage });
@@ -968,7 +971,7 @@ Reporting the app start measurement only and leaving the screen TTID/TTFD anchor
       // suppressed) by ending the wrapper span at the current time.
       extendedAppStartSpan.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
       extendedAppStartSpan.end();
-      extendedEndSeconds = spanToJSON(extendedAppStartSpan).timestamp;
+      extendedEndSeconds = spanToStaticSpanJSON(extendedAppStartSpan).timestamp;
     } else {
       // Explicit finish: trim the end to the latest finished child of the extended span (the user's
       // instrumented work), floored at the default app start end so extending never shortens a
@@ -976,7 +979,7 @@ Reporting the app start measurement only and leaving the screen TTID/TTFD anchor
       // wrapper span itself is excluded — it is computed before ending the wrapper, so its
       // finalization-time end doesn't pin the measurement to the `finishExtendedAppStart()` call.
       const defaultEndMs = appStartEndData?.timestampMs || getBundleStartTimestampMs() || 0;
-      const extendedStartMs = (spanToJSON(extendedAppStartSpan).start_timestamp || 0) * 1000;
+      const extendedStartMs = (spanToStaticSpanJSON(extendedAppStartSpan).start_timestamp || 0) * 1000;
       const latestChildEndSeconds = getLatestChildSpanEndTimestamp(extendedAppStartSpan);
       const trimmedEndMs = Math.max(
         latestChildEndSeconds ? latestChildEndSeconds * 1000 : 0,

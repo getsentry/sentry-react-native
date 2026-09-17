@@ -62,7 +62,10 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     const currentUser = {
       useSentryUser: {
         email: this.props?.useSentryUser?.email || this._getUser()?.email || '',
-        name: this.props?.useSentryUser?.name || this._getUser()?.name || '',
+        // `User.name` was removed from the typed interface in JS v11 (it now
+        // only exists via the `[key: string]: unknown` index signature), so
+        // narrow it back to the string it holds.
+        name: this.props?.useSentryUser?.name || (this._getUser()?.name as string | undefined) || '',
       },
     };
 
