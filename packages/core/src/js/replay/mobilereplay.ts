@@ -311,10 +311,7 @@ const defaultOptions: MobileReplayOptions = {
 };
 
 function mergeOptions(initOptions: Partial<MobileReplayOptions>): MobileReplayOptions {
-  const merged = {
-    ...defaultOptions,
-    ...initOptions,
-  };
+  const merged = { ...defaultOptions, ...initOptions };
 
   if (initOptions.enableViewRendererV2 === undefined && initOptions.enableExperimentalViewRenderer !== undefined) {
     merged.enableViewRendererV2 = initOptions.enableExperimentalViewRenderer;
@@ -527,8 +524,9 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     // Initialize the cached replay ID on setup
     cachedReplayId = NATIVE.getCurrentReplayId();
 
-    if (options.avoidForegroundResumeHang)
+    if (options.avoidForegroundResumeHang) {
       setupForegroundReplayGuard(client, options.avoidForegroundResumeHangDelayMs, NATIVE, invalidateCachedReplayId);
+    }
 
     client.on('createDsc', (dsc: DynamicSamplingContext) => {
       if (dsc.replay_id) {
