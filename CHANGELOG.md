@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Honor `shutdownTimeout` on iOS ([#6748](https://github.com/getsentry/sentry-react-native/issues/6748))
+- Honor `shutdownTimeout` on iOS ([#6749](https://github.com/getsentry/sentry-react-native/pull/6749))
 
 ## 8.27.0
 
