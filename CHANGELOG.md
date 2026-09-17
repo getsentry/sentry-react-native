@@ -8,6 +8,9 @@
 
 ## Unreleased
 
+> [!WARNING]
+> iOS native crashes now set `mechanism.synthetic`, taking the mach/signal name out of the grouping hash. Expect a one-time regrouping as your app adopts this version.
+
 ### Features
 
 - Add Session Replay runtime controls to start, stop, and manage recording manually ([#6703](https://github.com/getsentry/sentry-react-native/pull/6703))
@@ -44,6 +47,9 @@
 - Bump Android SDK from v8.56.0 to v8.57.0 ([#6732](https://github.com/getsentry/sentry-react-native/pull/6732))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8570)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.56.0...8.57.0)
+- Bump Cocoa SDK from v9.28.0 to v9.29.0 ([#6736](https://github.com/getsentry/sentry-react-native/pull/6736))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9290)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.28.0...9.29.0)
 
 ## 8.26.0
 
