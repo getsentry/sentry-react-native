@@ -6,7 +6,10 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.27.0
+
+> [!WARNING]
+> iOS native crashes now set `mechanism.synthetic`, taking the mach/signal name out of the grouping hash. Expect a one-time regrouping as your app adopts this version.
 
 ### Features
 
@@ -24,13 +27,30 @@
     ```
 
 - Add per-class Session Replay masking via `maskedViewClasses` / `unmaskedViewClasses` on `mobileReplayIntegration` ([#6725](https://github.com/getsentry/sentry-react-native/pull/6725))
+- Add experimental `avoidForegroundResumeHang` (iOS) to `mobileReplayIntegration` to work around a fatal App Hang that can occur when Session Replay resumes capture on returning to the foreground with a heavy view hierarchy on screen ([#6727](https://github.com/getsentry/sentry-react-native/pull/6727))
 
 ### Fixes
 
+- Prevent a fatal `JavaCallback was already settled` crash from `getNewScreenTimeToDisplay` under rapid navigation on Android ([#6722](https://github.com/getsentry/sentry-react-native/pull/6722))
 - Mask React Native `<Image>` in Session Replay on the iOS New Architecture when `maskAllImages` is enabled ([#6726](https://github.com/getsentry/sentry-react-native/pull/6726))
 - Background root spans (app-start, expo-updates) no longer overwrite the native propagation context of an active navigation trace ([#6720](https://github.com/getsentry/sentry-react-native/pull/6720))
 - Honor the host app's pinned `ndkVersion` on Android instead of letting AGP download its own default NDK for the module's native code ([#6724](https://github.com/getsentry/sentry-react-native/pull/6724))
 - Declare optional peer dependencies so imports resolve under strict and Plug'n'Play package managers ([#6729](https://github.com/getsentry/sentry-react-native/pull/6729))
+
+### Dependencies
+
+- Bump CLI from v3.7.0 to v3.8.0 ([#6734](https://github.com/getsentry/sentry-react-native/pull/6734))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#380)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.7.0...3.8.0)
+- Bump JavaScript SDK from v10.74.0 to v10.75.0 ([#6733](https://github.com/getsentry/sentry-react-native/pull/6733))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10750)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.74.0...10.75.0)
+- Bump Android SDK from v8.56.0 to v8.57.0 ([#6732](https://github.com/getsentry/sentry-react-native/pull/6732))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8570)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.56.0...8.57.0)
+- Bump Cocoa SDK from v9.28.0 to v9.29.0 ([#6736](https://github.com/getsentry/sentry-react-native/pull/6736))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9290)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.28.0...9.29.0)
 
 ## 8.26.0
 
