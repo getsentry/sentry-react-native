@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.27.0
 
 > [!WARNING]
 > iOS native crashes now set `mechanism.synthetic`, taking the mach/signal name out of the grouping hash. Expect a one-time regrouping as your app adopts this version.
