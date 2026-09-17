@@ -27,9 +27,19 @@
 
 ### Fixes
 
+- Prevent a fatal `JavaCallback was already settled` crash from `getNewScreenTimeToDisplay` under rapid navigation on Android ([#6722](https://github.com/getsentry/sentry-react-native/pull/6722))
 - Mask React Native `<Image>` in Session Replay on the iOS New Architecture when `maskAllImages` is enabled ([#6726](https://github.com/getsentry/sentry-react-native/pull/6726))
 - Background root spans (app-start, expo-updates) no longer overwrite the native propagation context of an active navigation trace ([#6720](https://github.com/getsentry/sentry-react-native/pull/6720))
 - Honor the host app's pinned `ndkVersion` on Android instead of letting AGP download its own default NDK for the module's native code ([#6724](https://github.com/getsentry/sentry-react-native/pull/6724))
+
+### Dependencies
+
+- Bump CLI from v3.7.0 to v3.8.0 ([#6734](https://github.com/getsentry/sentry-react-native/pull/6734))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#380)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.7.0...3.8.0)
+- Bump JavaScript SDK from v10.74.0 to v10.75.0 ([#6733](https://github.com/getsentry/sentry-react-native/pull/6733))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10750)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.74.0...10.75.0)
 
 ## 8.26.0
 
