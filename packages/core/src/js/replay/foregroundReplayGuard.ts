@@ -121,7 +121,11 @@ export function createForegroundReplayGuardState(
     // must never overlap with a still-running stopReplay() call. `pendingStop`
     // always resolves (its own rejection handler never rethrows).
     Promise.resolve(pendingStop)
-      .then(() => deps.startReplayBuffering())
+      .then(() => {
+        // The client may have closed while we were waiting for the prior
+        // stop to settle - don't start a new native session after that.
+        return detached ? undefined : deps.startReplayBuffering();
+      })
       .then(
         () => {
           restartInFlight = false;

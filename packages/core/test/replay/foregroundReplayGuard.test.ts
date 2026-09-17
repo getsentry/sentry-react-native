@@ -226,6 +226,29 @@ describe('createForegroundReplayGuardState', () => {
     // Assert: no follow-up stop after detach.
     expect(deps.stopReplay).toHaveBeenCalledTimes(1);
   });
+
+  it('does not start a new replay session if detached while still waiting for the prior stop to settle', async () => {
+    // Arrange - regression: detach() during the pendingStop wait (before
+    // startReplayBuffering() was even called) didn't stop the restart from
+    // starting a new native session once the stop eventually resolved.
+    const deps = createDeps('active-replay-id');
+    const stopDeferred = createDeferred<void>();
+    deps.stopReplay.mockReturnValue(stopDeferred.promise);
+    const { handleAppStateChange, detach } = createForegroundReplayGuardState(1000, deps);
+    handleAppStateChange('background'); // stopReplay() in flight
+    handleAppStateChange('active');
+    await jest.advanceTimersByTimeAsync(1000); // restart begins waiting on the still-pending stop
+
+    // Act: close before the stop settles.
+    detach();
+    stopDeferred.resolve();
+    await stopDeferred.promise;
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Assert: no session gets started after detach.
+    expect(deps.startReplayBuffering).not.toHaveBeenCalled();
+  });
 });
 
 describe('attachForegroundReplayGuard', () => {
