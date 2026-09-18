@@ -224,6 +224,17 @@ val generateSentryOptionsTask =
         outputDir.set(sentryOptionsGeneratedDir)
     }
 
+// Older plugin versions copied the file into src/main/assets and a crashed build could leave it
+// behind. It would now shadow or clash with the generated one. Warn (never delete — it may be
+// intentional) so the user can remove the stale copy.
+val legacyOptionsFile = File(project.projectDir, "src/main/assets/$configFile")
+if (legacyOptionsFile.exists()) {
+    project.logger.warn(
+        "[sentry] Found a stale $configFile in src/main/assets; it is now generated into the build " +
+            "folder and the old copy may conflict. Please remove: ${legacyOptionsFile.absolutePath}",
+    )
+}
+
 // Guards the classic source-set fallback so it registers at most once, only when the variant API is absent.
 val sentryOptionsSourceSetFallbackApplied = AtomicBoolean(false)
 
