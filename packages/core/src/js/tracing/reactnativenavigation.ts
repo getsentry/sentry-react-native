@@ -31,7 +31,7 @@ export const INTEGRATION_NAME = 'ReactNativeNavigation';
 
 const NAVIGATION_HISTORY_MAX_SIZE = 200;
 
-interface ReactNativeNavigationOptions {
+export interface ReactNativeNavigationOptions {
   /**
    * How long the instrumentation will wait for the route to mount after a change has been initiated,
    * before the transaction is discarded.

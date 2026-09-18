@@ -20,7 +20,7 @@ import { checkPromiseAndWarn, polyfillPromise, requireRejectionTracking } from '
 const INTEGRATION_NAME = 'ReactNativeErrorHandlers';
 
 /** ReactNativeErrorHandlers Options */
-interface ReactNativeErrorHandlersOptions {
+export interface ReactNativeErrorHandlersOptions {
   onerror: boolean;
   onunhandledrejection: boolean;
   patchGlobalPromise: boolean;

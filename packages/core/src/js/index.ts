@@ -94,7 +94,15 @@ export { logger, consoleLoggingIntegration, type FeatureFlagsIntegration, metric
 export * from './integrations/exports';
 
 export { SDK_NAME, SDK_VERSION } from './version';
-export type { ReactNativeOptions, NativeLogEntry } from './options';
+export type {
+  ReactNativeOptions,
+  NativeLogEntry,
+  BaseReactNativeOptions,
+  ReactNativeWrapperOptions,
+  ProfilingOptions,
+  ProfilingLifecycle,
+  SentryReplayQuality,
+} from './options';
 export { ReactNativeClient } from './client';
 
 export {
@@ -113,6 +121,7 @@ export {
   resumeAppHangTracking,
 } from './sdk';
 export { TouchEventBoundary, withTouchEventBoundary } from './touchevents';
+export type { TouchEventBoundaryProps } from './touchevents';
 export { NavigationContainer } from './NavigationContainer';
 export type { FontStyle, NavigationTheme, SentryNavigationContainerProps } from './NavigationContainer';
 export { GlobalErrorBoundary, withGlobalErrorBoundary } from './GlobalErrorBoundary';
@@ -144,6 +153,11 @@ export {
 
 export type { TimeToDisplayProps, ExpoRouter, ExpoRouterErrorBoundaryProps, ExpoImage, ExpoAsset } from './tracing';
 
+export type { ReactNativeTracingOptions } from './tracing/reactnativetracing';
+export type { ReactNativeNavigationOptions } from './tracing/reactnativenavigation';
+export type { ReactNavigationIntegrationOptions } from './tracing/reactnavigation';
+export type { ExpoRouterIntegrationOptions } from './tracing/expoRouterIntegration';
+
 export { Mask, Unmask } from './replay/CustomMask';
 export { getReplay } from './replay/getReplay';
 export type { Replay } from './replay/replayInterface';
@@ -151,6 +165,19 @@ export type { Replay } from './replay/replayInterface';
 /** @deprecated The `FeedbackButton` component will be removed in a future major version. */
 export { FeedbackButton } from './feedback/FeedbackButton';
 export { FeedbackForm } from './feedback/FeedbackForm';
+export type {
+  FeedbackFormProps,
+  FeedbackGeneralConfiguration,
+  FeedbackTextConfiguration,
+  FeedbackCallbacks,
+  ImagePickerConfiguration,
+  FeedbackFormStyles,
+  ScreenshotButtonProps,
+  ScreenshotButtonStyles,
+  ScreenshotButtonTextConfiguration,
+  ImagePicker,
+} from './feedback/FeedbackForm.types';
+export type { FeedbackFormTheme } from './feedback/FeedbackForm.theme';
 export { showFeedbackForm, enableFeedbackOnShake, disableFeedbackOnShake } from './feedback/FeedbackFormManager';
 /** @deprecated `showFeedbackButton` will be removed in a future major version. */
 export { showFeedbackButton } from './feedback/FeedbackFormManager';

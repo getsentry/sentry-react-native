@@ -12,6 +12,10 @@
 
 - Honor `shutdownTimeout` on iOS ([#6749](https://github.com/getsentry/sentry-react-native/pull/6749))
 
+### Internal
+
+- Export already-public option and configuration types from the entry point so their full shape is tracked in the API report ([#6731](https://github.com/getsentry/sentry-react-native/pull/6731))
+
 ## 8.27.0
 
 > [!WARNING]

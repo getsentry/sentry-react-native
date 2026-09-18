@@ -139,7 +139,7 @@ function getPathFromState(state?: NavigationState): string | undefined {
   return routeNames.length > 0 ? routeNames.join('/') : undefined;
 }
 
-interface ReactNavigationIntegrationOptions {
+export interface ReactNavigationIntegrationOptions {
   /**
    * How long the instrumentation will wait for the route to mount after a change has been initiated,
    * before the transaction is discarded.
