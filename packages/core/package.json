@@ -68,7 +68,20 @@
     "When bumping make sure to update the version of react, i.e:  https://github.com/facebook/react-native/blob/v0.56.0/package.json"
   ],
   "peerDependencies": {
+    "@babel/core": ">=7.0.0",
+    "@expo/config": "*",
+    "@expo/config-types": "*",
+    "@expo/env": "*",
+    "@react-navigation/native": "*",
+    "dotenv": "*",
     "expo": ">=49.0.0",
+    "expo-router": "*",
+    "expo-updates": "*",
+    "metro": "*",
+    "metro-config": "*",
+    "metro-resolver": "*",
+    "open": "*",
+    "promise": "*",
     "react": ">=17.0.0",
     "react-native": ">=0.65.0"
   },
@@ -82,6 +95,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.7",
+    "@expo/config": "^11.0.8",
+    "@expo/config-types": "^53.0.3",
     "@expo/metro-config": "~0.20.0",
     "@microsoft/api-extractor": "^7.58.7",
     "@mswjs/interceptors": "^0.25.15",
@@ -108,9 +123,12 @@
     "jest-extended": "^4.0.2",
     "madge": "^6.1.0",
     "metro": "0.84.4",
+    "metro-config": "0.84.4",
+    "metro-resolver": "0.84.4",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.56.0",
     "oxlint-tsgolint": "^0.17.4",
+    "promise": "^8.3.0",
     "react": "19.2.3",
     "react-native": "0.87.1",
     "react-test-renderer": "19.2.3",
@@ -129,7 +147,46 @@
     }
   },
   "peerDependenciesMeta": {
+    "@babel/core": {
+      "optional": true
+    },
+    "@expo/config": {
+      "optional": true
+    },
+    "@expo/config-types": {
+      "optional": true
+    },
+    "@expo/env": {
+      "optional": true
+    },
+    "@react-navigation/native": {
+      "optional": true
+    },
+    "dotenv": {
+      "optional": true
+    },
     "expo": {
+      "optional": true
+    },
+    "expo-router": {
+      "optional": true
+    },
+    "expo-updates": {
+      "optional": true
+    },
+    "metro": {
+      "optional": true
+    },
+    "metro-config": {
+      "optional": true
+    },
+    "metro-resolver": {
+      "optional": true
+    },
+    "open": {
+      "optional": true
+    },
+    "promise": {
       "optional": true
     }
   }

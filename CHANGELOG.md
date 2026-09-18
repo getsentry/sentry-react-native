@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Declare optional peer dependencies so imports resolve under strict and Plug'n'Play package managers ([#6729](https://github.com/getsentry/sentry-react-native/pull/6729))
 - Honor `shutdownTimeout` on iOS ([#6749](https://github.com/getsentry/sentry-react-native/pull/6749))
 
 ### Internal
