@@ -7,7 +7,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -117,9 +116,9 @@ abstract class GenerateSentryOptionsTask : DefaultTask() {
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
-    // Drives `onlyIf` (the `SENTRY_COPY_OPTIONS_FILE` opt-out). Task-owned so the spec references only
-    // the task, not the script object (Configuration Cache safe). `@Internal`: gates execution, not content.
-    @get:Internal
+    // The `SENTRY_COPY_OPTIONS_FILE` opt-out. `@Input` (not `onlyIf`) so toggling it re-runs the task,
+    // which clears the output dir when disabled — a skipped task would leave a stale file to be packaged.
+    @get:Input
     abstract val copyEnabled: Property<Boolean>
 
     @TaskAction
@@ -127,9 +126,15 @@ abstract class GenerateSentryOptionsTask : DefaultTask() {
         val outDir = outputDir.get().asFile
         outDir.mkdirs()
         val dest = File(outDir, "sentry.options.json")
-        // Idempotent: clear any prior output so a removed source file leaves an empty dir.
+        // Idempotent: clear any prior output so a removed source file, or a disabled opt-out, leaves an
+        // empty dir rather than packaging a stale file.
         if (dest.exists()) {
             dest.delete()
+        }
+
+        if (!copyEnabled.get()) {
+            logger.info("sentry.options.json generation disabled via SENTRY_COPY_OPTIONS_FILE; output left empty")
+            return
         }
 
         val source = sourceOptionsFiles.files.firstOrNull { it.exists() }
@@ -209,9 +214,8 @@ val sentryOptionsDist: String? = System.getenv("SENTRY_DIST")
 
 val generateSentryOptionsTask =
     tasks.register("generateSentryOptions", GenerateSentryOptionsTask::class.java) {
-        // onlyIf references only the task (Configuration Cache safe); opt-out resolved in afterEvaluate.
+        // Opt-out is a task input resolved in afterEvaluate; the action clears output when disabled.
         copyEnabled.convention(true)
-        onlyIf { (it as GenerateSentryOptionsTask).copyEnabled.get() }
         val appRoot = rootDirFile.parentFile ?: rootDirFile
         sourceOptionsFiles.from(File(appRoot, configFile))
         sentryOptionsEnvironment?.let { environmentOverride.set(it) }
@@ -302,6 +306,13 @@ plugins.withId("com.android.application") {
         )
         applySentryOptionsSourceSetFallback()
     }
+
+    // AGP wires `merge*Assets` to `generateSentryOptions` via the generated-source API, but the lint
+    // model/analysis tasks also read the generated assets dir without a declared dependency, which
+    // Gradle 9 fails on. Declare it explicitly so the file is always produced before they run.
+    tasks
+        .matching { it.name != "generateSentryOptions" && it.name.contains("lint", ignoreCase = true) }
+        .configureEach { dependsOn(generateSentryOptionsTask) }
 }
 
 data class BundleTaskArgs(
