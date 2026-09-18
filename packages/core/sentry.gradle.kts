@@ -305,6 +305,18 @@ if (legacyOptionsFile.exists()) {
     )
 }
 
+// Older plugin versions generated modules.json directly into src/main/assets and cleaned it up
+// afterwards; a crashed build (or a committed copy) could leave it behind. It is now generated into
+// the build folder, so a leftover copy would clash with the generated one during asset merge. Warn
+// (never delete — it may be intentional) so the user can remove the stale copy.
+val legacyModulesFile = File(project.projectDir, "src/main/assets/modules.json")
+if (legacyModulesFile.exists()) {
+    project.logger.warn(
+        "[sentry] Found a stale modules.json in src/main/assets; it is now generated into the build " +
+            "folder and the old copy may conflict. Please remove: ${legacyModulesFile.absolutePath}",
+    )
+}
+
 // Guards the classic source-set fallback so it registers at most once, only when the variant API is absent.
 val sentryOptionsSourceSetFallbackApplied = AtomicBoolean(false)
 
@@ -361,6 +373,7 @@ fun wireSentryModulesAssets(
     variant: Any,
     modulesTask: TaskProvider<CollectModulesTask>,
     generatedDir: org.gradle.api.provider.Provider<org.gradle.api.file.Directory>,
+    variantName: String,
     variantCapitalized: String,
 ) {
     try {
@@ -369,20 +382,21 @@ fun wireSentryModulesAssets(
         val addMethod =
             assets?.javaClass?.methods?.firstOrNull { it.name == "addGeneratedSourceDirectory" }
         if (assets == null || addMethod == null) {
-            applySentryModulesSourceSetFallback(modulesTask, generatedDir, variantCapitalized)
+            applySentryModulesSourceSetFallback(modulesTask, generatedDir, variantName, variantCapitalized)
             return
         }
         val wiredWith: (CollectModulesTask) -> DirectoryProperty = { it.outputDir }
         addMethod.invoke(assets, modulesTask, wiredWith)
     } catch (e: Exception) {
         project.logger.info("[sentry] variant assets wiring failed for modules: ${e.message}. Falling back to sourceSets.")
-        applySentryModulesSourceSetFallback(modulesTask, generatedDir, variantCapitalized)
+        applySentryModulesSourceSetFallback(modulesTask, generatedDir, variantName, variantCapitalized)
     }
 }
 
 fun applySentryModulesSourceSetFallback(
     modulesTask: TaskProvider<CollectModulesTask>,
     generatedDir: org.gradle.api.provider.Provider<org.gradle.api.file.Directory>,
+    variantName: String,
     variantCapitalized: String,
 ) {
     try {
@@ -390,8 +404,13 @@ fun applySentryModulesSourceSetFallback(
         val sourceSets = android.javaClass.getMethod("getSourceSets").invoke(android)
         val getByName =
             sourceSets.javaClass.methods.first { it.name == "getByName" && it.parameterCount == 1 }
-        val mainSourceSet = getByName.invoke(sourceSets, "main")
-        val assets = mainSourceSet.javaClass.getMethod("getAssets").invoke(mainSourceSet)
+        // Register into the variant-specific source set (e.g. "release", "stagingRelease"), NOT the
+        // shared "main": modules.json is per-variant and release-only, so adding each variant's dir to
+        // "main" would leak the file into debug and clash between multiple non-debug variants (duplicate
+        // asset merge). Scoping to the variant source set keeps each variant's modules.json isolated, so
+        // no dedup guard is needed (unlike the shared-dir options fallback).
+        val variantSourceSet = getByName.invoke(sourceSets, variantName)
+        val assets = variantSourceSet.javaClass.getMethod("getAssets").invoke(variantSourceSet)
         val srcDir =
             assets.javaClass.methods.first {
                 it.name == "srcDir" && it.parameterCount == 1 && it.parameterTypes[0] == Any::class.java
@@ -402,7 +421,7 @@ fun applySentryModulesSourceSetFallback(
         tasks
             .matching { it.name == "merge${variantCapitalized}Assets" }
             .configureEach { dependsOn(modulesTask) }
-        project.logger.info("[sentry] Wired modules.json into assets via sourceSets fallback")
+        project.logger.info("[sentry] Wired modules.json into '$variantName' assets via sourceSets fallback")
     } catch (e: Exception) {
         project.logger.warn(
             "[sentry] Failed to wire modules.json into assets: ${e.message}. " +
@@ -864,7 +883,7 @@ fun processVariant(v: Any) {
             dependsOn(sentryBundleTaskName)
         }
 
-    wireSentryModulesAssets(v, modulesTask, modulesGeneratedDir, variantCapitalized)
+    wireSentryModulesAssets(v, modulesTask, modulesGeneratedDir, vName, variantCapitalized)
 
     // Lint model/analysis tasks read merged assets (now including the generated modules dir) without a
     // declared dependency; Gradle 9 fails on that. Declare it for this variant's lint tasks so
