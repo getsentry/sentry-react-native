@@ -12,6 +12,7 @@
 
 - Declare optional peer dependencies so imports resolve under strict and Plug'n'Play package managers ([#6729](https://github.com/getsentry/sentry-react-native/pull/6729))
 - Honor `shutdownTimeout` on iOS ([#6749](https://github.com/getsentry/sentry-react-native/pull/6749))
+- Android Gradle plugin no longer writes generated `sentry.options.json` into your source tree during builds ([#6750](https://github.com/getsentry/sentry-react-native/issues/6750))
 
 ### Internal
 
