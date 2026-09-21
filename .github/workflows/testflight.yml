@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+      # TEMP(antonis/fix-testflight-catalyst): run TestFlight on this branch to
+      # verify the gym catalyst_platform fix end-to-end. Revert before merge.
+      - antonis/fix-testflight-catalyst
 
   pull_request:
     paths:
