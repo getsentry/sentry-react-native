@@ -186,9 +186,22 @@ abstract class GenerateSentryOptionsTask : DefaultTask() {
  * so the action is Configuration Cache compatible.
  */
 abstract class CollectModulesTask : DefaultTask() {
-    // The bundle source map. File collection so a missing file is an empty input, not a failure.
+    // Up-to-date fingerprint: the release JS bundle. modules.json is derived from the bundle's source
+    // map, but that map is a transient artifact the upload flow deletes after uploading (the
+    // "clean up extra sourcemap" task). Fingerprinting the map would invalidate this task on every
+    // rebuild and, worse, could package an empty modules.json when the deleted map isn't regenerated
+    // (the forced map is not a declared output of the bundle task). The bundle is a stable, declared
+    // artifact that changes iff the JS — and hence the module list — changes, so it is the correct
+    // content key. File collection so a missing file is an empty input, not a failure.
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val bundleFiles: ConfigurableFileCollection
+
+    // The bundle source map, read at execution to extract the module list. `@Internal` (not a
+    // fingerprinted input) for the reasons on [bundleFiles]; the upload's copy-debugid rewrite is
+    // ordered after this task so the read is never concurrent with a write. File collection so a
+    // missing file is an empty input, not a failure.
+    @get:Internal
     abstract val sourcemapFiles: ConfigurableFileCollection
 
     // Absolute path to the collect-modules node script, used to build the command line. `@Internal`
@@ -892,6 +905,7 @@ fun processVariant(v: Any) {
         tasks.register("${bundleTask.name}_SentryCollectModules", CollectModulesTask::class.java) {
             description = "collect javascript modules from bundle source map"
             group = "sentry.io"
+            bundleFiles.from(bundleOutput)
             sourcemapFiles.from(sourcemapOutput)
             collectModulesScript.set(collectModulesScriptPath)
             collectModulesScriptFiles.from(collectModulesScriptPath)
@@ -939,6 +953,11 @@ fun processVariant(v: Any) {
         val cliTask =
             tasks.register(nameCliTask) {
                 onlyIf { sentryAutoUploadGeneralEnabled }
+                // The upload rewrites the source map in place (copy-debugid, in doFirst below); the
+                // modules task reads that same map. Order the rewrite strictly after the read so a
+                // parallel / configuration-cache build can never read a half-written map (the cleanup
+                // deletion is ordered the same way, further down).
+                mustRunAfter(modulesTask)
                 description = "upload debug symbols to sentry"
                 group = "sentry.io"
 
