@@ -12,6 +12,7 @@
 
 - Declare optional peer dependencies so imports resolve under strict and Plug'n'Play package managers ([#6729](https://github.com/getsentry/sentry-react-native/pull/6729))
 - Honor `shutdownTimeout` on iOS ([#6749](https://github.com/getsentry/sentry-react-native/pull/6749))
+- Fix Mac Catalyst linking the wrong `Sentry.xcframework` slice ([#6755](https://github.com/getsentry/sentry-react-native/issues/6755))
 
 ### Internal
 

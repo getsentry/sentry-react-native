@@ -145,10 +145,29 @@ Pod::Spec.new do |s|
     sentry_xcframework_ref =
       stage_sentry_xcframework_in_pods(sentry_xcframework_dir, sentry_cocoa_version, 'Sentry') ||
       sentry_xcframework_dir
-    xcframework_search_paths = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
+
+    # No `maccatalyst` Xcode SDK exists: Catalyst builds under `[sdk=macosx*]`
+    # with `IS_MACCATALYST=YES`, so a `[sdk=maccatalyst*]` selector never matches
+    # and `[sdk=macosx*]` alone would hand Catalyst the AppKit slice (#6755). Fold
+    # both slices under `[sdk=macosx*]`, picking one via nested `$(IS_MACCATALYST)`.
+    sentry_macos_slice_vars = {
+      'SENTRY_MACOS_SLICE_NO'  => SENTRY_XCFRAMEWORK_SLICES_BY_SDK.fetch('macosx').first,
+      'SENTRY_MACOS_SLICE_YES' => SENTRY_XCFRAMEWORK_SLICES_BY_SDK.fetch('maccatalyst').first,
+      'SENTRY_MACOS_SLICE'     => '$(SENTRY_MACOS_SLICE_$(IS_MACCATALYST))',
+    }
+    sentry_slice_refs_by_sdk = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
+      next if sdk == 'maccatalyst' # folded into `macosx` via `$(IS_MACCATALYST)`
+      acc[sdk] = sdk == 'macosx' ? ['$(SENTRY_MACOS_SLICE)'] : slice_ids
+    end
+
+    xcframework_search_paths = sentry_slice_refs_by_sdk.each_with_object({}) do |(sdk, slice_ids), acc|
       paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_ref, slice)}") }
       acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
     end
+    # The `SENTRY_MACOS_SLICE*` helper vars must sit in every xcconfig that
+    # references `$(SENTRY_MACOS_SLICE)`, so ride them on the search-path hash
+    # that's merged into both the pod and user target configs below.
+    xcframework_search_paths.merge!(sentry_macos_slice_vars)
 
     # Force-load the Sentry static archive so its ObjC category methods survive
     # linking. We link Sentry statically with no whole-archive flag, so symbols
@@ -168,7 +187,7 @@ Pod::Spec.new do |s|
     # it into the RNSentry dylib → that link → `pod_target_xcconfig`. Never
     # both, or a second copy of Sentry lands in the app. Detected via
     # `ENV['USE_FRAMEWORKS']`.
-    force_load_flags = SENTRY_XCFRAMEWORK_SLICES_BY_SDK.each_with_object({}) do |(sdk, slice_ids), acc|
+    force_load_flags = sentry_slice_refs_by_sdk.each_with_object({}) do |(sdk, slice_ids), acc|
       loads = slice_ids.map do |slice|
         %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
       end
