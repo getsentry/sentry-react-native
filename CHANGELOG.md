@@ -14,6 +14,7 @@
 - Honor `shutdownTimeout` on iOS ([#6749](https://github.com/getsentry/sentry-react-native/pull/6749))
 - Android Gradle plugin no longer writes generated `sentry.options.json` into your source tree during builds ([#6751](https://github.com/getsentry/sentry-react-native/pull/6751))
 - Android Gradle plugin no longer writes generated `modules.json` into your source tree during release builds ([#6753](https://github.com/getsentry/sentry-react-native/pull/6753))
+- Fix Mac Catalyst linking the wrong `Sentry.xcframework` slice ([#6758](https://github.com/getsentry/sentry-react-native/pull/6758))
 
 ### Internal
 
