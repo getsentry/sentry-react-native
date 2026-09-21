@@ -65,11 +65,17 @@ SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS = {
   },
 }.freeze
 
-# Static map from xcframework slice directory name to the Xcode SDK selector
-# it should be attached to. `sentry-cocoa`'s `Sentry.xcframework` layout is
-# stable across releases — same slice names come out of every build — so we
-# hardcode the mapping rather than scanning the extracted bundle. Add a
-# new entry here if `sentry-cocoa` ever ships a new platform slice.
+# Static map from Xcode SDK selector to the xcframework slice directory
+# name(s) it should be attached to. `sentry-cocoa`'s `Sentry.xcframework`
+# layout is stable across releases — same slice names come out of every
+# build — so we hardcode the mapping rather than scanning the extracted
+# bundle. Add a new entry here if `sentry-cocoa` ever ships a new platform
+# slice.
+#
+# `maccatalyst` has no Xcode SDK (Catalyst builds under `macosx` with
+# `IS_MACCATALYST=YES`), so a `[sdk=maccatalyst*]` condition never matches.
+# It's slice inventory only; `RNSentry.podspec` folds it into `[sdk=macosx*]`
+# via `IS_MACCATALYST` (#6755) — don't emit a standalone `[sdk=maccatalyst*]`.
 SENTRY_XCFRAMEWORK_SLICES_BY_SDK = {
   'iphoneos'         => %w[ios-arm64_arm64e],
   'iphonesimulator'  => %w[ios-arm64_x86_64-simulator],
