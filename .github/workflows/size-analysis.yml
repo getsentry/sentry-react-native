@@ -139,7 +139,7 @@ jobs:
           TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
         run: |
           mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
+          derivedData="$(realpath DerivedData)"
           set -o pipefail && xcodebuild \
             -workspace sentryreactnativesample.xcworkspace \
             -configuration Release \

@@ -106,7 +106,7 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
+          derivedData="$(realpath DerivedData)"
           set -o pipefail && xcodebuild \
             -workspace sentryreactnativeexposample.xcworkspace \
             -configuration "$CONFIG" \
