@@ -803,6 +803,13 @@ plugins.withId("com.android.application") {
     }
 }
 
+// Capitalized names of every non-debug variant the plugin has seen, shared across [processVariant]
+// calls (all of which run during configuration, before any lint task is realized). Used to scope each
+// variant's lint→modules dependency without enumerating AGP's lint verbs: a lint task belongs to a
+// *different* variant when its name contains a longer processed variant name that has the current one
+// as a substring (e.g. `release` vs `qaRelease` / `releaseStaging`), so it can be excluded precisely.
+val sentryProcessedVariantCaps: MutableSet<String> = java.util.Collections.synchronizedSet(mutableSetOf())
+
 fun processVariant(v: Any) {
     val vName = v.javaClass.getMethod("getName").invoke(v) as String
     if (vName.contains("debug", ignoreCase = true)) return
@@ -814,6 +821,7 @@ fun processVariant(v: Any) {
     val sentryAutoUploadGeneralEnabled = shouldSentryAutoUploadGeneral()
 
     val variantCapitalized = Character.toUpperCase(vName[0]).toString() + vName.substring(1)
+    sentryProcessedVariantCaps.add(variantCapitalized)
     val sentryBundleTaskName =
         listOf(
             "createBundle${variantCapitalized}JsAndAssets",
@@ -898,20 +906,25 @@ fun processVariant(v: Any) {
 
     // Lint model/analysis tasks read merged assets (now including the generated modules dir) without a
     // declared dependency; Gradle 9 fails on that. Declare it for this variant's lint tasks so
-    // modules.json is produced first. Scope precisely to THIS variant: a bare `contains(variantCapitalized)`
-    // would also match a longer variant whose name ends in this one (e.g. a `qaRelease` build type's
-    // `lintQaRelease` contains — and ends with — "Release"), wrongly pulling the `release` modules task
-    // into another variant's lint. AGP lint task names are either `<verb><Variant>` (lintRelease,
-    // lintReportRelease, lintAnalyzeRelease, lintVitalRelease, …) or `<verb><Variant>Lint…`
-    // (generateReleaseLintReportModel, copyReleaseLintReportModel), so match the variant as a full segment.
-    val lintVerbs =
-        setOf("lint", "lintReport", "lintAnalyze", "lintVital", "lintVitalReport", "lintVitalAnalyze", "lintFix")
-    val generatorLintPrefix = Regex("^(?:generate|copy)${Regex.escape(variantCapitalized)}Lint")
+    // modules.json is produced first. Match the whole AGP lint family verb-agnostically: every AGP lint
+    // task either starts with the lowercase `lint` verb (lint/lintAnalyze/lintReport/lintVital*/lintFix,
+    // incl. `lintAnalyze<Variant>UnitTest`) or embeds a capitalized `Lint` segment (`updateLintBaseline*`,
+    // `generate*Lint*Model`). Requiring the `Lint` word boundary (start-of-name or capital L) — NOT a
+    // case-insensitive `lint` substring — excludes unrelated `ktlint*` tasks (e.g. `ktlintReleaseCheck`)
+    // whose lowercase `lint` is mid-name; those must not pull in the JS bundler. Scope precisely to THIS
+    // variant: a task belongs to a *different* variant when its name also contains a longer processed
+    // variant name that has this one as a substring (e.g. `release` vs `qaRelease` / `releaseStaging`), so
+    // exclude those — their own variant pass wires them to their own modules task. This scoping needs the
+    // full variant set, which is complete by the time lint tasks are realized (all onVariants callbacks run
+    // during configuration).
     tasks
         .matching { task ->
             val name = task.name
-            (name.endsWith(variantCapitalized) && name.removeSuffix(variantCapitalized) in lintVerbs) ||
-                generatorLintPrefix.containsMatchIn(name)
+            (name.startsWith("lint") || name.contains("Lint")) &&
+                name.contains(variantCapitalized) &&
+                sentryProcessedVariantCaps.none { other ->
+                    other != variantCapitalized && other.contains(variantCapitalized) && name.contains(other)
+                }
         }.configureEach { dependsOn(modulesTask) }
 
     currentVariants.forEach { (_, currentVariant) ->
