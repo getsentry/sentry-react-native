@@ -61,7 +61,7 @@ target 'sentryreactnativesample' do
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
+      :mac_catalyst_enabled => ENV['ENABLE_MAC_CATALYST'] == '1',
       # :ccache_enabled => true
     )
   end
