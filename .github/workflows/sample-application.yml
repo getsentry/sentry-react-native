@@ -44,7 +44,7 @@ jobs:
 
   build-ios:
     name: Build ${{ matrix.rn-architecture }} ios ${{ matrix.build-type }} ${{ matrix.ios-use-frameworks }}
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -241,7 +241,7 @@ jobs:
 
   build-macos:
     name: Build legacy macos ${{ matrix.build-type }}
-    runs-on: macos-15-xlarge
+    runs-on: macos-15
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -321,7 +321,7 @@ jobs:
     name: Build new visionos ${{ matrix.build-type }}
     # visionOS ships with Xcode 26; macos-26 runners have the visionOS
     # Simulator SDK preinstalled, so a build-only job needs no runtime download.
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -408,7 +408,7 @@ jobs:
 
   build-tvos:
     name: Build new tvos ${{ matrix.build-type }}
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     needs: [diff_check, detect-changes]
     if: >-
       ${{
@@ -491,7 +491,7 @@ jobs:
 
   build-catalyst:
     name: Build new catalyst ${{ matrix.build-type }}
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     needs: [diff_check, detect-changes]
     if: >-
       ${{
