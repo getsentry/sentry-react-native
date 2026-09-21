@@ -41,6 +41,7 @@ class SentryModulesTaskTest {
     private fun writeFixture(
         skipCollectModules: Boolean = false,
         produceSourcemap: Boolean = true,
+        additionalBuildTypesBlock: String = "",
     ) {
         projectDir = tempFolder.newFolder("android")
 
@@ -133,6 +134,7 @@ class SentryModulesTaskTest {
                     versionCode 1
                     versionName '1.0'
                 }
+                $additionalBuildTypesBlock
             }
             $bundleTaskBlock
             apply from: '${scriptPath.esc()}'
@@ -148,7 +150,7 @@ class SentryModulesTaskTest {
 
     private fun String.esc(): String = replace("\\", "\\\\")
 
-    private fun run(vararg args: String) =
+    private fun runner(vararg args: String) =
         GradleRunner
             .create()
             .withProjectDir(projectDir)
@@ -157,7 +159,8 @@ class SentryModulesTaskTest {
             // scripts we don't ship in the fixture and is unrelated to what these tests cover.
             .withEnvironment(System.getenv() + mapOf("SENTRY_DISABLE_AUTO_UPLOAD" to "true"))
             .forwardOutput()
-            .build()
+
+    private fun run(vararg args: String) = runner(*args).build()
 
     @Test
     fun `modules json is generated into build folder and never into src assets`() {
@@ -198,5 +201,39 @@ class SentryModulesTaskTest {
 
         assertEquals(TaskOutcome.SUCCESS, result.task(modulesTaskPath)?.outcome)
         assertTrue("no modules.json when source map is absent", generatedModules().isEmpty())
+    }
+
+    /**
+     * Regression for the lint-dependency scoping: the `release` variant's modules task must be wired
+     * into `release`'s lint tasks only, never into a longer build type whose capitalized name ends in
+     * `Release` (here `qaRelease`). A loose `it.name.contains("Release")` substring match would make
+     * `lintQaRelease` depend on the `release` modules task. Only `release` has a bundle task here, so
+     * the `release` modules task is the only `_SentryCollectModules` task that exists — if it shows up
+     * in `lintQaRelease`'s graph, the scoping regressed.
+     */
+    @Test
+    fun `lint task of a longer variant does not depend on a shorter variant's modules task`() {
+        writeFixture(
+            additionalBuildTypesBlock =
+                """
+                buildTypes {
+                    qaRelease { initWith release }
+                }
+                """.trimIndent(),
+        )
+
+        // Positive control: the release variant's own lint task IS wired to the release modules task.
+        val releaseGraph = runner("lintRelease", "--dry-run").build().output
+        assertTrue(
+            "lintRelease should depend on the release modules task",
+            releaseGraph.contains(modulesTaskPath),
+        )
+
+        // Regression assertion: lintQaRelease must NOT pull in the release variant's modules task.
+        val qaReleaseGraph = runner("lintQaRelease", "--dry-run").build().output
+        assertFalse(
+            "lintQaRelease must not depend on the release variant's modules task",
+            qaReleaseGraph.contains(modulesTaskPath),
+        )
     }
 }
