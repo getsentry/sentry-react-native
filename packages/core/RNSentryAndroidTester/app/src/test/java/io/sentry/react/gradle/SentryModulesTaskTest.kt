@@ -155,10 +155,13 @@ class SentryModulesTaskTest {
             .create()
             .withProjectDir(projectDir)
             .withArguments(*args, "--stacktrace")
-            // Disable the sourcemap-upload finalizer of the bundle task: it shells out to sentry-cli
-            // scripts we don't ship in the fixture and is unrelated to what these tests cover.
-            .withEnvironment(System.getenv() + mapOf("SENTRY_DISABLE_AUTO_UPLOAD" to "true"))
-            .forwardOutput()
+            // Scrub host `SENTRY_*` vars for determinism, then disable the sourcemap-upload finalizer of
+            // the bundle task: it shells out to sentry-cli scripts we don't ship in the fixture and is
+            // unrelated to what these tests cover.
+            .withEnvironment(
+                System.getenv().filterKeys { !it.startsWith("SENTRY_") } +
+                    mapOf("SENTRY_DISABLE_AUTO_UPLOAD" to "true"),
+            ).forwardOutput()
 
     private fun run(vararg args: String) = runner(*args).build()
 
@@ -204,12 +207,17 @@ class SentryModulesTaskTest {
     }
 
     /**
-     * Regression for the lint-dependency scoping: the `release` variant's modules task must be wired
-     * into `release`'s lint tasks only, never into a longer build type whose capitalized name ends in
+     * Regression for the lint-dependency *scoping*: the `release` variant's modules task must be wired
+     * into `release`'s lint tasks only, never into a longer build type whose capitalized name contains
      * `Release` (here `qaRelease`). A loose `it.name.contains("Release")` substring match would make
-     * `lintQaRelease` depend on the `release` modules task. Only `release` has a bundle task here, so
-     * the `release` modules task is the only `_SentryCollectModules` task that exists — if it shows up
-     * in `lintQaRelease`'s graph, the scoping regressed.
+     * `lintQaRelease` — and the non-`lint*`-prefixed `updateLintBaselineQaRelease` — depend on the
+     * `release` modules task. Only `release` has a bundle task here, so the `release` modules task is the
+     * only `_SentryCollectModules` task that exists; if it shows up in a `qaRelease` lint task's graph,
+     * the scoping regressed.
+     *
+     * The `lintRelease` check is a non-vacuity control: with no wiring at all the modules task is absent
+     * from every lint graph in this fixture (lint depends on the modules task only through the explicit
+     * wiring, not via merged-assets), so the negative assertions below would pass trivially without it.
      */
     @Test
     fun `lint task of a longer variant does not depend on a shorter variant's modules task`() {
@@ -222,17 +230,18 @@ class SentryModulesTaskTest {
                 """.trimIndent(),
         )
 
-        // Positive control: the release variant's own lint task IS wired to the release modules task.
+        // Non-vacuity control: release's own lint task IS wired to the release modules task.
         val releaseGraph = runner("lintRelease", "--dry-run").build().output
         assertTrue(
             "lintRelease should depend on the release modules task",
             releaseGraph.contains(modulesTaskPath),
         )
 
-        // Regression assertion: lintQaRelease must NOT pull in the release variant's modules task.
-        val qaReleaseGraph = runner("lintQaRelease", "--dry-run").build().output
+        // Regression assertions: qaRelease's lint tasks must NOT pull in the release variant's modules
+        // task — neither the plain lint task nor the non-`lint*`-prefixed baseline update.
+        val qaReleaseGraph = runner("lintQaRelease", "updateLintBaselineQaRelease", "--dry-run").build().output
         assertFalse(
-            "lintQaRelease must not depend on the release variant's modules task",
+            "qaRelease lint tasks must not depend on the release variant's modules task",
             qaReleaseGraph.contains(modulesTaskPath),
         )
     }

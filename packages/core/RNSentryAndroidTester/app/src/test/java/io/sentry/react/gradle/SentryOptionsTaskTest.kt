@@ -97,7 +97,10 @@ class SentryOptionsTaskTest {
         .create()
         .withProjectDir(projectDir)
         .withArguments(*args, "--stacktrace")
-        .withEnvironment(System.getenv() + env)
+        // Scrub any `SENTRY_*` the developer has set locally (the script reads SENTRY_RELEASE /
+        // SENTRY_ENVIRONMENT / SENTRY_DIST / SENTRY_COPY_OPTIONS_FILE at configuration time), so these
+        // assertions depend only on the fixture and each test's explicit `env`, not the host shell.
+        .withEnvironment(System.getenv().filterKeys { !it.startsWith("SENTRY_") } + env)
         .forwardOutput()
         .build()
 
