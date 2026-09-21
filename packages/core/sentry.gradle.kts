@@ -191,8 +191,18 @@ abstract class CollectModulesTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sourcemapFiles: ConfigurableFileCollection
 
-    @get:Input
+    // Absolute path to the collect-modules node script, used to build the command line. `@Internal`
+    // because the path alone is not a meaningful content input — the script's *content* is fingerprinted
+    // via [collectModulesScriptFiles] so editing it in place (e.g. an SDK upgrade at the same path)
+    // re-runs the task instead of shipping a stale modules.json.
+    @get:Internal
     abstract val collectModulesScript: Property<String>
+
+    // Content fingerprint of the collect-modules script. File collection (like [sourcemapFiles]) so a
+    // missing script is an empty input rather than a task-validation failure.
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val collectModulesScriptFiles: ConfigurableFileCollection
 
     @get:Input
     abstract val modulesPaths: Property<String>
@@ -876,6 +886,7 @@ fun processVariant(v: Any) {
             group = "sentry.io"
             sourcemapFiles.from(sourcemapOutput)
             collectModulesScript.set(collectModulesScriptPath)
+            collectModulesScriptFiles.from(collectModulesScriptPath)
             modulesPaths.set(modulesPathsValue)
             collectEnabled.set(!skipCollectModules && File(collectModulesScriptPath).exists())
             workingDirectory.set(reactRoot)
@@ -887,10 +898,21 @@ fun processVariant(v: Any) {
 
     // Lint model/analysis tasks read merged assets (now including the generated modules dir) without a
     // declared dependency; Gradle 9 fails on that. Declare it for this variant's lint tasks so
-    // modules.json is produced first. Scoped to the variant so a debug lint won't trigger release modules.
+    // modules.json is produced first. Scope precisely to THIS variant: a bare `contains(variantCapitalized)`
+    // would also match a longer variant whose name ends in this one (e.g. a `qaRelease` build type's
+    // `lintQaRelease` contains — and ends with — "Release"), wrongly pulling the `release` modules task
+    // into another variant's lint. AGP lint task names are either `<verb><Variant>` (lintRelease,
+    // lintReportRelease, lintAnalyzeRelease, lintVitalRelease, …) or `<verb><Variant>Lint…`
+    // (generateReleaseLintReportModel, copyReleaseLintReportModel), so match the variant as a full segment.
+    val lintVerbs =
+        setOf("lint", "lintReport", "lintAnalyze", "lintVital", "lintVitalReport", "lintVitalAnalyze", "lintFix")
+    val generatorLintPrefix = Regex("^(?:generate|copy)${Regex.escape(variantCapitalized)}Lint")
     tasks
-        .matching { it.name.contains("lint", ignoreCase = true) && it.name.contains(variantCapitalized) }
-        .configureEach { dependsOn(modulesTask) }
+        .matching { task ->
+            val name = task.name
+            (name.endsWith(variantCapitalized) && name.removeSuffix(variantCapitalized) in lintVerbs) ||
+                generatorLintPrefix.containsMatchIn(name)
+        }.configureEach { dependsOn(modulesTask) }
 
     currentVariants.forEach { (_, currentVariant) ->
         val variant = currentVariant.variantName
