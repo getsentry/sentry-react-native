@@ -42,6 +42,7 @@ class SentryModulesTaskTest {
         skipCollectModules: Boolean = false,
         produceSourcemap: Boolean = true,
         additionalBuildTypesBlock: String = "",
+        additionalTasksBlock: String = "",
     ) {
         projectDir = tempFolder.newFolder("android")
 
@@ -137,6 +138,7 @@ class SentryModulesTaskTest {
                 $additionalBuildTypesBlock
             }
             $bundleTaskBlock
+            $additionalTasksBlock
             apply from: '${scriptPath.esc()}'
             """.trimIndent(),
         )
@@ -243,6 +245,29 @@ class SentryModulesTaskTest {
         assertFalse(
             "qaRelease lint tasks must not depend on the release variant's modules task",
             qaReleaseGraph.contains(modulesTaskPath),
+        )
+    }
+
+    /**
+     * `ktlint*` tasks (from the ktlint Gradle plugin, if an app applies it) carry a lowercase `lint`
+     * mid-name plus the variant name, but are NOT AGP lint tasks. They must not be made to depend on the
+     * modules task — that would pull the JS bundler into a Kotlin-style check. The matcher keys on the
+     * `Lint` camelCase word boundary (start-of-name `lint` verb or capital-L `Lint` segment), which a
+     * case-insensitive `lint` substring would miss, so `ktlintReleaseCheck` is excluded.
+     */
+    @Test
+    fun `ktlint tasks are not wired to the modules task`() {
+        writeFixture(additionalTasksBlock = """tasks.register("ktlintReleaseCheck")""")
+
+        // Non-vacuity control: an AGP lint task IS wired, proving the fixture reaches the matcher.
+        assertTrue(
+            "lintRelease should depend on the release modules task",
+            runner("lintRelease", "--dry-run").build().output.contains(modulesTaskPath),
+        )
+
+        assertFalse(
+            "ktlintReleaseCheck must not depend on the release modules task",
+            runner("ktlintReleaseCheck", "--dry-run").build().output.contains(modulesTaskPath),
         )
     }
 }
