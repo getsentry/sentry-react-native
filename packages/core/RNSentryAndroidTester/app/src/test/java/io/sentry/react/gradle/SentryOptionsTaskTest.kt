@@ -150,4 +150,20 @@ class SentryOptionsTaskTest {
         assertEquals(TaskOutcome.SUCCESS, result.task(":generateSentryOptions")?.outcome)
         assertNull(generatedOptionsOrNull())
     }
+
+    @Test
+    fun `override with unparseable source copies file as-is without failing`() {
+        // The override branch parses the source as JSON before rewriting keys. When an override is set
+        // (here SENTRY_RELEASE) but the source is not valid JSON, the task must not fail the build: it
+        // logs a warning and copies the source verbatim into the build folder.
+        val source = "<<< not valid json >>>"
+        writeFixture(source)
+
+        val result = run("generateSentryOptions", env = mapOf("SENTRY_RELEASE" to "1.2.3"))
+
+        assertEquals(TaskOutcome.SUCCESS, result.task(":generateSentryOptions")?.outcome)
+        val generated = generatedOptionsOrNull()
+        assertNotNull("generated file should exist in build/", generated)
+        assertEquals("malformed source must be copied as-is", source, generated!!.readText())
+    }
 }
