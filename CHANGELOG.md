@@ -18,6 +18,12 @@
 
 - Export already-public option and configuration types from the entry point so their full shape is tracked in the API report ([#6731](https://github.com/getsentry/sentry-react-native/pull/6731))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.75.0 to v10.75.1 ([#6763](https://github.com/getsentry/sentry-react-native/pull/6763))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10751)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.75.0...10.75.1)
+
 ## 8.27.0
 
 > [!WARNING]
