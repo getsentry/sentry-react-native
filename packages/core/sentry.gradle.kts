@@ -886,13 +886,6 @@ fun processVariant(v: Any) {
     // Collect the bundle's JS modules into a build-folder dir registered as a generated assets source,
     // so `modules.json` is never written into src/main/assets. One task per (release) variant; AGP wires
     // it into `merge${variantCapitalized}Assets` with correct ordering and up-to-date/caching behavior.
-    val sentryPackageForModules = resolveSentryReactNativeSDKPath(reactRoot)
-    val collectModulesScriptPath =
-        config["collectModulesScript"]
-            ?.toString()
-            ?.let { file(it).absolutePath }
-            ?: "$sentryPackageForModules/dist/js/tools/collectModules.js"
-
     @Suppress("UNCHECKED_CAST")
     val modulesPathsValue =
         (config["modulesPaths"] as? List<String>)
@@ -905,6 +898,16 @@ fun processVariant(v: Any) {
         tasks.register("${bundleTask.name}_SentryCollectModules", CollectModulesTask::class.java) {
             description = "collect javascript modules from bundle source map"
             group = "sentry.io"
+            // Resolve the collect-modules script path lazily, inside the task's config block: it runs
+            // only when the task is realized (not for e.g. debug builds or `./gradlew tasks`), and the
+            // node-subprocess fallback (`resolveSentryReactNativeSDKPath`) fires only when no explicit
+            // `collectModulesScript` is configured. Keeping it in the plain `processVariant` body spawned
+            // that blocking node process at configuration time for every non-debug variant on every build.
+            val collectModulesScriptPath =
+                config["collectModulesScript"]
+                    ?.toString()
+                    ?.let { file(it).absolutePath }
+                    ?: "${resolveSentryReactNativeSDKPath(reactRoot)}/dist/js/tools/collectModules.js"
             bundleFiles.from(bundleOutput)
             sourcemapFiles.from(sourcemapOutput)
             collectModulesScript.set(collectModulesScriptPath)
