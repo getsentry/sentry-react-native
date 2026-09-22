@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Expose `enableNetworkBreadcrumbs` (iOS) and `enableNetworkEventBreadcrumbs` (Android) to disable native network breadcrumbs ([#6747](https://github.com/getsentry/sentry-react-native/issues/6747))
+
 ### Fixes
 
 - Declare optional peer dependencies so imports resolve under strict and Plug'n'Play package managers ([#6729](https://github.com/getsentry/sentry-react-native/pull/6729))

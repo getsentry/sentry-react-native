@@ -235,6 +235,32 @@ export interface BaseReactNativeOptions {
   ndkAppHangTimeoutIntervalMillis?: number;
 
   /**
+   * When enabled, the native iOS SDK records a breadcrumb for every network request.
+   *
+   * The JS SDK already records breadcrumbs for `fetch`/`XHR` requests, so the native
+   * network breadcrumbs are largely duplicates (deduplicated on a best-effort basis when
+   * merged into JS events). Disable this to stop the native layer from adding its own HTTP
+   * breadcrumbs and reduce breadcrumb noise.
+   *
+   * @default true
+   * @platform ios
+   */
+  enableNetworkBreadcrumbs?: boolean;
+
+  /**
+   * When enabled, the native Android SDK records a breadcrumb for every network request.
+   *
+   * The JS SDK already records breadcrumbs for `fetch`/`XHR` requests, so the native
+   * network breadcrumbs are largely duplicates (deduplicated on a best-effort basis when
+   * merged into JS events). Disable this to stop the native layer from adding its own HTTP
+   * breadcrumbs and reduce breadcrumb noise.
+   *
+   * @default true
+   * @platform android
+   */
+  enableNetworkEventBreadcrumbs?: boolean;
+
+  /**
    * Use this feature to enable the Sentry MetricKit integration.
    *
    * When enabled, the SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and
