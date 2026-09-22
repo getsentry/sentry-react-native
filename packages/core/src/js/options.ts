@@ -248,12 +248,13 @@ export interface BaseReactNativeOptions {
   enableNetworkBreadcrumbs?: boolean;
 
   /**
-   * When enabled, the native Android SDK records a breadcrumb for every network request.
+   * When enabled, the native Android SDK records breadcrumbs for network connectivity
+   * changes (network available/lost, capability changes such as WiFi <-> cellular, and
+   * bandwidth/VPN state).
    *
-   * The JS SDK already records breadcrumbs for `fetch`/`XHR` requests, so the native
-   * network breadcrumbs are largely duplicates (deduplicated on a best-effort basis when
-   * merged into JS events). Disable this to stop the native layer from adding its own HTTP
-   * breadcrumbs and reduce breadcrumb noise.
+   * These track the device's network state, not individual HTTP requests, so they are
+   * distinct from the `fetch`/`XHR` breadcrumbs the JS SDK records. Disable this to stop
+   * the native layer from adding connectivity breadcrumbs and reduce breadcrumb noise.
    *
    * @default true
    * @platform android
