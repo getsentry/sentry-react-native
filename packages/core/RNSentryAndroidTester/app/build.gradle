@@ -38,6 +38,10 @@ android {
         // functional tests can apply the real sentry.gradle.kts and point a fixture build at the SDK.
         systemProperty 'sentry.gradle.script', new File(rootDir, '../sentry.gradle.kts').absolutePath
         systemProperty 'sentry.android.sdkDir', android.sdkDirectory.absolutePath
+        // AGP version and compileSdk the fixtures should use, taken from THIS host build so they track
+        // it instead of pinning a stale AGP/SDK that silently diverges when the host is bumped.
+        systemProperty 'sentry.android.agpVersion', com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+        systemProperty 'sentry.android.compileSdk', android.compileSdk.toString()
     }
 }
 

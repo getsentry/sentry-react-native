@@ -1,13 +1,10 @@
 package io.sentry.react.gradle
 
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.io.File
 
 /**
@@ -16,19 +13,9 @@ import java.io.File
  * The script is a Gradle *script plugin* (`apply from:`), so its task classes cannot be imported into
  * a JUnit test. Instead we stand up a minimal `com.android.application` fixture build in a temp dir,
  * apply the real script into it, and drive the task through GradleTestKit — exercising the actual AGP
- * wiring, not just the pure action logic.
+ * wiring, not just the pure action logic. Shared scaffolding lives in [BaseSentryGradleTest].
  */
-class SentryOptionsTaskTest {
-    @get:Rule
-    val tempFolder = TemporaryFolder()
-
-    private val scriptPath: String =
-        System.getProperty("sentry.gradle.script") ?: error("sentry.gradle.script system property not set")
-    private val sdkDir: String =
-        System.getProperty("sentry.android.sdkDir") ?: error("sentry.android.sdkDir system property not set")
-
-    private lateinit var projectDir: File
-
+class SentryOptionsTaskTest : BaseSentryGradleTest() {
     /**
      * Locate the generated `sentry.options.json`. When the AGP Variant API wiring succeeds, AGP
      * relocates the task's output under `build/generated/assets/<taskName>/`, so we search the whole
@@ -38,30 +25,12 @@ class SentryOptionsTaskTest {
 
     private fun writeFixture(sourceOptions: String?) {
         projectDir = tempFolder.newFolder("android")
-
-        File(projectDir, "settings.gradle").writeText(
-            """
-            pluginManagement {
-                repositories {
-                    google()
-                    mavenCentral()
-                    gradlePluginPortal()
-                }
-            }
-            dependencyResolutionManagement {
-                repositories {
-                    google()
-                    mavenCentral()
-                }
-            }
-            rootProject.name = "fixture"
-            """.trimIndent(),
-        )
+        writeCommonFixture()
 
         File(projectDir, "build.gradle").writeText(
             """
             plugins {
-                id 'com.android.application' version '8.3.2'
+                id 'com.android.application' version '$agpVersion'
             }
             project.ext.sentryCli = [
                 collectModulesScript: 'nonexistent',
@@ -70,18 +39,12 @@ class SentryOptionsTaskTest {
             ]
             android {
                 namespace 'io.sentry.fixture'
-                compileSdk 34
+                compileSdk $compileSdk
                 defaultConfig { minSdk 21 }
             }
-            apply from: '${scriptPath.replace("\\", "\\\\")}'
+            apply from: '${scriptPath.esc()}'
             """.trimIndent(),
         )
-
-        File(projectDir, "local.properties").writeText("sdk.dir=${sdkDir.replace("\\", "\\\\")}")
-
-        val manifestDir = File(projectDir, "src/main")
-        manifestDir.mkdirs()
-        File(manifestDir, "AndroidManifest.xml").writeText("<manifest />")
 
         // The script reads the source `sentry.options.json` from the app root's parent (the RN project
         // root), i.e. one level above the Gradle rootDir.
@@ -90,19 +53,13 @@ class SentryOptionsTaskTest {
         }
     }
 
+    // Scrub any `SENTRY_*` the developer has set locally (the script reads SENTRY_RELEASE /
+    // SENTRY_ENVIRONMENT / SENTRY_DIST / SENTRY_COPY_OPTIONS_FILE at configuration time), so these
+    // assertions depend only on the fixture and each test's explicit `env`, not the host shell.
     private fun run(
         vararg args: String,
         env: Map<String, String> = emptyMap(),
-    ) = GradleRunner
-        .create()
-        .withProjectDir(projectDir)
-        .withArguments(*args, "--stacktrace")
-        // Scrub any `SENTRY_*` the developer has set locally (the script reads SENTRY_RELEASE /
-        // SENTRY_ENVIRONMENT / SENTRY_DIST / SENTRY_COPY_OPTIONS_FILE at configuration time), so these
-        // assertions depend only on the fixture and each test's explicit `env`, not the host shell.
-        .withEnvironment(System.getenv().filterKeys { !it.startsWith("SENTRY_") } + env)
-        .forwardOutput()
-        .build()
+    ) = baseRunner(*args, extraEnv = env).build()
 
     @Test
     fun `plain copy - no overrides copies source verbatim into build folder`() {
