@@ -274,6 +274,23 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.enableAppComponentBreadcrumbs).toBe(false);
     });
 
+    test('forwards reportAccessibilityIdentifier to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        reportAccessibilityIdentifier: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.reportAccessibilityIdentifier).toBe(false);
+    });
+
     test('filter beforeSend when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,
