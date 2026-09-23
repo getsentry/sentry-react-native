@@ -479,6 +479,8 @@ export interface FeedbackFormStyles {
     // (undocumented)
     submitButton?: ViewStyle;
     // (undocumented)
+    submitButtonDisabled?: ViewStyle;
+    // (undocumented)
     submitText?: TextStyle;
     // (undocumented)
     takeScreenshotButton?: ViewStyle;

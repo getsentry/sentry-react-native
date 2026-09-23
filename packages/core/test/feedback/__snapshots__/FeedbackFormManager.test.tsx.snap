@@ -883,7 +883,7 @@ exports[`FeedbackButtonManager the Feedback Form matches the snapshot with custo
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": undefined,
                   }
@@ -1242,7 +1242,7 @@ exports[`FeedbackButtonManager the Feedback Form matches the snapshot with custo
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": undefined,
                   }
@@ -1601,7 +1601,7 @@ exports[`FeedbackButtonManager the Feedback Form matches the snapshot with defau
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": undefined,
                   }
@@ -1960,7 +1960,7 @@ exports[`FeedbackButtonManager the Feedback Form matches the snapshot with defau
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": undefined,
                   }
@@ -2319,7 +2319,7 @@ exports[`FeedbackButtonManager the Feedback Form matches the snapshot with defau
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": undefined,
                   }
@@ -2678,7 +2678,7 @@ exports[`FeedbackButtonManager the Feedback Form matches the snapshot with syste
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": undefined,
                   }
@@ -3037,7 +3037,7 @@ exports[`FeedbackButtonManager the Feedback Form matches the snapshot with syste
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": undefined,
                   }

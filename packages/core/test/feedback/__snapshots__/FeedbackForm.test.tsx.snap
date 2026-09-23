@@ -177,7 +177,7 @@ exports[`FeedbackForm matches the snapshot with custom styles 1`] = `
       {
         "busy": undefined,
         "checked": undefined,
-        "disabled": undefined,
+        "disabled": false,
         "expanded": undefined,
         "selected": undefined,
       }
@@ -518,7 +518,7 @@ exports[`FeedbackForm matches the snapshot with custom styles and screenshot but
       {
         "busy": undefined,
         "checked": undefined,
-        "disabled": undefined,
+        "disabled": false,
         "expanded": undefined,
         "selected": undefined,
       }
@@ -796,7 +796,7 @@ exports[`FeedbackForm matches the snapshot with custom texts 1`] = `
       {
         "busy": undefined,
         "checked": undefined,
-        "disabled": undefined,
+        "disabled": false,
         "expanded": undefined,
         "selected": undefined,
       }
@@ -1136,7 +1136,7 @@ exports[`FeedbackForm matches the snapshot with custom texts and screenshot butt
       {
         "busy": undefined,
         "checked": undefined,
-        "disabled": undefined,
+        "disabled": false,
         "expanded": undefined,
         "selected": undefined,
       }
@@ -1413,7 +1413,7 @@ exports[`FeedbackForm matches the snapshot with default configuration 1`] = `
       {
         "busy": undefined,
         "checked": undefined,
-        "disabled": undefined,
+        "disabled": false,
         "expanded": undefined,
         "selected": undefined,
       }
@@ -1753,7 +1753,7 @@ exports[`FeedbackForm matches the snapshot with default configuration and screen
       {
         "busy": undefined,
         "checked": undefined,
-        "disabled": undefined,
+        "disabled": false,
         "expanded": undefined,
         "selected": undefined,
       }

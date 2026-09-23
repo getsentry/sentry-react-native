@@ -112,6 +112,10 @@ describe('FeedbackForm', () => {
   beforeEach(() => {
     mockIsolationScopeGetUser.mockReturnValue(undefined);
     mockGlobalScopeGetUser.mockReturnValue(undefined);
+    // An active client is required for a submission to be reported as successful.
+    const client = new TestClient(getDefaultTestClientOptions());
+    setCurrentClient(client);
+    client.init();
     FeedbackForm.reset();
   });
 
@@ -425,6 +429,125 @@ describe('FeedbackForm', () => {
     });
   });
 
+  it('reports an error and keeps the draft when there is no active Sentry client', async () => {
+    // @ts-expect-error - simulate the SDK not being initialized.
+    setCurrentClient(undefined);
+
+    const { getByPlaceholderText, getByText, unmount } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    await waitFor(() => {
+      expect(mockOnSubmitError).toHaveBeenCalled();
+      expect(Alert.alert).toHaveBeenCalledWith(defaultProps.errorTitle, defaultProps.genericError);
+    });
+    expect(mockOnSubmitSuccess).not.toHaveBeenCalled();
+
+    // The draft is preserved so the user can retry.
+    unmount();
+    const { queryByPlaceholderText } = render(<FeedbackForm {...defaultProps} />);
+    expect(queryByPlaceholderText(defaultProps.namePlaceholder).props.value).toBe('John Doe');
+    expect(queryByPlaceholderText(defaultProps.messagePlaceholder).props.value).toBe('This is a feedback message.');
+  });
+
+  it('does not submit again after a successful submission', async () => {
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    // Repeated taps must not trigger additional submissions.
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    expect(captureFeedback).toHaveBeenCalledTimes(1);
+    expect(mockOnSubmitSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('still shows success, closes the form, and blocks resubmit when onSubmitSuccess throws', async () => {
+    const throwingOnSubmitSuccess = jest.fn(() => {
+      throw new Error('callback error');
+    });
+    const { getByPlaceholderText, getByText } = render(
+      <FeedbackForm {...defaultProps} onSubmitSuccess={throwingOnSubmitSuccess} />,
+    );
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    // The feedback is captured, then the success callback throws.
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    // A second tap must not capture again: the feedback was already submitted.
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+
+    expect(captureFeedback).toHaveBeenCalledTimes(1);
+    expect(throwingOnSubmitSuccess).toHaveBeenCalledTimes(1);
+    // A throwing success callback must not be treated as a submission failure...
+    expect(mockOnSubmitError).not.toHaveBeenCalled();
+    // ...and must not skip the success alert or closing the form.
+    expect(Alert.alert).toHaveBeenCalledWith(defaultProps.successMessageText, '');
+    expect(mockOnFormSubmitted).toHaveBeenCalled();
+  });
+
+  it('allows retry when onSubmitError throws on a failed submission', async () => {
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('capture error');
+    });
+    const throwingOnSubmitError = jest.fn(() => {
+      throw new Error('callback error');
+    });
+
+    const { getByPlaceholderText, getByText } = render(
+      <FeedbackForm {...defaultProps} onSubmitError={throwingOnSubmitError} />,
+    );
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    // First submission fails and its onSubmitError throws — the guard must still be released.
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    expect(throwingOnSubmitError).toHaveBeenCalledTimes(1);
+
+    // Second submission goes through.
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    await waitFor(() => {
+      expect(mockOnSubmitSuccess).toHaveBeenCalled();
+    });
+    expect(captureFeedback).toHaveBeenCalledTimes(2);
+  });
+
+  it('allows re-submitting after a failed submission', async () => {
+    (captureFeedback as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('Test error');
+    });
+
+    const { getByPlaceholderText, getByText } = render(<FeedbackForm {...defaultProps} />);
+
+    fireEvent.changeText(getByPlaceholderText(defaultProps.namePlaceholder), 'John Doe');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.emailPlaceholder), 'john.doe@example.com');
+    fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
+
+    // First submission fails and releases the in-flight guard.
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    await waitFor(() => {
+      expect(mockOnSubmitError).toHaveBeenCalled();
+    });
+
+    // Second submission goes through.
+    fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    await waitFor(() => {
+      expect(mockOnSubmitSuccess).toHaveBeenCalled();
+    });
+    expect(captureFeedback).toHaveBeenCalledTimes(2);
+  });
+
   it('calls onAddScreenshot when the screenshot button is pressed and no image picker library is integrated', async () => {
     const { getByText } = render(<FeedbackForm {...defaultProps} enableScreenshot={true} />);
 
@@ -516,6 +639,10 @@ describe('FeedbackForm', () => {
     fireEvent.changeText(getByPlaceholderText(defaultProps.messagePlaceholder), 'This is a feedback message.');
 
     fireEvent.press(getByText(defaultProps.submitButtonLabel));
+    await waitFor(() => {
+      expect(mockOnSubmitSuccess).toHaveBeenCalled();
+    });
+
     unmount();
     const { queryByPlaceholderText } = render(<FeedbackForm {...defaultProps} />);
 
