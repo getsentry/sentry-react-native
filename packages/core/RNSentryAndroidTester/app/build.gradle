@@ -34,6 +34,14 @@ android {
         testLogging {
             events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
         }
+        // Absolute path to the script plugin under test and the Android SDK, so the GradleTestKit
+        // functional tests can apply the real sentry.gradle.kts and point a fixture build at the SDK.
+        systemProperty 'sentry.gradle.script', new File(rootDir, '../sentry.gradle.kts').absolutePath
+        systemProperty 'sentry.android.sdkDir', android.sdkDirectory.absolutePath
+        // AGP version and compileSdk the fixtures should use, taken from THIS host build so they track
+        // it instead of pinning a stale AGP/SDK that silently diverges when the host is bumped.
+        systemProperty 'sentry.android.agpVersion', com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+        systemProperty 'sentry.android.compileSdk', android.compileSdk.toString()
     }
 }
 
@@ -48,6 +56,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'androidx.test:core-ktx:1.6.1'
     testImplementation 'junit:junit:4.13.2'
+    testImplementation gradleTestKit()
     testImplementation 'org.mockito:mockito-core:5.10.0'
     testImplementation 'org.mockito.kotlin:mockito-kotlin:5.2.1'
     testImplementation 'org.robolectric:robolectric:4.14.1'
