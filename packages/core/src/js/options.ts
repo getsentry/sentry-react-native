@@ -337,6 +337,17 @@ export interface BaseReactNativeOptions {
   enableMetricKit?: boolean;
 
   /**
+   * When enabled, the native iOS SDK attaches the raw MetricKit diagnostic payload (as received
+   * from the operating system) to the events it creates from MetricKit diagnostics.
+   *
+   * Only has an effect when `enableMetricKit` is `true`.
+   *
+   * @default false
+   * @platform ios
+   */
+  enableMetricKitRawPayload?: boolean;
+
+  /**
    * When enabled, `SentryCrash` reads memory near the crash site while capturing a native crash
    * (e.g. `EXC_BAD_ACCESS`) and embeds string-based stack contents in the event. This can help
    * with debugging, but may also expose sensitive information (such as user IDs or personal data),
@@ -455,6 +466,18 @@ export interface BaseReactNativeOptions {
    * @default true
    */
   enableAppStartTracking?: boolean;
+
+  /**
+   * When enabled, the native iOS SDK also measures app start for pre-warmed app starts, where the
+   * operating system starts parts of the app ahead of time.
+   *
+   * Enabled by default in the native SDK; the default already accounts for pre-warm skew. Set this
+   * to `false` to opt out of app-start tracing for pre-warmed starts.
+   *
+   * @default true
+   * @platform ios
+   */
+  enablePreWarmedAppStartTracing?: boolean;
 
   /**
    * Track the slow and frozen frames in the application. Enabling this options will add

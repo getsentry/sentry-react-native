@@ -173,6 +173,7 @@ export interface BaseReactNativeOptions {
     enableHistoricalTombstoneReporting?: boolean;
     enableMemoryIntrospection?: boolean;
     enableMetricKit?: boolean;
+    enableMetricKitRawPayload?: boolean;
     enableNative?: boolean;
     enableNativeCrashHandling?: boolean;
     enableNativeFramesTracking?: boolean;
@@ -182,6 +183,7 @@ export interface BaseReactNativeOptions {
     enableNdkScopeSync?: boolean;
     enableNetworkBreadcrumbs?: boolean;
     enableNetworkEventBreadcrumbs?: boolean;
+    enablePreWarmedAppStartTracing?: boolean;
     enableStallTracking?: boolean;
     enableSystemEventBreadcrumbs?: boolean;
     enableTombstone?: boolean;

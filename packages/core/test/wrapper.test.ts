@@ -291,6 +291,40 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.reportAccessibilityIdentifier).toBe(false);
     });
 
+    test('forwards enableMetricKitRawPayload to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableMetricKitRawPayload: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.enableMetricKitRawPayload).toBe(true);
+    });
+
+    test('forwards enablePreWarmedAppStartTracing to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enablePreWarmedAppStartTracing: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.enablePreWarmedAppStartTracing).toBe(false);
+    });
+
     test('filter beforeSend when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,
