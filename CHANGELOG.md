@@ -13,6 +13,8 @@
 - Expose `enableNetworkBreadcrumbs` (iOS) to disable native HTTP request breadcrumbs ([#6764](https://github.com/getsentry/sentry-react-native/pull/6764))
 - Expose `enableNetworkEventBreadcrumbs` (Android) to disable native network connectivity breadcrumbs ([#6764](https://github.com/getsentry/sentry-react-native/pull/6764))
 - Expose native breadcrumb off-switches: `enableAutoBreadcrumbTracking` (iOS); `enableActivityLifecycleBreadcrumbs`, `enableAppLifecycleBreadcrumbs`, `enableSystemEventBreadcrumbs`, `enableAppComponentBreadcrumbs` (Android) ([#6768](https://github.com/getsentry/sentry-react-native/pull/6768))
+- Expose `enablePreWarmedAppStartTracing` (iOS) to opt out of app-start tracing for pre-warmed starts ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Expose `enableMetricKitRawPayload` (iOS) to attach the raw MetricKit diagnostic payload to MetricKit events ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
 
 ### Fixes
 
