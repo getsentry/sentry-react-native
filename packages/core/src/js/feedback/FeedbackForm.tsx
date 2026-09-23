@@ -2,7 +2,15 @@
 import type { SendFeedbackParams, User } from '@sentry/core';
 import type { KeyboardTypeOptions, NativeEventSubscription } from 'react-native';
 
-import { captureFeedback, debug, getCurrentScope, getGlobalScope, getIsolationScope, lastEventId } from '@sentry/core';
+import {
+  captureFeedback,
+  debug,
+  getClient,
+  getCurrentScope,
+  getGlobalScope,
+  getIsolationScope,
+  lastEventId,
+} from '@sentry/core';
 import * as React from 'react';
 import {
   Appearance,
@@ -43,7 +51,7 @@ import { base64ToUint8Array, feedbackAlertDialog, isValidEmail } from './utils';
 export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFormState> {
   public static defaultProps = defaultConfiguration;
 
-  private static _savedState: Omit<FeedbackFormState, 'isVisible'> = {
+  private static _savedState: Omit<FeedbackFormState, 'isVisible' | 'isSubmitting'> = {
     name: '',
     email: '',
     description: '',
@@ -55,6 +63,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
   private _themeListener: NativeEventSubscription | undefined;
 
   private _didSubmitForm: boolean = false;
+
+  // Synchronous guard against duplicate submissions. State can't be used for this because
+  // `setState` doesn't update `this.state` until the next render, so two taps in the same
+  // tick would both pass a state-based check.
+  private _isSubmitting: boolean = false;
 
   public constructor(props: FeedbackFormProps) {
     super(props);
@@ -68,6 +81,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
     this.state = {
       isVisible: true,
+      isSubmitting: false,
       name: FeedbackForm._savedState.name || currentUser.useSentryUser.name,
       email: FeedbackForm._savedState.email || currentUser.useSentryUser.email,
       description: FeedbackForm._savedState.description || '',
@@ -95,8 +109,14 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
 
   public handleFeedbackSubmit: () => void = () => {
     const { name, email, description } = this.state;
-    const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
     const text = this.props;
+
+    // Ignore repeated taps: while a submission is running, and after a successful submit
+    // (a custom `onFormSubmitted` may keep the form mounted). Uses a synchronous flag so
+    // two taps in the same tick can't both get through.
+    if (this._isSubmitting) {
+      return;
+    }
 
     const trimmedName = name?.trim();
     const trimmedEmail = email?.trim();
@@ -138,25 +158,75 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       associatedEventId: eventId,
     };
 
+    this._isSubmitting = true;
+    this.setState({ isSubmitting: true });
+    this._submitFeedback(userFeedback, attachments);
+  };
+
+  /**
+   * Captures the feedback and reports the outcome.
+   *
+   * `captureFeedback` is synchronous and fire-and-forget — the React Native client hands the
+   * envelope to the (native or JS) transport without surfacing the delivery result, so the JS
+   * layer genuinely can't confirm the envelope reached Sentry. We therefore report success
+   * optimistically once the event has been captured, and only surface an error for the cases we
+   * can detect synchronously: no active client, or `captureFeedback` throwing. On those errors the
+   * form stays open with the draft intact so the user can retry.
+   */
+  private _submitFeedback = (
+    userFeedback: SendFeedbackParams,
+    attachments: Array<{ filename: string; data: string | Uint8Array }> | undefined,
+  ): void => {
+    const { onSubmitSuccess, onSubmitError, onFormSubmitted } = this.props;
+    const text = this.props;
+
     try {
+      if (!getClient()) {
+        throw new Error('No Sentry client is available to send the feedback.');
+      }
+
       if (!onFormSubmitted) {
         this.setState({ isVisible: false });
       }
+
       captureFeedback(userFeedback, attachments ? { attachments } : undefined);
-      onSubmitSuccess({
-        name: trimmedName,
-        email: trimmedEmail,
-        message: trimmedDescription,
-        attachments: attachments,
-      });
-      feedbackAlertDialog(text.successMessageText, '');
-      onFormSubmitted();
-      this._didSubmitForm = true;
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
-      onSubmitError(new Error(errorString));
+      debug.error(errorString);
+      // Release the guard first so the user can retry even if `onSubmitError` throws.
+      this._isSubmitting = false;
+      this.setState({ isSubmitting: false });
+      this._runCallback(() => onSubmitError(new Error(errorString)));
       feedbackAlertDialog(text.errorTitle, text.genericError);
-      debug.error(`Feedback form submission failed: ${error}`);
+      return;
+    }
+
+    // The feedback was captured. Mark the form as submitted and keep `_isSubmitting` set so it
+    // can't be submitted again (even if a custom `onFormSubmitted` keeps it mounted). Each consumer
+    // callback is isolated so a throw in one can't undo the submission or skip the remaining success
+    // side-effects (the alert and closing the form).
+    this._didSubmitForm = true;
+    this._runCallback(() =>
+      onSubmitSuccess({
+        name: userFeedback.name ?? '',
+        email: userFeedback.email ?? '',
+        message: userFeedback.message,
+        attachments: attachments,
+      }),
+    );
+    feedbackAlertDialog(text.successMessageText, '');
+    this._runCallback(() => onFormSubmitted());
+  };
+
+  /**
+   * Runs a consumer-provided callback, isolating any thrown error so it can't disrupt the
+   * submission flow. The feedback has already been captured by the time these run.
+   */
+  private _runCallback = (callback: () => void): void => {
+    try {
+      callback();
+    } catch (error) {
+      debug.error(`Feedback form callback threw: ${error}`);
     }
   };
 
@@ -402,7 +472,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
               </Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.submitButton} onPress={this.handleFeedbackSubmit}>
+          <TouchableOpacity
+            style={[styles.submitButton, this.state.isSubmitting && styles.submitButtonDisabled]}
+            onPress={this.handleFeedbackSubmit}
+            disabled={this.state.isSubmitting}
+          >
             <Text style={styles.submitText} testID="sentry-feedback-submit-button">
               {text.submitButtonLabel}
             </Text>

@@ -293,6 +293,7 @@ export interface FeedbackFormStyles {
   input?: TextStyle;
   textArea?: TextStyle;
   submitButton?: ViewStyle;
+  submitButtonDisabled?: ViewStyle;
   submitText?: TextStyle;
   cancelButton?: ViewStyle;
   cancelText?: TextStyle;
@@ -343,6 +344,11 @@ export interface ScreenshotButtonStyles {
  */
 export interface FeedbackFormState {
   isVisible: boolean;
+  /**
+   * Whether a submission is currently in flight (waiting for confirmation that the
+   * feedback was sent). Used to disable the submit button and prevent double submits.
+   */
+  isSubmitting: boolean;
   name: string;
   email: string;
   description: string;

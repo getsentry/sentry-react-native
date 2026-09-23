@@ -84,6 +84,9 @@ const defaultStyles = (theme: FeedbackFormTheme): FeedbackFormStyles => {
       alignItems: 'center',
       marginBottom: 10,
     },
+    submitButtonDisabled: {
+      opacity: 0.7,
+    },
     submitText: {
       color: theme.accentForeground,
       fontSize: 18,
