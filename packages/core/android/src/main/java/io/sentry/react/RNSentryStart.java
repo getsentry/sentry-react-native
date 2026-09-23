@@ -213,6 +213,10 @@ final class RNSentryStart {
       options.setNdkAppHangTimeoutIntervalMillis(
           rnOptions.getInt("ndkAppHangTimeoutIntervalMillis"));
     }
+    if (rnOptions.hasKey("enableNetworkEventBreadcrumbs")) {
+      options.setEnableNetworkEventBreadcrumbs(
+          rnOptions.getBoolean("enableNetworkEventBreadcrumbs"));
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));

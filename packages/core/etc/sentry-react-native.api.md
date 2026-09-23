@@ -176,6 +176,8 @@ export interface BaseReactNativeOptions {
     enableNdk?: boolean;
     enableNdkAppHangTracking?: boolean;
     enableNdkScopeSync?: boolean;
+    enableNetworkBreadcrumbs?: boolean;
+    enableNetworkEventBreadcrumbs?: boolean;
     enableStallTracking?: boolean;
     enableTombstone?: boolean;
     // @internal
