@@ -76,20 +76,6 @@ Sentry.captureMessage("Hello Sentry!");
 
 If you are coming from `react-native-sentry` which was our SDK `< 1.0` you should follow the [upgrade guide](https://docs.sentry.io/platforms/react-native/#upgrading-from-react-native-sentry) and then follow the [install steps](https://docs.sentry.io/platforms/react-native/#integrating-the-sdk).
 
-## Blog posts
-
-[Introducing Mobile Screenshots and Suspect Commits](https://blog.sentry.io/introducing-mobile-screenshots-and-suspect-commits).
-
-[Tips for Optimizing React Native Application Performance - Part 2: Using Sentry SDK for Performance Monitoring](https://blog.sentry.io/tips-for-optimizing-react-native-application-performance-part-2-using-sentry).
-
-[Tips for Optimizing React Native Application Performance: Part 1](https://blog.sentry.io/tips-for-optimizing-react-native-application-performance-part-1).
-
-[Tracking Stability in a Bluetooth Low Energy-Based React-Native App](https://blog.sentry.io/tracking-stability-in-a-bluetooth-low-energy-based-react-native-app).
-
-[Mobile Vitals - Four Metrics Every Mobile Developer Should Care About](https://blog.sentry.io/mobile-vitals-four-metrics-every-mobile-developer-should-care-about/).
-
-[Performance Monitoring Support for React Native](https://blog.sentry.io/performance-monitoring-support-for-react-native/?utm_source=github&utm_medium=readme&utm_campaign=sentry-react-native).
-
 ## Resources
 
 - [![Documentation](https://img.shields.io/badge/documentation-sentry.io-green.svg)](https://docs.sentry.io/platforms/react-native/)
