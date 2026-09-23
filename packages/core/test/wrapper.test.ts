@@ -234,6 +234,46 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.enableNetworkEventBreadcrumbs).toBe(false);
     });
 
+    test('forwards enableAutoBreadcrumbTracking to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableAutoBreadcrumbTracking: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.enableAutoBreadcrumbTracking).toBe(false);
+    });
+
+    test('forwards the Android breadcrumb off-switches to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableActivityLifecycleBreadcrumbs: false,
+        enableAppLifecycleBreadcrumbs: false,
+        enableSystemEventBreadcrumbs: false,
+        enableAppComponentBreadcrumbs: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.enableActivityLifecycleBreadcrumbs).toBe(false);
+      expect(initParameter.enableAppLifecycleBreadcrumbs).toBe(false);
+      expect(initParameter.enableSystemEventBreadcrumbs).toBe(false);
+      expect(initParameter.enableAppComponentBreadcrumbs).toBe(false);
+    });
+
     test('filter beforeSend when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,

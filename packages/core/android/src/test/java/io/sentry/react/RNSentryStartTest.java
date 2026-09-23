@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import com.facebook.react.bridge.ReadableMap;
 import io.sentry.ILogger;
 import io.sentry.android.core.SentryAndroidOptions;
+import java.util.function.Predicate;
 import org.junit.Test;
 
 /**
@@ -46,5 +47,50 @@ public class RNSentryStartTest {
 
     // Native default is true; omitting the RN option must not change it.
     assertTrue(optionsFrom(rnOptions).isEnableNetworkEventBreadcrumbs());
+  }
+
+  /**
+   * Asserts the on-by-default breadcrumb off-switch {@code key} forwards both values onto {@code
+   * getter} and preserves the native default (true) when omitted.
+   */
+  private static void assertBreadcrumbOffSwitchForwarded(
+      String key, Predicate<SentryAndroidOptions> getter) {
+    final ReadableMap forwardsFalse = mock(ReadableMap.class);
+    when(forwardsFalse.hasKey(key)).thenReturn(true);
+    when(forwardsFalse.getBoolean(key)).thenReturn(false);
+    assertFalse(getter.test(optionsFrom(forwardsFalse)));
+
+    final ReadableMap forwardsTrue = mock(ReadableMap.class);
+    when(forwardsTrue.hasKey(key)).thenReturn(true);
+    when(forwardsTrue.getBoolean(key)).thenReturn(true);
+    assertTrue(getter.test(optionsFrom(forwardsTrue)));
+
+    // Native default is true; omitting the RN option must not change it.
+    assertTrue(getter.test(optionsFrom(mock(ReadableMap.class))));
+  }
+
+  @Test
+  public void enableActivityLifecycleBreadcrumbsForwarded() {
+    assertBreadcrumbOffSwitchForwarded(
+        "enableActivityLifecycleBreadcrumbs",
+        SentryAndroidOptions::isEnableActivityLifecycleBreadcrumbs);
+  }
+
+  @Test
+  public void enableAppLifecycleBreadcrumbsForwarded() {
+    assertBreadcrumbOffSwitchForwarded(
+        "enableAppLifecycleBreadcrumbs", SentryAndroidOptions::isEnableAppLifecycleBreadcrumbs);
+  }
+
+  @Test
+  public void enableSystemEventBreadcrumbsForwarded() {
+    assertBreadcrumbOffSwitchForwarded(
+        "enableSystemEventBreadcrumbs", SentryAndroidOptions::isEnableSystemEventBreadcrumbs);
+  }
+
+  @Test
+  public void enableAppComponentBreadcrumbsForwarded() {
+    assertBreadcrumbOffSwitchForwarded(
+        "enableAppComponentBreadcrumbs", SentryAndroidOptions::isEnableAppComponentBreadcrumbs);
   }
 }
