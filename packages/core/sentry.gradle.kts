@@ -1,6 +1,17 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Exec
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import java.io.FileInputStream
 import java.util.Properties
 import java.util.concurrent.atomic.AtomicBoolean
@@ -78,9 +89,93 @@ interface InjectedExecOps {
     val execOps: org.gradle.process.ExecOperations
 }
 
-interface InjectedFsOps {
-    @get:Inject
-    val fs: org.gradle.api.file.FileSystemOperations
+/**
+ * Generates `sentry.options.json` into a `build` folder directory registered as a generated assets
+ * source, so nothing is written into the version-controlled `src/main/assets` tree. Declared
+ * inputs/outputs make it participate in up-to-date checks and the build cache; the action reads only
+ * captured inputs and does plain file I/O, so it is Configuration Cache compatible.
+ */
+abstract class GenerateSentryOptionsTask : DefaultTask() {
+    // File collection so a missing source is an empty input, not a failure. RELATIVE: only content matters.
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val sourceOptionsFiles: ConfigurableFileCollection
+
+    @get:Input
+    @get:Optional
+    abstract val environmentOverride: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val releaseOverride: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val distOverride: Property<String>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    // The `SENTRY_COPY_OPTIONS_FILE` opt-out. `@Input` (not `onlyIf`) so toggling it re-runs the task,
+    // which clears the output dir when disabled — a skipped task would leave a stale file to be packaged.
+    @get:Input
+    abstract val copyEnabled: Property<Boolean>
+
+    @TaskAction
+    fun generate() {
+        val outDir = outputDir.get().asFile
+        outDir.mkdirs()
+        val dest = File(outDir, "sentry.options.json")
+        // Idempotent: clear any prior output so a removed source file, or a disabled opt-out, leaves an
+        // empty dir rather than packaging a stale file.
+        if (dest.exists()) {
+            dest.delete()
+        }
+
+        if (!copyEnabled.get()) {
+            logger.info("sentry.options.json generation disabled via SENTRY_COPY_OPTIONS_FILE; output left empty")
+            return
+        }
+
+        val source = sourceOptionsFiles.files.firstOrNull { it.exists() }
+        if (source == null) {
+            logger.warn("sentry.options.json not found in app root; generated assets directory left empty")
+            return
+        }
+
+        val environment = environmentOverride.orNull
+        val release = releaseOverride.orNull
+        val dist = distOverride.orNull
+
+        if (environment == null && release == null && dist == null) {
+            dest.writeText(source.readText())
+            logger.lifecycle("Generated sentry.options.json into ${dest.parentFile}")
+            return
+        }
+
+        try {
+            @Suppress("UNCHECKED_CAST")
+            val content =
+                groovy.json.JsonSlurper().parseText(source.readText()) as MutableMap<String, Any>
+            if (environment != null) {
+                content["environment"] = environment
+                logger.lifecycle("Overriding 'environment' from SENTRY_ENVIRONMENT environment variable")
+            }
+            if (release != null) {
+                content["release"] = release
+                logger.lifecycle("Overriding 'release' from SENTRY_RELEASE environment variable")
+            }
+            if (dist != null) {
+                content["dist"] = dist
+                logger.lifecycle("Overriding 'dist' from SENTRY_DIST environment variable")
+            }
+            dest.writeText(groovy.json.JsonOutput.toJson(content))
+        } catch (e: Exception) {
+            logger.warn("Failed to override options in sentry.options.json: ${e.message}. Copied file as-is.")
+            dest.writeText(source.readText())
+        }
+        logger.lifecycle("Generated sentry.options.json into ${dest.parentFile}")
+    }
 }
 
 extra["shouldCopySentryOptionsFile"] =
@@ -103,82 +198,132 @@ val config: Map<String, Any?> =
     }
 
 val configFile = "sentry.options.json"
-val androidAssetsDir = File("$rootDir/app/src/main/assets")
 
-// Values captured at configuration time so task onlyIf specs and actions do not read
-// `project` state at execution time (required for Gradle Configuration Cache compatibility).
-// `copyOptionsFileEnabled` is a Property populated in `afterEvaluate` (below) rather than at
-// apply-time, so a `project.ext.shouldCopySentryOptionsFile` override placed after `apply from`
-// is still honored. Referencing the Property in `onlyIf` keeps the tasks Config Cache compatible.
-// The convention preserves the documented default (copy enabled) if `afterEvaluate` never runs.
-val copyOptionsFileEnabled = objects.property(Boolean::class.java).convention(true)
+// Captured at configuration time so task actions do not read `project` state at execution time
+// (required for Gradle Configuration Cache compatibility).
 val rootDirFile = project.rootDir
 
-tasks.register("copySentryJsonConfiguration") {
-    onlyIf { copyOptionsFileEnabled.get() }
-    val injectedFs = project.objects.newInstance(InjectedFsOps::class.java)
-    doLast {
+// Build-folder dir holding the generated `sentry.options.json`, registered as a generated assets
+// source (below) so AGP merges it into the packaged assets with correct task ordering and caching.
+val sentryOptionsGeneratedDir = layout.buildDirectory.dir("generated/sentry/options")
+
+// Read at configuration time and passed as task inputs so up-to-date checks re-run on change.
+val sentryOptionsEnvironment: String? = System.getenv("SENTRY_ENVIRONMENT")
+val sentryOptionsRelease: String? = System.getenv("SENTRY_RELEASE")
+val sentryOptionsDist: String? = System.getenv("SENTRY_DIST")
+
+val generateSentryOptionsTask =
+    tasks.register("generateSentryOptions", GenerateSentryOptionsTask::class.java) {
+        // Opt-out is a task input resolved in afterEvaluate; the action clears output when disabled.
+        copyEnabled.convention(true)
         val appRoot = rootDirFile.parentFile ?: rootDirFile
-        val sentryOptionsFile = File(appRoot, configFile)
-        if (sentryOptionsFile.exists()) {
-            if (!androidAssetsDir.exists()) {
-                androidAssetsDir.mkdirs()
-            }
+        sourceOptionsFiles.from(File(appRoot, configFile))
+        sentryOptionsEnvironment?.let { environmentOverride.set(it) }
+        sentryOptionsRelease?.let { releaseOverride.set(it) }
+        sentryOptionsDist?.let { distOverride.set(it) }
+        outputDir.set(sentryOptionsGeneratedDir)
+    }
 
-            injectedFs.fs.copy {
-                from(sentryOptionsFile)
-                into(androidAssetsDir)
-                rename { configFile }
-            }
+// Older plugin versions copied the file into src/main/assets and a crashed build could leave it
+// behind. It would now shadow or clash with the generated one. Warn (never delete — it may be
+// intentional) so the user can remove the stale copy.
+val legacyOptionsFile = File(project.projectDir, "src/main/assets/$configFile")
+if (legacyOptionsFile.exists()) {
+    project.logger.warn(
+        "[sentry] Found a stale $configFile in src/main/assets; it is now generated into the build " +
+            "folder and the old copy may conflict. Please remove: ${legacyOptionsFile.absolutePath}",
+    )
+}
 
-            val sentryEnv = System.getenv("SENTRY_ENVIRONMENT")
-            val sentryRelease = System.getenv("SENTRY_RELEASE")
-            val sentryDist = System.getenv("SENTRY_DIST")
-            if (sentryEnv != null || sentryRelease != null || sentryDist != null) {
-                try {
-                    val destFile = File(androidAssetsDir, configFile)
+// Guards the classic source-set fallback so it registers at most once, only when the variant API is absent.
+val sentryOptionsSourceSetFallbackApplied = AtomicBoolean(false)
 
-                    @Suppress("UNCHECKED_CAST")
-                    val content = groovy.json.JsonSlurper().parseText(destFile.readText()) as MutableMap<String, Any>
-                    if (sentryEnv != null) {
-                        content["environment"] = sentryEnv
-                    }
-                    if (sentryRelease != null) {
-                        content["release"] = sentryRelease
-                    }
-                    if (sentryDist != null) {
-                        content["dist"] = sentryDist
-                    }
-                    destFile.writeText(groovy.json.JsonOutput.toJson(content))
-                    if (sentryEnv != null) {
-                        logger.lifecycle("Overriding 'environment' from SENTRY_ENVIRONMENT environment variable")
-                    }
-                    if (sentryRelease != null) {
-                        logger.lifecycle("Overriding 'release' from SENTRY_RELEASE environment variable")
-                    }
-                    if (sentryDist != null) {
-                        logger.lifecycle("Overriding 'dist' from SENTRY_DIST environment variable")
-                    }
-                } catch (e: Exception) {
-                    logger.warn("Failed to override options in $configFile: ${e.message}. Copied file as-is.")
-                }
+fun applySentryOptionsSourceSetFallback() {
+    if (!sentryOptionsSourceSetFallbackApplied.compareAndSet(false, true)) return
+    try {
+        val android = extensions.getByName("android")
+        val sourceSets = android.javaClass.getMethod("getSourceSets").invoke(android)
+        val getByName =
+            sourceSets.javaClass.methods.first { it.name == "getByName" && it.parameterCount == 1 }
+        val mainSourceSet = getByName.invoke(sourceSets, "main")
+        val assets = mainSourceSet.javaClass.getMethod("getAssets").invoke(mainSourceSet)
+        val srcDir =
+            assets.javaClass.methods.first {
+                it.name == "srcDir" && it.parameterCount == 1 && it.parameterTypes[0] == Any::class.java
             }
-            logger.lifecycle("Copied $configFile to Android assets")
-        } else {
-            logger.warn("$configFile not found in app root ($appRoot)")
-        }
+        srcDir.invoke(assets, sentryOptionsGeneratedDir.get().asFile)
+        tasks
+            .matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
+            .configureEach { dependsOn(generateSentryOptionsTask) }
+        project.logger.info("[sentry] Wired sentry.options.json into assets via sourceSets fallback")
+    } catch (e: Exception) {
+        project.logger.warn(
+            "[sentry] Failed to wire sentry.options.json into assets: ${e.message}. " +
+                "sentry.options.json may not be packaged. Please report this issue at " +
+                "https://github.com/getsentry/sentry-react-native/issues",
+        )
     }
 }
 
-tasks.register("cleanupTemporarySentryJsonConfiguration") {
-    onlyIf { copyOptionsFileEnabled.get() }
-    doLast {
-        val sentryOptionsFile = File(androidAssetsDir, configFile)
-        if (sentryOptionsFile.exists()) {
-            logger.lifecycle("Deleting temporary file: ${sentryOptionsFile.path}")
-            sentryOptionsFile.delete()
+// Wires the generated dir into a variant's assets via `addGeneratedSourceDirectory` (AGP 7.3+),
+// reflectively since a script plugin can't depend on AGP types. Falls back to the source set otherwise.
+fun wireSentryOptionsAssets(variant: Any) {
+    try {
+        val sources = variant.javaClass.getMethod("getSources").invoke(variant)
+        val assets = sources.javaClass.getMethod("getAssets").invoke(sources)
+        val addMethod =
+            assets?.javaClass?.methods?.firstOrNull { it.name == "addGeneratedSourceDirectory" }
+        if (assets == null || addMethod == null) {
+            applySentryOptionsSourceSetFallback()
+            return
         }
+        val wiredWith: (GenerateSentryOptionsTask) -> DirectoryProperty = { it.outputDir }
+        addMethod.invoke(assets, generateSentryOptionsTask, wiredWith)
+    } catch (e: Exception) {
+        project.logger.info("[sentry] variant assets wiring failed: ${e.message}. Falling back to sourceSets.")
+        applySentryOptionsSourceSetFallback()
     }
+}
+
+plugins.withId("com.android.application") {
+    try {
+        val androidComponents = extensions.getByName("androidComponents")
+        val selector = androidComponents.javaClass.getMethod("selector").invoke(androidComponents)
+        val allSelector = selector.javaClass.getMethod("all").invoke(selector)
+        val onVariantsMethod =
+            androidComponents.javaClass.methods.find {
+                it.name == "onVariants" && it.parameterCount == 2 && it.parameterTypes[1].isInterface
+            } ?: throw NoSuchMethodException("onVariants with 2 parameters (Action interface) not found")
+        val actionType = onVariantsMethod.parameterTypes[1]
+
+        // Runs for every variant (including debug), so sentry.options.json is packaged in all builds.
+        onVariantsMethod.invoke(
+            androidComponents,
+            allSelector,
+            java.lang.reflect.Proxy.newProxyInstance(
+                actionType.classLoader,
+                arrayOf(actionType),
+            ) { _, _, args ->
+                val variant = args?.getOrNull(0)
+                if (variant != null) {
+                    wireSentryOptionsAssets(variant)
+                }
+                null
+            },
+        )
+    } catch (e: Exception) {
+        project.logger.info(
+            "[sentry] Variant assets API unavailable (${e.message}); using sourceSets fallback for sentry.options.json.",
+        )
+        applySentryOptionsSourceSetFallback()
+    }
+
+    // AGP wires `merge*Assets` to `generateSentryOptions` via the generated-source API, but the lint
+    // model/analysis tasks also read the generated assets dir without a declared dependency, which
+    // Gradle 9 fails on. Declare it explicitly so the file is always produced before they run.
+    tasks
+        .matching { it.name != "generateSentryOptions" && it.name.contains("lint", ignoreCase = true) }
+        .configureEach { dependsOn(generateSentryOptionsTask) }
 }
 
 data class BundleTaskArgs(
@@ -802,19 +947,10 @@ fun processVariant(v: Any) {
 }
 
 project.afterEvaluate {
-    // Resolve the (overridable) closure now, after the app build.gradle has evaluated, so an
-    // override placed after `apply from` is honored. The Property is read by the copy/cleanup
-    // tasks' onlyIf at execution time without touching `project` (Configuration Cache safe).
-    copyOptionsFileEnabled.set(shouldCopySentryOptionsFile())
-    tasks.named("preBuild").configure {
-        dependsOn("copySentryJsonConfiguration")
-    }
-    tasks
-        .matching { task ->
-            task.name == "build" || task.name.startsWith("assemble") || task.name.startsWith("install")
-        }.configureEach {
-            finalizedBy("cleanupTemporarySentryJsonConfiguration")
-        }
+    // Resolve the overridable closure now (after the app build.gradle evaluated) so an override placed
+    // after `apply from` is honored, and set it on the task for its onlyIf to read.
+    val optionsCopyEnabled = shouldCopySentryOptionsFile()
+    generateSentryOptionsTask.configure { copyEnabled.set(optionsCopyEnabled) }
 
     val flavorAware = config["flavorAware"] == true
     val sentryProperties = config["sentryProperties"]
