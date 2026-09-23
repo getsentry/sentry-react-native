@@ -4,9 +4,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -178,6 +178,99 @@ abstract class GenerateSentryOptionsTask : DefaultTask() {
     }
 }
 
+/**
+ * Collects the JavaScript modules referenced by a release bundle's source map into a `build` folder
+ * directory registered as a generated assets source, so `modules.json` is never written into the
+ * version-controlled `src/main/assets` tree. Declared inputs/outputs make it participate in up-to-date
+ * checks and the build cache; the node process runs through injected [org.gradle.process.ExecOperations]
+ * so the action is Configuration Cache compatible.
+ */
+abstract class CollectModulesTask : DefaultTask() {
+    // Up-to-date fingerprint: the release JS bundle. modules.json is derived from the bundle's source
+    // map, but that map is a transient artifact the upload flow deletes after uploading (the
+    // "clean up extra sourcemap" task). Fingerprinting the map would invalidate this task on every
+    // rebuild and, worse, could package an empty modules.json when the deleted map isn't regenerated
+    // (the forced map is not a declared output of the bundle task). The bundle is a stable, declared
+    // artifact that changes iff the JS — and hence the module list — changes, so it is the correct
+    // content key. File collection so a missing file is an empty input, not a failure.
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val bundleFiles: ConfigurableFileCollection
+
+    // The bundle source map, read at execution to extract the module list. `@Internal` (not a
+    // fingerprinted input) for the reasons on [bundleFiles]; the upload's copy-debugid rewrite is
+    // ordered after this task so the read is never concurrent with a write. File collection so a
+    // missing file is an empty input, not a failure.
+    @get:Internal
+    abstract val sourcemapFiles: ConfigurableFileCollection
+
+    // Absolute path to the collect-modules node script, used to build the command line. `@Internal`
+    // because the path alone is not a meaningful content input — the script's *content* is fingerprinted
+    // via [collectModulesScriptFiles] so editing it in place (e.g. an SDK upgrade at the same path)
+    // re-runs the task instead of shipping a stale modules.json.
+    @get:Internal
+    abstract val collectModulesScript: Property<String>
+
+    // Content fingerprint of the collect-modules script. File collection (like [sourcemapFiles]) so a
+    // missing script is an empty input rather than a task-validation failure.
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val collectModulesScriptFiles: ConfigurableFileCollection
+
+    @get:Input
+    abstract val modulesPaths: Property<String>
+
+    // Config-time gate (script present and `skipCollectModules` not set). `@Input` (not `onlyIf`) so
+    // toggling it re-runs the task, which clears the output when disabled — a skipped task would leave a
+    // stale file to be packaged.
+    @get:Input
+    abstract val collectEnabled: Property<Boolean>
+
+    // Working dir for the node process so a relative `modulesPaths` (e.g. "node_modules") resolves; the
+    // absolute path is intentionally not a content input.
+    @get:Internal
+    abstract val workingDirectory: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @get:Inject
+    abstract val execOps: org.gradle.process.ExecOperations
+
+    @TaskAction
+    fun collect() {
+        val outDir = outputDir.get().asFile
+        outDir.mkdirs()
+        val dest = File(outDir, "modules.json")
+        // Idempotent: clear any prior output so a disabled opt-out or a missing source map leaves an
+        // empty dir rather than packaging a stale file.
+        if (dest.exists()) {
+            dest.delete()
+        }
+
+        if (!collectEnabled.get()) {
+            logger.info("modules.json collection disabled; generated assets directory left empty")
+            return
+        }
+
+        val sourcemap = sourcemapFiles.files.firstOrNull { it.exists() }
+        if (sourcemap == null) {
+            logger.warn("Source map not found; modules.json generated assets directory left empty")
+            return
+        }
+
+        val args =
+            listOf("node", collectModulesScript.get(), sourcemap.absolutePath, dest.absolutePath, modulesPaths.get())
+        logger.info("Sentry-CollectModules arguments: $args")
+        execOps.exec {
+            workingDir(workingDirectory.get().asFile)
+            val osCompatibility = if (Os.isFamily(Os.FAMILY_WINDOWS)) listOf("cmd", "/c") else emptyList()
+            commandLine(osCompatibility + args)
+        }
+        logger.lifecycle("Generated modules.json into $outDir")
+    }
+}
+
 extra["shouldCopySentryOptionsFile"] =
     object : groovy.lang.Closure<Boolean>(this) {
         fun doCall(): Boolean = System.getenv("SENTRY_COPY_OPTIONS_FILE") != "false"
@@ -235,6 +328,18 @@ if (legacyOptionsFile.exists()) {
     )
 }
 
+// Older plugin versions generated modules.json directly into src/main/assets and cleaned it up
+// afterwards; a crashed build (or a committed copy) could leave it behind. It is now generated into
+// the build folder, so a leftover copy would clash with the generated one during asset merge. Warn
+// (never delete — it may be intentional) so the user can remove the stale copy.
+val legacyModulesFile = File(project.projectDir, "src/main/assets/modules.json")
+if (legacyModulesFile.exists()) {
+    project.logger.warn(
+        "[sentry] Found a stale modules.json in src/main/assets; it is now generated into the build " +
+            "folder and the old copy may conflict. Please remove: ${legacyModulesFile.absolutePath}",
+    )
+}
+
 // Guards the classic source-set fallback so it registers at most once, only when the variant API is absent.
 val sentryOptionsSourceSetFallbackApplied = AtomicBoolean(false)
 
@@ -282,6 +387,70 @@ fun wireSentryOptionsAssets(variant: Any) {
     } catch (e: Exception) {
         project.logger.info("[sentry] variant assets wiring failed: ${e.message}. Falling back to sourceSets.")
         applySentryOptionsSourceSetFallback()
+    }
+}
+
+// Wires a variant's generated modules dir into its assets via `addGeneratedSourceDirectory` (AGP 7.3+),
+// reflectively since a script plugin can't depend on AGP types. Falls back to the source set otherwise.
+fun wireSentryModulesAssets(
+    variant: Any,
+    modulesTask: TaskProvider<CollectModulesTask>,
+    generatedDir: org.gradle.api.provider.Provider<org.gradle.api.file.Directory>,
+    variantName: String,
+    variantCapitalized: String,
+) {
+    try {
+        val sources = variant.javaClass.getMethod("getSources").invoke(variant)
+        val assets = sources.javaClass.getMethod("getAssets").invoke(sources)
+        val addMethod =
+            assets?.javaClass?.methods?.firstOrNull { it.name == "addGeneratedSourceDirectory" }
+        if (assets == null || addMethod == null) {
+            applySentryModulesSourceSetFallback(modulesTask, generatedDir, variantName, variantCapitalized)
+            return
+        }
+        val wiredWith: (CollectModulesTask) -> DirectoryProperty = { it.outputDir }
+        addMethod.invoke(assets, modulesTask, wiredWith)
+    } catch (e: Exception) {
+        project.logger.info("[sentry] variant assets wiring failed for modules: ${e.message}. Falling back to sourceSets.")
+        applySentryModulesSourceSetFallback(modulesTask, generatedDir, variantName, variantCapitalized)
+    }
+}
+
+fun applySentryModulesSourceSetFallback(
+    modulesTask: TaskProvider<CollectModulesTask>,
+    generatedDir: org.gradle.api.provider.Provider<org.gradle.api.file.Directory>,
+    variantName: String,
+    variantCapitalized: String,
+) {
+    try {
+        val android = extensions.getByName("android")
+        val sourceSets = android.javaClass.getMethod("getSourceSets").invoke(android)
+        val getByName =
+            sourceSets.javaClass.methods.first { it.name == "getByName" && it.parameterCount == 1 }
+        // Register into the variant-specific source set (e.g. "release", "stagingRelease"), NOT the
+        // shared "main": modules.json is per-variant and release-only, so adding each variant's dir to
+        // "main" would leak the file into debug and clash between multiple non-debug variants (duplicate
+        // asset merge). Scoping to the variant source set keeps each variant's modules.json isolated, so
+        // no dedup guard is needed (unlike the shared-dir options fallback).
+        val variantSourceSet = getByName.invoke(sourceSets, variantName)
+        val assets = variantSourceSet.javaClass.getMethod("getAssets").invoke(variantSourceSet)
+        val srcDir =
+            assets.javaClass.methods.first {
+                it.name == "srcDir" && it.parameterCount == 1 && it.parameterTypes[0] == Any::class.java
+            }
+        srcDir.invoke(assets, generatedDir.get().asFile)
+        // Scope to this variant's merge task only: modules.json is release-only, so a debug merge must
+        // never depend on (and thus trigger) the release modules/bundle tasks.
+        tasks
+            .matching { it.name == "merge${variantCapitalized}Assets" }
+            .configureEach { dependsOn(modulesTask) }
+        project.logger.info("[sentry] Wired modules.json into '$variantName' assets via sourceSets fallback")
+    } catch (e: Exception) {
+        project.logger.warn(
+            "[sentry] Failed to wire modules.json into assets: ${e.message}. " +
+                "modules.json may not be packaged. Please report this issue at " +
+                "https://github.com/getsentry/sentry-react-native/issues",
+        )
     }
 }
 
@@ -647,6 +816,13 @@ plugins.withId("com.android.application") {
     }
 }
 
+// Capitalized names of every non-debug variant the plugin has seen, shared across [processVariant]
+// calls (all of which run during configuration, before any lint task is realized). Used to scope each
+// variant's lint→modules dependency without enumerating AGP's lint verbs: a lint task belongs to a
+// *different* variant when its name contains a longer processed variant name that has the current one
+// as a substring (e.g. `release` vs `qaRelease` / `releaseStaging`), so it can be excluded precisely.
+val sentryProcessedVariantCaps: MutableSet<String> = java.util.Collections.synchronizedSet(mutableSetOf())
+
 fun processVariant(v: Any) {
     val vName = v.javaClass.getMethod("getName").invoke(v) as String
     if (vName.contains("debug", ignoreCase = true)) return
@@ -658,6 +834,7 @@ fun processVariant(v: Any) {
     val sentryAutoUploadGeneralEnabled = shouldSentryAutoUploadGeneral()
 
     val variantCapitalized = Character.toUpperCase(vName[0]).toString() + vName.substring(1)
+    sentryProcessedVariantCaps.add(variantCapitalized)
     val sentryBundleTaskName =
         listOf(
             "createBundle${variantCapitalized}JsAndAssets",
@@ -701,30 +878,89 @@ fun processVariant(v: Any) {
     }
     val reactRoot = reactRootResolved
 
-    val modulesOutput = "$reactRoot/android/app/src/main/assets/modules.json"
-
     val currentVariants = extractCurrentVariants(bundleTask, v) ?: return
 
     var previousCliTask: TaskProvider<Task>? = null
-    var applicationVariant: String? = null
     val nameCleanup = "${bundleTask.name}_SentryUploadCleanUp"
-    val nameModulesCleanup = "${bundleTask.name}_SentryCollectModulesCleanUp"
-    var lastModulesTask: TaskProvider<out Task>? = null
+
+    // Collect the bundle's JS modules into a build-folder dir registered as a generated assets source,
+    // so `modules.json` is never written into src/main/assets. One task per (release) variant; AGP wires
+    // it into `merge${variantCapitalized}Assets` with correct ordering and up-to-date/caching behavior.
+    @Suppress("UNCHECKED_CAST")
+    val modulesPathsValue =
+        (config["modulesPaths"] as? List<String>)
+            ?.joinToString(",")
+            ?: "$reactRoot/node_modules"
+    val skipCollectModules = config["skipCollectModules"] == true
+    val modulesGeneratedDir = layout.buildDirectory.dir("generated/sentry/modules/$vName")
+
+    val modulesTask =
+        tasks.register("${bundleTask.name}_SentryCollectModules", CollectModulesTask::class.java) {
+            description = "collect javascript modules from bundle source map"
+            group = "sentry.io"
+            // Resolve the collect-modules script path lazily, inside the task's config block: it runs
+            // only when the task is realized (not for e.g. debug builds or `./gradlew tasks`), and the
+            // node-subprocess fallback (`resolveSentryReactNativeSDKPath`) fires only when no explicit
+            // `collectModulesScript` is configured. Keeping it in the plain `processVariant` body spawned
+            // that blocking node process at configuration time for every non-debug variant on every build.
+            val collectModulesScriptPath =
+                config["collectModulesScript"]
+                    ?.toString()
+                    ?.let { file(it).absolutePath }
+                    ?: "${resolveSentryReactNativeSDKPath(reactRoot)}/dist/js/tools/collectModules.js"
+            bundleFiles.from(bundleOutput)
+            sourcemapFiles.from(sourcemapOutput)
+            collectModulesScript.set(collectModulesScriptPath)
+            collectModulesScriptFiles.from(collectModulesScriptPath)
+            modulesPaths.set(modulesPathsValue)
+            collectEnabled.set(!skipCollectModules && File(collectModulesScriptPath).exists())
+            workingDirectory.set(reactRoot)
+            outputDir.set(modulesGeneratedDir)
+            dependsOn(sentryBundleTaskName)
+        }
+
+    wireSentryModulesAssets(v, modulesTask, modulesGeneratedDir, vName, variantCapitalized)
+
+    // Lint model/analysis tasks read merged assets (now including the generated modules dir) without a
+    // declared dependency; Gradle 9 fails on that. Declare it for this variant's lint tasks so
+    // modules.json is produced first. Match the whole AGP lint family verb-agnostically: every AGP lint
+    // task either starts with the lowercase `lint` verb (lint/lintAnalyze/lintReport/lintVital*/lintFix,
+    // incl. `lintAnalyze<Variant>UnitTest`) or embeds a capitalized `Lint` segment (`updateLintBaseline*`,
+    // `generate*Lint*Model`). Requiring the `Lint` word boundary (start-of-name or capital L) — NOT a
+    // case-insensitive `lint` substring — excludes unrelated `ktlint*` tasks (e.g. `ktlintReleaseCheck`)
+    // whose lowercase `lint` is mid-name; those must not pull in the JS bundler. Scope precisely to THIS
+    // variant: a task belongs to a *different* variant when its name also contains a longer processed
+    // variant name that has this one as a substring (e.g. `release` vs `qaRelease` / `releaseStaging`), so
+    // exclude those — their own variant pass wires them to their own modules task. This scoping needs the
+    // full variant set, which is complete by the time lint tasks are realized (all onVariants callbacks run
+    // during configuration).
+    tasks
+        .matching { task ->
+            val name = task.name
+            (name.startsWith("lint") || name.contains("Lint")) &&
+                name.contains(variantCapitalized) &&
+                sentryProcessedVariantCaps.none { other ->
+                    other != variantCapitalized && other.contains(variantCapitalized) && name.contains(other)
+                }
+        }.configureEach { dependsOn(modulesTask) }
 
     currentVariants.forEach { (_, currentVariant) ->
         val variant = currentVariant.variantName
         val releaseName = currentVariant.releaseName
         val versionCode = currentVariant.versionCode
-        applicationVariant = currentVariant.applicationVariant
 
         val nameCliTask = "${bundleTask.name}_SentryUpload_${releaseName}_$versionCode"
-        val nameModulesTask = "${bundleTask.name}_SentryCollectModules_${releaseName}_$versionCode"
 
         if (tasks.names.contains(nameCliTask)) return@forEach
 
         val cliTask =
             tasks.register(nameCliTask) {
                 onlyIf { sentryAutoUploadGeneralEnabled }
+                // The upload rewrites the source map in place (copy-debugid, in doFirst below); the
+                // modules task reads that same map. Order the rewrite strictly after the read so a
+                // parallel / configuration-cache build can never read a half-written map (the cleanup
+                // deletion is ordered the same way, further down).
+                mustRunAfter(modulesTask)
                 description = "upload debug symbols to sentry"
                 group = "sentry.io"
 
@@ -866,57 +1102,13 @@ fun processVariant(v: Any) {
                 enabled = true
             }
 
-        val modulesTask =
-            tasks.register(nameModulesTask, Exec::class.java) {
-                description = "collect javascript modules from bundle source map"
-                group = "sentry.io"
-
-                workingDir(reactRoot)
-
-                val sentryPackage = resolveSentryReactNativeSDKPath(reactRoot)
-
-                val collectModulesScript =
-                    config["collectModulesScript"]
-                        ?.toString()
-                        ?.let { file(it).absolutePath }
-                        ?: "$sentryPackage/dist/js/tools/collectModules.js"
-
-                @Suppress("UNCHECKED_CAST")
-                val modulesPaths =
-                    (config["modulesPaths"] as? List<String>)
-                        ?.joinToString(",")
-                        ?: "$reactRoot/node_modules"
-                val args = listOf("node", collectModulesScript, sourcemapOutput.toString(), modulesOutput, modulesPaths)
-
-                if (File(collectModulesScript).exists()) {
-                    project.logger.info("Sentry-CollectModules arguments: $args")
-                    commandLine(args)
-
-                    val skip = config["skipCollectModules"] == true
-                    enabled = !skip
-                } else {
-                    project.logger.info("collectModulesScript not found: $collectModulesScript")
-                    enabled = false
-                }
-            }
-        lastModulesTask = modulesTask
-
         if (previousCliTask != null) {
             previousCliTask!!.configure { finalizedBy(cliTask) }
         } else {
             bundleTask.finalizedBy(cliTask)
         }
         previousCliTask = cliTask
-        cliTask.configure { finalizedBy(modulesTask) }
     }
-
-    val modulesCleanUpTask =
-        tasks.register(nameModulesCleanup, Delete::class.java) {
-            description = "clean up collected modules generated file"
-            group = "sentry.io"
-
-            delete(modulesOutput)
-        }
 
     val cliCleanUpTask =
         tasks.register(nameCleanup, Delete::class.java) {
@@ -927,23 +1119,13 @@ fun processVariant(v: Any) {
             delete("${layout.buildDirectory.get().asFile}/intermediates/assets/release/index.android.bundle.map")
         }
 
-    cliCleanUpTask.configure { onlyIf { result.shouldCleanUp } }
+    // The modules task reads the source map; ensure the upload cleanup (which deletes it) can only run
+    // after modules has run. They were previously serialized through the `finalizedBy` chain.
+    cliCleanUpTask.configure {
+        onlyIf { result.shouldCleanUp }
+        mustRunAfter(modulesTask)
+    }
     previousCliTask?.configure { finalizedBy(cliCleanUpTask) }
-
-    tasks
-        .matching { task ->
-            val appVariant = applicationVariant ?: return@matching false
-            (
-                "package$appVariant".equals(task.name, ignoreCase = true) ||
-                    "package${appVariant}Bundle".equals(task.name, ignoreCase = true)
-            ) &&
-                task.enabled
-        }.configureEach {
-            if (lastModulesTask != null) {
-                dependsOn(lastModulesTask!!)
-            }
-            finalizedBy(modulesCleanUpTask)
-        }
 }
 
 project.afterEvaluate {
