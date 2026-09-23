@@ -12,7 +12,7 @@
 
 - Expose `enableNetworkBreadcrumbs` (iOS) to disable native HTTP request breadcrumbs ([#6764](https://github.com/getsentry/sentry-react-native/pull/6764))
 - Expose `enableNetworkEventBreadcrumbs` (Android) to disable native network connectivity breadcrumbs ([#6764](https://github.com/getsentry/sentry-react-native/pull/6764))
-- Expose native breadcrumb off-switches: `enableAutoBreadcrumbTracking` (iOS); `enableActivityLifecycleBreadcrumbs`, `enableAppLifecycleBreadcrumbs`, `enableSystemEventBreadcrumbs`, `enableAppComponentBreadcrumbs` (Android) ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Expose native breadcrumb off-switches: `enableAutoBreadcrumbTracking` (iOS); `enableActivityLifecycleBreadcrumbs`, `enableAppLifecycleBreadcrumbs`, `enableSystemEventBreadcrumbs`, `enableAppComponentBreadcrumbs` (Android) ([#6768](https://github.com/getsentry/sentry-react-native/pull/6768))
 
 ### Fixes
 
