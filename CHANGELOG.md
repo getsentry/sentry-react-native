@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Expose `enableNetworkBreadcrumbs` (iOS) to disable native HTTP request breadcrumbs ([#6764](https://github.com/getsentry/sentry-react-native/pull/6764))
+- Expose `enableNetworkEventBreadcrumbs` (Android) to disable native network connectivity breadcrumbs ([#6764](https://github.com/getsentry/sentry-react-native/pull/6764))
+
 ### Fixes
 
 - Declare optional peer dependencies so imports resolve under strict and Plug'n'Play package managers ([#6729](https://github.com/getsentry/sentry-react-native/pull/6729))
@@ -19,6 +24,12 @@
 ### Internal
 
 - Export already-public option and configuration types from the entry point so their full shape is tracked in the API report ([#6731](https://github.com/getsentry/sentry-react-native/pull/6731))
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.75.0 to v10.75.2 ([#6763](https://github.com/getsentry/sentry-react-native/pull/6763), [#6767](https://github.com/getsentry/sentry-react-native/pull/6767))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10752)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.75.0...10.75.2)
 
 ## 8.27.0
 

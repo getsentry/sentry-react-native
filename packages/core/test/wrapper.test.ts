@@ -200,6 +200,40 @@ describe('Tests Native Wrapper', () => {
       expect(initParameter.anrProfilingSampleRate).toBe(0.5);
     });
 
+    test('forwards enableNetworkBreadcrumbs to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableNetworkBreadcrumbs: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.enableNetworkBreadcrumbs).toBe(false);
+    });
+
+    test('forwards enableNetworkEventBreadcrumbs to the Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        enableNetworkEventBreadcrumbs: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter.enableNetworkEventBreadcrumbs).toBe(false);
+    });
+
     test('filter beforeSend when initializing Native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,

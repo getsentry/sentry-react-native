@@ -298,7 +298,7 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
+          derivedData="$(realpath DerivedData)"
           set -o pipefail && xcodebuild \
             -workspace sentry-react-native-sample.xcworkspace \
             -configuration "$CONFIG" \
@@ -387,7 +387,7 @@ jobs:
           # booted simulator or runtime image is required. A separate derivedDataPath
           # keeps pod-install's `build/generated/ios` codegen intact.
           mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
+          derivedData="$(realpath DerivedData)"
           set -o pipefail && xcodebuild \
             -workspace VisionSample.xcworkspace \
             -configuration "$CONFIG" \
@@ -470,7 +470,7 @@ jobs:
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
           echo "Building $CONFIG"
           mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
+          derivedData="$(realpath DerivedData)"
           set -o pipefail && xcodebuild \
             -workspace TVOSSample.xcworkspace \
             -configuration "$CONFIG" \
@@ -561,7 +561,7 @@ jobs:
           # generic destination, no signing (the app target's manual signing is
           # gated on [sdk=iphoneos*] and has no team).
           mkdir -p "DerivedData"
-          derivedData="$(cd "DerivedData" ; pwd -P)"
+          derivedData="$(realpath DerivedData)"
           set -o pipefail && xcodebuild \
             -workspace sentryreactnativesample.xcworkspace \
             -configuration "$CONFIG" \

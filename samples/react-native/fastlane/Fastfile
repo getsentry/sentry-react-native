@@ -19,7 +19,11 @@ platform :ios do
       include_bitcode: false,
       include_symbols: true,
       export_method: "app-store",
-      archive_path: "sentryreactnativesample"
+      archive_path: "sentryreactnativesample",
+      # The app target declares SUPPORTS_MACCATALYST = YES (for the Mac Catalyst build job).
+      # Without this, gym sees a Catalyst-capable app, treats it as neither pure-iOS nor macOS,
+      # and skips IPA packaging ("No output path received from gym"). Pin gym to the iOS build.
+      catalyst_platform: "ios"
     )
 
     delete_keychain(name: "fastlane_tmp_keychain") unless is_ci
