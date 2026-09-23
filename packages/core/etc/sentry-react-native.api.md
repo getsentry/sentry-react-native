@@ -217,6 +217,7 @@ export interface BaseReactNativeOptions {
     replaysOnErrorSampleRate?: number;
     replaysSessionQuality?: SentryReplayQuality;
     replaysSessionSampleRate?: number;
+    reportAccessibilityIdentifier?: boolean;
     screenshot?: {
         maskAllText?: boolean;
         maskAllImages?: boolean;

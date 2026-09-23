@@ -413,6 +413,20 @@ export interface BaseReactNativeOptions {
   attachViewHierarchy?: boolean;
 
   /**
+   * When enabled, the native iOS SDK includes each view's `accessibilityIdentifier` in the
+   * captured view hierarchy (see `attachViewHierarchy`).
+   *
+   * Accessibility identifiers are developer-defined and may contain personally identifiable
+   * information (PII). Set this to `false` to omit them from the view hierarchy. Note that the
+   * native SDK does not gate this on `sendDefaultPii`, so it defaults to `true` regardless of
+   * that option.
+   *
+   * @default true
+   * @platform ios
+   */
+  reportAccessibilityIdentifier?: boolean;
+
+  /**
    * When enabled, Sentry will capture failed XHR/Fetch requests. This option also enabled HTTP Errors on iOS.
    * [Sentry Android Gradle Plugin](https://docs.sentry.io/platforms/android/configuration/integrations/okhttp/)
    * is needed to capture HTTP Errors on Android.
