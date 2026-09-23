@@ -262,6 +262,63 @@ export interface BaseReactNativeOptions {
   enableNetworkEventBreadcrumbs?: boolean;
 
   /**
+   * When enabled, the native iOS SDK automatically records breadcrumbs for system events
+   * (such as memory warnings, orientation changes, keyboard show/hide and screenshots).
+   *
+   * Disable this to stop the native layer from adding these system-event breadcrumbs and
+   * reduce breadcrumb noise.
+   *
+   * @default true
+   * @platform ios
+   */
+  enableAutoBreadcrumbTracking?: boolean;
+
+  /**
+   * When enabled, the native Android SDK records breadcrumbs for activity lifecycle events
+   * (`created`, `started`, `resumed`, `paused`, `stopped`, `destroyed`).
+   *
+   * Disable this to stop the native layer from adding activity lifecycle breadcrumbs.
+   *
+   * @default true
+   * @platform android
+   */
+  enableActivityLifecycleBreadcrumbs?: boolean;
+
+  /**
+   * When enabled, the native Android SDK records breadcrumbs for app lifecycle events
+   * (the app entering the foreground or background).
+   *
+   * Disable this to stop the native layer from adding app lifecycle breadcrumbs.
+   *
+   * @default true
+   * @platform android
+   */
+  enableAppLifecycleBreadcrumbs?: boolean;
+
+  /**
+   * When enabled, the native Android SDK records breadcrumbs for system events
+   * (such as low battery, low storage, device charging, screen on/off, airplane mode and
+   * `ACTION_*` intents).
+   *
+   * Disable this to stop the native layer from adding system-event breadcrumbs.
+   *
+   * @default true
+   * @platform android
+   */
+  enableSystemEventBreadcrumbs?: boolean;
+
+  /**
+   * When enabled, the native Android SDK records breadcrumbs for app component events
+   * (such as low-memory `onTrimMemory` callbacks and configuration/orientation changes).
+   *
+   * Disable this to stop the native layer from adding app component breadcrumbs.
+   *
+   * @default true
+   * @platform android
+   */
+  enableAppComponentBreadcrumbs?: boolean;
+
+  /**
    * Use this feature to enable the Sentry MetricKit integration.
    *
    * When enabled, the SDK sends `MXDiskWriteExceptionDiagnostic`, `MXCPUExceptionDiagnostic` and

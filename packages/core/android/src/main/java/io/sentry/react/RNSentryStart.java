@@ -217,6 +217,21 @@ final class RNSentryStart {
       options.setEnableNetworkEventBreadcrumbs(
           rnOptions.getBoolean("enableNetworkEventBreadcrumbs"));
     }
+    if (rnOptions.hasKey("enableActivityLifecycleBreadcrumbs")) {
+      options.setEnableActivityLifecycleBreadcrumbs(
+          rnOptions.getBoolean("enableActivityLifecycleBreadcrumbs"));
+    }
+    if (rnOptions.hasKey("enableAppLifecycleBreadcrumbs")) {
+      options.setEnableAppLifecycleBreadcrumbs(
+          rnOptions.getBoolean("enableAppLifecycleBreadcrumbs"));
+    }
+    if (rnOptions.hasKey("enableSystemEventBreadcrumbs")) {
+      options.setEnableSystemEventBreadcrumbs(rnOptions.getBoolean("enableSystemEventBreadcrumbs"));
+    }
+    if (rnOptions.hasKey("enableAppComponentBreadcrumbs")) {
+      options.setEnableAppComponentBreadcrumbs(
+          rnOptions.getBoolean("enableAppComponentBreadcrumbs"));
+    }
     if (rnOptions.hasKey("spotlight")) {
       if (rnOptions.getType("spotlight") == ReadableType.Boolean) {
         options.setEnableSpotlight(rnOptions.getBoolean("spotlight"));

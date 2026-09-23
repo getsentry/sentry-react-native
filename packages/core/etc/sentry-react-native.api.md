@@ -159,9 +159,13 @@ export interface BaseReactNativeOptions {
     attachViewHierarchy?: boolean;
     autoInitializeNativeSdk?: boolean;
     beforeScreenshot?: (event: Event_2, hint: EventHint) => boolean;
+    enableActivityLifecycleBreadcrumbs?: boolean;
     enableAnrFingerprinting?: boolean;
+    enableAppComponentBreadcrumbs?: boolean;
     enableAppHangTracking?: boolean;
+    enableAppLifecycleBreadcrumbs?: boolean;
     enableAppStartTracking?: boolean;
+    enableAutoBreadcrumbTracking?: boolean;
     enableAutoConsoleLogs?: boolean;
     enableAutoPerformanceTracing?: boolean;
     enableAutoSessionTracking?: boolean;
@@ -179,6 +183,7 @@ export interface BaseReactNativeOptions {
     enableNetworkBreadcrumbs?: boolean;
     enableNetworkEventBreadcrumbs?: boolean;
     enableStallTracking?: boolean;
+    enableSystemEventBreadcrumbs?: boolean;
     enableTombstone?: boolean;
     // @internal
     enableTurboModuleTracking?: boolean;
