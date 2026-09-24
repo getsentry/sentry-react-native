@@ -26,6 +26,7 @@ ios_native:
   - 'packages/core/ios/**'
   - 'packages/core/RNSentryCocoaTester/**'
   - 'packages/core/RNSentry.podspec'
+  - 'packages/core/Package.swift'
 
 # Changes to the SDK's Android native code only (packages/core).
 # Does NOT include sample apps — sample changes have their own filters below.
@@ -40,6 +41,7 @@ js_source:
   - 'packages/core/plugin/**'
   - 'packages/core/scripts/**'
   - 'packages/core/package.json'
+  - 'packages/core/react-native.config.js'
   - 'packages/core/tsconfig.json'
   - 'yarn.lock'
   - 'package.json'
