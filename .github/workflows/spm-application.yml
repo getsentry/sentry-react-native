@@ -73,10 +73,10 @@ jobs:
         run: yarn build
 
       - name: Pack SDK
-        # `yarn pack` replaces the `workspace:` ranges with the versions the
-        # registry serves, so the tarball installs like the published package.
-        # `npm pack` leaves them in place and the install then fails.
-        run: yarn workspace @sentry/react-native pack --out ${{ runner.temp }}/sentry-react-native.tgz
+        # Packs both workspaces with `yarn pack`, which replaces the
+        # `workspace:` ranges with concrete versions. `npm pack` leaves them in
+        # place and the install then fails.
+        run: yarn build:tarball
 
       - name: Create React Native App
         working-directory: ${{ runner.temp }}
@@ -89,7 +89,17 @@ jobs:
 
       - name: Install SDK in App
         working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}
-        run: npm install ${{ runner.temp }}/sentry-react-native.tgz
+        # Install both tarballs together so the `@sentry/expo-upload-sourcemaps`
+        # cross-dependency resolves locally. On a release branch the bumped
+        # version is not on the registry yet, and a fetch would fail with
+        # ETARGET — the same reason `buildandtest.yml` installs both.
+        run: |
+          set -e
+          CORE_TARBALL=$(find "$GITHUB_WORKSPACE/packages/core" -name 'sentry-react-native-*.tgz' -print -quit)
+          EXPO_TARBALL=$(find "$GITHUB_WORKSPACE/packages/expo-upload-sourcemaps" -name 'sentry-expo-upload-sourcemaps-*.tgz' -print -quit)
+          [ -n "$CORE_TARBALL" ] || { echo "::error::core tarball not found"; exit 1; }
+          [ -n "$EXPO_TARBALL" ] || { echo "::error::expo-upload-sourcemaps tarball not found"; exit 1; }
+          npm install "$EXPO_TARBALL" "$CORE_TARBALL"
 
       - name: Set Up SwiftPM
         working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
