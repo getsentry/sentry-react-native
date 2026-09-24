@@ -146,6 +146,9 @@
       "javaPackageName": "io.sentry.react"
     }
   },
+  "swiftpmConfig": {
+    "name": "RNSentry"
+  },
   "peerDependenciesMeta": {
     "@babel/core": {
       "optional": true

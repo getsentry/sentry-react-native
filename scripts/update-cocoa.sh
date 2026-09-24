@@ -4,6 +4,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 podspec="$script_dir/../packages/core/RNSentry.podspec"
 utils="$script_dir/../packages/core/scripts/sentry_utils.rb"
+package_swift="$script_dir/../packages/core/Package.swift"
 
 content=$(cat "$podspec")
 regex="(sentry_cocoa_version *= *)'([0-9\.]+)'"
@@ -46,13 +47,23 @@ set-version)
     # Update the `Sentry` checksum (a 64-char lowercase hex string).
     perl -i -pe "s|'Sentry' => '[a-f0-9]{64}'|'Sentry' => '${new_sha}'|" "$utils"
 
-    # Sanity-check: both lines got rewritten with the new values.
+    # 3. Pin the same version in the Swift Package Manager manifest, which
+    #    resolves sentry-cocoa from git instead of the xcframework archive.
+    #    Leaving it behind would build the SwiftPM and CocoaPods paths against
+    #    different sentry-cocoa versions.
+    perl -i -pe "s|(sentry-cocoa\\.git\", exact: )\"\\d+\\.\\d+\\.\\d+\"|\${1}\"${new_version}\"|" "$package_swift"
+
+    # Sanity-check: every line got rewritten with the new values.
     if ! grep -q "'${new_version}' =>" "$utils"; then
         echo "Failed to rewrite the checksum version key in $utils"
         exit 1
     fi
     if ! grep -q "'Sentry' => '${new_sha}'" "$utils"; then
         echo "Failed to rewrite the Sentry checksum in $utils"
+        exit 1
+    fi
+    if ! grep -q "exact: \"${new_version}\"" "$package_swift"; then
+        echo "Failed to rewrite the sentry-cocoa version in $package_swift"
         exit 1
     fi
     ;;

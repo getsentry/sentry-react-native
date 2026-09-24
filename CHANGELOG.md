@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Features
+
+- Support React Native's Swift Package Manager integration ([#6784](https://github.com/getsentry/sentry-react-native/pull/6784))
+  - The SDK now ships a `Package.swift`, so `npx react-native spm` picks it up through SwiftPM autolinking instead of failing with `Package.swift is missing for library "@sentry/react-native"`.
+  - Requires React Native 0.87 or newer, where SwiftPM support is an opt-in preview. CocoaPods remains the default and is unaffected.
+
 ### Dependencies
 
 - Bump Android SDK from v8.57.0 to v8.58.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778))
