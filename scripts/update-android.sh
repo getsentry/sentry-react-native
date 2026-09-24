@@ -25,7 +25,7 @@ set-version)
     # Update sentry.gradle.kts version check to match
     sentryGradleFile='../sentry.gradle.kts'
     sentryGradleContent=$(cat $sentryGradleFile)
-    if ! echo "$sentryGradleContent" | grep -q 'expectedSentryAndroidVersion'; then
+    if ! grep -q 'expectedSentryAndroidVersion' "$sentryGradleFile"; then
         echo "Failed to find expectedSentryAndroidVersion in $sentryGradleFile"
         exit 1
     fi
