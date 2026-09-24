@@ -144,6 +144,12 @@
     "jsSrcsDir": "src",
     "android": {
       "javaPackageName": "io.sentry.react"
+    },
+    "ios": {
+      "componentProvider": {
+        "RNSentryReplayMask": "RNSentryReplayMask",
+        "RNSentryReplayUnmask": "RNSentryReplayUnmask"
+      }
     }
   },
   "swiftpmConfig": {
