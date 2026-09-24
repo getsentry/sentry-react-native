@@ -67,7 +67,20 @@ let reactNativeHeaderProducts: [Target.Dependency] = [
     .product(name: "ReactAppHeaders", package: "React-GeneratedCode")
 ]
 
-let sentryCocoa: Target.Dependency = .product(name: "Sentry", package: "sentry-cocoa")
+// sentry-cocoa is consumed as the single prebuilt `Sentry.xcframework` rather
+// than as a package dependency. Its manifest declares a binary target per
+// distribution variant (dynamic, ARM64e, without UIKit, ...) and SwiftPM
+// downloads every artifact of a resolved package, not only the ones a product
+// needs — 2.9 GB for the one 339 MB variant used here, and seven chances for a
+// failed download to break the build.
+//
+// `scripts/update-cocoa.sh` keeps the version and the checksum in step with
+// `sentry_cocoa_version` in RNSentry.podspec. The checksum is the SHA256 of the
+// archive, which is what both `pod install` and SwiftPM verify.
+let sentryCocoaVersion = "9.29.0"
+let sentryCocoaChecksum = "63fe5a7258097fded9ef485bbb1d8e80e1e91d419ee6d8a6ad405454b5b50fef"
+
+let sentryCocoa: Target.Dependency = "Sentry"
 
 let rnSentryDependencies: [Target.Dependency] =
     ["RNSentrySwift", "RNSentryCpp", sentryCocoa] + reactNativeHeaderProducts
@@ -80,10 +93,15 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "ReactNative", path: "../../../../xcframeworks"),
-        .package(name: "React-GeneratedCode", path: "../../../ios"),
-        .package(url: "https://github.com/getsentry/sentry-cocoa.git", exact: "9.29.0")
+        .package(name: "React-GeneratedCode", path: "../../../ios")
     ],
     targets: [
+        .binaryTarget(
+            name: "Sentry",
+            url: "https://github.com/getsentry/sentry-cocoa/releases/download/"
+                + "\(sentryCocoaVersion)/Sentry.xcframework.zip",
+            checksum: sentryCocoaChecksum
+        ),
         // SwiftPM cannot mix Swift with Objective-C(++) in one target, so the
         // Swift bridge over sentry-cocoa's `SentrySDK.internal.*` compiles on
         // its own. `.m`/`.mm` callers reach it through
@@ -124,7 +142,11 @@ let package = Package(
             linkerSettings: [
                 .linkedFramework("Foundation"),
                 .linkedFramework("UIKit"),
-                .linkedFramework("QuartzCore")
+                .linkedFramework("QuartzCore"),
+                // The `Sentry` product in sentry-cocoa's own manifest pairs the
+                // binary target with an empty target that carries this setting;
+                // the static library needs the C++ runtime.
+                .linkedLibrary("c++")
             ]
         )
     ],

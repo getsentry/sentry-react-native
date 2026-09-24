@@ -47,11 +47,12 @@ set-version)
     # Update the `Sentry` checksum (a 64-char lowercase hex string).
     perl -i -pe "s|'Sentry' => '[a-f0-9]{64}'|'Sentry' => '${new_sha}'|" "$utils"
 
-    # 3. Pin the same version in the Swift Package Manager manifest, which
-    #    resolves sentry-cocoa from git instead of the xcframework archive.
-    #    Leaving it behind would build the SwiftPM and CocoaPods paths against
-    #    different sentry-cocoa versions.
-    perl -i -pe "s|(sentry-cocoa\\.git\", exact: )\"\\d+\\.\\d+\\.\\d+\"|\${1}\"${new_version}\"|" "$package_swift"
+    # 3. Pin the same version and checksum in the Swift Package Manager
+    #    manifest, which downloads the same archive as a binary target.
+    #    Leaving them behind would build the SwiftPM and CocoaPods paths
+    #    against different sentry-cocoa versions.
+    perl -i -pe "s|(let sentryCocoaVersion = )\"\\d+\\.\\d+\\.\\d+\"|\${1}\"${new_version}\"|" "$package_swift"
+    perl -i -pe "s|(let sentryCocoaChecksum = )\"[a-f0-9]{64}\"|\${1}\"${new_sha}\"|" "$package_swift"
 
     # Sanity-check: every line got rewritten with the new values.
     if ! grep -q "'${new_version}' =>" "$utils"; then
@@ -62,8 +63,12 @@ set-version)
         echo "Failed to rewrite the Sentry checksum in $utils"
         exit 1
     fi
-    if ! grep -q "exact: \"${new_version}\"" "$package_swift"; then
+    if ! grep -q "let sentryCocoaVersion = \"${new_version}\"" "$package_swift"; then
         echo "Failed to rewrite the sentry-cocoa version in $package_swift"
+        exit 1
+    fi
+    if ! grep -q "let sentryCocoaChecksum = \"${new_sha}\"" "$package_swift"; then
+        echo "Failed to rewrite the sentry-cocoa checksum in $package_swift"
         exit 1
     fi
     ;;
