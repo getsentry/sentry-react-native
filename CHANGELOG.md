@@ -15,6 +15,9 @@
 ### Fixes
 
 - Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
+- Register the session replay mask components through the iOS codegen component provider ([#6810](https://github.com/getsentry/sentry-react-native/pull/6810))
+  - `codegenConfig.ios.componentProvider` now maps `RNSentryReplayMask` and `RNSentryReplayUnmask` to their view classes.
+  - React Native resolves both components directly. It no longer falls back to the legacy interop layer for view managers, which an app can turn off with `RCT_REMOVE_LEGACY_COMPONENT_INTEROP`.
 
 ### Dependencies
 
