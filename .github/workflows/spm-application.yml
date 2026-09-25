@@ -131,7 +131,10 @@ jobs:
       - name: Verify SDK Is Linked
         working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
         # A silent autolinking regression still produces a green build, so
-        # assert that the SDK's classes and sentry-cocoa both reached the app.
+        # assert that a class from each layer reached the app. Both markers are
+        # Objective-C class names, which the linker keeps in the binary for
+        # every class it links — unlike, say, the sentry-cocoa package name,
+        # which appears only incidentally.
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
           app="build/Build/Products/$CONFIG-iphonesimulator/$APP_NAME.app"
@@ -145,7 +148,7 @@ jobs:
             echo "RNSentry is missing from the app binary."
             exit 1
           fi
-          if ! strings -a "$binary" | grep -q 'sentry-cocoa'; then
+          if ! strings -a "$binary" | grep -q 'SentryOptions'; then
             echo "sentry-cocoa is missing from the app binary."
             exit 1
           fi
