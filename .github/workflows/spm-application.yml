@@ -1,0 +1,155 @@
+name: SwiftPM Application
+
+# Builds a fresh React Native app that consumes the SDK through React Native's
+# Swift Package Manager autolinking instead of CocoaPods. The app is generated
+# per run rather than committed: the SwiftPM path only works on a plain
+# template, because `react-native spm` stops on any autolinked dependency that
+# ships no `Package.swift`, and most community libraries still don't.
+
+on:
+  push:
+    branches:
+      - main
+      - release/**
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  # The first React Native version with the SwiftPM integration. Bump it
+  # together with the `Package.swift` platform requirement.
+  RN_VERSION: "0.87.1"
+  APP_NAME: SpmTestApp
+  APP_PATH: spm-app
+
+jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
+  diff_check:
+    needs: [ready-to-merge-gate]
+    uses: ./.github/workflows/skip-ci.yml
+
+  detect-changes:
+    needs: [ready-to-merge-gate]
+    uses: ./.github/workflows/detect-changes.yml
+    with:
+      caller_event_name: ${{ github.event_name }}
+      caller_ref: ${{ github.ref }}
+
+  build-ios:
+    name: swiftpm ios ${{ matrix.build-type }}
+    runs-on: macos-26-xlarge
+    needs: [diff_check, detect-changes]
+    if: ${{ needs.diff_check.outputs.skip_ci != 'true' && needs.detect-changes.outputs.needs_ios == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: ["dev", "production"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          package-manager-cache: false
+          node-version: 22
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Pack SDK
+        # Packs both workspaces with `yarn pack`, which replaces the
+        # `workspace:` ranges with concrete versions. `npm pack` leaves them in
+        # place and the install then fails.
+        run: yarn build:tarball
+
+      - name: Create React Native App
+        working-directory: ${{ runner.temp }}
+        run: |
+          npx --yes @react-native-community/cli@latest init "$APP_NAME" \
+            --directory "$APP_PATH" \
+            --version "$RN_VERSION" \
+            --skip-git-init \
+            --install-pods false
+
+      - name: Install SDK in App
+        working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}
+        # Install both tarballs together so the `@sentry/expo-upload-sourcemaps`
+        # cross-dependency resolves locally. On a release branch the bumped
+        # version is not on the registry yet, and a fetch would fail with
+        # ETARGET — the same reason `buildandtest.yml` installs both.
+        run: |
+          set -e
+          CORE_TARBALL=$(find "$GITHUB_WORKSPACE/packages/core" -name 'sentry-react-native-*.tgz' -print -quit)
+          EXPO_TARBALL=$(find "$GITHUB_WORKSPACE/packages/expo-upload-sourcemaps" -name 'sentry-expo-upload-sourcemaps-*.tgz' -print -quit)
+          [ -n "$CORE_TARBALL" ] || { echo "::error::core tarball not found"; exit 1; }
+          [ -n "$EXPO_TARBALL" ] || { echo "::error::expo-upload-sourcemaps tarball not found"; exit 1; }
+          npm install "$EXPO_TARBALL" "$CORE_TARBALL"
+
+      - name: Set Up SwiftPM
+        working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
+        # `--deintegrate` removes the template's CocoaPods integration first.
+        # A missing `Package.swift` in any autolinked dependency exits 2 here,
+        # which is the regression this job is meant to catch.
+        run: npx react-native spm add --deintegrate
+
+      - name: Build iOS App
+        working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
+        env:
+          # Fix for Xcode 26+ with MetalToolchain: use default Xcode toolchain to avoid
+          # missing Swift compatibility libraries (swiftCompatibility56, etc.)
+          # See: https://github.com/actions/runner-images/issues/13135
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
+
+          xcodebuild \
+            -project "$APP_NAME.xcodeproj" \
+            -scheme "$APP_NAME" \
+            -configuration "$CONFIG" \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Verify SDK Is Linked
+        working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
+        # A silent autolinking regression still produces a green build, so
+        # assert that a class from each layer reached the app. Both markers are
+        # Objective-C class names, which the linker keeps in the binary for
+        # every class it links — unlike, say, the sentry-cocoa package name,
+        # which appears only incidentally.
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
+          app="build/Build/Products/$CONFIG-iphonesimulator/$APP_NAME.app"
+
+          # Debug builds put the code in a separate dylib, Release builds do not.
+          binary="$app/$APP_NAME"
+          [[ -f "$app/$APP_NAME.debug.dylib" ]] && binary="$app/$APP_NAME.debug.dylib"
+          echo "Inspecting $binary"
+
+          if ! strings -a "$binary" | grep -q 'RNSentryReplayMask'; then
+            echo "RNSentry is missing from the app binary."
+            exit 1
+          fi
+          if ! strings -a "$binary" | grep -q 'SentryOptions'; then
+            echo "sentry-cocoa is missing from the app binary."
+            exit 1
+          fi
+          echo "The app binary contains both RNSentry and sentry-cocoa."

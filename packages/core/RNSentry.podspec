@@ -54,6 +54,11 @@ Pod::Spec.new do |s|
   # and friends aren't modularized by default) must add
   # `use_modular_headers!` to their Podfile — see CHANGELOG.
   s.source_files = 'ios/**/*.{h,m,mm,swift}', 'cpp/**/*.{h,cpp}'
+  # `ios/include/RNSentry/` mirrors the public headers for Swift Package
+  # Manager, which has no header maps (see `Package.swift`). CocoaPods builds
+  # the namespaced spelling itself, and picking the mirrors up here would give
+  # the pod two headers per public name.
+  s.exclude_files = 'ios/include/**/*'
   s.swift_versions = ['5.5']
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 

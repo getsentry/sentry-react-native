@@ -62,6 +62,39 @@ RCT_EXPORT_METHOD(nativeOperation:(NSString *)param
    pod 'Sentry', :path => '../../../../sentry-cocoa'
    ```
 
+## Swift Package Manager (`../Package.swift`)
+
+React Native 0.87+ can autolink through SwiftPM instead of CocoaPods, so the
+package ships a `Package.swift` next to `RNSentry.podspec`. Both describe the
+same sources; keep them in sync.
+
+Three SwiftPM constraints shape the layout — don't undo them by moving files:
+
+- **No mixed-language targets.** Swift lives in `ios/Swift/` and compiles as the
+  separate `RNSentrySwift` target. `.m` files import its generated interface
+  through `ios/RNSentrySwiftBridge.h`, never `<RNSentry/RNSentry-Swift.h>`
+  directly — that spelling only exists under CocoaPods.
+- **No Swift module in Objective-C++.** Under SwiftPM the Swift interface is
+  only reachable as a Clang module, and `@import` is rejected in `.mm` files
+  (enabling C++ modules breaks React Native's C++ headers). So `.mm` callers go
+  through `RNSentryInternalWrapper`, a plain Objective-C forwarder that mirrors
+  `RNSentryInternal` selector for selector. Add a member there when a `.mm`
+  file needs a new one; don't include the bridge header from `.mm`.
+- **No header maps.** The public headers are mirrored as forwarding headers in
+  `ios/include/RNSentry/`, which is the target's `publicHeadersPath`, so
+  `#import <RNSentry/RNSentrySDK.h>` keeps working. Add a mirror for every new
+  public header (and to `s.public_header_files`); the podspec excludes the
+  directory so CocoaPods doesn't see two headers per name.
+- **A target's whole directory is scanned for resources.** Every target points
+  at one source directory (`ios`, `ios/Swift`, `cpp`) rather than the package
+  root, which would pick up a local `node_modules` or Xcode build output and
+  fail to resolve.
+
+The autolinked target name must stay `RNSentry`, because it is also the prefix
+consumers import headers under. It is pinned in both places React Native looks:
+`spm.name` in `react-native.config.js` (0.87) and `swiftpmConfig.name` in
+`package.json` (0.88+).
+
 ## Internal API access (`SentrySDK.internal`)
 
 RNSentry consumes sentry-cocoa's hybrid-SDK surface (`SentrySDK.internal.*`)
