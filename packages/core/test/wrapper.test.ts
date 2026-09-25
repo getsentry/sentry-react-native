@@ -69,6 +69,7 @@ jest.mock('react-native', () => {
     pauseReplay: jest.fn(() => Promise.resolve()),
     resumeReplay: jest.fn(() => Promise.resolve()),
     flushReplay: jest.fn(() => Promise.resolve()),
+    registerReplayTraceId: jest.fn(),
   };
 
   return {
@@ -1620,6 +1621,71 @@ describe('Tests Native Wrapper', () => {
         }
       },
     );
+  });
+
+  describe('registerReplayTraceId', () => {
+    const TRACE_ID = 'd6566d2f24e848fe864f8d4df192d67c';
+
+    it('forwards the trace id to native when enabled', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      NATIVE.registerReplayTraceId(TRACE_ID);
+
+      expect(RNSentry.registerReplayTraceId).toHaveBeenCalledWith(TRACE_ID);
+    });
+
+    it('does not call native when enableNative is false', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: false,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      NATIVE.registerReplayTraceId(TRACE_ID);
+
+      expect(RNSentry.registerReplayTraceId).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op when the method is missing on the binary', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      const original = (RNSentry as unknown as Record<string, unknown>).registerReplayTraceId;
+      (RNSentry as unknown as Record<string, unknown>).registerReplayTraceId = undefined;
+
+      try {
+        expect(() => NATIVE.registerReplayTraceId(TRACE_ID)).not.toThrow();
+      } finally {
+        (RNSentry as unknown as Record<string, unknown>).registerReplayTraceId = original;
+      }
+    });
+
+    it('swallows native errors instead of throwing into the caller', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+      (RNSentry.registerReplayTraceId as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('native boom');
+      });
+
+      expect(() => NATIVE.registerReplayTraceId(TRACE_ID)).not.toThrow();
+    });
   });
 
   describe('primitiveProcessor and _setPrimitiveProcessor', () => {

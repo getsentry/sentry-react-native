@@ -666,6 +666,49 @@ describe('Mobile Replay Integration', () => {
     });
   });
 
+  describe('trace id registration on send', () => {
+    const TRACE_ID = 'd6566d2f24e848fe864f8d4df192d67c';
+    let mockRegisterReplayTraceId: jest.MockedFunction<typeof NATIVE.registerReplayTraceId>;
+
+    beforeEach(() => {
+      mockRegisterReplayTraceId = NATIVE.registerReplayTraceId as jest.MockedFunction<
+        typeof NATIVE.registerReplayTraceId
+      >;
+    });
+
+    const eventWithTrace = (): Event => ({ contexts: { trace: { trace_id: TRACE_ID } } }) as unknown as Event;
+
+    it('forwards the trace id to native when a replay is recording', async () => {
+      mockGetCurrentReplayId.mockReturnValue('test-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      await fireAfterSendEvent(eventWithTrace());
+
+      expect(mockRegisterReplayTraceId).toHaveBeenCalledWith(TRACE_ID);
+    });
+
+    it('does not forward when no replay is recording', async () => {
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      await fireAfterSendEvent(eventWithTrace());
+
+      expect(mockRegisterReplayTraceId).not.toHaveBeenCalled();
+    });
+
+    it('does not forward when the event carries no trace id', async () => {
+      mockGetCurrentReplayId.mockReturnValue('test-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      await fireAfterSendEvent({ event_id: 'no-trace' } as Event);
+
+      expect(mockRegisterReplayTraceId).not.toHaveBeenCalled();
+    });
+  });
+
   describe('runtime controls', () => {
     beforeEach(() => {
       (NATIVE.startReplay as jest.Mock).mockResolvedValue(undefined as never);

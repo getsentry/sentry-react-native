@@ -186,6 +186,10 @@ import Foundation
             screenshotProvider: nil
         )
     }
+
+    @_spi(Private) @objc public static func registerReplayTraceId(_ traceId: String) {
+        SentrySDK.internal.replay.registerTraceId(sentryId(fromTraceId: traceId))
+    }
     #else
     @_spi(Private) @objc public static func captureReplay() -> Bool { false }
     @_spi(Private) @objc public static func startReplay() {}
@@ -200,6 +204,7 @@ import Foundation
     @_spi(Private) @objc public static func configureReplay(
         breadcrumbConverter: SentryReplayBreadcrumbConverter
     ) {}
+    @_spi(Private) @objc public static func registerReplayTraceId(_ traceId: String) {}
     #endif
 
     // MARK: - Swizzle
@@ -283,18 +288,20 @@ import Foundation
     // SentrySDK.internal.setTrace only accepts traceId/spanId; wiring sampling fields
     // through would require a sentry-cocoa API change.
     @_spi(Private) @objc public static func setCurrentScopePropagationContext(traceId: String, spanId: String) {
-        // JS traceId is a 32-char hex string without hyphens; SentryId(uuidString:) requires
-        // the standard hyphenated UUID format (8-4-4-4-12), otherwise it silently produces
-        // an empty SentryId and trace linking breaks.
-        let hyphenated: String
-        if traceId.count == 32 {
-            let s = traceId
-            hyphenated = "\(s.prefix(8))-\(s.dropFirst(8).prefix(4))-\(s.dropFirst(12).prefix(4))-\(s.dropFirst(16).prefix(4))-\(s.dropFirst(20))"
-        } else {
-            hyphenated = traceId
-        }
-        let sentryTraceId = SentryId(uuidString: hyphenated)
         let sentrySpanId = SpanId(value: spanId)
-        SentrySDK.internal.setTrace(sentryTraceId, spanId: sentrySpanId)
+        SentrySDK.internal.setTrace(sentryId(fromTraceId: traceId), spanId: sentrySpanId)
+    }
+
+    // JS traceId is a 32-char hex string without hyphens; SentryId(uuidString:) requires
+    // the standard hyphenated UUID format (8-4-4-4-12), otherwise it silently produces
+    // an empty SentryId and trace linking breaks.
+    private static func sentryId(fromTraceId traceId: String) -> SentryId {
+        guard traceId.count == 32 else {
+            return SentryId(uuidString: traceId)
+        }
+        let s = traceId
+        let hyphenated =
+            "\(s.prefix(8))-\(s.dropFirst(8).prefix(4))-\(s.dropFirst(12).prefix(4))-\(s.dropFirst(16).prefix(4))-\(s.dropFirst(20))"
+        return SentryId(uuidString: hyphenated)
     }
 }
