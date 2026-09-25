@@ -235,6 +235,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void registerReplayTraceId(String traceId) {
+    this.impl.registerReplayTraceId(traceId);
+  }
+
+  @Override
   public void crashedLastRun(Promise promise) {
     this.impl.crashedLastRun(promise);
   }

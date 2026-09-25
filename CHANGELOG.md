@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Populate `trace_ids` in mobile replays so replays can be searched by trace ID ([#6786](https://github.com/getsentry/sentry-react-native/pull/6786))
+
 ### Dependencies
 
 - Bump Android SDK from v8.57.0 to v8.58.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778))

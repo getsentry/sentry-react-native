@@ -146,6 +146,7 @@ interface SentryNativeWrapper {
   pauseReplay(): Promise<void>;
   resumeReplay(): Promise<void>;
   flushReplay(): Promise<void>;
+  registerReplayTraceId(traceId: string): void;
 
   crashedLastRun(): Promise<boolean | null>;
   getNewScreenTimeToDisplay(): Promise<number | null | undefined>;
@@ -958,6 +959,30 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return RNSentry[method]();
+  },
+
+  /**
+   * Forwards a trace id seen on a sent event to the native Session Replay so it
+   * lands in the current segment's `trace_ids` (enabling search by trace id).
+   * The native SDKs own dedup, the 100-per-segment cap, and the no-op when no
+   * replay is recording - this is a thin forward. Degrades to a no-op when
+   * native is disabled, unlinked, or the running (possibly cached, older) native
+   * binary predates the method; never throws into the caller.
+   */
+  registerReplayTraceId(traceId: string): void {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry)) {
+      return undefined;
+    }
+    if (typeof RNSentry.registerReplayTraceId !== 'function') {
+      return undefined;
+    }
+
+    try {
+      RNSentry.registerReplayTraceId(traceId);
+    } catch (error) {
+      debug.error('Error:', error);
+      return undefined;
+    }
   },
 
   async crashedLastRun(): Promise<boolean | null> {

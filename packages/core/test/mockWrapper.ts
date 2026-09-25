@@ -71,6 +71,7 @@ const NATIVE: MockInterface<NativeType> = {
   pauseReplay: jest.fn(),
   resumeReplay: jest.fn(),
   flushReplay: jest.fn(),
+  registerReplayTraceId: jest.fn(),
 
   crashedLastRun: jest.fn(),
   getNewScreenTimeToDisplay: jest.fn(),

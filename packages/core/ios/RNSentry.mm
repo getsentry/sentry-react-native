@@ -966,6 +966,17 @@ RCT_EXPORT_METHOD(
 #endif
 }
 
+RCT_EXPORT_METHOD(registerReplayTraceId : (NSString *)traceId)
+{
+#if SENTRY_TARGET_REPLAY_SUPPORTED
+    @try {
+        [RNSentryInternal registerReplayTraceId:traceId];
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call registerReplayTraceId: %@", exception);
+    }
+#endif
+}
+
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
 static BOOL
 RNSentryIsPathUnderAllowedRoots(NSString *path)

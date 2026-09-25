@@ -235,6 +235,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void registerReplayTraceId(String traceId) {
+    this.impl.registerReplayTraceId(traceId);
+  }
+
+  @ReactMethod
   public void crashedLastRun(Promise promise) {
     this.impl.crashedLastRun(promise);
   }
