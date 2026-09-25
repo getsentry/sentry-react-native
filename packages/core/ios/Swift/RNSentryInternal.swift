@@ -269,7 +269,8 @@ import Foundation
     }
     #else
     @_spi(Private) @objc public static func startProfiler(forTrace traceId: SentryId) -> UInt64 { 0 }
-    @_spi(Private) @objc public static func collectProfile(
+    @_spi(Private) @objc(collectProfileBetween:and:forTrace:)
+    public static func collectProfile(
         between startTime: UInt64,
         and endTime: UInt64,
         forTrace traceId: SentryId

@@ -50,11 +50,18 @@ NS_ASSUME_NONNULL_BEGIN
 
 // MARK: - Screenshots and view hierarchy
 
+// `RNSentryInternal` declares these three for iOS, tvOS and visionOS only, so
+// the mirror follows. The guard matches the one the call sites in
+// `RNSentry.mm` already use.
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+
 + (void)setCurrentScreen:(nullable NSString *)screenName;
 
 @property (class, readonly, nullable) NSArray<NSData *> *captureScreenshots;
 
 @property (class, readonly, nullable) NSData *captureViewHierarchy;
+
+#endif
 
 // MARK: - Session replay
 

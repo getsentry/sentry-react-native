@@ -63,6 +63,8 @@
 
 // MARK: - Screenshots and view hierarchy
 
+#if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST
+
 + (void)setCurrentScreen:(NSString *)screenName
 {
     [RNSentryInternal setCurrentScreen:screenName];
@@ -77,6 +79,8 @@
 {
     return [RNSentryInternal captureViewHierarchy];
 }
+
+#endif
 
 // MARK: - Session replay
 
