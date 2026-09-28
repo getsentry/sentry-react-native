@@ -12,6 +12,10 @@
 
 - Populate `trace_ids` in mobile replays so replays can be searched by trace ID ([#6786](https://github.com/getsentry/sentry-react-native/pull/6786))
 
+### Fixes
+
+- Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
+
 ### Dependencies
 
 - Bump Android SDK from v8.57.0 to v8.58.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778))

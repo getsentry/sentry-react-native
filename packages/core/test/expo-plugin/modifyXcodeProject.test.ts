@@ -530,6 +530,31 @@ export NODE_BINARY=node
     expect((result.match(/`/g) || []).length % 2).toBe(0);
   });
 
+  it('preserves the quoted command substitution from the Expo template', () => {
+    const invocation = `"\`"$NODE_BINARY" --print "require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'"\`"`;
+
+    const result = addSentryWithBundledScriptsToBundleShellScript(invocation);
+
+    expect(result).toBe(
+      `/bin/sh "\`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\`" ${invocation}`,
+    );
+  });
+
+  it.each([
+    '"/project with spaces/scripts/react-native-xcode.sh"',
+    '  "/project with spaces/scripts/react-native-xcode.sh"  ',
+    '  /project/scripts/react-native-xcode.sh  ',
+  ])('passes an optionally indented invocation as one quoted argument: %s', invocation => {
+    const result = addSentryWithBundledScriptsToBundleShellScript(invocation, true);
+    const expectedPath = invocation.includes('with spaces')
+      ? '"/project with spaces/scripts/react-native-xcode.sh"'
+      : '"/project/scripts/react-native-xcode.sh"';
+
+    expect(result).toBe(
+      `export SENTRY_DISABLE_AUTO_UPLOAD=true\n/bin/sh "\`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\`" ${expectedPath}`,
+    );
+  });
+
   it('quotes the debug files upload script path', () => {
     const result = getDebugFilesUploadScript();
     expect(result).toContain('/bin/sh "`');
