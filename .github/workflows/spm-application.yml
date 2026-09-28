@@ -173,11 +173,17 @@ jobs:
           # Selector defined only inside a category-only object file.
           canary='setRequestWithSize:bodyData:contentType:allHeaders:configuredHeaders:'
 
-          # Confirm the canary still exists upstream before trusting its absence
-          # below, so a sentry-cocoa rename surfaces as a warning to update this
-          # check rather than as a false "categories were stripped" failure.
+          # Not finding the archive means this check can no longer see what it
+          # is asserting about, so fail rather than pass silently.
           archive=$(find build -type f -path '*Sentry.framework/Sentry' | head -1)
-          if [ -z "$archive" ] || ! strings -a "$archive" | grep -qF "$canary"; then
+          if [ -z "$archive" ]; then
+            echo "::error::Sentry.framework not found under build/; this check can no longer verify anything."
+            exit 1
+          fi
+
+          # A renamed selector is different: the canary is stale, not the link.
+          # Warn to update it rather than report a false dead-strip.
+          if ! strings -a "$archive" | grep -qF "$canary"; then
             echo "::warning::Canary selector not found in sentry-cocoa; update it for this version."
             exit 0
           fi
