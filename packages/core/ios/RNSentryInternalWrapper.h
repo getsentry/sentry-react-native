@@ -79,6 +79,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)flushReplay;
 
++ (void)registerReplayTraceId:(NSString *)traceId;
+
 @property (class, readonly, nullable) NSString *replayId;
 
 + (void)setReplayRedactContainerClass:(Class)containerClass;

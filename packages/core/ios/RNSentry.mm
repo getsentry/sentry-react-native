@@ -976,7 +976,7 @@ RCT_EXPORT_METHOD(registerReplayTraceId : (NSString *)traceId)
 {
 #if SENTRY_TARGET_REPLAY_SUPPORTED
     @try {
-        [RNSentryInternal registerReplayTraceId:traceId];
+        [RNSentryInternalWrapper registerReplayTraceId:traceId];
     } @catch (NSException *exception) {
         NSLog(@"[RNSentry] Failed to call registerReplayTraceId: %@", exception);
     }

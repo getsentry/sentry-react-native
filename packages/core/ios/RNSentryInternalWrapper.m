@@ -119,6 +119,11 @@
     [RNSentryInternal flushReplay];
 }
 
++ (void)registerReplayTraceId:(NSString *)traceId
+{
+    [RNSentryInternal registerReplayTraceId:traceId];
+}
+
 + (NSString *)replayId
 {
     return [RNSentryInternal replayId];
