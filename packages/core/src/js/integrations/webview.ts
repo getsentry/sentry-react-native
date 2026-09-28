@@ -28,6 +28,11 @@ export interface SentryWebViewOptions {
  * continue the same trace. The in-WebView page must run `@sentry/browser` for the
  * connection to take effect.
  *
+ * A no-op `onMessage` is also returned: `react-native-webview` only executes
+ * injected JavaScript on Android when an `onMessage` handler is set, so this is
+ * required for the injection to run there. If you need your own `onMessage`, spread
+ * these props first and set `onMessage` after them.
+ *
  * @example
  * ```tsx
  * <WebView
@@ -38,9 +43,15 @@ export interface SentryWebViewOptions {
  */
 export function sentryWebViewProps(options: SentryWebViewOptions): {
   injectedJavaScriptBeforeContentLoaded: string;
+  onMessage: () => void;
 } {
   return {
     injectedJavaScriptBeforeContentLoaded: createSentryWebViewInjection(options),
+    // Required on Android: `react-native-webview` only runs injected JavaScript
+    // when an `onMessage` handler is present.
+    onMessage: () => {
+      // noop
+    },
   };
 }
 

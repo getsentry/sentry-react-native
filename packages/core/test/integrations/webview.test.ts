@@ -137,4 +137,18 @@ describe('sentryWebViewProps', () => {
       expect(injectedJavaScriptBeforeContentLoaded).toBe('');
     });
   });
+
+  describe('returned props', () => {
+    it('include a no-op onMessage (required for injected JS to run on Android)', () => {
+      // Arrange
+      mockGetTraceData.mockReturnValue({ 'sentry-trace': SENTRY_TRACE });
+
+      // Act
+      const props = sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+      // Assert
+      expect(typeof props.onMessage).toBe('function');
+      expect(props.onMessage()).toBeUndefined();
+    });
+  });
 });

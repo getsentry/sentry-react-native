@@ -1088,6 +1088,7 @@ export interface SentryWebViewOptions {
 // @public
 export function sentryWebViewProps(options: SentryWebViewOptions): {
     injectedJavaScriptBeforeContentLoaded: string;
+    onMessage: () => void;
 };
 
 export { setAttribute }
