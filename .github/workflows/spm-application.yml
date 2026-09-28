@@ -153,3 +153,38 @@ jobs:
             exit 1
           fi
           echo "The app binary contains both RNSentry and sentry-cocoa."
+
+      - name: Verify Sentry Categories Survived The Link
+        working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
+        # A class symbol reaching the binary does not prove its categories did.
+        # sentry-cocoa ships object files that hold nothing but a category
+        # (`SentryReplayNetworkDetails+Capture`, `Options+Dictionary`,
+        # `SentryNSNotificationCenterWrapper`), so nothing references them and
+        # the linker drops them from the static archive unless it is
+        # force-loaded — the selectors then fail at runtime with "unrecognized
+        # selector" (#6609, Apple QA1490). `RNSentry.podspec` solves this with
+        # `-force_load`; SwiftPM has no equivalent, so assert the outcome here.
+        run: |
+          [[ "${{ matrix.build-type }}" == "production" ]] && export CONFIG='Release' || export CONFIG='Debug'
+          app="build/Build/Products/$CONFIG-iphonesimulator/$APP_NAME.app"
+          binary="$app/$APP_NAME"
+          [[ -f "$app/$APP_NAME.debug.dylib" ]] && binary="$app/$APP_NAME.debug.dylib"
+
+          # Selector defined only inside a category-only object file.
+          canary='setRequestWithSize:bodyData:contentType:allHeaders:configuredHeaders:'
+
+          # Confirm the canary still exists upstream before trusting its absence
+          # below, so a sentry-cocoa rename surfaces as a warning to update this
+          # check rather than as a false "categories were stripped" failure.
+          archive=$(find build -type f -path '*Sentry.framework/Sentry' | head -1)
+          if [ -z "$archive" ] || ! strings -a "$archive" | grep -qF "$canary"; then
+            echo "::warning::Canary selector not found in sentry-cocoa; update it for this version."
+            exit 0
+          fi
+
+          if strings -a "$binary" | grep -qF "$canary"; then
+            echo "Category-only objects survived the link."
+          else
+            echo "::error::Sentry ObjC categories were dead-stripped from the app binary."
+            exit 1
+          fi
