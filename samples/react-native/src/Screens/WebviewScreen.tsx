@@ -21,13 +21,30 @@ const DEMO_PAGE = `<!doctype html>
     <p>Injected <code>sentry-trace</code>:</p>
     <pre id="trace" style="white-space: pre-wrap; word-break: break-all;">(reading…)</pre>
     <script>
-      var trace = document.querySelector('meta[name="sentry-trace"]');
-      var baggage = document.querySelector('meta[name="baggage"]');
-      document.getElementById('trace').textContent = trace ? trace.content : '(none — not injected)';
-      if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(
-          JSON.stringify({ sentryTrace: trace && trace.content, baggage: baggage && baggage.content }),
-        );
+      // On Android the injected script runs slightly after this page's initial
+      // script, so poll briefly for the meta tag. A real app's @sentry/browser reads
+      // it during pageload init (which happens later), so it doesn't need this.
+      var tries = 0;
+      function report() {
+        var trace = document.querySelector('meta[name="sentry-trace"]');
+        var baggage = document.querySelector('meta[name="baggage"]');
+        if (!trace) return false;
+        document.getElementById('trace').textContent = trace.content;
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({ sentryTrace: trace.content, baggage: baggage && baggage.content }),
+          );
+        }
+        return true;
+      }
+      if (!report()) {
+        var iv = setInterval(function () {
+          tries++;
+          if (report() || tries > 30) {
+            clearInterval(iv);
+            if (tries > 30) document.getElementById('trace').textContent = '(none — not injected)';
+          }
+        }, 100);
       }
     </script>
   </body>
@@ -58,6 +75,7 @@ const WebviewScreen = () => {
         </Text>
       </View>
       <WebView
+        {...Sentry.sentryWebViewProps({ allowedHosts: [ALLOWED_HOST] })}
         source={{ html: DEMO_PAGE, baseUrl: BASE_URL }}
         onMessage={event => {
           try {
@@ -68,7 +86,6 @@ const WebviewScreen = () => {
           }
         }}
         style={styles.webview}
-        {...Sentry.sentryWebViewProps({ allowedHosts: [ALLOWED_HOST] })}
       />
     </View>
   );

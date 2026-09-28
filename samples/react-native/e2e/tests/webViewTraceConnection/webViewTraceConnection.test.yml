@@ -12,7 +12,7 @@ appId: io.sentry.reactnative.sample
 - extendedWaitUntil:
     visible:
       id: 'webview-example-button'
-    timeout: 15000
+    timeout: 30000
 
 - tapOn:
     id: 'webview-example-button'

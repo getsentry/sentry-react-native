@@ -5,9 +5,11 @@ import {
   ImageBackground,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -41,6 +43,11 @@ const styles = StyleSheet.create({
     padding: 5,
     flex: 1,
   },
+  // RN's SafeAreaView is a no-op on Android, so clear the status bar explicitly
+  // to keep the first button tappable (and out from under the status bar).
+  scrollContent: {
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
+  },
   separator: {
     marginVertical: 8,
   },
@@ -68,7 +75,7 @@ export default function getPlaygroundTab() {
         <SafeAreaView style={styles.container}>
           <TimeToFullDisplay record={true} />
           <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
               <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View style={styles.container}>
                   <Button
