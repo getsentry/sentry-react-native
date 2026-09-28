@@ -12,7 +12,11 @@ import android.content.pm.PackageManager;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import io.sentry.IReplayApi;
+import io.sentry.IScopes;
+import io.sentry.ReplayController;
 import io.sentry.Sentry;
+import io.sentry.SentryOptions;
+import io.sentry.protocol.SentryId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -120,6 +124,24 @@ public class RNSentryReplayControlTest {
 
       verify(replay).flush();
       verify(promise).resolve(null);
+    }
+  }
+
+  @Test
+  public void registerReplayTraceIdForwardsSentryIdToController() {
+    try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class)) {
+      final ReplayController replayController = mock(ReplayController.class);
+      final SentryOptions options = mock(SentryOptions.class);
+      when(options.getReplayController()).thenReturn(replayController);
+      final IScopes scopes = mock(IScopes.class);
+      when(scopes.getOptions()).thenReturn(options);
+      sentry.when(Sentry::getCurrentScopes).thenReturn(scopes);
+
+      final String traceId = "d6566d2f24e848fe864f8d4df192d67c";
+      module.registerReplayTraceId(traceId);
+
+      // new SentryId(String) normalizes the un-hyphenated 32-char hex from JS.
+      verify(replayController).registerTraceId(new SentryId(traceId));
     }
   }
 }

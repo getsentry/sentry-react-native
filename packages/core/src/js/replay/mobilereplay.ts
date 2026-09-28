@@ -21,6 +21,7 @@ import { isExpoGo, notMobileOs } from '../utils/environment';
 import { registerFeatureMarker } from '../utils/featureMarkers';
 import { NATIVE } from '../wrapper';
 import { setupForegroundReplayGuard } from './foregroundReplayGuard';
+import { registerReplayTraceIdForEvent } from './replayTraceIds';
 import {
   buildResolvedNetworkBreadcrumb,
   makeEnrichXhrBreadcrumbsForMobileReplay,
@@ -621,9 +622,9 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     // fires after the error `sampleRate` roll in `@sentry/core`, so an error
     // dropped by sampling never triggers a replay upload (issue #6598).
     client.on('afterSendEvent', (event: Event) => {
-      flushReplayForSentEvent(event).then(undefined, () => {
-        // errors are logged inside flushReplayForSentEvent
-      });
+      registerReplayTraceIdForEvent(event, getCachedReplayId());
+      // errors are logged inside flushReplayForSentEvent
+      flushReplayForSentEvent(event).then(undefined, () => {});
     });
   }
 

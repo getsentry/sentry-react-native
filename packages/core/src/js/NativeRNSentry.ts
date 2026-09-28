@@ -61,6 +61,7 @@ export interface Spec extends TurboModule {
   pauseReplay(): Promise<void>;
   resumeReplay(): Promise<void>;
   flushReplay(): Promise<void>;
+  registerReplayTraceId(traceId: string): void;
   crashedLastRun(): Promise<boolean | undefined | null>;
   getDataFromUri(uri: string): Promise<number[]>;
   popTimeToDisplayFor(key: string): Promise<number | undefined | null>;

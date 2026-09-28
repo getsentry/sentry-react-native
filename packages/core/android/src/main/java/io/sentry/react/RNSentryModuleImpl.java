@@ -549,6 +549,21 @@ public class RNSentryModuleImpl {
     }
   }
 
+  public void registerReplayTraceId(String traceId) {
+    // Forward a trace id seen on a sent event to Session Replay so it lands in
+    // the current segment's `trace_ids`. The controller owns dedup, the
+    // per-segment cap, and the no-op when no replay is recording.
+    // `new SentryId(String)` normalizes the un-hyphenated 32-char hex from JS.
+    try {
+      Sentry.getCurrentScopes()
+          .getOptions()
+          .getReplayController()
+          .registerTraceId(new SentryId(traceId));
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to register replay trace id", e);
+    }
+  }
+
   public @Nullable String getCurrentReplayId() {
     // Prefer the replay controller's id: it is assigned when recording starts
     // (buffer or session) and is therefore available BEFORE a replay is

@@ -10,6 +10,7 @@
 
 ### Features
 
+- Populate `trace_ids` in mobile replays so replays can be searched by trace ID ([#6786](https://github.com/getsentry/sentry-react-native/pull/6786))
 - Support React Native's Swift Package Manager integration ([#6784](https://github.com/getsentry/sentry-react-native/pull/6784))
   - The SDK now ships a `Package.swift`, so `npx react-native spm` picks it up through SwiftPM autolinking instead of failing with `Package.swift is missing for library "@sentry/react-native"`.
   - Requires React Native 0.87 or newer, where SwiftPM support is an opt-in preview. CocoaPods remains the default and is unaffected.
@@ -24,9 +25,9 @@
 - Bump Android SDK from v8.57.0 to v8.58.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8580)
   - [diff](https://github.com/getsentry/sentry-java/compare/8.57.0...8.58.0)
-- Bump Cocoa SDK from v9.29.0 to v9.29.1 ([#6785](https://github.com/getsentry/sentry-react-native/pull/6785))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9291)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.29.1)
+- Bump Cocoa SDK from v9.29.0 to v9.29.2 ([#6785](https://github.com/getsentry/sentry-react-native/pull/6785), [#6787](https://github.com/getsentry/sentry-react-native/pull/6787))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9292)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.29.2)
 
 ## 8.28.0
 
