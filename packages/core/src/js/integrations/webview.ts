@@ -71,7 +71,9 @@ function createSentryWebViewInjection({ allowedHosts }: SentryWebViewOptions): s
   // Values are embedded via JSON.stringify so any characters in `baggage` are
   // safely escaped. `allowedHosts` is checked against `location.hostname` inside
   // the page: the script re-runs on every document load, so each navigation is
-  // gated on its own host rather than the one the WebView was opened with.
+  // gated on its own host rather than the one the WebView was opened with. The
+  // script is idempotent — if a `sentry-trace` meta already exists (e.g. injected
+  // by another path), it does nothing, so the trace context is never duplicated.
   const allowedHostsLiteral = JSON.stringify((allowedHosts ?? []).map(host => host.toLowerCase()));
   const sentryTraceLiteral = JSON.stringify(sentryTrace);
   const baggageLiteral = JSON.stringify(traceData.baggage ?? null);
@@ -81,6 +83,7 @@ var allowed=${allowedHostsLiteral};
 var host=(window.location&&window.location.hostname||'').toLowerCase();
 if(!host)return;
 if(!allowed.some(function(h){return host===h||host.slice(-(h.length+1))==='.'+h;}))return;
+if(document.querySelector('meta[name="sentry-trace"]'))return;
 var head=document.head||document.documentElement;
 if(!head)return;
 var set=function(n,c){if(!c)return;var m=document.createElement('meta');m.setAttribute('name',n);m.setAttribute('content',c);head.appendChild(m);};

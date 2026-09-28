@@ -15,9 +15,16 @@ const mockGetTraceData = getTraceData as jest.Mock;
 const SENTRY_TRACE = 'd4cda95b652f4a1592b449d5929fda1b-6e0c63257de34c92-1';
 const BAGGAGE = 'sentry-trace_id=d4cda95b652f4a1592b449d5929fda1b,sentry-environment=prod';
 
-/** Runs the generated injection script against a minimal DOM and returns the created meta tags. */
-function runInjection(script: string, hostname: string): Array<{ name: string; content: string }> {
-  const metas: Array<{ name: string; content: string }> = [];
+/**
+ * Runs the generated injection script against a minimal DOM and returns the meta
+ * tags present afterwards. `existing` pre-seeds meta tags already in the document.
+ */
+function runInjection(
+  script: string,
+  hostname: string,
+  existing: Array<{ name: string; content: string }> = [],
+): Array<{ name: string; content: string }> {
+  const metas: Array<{ name: string; content: string }> = [...existing];
   const head = {
     appendChild: (el: { name: string; content: string }) => metas.push({ name: el.name, content: el.content }),
   };
@@ -33,6 +40,14 @@ function runInjection(script: string, hostname: string): Array<{ name: string; c
         },
       };
       return el;
+    },
+    querySelector: (selector: string) => {
+      const match = /meta\[name="([^"]+)"\]/.exec(selector);
+      if (!match) {
+        return null;
+      }
+      const found = metas.find(m => m.name === match[1]);
+      return found ? { ...found } : null;
     },
   };
   const fakeWindow = { location: { hostname } };
@@ -108,6 +123,22 @@ describe('sentryWebViewProps', () => {
 
       // Assert
       expect(metas).toHaveLength(0);
+    });
+  });
+
+  describe('when the page already has a sentry-trace meta', () => {
+    it('does not inject again (idempotent)', () => {
+      // Arrange
+      mockGetTraceData.mockReturnValue({ 'sentry-trace': SENTRY_TRACE, baggage: BAGGAGE });
+      const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+      // Act
+      const metas = runInjection(injectedJavaScriptBeforeContentLoaded, 'example.com', [
+        { name: 'sentry-trace', content: 'already-there' },
+      ]);
+
+      // Assert
+      expect(metas).toEqual([{ name: 'sentry-trace', content: 'already-there' }]);
     });
   });
 
