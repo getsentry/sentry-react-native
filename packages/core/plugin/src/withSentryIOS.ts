@@ -99,8 +99,10 @@ export function addSentryWithBundledScriptsToBundleShellScript(
   disableAutoUpload: boolean = false,
 ): string {
   const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
-  // Keep the full invocation, including the closing backtick in Expo templates.
-  // Preserve existing double quotes: adding a second pair would expose spaces to word splitting.
+  // Match through end-of-line so command substitutions in Expo templates stay intact.
+  // Quote unquoted invocations so paths containing spaces remain one argument (#6583).
+  // Preserve existing outer double quotes: adding another pair would expose the
+  // command substitution's result to word splitting.
   return script.replace(/^.*?(packager|scripts)\/react-native-xcode\.sh.*$/m, (match: string) => {
     const invocation = match.trim();
     const argument = invocation.startsWith('"') && invocation.endsWith('"') ? invocation : `"${invocation}"`;

@@ -541,14 +541,14 @@ export NODE_BINARY=node
   });
 
   it.each([
-    '"/project with spaces/scripts/react-native-xcode.sh"',
-    '  "/project with spaces/scripts/react-native-xcode.sh"  ',
-    '  /project/scripts/react-native-xcode.sh  ',
-  ])('passes an optionally indented invocation as one quoted argument: %s', invocation => {
+    ['"/project with spaces/scripts/react-native-xcode.sh"', '"/project with spaces/scripts/react-native-xcode.sh"'],
+    [
+      '  "/project with spaces/scripts/react-native-xcode.sh"  ',
+      '"/project with spaces/scripts/react-native-xcode.sh"',
+    ],
+    ['  /project/scripts/react-native-xcode.sh  ', '"/project/scripts/react-native-xcode.sh"'],
+  ])('generates a single pair of outer quotes without surrounding whitespace: %s', (invocation, expectedPath) => {
     const result = addSentryWithBundledScriptsToBundleShellScript(invocation, true);
-    const expectedPath = invocation.includes('with spaces')
-      ? '"/project with spaces/scripts/react-native-xcode.sh"'
-      : '"/project/scripts/react-native-xcode.sh"';
 
     expect(result).toBe(
       `export SENTRY_DISABLE_AUTO_UPLOAD=true\n/bin/sh "\`"$NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode.sh'"\`" ${expectedPath}`,
