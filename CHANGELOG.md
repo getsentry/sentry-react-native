@@ -10,6 +10,7 @@
 
 ### Features
 
+- Connect React Native traces with embedded WebViews via `sentryWebViewProps`
 - Populate `trace_ids` in mobile replays so replays can be searched by trace ID ([#6786](https://github.com/getsentry/sentry-react-native/pull/6786))
 
 ### Dependencies

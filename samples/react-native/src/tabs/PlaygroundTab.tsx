@@ -72,6 +72,7 @@ export default function getPlaygroundTab() {
               <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View style={styles.container}>
                   <Button
+                    testID="webview-example-button"
                     title="Webview Example"
                     onPress={() => {
                       props.navigation.navigate('Webview');
