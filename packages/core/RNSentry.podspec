@@ -160,11 +160,7 @@ Pod::Spec.new do |s|
       acc[sdk] = sdk == 'macosx' ? ['$(SENTRY_MACOS_SLICE)'] : slice_ids
     end
 
-    # Carry the SDK-conditional value on a Sentry-private var and reference it
-    # from the plain build setting. CocoaPods merges `user_target_xcconfig`
-    # across pods only for exact keys in `PLURAL_SETTINGS` — bare
-    # `FRAMEWORK_SEARCH_PATHS`/`OTHER_LDFLAGS` qualify, their `[sdk=…]` forms
-    # don't, so two pods setting `OTHER_LDFLAGS[sdk=…]` drop BOTH values (#6800).
+    # Carry the SDK-conditional value on a Sentry-private var and reference it from the plain build setting.
     xcframework_search_paths = sentry_slice_refs_by_sdk.each_with_object({}) do |(sdk, slice_ids), acc|
       paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_ref, slice)}") }
       acc["SENTRY_FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = paths.join(' ')
