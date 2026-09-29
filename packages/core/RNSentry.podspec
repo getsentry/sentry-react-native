@@ -160,10 +160,16 @@ Pod::Spec.new do |s|
       acc[sdk] = sdk == 'macosx' ? ['$(SENTRY_MACOS_SLICE)'] : slice_ids
     end
 
+    # Carry the SDK-conditional value on a Sentry-private var and reference it
+    # from the plain build setting. CocoaPods merges `user_target_xcconfig`
+    # across pods only for exact keys in `PLURAL_SETTINGS` — bare
+    # `FRAMEWORK_SEARCH_PATHS`/`OTHER_LDFLAGS` qualify, their `[sdk=…]` forms
+    # don't, so two pods setting `OTHER_LDFLAGS[sdk=…]` drop BOTH values (#6800).
     xcframework_search_paths = sentry_slice_refs_by_sdk.each_with_object({}) do |(sdk, slice_ids), acc|
       paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_ref, slice)}") }
-      acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
+      acc["SENTRY_FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = paths.join(' ')
     end
+    xcframework_search_paths['FRAMEWORK_SEARCH_PATHS'] = '$(inherited) $(SENTRY_FRAMEWORK_SEARCH_PATHS)'
     # The `SENTRY_MACOS_SLICE*` helper vars must sit in every xcconfig that
     # references `$(SENTRY_MACOS_SLICE)`, so ride them on the search-path hash
     # that's merged into both the pod and user target configs below.
@@ -187,12 +193,14 @@ Pod::Spec.new do |s|
     # it into the RNSentry dylib → that link → `pod_target_xcconfig`. Never
     # both, or a second copy of Sentry lands in the app. Detected via
     # `ENV['USE_FRAMEWORKS']`.
+    # Private var + plain `OTHER_LDFLAGS`, per the merge note at the search paths.
     force_load_flags = sentry_slice_refs_by_sdk.each_with_object({}) do |(sdk, slice_ids), acc|
       loads = slice_ids.map do |slice|
         %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
       end
-      acc["OTHER_LDFLAGS[sdk=#{sdk}*]"] = (['$(inherited)'] + loads).join(' ')
+      acc["SENTRY_FORCE_LOAD_LDFLAGS[sdk=#{sdk}*]"] = loads.join(' ')
     end
+    force_load_flags['OTHER_LDFLAGS'] = '$(inherited) $(SENTRY_FORCE_LOAD_LDFLAGS)'
 
     pod_target_xcconfig.merge!(xcframework_search_paths)
     user_target_xcconfig = xcframework_search_paths.dup
