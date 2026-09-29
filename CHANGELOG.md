@@ -14,7 +14,7 @@
 
 ### Fixes
 
-- Prevent Sentry's iOS `-force_load` flag from being dropped when another pod sets `OTHER_LDFLAGS[sdk=…]` ([#6800](https://github.com/getsentry/sentry-react-native/issues/6800))
+- Prevent Sentry's iOS `-force_load` flag from being dropped when another pod sets `OTHER_LDFLAGS[sdk=…]` ([#6801](https://github.com/getsentry/sentry-react-native/pull/6801))
 - Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
 
 ### Dependencies
