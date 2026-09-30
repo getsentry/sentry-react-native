@@ -16,11 +16,6 @@
   - Requires React Native 0.87 or newer, where SwiftPM support is an opt-in preview. CocoaPods remains the default and is unaffected.
   - iOS only. macOS, tvOS and visionOS keep building through CocoaPods.
 
-### Fixes
-
-- Register the session replay mask components through the iOS codegen component provider ([#6784](https://github.com/getsentry/sentry-react-native/pull/6784))
-  - `codegenConfig.ios.componentProvider` now maps `RNSentryReplayMask` and `RNSentryReplayUnmask` to their view classes, so React Native resolves them directly instead of falling back to the legacy view manager interop layer, which apps can turn off with `RCT_REMOVE_LEGACY_COMPONENT_INTEROP`.
-
 ### Dependencies
 
 - Bump Android SDK from v8.57.0 to v8.58.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778))
