@@ -1,9 +1,5 @@
 #import "RNSentryReplay.h"
-#if __has_include(<RNSentry/RNSentry-Swift.h>)
-#    import <RNSentry/RNSentry-Swift.h>
-#else
-#    import "RNSentry-Swift.h"
-#endif
+#import "RNSentryInternalWrapper.h"
 #import "RNSentryReplayBreadcrumbConverterHelper.h"
 #import "RNSentryReplayQuality.h"
 #import "RNSentryVersion.h"
@@ -98,8 +94,8 @@
 {
     // We can't import RNSentryReplayMask.h here because it's Objective-C++
     // To avoid typos, we test the class existence in the tests
-    [RNSentryInternal setReplayRedactContainerClass:[RNSentryReplay getMaskClass]];
-    [RNSentryInternal setReplayIgnoreContainerClass:[RNSentryReplay getUnmaskClass]];
+    [RNSentryInternalWrapper setReplayRedactContainerClass:[RNSentryReplay getMaskClass]];
+    [RNSentryInternalWrapper setReplayIgnoreContainerClass:[RNSentryReplay getUnmaskClass]];
     [RNSentryReplayBreadcrumbConverterHelper configureSessionReplayWithConverter];
 }
 
