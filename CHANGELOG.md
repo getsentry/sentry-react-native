@@ -18,6 +18,7 @@
 
 ### Fixes
 
+- Fix Android build failing with `cannot find symbol ReplayIntegration` when `sentry-android-replay` is excluded ([#6803](https://github.com/getsentry/sentry-react-native/pull/6803))
 - Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
 
 ### Dependencies
