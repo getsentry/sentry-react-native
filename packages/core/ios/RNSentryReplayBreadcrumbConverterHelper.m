@@ -1,12 +1,8 @@
 #import "RNSentryReplayBreadcrumbConverterHelper.h"
 
 #if SENTRY_TARGET_REPLAY_SUPPORTED
-#    if __has_include(<RNSentry/RNSentry-Swift.h>)
-#        import <RNSentry/RNSentry-Swift.h>
-#    else
-#        import "RNSentry-Swift.h"
-#    endif
 #    import "RNSentryReplayBreadcrumbConverter.h"
+#    import "RNSentrySwiftBridge.h"
 
 @implementation RNSentryReplayBreadcrumbConverterHelper
 

@@ -1,0 +1,13 @@
+// Simulate an app that excludes Session Replay to guard the excluded-replay build path.
+//
+// Some apps drop `sentry-android-replay` to reduce APK size (see the docs at
+// https://docs.sentry.io/platforms/react-native/session-replay/performance-overhead/#excluding-session-replay-from-android).
+// When they do, the SDK's Android sources must still compile against the replay
+// stubs in `android/libs/replay-stubs.jar` alone. This init script reproduces that
+// classpath so CI fails fast if the SDK gains a hard dependency on a non-stubbed
+// replay symbol (regression guard for issue #6802).
+allprojects {
+    configurations.all {
+        exclude group: 'io.sentry', module: 'sentry-android-replay'
+    }
+}
