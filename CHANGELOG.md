@@ -14,7 +14,7 @@
 
 ### Fixes
 
-- Don't start the `AsyncExpiringMap` cleanup interval at import time, and restart it after the map empties ([#6805](https://github.com/getsentry/sentry-react-native/issues/6805))
+- Don't start the `AsyncExpiringMap` cleanup interval at import time, and restart it after the map empties ([#6811](https://github.com/getsentry/sentry-react-native/pull/6811))
 - Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
 
 ### Dependencies
