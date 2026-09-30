@@ -101,3 +101,5 @@ If you are coming from `react-native-sentry` which was our SDK `< 1.0` you shoul
 - [![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
 - [![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-sentry-green.svg)](https://github.com/getsentry/.github/blob/main/CODE_OF_CONDUCT.md)
 - [![X Follow](https://img.shields.io/twitter/follow/sentry?label=sentry&style=social)](https://x.com/intent/follow?screen_name=sentry)
+
+Check out product updates, deep dives, and React Native tips on [the Sentry blog](https://blog.sentry.io/).
