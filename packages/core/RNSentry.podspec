@@ -54,6 +54,11 @@ Pod::Spec.new do |s|
   # and friends aren't modularized by default) must add
   # `use_modular_headers!` to their Podfile — see CHANGELOG.
   s.source_files = 'ios/**/*.{h,m,mm,swift}', 'cpp/**/*.{h,cpp}'
+  # `ios/include/RNSentry/` mirrors the public headers for Swift Package
+  # Manager, which has no header maps (see `Package.swift`). CocoaPods builds
+  # the namespaced spelling itself, and picking the mirrors up here would give
+  # the pod two headers per public name.
+  s.exclude_files = 'ios/include/**/*'
   s.swift_versions = ['5.5']
   s.public_header_files = 'ios/RNSentry.h', 'ios/RNSentrySDK.h', 'ios/RNSentryStart.h', 'ios/RNSentryVersion.h', 'ios/RNSentryBreadcrumb.h', 'ios/RNSentryReplay.h', 'ios/RNSentryReplayBreadcrumbConverter.h', 'ios/Replay/RNSentryReplayMask.h', 'ios/Replay/RNSentryReplayUnmask.h', 'ios/RNSentryTimeToDisplay.h'
 
@@ -160,10 +165,12 @@ Pod::Spec.new do |s|
       acc[sdk] = sdk == 'macosx' ? ['$(SENTRY_MACOS_SLICE)'] : slice_ids
     end
 
+    # Carry the SDK-conditional value on a Sentry-private var and reference it from the plain build setting.
     xcframework_search_paths = sentry_slice_refs_by_sdk.each_with_object({}) do |(sdk, slice_ids), acc|
       paths = slice_ids.map { |slice| %("#{File.join(sentry_xcframework_ref, slice)}") }
-      acc["FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = (['$(inherited)'] + paths).join(' ')
+      acc["SENTRY_FRAMEWORK_SEARCH_PATHS[sdk=#{sdk}*]"] = paths.join(' ')
     end
+    xcframework_search_paths['FRAMEWORK_SEARCH_PATHS'] = '$(inherited) $(SENTRY_FRAMEWORK_SEARCH_PATHS)'
     # The `SENTRY_MACOS_SLICE*` helper vars must sit in every xcconfig that
     # references `$(SENTRY_MACOS_SLICE)`, so ride them on the search-path hash
     # that's merged into both the pod and user target configs below.
@@ -187,12 +194,14 @@ Pod::Spec.new do |s|
     # it into the RNSentry dylib → that link → `pod_target_xcconfig`. Never
     # both, or a second copy of Sentry lands in the app. Detected via
     # `ENV['USE_FRAMEWORKS']`.
+    # Private var + plain `OTHER_LDFLAGS`, per the merge note at the search paths.
     force_load_flags = sentry_slice_refs_by_sdk.each_with_object({}) do |(sdk, slice_ids), acc|
       loads = slice_ids.map do |slice|
         %(-force_load "#{File.join(sentry_xcframework_ref, slice, 'Sentry.framework', 'Sentry')}")
       end
-      acc["OTHER_LDFLAGS[sdk=#{sdk}*]"] = (['$(inherited)'] + loads).join(' ')
+      acc["SENTRY_FORCE_LOAD_LDFLAGS[sdk=#{sdk}*]"] = loads.join(' ')
     end
+    force_load_flags['OTHER_LDFLAGS'] = '$(inherited) $(SENTRY_FORCE_LOAD_LDFLAGS)'
 
     pod_target_xcconfig.merge!(xcframework_search_paths)
     user_target_xcconfig = xcframework_search_paths.dup

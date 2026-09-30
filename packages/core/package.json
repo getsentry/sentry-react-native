@@ -152,6 +152,9 @@
       }
     }
   },
+  "swiftpmConfig": {
+    "name": "RNSentry"
+  },
   "peerDependenciesMeta": {
     "@babel/core": {
       "optional": true
