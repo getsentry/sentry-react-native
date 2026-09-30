@@ -11,10 +11,15 @@
 ### Features
 
 - Populate `trace_ids` in mobile replays so replays can be searched by trace ID ([#6786](https://github.com/getsentry/sentry-react-native/pull/6786))
+- Support React Native's Swift Package Manager integration ([#6784](https://github.com/getsentry/sentry-react-native/pull/6784))
+  - The SDK now ships a `Package.swift`, so `npx react-native spm` picks it up through SwiftPM autolinking instead of failing with `Package.swift is missing for library "@sentry/react-native"`.
+  - Requires React Native 0.87 or newer, where SwiftPM support is an opt-in preview. CocoaPods remains the default and is unaffected.
+  - iOS only. macOS, tvOS and visionOS keep building through CocoaPods.
 
 ### Fixes
 
 - Prevent Sentry's iOS `-force_load` flag from being dropped when another pod sets `OTHER_LDFLAGS[sdk=…]` ([#6801](https://github.com/getsentry/sentry-react-native/pull/6801))
+- Fix Android build failing with `cannot find symbol ReplayIntegration` when `sentry-android-replay` is excluded ([#6803](https://github.com/getsentry/sentry-react-native/pull/6803))
 - Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
 
 ### Dependencies
