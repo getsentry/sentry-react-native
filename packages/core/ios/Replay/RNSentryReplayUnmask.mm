@@ -6,6 +6,7 @@
 
 #    ifdef RCT_NEW_ARCH_ENABLED
 #        import <react/renderer/components/RNSentrySpec/ComponentDescriptors.h>
+#        import <react/renderer/components/RNSentrySpec/Props.h>
 #        import <react/renderer/components/RNSentrySpec/RCTComponentViewHelpers.h>
 // RCTFabricComponentsPlugins needed for RNSentryReplayUnmaskCls
 #        import <React/RCTFabricComponentsPlugins.h>
@@ -30,6 +31,17 @@ RCT_EXPORT_MODULE(RNSentryReplayUnmask)
 @implementation RNSentryReplayUnmask
 
 #    ifdef RCT_NEW_ARCH_ENABLED
+// Fabric requires typed default props, or mounting aborts in -updateProps:oldProps:.
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        static const auto defaultProps
+            = std::make_shared<const facebook::react::RNSentryReplayUnmaskProps>();
+        _props = defaultProps;
+    }
+    return self;
+}
+
 + (facebook::react::ComponentDescriptorProvider)componentDescriptorProvider
 {
     return facebook::react::concreteComponentDescriptorProvider<
