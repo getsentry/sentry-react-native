@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 8.29.0
+## Unreleased
 
 ### Features
 
@@ -20,6 +20,11 @@
     {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
   />
   ```
+
+## 8.29.0
+
+### Features
+
 - Populate `trace_ids` in mobile replays so replays can be searched by trace ID ([#6786](https://github.com/getsentry/sentry-react-native/pull/6786))
 - Support React Native's Swift Package Manager integration ([#6784](https://github.com/getsentry/sentry-react-native/pull/6784))
   - The SDK now ships a `Package.swift`, so `npx react-native spm` picks it up through SwiftPM autolinking instead of failing with `Package.swift is missing for library "@sentry/react-native"`.
