@@ -1080,6 +1080,17 @@ export type SentryReplayQuality = 'low' | 'medium' | 'high';
 export function sentryTraceGesture<GestureT>(
 label: string, gesture: GestureT): GestureT;
 
+// @public (undocumented)
+export interface SentryWebViewOptions {
+    allowedHosts: string[];
+}
+
+// @public
+export function sentryWebViewProps(options: SentryWebViewOptions): {
+    injectedJavaScriptBeforeContentLoaded: string;
+    onMessage: () => void;
+};
+
 export { setAttribute }
 
 export { setAttributes }

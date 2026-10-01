@@ -34,6 +34,7 @@ export { logEnricherIntegration } from './logEnricherIntegration';
 export { graphqlIntegration } from './graphql';
 export { supabaseIntegration } from './supabase';
 export { deeplinkIntegration } from './deeplink';
+export { sentryWebViewProps } from './webview';
 
 // User-facing integration option types. Re-exported from the entry point so their
 // full shape lands in the API report and field-level changes are surfaced in its diff.
@@ -43,6 +44,7 @@ export type { ReactNativeErrorHandlersOptions } from './reactnativeerrorhandlers
 export type { SpotlightReactNativeIntegrationOptions } from './spotlight';
 export type { GraphQLReactNativeIntegrationOptions } from './graphql';
 export type { SupabaseReactNativeIntegrationOptions } from './supabase';
+export type { SentryWebViewOptions } from './webview';
 export type { HermesProfilingOptions } from '../profiling/integration';
 export type { MobileReplayOptions, ScreenshotStrategy } from '../replay/mobilereplay';
 export type { ReplayConfiguration } from '../replay/browserReplay';

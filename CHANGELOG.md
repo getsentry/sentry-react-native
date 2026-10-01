@@ -6,6 +6,21 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Features
+
+- Connect React Native traces with embedded WebViews via `sentryWebViewProps` ([#6794](https://github.com/getsentry/sentry-react-native/pull/6794))
+
+  ```jsx
+  import { sentryWebViewProps } from '@sentry/react-native';
+
+  <WebView
+    source={{ uri: 'https://example.com' }}
+    {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
+  />
+  ```
+
 ## 8.29.0
 
 ### Features
