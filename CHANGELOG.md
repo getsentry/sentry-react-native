@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Forward image attachments (e.g. screenshots and replay frames) to Spotlight instead of stripping them from the envelope ([#6818](https://github.com/getsentry/sentry-react-native/pull/6818))
+
 ## 8.29.0
 
 ### Features
