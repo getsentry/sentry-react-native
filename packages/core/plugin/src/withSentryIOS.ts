@@ -99,14 +99,15 @@ export function addSentryWithBundledScriptsToBundleShellScript(
   disableAutoUpload: boolean = false,
 ): string {
   const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
-  // Match through end-of-line so the full react-native-xcode.sh invocation (which in the bare/monorepo
-  // templates is a backtick command substitution ending in `'"` + backtick) stays inside `${match}`.
-  // Both the Sentry script path and the original invocation are wrapped in double quotes so paths
-  // containing spaces are passed as single arguments instead of being word-split. See issue #6583.
-  return script.replace(
-    /^.*?(packager|scripts)\/react-native-xcode\.sh.*$/m,
-    (match: string) => `${disableAutoUploadExport}/bin/sh "${SENTRY_REACT_NATIVE_XCODE_PATH}" "${match}"`,
-  );
+  // Match through end-of-line so command substitutions in Expo templates stay intact.
+  // Quote unquoted invocations so paths containing spaces remain one argument (#6583).
+  // Preserve existing outer double quotes: adding another pair would expose the
+  // command substitution's result to word splitting.
+  return script.replace(/^.*?(packager|scripts)\/react-native-xcode\.sh.*$/m, (match: string) => {
+    const invocation = match.trim();
+    const argument = invocation.startsWith('"') && invocation.endsWith('"') ? invocation : `"${invocation}"`;
+    return `${disableAutoUploadExport}/bin/sh "${SENTRY_REACT_NATIVE_XCODE_PATH}" ${argument}`;
+  });
 }
 
 export function getDebugFilesUploadScript(disableAutoUpload: boolean = false): string {

@@ -19,7 +19,8 @@ export class AsyncExpiringMap<K, V> {
     this._ttl = ttl;
     this._map = new Map();
     this._cleanupIntervalMs = cleanupInterval;
-    this.startCleanup();
+    // The cleanup interval is started lazily on the first `set()`. Starting it here would keep the
+    // interval (and therefore a Node/Jest process) alive just from importing the module, with nothing to clean.
   }
 
   /**
@@ -143,9 +144,7 @@ export class AsyncExpiringMap<K, V> {
    * Clear all entries.
    */
   public clear(): void {
-    if (this._cleanupInterval) {
-      clearInterval(this._cleanupInterval);
-    }
+    this.stopCleanup();
     this._map.clear();
   }
 
@@ -155,6 +154,9 @@ export class AsyncExpiringMap<K, V> {
   public stopCleanup(): void {
     if (this._cleanupInterval) {
       clearInterval(this._cleanupInterval);
+      // Reset so `set()` can restart cleanup on demand. Without this the handle stays truthy after being
+      // cleared, so `set()` never re-arms the interval and later entries are only evicted lazily on access.
+      this._cleanupInterval = undefined;
     }
   }
 
@@ -162,6 +164,11 @@ export class AsyncExpiringMap<K, V> {
    * Start the cleanup interval.
    */
   public startCleanup(): void {
-    this._cleanupInterval = setInterval(() => this.cleanup(), this._cleanupIntervalMs);
+    const interval = setInterval(() => this.cleanup(), this._cleanupIntervalMs);
+    // `unref` exists on Node timers (Jest, tests, tooling) but not on the React Native `setInterval` number
+    // (typed as `number` here), so access it defensively. It ensures the interval never keeps a Node process
+    // alive on its own.
+    (interval as unknown as { unref?: () => void }).unref?.();
+    this._cleanupInterval = interval;
   }
 }

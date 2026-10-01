@@ -142,6 +142,38 @@ describe('AsyncExpiringMap', () => {
     expect(retrievedValue).toBeUndefined();
   });
 
+  it('does not start a cleanup interval on construction', () => {
+    // Importing a module that constructs a map at module scope must not start a timer, otherwise it keeps a
+    // Node/Jest process alive just from the import. See https://github.com/getsentry/sentry-react-native/issues/6805
+    const timersBefore = jest.getTimerCount();
+
+    // eslint-disable-next-line no-new
+    new AsyncExpiringMap<string, string>();
+
+    expect(jest.getTimerCount()).toBe(timersBefore);
+  });
+
+  it('restarts the cleanup interval after the map empties and a new entry is added', () => {
+    const ttl = 2000;
+    const cleanupInterval = ttl / 2;
+    const map = new AsyncExpiringMap<string, string>({ ttl, cleanupInterval });
+    const internalMap = (map as unknown as { _map: Map<string, unknown> })._map;
+
+    // First entry: the interval sweeps it and stops itself once the map is empty.
+    map.set('first', 'value');
+    now += ttl;
+    jest.advanceTimersByTime(ttl);
+    expect(internalMap.size).toBe(0);
+
+    // Second entry added after the interval stopped must re-arm cleanup so the interval evicts it too.
+    map.set('second', 'value');
+    now += ttl;
+    jest.advanceTimersByTime(ttl);
+
+    // Asserted via the internal map, not get()/has(), so it proves the interval evicted it rather than a lazy read.
+    expect(internalMap.size).toBe(0);
+  });
+
   it('stops cleanup when stopCleanup is called', () => {
     const map = new AsyncExpiringMap<string, string>();
 

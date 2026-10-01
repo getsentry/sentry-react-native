@@ -133,6 +133,10 @@ jobs:
         working-directory: packages/core/RNSentryAndroidTester
         run: ./gradlew testDebugUnitTest
 
+      - name: Verify SDK compiles without sentry-android-replay
+        working-directory: packages/core/RNSentryAndroidTester
+        run: ./gradlew :RNSentry:compileDebugJavaWithJavac --init-script exclude-replay.init.gradle
+
       - name: Setup KVM
         shell: bash
         run: |

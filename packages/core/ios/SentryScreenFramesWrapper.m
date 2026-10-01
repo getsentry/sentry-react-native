@@ -1,9 +1,5 @@
 #import "SentryScreenFramesWrapper.h"
-#if __has_include(<RNSentry/RNSentry-Swift.h>)
-#    import <RNSentry/RNSentry-Swift.h>
-#else
-#    import "RNSentry-Swift.h"
-#endif
+#import "RNSentrySwiftBridge.h"
 @import Sentry;
 
 #if TARGET_OS_IPHONE || TARGET_OS_MACCATALYST

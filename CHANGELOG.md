@@ -6,7 +6,7 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.29.0
 
 ### Features
 
@@ -21,15 +21,30 @@
   />
   ```
 - Populate `trace_ids` in mobile replays so replays can be searched by trace ID ([#6786](https://github.com/getsentry/sentry-react-native/pull/6786))
+- Support React Native's Swift Package Manager integration ([#6784](https://github.com/getsentry/sentry-react-native/pull/6784))
+  - The SDK now ships a `Package.swift`, so `npx react-native spm` picks it up through SwiftPM autolinking instead of failing with `Package.swift is missing for library "@sentry/react-native"`.
+  - Requires React Native 0.87 or newer, where SwiftPM support is an opt-in preview. CocoaPods remains the default and is unaffected.
+  - iOS only. macOS, tvOS and visionOS keep building through CocoaPods.
+
+### Fixes
+
+- Don't start the `AsyncExpiringMap` cleanup interval at import time, and restart it after the map empties ([#6811](https://github.com/getsentry/sentry-react-native/pull/6811))
+- Prevent Sentry's iOS `-force_load` flag from being dropped when another pod sets `OTHER_LDFLAGS[sdk=…]` ([#6801](https://github.com/getsentry/sentry-react-native/pull/6801))
+- Fix Android build failing with `cannot find symbol ReplayIntegration` when `sentry-android-replay` is excluded ([#6803](https://github.com/getsentry/sentry-react-native/pull/6803))
+- Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
+- Register the session replay mask components through the iOS codegen component provider ([#6810](https://github.com/getsentry/sentry-react-native/pull/6810))
+  - `codegenConfig.ios.componentProvider` now maps `RNSentryReplayMask` and `RNSentryReplayUnmask` to their view classes.
+  - React Native resolves both components directly. It no longer falls back to the legacy interop layer for view managers, which an app can turn off with `RCT_REMOVE_LEGACY_COMPONENT_INTEROP`.
+  - Both views now set typed default props. They no longer crash on mount through the provider.
 
 ### Dependencies
 
-- Bump Android SDK from v8.57.0 to v8.58.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8580)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.57.0...8.58.0)
-- Bump Cocoa SDK from v9.29.0 to v9.29.2 ([#6785](https://github.com/getsentry/sentry-react-native/pull/6785), [#6787](https://github.com/getsentry/sentry-react-native/pull/6787))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9292)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.29.2)
+- Bump Android SDK from v8.57.0 to v8.59.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778), [#6814](https://github.com/getsentry/sentry-react-native/pull/6814))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8590)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.57.0...8.59.0)
+- Bump Cocoa SDK from v9.29.0 to v9.30.0 ([#6785](https://github.com/getsentry/sentry-react-native/pull/6785), [#6787](https://github.com/getsentry/sentry-react-native/pull/6787), [#6813](https://github.com/getsentry/sentry-react-native/pull/6813))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9300)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.30.0)
 
 ## 8.28.0
 

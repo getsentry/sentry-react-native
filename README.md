@@ -72,6 +72,24 @@ Sentry.addBreadcrumb({ message: "test" });
 Sentry.captureMessage("Hello Sentry!");
 ```
 
+### Swift Package Manager (iOS)
+
+React Native 0.87 and newer can autolink iOS dependencies through SwiftPM instead of CocoaPods. The SDK ships a `Package.swift`, so no extra configuration is needed:
+
+```sh
+npm install @sentry/react-native
+cd ios && npx react-native spm add --deintegrate
+```
+
+`--deintegrate` removes an existing CocoaPods setup; drop it on a project that never had one. Then build as usual — `npx react-native run-ios`, or open the `.xcodeproj` (SwiftPM projects have no `.xcworkspace`).
+
+Two limitations to know about:
+
+- **Every autolinked dependency must ship a `Package.swift`.** `react-native spm add` stops if one does not, and many community libraries still do not support SwiftPM. This is a React Native constraint, not a Sentry one.
+- **iOS only.** macOS, tvOS and visionOS keep building through CocoaPods.
+
+CocoaPods remains the default and is unaffected.
+
 ## Upgrade
 
 If you are coming from `react-native-sentry` which was our SDK `< 1.0` you should follow the [upgrade guide](https://docs.sentry.io/platforms/react-native/#upgrading-from-react-native-sentry) and then follow the [install steps](https://docs.sentry.io/platforms/react-native/#integrating-the-sdk).
@@ -83,3 +101,4 @@ If you are coming from `react-native-sentry` which was our SDK `< 1.0` you shoul
 - [![Discord Chat](https://img.shields.io/discord/621778831602221064?logo=discord&logoColor=ffffff&color=7389D8)](https://discord.gg/PXa5Apfe7K)
 - [![Code of Conduct](https://img.shields.io/badge/code%20of%20conduct-sentry-green.svg)](https://github.com/getsentry/.github/blob/main/CODE_OF_CONDUCT.md)
 - [![X Follow](https://img.shields.io/twitter/follow/sentry?label=sentry&style=social)](https://x.com/intent/follow?screen_name=sentry)
+- Check out product updates, deep dives, and React Native tips on [the Sentry blog](https://blog.sentry.io/) and [our changelog](https://sentry.io/changelog/)
