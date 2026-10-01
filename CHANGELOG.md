@@ -18,6 +18,7 @@
 
 ### Fixes
 
+- Don't start the `AsyncExpiringMap` cleanup interval at import time, and restart it after the map empties ([#6811](https://github.com/getsentry/sentry-react-native/pull/6811))
 - Prevent Sentry's iOS `-force_load` flag from being dropped when another pod sets `OTHER_LDFLAGS[sdk=…]` ([#6801](https://github.com/getsentry/sentry-react-native/pull/6801))
 - Fix Android build failing with `cannot find symbol ReplayIntegration` when `sentry-android-replay` is excluded ([#6803](https://github.com/getsentry/sentry-react-native/pull/6803))
 - Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
@@ -28,12 +29,12 @@
 
 ### Dependencies
 
-- Bump Android SDK from v8.57.0 to v8.58.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8580)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.57.0...8.58.0)
-- Bump Cocoa SDK from v9.29.0 to v9.29.2 ([#6785](https://github.com/getsentry/sentry-react-native/pull/6785), [#6787](https://github.com/getsentry/sentry-react-native/pull/6787))
-  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9292)
-  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.29.2)
+- Bump Android SDK from v8.57.0 to v8.59.0 ([#6778](https://github.com/getsentry/sentry-react-native/pull/6778), [#6814](https://github.com/getsentry/sentry-react-native/pull/6814))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8590)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.57.0...8.59.0)
+- Bump Cocoa SDK from v9.29.0 to v9.30.0 ([#6785](https://github.com/getsentry/sentry-react-native/pull/6785), [#6787](https://github.com/getsentry/sentry-react-native/pull/6787), [#6813](https://github.com/getsentry/sentry-react-native/pull/6813))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9300)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.29.0...9.30.0)
 
 ## 8.28.0
 
