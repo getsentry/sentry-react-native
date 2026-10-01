@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Populate the Hermes runtime version on JS profiles instead of sending an empty value ([#6817](https://github.com/getsentry/sentry-react-native/pull/6817))
+
 ## 8.29.0
 
 ### Features
