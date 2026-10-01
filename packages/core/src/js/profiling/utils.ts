@@ -12,7 +12,7 @@ import type {
   RawThreadCpuProfile,
 } from './types';
 
-import { getDefaultEnvironment } from '../utils/environment';
+import { getDefaultEnvironment, getHermesVersion } from '../utils/environment';
 import { getDebugMetadata } from './debugid';
 
 /**
@@ -95,7 +95,7 @@ export function enrichCombinedProfileWithEventContext(
     event_id: profile_id,
     runtime: {
       name: 'hermes',
-      version: '', // TODO: get hermes version
+      version: getHermesVersion() ?? '',
     },
     timestamp: profilingStartTimestampNs
       ? new Date(profilingStartTimestampNs / 1e6).toISOString()
