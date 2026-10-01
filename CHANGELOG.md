@@ -18,6 +18,7 @@
 
 ### Fixes
 
+- Don't start the `AsyncExpiringMap` cleanup interval at import time, and restart it after the map empties ([#6811](https://github.com/getsentry/sentry-react-native/pull/6811))
 - Prevent Sentry's iOS `-force_load` flag from being dropped when another pod sets `OTHER_LDFLAGS[sdk=…]` ([#6801](https://github.com/getsentry/sentry-react-native/pull/6801))
 - Fix Android build failing with `cannot find symbol ReplayIntegration` when `sentry-android-replay` is excluded ([#6803](https://github.com/getsentry/sentry-react-native/pull/6803))
 - Preserve already-quoted React Native bundle script paths in the Expo iOS plugin ([#6796](https://github.com/getsentry/sentry-react-native/pull/6796))
