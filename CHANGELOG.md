@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Forward image attachments (e.g. screenshots and replay frames) to Spotlight instead of stripping them from the envelope ([#6818](https://github.com/getsentry/sentry-react-native/pull/6818))
+- Forward image attachments to Spotlight instead of stripping them from the envelope ([#6818](https://github.com/getsentry/sentry-react-native/pull/6818))
 
 ## 8.29.0
 
