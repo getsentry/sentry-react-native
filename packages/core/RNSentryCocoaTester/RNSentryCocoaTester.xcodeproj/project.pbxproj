@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00C7702ED388EA0682DBCC48 /* RNSentryStartInvalidOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C9B2501FF3EBD8B91BA6C1 /* RNSentryStartInvalidOptionsTests.swift */; };
+		2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */; };
 		332D33472CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */; };
 		3339C4812D6625570088EB3A /* RNSentryUserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3339C4802D6625570088EB3A /* RNSentryUserTests.m */; };
 		3339C4832D6625570088EB3A /* RNSentryReplayControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3339C4822D6625570088EB3A /* RNSentryReplayControlTests.m */; };
@@ -19,7 +21,7 @@
 		33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */; };
 		33F58AD02977037D008F60EA /* RNSentryTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACF2977037D008F60EA /* RNSentryTests.m */; };
 		33F58AD12977037D008F60EB /* RNSentryScreenshotSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F58ACE2977037D008F60EB /* RNSentryScreenshotSourceTests.swift */; };
-		2639D71D3BD04F17B0BAC987 /* RNSentryTurboModulePerfControllerTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */; };
+		AC4EE11A6E697E75C3753C16 /* RNSentrySDKStartInvalidOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864F5BFD9CFDA4502ADAE72E /* RNSentrySDKStartInvalidOptionsTests.swift */; };
 		AEFB00422CC90C4B00EC8A9A /* RNSentryBreadcrumbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */; };
 		B4DEB41739F14AA38202D4D4 /* RNSentryUriValidationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */; };
 		B5859A50A3E865EF5E61465A /* libPods-RNSentryCocoaTesterTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */; };
@@ -27,6 +29,7 @@
 
 /* Begin PBXFileReference section */
 		1482D5685A340AB93348A43D /* Pods-RNSentryCocoaTesterTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.release.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.release.xcconfig"; sourceTree = "<group>"; };
+		26C9B2501FF3EBD8B91BA6C1 /* RNSentryStartInvalidOptionsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RNSentryStartInvalidOptionsTests.swift; sourceTree = "<group>"; };
 		330F308D2C0F385A002A0D4E /* RNSentryBreadcrumb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RNSentryBreadcrumb.h; path = ../ios/RNSentryBreadcrumb.h; sourceTree = "<group>"; };
 		332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryReplayOptionsTests.swift; sourceTree = "<group>"; };
 		332D33482CDBDC7300547D76 /* RNSentry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentry.h; path = ../ios/RNSentry.h; sourceTree = SOURCE_ROOT; };
@@ -52,12 +55,13 @@
 		33DEDFEC2D8DC820006066E4 /* RNSentryOnDrawReporter+Test.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "RNSentryOnDrawReporter+Test.mm"; sourceTree = "<group>"; };
 		33DEDFEE2D8DD431006066E4 /* RNSentryTimeToDisplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryTimeToDisplay.h; path = ../ios/RNSentryTimeToDisplay.h; sourceTree = SOURCE_ROOT; };
 		33DEDFEF2D9185E3006066E4 /* RNSentryTimeToDisplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryTimeToDisplayTests.swift; sourceTree = "<group>"; };
-		33F58ACF2977037D008F60EA /* RNSentryTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryTests.m; sourceTree = "<group>"; };
 		33F58ACE2977037D008F60EB /* RNSentryScreenshotSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNSentryScreenshotSourceTests.swift; sourceTree = "<group>"; };
+		33F58ACF2977037D008F60EA /* RNSentryTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNSentryTests.m; sourceTree = "<group>"; };
 		3E3742693F7643C2ADE1BDF2 /* RNSentryUriValidationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNSentryUriValidationTests.m; sourceTree = "<group>"; };
 		650CB718ACFBD05609BF2126 /* libPods-RNSentryCocoaTesterTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RNSentryCocoaTesterTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNSentryTurboModulePerfControllerTests.mm; sourceTree = "<group>"; };
+		864F5BFD9CFDA4502ADAE72E /* RNSentrySDKStartInvalidOptionsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RNSentrySDKStartInvalidOptionsTests.swift; sourceTree = "<group>"; };
 		E2321E7CFA55AB617247098E /* Pods-RNSentryCocoaTesterTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RNSentryCocoaTesterTests.debug.xcconfig"; path = "Target Support Files/Pods-RNSentryCocoaTesterTests/Pods-RNSentryCocoaTesterTests.debug.xcconfig"; sourceTree = "<group>"; };
+		E795057A6D534A80A9D06356 /* RNSentryTurboModulePerfControllerTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNSentryTurboModulePerfControllerTests.mm; sourceTree = "<group>"; };
 		F48F26542EA2A481008A185E /* RNSentryEmitNewFrameEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryEmitNewFrameEvent.h; path = ../ios/RNSentryEmitNewFrameEvent.h; sourceTree = SOURCE_ROOT; };
 		F48F26552EA2A4D4008A185E /* RNSentryFramesTrackerListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RNSentryFramesTrackerListener.h; path = ../ios/RNSentryFramesTrackerListener.h; sourceTree = SOURCE_ROOT; };
 		FADF868E2EBD053E00D6652D /* SentrySDKWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SentrySDKWrapper.h; path = ../ios/SentrySDKWrapper.h; sourceTree = SOURCE_ROOT; };
@@ -125,6 +129,8 @@
 				3360843C2C340C76008CC412 /* RNSentryBreadcrumbTests.swift */,
 				332D33462CDBDBB600547D76 /* RNSentryReplayOptionsTests.swift */,
 				3380C6C32CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift */,
+				26C9B2501FF3EBD8B91BA6C1 /* RNSentryStartInvalidOptionsTests.swift */,
+				864F5BFD9CFDA4502ADAE72E /* RNSentrySDKStartInvalidOptionsTests.swift */,
 			);
 			path = RNSentryCocoaTesterTests;
 			sourceTree = "<group>";
@@ -281,6 +287,8 @@
 				33DEDFF02D9185EB006066E4 /* RNSentryTimeToDisplayTests.swift in Sources */,
 				3380C6C42CE25ECA0018B9B6 /* RNSentryReplayPostInitTests.swift in Sources */,
 				33AFDFED2B8D14B300AAB120 /* RNSentryFramesTrackerListenerTests.m in Sources */,
+				00C7702ED388EA0682DBCC48 /* RNSentryStartInvalidOptionsTests.swift in Sources */,
+				AC4EE11A6E697E75C3753C16 /* RNSentrySDKStartInvalidOptionsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
