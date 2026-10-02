@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- Fix stale `turbo_module.*` tags on Android native crashes ([#6821](https://github.com/getsentry/sentry-react-native/issues/6821))
 - Populate the Hermes runtime version on JS profiles instead of sending an empty value ([#6817](https://github.com/getsentry/sentry-react-native/pull/6817))
 
 ## 8.29.0

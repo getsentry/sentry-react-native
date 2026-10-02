@@ -188,6 +188,7 @@ public class RNSentryModuleImpl {
 
   public void initNativeReactNavigationNewFrameTracking(Promise promise) {
     this.initFragmentInitialFrameTracking();
+    promise.resolve(null);
   }
 
   public void initNativeSdk(final ReadableMap rnOptions, Promise promise) {
