@@ -24,6 +24,11 @@
 {
     SentryOptions *options = [self createOptionsWithDictionary:javascriptOptions
                                                          error:errorPointer];
+    if (options == nil) {
+        // Parsing failed (e.g. invalid DSN) and set `*errorPointer`. Return early so
+        // the caller can reject; starting with nil options crashes the native SDK.
+        return;
+    }
     [self updateWithReactDefaults:options];
     [self updateWithReactFinals:options];
     NSString *jsSdkVersion = nil;
