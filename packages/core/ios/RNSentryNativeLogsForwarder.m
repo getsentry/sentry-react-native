@@ -47,9 +47,8 @@
 {
     self.eventEmitter = nil;
 
-    // TODO: Ideally we should save the previous output block in configureWithEventEmitter:
-    // and restore it here instead of hardcoding NSLog.
-    // Reset to default print behavior
+    // cocoa exposes no public getter for the current SentrySDKLog output, so we reset to the
+    // default NSLog print behavior rather than restoring the previous block.
     [SentrySDKLog setOutput:^(NSString *_Nonnull message) { NSLog(@"%@", message); }];
 }
 
