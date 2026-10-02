@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Features
+
+- Report the generation of the cellular network technology in `device.connection_effective_type` on Android, for example `4g` or `5g`. iOS reports it since version `8.29.0` ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
+
 ### Fixes
 
 - Don't crash the iOS app when Sentry is initialized with an invalid DSN ([#6825](https://github.com/getsentry/sentry-react-native/pull/6825))
