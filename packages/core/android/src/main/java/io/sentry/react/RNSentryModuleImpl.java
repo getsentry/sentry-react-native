@@ -176,10 +176,10 @@ public class RNSentryModuleImpl {
     final RNSentryReactFragmentLifecycleTracer fragmentLifecycleTracer =
         new RNSentryReactFragmentLifecycleTracer(buildInfo, emitNewFrameEvent, logger);
 
-    final @Nullable FragmentActivity fragmentActivity = (FragmentActivity) getCurrentActivity();
-    if (fragmentActivity != null) {
+    final @Nullable Activity currentActivity = getCurrentActivity();
+    if (currentActivity instanceof FragmentActivity) {
       final @Nullable FragmentManager supportFragmentManager =
-          fragmentActivity.getSupportFragmentManager();
+          ((FragmentActivity) currentActivity).getSupportFragmentManager();
       if (supportFragmentManager != null) {
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleTracer, true);
       }

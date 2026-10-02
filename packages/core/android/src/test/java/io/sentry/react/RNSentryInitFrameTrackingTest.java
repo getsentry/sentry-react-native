@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import androidx.fragment.app.FragmentActivity;
@@ -64,6 +65,20 @@ public class RNSentryInitFrameTrackingTest {
     verify(fragmentManager)
         .registerFragmentLifecycleCallbacks(
             any(FragmentManager.FragmentLifecycleCallbacks.class), anyBoolean());
+    verify(promise).resolve(isNull());
+    verify(promise, never()).reject(anyString(), anyString());
+  }
+
+  @Test
+  public void resolvesPromiseWhenActivityIsNotFragmentActivity() {
+    // Brownfield / hybrid host: a plain Activity can't do fragment tracking. The
+    // cast must not throw (ClassCastException would skip resolve and re-leak the
+    // tracker frame) — tracking is skipped and the promise still settles.
+    Activity plainActivity = mock(Activity.class);
+    when(reactContext.getCurrentActivity()).thenReturn(plainActivity);
+
+    module.initNativeReactNavigationNewFrameTracking(promise);
+
     verify(promise).resolve(isNull());
     verify(promise, never()).reject(anyString(), anyString());
   }
