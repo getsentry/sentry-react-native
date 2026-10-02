@@ -495,8 +495,6 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve re
         NSLog(@"Bridge call to: deviceContexts");
     }
     __block NSMutableDictionary<NSString *, id> *serializedScope;
-    // Temp work around until sorted out this API in sentry-cocoa.
-    // TODO: If the callback isnt' executed the promise wouldn't be resolved.
     [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         serializedScope = [[scope serialize] mutableCopy];
 
