@@ -4,6 +4,7 @@ import {
   _resetTurboModuleTracker,
   getActiveTurboModuleCall,
   getTurboModuleCallStack,
+  MAX_ASYNC_FRAME_AGE_MS,
   popTurboModuleCall,
   pushTurboModuleCall,
   relabelTurboModuleCallKind,
@@ -263,5 +264,88 @@ describe('turboModuleTracker', () => {
 
     expect(b).toBe(a + 1);
     expect(c).toBe(b + 1);
+  });
+
+  describe('stale async frame eviction', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(0);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('evicts an async frame whose promise never settled on the next push', () => {
+      // Simulates the #6821 shape: an async call pushed at startup that the
+      // wrapper never pops because the native promise never settles.
+      pushTurboModuleCall({
+        name: 'RNSentry',
+        method: 'initNativeReactNavigationNewFrameTracking',
+        kind: 'async',
+        scope,
+      });
+      expect(getTurboModuleCallStack()).toHaveLength(1);
+
+      jest.setSystemTime(MAX_ASYNC_FRAME_AGE_MS + 1);
+      const freshId = pushTurboModuleCall({ name: 'RNSentry', method: 'captureEnvelope', kind: 'async', scope });
+
+      // The leaked frame is gone; only the fresh call remains.
+      const remaining = getTurboModuleCallStack();
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0]).toMatchObject({ method: 'captureEnvelope', callId: freshId });
+
+      // The scope now attributes the fresh call, not the leaked one.
+      expect(scope.getScopeData().contexts.turbo_module).toMatchObject({ method: 'captureEnvelope' });
+    });
+
+    it('fully clears the scope once a leaked frame is evicted and its replacement pops', () => {
+      pushTurboModuleCall({ name: 'RNSentry', method: 'leaky', kind: 'async', scope });
+
+      jest.setSystemTime(MAX_ASYNC_FRAME_AGE_MS + 1);
+      const freshId = pushTurboModuleCall({ name: 'RNSentry', method: 'captureEnvelope', kind: 'async', scope });
+      popTurboModuleCall(freshId);
+
+      // If the leaked frame were still lurking, the scope would be pinned to it.
+      expect(getTurboModuleCallStack()).toEqual([]);
+      expect(scope.getScopeData().contexts.turbo_module).toBeUndefined();
+      expect(scope.getScopeData().tags['turbo_module.method']).toBe('');
+    });
+
+    it('does not evict a frame that is within the age bound', () => {
+      pushTurboModuleCall({ name: 'RNSentry', method: 'inFlight', kind: 'async', scope });
+
+      jest.setSystemTime(MAX_ASYNC_FRAME_AGE_MS - 1);
+      pushTurboModuleCall({ name: 'RNSentry', method: 'captureEnvelope', kind: 'async', scope });
+
+      expect(getTurboModuleCallStack()).toHaveLength(2);
+    });
+
+    it('only evicts async frames, never sync frames', () => {
+      // Sync frames are always popped synchronously by the wrapper, so the age
+      // sweep must leave them alone even if one is somehow older than the bound.
+      pushTurboModuleCall({ name: 'RNSentry', method: 'syncButOld', kind: 'sync', scope });
+
+      jest.setSystemTime(MAX_ASYNC_FRAME_AGE_MS + 1);
+      pushTurboModuleCall({ name: 'RNSentry', method: 'captureEnvelope', kind: 'async', scope });
+
+      const methods = getTurboModuleCallStack().map(c => c.method);
+      expect(methods).toEqual(['syncButOld', 'captureEnvelope']);
+    });
+
+    it('evicts multiple leaked frames in one push, up to the sweep budget', () => {
+      // 10 leaked async frames, sweep budget is 8.
+      for (let i = 0; i < 10; i++) {
+        pushTurboModuleCall({ name: 'RNSentry', method: `leak${i}`, kind: 'async', scope });
+      }
+      expect(getTurboModuleCallStack()).toHaveLength(10);
+
+      jest.setSystemTime(MAX_ASYNC_FRAME_AGE_MS + 1);
+      pushTurboModuleCall({ name: 'RNSentry', method: 'fresh', kind: 'async', scope });
+
+      // 10 leaked - 8 swept + 1 fresh = 3 remaining. The budget keeps the sweep
+      // amortised O(1); the leftover frames age out on subsequent pushes.
+      expect(getTurboModuleCallStack()).toHaveLength(3);
+    });
   });
 });

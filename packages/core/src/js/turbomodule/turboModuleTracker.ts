@@ -40,6 +40,34 @@ const CONTEXT_KEY = 'turbo_module';
 const TAG_NAME = 'turbo_module.name';
 const TAG_METHOD = 'turbo_module.method';
 
+/**
+ * An `async` frame still on the stack after this long is treated as leaked and
+ * evicted on the next push.
+ *
+ * {@link wrapTurboModule} pops an async frame only when its returned promise
+ * settles. A native method that accepts a promise but never settles it (the
+ * Android bug in #6821, or a custom module passed to
+ * `turboModuleContextIntegration({ modules })`) would otherwise pin its frame —
+ * and, via {@link syncToScope}, the native crash scope — for the entire process
+ * lifetime, so every later crash is mis-attributed to that call. The sweep
+ * bounds the damage to "attribution expires ~{@link MAX_ASYNC_FRAME_AGE_MS}
+ * after the call started" instead of "wrong forever".
+ *
+ * Only `async` frames expire: `sync` and callback-style frames are popped
+ * synchronously by the wrapper (see `wrapTurboModule.ts`), so they can never
+ * outlive their call. Kept equal to `CALLBACK_MAX_AGE_MS` in
+ * `turboModuleCallbacks.ts` on purpose — a never-settling call leaks both a
+ * frame and (if callback-style) a pending-callback entry, and both should age
+ * out at the same bound.
+ */
+export const MAX_ASYNC_FRAME_AGE_MS = 60_000;
+
+/**
+ * How many stale frames a single push may evict. Keeps the sweep amortised O(1)
+ * on the wrap hot path, mirroring `CALLBACK_SWEEP_BUDGET`.
+ */
+const ASYNC_FRAME_SWEEP_BUDGET = 8;
+
 let nextCallId = 0;
 
 /**
@@ -98,11 +126,24 @@ export function pushTurboModuleCall(args: {
   kind: 'sync' | 'async';
   scope?: Scope;
 }): number {
+  const startedAtMs = Date.now();
+
+  // Opportunistically drop frames from earlier calls whose promise never
+  // settled, before this call's attribution is written. `startedAtMs` is taken
+  // microseconds ago, so reusing it as the cutoff saves a `Date.now()` at the
+  // cost of an imperceptibly conservative bound (same trick as the callback
+  // sweep). Isolated so an eviction failure can never block the real push.
+  try {
+    evictStaleAsyncFrames(startedAtMs);
+  } catch {
+    // ignore — the push below must still happen.
+  }
+
   const call: InternalCall = {
     name: args.name,
     method: args.method,
     kind: args.kind,
-    startedAtMs: Date.now(),
+    startedAtMs,
     callId: nextCallId++,
     // Default to the isolation scope: it's the one wired up to
     // `enableSyncToNative`, so writes here propagate to the native SDKs and
@@ -209,6 +250,38 @@ export function popTurboModuleCall(callId: number): void {
   const globalTop = stack[stack.length - 1];
   if (globalTop && globalTop !== remainingOnSameScope) {
     syncToScope(globalTop);
+  }
+}
+
+/**
+ * Evicts `async` frames older than {@link MAX_ASYNC_FRAME_AGE_MS} — calls whose
+ * promise never settled, so {@link wrapTurboModule} never popped them. Bounded
+ * by {@link ASYNC_FRAME_SWEEP_BUDGET} per call to keep the push hot path
+ * amortised O(1).
+ *
+ * Reuses {@link popTurboModuleCall} for each eviction so the scope re-sync /
+ * clear logic (including the cross-scope native re-sync) lives in exactly one
+ * place. `callId`s are snapshotted first because `popTurboModuleCall` mutates
+ * the stack. Only `async` frames are considered: `sync` and callback-style
+ * frames are always popped synchronously by the wrapper.
+ */
+function evictStaleAsyncFrames(nowMs: number): void {
+  let staleIds: number[] | undefined;
+  let budget = ASYNC_FRAME_SWEEP_BUDGET;
+  for (const frame of stack) {
+    if (budget <= 0) {
+      break;
+    }
+    if (frame.kind === 'async' && nowMs - frame.startedAtMs > MAX_ASYNC_FRAME_AGE_MS) {
+      (staleIds ??= []).push(frame.callId);
+      budget--;
+    }
+  }
+  if (!staleIds) {
+    return;
+  }
+  for (const callId of staleIds) {
+    popTurboModuleCall(callId);
   }
 }
 
