@@ -38,7 +38,6 @@ describe('adjustTransactionDuration', () => {
     span.end(startTimestamp + 120);
 
     expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not mark span as deadline_exceeded when duration is within maxDurationMs', () => {
@@ -53,7 +52,6 @@ describe('adjustTransactionDuration', () => {
     span.end(startTimestamp + 30);
 
     expect(spanToJSON(span).status).not.toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not mark span as deadline_exceeded when duration equals maxDurationMs exactly', () => {
@@ -68,7 +66,6 @@ describe('adjustTransactionDuration', () => {
     span.end(startTimestamp + 60);
 
     expect(spanToJSON(span).status).not.toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('marks span as deadline_exceeded when duration is negative', () => {
@@ -83,7 +80,6 @@ describe('adjustTransactionDuration', () => {
     span.end(startTimestamp - 10);
 
     expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('correctly handles maxDurationMs in milliseconds not seconds', () => {
@@ -99,7 +95,6 @@ describe('adjustTransactionDuration', () => {
     span.end(startTimestamp + 601);
 
     expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not mark span when duration is 599 seconds with 600_000ms max', () => {
@@ -115,7 +110,6 @@ describe('adjustTransactionDuration', () => {
     span.end(startTimestamp + 599);
 
     expect(spanToJSON(span).status).not.toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).not.toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 
   it('does not affect spans from other transactions', () => {
@@ -153,6 +147,5 @@ describe('adjustTransactionDuration', () => {
     span.end(startTimestamp + 1);
 
     expect(spanToJSON(span).status).toBe('deadline_exceeded');
-    expect(spanToJSON(span).data).toMatchObject({ maxTransactionDurationExceeded: 'true' });
   });
 });

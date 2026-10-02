@@ -92,8 +92,6 @@ export const adjustTransactionDuration = (client: Client, span: Span, maxDuratio
 
     if (isOutdatedTransaction) {
       span.setStatus({ code: SPAN_STATUS_ERROR, message: 'deadline_exceeded' });
-      // TODO: check where was used, might be possible to delete
-      span.setAttribute('maxTransactionDurationExceeded', 'true');
     }
   });
 };
