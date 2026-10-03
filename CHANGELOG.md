@@ -12,6 +12,7 @@
 
 - Don't crash the iOS app when Sentry is initialized with an invalid DSN ([#6825](https://github.com/getsentry/sentry-react-native/pull/6825))
 - Populate the Hermes runtime version on JS profiles instead of sending an empty value ([#6817](https://github.com/getsentry/sentry-react-native/pull/6817))
+- Mark `@sentry/react-native` as side-effect free so bundlers can tree-shake unused exports ([#6829](https://github.com/getsentry/sentry-react-native/pull/6829))
 
 ## 8.29.0
 
