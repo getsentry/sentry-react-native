@@ -15,6 +15,12 @@
 - Don't crash the iOS app when Sentry is initialized with an invalid DSN ([#6825](https://github.com/getsentry/sentry-react-native/pull/6825))
 - Populate the Hermes runtime version on JS profiles instead of sending an empty value ([#6817](https://github.com/getsentry/sentry-react-native/pull/6817))
 
+### Dependencies
+
+- Bump JavaScript SDK from v10.75.2 to v10.76.0 ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10760)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.75.2...10.76.0)
+
 ## 8.29.0
 
 ### Features
