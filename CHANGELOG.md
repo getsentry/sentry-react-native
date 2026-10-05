@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Changes
+
+- Remove the undocumented `maxTransactionDurationExceeded` span attribute; use the `deadline_exceeded` span status to filter timed-out transactions instead ([#6820](https://github.com/getsentry/sentry-react-native/pull/6820))
+
 ### Fixes
 
 - Fix stale `turbo_module.*` tags on Android native crashes ([#6823](https://github.com/getsentry/sentry-react-native/pull/6823))
