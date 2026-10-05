@@ -10419,10 +10419,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"basic-ftp@npm:^5.3.1":
-  version: 5.3.1
-  resolution: "basic-ftp@npm:5.3.1"
-  checksum: 10c0/03511b488cd292abfa82a8c0ea3b9573b40d12d2f1518d6f41a9461b012b3376d3e6d50679b38d9b2b4f48fd6e8e0418ac196312ee7e2da13cb801169940d1c3
+"basic-ftp@npm:^6.2.2":
+  version: 6.2.2
+  resolution: "basic-ftp@npm:6.2.2"
+  checksum: 10c0/d287861da9fe3f017da06fd122b8e8679ec316d25d4e15cd4b232c4d0b4638a973a61e90c11e5e097a5f3452e7ed0312a86fcec44c0e50441a7a1b9ad7e6df84
   languageName: node
   linkType: hard
 
