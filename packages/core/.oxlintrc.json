@@ -131,9 +131,7 @@
         "no-restricted-globals": ["error", "window", "document", "location", "navigator"],
         // Bundle size isn't a concern for React Native
         "sdk/no-class-field-initializers": "off",
-        // TODO: Re-enable once oxlint supports inline disable for jsPlugin rules
-        // Only 2 intentional uses exist (debugsymbolicator.ts, sentryMetroSerializer.ts)
-        "sdk/no-regexp-constructor": "off"
+        "sdk/no-regexp-constructor": "error"
       }
     }
   ],
