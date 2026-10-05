@@ -112,7 +112,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
 
       - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
@@ -331,7 +331,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
 
       - name: Setup Global Tools
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -464,7 +464,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
 
       - name: Setup KVM
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}

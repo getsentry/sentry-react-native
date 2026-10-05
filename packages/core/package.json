@@ -17,6 +17,7 @@
     "definition": "dist/js/index.d.ts"
   },
   "main": "dist/js/index.js",
+  "sideEffects": false,
   "scripts": {
     "build": "npx run-s build:sdk downlevel build:tools build:plugin build:replay-stubs",
     "build:sdk": "tsc -p tsconfig.build.json",
