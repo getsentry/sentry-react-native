@@ -179,7 +179,7 @@ export const reactNativeNavigationIntegration = ({
       latestNavigationSpan.updateName(event.componentName);
     }
     latestNavigationSpan.setAttributes({
-      // TODO: Should we include pass props? I don't know exactly what it contains, cant find it in the RNavigation docs
+      // `passProps` is intentionally omitted: arbitrary app data (potential PII); gate on `sendDefaultPii` if ever added.
       'route.name': event.componentName,
       'route.component_id': event.componentId,
       'route.component_type': event.componentType,
@@ -227,7 +227,7 @@ export const reactNativeNavigationIntegration = ({
       if (isSentrySpan(latestNavigationSpan)) {
         markRootSpanForDiscard(latestNavigationSpan, 'discarded_latest_navigation');
       }
-      // TODO: What if it's not SentrySpan?
+      // A non-SentrySpan here is a non-recording span whose end() is a no-op, so nothing to discard.
       latestNavigationSpan.end();
       latestNavigationSpan = undefined;
     }
