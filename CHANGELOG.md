@@ -11,6 +11,7 @@
 ### Fixes
 
 - Fix stale `turbo_module.*` tags on Android native crashes ([#6823](https://github.com/getsentry/sentry-react-native/pull/6823))
+- Forward image attachments to Spotlight instead of stripping them from the envelope ([#6818](https://github.com/getsentry/sentry-react-native/pull/6818))
 - Don't crash the iOS app when Sentry is initialized with an invalid DSN ([#6825](https://github.com/getsentry/sentry-react-native/pull/6825))
 - Populate the Hermes runtime version on JS profiles instead of sending an empty value ([#6817](https://github.com/getsentry/sentry-react-native/pull/6817))
 
