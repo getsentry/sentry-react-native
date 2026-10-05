@@ -89,7 +89,8 @@
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/withIosSceneLifecycle"
     ],
     "extra": {
       "router": {

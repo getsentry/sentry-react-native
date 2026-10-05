@@ -1,0 +1,66 @@
+name: iOS Crash Screenshot No-Freeze
+
+# Regression guard for the sentry-cocoa crash-handler freeze (getsentry/sentry-cocoa#9281):
+# crashing off the main thread with the UIScene lifecycle + a Swift (MainActor) scene delegate +
+# attachScreenshot must NOT hang the crash handler. See
+# scripts/verify-ios-crash-screenshot-no-freeze.sh for the full mechanism.
+#
+# It validates whatever sentry-cocoa the SDK currently bundles, so it is wired to run when the
+# bundled cocoa version changes (the podspec / version table) and on manual dispatch. It will be
+# RED until the bundled cocoa is bumped to a release containing the fix — that is the point: the
+# cocoa-bump PR turns it green.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "packages/core/RNSentry.podspec"
+      - "packages/core/scripts/sentry_utils.rb"
+      - ".github/workflows/ios-crash-screenshot-no-freeze.yml"
+      - "scripts/verify-ios-crash-screenshot-no-freeze.sh"
+      - "samples/expo/plugins/withIosSceneLifecycle.js"
+  pull_request:
+    paths:
+      - "packages/core/RNSentry.podspec"
+      - "packages/core/scripts/sentry_utils.rb"
+      - ".github/workflows/ios-crash-screenshot-no-freeze.yml"
+      - "scripts/verify-ios-crash-screenshot-no-freeze.sh"
+      - "samples/expo/plugins/withIosSceneLifecycle.js"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  verify:
+    name: Verify crash-time screenshot does not freeze
+    runs-on: macos-26-xlarge
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        with:
+          package-manager-cache: false
+          node-version: 20
+          cache: "yarn"
+          cache-dependency-path: yarn.lock
+
+      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
+        with:
+          working-directory: samples/expo
+          ruby-version: "3.3.0"
+          bundler-cache: true
+          cache-version: 1
+
+      - name: Install SDK Dependencies
+        run: yarn install
+
+      - name: Build SDK
+        run: yarn build
+
+      - name: Verify crash-time screenshot does not freeze the crash handler
+        run: scripts/verify-ios-crash-screenshot-no-freeze.sh
