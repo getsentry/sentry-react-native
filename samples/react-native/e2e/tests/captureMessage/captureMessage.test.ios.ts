@@ -87,7 +87,7 @@ describe('Capture message', () => {
             app_start_time: expect.any(String),
             app_version: expect.any(String),
             in_foreground: expect.any(Boolean),
-            // view_names: ['ErrorsScreen-jn5qquvH9Nz'], // TODO: fix this generated hash should not be part of the name
+            view_names: ['ErrorsScreen'],
           }),
         }),
       }),
