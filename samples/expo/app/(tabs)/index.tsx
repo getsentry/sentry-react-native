@@ -86,7 +86,7 @@ export default function TabOneScreen() {
           <Button
             title="Unhandled Promise Rejection"
             onPress={() => {
-              // TODO: No working in Expo Go App
+              // Not captured when running in Expo Go.
               Promise.reject(new Error('Unhandled Promise Rejection'));
             }}
           />
