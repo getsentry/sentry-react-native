@@ -15,6 +15,7 @@
 - Don't crash the iOS app when Sentry is initialized with an invalid DSN ([#6825](https://github.com/getsentry/sentry-react-native/pull/6825))
 - Populate the Hermes runtime version on JS profiles instead of sending an empty value ([#6817](https://github.com/getsentry/sentry-react-native/pull/6817))
 - Mark `@sentry/react-native` as side-effect free so bundlers can tree-shake unused exports ([#6829](https://github.com/getsentry/sentry-react-native/pull/6829))
+- Resolve `@sentry/react-native` from the Android project directory in the Expo plugin `build.gradle` line, instead of the directory where Gradle started ([#6840](https://github.com/getsentry/sentry-react-native/pull/6840))
 
 ### Dependencies
 
