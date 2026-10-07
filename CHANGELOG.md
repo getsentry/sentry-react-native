@@ -10,7 +10,8 @@
 
 ### Features
 
-- Report the generation of the cellular network technology in `device.connection_effective_type` on Android, for example `4g` or `5g`. iOS reports it since version `8.29.0` ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
+- Report the generation of the cellular network technology in `device.connection_effective_type` on Android and iOS, for example `4g` or `5g` ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
+  - On Android 11 and earlier, the app must have the `READ_PHONE_STATE` permission. The SDK does not request this permission.
 
 ### Fixes
 

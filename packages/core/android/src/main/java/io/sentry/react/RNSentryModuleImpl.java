@@ -148,6 +148,7 @@ public class RNSentryModuleImpl {
 
   private final @NotNull SentryDateProvider dateProvider;
   private final @NotNull LoadClass loadClass;
+  private final @NotNull RNSentryCellularNetworkTechnology cellularNetworkTechnology;
 
   public RNSentryModuleImpl(ReactApplicationContext reactApplicationContext) {
     packageInfo = getPackageInfo(reactApplicationContext);
@@ -155,6 +156,8 @@ public class RNSentryModuleImpl {
     this.emitNewFrameEvent = createEmitNewFrameEvent();
     this.dateProvider = new SentryAndroidDateProvider();
     this.loadClass = new LoadClass();
+    this.cellularNetworkTechnology =
+        new RNSentryCellularNetworkTechnology(reactApplicationContext, logger, buildInfo);
   }
 
   private ReactApplicationContext getReactApplicationContext() {
@@ -209,6 +212,8 @@ public class RNSentryModuleImpl {
       promise.reject("SentryReactNative", e.getMessage(), e);
       return;
     }
+
+    cellularNetworkTechnology.register();
 
     // Toggle the TurboModule perf-logger sink based on the JS option. The
     // sink lazy-installs the native `NativeModulePerfLogger` on first enable;
@@ -1118,6 +1123,8 @@ public class RNSentryModuleImpl {
    * https://github.com/facebook/hermes/issues/1853.
    */
   public void invalidate() {
+    cellularNetworkTechnology.unregister();
+
     // Atomic gate: only one caller (invalidate vs stopProfiling vs a re-entrant invalidate)
     // wins the right to clean up; the rest no-op.
     if (!isProfiling.getAndSet(false)) {
@@ -1222,6 +1229,7 @@ public class RNSentryModuleImpl {
 
     final @NotNull Map<String, Object> serialized =
         InternalSentrySdk.serializeScope(context, (SentryAndroidOptions) options, currentScope);
+    addCellularNetworkTechnology(serialized);
 
     final @Nullable Object serializedBreadcrumbs = serialized.get("breadcrumbs");
     if (serializedBreadcrumbs instanceof List) {
@@ -1242,6 +1250,14 @@ public class RNSentryModuleImpl {
     promise.resolve(deviceContext);
   }
 
+  private void addCellularNetworkTechnology(final @NotNull Map<String, Object> serialized) {
+    try {
+      cellularNetworkTechnology.addToDeviceContext(serialized);
+    } catch (Throwable e) { // NOPMD - The technology is optional data.
+      logger.log(SentryLevel.INFO, "Could not add the cellular network technology.", e);
+    }
+  }
+
   // Basically fetchNativeDeviceContexts but filtered to only get contexts info.
   protected void fetchNativeLogContexts(
       Promise promise,
@@ -1253,9 +1269,10 @@ public class RNSentryModuleImpl {
       return;
     }
 
-    Object contextsObj =
-        InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope)
-            .get("contexts");
+    final @NotNull Map<String, Object> serialized =
+        InternalSentrySdk.serializeScope(osContext, (SentryAndroidOptions) options, currentScope);
+    addCellularNetworkTechnology(serialized);
+    Object contextsObj = serialized.get("contexts");
 
     if (!(contextsObj instanceof Map)) {
       promise.resolve(null);
