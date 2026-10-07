@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Report the generation of the cellular network technology in `device.connection_effective_type` on Android and iOS, for example `4g` or `5g` ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
+  - On Android 11 and earlier, the app must have the `READ_PHONE_STATE` permission. The SDK does not request this permission.
+
 ### Fixes
 
 - Fix stale `turbo_module.*` tags on Android native crashes ([#6823](https://github.com/getsentry/sentry-react-native/pull/6823))
