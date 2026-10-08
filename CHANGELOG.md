@@ -13,6 +13,10 @@
 - Report the generation of the cellular network technology in `device.connection_effective_type` on Android and iOS, for example `4g` or `5g` ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
   - On Android 11 and earlier, the app must have the `READ_PHONE_STATE` permission. The SDK does not request this permission.
 
+### Changes
+
+- Remove the undocumented `maxTransactionDurationExceeded` span attribute; use the `deadline_exceeded` span status to filter timed-out transactions instead ([#6820](https://github.com/getsentry/sentry-react-native/pull/6820))
+
 ### Fixes
 
 - Preserve Hermes internal bytecode frames as non-application frames when rewriting Expo stack traces ([#6848](https://github.com/getsentry/sentry-react-native/pull/6848))
