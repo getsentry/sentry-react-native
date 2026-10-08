@@ -58,6 +58,7 @@ describe('Capture message', () => {
         contexts: expect.objectContaining({
           device: expect.objectContaining({
             arch: expect.any(String),
+            connection_type: expect.any(String),
             family: expect.any(String),
             free_memory: expect.any(Number),
             locale: expect.any(String),

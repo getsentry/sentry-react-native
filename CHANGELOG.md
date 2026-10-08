@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Report the generation of the cellular network technology in `device.connection_effective_type` on Android and iOS, for example `4g` or `5g` ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
+  - On Android 11 and earlier, the app must have the `READ_PHONE_STATE` permission. The SDK does not request this permission.
+
 ### Fixes
 
 - Preserve Hermes internal bytecode frames as non-application frames when rewriting Expo stack traces ([#6848](https://github.com/getsentry/sentry-react-native/pull/6848))
@@ -26,6 +31,12 @@
 - Bump JavaScript SDK from v10.75.2 to v10.76.0 ([#6831](https://github.com/getsentry/sentry-react-native/pull/6831))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10760)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.75.2...10.76.0)
+- Bump Cocoa SDK from v9.30.0 to v9.30.1 ([#6849](https://github.com/getsentry/sentry-react-native/pull/6849))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9301)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.30.0...9.30.1)
+- Bump Android SDK from v8.59.0 to v8.60.0 ([#6850](https://github.com/getsentry/sentry-react-native/pull/6850))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8600)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.59.0...8.60.0)
 
 ## 8.29.0
 
