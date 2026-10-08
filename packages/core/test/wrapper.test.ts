@@ -398,6 +398,62 @@ describe('Tests Native Wrapper', () => {
       expect(NATIVE.enableNative).toBe(true);
     });
 
+    test('filter beforeSendLog when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSendLog: jest.fn(),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSendLog');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter beforeSendSpan when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        beforeSendSpan: jest.fn(),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(initParameter).not.toHaveProperty('beforeSendSpan');
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
+    test('filter every function option when initializing Native SDK', async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        autoInitializeNativeSdk: true,
+        onReady: jest.fn(),
+        onNativeLog: jest.fn(),
+        tracesSampler: jest.fn(),
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+
+      expect(RNSentry.initNativeSdk).toHaveBeenCalled();
+      // @ts-expect-error mock value
+      const initParameter = RNSentry.initNativeSdk.mock.calls[0][0];
+      expect(Object.values(initParameter).every(value => typeof value !== 'function')).toBe(true);
+      expect(NATIVE.enableNative).toBe(true);
+    });
+
     test('passes sdkVersion to native SDK', async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,

@@ -17,6 +17,7 @@
     "definition": "dist/js/index.d.ts"
   },
   "main": "dist/js/index.js",
+  "sideEffects": false,
   "scripts": {
     "build": "npx run-s build:sdk downlevel build:tools build:plugin build:replay-stubs",
     "build:sdk": "tsc -p tsconfig.build.json",
@@ -86,12 +87,12 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "10.75.2",
-    "@sentry/bundler-plugins": "10.75.2",
+    "@sentry/browser": "10.76.0",
+    "@sentry/bundler-plugins": "10.76.0",
     "@sentry/cli": "3.8.0",
-    "@sentry/core": "10.75.2",
+    "@sentry/core": "10.76.0",
     "@sentry/expo-upload-sourcemaps": "workspace:*",
-    "@sentry/react": "10.75.2"
+    "@sentry/react": "10.76.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.7",
@@ -102,8 +103,8 @@
     "@mswjs/interceptors": "^0.25.15",
     "@react-native/babel-preset": "0.87.1",
     "@react-native/jest-preset": "0.87.1",
-    "@sentry/eslint-plugin-sdk": "10.75.2",
-    "@sentry/typescript": "10.75.2",
+    "@sentry/eslint-plugin-sdk": "10.76.0",
+    "@sentry/typescript": "10.76.0",
     "@sentry/wizard": "8.0.0",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.13",

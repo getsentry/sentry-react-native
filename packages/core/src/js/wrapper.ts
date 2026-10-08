@@ -171,6 +171,22 @@ interface SentryNativeWrapper {
 const EOL = encodeUTF8('\n');
 
 /**
+ * A JS function crosses the bridge as a native callback that only accepts an array.
+ * The native SDK calls hooks such as `beforeSend` or `beforeSendLog` with a native
+ * object instead, which crashes the app.
+ */
+function withoutFunctionValues<T extends object>(options: T): T {
+  const source = options as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+  for (const key of Object.keys(source)) {
+    if (typeof source[key] !== 'function') {
+      result[key] = source[key];
+    }
+  }
+  return result as T;
+}
+
+/**
  * Our internal interface for calling native functions
  */
 export const NATIVE: SentryNativeWrapper = {
@@ -314,20 +330,11 @@ export const NATIVE: SentryNativeWrapper = {
 
     // filter out all the options that would crash native.
     /* oxlint-disable typescript-eslint(no-unused-vars) */
-    const {
-      beforeSend,
-      beforeBreadcrumb,
-      beforeSendTransaction,
-      beforeSendMetric,
-      integrations,
-      ignoreErrors,
-      logsOrigin,
-      profilingOptions,
-      androidProfilingOptions,
-      onNativeLog,
-      ...filteredOptions
-    } = options;
+    const { integrations, ignoreErrors, logsOrigin, profilingOptions, androidProfilingOptions, ...remainingOptions } =
+      options;
     /* oxlint-enable typescript-eslint(no-unused-vars) */
+
+    const filteredOptions = withoutFunctionValues(remainingOptions);
 
     // Move profilingOptions into _experiments
     // Support deprecated androidProfilingOptions for backwards compatibility

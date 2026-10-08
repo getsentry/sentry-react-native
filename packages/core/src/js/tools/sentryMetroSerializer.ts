@@ -185,5 +185,7 @@ function calculateDebugId(bundleCode: string, modules?: Array<[id: number, code:
 }
 
 function injectDebugId(code: string, debugId: string): string {
+  // Built from the shared DEBUG_ID_PLACE_HOLDER constant (so it can't drift), not user input.
+  // oxlint-disable-next-line sdk/no-regexp-constructor
   return code.replace(new RegExp(DEBUG_ID_PLACE_HOLDER, 'g'), debugId);
 }

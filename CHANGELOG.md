@@ -8,16 +8,39 @@
 
 ## Unreleased
 
+### Features
+
+- Report the generation of the cellular network technology in `device.connection_effective_type` on Android and iOS, for example `4g` or `5g` ([#6827](https://github.com/getsentry/sentry-react-native/pull/6827))
+  - On Android 11 and earlier, the app must have the `READ_PHONE_STATE` permission. The SDK does not request this permission.
+
 ### Changes
 
 - Remove the undocumented `maxTransactionDurationExceeded` span attribute; use the `deadline_exceeded` span status to filter timed-out transactions instead ([#6820](https://github.com/getsentry/sentry-react-native/pull/6820))
 
 ### Fixes
 
+- Preserve Hermes internal bytecode frames as non-application frames when rewriting Expo stack traces ([#6848](https://github.com/getsentry/sentry-react-native/pull/6848))
 - Fix stale `turbo_module.*` tags on Android native crashes ([#6823](https://github.com/getsentry/sentry-react-native/pull/6823))
 - Forward image attachments to Spotlight instead of stripping them from the envelope ([#6818](https://github.com/getsentry/sentry-react-native/pull/6818))
 - Don't crash the iOS app when Sentry is initialized with an invalid DSN ([#6825](https://github.com/getsentry/sentry-react-native/pull/6825))
 - Populate the Hermes runtime version on JS profiles instead of sending an empty value ([#6817](https://github.com/getsentry/sentry-react-native/pull/6817))
+- Mark `@sentry/react-native` as side-effect free so bundlers can tree-shake unused exports ([#6829](https://github.com/getsentry/sentry-react-native/pull/6829))
+- Resolve `@sentry/react-native` from the Android project directory in the Expo plugin `build.gradle` line, instead of the directory where Gradle started ([#6840](https://github.com/getsentry/sentry-react-native/pull/6840))
+- If `beforeSendLog` or another callback option is set, the app no longer crashes on iOS when the native SDK emits a log ([#6847](https://github.com/getsentry/sentry-react-native/pull/6847))
+
+  Callback options are for the JavaScript layer only. The SDK now removes all of them before it starts the native SDK.
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.75.2 to v10.76.0 ([#6831](https://github.com/getsentry/sentry-react-native/pull/6831))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10760)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.75.2...10.76.0)
+- Bump Cocoa SDK from v9.30.0 to v9.30.1 ([#6849](https://github.com/getsentry/sentry-react-native/pull/6849))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9301)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.30.0...9.30.1)
+- Bump Android SDK from v8.59.0 to v8.60.0 ([#6850](https://github.com/getsentry/sentry-react-native/pull/6850))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8600)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.59.0...8.60.0)
 
 ## 8.29.0
 
