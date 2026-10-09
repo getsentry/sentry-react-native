@@ -7,6 +7,7 @@ import countLines from 'metro/private/lib/countLines';
 import * as os from 'os';
 import * as path from 'path';
 import { minify } from 'uglify-js';
+import * as vm from 'vm';
 
 import {
   createSentryMetroSerializer,
@@ -153,6 +154,18 @@ describe('Sentry Metro Serializer', () => {
       expect(createModuleMetadataSnippet(moduleMetadata)).toEqual(
         generateModuleMetadataInjectorCode(moduleMetadata).code(),
       );
+    });
+
+    test('module metadata code snippet escapes characters that can break the bundle', () => {
+      const unsafeMetadata = { value: '</script><script>alert(1)</script>\u2028\u2029' };
+      const snippet = createModuleMetadataSnippet(unsafeMetadata);
+      const globalObject: { Error: ErrorConstructor; _sentryModuleMetadata?: Record<string, unknown> } = { Error };
+
+      vm.runInNewContext(snippet, { window: globalObject });
+
+      expect(snippet).not.toContain('</script>');
+      expect(snippet).not.toMatch(/[\u2028\u2029]/);
+      expect(Object.values(globalObject._sentryModuleMetadata ?? {})).toEqual([unsafeMetadata]);
     });
 
     test('adds module metadata module to the production bundle', async () => {
