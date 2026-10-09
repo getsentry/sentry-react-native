@@ -13,6 +13,10 @@
 - Add the `applicationKey` and `moduleMetadata` options to `withSentryConfig` and `getSentryExpoConfig`, and export `thirdPartyErrorFilterIntegration` ([#6863](https://github.com/getsentry/sentry-react-native/pull/6863))
   - Set the same key in `applicationKey` and in the `filterKeys` option of `thirdPartyErrorFilterIntegration` to filter errors from third-party code, for example browser extensions on Expo web.
 
+### Fixes
+
+- Do not mark `sendDefaultPii` as deprecated in the React Native options ([#PLACEHOLDER](https://github.com/getsentry/sentry-react-native/pull/PLACEHOLDER))
+
 ### Dependencies
 
 - Bump JavaScript SDK from v10.76.0 to v10.76.2 ([#6866](https://github.com/getsentry/sentry-react-native/pull/6866))
