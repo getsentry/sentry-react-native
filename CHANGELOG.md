@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Load `ios/.xcode.env` and `ios/.xcode.env.local` in the Expo plugin "Upload Debug Symbols to Sentry" phase before it runs Node, so the phase finds Node when Xcode starts from the Dock ([#6861](https://github.com/getsentry/sentry-react-native/pull/6861))
+
 ## 8.30.0
 
 ### Features
@@ -19,7 +25,6 @@
 
 ### Fixes
 
-- Load `ios/.xcode.env` and `ios/.xcode.env.local` in the Expo plugin "Upload Debug Symbols to Sentry" phase before it runs Node, so the phase finds Node when Xcode starts from the Dock ([#6861](https://github.com/getsentry/sentry-react-native/pull/6861))
 - Preserve Hermes internal bytecode frames as non-application frames when rewriting Expo stack traces ([#6848](https://github.com/getsentry/sentry-react-native/pull/6848))
 - Fix stale `turbo_module.*` tags on Android native crashes ([#6823](https://github.com/getsentry/sentry-react-native/pull/6823))
 - Forward image attachments to Spotlight instead of stripping them from the envelope ([#6818](https://github.com/getsentry/sentry-react-native/pull/6818))
