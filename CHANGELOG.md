@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Do not mark `sendDefaultPii` as deprecated in the React Native options ([#PLACEHOLDER](https://github.com/getsentry/sentry-react-native/pull/PLACEHOLDER))
+
 ## 8.30.0
 
 ### Features
