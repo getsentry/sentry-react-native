@@ -15,6 +15,13 @@ const SENTRY_REACT_NATIVE_XCODE_PATH =
 const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH =
   "`${NODE_BINARY:-node} --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 const SENTRY_DISABLE_AUTO_UPLOAD_EXPORT = 'export SENTRY_DISABLE_AUTO_UPLOAD=true';
+// Same as the "Bundle React Native code and images" phase of the Expo template.
+const LOAD_XCODE_ENV = `if [[ -f "$PODS_ROOT/../.xcode.env" ]]; then
+  source "$PODS_ROOT/../.xcode.env"
+fi
+if [[ -f "$PODS_ROOT/../.xcode.env.local" ]]; then
+  source "$PODS_ROOT/../.xcode.env.local"
+fi`;
 
 export const withSentryIOS: ConfigPlugin<{
   sentryProperties: string;
@@ -114,7 +121,9 @@ export function getDebugFilesUploadScript(disableAutoUpload: boolean = false): s
   // The resolved script path is wrapped in double quotes so a project path containing spaces is
   // passed to `/bin/sh` as a single argument instead of being word-split. See issue #6583.
   const disableAutoUploadExport = disableAutoUpload ? `${SENTRY_DISABLE_AUTO_UPLOAD_EXPORT}\n` : '';
-  return `${disableAutoUploadExport}/bin/sh "${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}"`;
+  // NODE_BINARY is needed to find the script, before the script itself can load `.xcode.env`.
+  // Xcode launched from the Dock or Finder does not have `node` on its PATH. See issue #6859.
+  return `${disableAutoUploadExport}${LOAD_XCODE_ENV}\n/bin/sh "${SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH}"`;
 }
 
 export function requoteExistingSentryBundleScript(script: BuildPhase): void {

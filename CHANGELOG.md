@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Load `.xcode.env` and `.xcode.env.local` in the Expo plugin's "Upload Debug Symbols to Sentry" build phase before it looks for Node, so builds started from Xcode opened in the Dock or Finder find the upload script ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+
 ## 8.30.0
 
 ### Features
