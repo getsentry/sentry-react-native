@@ -895,7 +895,7 @@ export interface ReactNativeNavigationOptions {
 // Warning: (ae-forgotten-export) The symbol "ReactNativeTransportOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
-export interface ReactNativeOptions extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection'>, BaseReactNativeOptions {
+export interface ReactNativeOptions extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection' | 'sendDefaultPii'>, BaseReactNativeOptions {
 }
 
 // @public (undocumented)
