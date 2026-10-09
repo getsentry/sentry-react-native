@@ -1,3 +1,8 @@
+import { execFileSync } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
 import { warnOnce } from '../../plugin/src/logger';
 import {
   addDisableAutoUploadToExistingScript,
@@ -470,7 +475,8 @@ describe('overwriteDebugFilesUploadScript: existing phase re-quoted on upgrade (
     overwriteDebugFilesUploadScript(script, true);
     const parsed = JSON.parse(script.shellScript);
     expect(parsed).toBe(getDebugFilesUploadScript(true));
-    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n\/bin\/sh "`/);
+    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(parsed).toContain('\n/bin/sh "`');
   });
 
   it('drops a previously injected export when disableAutoUpload is toggled back to false', () => {
@@ -485,6 +491,51 @@ describe('overwriteDebugFilesUploadScript: existing phase re-quoted on upgrade (
     const script = { shellScript: JSON.stringify(getDebugFilesUploadScript(false)) };
     overwriteDebugFilesUploadScript(script);
     expect(JSON.parse(script.shellScript)).toBe(getDebugFilesUploadScript(false));
+  });
+});
+
+describe('Upload Debug Symbols phase finds Node from .xcode.env (issue #6859)', () => {
+  let projectRoot: string;
+
+  // Stands in for Node: prints the path of a stub debug files script, like `node --print` does.
+  const writeFakeNode = (name: string): string => {
+    const stubScript = path.join(projectRoot, 'sentry-xcode-debug-files.sh');
+    fs.writeFileSync(stubScript, `echo "ran with ${name}"\n`);
+    const fakeNode = path.join(projectRoot, name);
+    fs.writeFileSync(fakeNode, `#!/bin/sh\necho "${stubScript}"\n`, { mode: 0o755 });
+    return fakeNode;
+  };
+
+  // Xcode launched from the Dock or Finder only has launchd's PATH, which has no `node`.
+  const runPhase = (script: string): string =>
+    execFileSync('/bin/sh', ['-c', script], {
+      cwd: path.join(projectRoot, 'ios'),
+      env: { PATH: '/usr/bin:/bin:/usr/sbin:/sbin', PODS_ROOT: path.join(projectRoot, 'ios', 'Pods') },
+      encoding: 'utf8',
+    });
+
+  beforeEach(() => {
+    projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'sentry-xcode-env-'));
+    fs.mkdirSync(path.join(projectRoot, 'ios', 'Pods'), { recursive: true });
+  });
+
+  afterEach(() => {
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
+
+  it('uses NODE_BINARY from .xcode.env when node is not on the PATH', () => {
+    const fakeNode = writeFakeNode('node-from-xcode-env');
+    fs.writeFileSync(path.join(projectRoot, 'ios', '.xcode.env'), `export NODE_BINARY="${fakeNode}"\n`);
+
+    expect(runPhase(getDebugFilesUploadScript())).toBe('ran with node-from-xcode-env\n');
+  });
+
+  it('prefers NODE_BINARY from .xcode.env.local over .xcode.env', () => {
+    fs.writeFileSync(path.join(projectRoot, 'ios', '.xcode.env'), 'export NODE_BINARY=$(command -v node)\n');
+    const fakeNode = writeFakeNode('node-from-xcode-env-local');
+    fs.writeFileSync(path.join(projectRoot, 'ios', '.xcode.env.local'), `export NODE_BINARY="${fakeNode}"\n`);
+
+    expect(runPhase(getDebugFilesUploadScript(true))).toBe('ran with node-from-xcode-env-local\n');
   });
 });
 
@@ -564,7 +615,8 @@ export NODE_BINARY=node
 
   it('quotes the debug files upload script path with disableAutoUpload', () => {
     const result = getDebugFilesUploadScript(true);
-    expect(result).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n\/bin\/sh "`/);
+    expect(result).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(result).toContain('\n/bin/sh "`');
     expect(result).toContain('sentry-xcode-debug-files.sh');
     expect(result).not.toMatch(/\/bin\/sh `/);
   });
