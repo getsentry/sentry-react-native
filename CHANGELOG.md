@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Load `.xcode.env` and `.xcode.env.local` in the Expo plugin's "Upload Debug Symbols to Sentry" build phase before it looks for Node, so builds started from Xcode opened in the Dock or Finder find the upload script ([#PR_NUMBER](https://github.com/getsentry/sentry-react-native/pull/PR_NUMBER))
+- Load `.xcode.env` and `.xcode.env.local` in the Expo plugin's "Upload Debug Symbols to Sentry" build phase before it looks for Node, so builds started from Xcode opened in the Dock or Finder find the upload script ([#6860](https://github.com/getsentry/sentry-react-native/pull/6860))
 
 ## 8.30.0
 
