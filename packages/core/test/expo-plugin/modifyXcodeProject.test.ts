@@ -1,3 +1,8 @@
+import { execFileSync } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
 import { warnOnce } from '../../plugin/src/logger';
 import {
   addDisableAutoUploadToExistingScript,
@@ -470,7 +475,8 @@ describe('overwriteDebugFilesUploadScript: existing phase re-quoted on upgrade (
     overwriteDebugFilesUploadScript(script, true);
     const parsed = JSON.parse(script.shellScript);
     expect(parsed).toBe(getDebugFilesUploadScript(true));
-    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n\/bin\/sh "`/);
+    expect(parsed).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(parsed).toContain('/bin/sh "`');
   });
 
   it('drops a previously injected export when disableAutoUpload is toggled back to false', () => {
@@ -564,8 +570,62 @@ export NODE_BINARY=node
 
   it('quotes the debug files upload script path with disableAutoUpload', () => {
     const result = getDebugFilesUploadScript(true);
-    expect(result).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n\/bin\/sh "`/);
+    expect(result).toMatch(/^export SENTRY_DISABLE_AUTO_UPLOAD=true\n/);
+    expect(result).toContain('/bin/sh "`');
     expect(result).toContain('sentry-xcode-debug-files.sh');
     expect(result).not.toMatch(/\/bin\/sh `/);
+  });
+});
+
+describe('Upload Debug Symbols phase loads .xcode.env before it resolves the script (issue #6859)', () => {
+  let projectDir: string;
+  let iosDir: string;
+
+  beforeEach(() => {
+    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sentry-expo-phase-'));
+    iosDir = path.join(projectDir, 'ios');
+    const sentryDir = path.join(projectDir, 'node_modules', '@sentry', 'react-native');
+    fs.mkdirSync(path.join(sentryDir, 'scripts'), { recursive: true });
+    fs.mkdirSync(path.join(iosDir, 'Pods'), { recursive: true });
+    fs.writeFileSync(path.join(sentryDir, 'package.json'), '{"name":"@sentry/react-native"}');
+    fs.writeFileSync(
+      path.join(sentryDir, 'scripts', 'sentry-xcode-debug-files.sh'),
+      'echo "debug files script ran with SENTRY_DISABLE_AUTO_UPLOAD=$SENTRY_DISABLE_AUTO_UPLOAD"\n',
+    );
+    fs.writeFileSync(path.join(iosDir, '.xcode.env'), 'export NODE_BINARY=$(command -v node)\n');
+  });
+
+  afterEach(() => {
+    fs.rmSync(projectDir, { recursive: true, force: true });
+  });
+
+  const runPhase = (script: string, env: Record<string, string>): string =>
+    execFileSync('/bin/sh', ['-c', script], {
+      cwd: iosDir,
+      env: { HOME: os.homedir(), PATH: '/usr/bin:/bin:/usr/sbin:/sbin', ...env },
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+
+  it('includes the .xcode.env loading before the script path is resolved', () => {
+    const result = getDebugFilesUploadScript();
+    expect(result.indexOf('.xcode.env')).toBeLessThan(result.indexOf('--print'));
+    expect(result).toContain('. "$XCODE_ENV_PATH.local"');
+  });
+
+  it('uses NODE_BINARY from .xcode.env.local when node is not on PATH', () => {
+    fs.writeFileSync(path.join(iosDir, '.xcode.env.local'), `export NODE_BINARY="${process.execPath}"\n`);
+
+    const stdout = runPhase(getDebugFilesUploadScript(true), { PODS_ROOT: path.join(iosDir, 'Pods') });
+
+    expect(stdout).toContain('debug files script ran with SENTRY_DISABLE_AUTO_UPLOAD=true');
+  });
+
+  it('uses PODFILE_DIR before PODS_ROOT to find .xcode.env', () => {
+    fs.writeFileSync(path.join(iosDir, '.xcode.env.local'), `export NODE_BINARY="${process.execPath}"\n`);
+
+    const stdout = runPhase(getDebugFilesUploadScript(), { PODFILE_DIR: iosDir, PODS_ROOT: '/nonexistent' });
+
+    expect(stdout).toContain('debug files script ran');
   });
 });
