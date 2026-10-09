@@ -47,6 +47,35 @@ export function createDebugIdSnippet(debugId: string): string {
 }
 
 /**
+ * Returns the module metadata code snippet of `@sentry/bundler-plugins`.
+ *
+ * https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/main/packages/bundler-plugin-core/src/utils.ts
+ */
+export function createModuleMetadataSnippet(metadata: Record<string, unknown>): string {
+  return `!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{};e._sentryModuleMetadata=e._sentryModuleMetadata||{},e._sentryModuleMetadata[(new e.Error).stack]=function(e){for(var n=1;n<arguments.length;n++){var a=arguments[n];if(null!=a)for(var t in a)a.hasOwnProperty(t)&&(e[t]=a[t])}return e}({},e._sentryModuleMetadata[(new e.Error).stack],${JSON.stringify(
+    metadata,
+  )});}catch(e){}}();`;
+}
+
+/**
+ * Builds the module metadata in the same way as `@sentry/bundler-plugins`.
+ * Returns `undefined` if there is no metadata to inject.
+ */
+export function buildModuleMetadata({
+  applicationKey,
+  moduleMetadata,
+}: {
+  applicationKey?: string;
+  moduleMetadata?: Record<string, unknown>;
+}): Record<string, unknown> | undefined {
+  const metadata: Record<string, unknown> = {
+    ...(applicationKey ? { [`_sentryBundlerPluginAppKey:${applicationKey}`]: true } : {}),
+    ...moduleMetadata,
+  };
+  return Object.keys(metadata).length > 0 ? metadata : undefined;
+}
+
+/**
  * Deterministically hashes a string and turns the hash into a uuid.
  *
  * https://github.com/getsentry/sentry-javascript-bundler-plugins/blob/58271f1af2ade6b3e64d393d70376ae53bc5bd2f/packages/bundler-plugin-core/src/utils.ts#L174
