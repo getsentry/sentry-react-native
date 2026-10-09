@@ -15,7 +15,7 @@
 
 ### Fixes
 
-- Do not mark `sendDefaultPii` as deprecated in the React Native options ([#PLACEHOLDER](https://github.com/getsentry/sentry-react-native/pull/PLACEHOLDER))
+- Do not mark `sendDefaultPii` as deprecated in the React Native options ([#6864](https://github.com/getsentry/sentry-react-native/pull/6864))
 
 ### Dependencies
 
