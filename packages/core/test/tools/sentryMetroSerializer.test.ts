@@ -1,14 +1,24 @@
 import type { MixedOutput, Module } from 'metro';
 
+import { generateModuleMetadataInjectorCode } from '@sentry/bundler-plugins/core';
 import * as fs from 'fs';
 import CountingSet from 'metro/private/lib/CountingSet';
 import countLines from 'metro/private/lib/countLines';
 import * as os from 'os';
 import * as path from 'path';
 import { minify } from 'uglify-js';
+import * as vm from 'vm';
 
-import { createSentryMetroSerializer } from '../../src/js/tools/sentryMetroSerializer';
-import { createDebugIdSnippet, type MetroSerializer, type VirtualJSOutput } from '../../src/js/tools/utils';
+import {
+  createSentryMetroSerializer,
+  unstableBeforeAssetSerializationModuleMetadataPlugin,
+} from '../../src/js/tools/sentryMetroSerializer';
+import {
+  createDebugIdSnippet,
+  createModuleMetadataSnippet,
+  type MetroSerializer,
+  type VirtualJSOutput,
+} from '../../src/js/tools/utils';
 
 describe('Sentry Metro Serializer', () => {
   test('debug id minified code snippet is the same as in the original implementation', () => {
@@ -135,6 +145,75 @@ describe('Sentry Metro Serializer', () => {
     const bundle = await serializer(...mockMinSerializerArgs());
 
     expect(bundle).toBe(serialAssets);
+  });
+
+  describe('module metadata', () => {
+    const moduleMetadata = { '_sentryBundlerPluginAppKey:my-app': true, team: 'mobile' };
+
+    test('module metadata code snippet is the same as in @sentry/bundler-plugins', () => {
+      expect(createModuleMetadataSnippet(moduleMetadata)).toEqual(
+        generateModuleMetadataInjectorCode(moduleMetadata).code(),
+      );
+    });
+
+    test('module metadata code snippet escapes characters that can break the bundle', () => {
+      const unsafeMetadata = { value: '</script><script>alert(1)</script>\u2028\u2029' };
+      const snippet = createModuleMetadataSnippet(unsafeMetadata);
+      const globalObject: { Error: ErrorConstructor; _sentryModuleMetadata?: Record<string, unknown> } = { Error };
+
+      vm.runInNewContext(snippet, { window: globalObject });
+
+      expect(snippet).not.toContain('</script>');
+      expect(snippet).not.toMatch(/[\u2028\u2029]/);
+      expect(Object.values(globalObject._sentryModuleMetadata ?? {})).toEqual([unsafeMetadata]);
+    });
+
+    test('adds module metadata module to the production bundle', async () => {
+      const serializer = createSentryMetroSerializer(undefined, { moduleMetadata });
+
+      const bundle = await serializer(...mockMinSerializerArgs());
+      if (typeof bundle === 'string') {
+        fail('Expected bundle to be an object with a "code" property');
+      }
+
+      expect(bundle.code).toContain(createModuleMetadataSnippet(moduleMetadata));
+      expect(determineDebugIdFromBundleSource(bundle.code)).toBeDefined();
+    });
+
+    test('adds module metadata module to the development bundle', async () => {
+      const wrappedSerializer = jest.fn<ReturnType<MetroSerializer>, Parameters<MetroSerializer>>(() => '');
+      const serializer = createSentryMetroSerializer(wrappedSerializer, { moduleMetadata });
+      const args = mockMinSerializerArgs();
+      args[2] = { ...args[2], transformOptions: { ...args[2].transformOptions, hot: true } };
+
+      await serializer(...args);
+
+      const preModules = wrappedSerializer.mock.calls[0]?.[1];
+      expect(preModules?.map(module => module.getSource().toString())).toEqual([
+        createModuleMetadataSnippet(moduleMetadata),
+      ]);
+    });
+
+    test('does not add module metadata module without metadata', async () => {
+      const serializer = createSentryMetroSerializer();
+
+      const bundle = await serializer(...mockMinSerializerArgs());
+
+      expect(typeof bundle === 'string' ? bundle : bundle.code).not.toContain('_sentryModuleMetadata');
+    });
+
+    test('before asset serialization plugin adds module metadata module once', () => {
+      const plugin = unstableBeforeAssetSerializationModuleMetadataPlugin(moduleMetadata);
+      const graph = mockMinSerializerArgs()[2];
+
+      const premodules = plugin({ graph, premodules: [] });
+      const secondRunPremodules = plugin({ graph, premodules });
+
+      expect(premodules.map(module => module.getSource().toString())).toEqual([
+        createModuleMetadataSnippet(moduleMetadata),
+      ]);
+      expect(secondRunPremodules).toHaveLength(1);
+    });
   });
 
   describe('calculateDebugId', () => {

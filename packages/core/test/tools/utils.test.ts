@@ -4,7 +4,7 @@ import countLines from 'metro/private/lib/countLines';
 
 import type { VirtualJSOutput } from '../../src/js/tools/utils';
 
-import { createSet, getExpoConfig, prependModule } from '../../src/js/tools/utils';
+import { buildModuleMetadata, createSet, getExpoConfig, prependModule } from '../../src/js/tools/utils';
 
 const mockedExpoConfigRequire = jest.fn();
 
@@ -34,6 +34,24 @@ describe('Sentry Metro Tools Utils', () => {
       expect(result[0]).toEqual(preludeModule);
       expect(result[1]).toEqual(module);
       expect(result[2]).toEqual(preModules[1]);
+    });
+  });
+
+  describe('buildModuleMetadata', () => {
+    test('returns undefined without application key and module metadata', () => {
+      expect(buildModuleMetadata({})).toBeUndefined();
+      expect(buildModuleMetadata({ moduleMetadata: {} })).toBeUndefined();
+    });
+
+    test('adds the bundler plugin application key', () => {
+      expect(buildModuleMetadata({ applicationKey: 'my-app' })).toEqual({ '_sentryBundlerPluginAppKey:my-app': true });
+    });
+
+    test('merges module metadata with the application key', () => {
+      expect(buildModuleMetadata({ applicationKey: 'my-app', moduleMetadata: { team: 'mobile' } })).toEqual({
+        '_sentryBundlerPluginAppKey:my-app': true,
+        team: 'mobile',
+      });
     });
   });
 

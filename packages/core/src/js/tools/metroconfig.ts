@@ -16,9 +16,14 @@ import {
   setSentryDefaultBabelTransformerPathEnv,
 } from './sentryBabelTransformerUtils';
 import { checkSentryExpoNativeProject } from './sentryExpoNativeCheck';
-import { createSentryMetroSerializer, unstableBeforeAssetSerializationDebugIdPlugin } from './sentryMetroSerializer';
+import {
+  createSentryMetroSerializer,
+  unstableBeforeAssetSerializationDebugIdPlugin,
+  unstableBeforeAssetSerializationModuleMetadataPlugin,
+} from './sentryMetroSerializer';
 import { withSentryOptionsFromFile } from './sentryOptionsSerializer';
 import { unstableReleaseConstantsPlugin } from './sentryReleaseInjector';
+import { buildModuleMetadata } from './utils';
 
 export * from './sentryMetroSerializer';
 
@@ -88,6 +93,21 @@ export interface SentryMetroConfigOptions {
    * @default false
    */
   autoWrapExpoRouterErrorBoundary?: boolean;
+  /**
+   * A key that identifies the code of your application.
+   * Use the same key in the `filterKeys` option of `thirdPartyErrorFilterIntegration`
+   * to filter errors that come from third-party code, for example browser extensions.
+   *
+   * This is the same option as `applicationKey` of the Sentry bundler plugins.
+   */
+  applicationKey?: string;
+  /**
+   * Metadata to attach to the stack frames of your application code.
+   * The SDK adds the metadata to the `module_metadata` field of each stack frame from your bundle.
+   *
+   * This is the same option as the object form of `moduleMetadata` of the Sentry bundler plugins.
+   */
+  moduleMetadata?: Record<string, unknown>;
 }
 
 export interface SentryExpoConfigOptions {
@@ -119,13 +139,15 @@ export function withSentryConfig(
     enableSourceContextInDevelopment = true,
     optionsFile = true,
     autoWrapExpoRouterErrorBoundary = false,
+    applicationKey,
+    moduleMetadata,
   }: SentryMetroConfigOptions = {},
 ): MetroConfig {
   setSentryMetroDevServerEnvFlag();
 
   let newConfig = config;
 
-  newConfig = withSentryDebugId(newConfig);
+  newConfig = withSentryDebugId(newConfig, buildModuleMetadata({ applicationKey, moduleMetadata }));
   newConfig = withSentryFramesCollapsed(newConfig);
   if (annotateReactComponents || autoWrapExpoRouterErrorBoundary) {
     newConfig = withSentryBabelTransformer(newConfig, annotateReactComponents, autoWrapExpoRouterErrorBoundary);
@@ -159,11 +181,13 @@ export function getSentryExpoConfig(
   checkSentryExpoNativeProject(projectRoot);
 
   const getDefaultConfig = options.getDefaultConfig || loadExpoMetroConfigModule().getDefaultConfig;
+  const moduleMetadata = buildModuleMetadata(options);
   const config = getDefaultConfig(projectRoot, {
     ...options,
     unstable_beforeAssetSerializationPlugins: [
       ...(options.unstable_beforeAssetSerializationPlugins || []),
       ...((options.injectReleaseForWeb ?? true) ? [unstableReleaseConstantsPlugin(projectRoot)] : []),
+      ...(moduleMetadata ? [unstableBeforeAssetSerializationModuleMetadataPlugin(moduleMetadata)] : []),
       unstableBeforeAssetSerializationDebugIdPlugin,
     ],
   });
@@ -258,10 +282,10 @@ export function withSentryBabelTransformer(
   };
 }
 
-function withSentryDebugId(config: MetroConfig): MetroConfig {
-  const customSerializer = createSentryMetroSerializer(
-    config.serializer?.customSerializer || undefined,
-  ) as MetroCustomSerializer;
+function withSentryDebugId(config: MetroConfig, moduleMetadata?: Record<string, unknown>): MetroConfig {
+  const customSerializer = createSentryMetroSerializer(config.serializer?.customSerializer || undefined, {
+    moduleMetadata,
+  }) as MetroCustomSerializer;
   // MetroConfig types customSerializers as async only, but sync returns are also supported
   // The default serializer is sync
 
