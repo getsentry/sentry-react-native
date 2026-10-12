@@ -194,3 +194,32 @@ jobs:
             echo "::error::Sentry ObjC categories were dead-stripped from the app binary."
             exit 1
           fi
+
+      - name: Archive iOS App
+        if: ${{ matrix.build-type == 'production' }}
+        working-directory: ${{ runner.temp }}/${{ env.APP_PATH }}/ios
+        env:
+          TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+        # Only the archive step collects xcframework signatures into
+        # `Signatures/`. Two copies of the Sentry signature fail it.
+        run: |
+          xcodebuild \
+            -project "$APP_NAME.xcodeproj" \
+            -scheme "$APP_NAME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            -archivePath "build/$APP_NAME.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            archive
+
+          archive="build/$APP_NAME.xcarchive"
+          if [ ! -f "$archive/Products/Applications/$APP_NAME.app/$APP_NAME" ]; then
+            echo "::error::The archive does not contain the app binary."
+            exit 1
+          fi
+          if [ ! -f "$archive/Signatures/Sentry.xcframework-ios.signature" ]; then
+            echo "::error::The archive does not contain the Sentry.xcframework signature."
+            exit 1
+          fi
+          echo "The archive contains the app and the Sentry.xcframework signature."
