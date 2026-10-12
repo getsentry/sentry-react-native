@@ -11,6 +11,7 @@ import {
   withSentryExcludeServerOnlyResolver,
   withSentryFeedbackResolver,
   withSentryFramesCollapsed,
+  withSentryConfig,
   withSentryResolver,
 } from '../../src/js/tools/metroconfig';
 import {
@@ -73,6 +74,51 @@ describe('metroconfig', () => {
       };
 
       checkCompatibility({ getDefaultConfig: oldPatternGetDefaultConfig });
+    });
+  });
+
+  describe('module metadata', () => {
+    const getPlugins = (options: Parameters<typeof getSentryExpoConfig>[1]) => {
+      const getDefaultConfig = jest.fn().mockReturnValue({});
+      getSentryExpoConfig('/project/root', { ...options, injectReleaseForWeb: false, getDefaultConfig });
+      return getDefaultConfig.mock.calls[0][1].unstable_beforeAssetSerializationPlugins as ((input: {
+        graph: unknown;
+        premodules: Array<{ path: string; getSource: () => Buffer }>;
+      }) => Array<{ path: string; getSource: () => Buffer }>)[];
+    };
+
+    test('getSentryExpoConfig adds module metadata plugin with application key', () => {
+      const plugins = getPlugins({ applicationKey: 'my-app', moduleMetadata: { team: 'mobile' } });
+
+      expect(plugins).toHaveLength(2);
+      const premodules = plugins[0]?.({ graph: {}, premodules: [] }) ?? [];
+      expect(premodules.map(module => module.getSource().toString())).toEqual([
+        expect.stringContaining('{"_sentryBundlerPluginAppKey:my-app":true,"team":"mobile"}'),
+      ]);
+    });
+
+    test('getSentryExpoConfig does not add module metadata plugin without application key and metadata', () => {
+      expect(getPlugins({})).toHaveLength(1);
+    });
+
+    test('withSentryConfig adds module metadata module to the serializer premodules', async () => {
+      const customSerializer = jest.fn().mockReturnValue('');
+      const config = withSentryConfig(
+        { serializer: { customSerializer } },
+        { applicationKey: 'my-app', enableSourceContextInDevelopment: false, optionsFile: false },
+      );
+
+      await config.serializer?.customSerializer?.(
+        'index.js',
+        [],
+        { transformOptions: { hot: true } } as never,
+        {} as never,
+      );
+
+      const premodules = customSerializer.mock.calls[0][1] as Array<{ getSource: () => Buffer }>;
+      expect(premodules.map(module => module.getSource().toString())).toEqual([
+        expect.stringContaining('{"_sentryBundlerPluginAppKey:my-app":true}'),
+      ]);
     });
   });
 

@@ -8,6 +8,11 @@
 
 ## Unreleased
 
+### Features
+
+- Add the `applicationKey` and `moduleMetadata` options to `withSentryConfig` and `getSentryExpoConfig`, and export `thirdPartyErrorFilterIntegration` ([#6863](https://github.com/getsentry/sentry-react-native/pull/6863))
+  - Set the same key in `applicationKey` and in the `filterKeys` option of `thirdPartyErrorFilterIntegration` to filter errors from third-party code, for example browser extensions on Expo web.
+
 ### Fixes
 
 - Attach the on-error Session Replay buffer to feedback submitted from the feedback form ([#6870](https://github.com/getsentry/sentry-react-native/pull/6870))

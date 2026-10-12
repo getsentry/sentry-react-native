@@ -106,6 +106,7 @@ import { startSpanManual } from '@sentry/core';
 import type { StartSpanOptions } from '@sentry/core';
 import { suppressTracing } from '@sentry/core';
 import type { TextStyle } from 'react-native';
+import { thirdPartyErrorFilterIntegration } from '@sentry/react';
 import { Thread } from '@sentry/core';
 import { TransactionEvent } from '@sentry/core';
 import type { TransportMakeRequestResponse } from '@sentry/core';
@@ -1174,6 +1175,8 @@ export type SupabaseReactNativeIntegrationOptions = {
 };
 
 export { suppressTracing }
+
+export { thirdPartyErrorFilterIntegration }
 
 export { Thread }
 
