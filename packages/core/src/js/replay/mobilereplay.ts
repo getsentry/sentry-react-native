@@ -525,63 +525,77 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
   // Start uploading the buffer when the widget opens. Read the buffer id first (before capture may
   // restart buffering) so the id we link matches what this flush uploads. Each open starts a fresh
-  // flush, so a remount (e.g. the screenshot flow closes and reopens the form) supersedes the
-  // previous one.
+  // flush but carries forward an id a previous open already uploaded, so a remount (e.g. the
+  // screenshot flow closes and reopens the form) whose own flush uploads nothing still links it.
+  // Wrapped: a synchronous bridge throw must not propagate out of the widget's `componentDidMount`.
   function flushReplayForFeedbackWidget(): void {
-    const flush: { openId: string | null; id: string | null; resolved: boolean } = {
-      openId: NATIVE.getCurrentReplayId(),
-      id: null,
-      resolved: false,
-    };
-    feedbackReplayFlush = flush;
-    // On settle, mark resolved and drop the cached id: capture may change the native replay
-    // identity, so the next DSC/metric re-reads the current id (as the runtime controls do) rather
-    // than caching the uploaded one.
-    const settle = (): void => {
-      flush.resolved = true;
-      invalidateCachedReplayId();
-    };
-    NATIVE.captureReplay(false)
-      .then(uploadedId => {
-        flush.id = uploadedId;
-        settle();
-      })
-      .then(undefined, (error: unknown) => {
-        settle();
-        debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback widget`, error);
-      });
+    try {
+      const carried = feedbackReplayFlush?.resolved ? feedbackReplayFlush.id : null;
+      const flush: { openId: string | null; id: string | null; resolved: boolean } = {
+        openId: NATIVE.getCurrentReplayId() ?? carried,
+        id: carried,
+        resolved: false,
+      };
+      feedbackReplayFlush = flush;
+      // On settle, mark resolved and drop the cached id: capture may change the native replay
+      // identity, so the next DSC/metric re-reads the current id (as the runtime controls do) rather
+      // than caching the uploaded one.
+      const settle = (): void => {
+        flush.resolved = true;
+        invalidateCachedReplayId();
+      };
+      NATIVE.captureReplay(false)
+        .then(uploadedId => {
+          // Keep the carried id when this open uploaded nothing, so it isn't discarded.
+          if (uploadedId) {
+            flush.id = uploadedId;
+          }
+          settle();
+        })
+        .then(undefined, (error: unknown) => {
+          settle();
+          debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback widget`, error);
+        });
+    } catch (error) {
+      debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to start replay flush for feedback widget`, error);
+    }
   }
 
   // Emitted synchronously before the event is sent, so resolve the id synchronously. Widget
   // feedback links the id the open flush uploaded — `null` on a sampling miss means no replay was
   // sent, so nothing is linked; before it resolves, fall back to the id read at open. Other
   // feedback (direct `captureFeedback`) ignores the widget flush and links the current recording,
-  // flushing it now.
+  // flushing it now. Wrapped: a synchronous bridge throw must not abort feedback capture.
   function linkReplayToFeedback(feedback: FeedbackEvent, options?: { includeReplay?: boolean }): void {
     if (!options?.includeReplay) {
       return;
     }
 
-    let replayId: string | null;
-    if (feedback.contexts?.feedback?.source === 'widget') {
-      const flush = feedbackReplayFlush;
-      feedbackReplayFlush = null;
-      replayId = flush?.resolved ? flush.id : (flush?.openId ?? null);
-    } else {
-      replayId = NATIVE.getCurrentReplayId();
-      if (replayId) {
-        // Flush the current buffer and, like the widget flush, invalidate the cached id on settle:
-        // capture may change the native replay identity, so the next DSC/metric re-reads it.
-        NATIVE.captureReplay(false).then(
-          () => {
-            invalidateCachedReplayId();
-          },
-          (error: unknown) => {
-            invalidateCachedReplayId();
-            debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback`, error);
-          },
-        );
+    let replayId: string | null = null;
+    try {
+      if (feedback.contexts?.feedback?.source === 'widget') {
+        const flush = feedbackReplayFlush;
+        feedbackReplayFlush = null;
+        replayId = flush?.resolved ? flush.id : (flush?.openId ?? null);
+      } else {
+        replayId = NATIVE.getCurrentReplayId();
+        if (replayId) {
+          // Flush the current buffer and, like the widget flush, invalidate the cached id on settle:
+          // capture may change the native replay identity, so the next DSC/metric re-reads it.
+          NATIVE.captureReplay(false).then(
+            () => {
+              invalidateCachedReplayId();
+            },
+            (error: unknown) => {
+              invalidateCachedReplayId();
+              debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback`, error);
+            },
+          );
+        }
       }
+    } catch (error) {
+      debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to resolve replay for feedback`, error);
+      return;
     }
 
     if (!replayId) {

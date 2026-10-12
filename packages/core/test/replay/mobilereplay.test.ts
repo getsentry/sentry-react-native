@@ -1533,6 +1533,50 @@ describe('Mobile Replay Integration', () => {
 
       expect(integration.getReplayId()).toBe('id-after');
     });
+
+    it('keeps a replay an earlier open uploaded when a remount flush uploads nothing', async () => {
+      // First open uploads a replay; the remount's flush uploads nothing (e.g. buffer already
+      // consumed). The earlier id must be linked, not discarded.
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockResolvedValueOnce(null);
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // first open uploads 'first-id'
+      await flushAsync();
+      getOpenFeedbackWidget()(); // remount, its own flush uploads nothing
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('first-id');
+    });
+
+    it('does not propagate a synchronous bridge error when the widget opens', () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      // The bridge starts throwing only after setup (which reads the id once).
+      mockGetCurrentReplayId.mockImplementation(() => {
+        throw new Error('bridge boom');
+      });
+
+      expect(() => getOpenFeedbackWidget()()).not.toThrow();
+    });
+
+    it('does not abort feedback capture when a synchronous bridge error occurs', () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      mockGetCurrentReplayId.mockImplementation(() => {
+        throw new Error('bridge boom');
+      });
+
+      const feedback = makeFeedbackEvent('api');
+      expect(() => getBeforeSendFeedback()(feedback, { includeReplay: true })).not.toThrow();
+      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
+    });
   });
 });
 
