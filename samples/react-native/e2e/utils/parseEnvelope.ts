@@ -39,7 +39,6 @@ export function parseEnvelope(env: string | Uint8Array): Envelope {
     const isBinaryAttachment =
       itemHeader.type === 'attachment' &&
       itemHeader.content_type !== 'application/json';
-    // TODO: Parse when needed for the tests
     const isReplayVideo = (itemHeader.type as string) === 'replay_video';
 
     try {

@@ -5,9 +5,9 @@ const RETRY_INTERVAL = 1000;
 const requestHeaders = { 'Authorization': `Bearer ${sentryAuthToken}` }
 
 function sleep(ms) {
-  // TODO reach out to Maestro & GrallJS via GitHub issues.
+  // Maestro's GraalJS runtime has no setTimeout/Promise, so instead of
   //   return new Promise(resolve => setTimeout(resolve, ms));
-  // Instead, we need to do a busy wait.
+  // we busy-wait.
   const until = Date.now() + ms;
   while (Date.now() < until) {
     // console.log(`Sleeping for ${until - Date.now()} ms`);

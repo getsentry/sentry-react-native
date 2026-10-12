@@ -46,6 +46,13 @@ export function createReactNativeRewriteFrames(): Integration {
         frame.colno += 1;
       }
 
+      // Hermes runtime bytecode is separate from the Expo application bundle.
+      if (frame.filename === 'InternalBytecode.js' || frame.filename === '/InternalBytecode.js') {
+        frame.in_app = false;
+        frame.filename = 'app:///InternalBytecode.js';
+        return frame;
+      }
+
       // Expo adds hash to the end of bundle names
       if (isExpo() && Platform.OS === 'android') {
         frame.filename = ANDROID_DEFAULT_BUNDLE_NAME;
@@ -58,10 +65,6 @@ export function createReactNativeRewriteFrames(): Integration {
       }
 
       const appPrefix = 'app://';
-      // https://github.com/getsentry/sentry-react-native/issues/3348
-      if (frame.filename === '/InternalBytecode.js') {
-        frame.in_app = false;
-      }
       // We always want to have a triple slash
       frame.filename =
         frame.filename.indexOf('/') === 0 ? `${appPrefix}${frame.filename}` : `${appPrefix}/${frame.filename}`;

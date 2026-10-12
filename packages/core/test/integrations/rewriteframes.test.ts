@@ -865,6 +865,64 @@ describe('RewriteFrames', () => {
     });
   });
 
+  describe.each([
+    { platform: 'ios' as const, expo: true, bundle: 'app:///main.jsbundle' },
+    { platform: 'android' as const, expo: true, bundle: 'app:///index.android.bundle' },
+    { platform: 'ios' as const, expo: false, bundle: 'app:///entry.hbc' },
+    { platform: 'android' as const, expo: false, bundle: 'app:///entry.hbc' },
+  ])('Hermes on $platform with Expo=$expo', ({ platform, expo, bundle }) => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each(['InternalBytecode.js', '/InternalBytecode.js', '/build/hermes/lib/InternalBytecode/InternalBytecode.js'])(
+      'keeps %s frames separate from the application bundle',
+      async filename => {
+        mockFunction(isExpo).mockReturnValue(expo);
+        mockFunction(isHermesEnabled).mockReturnValue(true);
+        jest.replaceProperty(Platform, 'OS', platform);
+
+        const error = {
+          message: 'Network request failed',
+          name: 'Error',
+          stack:
+            'Error: Network request failed\n' +
+            '    at fetchToken (address at /updates/entry.hbc:1:4344175)\n' +
+            `    at tryCallOne (address at ${filename}:1:1180)\n` +
+            `    at anonymous (address at ${filename}:1:1874)\n` +
+            '    at apply (native)',
+        };
+
+        const exception = await exceptionFromError(error);
+
+        expect(exception?.stacktrace?.frames).toEqual([
+          { filename: 'native', function: 'apply', in_app: true },
+          {
+            filename: 'app:///InternalBytecode.js',
+            function: 'anonymous',
+            lineno: 1,
+            colno: 1875,
+            in_app: false,
+          },
+          {
+            filename: 'app:///InternalBytecode.js',
+            function: 'tryCallOne',
+            lineno: 1,
+            colno: 1181,
+            in_app: false,
+          },
+          {
+            filename: bundle,
+            function: 'fetchToken',
+            lineno: 1,
+            colno: 4344176,
+            in_app: true,
+          },
+        ]);
+      },
+    );
+  });
+
   it('InternalBytecode should be flaged as not InApp', async () => {
     mockFunction(isHermesEnabled).mockReturnValue(true);
 

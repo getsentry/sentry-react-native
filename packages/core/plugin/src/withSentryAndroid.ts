@@ -33,14 +33,24 @@ export const withSentryAndroid: ConfigPlugin<{
   ]);
 };
 
-const resolveSentryReactNativePackageJsonPath =
-  '["node", "--print", "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\'))"].execute().text.trim()';
+const resolveSentryReactNativePackageJsonPathCommand =
+  '["node", "--print", "require(\'path\').dirname(require.resolve(\'@sentry/react-native/package.json\'))"]';
+const resolveSentryReactNativePackageJsonPath = `${resolveSentryReactNativePackageJsonPathCommand}.execute(null, rootDir).text.trim()`;
+// Without a working directory, node resolves the package from the directory where Gradle started.
+const legacyResolveSentryReactNativePackageJsonPath = `${resolveSentryReactNativePackageJsonPathCommand}.execute().text.trim()`;
 
 /**
  * Writes to projectDirectory/android/app/build.gradle,
  * adding the relevant @sentry/react-native script.
  */
 export function modifyAppBuildGradle(buildGradle: string, disableAutoUpload: boolean = false): string {
+  if (buildGradle.includes(legacyResolveSentryReactNativePackageJsonPath)) {
+    return modifyAppBuildGradle(
+      buildGradle.split(legacyResolveSentryReactNativePackageJsonPath).join(resolveSentryReactNativePackageJsonPath),
+      disableAutoUpload,
+    );
+  }
+
   if (buildGradle.includes('sentry.gradle.kts')) {
     if (disableAutoUpload && !buildGradle.includes('shouldSentryAutoUploadGeneral')) {
       return buildGradle.replace(

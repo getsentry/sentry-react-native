@@ -40,18 +40,13 @@ describe('Capture app start crash', () => {
         sdk: {
           features: ['experimentalViewRenderer', 'dataSwizzling'],
           integrations: [
+            // Only SessionReplay appears here, by design. App-start crashes are flushed
+            // synchronously by sentry-cocoa during SDK init, from inside SentryCrashIntegration,
+            // before the later integrations are added to the hub. sdk.integrations is computed
+            // from the live installed-integration list at send time, so it reflects only what is
+            // ordered before the crash integration (SessionReplay). Non-startup crashes are sent
+            // async after init completes and carry the full list. See #6845.
             'SessionReplay',
-            // FIXME: Why are these not included?
-            // 'WatchdogTerminationTracking',
-            // 'Screenshot',
-            // 'Crash',
-            // 'ANRTracking',
-            // 'ViewHierarchy',
-            // 'AutoBreadcrumbTracking',
-            // 'AutoSessionTracking',
-            // 'NetworkTracking',
-            // 'AppStartTracking',
-            // 'FramesTracking',
           ],
           name: 'sentry.cocoa.react-native',
           packages: [

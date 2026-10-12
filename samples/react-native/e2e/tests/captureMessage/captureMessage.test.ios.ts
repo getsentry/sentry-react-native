@@ -58,6 +58,7 @@ describe('Capture message', () => {
         contexts: expect.objectContaining({
           device: expect.objectContaining({
             arch: expect.any(String),
+            connection_type: expect.any(String),
             family: expect.any(String),
             free_memory: expect.any(Number),
             locale: expect.any(String),
@@ -87,7 +88,7 @@ describe('Capture message', () => {
             app_start_time: expect.any(String),
             app_version: expect.any(String),
             in_foreground: expect.any(Boolean),
-            // view_names: ['ErrorsScreen-jn5qquvH9Nz'], // TODO: fix this generated hash should not be part of the name
+            view_names: ['ErrorsScreen'],
           }),
         }),
       }),
