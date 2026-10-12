@@ -534,18 +534,21 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       resolved: false,
     };
     feedbackReplayFlush = flush;
+    // On settle, mark resolved and drop the cached id: capture may change the native replay
+    // identity, so the next DSC/metric re-reads the current id (as the runtime controls do) rather
+    // than caching the uploaded one.
+    const settle = (): void => {
+      flush.resolved = true;
+      invalidateCachedReplayId();
+    };
     NATIVE.captureReplay(false)
       .then(uploadedId => {
         flush.id = uploadedId;
+        settle();
       })
       .then(undefined, (error: unknown) => {
+        settle();
         debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback widget`, error);
-      })
-      .then(() => {
-        flush.resolved = true;
-        // Capture may change the native replay identity, so drop the cached id rather than caching
-        // the uploaded one; the next DSC/metric re-reads the current id (as the runtime controls do).
-        invalidateCachedReplayId();
       });
   }
 
