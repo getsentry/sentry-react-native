@@ -1553,6 +1553,33 @@ describe('Mobile Replay Integration', () => {
       expect(feedback.contexts.feedback.replay_id).toBe('first-id');
     });
 
+    it('keeps the in-flight open flush when the form remounts before it settles', async () => {
+      // The first open's capture is still pending when the form remounts.
+      let resolveFirst!: (v: string | null) => void;
+      mockCaptureReplay.mockReturnValueOnce(
+        new Promise<string | null>(resolve => {
+          resolveFirst = resolve;
+        }),
+      );
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // first open, flush in flight
+      getOpenFeedbackWidget()(); // remount before the first settles
+
+      // The remount reuses the in-flight flush instead of starting another.
+      expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
+
+      resolveFirst('in-flight-id');
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('in-flight-id');
+    });
+
     it('does not propagate a synchronous bridge error when the widget opens', () => {
       const integration = mobileReplayIntegration();
       integration.setup?.(mockClient);

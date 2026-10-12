@@ -524,12 +524,18 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   }
 
   // Start uploading the buffer when the widget opens. Read the buffer id first (before capture may
-  // restart buffering) so the id we link matches what this flush uploads. Each open starts a fresh
-  // flush but carries forward an id a previous open already uploaded, so a remount (e.g. the
-  // screenshot flow closes and reopens the form) whose own flush uploads nothing still links it.
-  // Wrapped: a synchronous bridge throw must not propagate out of the widget's `componentDidMount`.
+  // restart buffering) so the id we link matches what this flush uploads. A remount (e.g. the
+  // screenshot flow closes and reopens the form) reuses a flush that is still in flight, and
+  // otherwise carries forward an id a previous open already uploaded, so neither a pending nor a
+  // completed upload is discarded. Wrapped: a synchronous bridge throw must not propagate out of
+  // the widget's `componentDidMount`.
   function flushReplayForFeedbackWidget(): void {
     try {
+      // A flush from an earlier open in the same flow is still uploading: keep it rather than
+      // starting another, so its pending upload isn't discarded.
+      if (feedbackReplayFlush && !feedbackReplayFlush.resolved) {
+        return;
+      }
       const carried = feedbackReplayFlush?.resolved ? feedbackReplayFlush.id : null;
       const flush: { openId: string | null; id: string | null; resolved: boolean } = {
         openId: NATIVE.getCurrentReplayId() ?? carried,
