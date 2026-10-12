@@ -6,6 +6,7 @@ import type { Bundle, MetroSerializer, SerializedBundle, VirtualJSOutput } from 
 
 import {
   createDebugIdSnippet,
+  createModuleMetadataSnippet,
   createVirtualJSModule,
   determineDebugIdFromBundleSource,
   prependModule,
@@ -17,6 +18,7 @@ type SourceMap = Record<string, unknown>;
 
 const DEBUG_ID_PLACE_HOLDER = '__debug_id_place_holder__';
 const DEBUG_ID_MODULE_PATH = '__debugid__';
+const MODULE_METADATA_MODULE_PATH = '__sentry_module_metadata__';
 
 const SOURCE_MAP_COMMENT = '//# sourceMappingURL=';
 const DEBUG_ID_COMMENT = '//# debugId=';
@@ -48,14 +50,33 @@ export function unstableBeforeAssetSerializationDebugIdPlugin({
 }
 
 /**
+ * Creates a plugin that adds the Sentry module metadata module to each bundle chunk.
+ * `thirdPartyErrorFilterIntegration` uses this metadata to find the frames of the application.
+ */
+export function unstableBeforeAssetSerializationModuleMetadataPlugin(
+  moduleMetadata: Record<string, unknown>,
+): (serializationInput: { graph: ReadOnlyGraph<MixedOutput>; premodules: Module[]; debugId?: string }) => Module[] {
+  return ({ premodules }) => addModuleMetadataModule(premodules, moduleMetadata);
+}
+
+/**
  * Creates a Metro serializer that adds Debug ID module to the plain bundle.
  * The Debug ID module is a virtual module that provides a debug ID in runtime.
  *
+ * If `moduleMetadata` is set, it also adds the Sentry module metadata module, also to development bundles.
+ *
  * RAM Bundles do not support custom serializers.
  */
-export const createSentryMetroSerializer = (customSerializer?: MetroSerializer): MetroSerializer => {
+export const createSentryMetroSerializer = (
+  customSerializer?: MetroSerializer,
+  { moduleMetadata }: { moduleMetadata?: Record<string, unknown> } = {},
+): MetroSerializer => {
   const serializer = customSerializer || createDefaultMetroSerializer();
-  return async function (entryPoint, preModules, graph, options) {
+  return async function (entryPoint, originalPreModules, graph, options) {
+    const preModules = moduleMetadata
+      ? addModuleMetadataModule(originalPreModules, moduleMetadata)
+      : originalPreModules;
+
     if ('hot' in graph.transformOptions ? graph.transformOptions.hot : graph.transformOptions.dev) {
       return serializer(entryPoint, preModules, graph, options);
     }
@@ -167,6 +188,19 @@ function extractSerializerResult(serializerResult: unknown): SerializedBundle | 
   }
 
   return null;
+}
+
+function addModuleMetadataModule(
+  premodules: readonly Module<MixedOutput>[],
+  moduleMetadata: Record<string, unknown>,
+): Module<MixedOutput>[] {
+  if (premodules.some(module => module.path === MODULE_METADATA_MODULE_PATH)) {
+    return [...premodules];
+  }
+  return prependModule(
+    premodules,
+    createVirtualJSModule(MODULE_METADATA_MODULE_PATH, createModuleMetadataSnippet(moduleMetadata)),
+  );
 }
 
 function createDebugIdModule(debugId: string): Module<VirtualJSOutput> & { setSource: (code: string) => void } {
