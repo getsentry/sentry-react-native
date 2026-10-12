@@ -1501,17 +1501,20 @@ describe('Mobile Replay Integration', () => {
       expect(second.contexts.feedback.replay_id).toBeUndefined();
     });
 
-    it('does not overwrite the cached replay id from a widget flush', async () => {
-      mockGetCurrentReplayId.mockReturnValue('current-id');
+    it('invalidates the cached replay id after a widget flush instead of caching the uploaded id', async () => {
+      mockGetCurrentReplayId.mockReturnValue('id-before');
       mockCaptureReplay.mockResolvedValue('uploaded-id');
       const integration = mobileReplayIntegration();
-      integration.setup?.(mockClient); // cache initialized to 'current-id'
+      integration.setup?.(mockClient); // cache initialized to 'id-before'
 
       getOpenFeedbackWidget()();
+      // The native replay identity changes during the capture.
+      mockGetCurrentReplayId.mockReturnValue('id-after');
       await flushAsync();
 
-      // The flush uploaded 'uploaded-id', but the shared cache (DSC/metrics) stays the current id.
-      expect(integration.getReplayId()).toBe('current-id');
+      // The flush invalidated the cache, so the next read reflects the current native id — neither
+      // the stale pre-flush id nor the uploaded id.
+      expect(integration.getReplayId()).toBe('id-after');
     });
   });
 });

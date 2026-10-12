@@ -526,7 +526,7 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   // Start uploading the buffer when the widget opens. Read the buffer id first (before capture may
   // restart buffering) so the id we link matches what this flush uploads. Each open starts a fresh
   // flush, so a remount (e.g. the screenshot flow closes and reopens the form) supersedes the
-  // previous one. The flush doesn't touch the shared cache — a superseded one must not stale it.
+  // previous one.
   function flushReplayForFeedbackWidget(): void {
     const flush: { openId: string | null; id: string | null; resolved: boolean } = {
       openId: NATIVE.getCurrentReplayId(),
@@ -537,11 +537,15 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     NATIVE.captureReplay(false)
       .then(uploadedId => {
         flush.id = uploadedId;
-        flush.resolved = true;
       })
       .then(undefined, (error: unknown) => {
-        flush.resolved = true;
         debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback widget`, error);
+      })
+      .then(() => {
+        flush.resolved = true;
+        // Capture may change the native replay identity, so drop the cached id rather than caching
+        // the uploaded one; the next DSC/metric re-reads the current id (as the runtime controls do).
+        invalidateCachedReplayId();
       });
   }
 
