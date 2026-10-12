@@ -383,11 +383,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   // This will be updated when we know the replay ID changes (e.g., after captureReplay)
   let cachedReplayId: string | null = null;
 
-  // The replay upload started when the feedback widget opened. `id` is the uploaded replay id once
-  // the flush resolves (`null` on a sampling miss). A fresh object per open means a superseded or
-  // already-consumed flush can't affect a later feedback (its late resolution mutates an object no
-  // one reads any more).
-  let feedbackReplayFlush: { id: string | null; resolved: boolean } | null = null;
+  // The replay upload started when the feedback widget opened. `openId` is the buffer id read
+  // before the flush (what it uploads, and the fallback for a submit before it resolves); `id` is
+  // the uploaded replay id once resolved (`null` on a sampling miss). A fresh object per open means
+  // a superseded or already-consumed flush can't affect a later feedback — its late resolution
+  // mutates an object no one reads any more.
+  let feedbackReplayFlush: { openId: string | null; id: string | null; resolved: boolean } | null = null;
 
   function updateCachedReplayId(replayId: string | null): void {
     cachedReplayId = replayId;
@@ -522,18 +523,21 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     }
   }
 
-  // Start uploading the buffer when the widget opens. Each open starts a fresh flush, so a remount
-  // (e.g. the screenshot flow closes and reopens the form) just supersedes the previous one.
+  // Start uploading the buffer when the widget opens. Read the buffer id first (before capture may
+  // restart buffering) so the id we link matches what this flush uploads. Each open starts a fresh
+  // flush, so a remount (e.g. the screenshot flow closes and reopens the form) supersedes the
+  // previous one. The flush doesn't touch the shared cache — a superseded one must not stale it.
   function flushReplayForFeedbackWidget(): void {
-    const flush: { id: string | null; resolved: boolean } = { id: null, resolved: false };
+    const flush: { openId: string | null; id: string | null; resolved: boolean } = {
+      openId: NATIVE.getCurrentReplayId(),
+      id: null,
+      resolved: false,
+    };
     feedbackReplayFlush = flush;
     NATIVE.captureReplay(false)
       .then(uploadedId => {
         flush.id = uploadedId;
         flush.resolved = true;
-        if (uploadedId) {
-          updateCachedReplayId(uploadedId);
-        }
       })
       .then(undefined, (error: unknown) => {
         flush.resolved = true;
@@ -543,8 +547,9 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
 
   // Emitted synchronously before the event is sent, so resolve the id synchronously. Widget
   // feedback links the id the open flush uploaded — `null` on a sampling miss means no replay was
-  // sent, so nothing is linked. Other feedback (direct `captureFeedback`) ignores the widget flush
-  // and links the current recording, flushing it now.
+  // sent, so nothing is linked; before it resolves, fall back to the id read at open. Other
+  // feedback (direct `captureFeedback`) ignores the widget flush and links the current recording,
+  // flushing it now.
   function linkReplayToFeedback(feedback: FeedbackEvent, options?: { includeReplay?: boolean }): void {
     if (!options?.includeReplay) {
       return;
@@ -554,11 +559,12 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     if (feedback.contexts?.feedback?.source === 'widget') {
       const flush = feedbackReplayFlush;
       feedbackReplayFlush = null;
-      // Fall back to the current id only when the open flush hasn't resolved yet (very fast submit).
-      replayId = flush?.resolved ? flush.id : NATIVE.getCurrentReplayId();
+      replayId = flush?.resolved ? flush.id : (flush?.openId ?? null);
     } else {
       replayId = NATIVE.getCurrentReplayId();
       if (replayId) {
+        // API feedback links the current recording, so keep the shared cache in step.
+        updateCachedReplayId(replayId);
         NATIVE.captureReplay(false).then(undefined, (error: unknown) => {
           debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback`, error);
         });
@@ -570,7 +576,6 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       return;
     }
 
-    updateCachedReplayId(replayId);
     feedback.contexts = feedback.contexts || {};
     feedback.contexts.feedback = {
       ...feedback.contexts.feedback,

@@ -1458,8 +1458,24 @@ describe('Mobile Replay Integration', () => {
       expect(mockCaptureReplay).toHaveBeenCalledWith(false);
     });
 
+    it('uses the id read at open (not at submit) when the flush is still pending', () => {
+      mockGetCurrentReplayId.mockReturnValue('open-buffer');
+      mockCaptureReplay.mockReturnValueOnce(new Promise<string | null>(() => {})); // never resolves
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // openId = 'open-buffer'
+
+      // The native buffer rolls over before the user submits.
+      mockGetCurrentReplayId.mockReturnValue('new-buffer');
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('open-buffer');
+    });
+
     it('does not revive a consumed widget flush after it resolves late', async () => {
-      mockGetCurrentReplayId.mockReturnValue('current-id');
+      mockGetCurrentReplayId.mockReturnValue('open-buffer');
       let resolveOpenFlush!: (v: string | null) => void;
       mockCaptureReplay.mockReturnValueOnce(
         new Promise<string | null>(resolve => {
@@ -1471,18 +1487,31 @@ describe('Mobile Replay Integration', () => {
 
       getOpenFeedbackWidget()(); // open flush pending (unresolved)
 
-      // Submit before the flush resolves: falls back to the current recording id.
+      // Submit before the flush resolves: falls back to the id read at open.
       const first = makeFeedbackEvent('widget');
       getBeforeSendFeedback()(first, { includeReplay: true });
-      expect(first.contexts.feedback.replay_id).toBe('current-id');
+      expect(first.contexts.feedback.replay_id).toBe('open-buffer');
 
-      // The open flush resolves late with a different id; it must not revive the consumed flush.
+      // The open flush resolves late; it must not revive the consumed flush for a later feedback.
       resolveOpenFlush('late-uploaded-id');
       await flushAsync();
 
       const second = makeFeedbackEvent('widget');
       getBeforeSendFeedback()(second, { includeReplay: true });
-      expect(second.contexts.feedback.replay_id).toBe('current-id');
+      expect(second.contexts.feedback.replay_id).toBeUndefined();
+    });
+
+    it('does not overwrite the cached replay id from a widget flush', async () => {
+      mockGetCurrentReplayId.mockReturnValue('current-id');
+      mockCaptureReplay.mockResolvedValue('uploaded-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient); // cache initialized to 'current-id'
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+
+      // The flush uploaded 'uploaded-id', but the shared cache (DSC/metrics) stays the current id.
+      expect(integration.getReplayId()).toBe('current-id');
     });
   });
 });
