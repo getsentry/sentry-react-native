@@ -10,7 +10,7 @@
 
 ### Fixes
 
-- Attach the on-error Session Replay buffer to feedback submitted from the feedback form ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Attach the on-error Session Replay buffer to feedback submitted from the feedback form ([#6870](https://github.com/getsentry/sentry-react-native/pull/6870))
 
 ### Dependencies
 
