@@ -119,6 +119,7 @@
     "brace-expansion@npm:^5.0.2": "^5.0.9",
     "brace-expansion@npm:^5.0.5": "^5.0.9",
     "brace-expansion@npm:5.0.6": "^5.0.9",
+    "brace-expansion@npm:5.0.8": "^5.0.9",
     "@appium/base-driver@npm:10.2.2/path-to-regexp": "^8.4.0",
     "router@npm:2.2.0/path-to-regexp": "^8.4.0",
     "yaml": "^2.8.3",
