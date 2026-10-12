@@ -6,6 +6,7 @@ import type {
   ErrorEvent,
   Event,
   EventHint,
+  FeedbackEvent,
 } from '@sentry/core';
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
@@ -1305,6 +1306,122 @@ describe('Mobile Replay Integration', () => {
       expect(id1).toBe(cachedReplayId);
       expect(id2).toBe(cachedReplayId);
       expect(id3).toBe(cachedReplayId);
+    });
+  });
+
+  describe('feedback replay', () => {
+    const getOpenFeedbackWidget = (): (() => void) => {
+      const call = mockOn.mock.calls.find(c => c[0] === 'openFeedbackWidget');
+      return call![1] as () => void;
+    };
+
+    const getBeforeSendFeedback = (): ((feedback: FeedbackEvent, options?: { includeReplay?: boolean }) => void) => {
+      const call = mockOn.mock.calls.find(c => c[0] === 'beforeSendFeedback');
+      return call![1] as (feedback: FeedbackEvent, options?: { includeReplay?: boolean }) => void;
+    };
+
+    const makeFeedbackEvent = (source: string = 'widget'): FeedbackEvent =>
+      ({
+        event_id: 'test-feedback-id',
+        type: 'feedback',
+        contexts: { feedback: { message: 'hi', source } },
+      }) as unknown as FeedbackEvent;
+
+    it('registers the openFeedbackWidget and beforeSendFeedback hooks', () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      expect(mockOn.mock.calls.some(c => c[0] === 'openFeedbackWidget')).toBe(true);
+      expect(mockOn.mock.calls.some(c => c[0] === 'beforeSendFeedback')).toBe(true);
+    });
+
+    it('flushes the on-error buffer (not a hard crash) when the widget opens', async () => {
+      mockCaptureReplay.mockResolvedValue('feedback-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+
+      expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
+      expect(mockCaptureReplay).toHaveBeenCalledWith(false);
+    });
+
+    it('links the replay flushed on widget open to the submitted feedback', async () => {
+      mockCaptureReplay.mockResolvedValue('feedback-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('feedback-replay-id');
+      // The widget already flushed on open; submit must not flush again.
+      expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not link a replay when includeReplay is not set', async () => {
+      mockCaptureReplay.mockResolvedValue('feedback-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback);
+
+      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
+    });
+
+    it('flushes at submit time for API feedback without a widget open', () => {
+      mockGetCurrentReplayId.mockReturnValue('buffer-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+      mockCaptureReplay.mockClear();
+
+      const feedback = makeFeedbackEvent('api');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      // Buffer id read synchronously for the link (stable across the flush) ...
+      expect(feedback.contexts.feedback.replay_id).toBe('buffer-replay-id');
+      // ... and the upload is triggered fire-and-forget.
+      expect(mockCaptureReplay).toHaveBeenCalledWith(false);
+    });
+
+    it('does not link a replay when there is no active recording', () => {
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+      mockCaptureReplay.mockClear();
+
+      const feedback = makeFeedbackEvent('api');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
+    });
+
+    it('does not leak a widget replay id onto a later unrelated feedback', async () => {
+      mockCaptureReplay.mockResolvedValue('feedback-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+
+      // First submit consumes the flushed id.
+      getBeforeSendFeedback()(makeFeedbackEvent('widget'), { includeReplay: true });
+
+      // A second submit without a fresh widget open falls back to the current recording id.
+      mockGetCurrentReplayId.mockReturnValue('later-buffer-id');
+      const second = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(second, { includeReplay: true });
+
+      expect(second.contexts.feedback.replay_id).toBe('later-buffer-id');
     });
   });
 });

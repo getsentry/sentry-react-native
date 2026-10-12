@@ -345,10 +345,20 @@ describe('FeedbackForm', () => {
           message: 'This is a feedback message.',
           name: 'John Doe',
           email: 'john.doe@example.com',
+          source: 'widget',
         },
-        undefined,
+        { includeReplay: true },
       );
     });
+  });
+
+  it('emits openFeedbackWidget on mount so the replay buffer can be primed', () => {
+    const client = getClient()!;
+    const emitSpy = jest.spyOn(client, 'emit');
+
+    render(<FeedbackForm {...defaultProps} />);
+
+    expect(emitSpy).toHaveBeenCalledWith('openFeedbackWidget');
   });
 
   it('shows success message when the form is submitted successfully', async () => {

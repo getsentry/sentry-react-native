@@ -1,3 +1,4 @@
+/* oxlint-disable eslint(max-lines) */
 import type {
   Breadcrumb,
   BreadcrumbHint,
@@ -6,6 +7,7 @@ import type {
   ErrorEvent,
   Event,
   EventHint,
+  FeedbackEvent,
   Metric,
 } from '@sentry/core';
 
@@ -381,6 +383,9 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   // This will be updated when we know the replay ID changes (e.g., after captureReplay)
   let cachedReplayId: string | null = null;
 
+  // Replay uploaded when the feedback widget opened, read back when the feedback is submitted.
+  let feedbackReplayId: string | null = null;
+
   function updateCachedReplayId(replayId: string | null): void {
     cachedReplayId = replayId;
   }
@@ -514,6 +519,65 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     }
   }
 
+  // Upload the buffered replay when the widget opens (not on submit) so it finishes in the
+  // background while the user types. `false` = not a hard crash. This still rolls
+  // `replaysOnErrorSampleRate` natively, so a sampling miss leaves the feedback without a replay.
+  function flushReplayForFeedbackWidget(): void {
+    feedbackReplayId = null;
+    NATIVE.captureReplay(false)
+      .then(replayId => {
+        feedbackReplayId = replayId;
+        if (replayId) {
+          updateCachedReplayId(replayId);
+        }
+        debug.log(
+          `[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} ${
+            replayId ? `flushed replay ${replayId}` : 'no replay'
+          } for opened feedback widget.`,
+        );
+      })
+      .then(undefined, (error: unknown) => {
+        debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback widget`, error);
+      });
+  }
+
+  // `beforeSendFeedback` is emitted synchronously right before the event is sent, so the replay id
+  // must be resolved synchronously here. That is safe: the id is fixed when recording starts and
+  // does not change when the replay is uploaded, so an in-flight upload does not matter.
+  function linkReplayToFeedback(feedback: FeedbackEvent, options?: { includeReplay?: boolean }): void {
+    if (!options?.includeReplay) {
+      return;
+    }
+
+    // Widget feedback already uploaded on open; reuse that id. Direct `captureFeedback` has not
+    // uploaded yet, so read the current recording id and trigger the upload in the background.
+    let replayId = feedbackReplayId;
+    if (!replayId) {
+      replayId = NATIVE.getCurrentReplayId();
+      if (replayId) {
+        NATIVE.captureReplay(false).then(undefined, (error: unknown) => {
+          debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback`, error);
+        });
+      }
+    }
+
+    // Consume the id so it can't attach to a later, unrelated feedback.
+    feedbackReplayId = null;
+
+    if (!replayId) {
+      debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} no active recording to link to feedback.`);
+      return;
+    }
+
+    updateCachedReplayId(replayId);
+    feedback.contexts = feedback.contexts || {};
+    feedback.contexts.feedback = {
+      ...feedback.contexts.feedback,
+      replay_id: replayId,
+    };
+    debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} linked replay ${replayId} to feedback ${feedback.event_id}.`);
+  }
+
   function setup(client: Client): void {
     if (!hasHooks(client)) {
       return;
@@ -626,6 +690,10 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       // errors are logged inside flushReplayForSentEvent
       flushReplayForSentEvent(event).then(undefined, () => {});
     });
+
+    // Attach the Session Replay to user feedback: upload on open, link on submit.
+    client.on('openFeedbackWidget', flushReplayForFeedbackWidget);
+    client.on('beforeSendFeedback', linkReplayToFeedback);
   }
 
   function getReplayId(): string | null {

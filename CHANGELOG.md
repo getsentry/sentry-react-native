@@ -6,6 +6,12 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Fixes
+
+- Attach the on-error Session Replay buffer to feedback submitted from the feedback form ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+
 ## 8.30.0
 
 ### Features
