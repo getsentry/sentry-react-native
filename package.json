@@ -149,7 +149,8 @@
     "browserslist": "^4.28.7",
     "fast-uri": "^3.1.8",
     "smol-toml": "^1.7.1",
-    "joi": "^17.13.6"
+    "joi": "^17.13.6",
+    "tinypool": "^2.1.2"
   },
   "version": "0.0.0",
   "name": "sentry-react-native",
