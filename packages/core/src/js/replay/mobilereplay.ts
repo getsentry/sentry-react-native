@@ -570,11 +570,17 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     } else {
       replayId = NATIVE.getCurrentReplayId();
       if (replayId) {
-        // API feedback links the current recording, so keep the shared cache in step.
-        updateCachedReplayId(replayId);
-        NATIVE.captureReplay(false).then(undefined, (error: unknown) => {
-          debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback`, error);
-        });
+        // Flush the current buffer and, like the widget flush, invalidate the cached id on settle:
+        // capture may change the native replay identity, so the next DSC/metric re-reads it.
+        NATIVE.captureReplay(false).then(
+          () => {
+            invalidateCachedReplayId();
+          },
+          (error: unknown) => {
+            invalidateCachedReplayId();
+            debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback`, error);
+          },
+        );
       }
     }
 

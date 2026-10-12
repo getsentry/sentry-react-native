@@ -1516,6 +1516,23 @@ describe('Mobile Replay Integration', () => {
       // the stale pre-flush id nor the uploaded id.
       expect(integration.getReplayId()).toBe('id-after');
     });
+
+    it('invalidates the cached replay id after an API feedback flush', async () => {
+      mockGetCurrentReplayId.mockReturnValue('id-before');
+      mockCaptureReplay.mockResolvedValue('uploaded-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient); // cache initialized to 'id-before'
+
+      const feedback = makeFeedbackEvent('api');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+      expect(feedback.contexts.feedback.replay_id).toBe('id-before');
+
+      // The native replay identity changes during the capture.
+      mockGetCurrentReplayId.mockReturnValue('id-after');
+      await flushAsync();
+
+      expect(integration.getReplayId()).toBe('id-after');
+    });
   });
 });
 
