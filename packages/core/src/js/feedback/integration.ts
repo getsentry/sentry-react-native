@@ -18,6 +18,11 @@ export type FeedbackExperiments = {
    * Requires `react-native-screens`; no-ops (falls back to `Modal`) when it is
    * not installed.
    *
+   * Known limitation: because the form is drawn in a window-level overlay, the
+   * photo-library screenshot picker ("Add a screenshot", via `imagePicker`) is
+   * presented behind the overlay and can't be used while the form is open. Native
+   * "Take a screenshot", alerts, and text entry are unaffected.
+   *
    * @default false
    */
   presentOverNativeModals?: boolean;

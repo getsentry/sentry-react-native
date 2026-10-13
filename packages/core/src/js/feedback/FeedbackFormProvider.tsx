@@ -85,6 +85,7 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
   };
 
   private _themeListener: NativeEventSubscription | undefined;
+  private _dimensionsListener: { remove: () => void } | undefined;
   private _startedShakeListener: boolean = false;
 
   private _panResponder = PanResponder.create({
@@ -134,6 +135,13 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
       this.forceUpdate();
     });
 
+    // When the form is rendered in a `FullWindowOverlay` its size comes from
+    // `Dimensions.get('window')` at render time, so re-render on rotation/resize
+    // to keep it full-screen. (No-op for the `Modal` path, which auto-fills.)
+    this._dimensionsListener = Dimensions.addEventListener('change', () => {
+      this.forceUpdate();
+    });
+
     if (isShakeToReportEnabled()) {
       lazyLoadShakeToReportIntegration();
       this._startedShakeListener = startShakeListener(showFeedbackForm);
@@ -153,6 +161,10 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
   public componentWillUnmount(): void {
     if (this._themeListener) {
       this._themeListener.remove();
+    }
+
+    if (this._dimensionsListener) {
+      this._dimensionsListener.remove();
     }
 
     if (this._startedShakeListener) {
