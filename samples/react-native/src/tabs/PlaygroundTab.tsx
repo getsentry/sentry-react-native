@@ -157,6 +157,13 @@ export default function getPlaygroundTab() {
                     }}
                   />
                   <Separator />
+                  <Button
+                    title="Open Form Sheet"
+                    onPress={() => {
+                      props.navigation.navigate('FormSheet');
+                    }}
+                  />
+                  <Separator />
                   <Text>Custom Mask:</Text>
                   <View>
                     <Sentry.Unmask>

@@ -203,7 +203,7 @@ describe('FeedbackFormManager', () => {
   });
 });
 
-describe('FeedbackFormProvider presentOverNativeModals (#6875)', () => {
+describe('FeedbackFormProvider presentOverNativeModals', () => {
   beforeEach(() => {
     const client = new TestClient(getDefaultTestClientOptions());
     setCurrentClient(client);

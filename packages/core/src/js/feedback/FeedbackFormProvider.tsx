@@ -227,8 +227,8 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
     // On iOS, a React Native `Modal` presents a view controller from the root VC's
     // presentation chain. When a native-stack screen is already presented (e.g. a
     // `formSheet`/`modal`), UIKit refuses the second presentation and the form never
-    // shows (see #6875). `FullWindowOverlay` from react-native-screens renders above
-    // everything in the key window — including presented sheets — so the form shows.
+    // shows. `FullWindowOverlay` from react-native-screens renders above everything
+    // in the key window — including presented sheets — so the form shows.
     // Opt-in via `_experiments.presentOverNativeModals`; falls back to `Modal` when
     // disabled or when react-native-screens isn't installed.
     const FullWindowOverlay =
