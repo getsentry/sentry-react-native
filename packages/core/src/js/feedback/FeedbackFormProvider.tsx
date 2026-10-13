@@ -35,6 +35,7 @@ import {
   getFeedbackButtonOptions,
   getFeedbackOptions,
   getScreenshotButtonOptions,
+  isPresentOverNativeModalsEnabled,
   isShakeToReportEnabled,
 } from './integration';
 import { getFullWindowOverlay } from './fullWindowOverlay';
@@ -137,6 +138,13 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
       lazyLoadShakeToReportIntegration();
       this._startedShakeListener = startShakeListener(showFeedbackForm);
     }
+
+    if (Platform.OS === 'ios' && isPresentOverNativeModalsEnabled() && !getFullWindowOverlay()) {
+      debug.warn(
+        "[Feedback] '_experiments.presentOverNativeModals' is enabled but 'react-native-screens' is not available; " +
+          'falling back to Modal. The form may not appear above presented native-stack sheets.',
+      );
+    }
   }
 
   /**
@@ -221,8 +229,10 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
     // `formSheet`/`modal`), UIKit refuses the second presentation and the form never
     // shows (see #6875). `FullWindowOverlay` from react-native-screens renders above
     // everything in the key window — including presented sheets — so the form shows.
-    // When react-native-screens isn't installed we fall back to `Modal`.
-    const FullWindowOverlay = Platform.OS === 'ios' ? getFullWindowOverlay() : undefined;
+    // Opt-in via `_experiments.presentOverNativeModals`; falls back to `Modal` when
+    // disabled or when react-native-screens isn't installed.
+    const FullWindowOverlay =
+      Platform.OS === 'ios' && isPresentOverNativeModalsEnabled() ? getFullWindowOverlay() : undefined;
     if (FullWindowOverlay) {
       const { width, height } = Dimensions.get('window');
       return (

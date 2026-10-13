@@ -12,6 +12,7 @@ import {
   showFeedbackForm,
 } from '../../src/js/feedback/FeedbackFormManager';
 import { FeedbackFormProvider } from '../../src/js/feedback/FeedbackFormProvider';
+import { getFullWindowOverlay } from '../../src/js/feedback/fullWindowOverlay';
 import { feedbackIntegration } from '../../src/js/feedback/integration';
 import {
   AUTO_INJECT_FEEDBACK_BUTTON_INTEGRATION_NAME,
@@ -25,9 +26,18 @@ jest.mock('../../src/js/feedback/utils', () => ({
   isNativeDriverSupportedForColorAnimations: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../src/js/feedback/fullWindowOverlay', () => ({
+  getFullWindowOverlay: jest.fn().mockReturnValue(undefined),
+  resetFullWindowOverlayCache: jest.fn(),
+}));
+
 const consoleWarnSpy = jest.spyOn(console, 'warn');
 
 const mockedIsModalSupported = isModalSupported as jest.MockedFunction<typeof isModalSupported>;
+const mockedGetFullWindowOverlay = getFullWindowOverlay as jest.MockedFunction<typeof getFullWindowOverlay>;
+
+// A passthrough stand-in for react-native-screens' FullWindowOverlay.
+const MockFullWindowOverlay = ({ children }: { children?: React.ReactNode }): React.ReactNode => children;
 
 beforeEach(() => {
   debug.error = jest.fn();
@@ -190,6 +200,80 @@ describe('FeedbackFormManager', () => {
     showFeedbackForm();
 
     expect(getClient().getIntegrationByName(AUTO_INJECT_FEEDBACK_INTEGRATION_NAME)).toBeDefined();
+  });
+});
+
+describe('FeedbackFormProvider presentOverNativeModals (#6875)', () => {
+  beforeEach(() => {
+    const client = new TestClient(getDefaultTestClientOptions());
+    setCurrentClient(client);
+    client.init();
+    consoleWarnSpy.mockReset();
+    resetFeedbackFormManager();
+    mockedIsModalSupported.mockReturnValue(true);
+    mockedGetFullWindowOverlay.mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('renders the form in a Modal by default (option disabled)', async () => {
+    mockedGetFullWindowOverlay.mockReturnValue(MockFullWindowOverlay);
+    getClient()?.addIntegration(feedbackIntegration());
+
+    const { queryByTestId } = render(
+      <FeedbackFormProvider>
+        <Text>App Components</Text>
+      </FeedbackFormProvider>,
+    );
+
+    await act(async () => {
+      showFeedbackForm();
+    });
+
+    expect(queryByTestId('feedback-form-modal')).toBeTruthy();
+    expect(queryByTestId('feedback-form-overlay')).toBeNull();
+    // Gate is off, so react-native-screens is never consulted.
+    expect(mockedGetFullWindowOverlay).not.toHaveBeenCalled();
+  });
+
+  it('renders the form in a FullWindowOverlay when enabled and react-native-screens is available', async () => {
+    mockedGetFullWindowOverlay.mockReturnValue(MockFullWindowOverlay);
+    getClient()?.addIntegration(feedbackIntegration({ _experiments: { presentOverNativeModals: true } }));
+
+    const { queryByTestId } = render(
+      <FeedbackFormProvider>
+        <Text>App Components</Text>
+      </FeedbackFormProvider>,
+    );
+
+    await act(async () => {
+      showFeedbackForm();
+    });
+
+    expect(queryByTestId('feedback-form-overlay')).toBeTruthy();
+    expect(queryByTestId('feedback-form-modal')).toBeNull();
+  });
+
+  it('falls back to Modal and warns when enabled but react-native-screens is unavailable', async () => {
+    const warnSpy = jest.spyOn(debug, 'warn').mockImplementation(() => {});
+    mockedGetFullWindowOverlay.mockReturnValue(undefined);
+    getClient()?.addIntegration(feedbackIntegration({ _experiments: { presentOverNativeModals: true } }));
+
+    const { queryByTestId } = render(
+      <FeedbackFormProvider>
+        <Text>App Components</Text>
+      </FeedbackFormProvider>,
+    );
+
+    await act(async () => {
+      showFeedbackForm();
+    });
+
+    expect(queryByTestId('feedback-form-modal')).toBeTruthy();
+    expect(queryByTestId('feedback-form-overlay')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('presentOverNativeModals'));
   });
 });
 

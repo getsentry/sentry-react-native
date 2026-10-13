@@ -5,6 +5,24 @@ import type { FeedbackButtonProps, FeedbackFormProps, ScreenshotButtonProps } fr
 
 export const MOBILE_FEEDBACK_INTEGRATION_NAME = 'MobileFeedback';
 
+/**
+ * Experimental feedback options. These are unstable and may change or be
+ * removed without a major version bump, and some may become the default.
+ */
+export type FeedbackExperiments = {
+  /**
+   * iOS only. Render the feedback form inside react-native-screens'
+   * `FullWindowOverlay` instead of a React Native `Modal`, so it can appear
+   * above a presented native-stack sheet/modal (e.g. `presentation: 'formSheet'`).
+   *
+   * Requires `react-native-screens`; no-ops (falls back to `Modal`) when it is
+   * not installed.
+   *
+   * @default false
+   */
+  presentOverNativeModals?: boolean;
+};
+
 type FeedbackIntegration = Integration & {
   options: Partial<FeedbackFormProps>;
   buttonOptions: Partial<FeedbackButtonProps>;
@@ -13,6 +31,7 @@ type FeedbackIntegration = Integration & {
   themeLight: Partial<FeedbackFormTheme>;
   themeDark: Partial<FeedbackFormTheme>;
   enableShakeToReport: boolean;
+  experiments: FeedbackExperiments;
 };
 
 export const feedbackIntegration = (
@@ -31,6 +50,11 @@ export const feedbackIntegration = (
      * @default false
      */
     enableShakeToReport?: boolean;
+    /**
+     * Experimental feedback options. Unstable — may change or be removed without
+     * a major version bump.
+     */
+    _experiments?: FeedbackExperiments;
   } = {},
 ): FeedbackIntegration => {
   const {
@@ -40,6 +64,7 @@ export const feedbackIntegration = (
     themeLight: lightTheme,
     themeDark: darkTheme,
     enableShakeToReport: shakeToReport,
+    _experiments: experiments,
     ...widgetOptions
   } = initOptions;
 
@@ -52,6 +77,7 @@ export const feedbackIntegration = (
     themeLight: lightTheme || {},
     themeDark: darkTheme || {},
     enableShakeToReport: shakeToReport || false,
+    experiments: experiments || {},
   };
 };
 
@@ -116,4 +142,9 @@ export const getFeedbackDarkTheme = (): Partial<FeedbackFormTheme> => {
 export const isShakeToReportEnabled = (): boolean => {
   const integration = _getClientIntegration();
   return integration?.enableShakeToReport ?? false;
+};
+
+export const isPresentOverNativeModalsEnabled = (): boolean => {
+  const integration = _getClientIntegration();
+  return integration?.experiments.presentOverNativeModals ?? false;
 };
