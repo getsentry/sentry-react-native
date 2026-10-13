@@ -20,6 +20,7 @@ on:
       - "samples/expo/plugins/withIosSceneLifecycle.js"
       - "samples/expo/app.json"
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - "packages/core/RNSentry.podspec"
       - "packages/core/scripts/sentry_utils.rb"
@@ -33,7 +34,15 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  ready-to-merge-gate:
+    name: Ready-to-merge gate
+    uses: ./.github/workflows/ready-to-merge-workflow.yml
+    with:
+      is-pr: ${{ github.event_name == 'pull_request' }}
+      labels: ${{ toJson(github.event.pull_request.labels) }}
+
   verify:
+    needs: [ready-to-merge-gate]
     name: Verify crash-time screenshot does not freeze
     runs-on: macos-26-xlarge
     steps:
