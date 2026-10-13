@@ -31,6 +31,7 @@ import {
   showFeedbackForm,
   SLIDE_ANIMATION_DURATION,
 } from './FeedbackFormManager';
+import { getFullWindowOverlay } from './fullWindowOverlay';
 import {
   getFeedbackButtonOptions,
   getFeedbackOptions,
@@ -38,7 +39,6 @@ import {
   isPresentOverNativeModalsEnabled,
   isShakeToReportEnabled,
 } from './integration';
-import { getFullWindowOverlay } from './fullWindowOverlay';
 import { lazyLoadShakeToReportIntegration } from './lazy';
 import { ScreenshotButton } from './ScreenshotButton';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
@@ -218,7 +218,11 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
             automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
             onScroll={this._handleScroll}
           >
-            <FeedbackForm {...getFeedbackOptions()} onFormClose={this._handleClose} onFormSubmitted={this._handleClose} />
+            <FeedbackForm
+              {...getFeedbackOptions()}
+              onFormClose={this._handleClose}
+              onFormSubmitted={this._handleClose}
+            />
           </ScrollView>
         </Animated.View>
       </>
