@@ -37,6 +37,7 @@ import {
   getScreenshotButtonOptions,
   isShakeToReportEnabled,
 } from './integration';
+import { getFullWindowOverlay } from './fullWindowOverlay';
 import { lazyLoadShakeToReportIntegration } from './lazy';
 import { ScreenshotButton } from './ScreenshotButton';
 import { startShakeListener, stopShakeListener } from './ShakeToReportBug';
@@ -196,6 +197,50 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
       outputRange: ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.9)'],
     });
 
+    const sheet = (
+      <>
+        <View style={topSpacer} />
+        <Animated.View
+          style={[modalSheetContainer(theme), { transform: [{ translateY: this.state.panY }] }]}
+          {...this._panResponder.panHandlers}
+        >
+          <ScrollView
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+            onScroll={this._handleScroll}
+          >
+            <FeedbackForm {...getFeedbackOptions()} onFormClose={this._handleClose} onFormSubmitted={this._handleClose} />
+          </ScrollView>
+        </Animated.View>
+      </>
+    );
+
+    // On iOS, a React Native `Modal` presents a view controller from the root VC's
+    // presentation chain. When a native-stack screen is already presented (e.g. a
+    // `formSheet`/`modal`), UIKit refuses the second presentation and the form never
+    // shows (see #6875). `FullWindowOverlay` from react-native-screens renders above
+    // everything in the key window — including presented sheets — so the form shows.
+    // When react-native-screens isn't installed we fall back to `Modal`.
+    const FullWindowOverlay = Platform.OS === 'ios' ? getFullWindowOverlay() : undefined;
+    if (FullWindowOverlay) {
+      const { width, height } = Dimensions.get('window');
+      return (
+        <>
+          {this.props.children}
+          {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()} />}
+          {isScreenshotButtonVisible && <ScreenshotButton {...getScreenshotButtonOptions()} />}
+          {isVisible && (
+            <FullWindowOverlay>
+              <Animated.View style={[{ width, height }, { backgroundColor }]} testID="feedback-form-overlay">
+                {sheet}
+              </Animated.View>
+            </FullWindowOverlay>
+          )}
+        </>
+      );
+    }
+
     // Wrapping the `Modal` component in a `View` component is necessary to avoid
     // issues like https://github.com/software-mansion/react-native-reanimated/issues/6035
     return (
@@ -212,24 +257,7 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
               onRequestClose={this._handleClose}
               testID="feedback-form-modal"
             >
-              <View style={topSpacer} />
-              <Animated.View
-                style={[modalSheetContainer(theme), { transform: [{ translateY: this.state.panY }] }]}
-                {...this._panResponder.panHandlers}
-              >
-                <ScrollView
-                  bounces={false}
-                  keyboardShouldPersistTaps="handled"
-                  automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
-                  onScroll={this._handleScroll}
-                >
-                  <FeedbackForm
-                    {...getFeedbackOptions()}
-                    onFormClose={this._handleClose}
-                    onFormSubmitted={this._handleClose}
-                  />
-                </ScrollView>
-              </Animated.View>
+              {sheet}
             </Modal>
           </Animated.View>
         )}
