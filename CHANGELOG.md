@@ -16,7 +16,7 @@
 ### Fixes
 
 - Do not mark `sendDefaultPii` as deprecated in the React Native options ([#6864](https://github.com/getsentry/sentry-react-native/pull/6864))
-- Fix duplicate HTTP breadcrumbs for requests with a query string or differently formatted URLs ([#6872](https://github.com/getsentry/sentry-react-native/issues/6872))
+- Fix duplicate HTTP breadcrumbs for requests with a query string or differently formatted URLs ([#6881](https://github.com/getsentry/sentry-react-native/pull/6881))
 
 ### Dependencies
 
