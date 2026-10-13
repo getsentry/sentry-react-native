@@ -628,7 +628,7 @@ jobs:
         run: yarn install
 
       - name: Boot ${{ env.IOS_DEVICE }} with iOS ${{ env.IOS_VERSION }}
-        uses: futureware-tech/simulator-action@e89aa8f93d3aec35083ff49d2854d07f7186f7f5 # pin@v5
+        uses: futureware-tech/simulator-action@c768f52966d5f70335ec77881f9806b24a52f80e # pin@v6
         with:
           model: ${{ env.IOS_DEVICE }}
           os_version: ${{ env.IOS_VERSION }}
