@@ -19,9 +19,11 @@ export type FeedbackExperiments = {
    * not installed.
    *
    * Known limitation: because the form is drawn in a window-level overlay, the
-   * photo-library screenshot picker ("Add a screenshot", via `imagePicker`) is
-   * presented behind the overlay and can't be used while the form is open. Native
-   * "Take a screenshot", alerts, and text entry are unaffected.
+   * screenshot attachment flows are limited over a presented native-stack sheet.
+   * The photo-library picker ("Add a screenshot", via `imagePicker`) is presented
+   * behind the overlay, and "Take a screenshot" reveals its capture button in the
+   * root view tree behind the sheet — both unreachable while the sheet is up.
+   * Alerts and text entry are unaffected.
    *
    * @default false
    */
