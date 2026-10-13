@@ -1534,24 +1534,45 @@ describe('Mobile Replay Integration', () => {
       expect(integration.getReplayId()).toBe('id-after');
     });
 
-    it('does not link a replay from a dismissed form when a later open uploads nothing', async () => {
-      // First open (a form the user dismisses) uploads a replay; a later open's flush uploads
-      // nothing (e.g. a sampling miss). The later submission must not inherit the dismissed form's
-      // replay id - it belongs to a form the user already closed.
-      mockCaptureReplay.mockResolvedValueOnce('dismissed-form-id').mockResolvedValueOnce(null);
+    it('keeps the replay a draft already uploaded when a reopen flush uploads nothing', async () => {
+      // The form reopens for the same draft (e.g. the screenshot flow). The first open uploaded a
+      // replay; the reopen's flush uploads nothing (e.g. a sampling miss). The submission must still
+      // link the replay already sent for this draft rather than drop it.
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockResolvedValueOnce(null);
       mockGetCurrentReplayId.mockReturnValue(null);
       const integration = mobileReplayIntegration();
       integration.setup?.(mockClient);
 
-      getOpenFeedbackWidget()(); // first open uploads 'dismissed-form-id'
+      getOpenFeedbackWidget()(); // first open uploads 'first-id'
       await flushAsync();
-      getOpenFeedbackWidget()(); // later open, its own flush uploads nothing
+      getOpenFeedbackWidget()(); // reopen (same draft), its own flush uploads nothing
       await flushAsync();
 
       const feedback = makeFeedbackEvent('widget');
       getBeforeSendFeedback()(feedback, { includeReplay: true });
 
-      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
+      expect(feedback.contexts.feedback.replay_id).toBe('first-id');
+    });
+
+    it('does not revive a consumed flush for an unrelated later feedback', async () => {
+      // A widget submit consumes (clears) the flush. A later widget feedback that uploads nothing
+      // must not inherit the previous submission's replay id.
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockResolvedValueOnce(null);
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+      const first = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(first, { includeReplay: true }); // submit consumes the flush
+      expect(first.contexts.feedback.replay_id).toBe('first-id');
+
+      getOpenFeedbackWidget()(); // a fresh, unrelated open whose flush uploads nothing
+      await flushAsync();
+      const second = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(second, { includeReplay: true });
+      expect(second.contexts.feedback.replay_id).toBeUndefined();
     });
 
     it('keeps the in-flight open flush when the form remounts before it settles', async () => {

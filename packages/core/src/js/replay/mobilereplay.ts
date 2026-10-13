@@ -524,20 +524,23 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   }
 
   // Start uploading the buffer when the widget opens. Read the buffer id first (before capture may
-  // restart buffering) so the id we link matches what this flush uploads. Each open starts a fresh
-  // flush, except that a remount while an earlier open's upload is still in flight (e.g. the
-  // screenshot flow closes and reopens the form) reuses it rather than discarding the pending
-  // upload. A new open never inherits a previous open's completed id: that id belongs to the form
-  // that opened it, so reusing it could link a replay from a form the user already dismissed.
-  // Wrapped: a synchronous bridge throw must not propagate out of the widget's `componentDidMount`.
+  // restart buffering) so the id we link matches what this flush uploads. A reopen is the same draft
+  // resumed (the screenshot flow closes and reopens the form, restoring the draft; only a submit
+  // discards it), so it continues the earlier flush: while its upload is still in flight the reopen
+  // reuses it, and once it has settled the reopen carries its uploaded id forward (upgrading to its
+  // own if that capture uploads a fresher replay). That keeps the replay already sent for this draft
+  // instead of dropping it on a reopen that uploads nothing (e.g. an on-error sampling miss). The
+  // flush is cleared on submit, so an unrelated later feedback never inherits it. Wrapped: a
+  // synchronous bridge throw must not propagate out of the widget's `componentDidMount`.
   function flushReplayForFeedbackWidget(): void {
     try {
       if (feedbackReplayFlush && !feedbackReplayFlush.resolved) {
         return;
       }
+      const carried = feedbackReplayFlush?.resolved ? feedbackReplayFlush.id : null;
       const flush: { openId: string | null; id: string | null; resolved: boolean } = {
-        openId: NATIVE.getCurrentReplayId(),
-        id: null,
+        openId: NATIVE.getCurrentReplayId() ?? carried,
+        id: carried,
         resolved: false,
       };
       feedbackReplayFlush = flush;
@@ -550,7 +553,10 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       };
       NATIVE.captureReplay(false)
         .then(uploadedId => {
-          flush.id = uploadedId;
+          // Keep the carried id when this reopen uploaded nothing, so it isn't dropped.
+          if (uploadedId) {
+            flush.id = uploadedId;
+          }
           settle();
         })
         .then(undefined, (error: unknown) => {
