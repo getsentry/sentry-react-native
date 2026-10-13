@@ -5,10 +5,8 @@ name: iOS Crash Screenshot No-Freeze
 # attachScreenshot must NOT hang the crash handler. See
 # scripts/verify-ios-crash-screenshot-no-freeze.sh for the full mechanism.
 #
-# It validates whatever sentry-cocoa the SDK currently bundles, so it is wired to run when the
-# bundled cocoa version changes (the podspec / version table) and on manual dispatch. It will be
-# RED until the bundled cocoa is bumped to a release containing the fix — that is the point: the
-# cocoa-bump PR turns it green.
+# It validates whatever sentry-cocoa the SDK currently bundles (fixed since 9.30.1), so it is wired
+# to run when the bundled cocoa version changes (the podspec / version table) and on manual dispatch.
 
 on:
   workflow_dispatch:

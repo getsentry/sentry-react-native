@@ -7,13 +7,12 @@
 # `dispatch_assert_queue(main)`, re-enters the signal handler, and HANGS on non-Mach crashes
 # (abort/terminate). A fixed cocoa reads `UIWindowScene.windows` instead and terminates cleanly.
 #
-# This script drives the Expo sample (with the env-gated `withSceneCrashRepro` plugin), crashes it
-# off the main thread, and ASSERTS the process terminated cleanly, wrote a crash report, and still
+# This script drives the Expo sample (with the `SENTRY_TEST_ABORT` hook from `withIosSceneLifecycle`),
+# crashes it off the main thread, and ASSERTS the process terminated cleanly, wrote a crash report, and still
 # captured a screenshot — with no `dispatch_assert_queue_fail` re-entry.
 #
-# It validates whatever sentry-cocoa the SDK currently bundles, so it goes green once the bundled
-# cocoa version is bumped to a release that contains the fix. To validate a local cocoa build before
-# release, stage it and pass its cache dir:
+# It validates whatever sentry-cocoa the SDK currently bundles (the fix ships in 9.30.1). To validate
+# a local cocoa build before release, stage it and pass its cache dir:
 #   SENTRY_XCFRAMEWORK_CACHE_DIR=/path/to/cache (containing <version>/Sentry.xcframework) ...
 #
 # Usage: scripts/verify-ios-crash-screenshot-no-freeze.sh
@@ -26,7 +25,9 @@ IOS_DIR="$EXPO_DIR/ios"
 BUNDLE_ID="io.sentry.expo.sample"
 WORKDIR="${WORKDIR:-$(mktemp -d)}"
 DD="$WORKDIR/DerivedData"
-ABORT_DELAY_PADDING=20   # seconds to wait past the 8s in-app abort before declaring a freeze
+ABORT_DELAY=8            # must match the in-app SENTRY_TEST_ABORT delay
+ABORT_DELAY_PADDING=20   # seconds to wait past the in-app abort before declaring a freeze
+MIN_ALIVE=$((ABORT_DELAY - 2))   # dying earlier means something else crashed the app
 
 log()  { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 fail() { printf '\n\033[31mFAIL: %s\033[0m\n' "$*" >&2; exit 1; }
@@ -66,6 +67,8 @@ log "Prebuilding Expo sample"
   || fail "Scene manifest not injected — withIosSceneLifecycle did not apply (Expo template drift?)."
 grep -q "ExpoReactNativeFactoryProvider" "$IOS_DIR/sentryreactnativeexposample/AppDelegate.swift" \
   || fail "AppDelegate not wired for the scene lifecycle — withIosSceneLifecycle did not apply."
+grep -q 'SENTRY_TEST_ABORT' "$IOS_DIR/sentryreactnativeexposample/AppDelegate.swift" \
+  || fail "AppDelegate is missing the SENTRY_TEST_ABORT hook — withIosSceneLifecycle did not apply."
 
 # ---- 3. Pod install (honors SENTRY_XCFRAMEWORK_CACHE_DIR for local pre-release validation) --------
 log "Installing pods"
@@ -88,11 +91,12 @@ log "Running the crash and classifying the outcome"
 xcrun simctl terminate "$SIM_ID" "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl uninstall "$SIM_ID" "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl install "$SIM_ID" "$APP"
+LAUNCHED_AT=$SECONDS
 PID="$(SIMCTL_CHILD_SENTRY_TEST_ABORT=1 xcrun simctl launch "$SIM_ID" "$BUNDLE_ID" | awk -F': ' '{print $2}')"
-echo "Launched pid=$PID (abort scheduled ~8s after launch)"
+echo "Launched pid=$PID (abort scheduled ~${ABORT_DELAY}s after launch)"
 
 TERMINATED=0
-for _ in $(seq 1 $((8 + ABORT_DELAY_PADDING))); do
+for _ in $(seq 1 $((ABORT_DELAY + ABORT_DELAY_PADDING))); do
   sleep 1
   ps -p "$PID" >/dev/null 2>&1 || { TERMINATED=1; break; }
 done
@@ -105,7 +109,10 @@ if [ "$TERMINATED" -eq 0 ]; then
   xcrun simctl terminate "$SIM_ID" "$BUNDLE_ID" 2>/dev/null || true
   fail "App FROZE during crash handling — the bundled sentry-cocoa still has issue #9281."
 fi
-echo "Process terminated cleanly after the crash."
+ALIVE=$((SECONDS - LAUNCHED_AT))
+[ "$ALIVE" -ge "$MIN_ALIVE" ] \
+  || fail "Process died after ${ALIVE}s, before the scheduled abort — an unrelated crash, not the off-main abort path."
+echo "Process terminated cleanly ${ALIVE}s after launch."
 
 # ---- 6. Assert the crash report + screenshot were produced, with no trap re-entry ----------------
 log "Validating crash artifacts"
@@ -120,6 +127,15 @@ file "$SHOT" | grep -q "PNG image data" || fail "Screenshot is not a valid PNG."
 if grep -q "dispatch_assert_queue_fail" "$REPORT"; then
   fail "Crash report contains a dispatch_assert_queue_fail re-entry — the trap still fires."
 fi
+# The report must be the scheduled background abort: SIGABRT on a non-main thread.
+python3 - "$REPORT" <<'PY' || fail "Crash report is not a SIGABRT on a background thread — the off-main abort path was not exercised."
+import json, sys
+crash = json.load(open(sys.argv[1]))["crash"]
+signal = crash["error"].get("signal", {}).get("signal")
+crashed = [t for t in crash.get("threads", []) if t.get("crashed")]
+print(f"signal={signal} crashed_thread={[t.get('index') for t in crashed]}")
+sys.exit(0 if signal == 6 and crashed and crashed[0].get("index") != 0 else 1)
+PY
 
 echo "Crash report: $(basename "$REPORT")"
 echo "Screenshot:   $(file -b "$SHOT")"
