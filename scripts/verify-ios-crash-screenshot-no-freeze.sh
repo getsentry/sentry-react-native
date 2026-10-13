@@ -105,7 +105,7 @@ if [ "$TERMINATED" -eq 0 ]; then
   echo "Process $PID still alive long after the abort — capturing the hung stack:"
   sample "$PID" 2 -file "$WORKDIR/sample.txt" 2>/dev/null || true
   grep -iE "dispatch_assert_queue|isCurrentExecutor|collectWindowsOnCurrentThread|saveScreenShots|window.getter" \
-    "$WORKDIR/sample.txt" | sort -u | head
+    "$WORKDIR/sample.txt" 2>/dev/null | sort -u | head || true
   xcrun simctl terminate "$SIM_ID" "$BUNDLE_ID" 2>/dev/null || true
   fail "App FROZE during crash handling — the bundled sentry-cocoa still has issue #9281."
 fi
