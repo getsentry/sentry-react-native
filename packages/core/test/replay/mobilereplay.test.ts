@@ -1554,6 +1554,35 @@ describe('Mobile Replay Integration', () => {
       expect(feedback.contexts.feedback.replay_id).toBe('first-id');
     });
 
+    it('links the carried id, not the current buffer, when submitting during a reopen flush', async () => {
+      // First open uploads 'first-id'. The form reopens and its capture is still in flight when the
+      // user submits, while a current buffer id exists. The submission must link the replay already
+      // sent for this draft ('first-id'), not the unconfirmed current buffer.
+      let resolveReopen!: (v: string | null) => void;
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockReturnValueOnce(
+        new Promise<string | null>(resolve => {
+          resolveReopen = resolve;
+        }),
+      );
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // first open uploads 'first-id'
+      await flushAsync();
+
+      mockGetCurrentReplayId.mockReturnValue('current-buffer'); // a buffer exists at reopen
+      getOpenFeedbackWidget()(); // reopen, capture still pending
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true }); // submit before the reopen settles
+      expect(feedback.contexts.feedback.replay_id).toBe('first-id');
+
+      // The reopen's capture then uploads nothing; nothing to revive, nothing changes.
+      resolveReopen(null);
+      await flushAsync();
+    });
+
     it('does not revive a consumed flush for an unrelated later feedback', async () => {
       // A widget submit consumes (clears) the flush. A later widget feedback that uploads nothing
       // must not inherit the previous submission's replay id.

@@ -539,7 +539,10 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       }
       const carried = feedbackReplayFlush?.resolved ? feedbackReplayFlush.id : null;
       const flush: { openId: string | null; id: string | null; resolved: boolean } = {
-        openId: NATIVE.getCurrentReplayId() ?? carried,
+        // Prefer a carried id as the pre-resolve fallback: it is a replay already sent for this
+        // draft, so a submit while this reopen's capture is still in flight must not fall back to
+        // the current (unconfirmed, maybe-never-sent) buffer id instead.
+        openId: carried ?? NATIVE.getCurrentReplayId(),
         id: carried,
         resolved: false,
       };
