@@ -15,6 +15,7 @@
 
 ### Fixes
 
+- Show the feedback form above native-stack modals on iOS via the experimental `_experiments.presentOverNativeModals` feedback option ([#6882](https://github.com/getsentry/sentry-react-native/pull/6882))
 - Do not mark `sendDefaultPii` as deprecated in the React Native options ([#6864](https://github.com/getsentry/sentry-react-native/pull/6864))
 
 ### Dependencies

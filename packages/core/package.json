@@ -85,7 +85,8 @@
     "open": "*",
     "promise": "*",
     "react": ">=17.0.0",
-    "react-native": ">=0.65.0"
+    "react-native": ">=0.65.0",
+    "react-native-screens": "*"
   },
   "dependencies": {
     "@sentry/browser": "10.76.2",
@@ -198,6 +199,9 @@
       "optional": true
     },
     "promise": {
+      "optional": true
+    },
+    "react-native-screens": {
       "optional": true
     }
   }

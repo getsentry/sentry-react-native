@@ -31,10 +31,12 @@ import {
   showFeedbackForm,
   SLIDE_ANIMATION_DURATION,
 } from './FeedbackFormManager';
+import { getFullWindowOverlay } from './fullWindowOverlay';
 import {
   getFeedbackButtonOptions,
   getFeedbackOptions,
   getScreenshotButtonOptions,
+  isPresentOverNativeModalsEnabled,
   isShakeToReportEnabled,
 } from './integration';
 import { lazyLoadShakeToReportIntegration } from './lazy';
@@ -83,6 +85,7 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
   };
 
   private _themeListener: NativeEventSubscription | undefined;
+  private _dimensionsListener: { remove: () => void } | undefined;
   private _startedShakeListener: boolean = false;
 
   private _panResponder = PanResponder.create({
@@ -132,9 +135,23 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
       this.forceUpdate();
     });
 
+    // When the form is rendered in a `FullWindowOverlay` its size comes from
+    // `Dimensions.get('window')` at render time, so re-render on rotation/resize
+    // to keep it full-screen. (No-op for the `Modal` path, which auto-fills.)
+    this._dimensionsListener = Dimensions.addEventListener('change', () => {
+      this.forceUpdate();
+    });
+
     if (isShakeToReportEnabled()) {
       lazyLoadShakeToReportIntegration();
       this._startedShakeListener = startShakeListener(showFeedbackForm);
+    }
+
+    if (Platform.OS === 'ios' && isPresentOverNativeModalsEnabled() && !getFullWindowOverlay()) {
+      debug.warn(
+        "[Feedback] '_experiments.presentOverNativeModals' is enabled but 'react-native-screens' is not available; " +
+          'falling back to Modal. The form may not appear above presented native-stack sheets.',
+      );
     }
   }
 
@@ -144,6 +161,10 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
   public componentWillUnmount(): void {
     if (this._themeListener) {
       this._themeListener.remove();
+    }
+
+    if (this._dimensionsListener) {
+      this._dimensionsListener.remove();
     }
 
     if (this._startedShakeListener) {
@@ -196,6 +217,56 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
       outputRange: ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.9)'],
     });
 
+    const sheet = (
+      <>
+        <View style={topSpacer} />
+        <Animated.View
+          style={[modalSheetContainer(theme), { transform: [{ translateY: this.state.panY }] }]}
+          {...this._panResponder.panHandlers}
+        >
+          <ScrollView
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+            onScroll={this._handleScroll}
+          >
+            <FeedbackForm
+              {...getFeedbackOptions()}
+              onFormClose={this._handleClose}
+              onFormSubmitted={this._handleClose}
+            />
+          </ScrollView>
+        </Animated.View>
+      </>
+    );
+
+    // On iOS, a React Native `Modal` presents a view controller from the root VC's
+    // presentation chain. When a native-stack screen is already presented (e.g. a
+    // `formSheet`/`modal`), UIKit refuses the second presentation and the form never
+    // shows. `FullWindowOverlay` from react-native-screens renders above everything
+    // in the key window — including presented sheets — so the form shows.
+    // Opt-in via `_experiments.presentOverNativeModals`; falls back to `Modal` when
+    // disabled or when react-native-screens isn't installed.
+    const FullWindowOverlay =
+      Platform.OS === 'ios' && isPresentOverNativeModalsEnabled() ? getFullWindowOverlay() : undefined;
+    if (FullWindowOverlay) {
+      const { width, height } = Dimensions.get('window');
+      return (
+        <>
+          {this.props.children}
+          {isButtonVisible && <FeedbackButton {...getFeedbackButtonOptions()} />}
+          {isScreenshotButtonVisible && <ScreenshotButton {...getScreenshotButtonOptions()} />}
+          {isVisible && (
+            <FullWindowOverlay>
+              <Animated.View style={[{ width, height }, { backgroundColor }]} testID="feedback-form-overlay">
+                {sheet}
+              </Animated.View>
+            </FullWindowOverlay>
+          )}
+        </>
+      );
+    }
+
     // Wrapping the `Modal` component in a `View` component is necessary to avoid
     // issues like https://github.com/software-mansion/react-native-reanimated/issues/6035
     return (
@@ -212,24 +283,7 @@ export class FeedbackFormProvider extends React.Component<FeedbackFormProviderPr
               onRequestClose={this._handleClose}
               testID="feedback-form-modal"
             >
-              <View style={topSpacer} />
-              <Animated.View
-                style={[modalSheetContainer(theme), { transform: [{ translateY: this.state.panY }] }]}
-                {...this._panResponder.panHandlers}
-              >
-                <ScrollView
-                  bounces={false}
-                  keyboardShouldPersistTaps="handled"
-                  automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
-                  onScroll={this._handleScroll}
-                >
-                  <FeedbackForm
-                    {...getFeedbackOptions()}
-                    onFormClose={this._handleClose}
-                    onFormSubmitted={this._handleClose}
-                  />
-                </ScrollView>
-              </Animated.View>
+              {sheet}
             </Modal>
           </Animated.View>
         )}

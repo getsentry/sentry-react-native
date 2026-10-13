@@ -7,7 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Sentry from '@sentry/react-native';
 import { isTurboModuleEnabled } from '@sentry/react-native/dist/js/utils/environment';
-import { LogBox, Platform } from 'react-native';
+import { Button, LogBox, Platform, Text, View } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 
 import RunningIndicator from './components/RunningIndicator';
@@ -130,6 +130,7 @@ Sentry.init({
         enableScreenshot: true,
         enableTakeScreenshot: true,
         enableShakeToReport: true,
+        _experiments: { presentOverNativeModals: true },
         styles: {
           submitButton: {
             backgroundColor: '#6a1b9a',
@@ -263,6 +264,25 @@ function BottomTabsNavigator() {
   );
 }
 
+// Demonstrates the feedback form presented over a native-stack `formSheet`.
+// Requires `feedbackIntegration({ _experiments: { presentOverNativeModals: true } })`
+// so the form is rendered above the presented sheet on iOS.
+function FormSheetScreen() {
+  return (
+    <View style={{ padding: 24, gap: 16 }}>
+      <Text style={{ fontSize: 16 }}>
+        This screen is a native-stack `formSheet`. Tap below (or shake) to open
+        the feedback form — it appears above this sheet, and typing, submit,
+        Cancel and swipe-down all work.
+      </Text>
+      <Button
+        title="Show feedback form"
+        onPress={() => Sentry.showFeedbackForm()}
+      />
+    </View>
+  );
+}
+
 function RootNavigationContainer() {
   return (
     <Sentry.NavigationContainer>
@@ -273,6 +293,11 @@ function RootNavigationContainer() {
         <StackNavigator.Screen
           name="BottomTabs"
           component={BottomTabsNavigator}
+        />
+        <StackNavigator.Screen
+          name="FormSheet"
+          component={FormSheetScreen}
+          options={{ presentation: 'formSheet', headerShown: true }}
         />
         <StackNavigator.Screen
           name="Webview"
