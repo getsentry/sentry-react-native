@@ -18,6 +18,7 @@ on:
       - ".github/workflows/ios-crash-screenshot-no-freeze.yml"
       - "scripts/verify-ios-crash-screenshot-no-freeze.sh"
       - "samples/expo/plugins/withIosSceneLifecycle.js"
+      - "samples/expo/app.json"
   pull_request:
     paths:
       - "packages/core/RNSentry.podspec"
@@ -25,6 +26,7 @@ on:
       - ".github/workflows/ios-crash-screenshot-no-freeze.yml"
       - "scripts/verify-ios-crash-screenshot-no-freeze.sh"
       - "samples/expo/plugins/withIosSceneLifecycle.js"
+      - "samples/expo/app.json"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
