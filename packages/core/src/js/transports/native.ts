@@ -33,7 +33,8 @@ export class NativeTransport implements Transport {
    * @param envelope Envelope that should be sent to Sentry.
    */
   public send(envelope: Envelope): PromiseLike<TransportMakeRequestResponse> {
-    // TODO: We currently can't retrieve the response information from native
+    // The native SDK owns the transport and doesn't expose the HTTP response, so there's
+    // no response info to return.
     return this._buffer.add(() => NATIVE.sendEnvelope(envelope)).then(() => ({}));
   }
 

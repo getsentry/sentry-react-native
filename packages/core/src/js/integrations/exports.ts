@@ -60,4 +60,5 @@ export {
   linkedErrorsIntegration as browserLinkedErrorsIntegration,
   rewriteFramesIntegration,
   extraErrorDataIntegration,
+  thirdPartyErrorFilterIntegration,
 } from '@sentry/react';

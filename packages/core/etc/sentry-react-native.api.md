@@ -106,6 +106,7 @@ import { startSpanManual } from '@sentry/core';
 import type { StartSpanOptions } from '@sentry/core';
 import { suppressTracing } from '@sentry/core';
 import type { TextStyle } from 'react-native';
+import { thirdPartyErrorFilterIntegration } from '@sentry/react';
 import { Thread } from '@sentry/core';
 import { TransactionEvent } from '@sentry/core';
 import type { TransportMakeRequestResponse } from '@sentry/core';
@@ -895,7 +896,7 @@ export interface ReactNativeNavigationOptions {
 // Warning: (ae-forgotten-export) The symbol "ReactNativeTransportOptions" needs to be exported by the entry point index.d.ts
 //
 // @public
-export interface ReactNativeOptions extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection'>, BaseReactNativeOptions {
+export interface ReactNativeOptions extends Omit<Options<ReactNativeTransportOptions>, '_experiments' | 'dataCollection' | 'sendDefaultPii'>, BaseReactNativeOptions {
 }
 
 // @public (undocumented)
@@ -1185,6 +1186,8 @@ export type SupabaseReactNativeIntegrationOptions = {
 };
 
 export { suppressTracing }
+
+export { thirdPartyErrorFilterIntegration }
 
 export { Thread }
 

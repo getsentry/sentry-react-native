@@ -4,7 +4,7 @@ import { modifyAppBuildGradle } from '../../plugin/src/withSentryAndroid';
 jest.mock('../../plugin/src/logger');
 
 const buildGradleWithSentry = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim(), "sentry.gradle.kts")
 
 android {
 }
@@ -16,7 +16,7 @@ android {
 `;
 
 const monoRepoBuildGradleWithSentry = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim(), "sentry.gradle.kts")
 
 android {
 }
@@ -28,7 +28,14 @@ android {
 `;
 
 const buildGradleWithOldSentryGradle = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim(), "sentry.gradle")
+
+android {
+}
+`;
+
+const buildGradleWithLegacyResolve = `
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
 
 android {
 }
@@ -63,6 +70,26 @@ describe('Configures Android native project correctly', () => {
 
   it('Migrates old sentry.gradle reference to sentry.gradle.kts', () => {
     expect(modifyAppBuildGradle(buildGradleWithOldSentryGradle)).toStrictEqual(buildGradleWithSentry);
+  });
+
+  it('Resolves @sentry/react-native from the Gradle root project directory', () => {
+    expect(modifyAppBuildGradle(buildGradleWithOutSentry)).toContain('.execute(null, rootDir).text.trim()');
+  });
+
+  it('Migrates the legacy resolve without a working directory to rootDir', () => {
+    expect(modifyAppBuildGradle(buildGradleWithLegacyResolve)).toStrictEqual(buildGradleWithSentry);
+  });
+
+  it('Migrates the legacy resolve and old sentry.gradle reference in one pass', () => {
+    const legacy = buildGradleWithLegacyResolve.replace('sentry.gradle.kts', 'sentry.gradle');
+    expect(modifyAppBuildGradle(legacy)).toStrictEqual(buildGradleWithSentry);
+  });
+
+  it('Migrates the legacy resolve and applies disableAutoUpload in one pass', () => {
+    const result = modifyAppBuildGradle(buildGradleWithLegacyResolve, true);
+    expect(result).not.toContain('.execute().text.trim()');
+    expect(result).toContain('.execute(null, rootDir).text.trim()');
+    expect(result).toContain('project.ext.shouldSentryAutoUploadGeneral = { -> return false }');
   });
 
   it('Migrates old sentry.gradle and applies disableAutoUpload in one pass', () => {
@@ -102,7 +129,7 @@ describe('Configures Android native project correctly', () => {
 
   it('Does not duplicate override if already present', () => {
     const gradleWithOverride = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim(), "sentry.gradle.kts")
 project.ext.shouldSentryAutoUploadGeneral = { -> return false }
 
 android {
@@ -114,7 +141,7 @@ android {
 
   it('Removes override when toggling disableAutoUpload back to false', () => {
     const gradleWithOverride = `
-apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute().text.trim(), "sentry.gradle.kts")
+apply from: new File(["node", "--print", "require('path').dirname(require.resolve('@sentry/react-native/package.json'))"].execute(null, rootDir).text.trim(), "sentry.gradle.kts")
 project.ext.shouldSentryAutoUploadGeneral = { -> return false }
 
 android {

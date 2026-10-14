@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "8.29.0",
+  "version": "8.30.0",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -17,6 +17,7 @@
     "definition": "dist/js/index.d.ts"
   },
   "main": "dist/js/index.js",
+  "sideEffects": false,
   "scripts": {
     "build": "npx run-s build:sdk downlevel build:tools build:plugin build:replay-stubs",
     "build:sdk": "tsc -p tsconfig.build.json",
@@ -40,8 +41,9 @@
     "fix": "npx run-s fix:oxlint fix:fmt",
     "fix:oxlint": "OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true oxlint --type-aware --tsconfig tsconfig.lint.json --fix",
     "fix:fmt": "oxfmt \"{src,test,scripts,plugin/src}/**/**.ts\" \"{src,test}/**/**.tsx\"",
-    "lint": "npx run-s lint:oxlint lint:fmt",
+    "lint": "npx run-s lint:oxlint lint:fmt lint:side-effects",
     "lint:oxlint": "sh -c 'OUT=$(OXLINT_TSGOLINT_DANGEROUSLY_SUPPRESS_PROGRAM_DIAGNOSTICS=true oxlint --type-aware --tsconfig tsconfig.lint.json --deny-warnings 2>&1); echo \"$OUT\"; echo \"$OUT\" | grep -qE \"Found 0 warnings and 0 errors\"'",
+    "lint:side-effects": "node scripts/check-side-effects.js",
     "lint:fmt": "oxfmt --check \"{src,test,scripts,plugin/src}/**/**.ts\" \"{src,test}/**/**.tsx\"",
     "api-report:generate": "api-extractor run --local --verbose",
     "api-report:check": "api-extractor run --verbose"
@@ -86,12 +88,12 @@
     "react-native": ">=0.65.0"
   },
   "dependencies": {
-    "@sentry/browser": "10.75.2",
-    "@sentry/bundler-plugins": "10.75.2",
+    "@sentry/browser": "10.76.2",
+    "@sentry/bundler-plugins": "10.76.2",
     "@sentry/cli": "3.8.0",
-    "@sentry/core": "10.75.2",
+    "@sentry/core": "10.76.2",
     "@sentry/expo-upload-sourcemaps": "workspace:*",
-    "@sentry/react": "10.75.2"
+    "@sentry/react": "10.76.2"
   },
   "devDependencies": {
     "@babel/core": "^7.26.7",
@@ -102,9 +104,9 @@
     "@mswjs/interceptors": "^0.25.15",
     "@react-native/babel-preset": "0.87.1",
     "@react-native/jest-preset": "0.87.1",
-    "@sentry/eslint-plugin-sdk": "10.75.2",
-    "@sentry/typescript": "10.75.2",
-    "@sentry/wizard": "8.0.0",
+    "@sentry/eslint-plugin-sdk": "10.76.2",
+    "@sentry/typescript": "10.76.2",
+    "@sentry/wizard": "8.0.1",
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.9.3",

@@ -10,13 +10,36 @@ import {
   enrichAndroidProfileWithEventContext,
   enrichCombinedProfileWithEventContext,
 } from '../../src/js/profiling/utils';
-import { getDefaultEnvironment } from '../../src/js/utils/environment';
+import { getDefaultEnvironment, getHermesVersion } from '../../src/js/utils/environment';
 import { createMockMinimalValidAndroidProfile, createMockMinimalValidHermesProfileEvent } from './fixtures';
 
 describe('enrichCombinedProfileWithEventContext', () => {
   beforeEach(() => {
     (getDefaultEnvironment as jest.Mock).mockReturnValue('production');
     (getDebugMetadata as jest.Mock).mockReturnValue([]);
+  });
+
+  test('should set the hermes runtime version from getHermesVersion', () => {
+    // OSS Hermes reports the version it was built against, e.g. `for RN 0.76.0`, not a semver.
+    (getHermesVersion as jest.Mock).mockReturnValue('for RN 0.76.0');
+    const profile: CombinedProfileEvent = createMockMinimalValidHermesProfileEvent();
+    const event = createMockEvent();
+
+    const result = enrichCombinedProfileWithEventContext('profile-id', profile, event);
+
+    expect(result).not.toBeNull();
+    expect(result!.runtime).toEqual({ name: 'hermes', version: 'for RN 0.76.0' });
+  });
+
+  test('should fall back to an empty runtime version when the hermes version is unavailable', () => {
+    (getHermesVersion as jest.Mock).mockReturnValue(undefined);
+    const profile: CombinedProfileEvent = createMockMinimalValidHermesProfileEvent();
+    const event = createMockEvent();
+
+    const result = enrichCombinedProfileWithEventContext('profile-id', profile, event);
+
+    expect(result).not.toBeNull();
+    expect(result!.runtime).toEqual({ name: 'hermes', version: '' });
   });
 
   function createMockEvent(overrides?: Partial<Event>): Event {

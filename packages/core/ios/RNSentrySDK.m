@@ -67,6 +67,13 @@ static NSString *SENTRY_OPTIONS_RESOURCE_TYPE = @"json";
         }
     }
 
+    if (options == nil) {
+        // Even the fallback failed. Skip starting instead of passing nil options to
+        // the native SDK, which would crash it.
+        NSLog(@"[RNSentry] Could not create options; skipping native SDK start.");
+        return;
+    }
+
     [RNSentryStart updateWithReactDefaults:options];
     if (configureOptions != nil) {
         configureOptions(options);

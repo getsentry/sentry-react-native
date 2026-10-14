@@ -35,7 +35,7 @@ describe('spotlight', () => {
     expect(originalEnvelopeReference).toEqual(createMockEnvelope());
   });
 
-  it('should remove image attachments from spotlight envelope', async () => {
+  it('should forward image attachments to spotlight', async () => {
     const mockClient = createMockClient();
 
     const spotlight = spotlightIntegration();
@@ -47,7 +47,7 @@ describe('spotlight', () => {
 
     const [{ request }] = requestListener.mock.calls[0];
     expect(spotlightBeforeEnvelope).toBeDefined();
-    expect((await request.text()).includes('image/png')).toBe(false);
+    expect((await request.text()).includes('image/png')).toBe(true);
   });
 });
 

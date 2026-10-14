@@ -24,6 +24,11 @@
 {
     SentryOptions *options = [self createOptionsWithDictionary:javascriptOptions
                                                          error:errorPointer];
+    if (options == nil) {
+        // Parsing failed (e.g. invalid DSN) and set `*errorPointer`. Return early so
+        // the caller can reject; starting with nil options crashes the native SDK.
+        return;
+    }
     [self updateWithReactDefaults:options];
     [self updateWithReactFinals:options];
     NSString *jsSdkVersion = nil;
@@ -120,8 +125,8 @@
 
     // Exclude Dev Server and Sentry Dsn request from Breadcrumbs
     NSString *dsn = [self getURLFromDSN:[mutableOptions valueForKey:@"dsn"]];
-    // TODO: For Auto Init from JS dev server is resolved automatically, for init from options file
-    // dev server has to be specified manually
+    // devServerUrl is resolved by the JS layer on auto-init; for init from an options file it comes
+    // from the options instead (JS isn't available here to resolve it).
     NSString *devServerUrl = [mutableOptions valueForKey:@"devServerUrl"];
     sentryOptions.beforeBreadcrumb
         = ^SentryBreadcrumb *_Nullable(SentryBreadcrumb *_Nonnull breadcrumb)
@@ -154,8 +159,8 @@
             sentryOptions.spotlightUrl = spotlightValue;
         } else if ([spotlightValue isKindOfClass:[NSNumber class]]) {
             sentryOptions.enableSpotlight = [spotlightValue boolValue];
-            // TODO: For Auto init from JS set automatically for init from options file have to be
-            // set manually
+            // defaultSidecarUrl is resolved by the JS layer on auto-init; for init from an options
+            // file it comes from the options instead.
             id defaultSpotlightUrl = [mutableOptions valueForKey:@"defaultSidecarUrl"];
             if (defaultSpotlightUrl != nil) {
                 sentryOptions.spotlightUrl = defaultSpotlightUrl;

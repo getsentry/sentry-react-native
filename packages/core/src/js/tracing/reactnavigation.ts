@@ -867,7 +867,7 @@ export const reactNavigationIntegration = ({
       if (isSentrySpan(latestNavigationSpan)) {
         markRootSpanForDiscard(latestNavigationSpan, 'discarded_latest_navigation');
       }
-      // TODO: What if it's not SentrySpan?
+      // A non-SentrySpan here is a non-recording span whose end() is a no-op, so nothing to discard.
       latestNavigationSpan.end();
       latestNavigationSpan = undefined;
     }

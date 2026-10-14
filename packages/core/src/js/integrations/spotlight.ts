@@ -47,15 +47,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
     return;
   }
 
-  client.on('beforeEnvelope', (originalEnvelope: Envelope) => {
-    // TODO: This is a workaround for spotlight/sidecar not supporting images
-    const spotlightEnvelope: Envelope = [...originalEnvelope];
-    const envelopeItems = [...originalEnvelope[1]].filter(
-      item => typeof item[0].content_type !== 'string' || !item[0].content_type.startsWith('image'),
-    );
-
-    spotlightEnvelope[1] = envelopeItems as Envelope[1];
-
+  client.on('beforeEnvelope', (envelope: Envelope) => {
     const xhr = createStealthXhr();
     if (!xhr) {
       debug.error('[Spotlight] Sentry SDK can not create XHR object');
@@ -80,7 +72,7 @@ function sendEnvelopesToSidecar(client: Client, sidecarUrl: string): void {
       }
     };
 
-    xhr.send(serializeEnvelope(spotlightEnvelope));
+    xhr.send(serializeEnvelope(envelope));
   });
 }
 

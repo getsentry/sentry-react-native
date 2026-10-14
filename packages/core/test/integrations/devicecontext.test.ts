@@ -93,6 +93,19 @@ describe('Device Context Integration', () => {
     });
   });
 
+  it('adds the native connection type and technology to the device context', async () => {
+    const { processedEvent } = await processEventWith({
+      nativeContexts: {
+        contexts: { device: { connection_type: 'cellular', connection_effective_type: '5g' } },
+      },
+    });
+    expect(processedEvent).toStrictEqual({
+      contexts: {
+        device: { connection_type: 'cellular', connection_effective_type: '5g' },
+      },
+    });
+  });
+
   it('merge native tags', async () => {
     const { processedEvent } = await processEventWith({
       nativeContexts: { tags: { duplicate: 'native-tag', native: 'tag' } },

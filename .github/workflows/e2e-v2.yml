@@ -112,9 +112,9 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
 
-      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
+      - uses: ruby/setup-ruby@e81a8fa391b11a595c1b7ed84177cc0fe02faf83 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           ruby-version: "3.3.0"
@@ -331,7 +331,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
 
       - name: Setup Global Tools
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
@@ -346,7 +346,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         run: yarn install
 
-      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1
+      - uses: ruby/setup-ruby@e81a8fa391b11a595c1b7ed84177cc0fe02faf83 # v1
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           ruby-version: "3.3.0"
@@ -429,7 +429,7 @@ jobs:
 
       - name: Download App Package
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.build-type == 'production' }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ matrix.rn-version }}-${{ matrix.rn-architecture }}-${{ matrix.engine }}-${{ matrix.platform }}-${{ matrix.build-type }}-${{ matrix.ios-use-frameworks }}-app-package
           path: dev-packages/e2e-tests
@@ -464,7 +464,7 @@ jobs:
 
       - name: Gradle cache
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6
 
       - name: Setup KVM
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'android' }}
@@ -506,7 +506,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         run: xcrun simctl list devices available
 
-      - uses: futureware-tech/simulator-action@e89aa8f93d3aec35083ff49d2854d07f7186f7f5 # pin@v5
+      - uses: futureware-tech/simulator-action@c768f52966d5f70335ec77881f9806b24a52f80e # pin@v6
         if: ${{ steps.platform-check.outputs.skip != 'true' && matrix.platform == 'ios' }}
         with:
           model: ${{ env.IOS_DEVICE }}

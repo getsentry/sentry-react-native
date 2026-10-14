@@ -10,7 +10,7 @@ import { fetchSourceContext, parseErrorStack, symbolicateStackTrace } from './de
 
 const INTEGRATION_NAME = 'DebugSymbolicator';
 
-const INTERNAL_CALLSITES_REGEX = new RegExp(['ReactNativeRenderer-dev\\.js$', 'MessageQueue\\.js$'].join('|'));
+const INTERNAL_CALLSITES_REGEX = /ReactNativeRenderer-dev\.js$|MessageQueue\.js$/;
 
 /**
  * React Native Error
