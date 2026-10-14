@@ -41,13 +41,33 @@ export interface SentryWebViewOptions {
  * A no-op `onMessage` is also returned: `react-native-webview` only executes
  * injected JavaScript on Android when an `onMessage` handler is set, so this is
  * required for the injection to run there. If you need your own `onMessage`, spread
- * these props first and set `onMessage` after them.
+ * these props first and set `onMessage` after them — any handler keeps the injection
+ * running on Android.
+ *
+ * `injectedJavaScriptBeforeContentLoaded` is a single string, not a list. Spreading
+ * these props and then setting your own `injectedJavaScriptBeforeContentLoaded`
+ * after replaces Sentry's injection and silently disables trace linking (and setting
+ * it before the spread drops yours). If you have your own before-content script,
+ * concatenate it with the returned one instead of overriding it.
  *
  * @example
  * ```tsx
  * <WebView
  *   source={{ uri: 'https://example.com' }}
  *   {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
+ * />
+ * ```
+ *
+ * @example
+ * Composing with your own `injectedJavaScriptBeforeContentLoaded`:
+ * ```tsx
+ * const { injectedJavaScriptBeforeContentLoaded, onMessage } =
+ *   sentryWebViewProps({ allowedHosts: ['example.com'] });
+ *
+ * <WebView
+ *   source={{ uri: 'https://example.com' }}
+ *   onMessage={onMessage}
+ *   injectedJavaScriptBeforeContentLoaded={myScript + '\n' + injectedJavaScriptBeforeContentLoaded}
  * />
  * ```
  */
