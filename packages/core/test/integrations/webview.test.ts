@@ -220,4 +220,125 @@ describe('sentryWebViewProps', () => {
       expect(props.onMessage()).toBeUndefined();
     });
   });
+
+  // The injected script embeds trace values via JSON.stringify. These tests feed
+  // hostile values through every embedding point and assert they can only ever be
+  // read back as inert meta content — never executed as code. A breakout would set
+  // the `__pwned` canary on the fuzzed window.
+  describe('fuzzing: embedded values cannot break out of the injected script', () => {
+    /** Runs the script against a fresh DOM and reports whether a breakout executed. */
+    function runFuzz(
+      script: string,
+      hostname: string,
+    ): { metas: Array<{ name: string; content: string }>; pwned: boolean } {
+      const metas: Array<{ name: string; content: string }> = [];
+      const head = {
+        appendChild: (el: { name: string; content: string }) => metas.push({ name: el.name, content: el.content }),
+      };
+      const fakeDocument = {
+        head,
+        documentElement: head,
+        createElement: () => ({
+          name: '',
+          content: '',
+          setAttribute(k: string, v: string) {
+            (this as unknown as Record<string, string>)[k] = v;
+          },
+        }),
+        querySelector: () => null,
+      };
+      const fakeWindow: { location: { hostname: string }; __pwned?: boolean } = { location: { hostname } };
+
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      new Function('window', 'document', script)(fakeWindow, fakeDocument);
+      return { metas, pwned: fakeWindow.__pwned === true };
+    }
+
+    // Each payload attempts a different escape from the JSON string literal it is
+    // embedded in, then tries to execute `window.__pwned=1`.
+    const BREAKOUT_PAYLOADS: Array<[name: string, payload: string]> = [
+      ['double-quote close', '");window.__pwned=1;("'],
+      ['single-quote close', "');window.__pwned=1;('"],
+      ['backtick / template', '`;window.__pwned=1;`'],
+      ['template substitution', '${window.__pwned=1}'],
+      ['script tag', '</script><script>window.__pwned=1;</script>'],
+      ['escaped backslash then quote', '\\";window.__pwned=1;//'],
+      ['statement + comment', '"}]);window.__pwned=1;//'],
+      ['newline injection', '\nwindow.__pwned=1;\n'],
+      ['carriage return injection', '\rwindow.__pwned=1;\r'],
+      ['U+2028 line separator', '\u2028window.__pwned=1;'],
+      ['U+2029 paragraph separator', '\u2029window.__pwned=1;'],
+      ['null byte', 'abc\u0000;window.__pwned=1;'],
+    ];
+
+    describe('via the sentry-trace value', () => {
+      it.each(BREAKOUT_PAYLOADS)('neutralizes %s', (_name, payload) => {
+        // Arrange
+        mockGetTraceData.mockReturnValue({ 'sentry-trace': payload });
+        const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+        // Act
+        const { metas, pwned } = runFuzz(injectedJavaScriptBeforeContentLoaded, 'example.com');
+
+        // Assert — the payload is preserved verbatim as inert content, never run.
+        expect(pwned).toBe(false);
+        expect(metas).toEqual([{ name: 'sentry-trace', content: payload }]);
+      });
+    });
+
+    describe('via a baggage entry value', () => {
+      it.each(BREAKOUT_PAYLOADS)('neutralizes %s', (_name, payload) => {
+        // Arrange — carry the payload as a URL-encoded baggage entry value.
+        mockGetTraceData.mockReturnValue({
+          'sentry-trace': SENTRY_TRACE,
+          baggage: `sentry-release=${encodeURIComponent(payload)}`,
+        });
+        const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+        // Act
+        const { pwned } = runFuzz(injectedJavaScriptBeforeContentLoaded, 'example.com');
+
+        // Assert
+        expect(pwned).toBe(false);
+      });
+    });
+
+    describe('via an allowedHosts entry', () => {
+      it.each(BREAKOUT_PAYLOADS)('neutralizes %s', (_name, payload) => {
+        // Arrange — a hostile host alongside the real one the page is served from.
+        mockGetTraceData.mockReturnValue({ 'sentry-trace': SENTRY_TRACE });
+        const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({
+          allowedHosts: [payload, 'example.com'],
+        });
+
+        // Act
+        const { pwned } = runFuzz(injectedJavaScriptBeforeContentLoaded, 'example.com');
+
+        // Assert
+        expect(pwned).toBe(false);
+      });
+    });
+
+    it('preserves arbitrary random sentry-trace values as inert content', () => {
+      // Arrange — property-style fuzzing over a dangerous character set.
+      const CHARS = '"\'`\\${}();/<>\n\r\t\u2028\u2029abc0= ,';
+      for (let i = 0; i < 200; i++) {
+        const length = 1 + Math.floor(Math.random() * 40);
+        let payload = '';
+        for (let c = 0; c < length; c++) {
+          payload += CHARS[Math.floor(Math.random() * CHARS.length)];
+        }
+        mockGetTraceData.mockReturnValue({ 'sentry-trace': payload });
+        const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+        // Act
+        const { metas, pwned } = runFuzz(injectedJavaScriptBeforeContentLoaded, 'example.com');
+
+        // Assert — never executes, always round-trips as content.
+        expect(pwned).toBe(false);
+        expect(metas).toEqual([{ name: 'sentry-trace', content: payload }]);
+        mockGetTraceData.mockReset();
+      }
+    });
+  });
 });
