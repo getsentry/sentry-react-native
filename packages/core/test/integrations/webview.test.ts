@@ -156,6 +156,44 @@ describe('sentryWebViewProps', () => {
     });
   });
 
+  describe('when baggage carries a transaction entry', () => {
+    it('strips sentry-transaction but keeps every other entry', () => {
+      // Arrange
+      mockGetTraceData.mockReturnValue({
+        'sentry-trace': SENTRY_TRACE,
+        baggage:
+          'sentry-trace_id=d4cda95b652f4a1592b449d5929fda1b,sentry-environment=prod,' +
+          'sentry-transaction=GET%20%2Fusers%2F123,sentry-sample_rate=1.0,othervendor=keepme',
+      });
+      const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+      // Act
+      const metas = runInjection(injectedJavaScriptBeforeContentLoaded, 'example.com');
+
+      // Assert
+      const baggageMeta = metas.find(m => m.name === 'baggage');
+      expect(baggageMeta?.content).toBe(
+        'sentry-trace_id=d4cda95b652f4a1592b449d5929fda1b,sentry-environment=prod,sentry-sample_rate=1.0,othervendor=keepme',
+      );
+      expect(baggageMeta?.content).not.toContain('sentry-transaction');
+    });
+
+    it('drops the baggage meta entirely when transaction is the only entry', () => {
+      // Arrange
+      mockGetTraceData.mockReturnValue({
+        'sentry-trace': SENTRY_TRACE,
+        baggage: 'sentry-transaction=GET%20%2Fusers%2F123',
+      });
+      const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: ['example.com'] });
+
+      // Act
+      const metas = runInjection(injectedJavaScriptBeforeContentLoaded, 'example.com');
+
+      // Assert
+      expect(metas).toEqual([{ name: 'sentry-trace', content: SENTRY_TRACE }]);
+    });
+  });
+
   describe('when there is no active trace', () => {
     it('returns an empty injection script', () => {
       // Arrange

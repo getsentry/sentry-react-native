@@ -1,8 +1,15 @@
 import type { SerializedTraceData } from '@sentry/core';
 
-import { debug, getTraceData } from '@sentry/core';
+import { debug, getTraceData, objectToBaggageHeader, parseBaggageHeader } from '@sentry/core';
 
 const WEBVIEW_LABEL = 'Sentry WebView';
+
+/**
+ * `baggage` key carrying the root span's name. It is free-form text and can
+ * contain user data (for example a parameterized URL), so it is removed from the
+ * trace context before it leaves the app and reaches the WebView page.
+ */
+const SENTRY_TRANSACTION_BAGGAGE_KEY = 'sentry-transaction';
 
 export interface SentryWebViewOptions {
   /**
@@ -27,6 +34,9 @@ export interface SentryWebViewOptions {
  * `@sentry/browser` initializes, so the page's pageload transaction and errors
  * continue the same trace. The in-WebView page must run `@sentry/browser` for the
  * connection to take effect.
+ *
+ * The root span name (`sentry-transaction`) is stripped from `baggage` before it
+ * is injected, as it is free-form text that may carry user data.
  *
  * A no-op `onMessage` is also returned: `react-native-webview` only executes
  * injected JavaScript on Android when an `onMessage` handler is set, so this is
@@ -76,7 +86,7 @@ function createSentryWebViewInjection({ allowedHosts }: SentryWebViewOptions): s
   // by another path), it does nothing, so the trace context is never duplicated.
   const allowedHostsLiteral = JSON.stringify((allowedHosts ?? []).map(host => host.toLowerCase()));
   const sentryTraceLiteral = JSON.stringify(sentryTrace);
-  const baggageLiteral = JSON.stringify(traceData.baggage ?? null);
+  const baggageLiteral = JSON.stringify(stripTransactionFromBaggage(traceData.baggage) ?? null);
 
   return `(function(){try{
 var allowed=${allowedHostsLiteral};
@@ -91,4 +101,34 @@ set('sentry-trace',${sentryTraceLiteral});
 set('baggage',${baggageLiteral});
 }catch(e){}})();
 true;`;
+}
+
+/**
+ * Removes the `sentry-transaction` entry from a `baggage` header before it is
+ * injected into the WebView. The root span name is free-form text that may carry
+ * user data, while every other Dynamic Sampling Context entry (release,
+ * environment, sample rate, etc.) is kept so sampling stays consistent across the
+ * connected traces. Any non-Sentry (third-party) baggage entries are preserved.
+ *
+ * Returns `undefined` when there is no baggage to propagate after trimming.
+ */
+function stripTransactionFromBaggage(baggage: string | undefined): string | undefined {
+  if (!baggage) {
+    return undefined;
+  }
+
+  // A non-empty header always parses to an object; `?? {}` only satisfies the type.
+  const parsed = parseBaggageHeader(baggage) ?? {};
+
+  // Rebuild without the transaction entry rather than deleting it in place.
+  const safe: Record<string, string> = {};
+  for (const key of Object.keys(parsed)) {
+    const value = parsed[key];
+    if (key !== SENTRY_TRANSACTION_BAGGAGE_KEY && value !== undefined) {
+      safe[key] = value;
+    }
+  }
+
+  // `objectToBaggageHeader` returns `undefined` when nothing is left to propagate.
+  return objectToBaggageHeader(safe);
 }
