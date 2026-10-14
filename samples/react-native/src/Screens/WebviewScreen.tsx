@@ -1,8 +1,10 @@
-import { getTraceData } from '@sentry/core';
+import { getTraceData, SDK_VERSION } from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import * as React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
+
+import { getCurrentDsn, SENTRY_INTERNAL_DSN } from '../dsn';
 
 // The trace context is only injected into pages served from an allow-listed host.
 // `source.html` is loaded under `baseUrl`, so the page's `location.hostname`
@@ -10,12 +12,34 @@ import { WebView } from 'react-native-webview';
 const ALLOWED_HOST = 'sentry-webview-demo.local';
 const BASE_URL = `https://${ALLOWED_HOST}/`;
 
-// A minimal page that reads the injected `sentry-trace` meta tag and posts it
-// back to React Native so we can eyeball that it matches the app's trace. A real
-// app would instead run `@sentry/browser` here, which continues the trace on its own.
-const DEMO_PAGE = `<!doctype html>
+// The in-WebView page runs `@sentry/browser`, so its pageload transaction and
+// errors continue the trace injected by `sentryWebViewProps` — this is what a real
+// app does. `@sentry/browser` is loaded from the CDN pinned to `SDK_VERSION` (the
+// `@sentry/core` version this SDK bundles), so the page and the app always share the
+// same JS SDK version. The page also reads the injected `sentry-trace` meta tag and
+// posts it back to React Native, so the connection stays observable on-device even
+// offline, when the CDN script can't load.
+function buildDemoPage(dsn: string): string {
+  return `<!doctype html>
 <html>
-  <head><meta charset="utf-8" /></head>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://browser.sentry-cdn.com/${SDK_VERSION}/bundle.tracing.min.js" crossorigin="anonymous"></script>
+    <script>
+      // browserTracingIntegration reads the injected sentry-trace/baggage meta tags
+      // on pageload and continues the trace. Guarded so a failed CDN load (offline)
+      // doesn't break the page's own trace readback below.
+      if (window.Sentry) {
+        Sentry.init({
+          dsn: ${JSON.stringify(dsn)},
+          integrations: [Sentry.browserTracingIntegration()],
+          tracesSampleRate: 1.0,
+          release: 'webview-demo',
+          environment: 'dev',
+        });
+      }
+    </script>
+  </head>
   <body style="font-family: -apple-system, system-ui, sans-serif; padding: 20px;">
     <h3>WebView page</h3>
     <p>Injected <code>sentry-trace</code>:</p>
@@ -49,6 +73,7 @@ const DEMO_PAGE = `<!doctype html>
     </script>
   </body>
 </html>`;
+}
 
 const WebviewScreen = () => {
   // The trace active in React Native when the WebView mounts — this is what gets injected.
@@ -56,6 +81,10 @@ const WebviewScreen = () => {
   const [received, setReceived] = React.useState<string | null>(null);
 
   const matches = received != null && received === rnTrace;
+
+  // The WebView page's `@sentry/browser` reports to the same DSN as the app, so the
+  // connected pageload shows up in the same project. Built once per mount.
+  const demoPage = React.useMemo(() => buildDemoPage(getCurrentDsn() ?? SENTRY_INTERNAL_DSN), []);
 
   return (
     <View style={styles.container}>
@@ -76,7 +105,7 @@ const WebviewScreen = () => {
       </View>
       <WebView
         {...Sentry.sentryWebViewProps({ allowedHosts: [ALLOWED_HOST] })}
-        source={{ html: DEMO_PAGE, baseUrl: BASE_URL }}
+        source={{ html: demoPage, baseUrl: BASE_URL }}
         onMessage={event => {
           try {
             const data = JSON.parse(event.nativeEvent.data);
