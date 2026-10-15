@@ -1072,6 +1072,8 @@ public class RNSentryModuleImpl {
         WritableMap androidProfile = new WritableNativeMap();
         byte[] androidProfileBytes =
             FileUtils.readBytesFromFile(end.traceFile.getPath(), maxTraceFileSize);
+        // TEMP EXPERIMENT (do not commit): strip Android 17 trace header keys unknown to Relay.
+        androidProfileBytes = tempStripUnknownTraceHeaderLines(androidProfileBytes);
         String base64AndroidProfile =
             Base64.encodeToString(androidProfileBytes, NO_WRAP | NO_PADDING);
 
@@ -1218,6 +1220,77 @@ public class RNSentryModuleImpl {
       logger.log(SentryLevel.WARNING, "Failed to stop profile performance collection: " + e);
       return null; // NOPMD - null means no collection, as endAndCollect expects.
     }
+  }
+
+  // TEMP EXPERIMENT (do not commit): header keys android_trace_log 0.3.0 (used by Relay) accepts.
+  private static final java.util.Set<String> TEMP_KNOWN_TRACE_HEADER_KEYS =
+      new java.util.HashSet<>(
+          java.util.Arrays.asList(
+              "data-file-overflow",
+              "clock",
+              "elapsed-time-usec",
+              "num-method-calls",
+              "clock-call-overhead-nsec",
+              "vm",
+              "pid",
+              "alloc-count",
+              "alloc-size",
+              "gc-count"));
+
+  // TEMP EXPERIMENT (do not commit): drops `key=value` lines with unknown keys from the
+  // `*version` section. Returns the input unchanged when there is nothing to drop.
+  private byte[] tempStripUnknownTraceHeaderLines(final byte[] trace) {
+    final byte[] magic = "*version\n".getBytes(UTF_8);
+    if (trace.length < magic.length) {
+      return trace;
+    }
+    for (int i = 0; i < magic.length; i++) {
+      if (trace[i] != magic[i]) {
+        return trace;
+      }
+    }
+    final ByteArrayOutputStream out = new ByteArrayOutputStream(trace.length);
+    int pos = magic.length;
+    int nl = indexOf(trace, (byte) '\n', pos); // version number line
+    if (nl < 0) {
+      return trace;
+    }
+    out.write(trace, 0, nl + 1);
+    pos = nl + 1;
+    final List<String> dropped = new ArrayList<>();
+    while (true) {
+      nl = indexOf(trace, (byte) '\n', pos);
+      if (nl < 0) {
+        return trace;
+      }
+      if (trace[pos] == '*') {
+        out.write(trace, pos, trace.length - pos);
+        break;
+      }
+      final String line = new String(trace, pos, nl - pos, UTF_8);
+      final int eq = line.indexOf('=');
+      final String key = eq < 0 ? line : line.substring(0, eq);
+      if (TEMP_KNOWN_TRACE_HEADER_KEYS.contains(key)) {
+        out.write(trace, pos, nl - pos + 1);
+      } else {
+        dropped.add(line);
+      }
+      pos = nl + 1;
+    }
+    if (dropped.isEmpty()) {
+      return trace;
+    }
+    logger.log(SentryLevel.INFO, "TEMP stripped trace header lines: " + dropped);
+    return out.toByteArray();
+  }
+
+  private static int indexOf(final byte[] bytes, final byte b, final int from) {
+    for (int i = from; i < bytes.length; i++) {
+      if (bytes[i] == b) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   private @Nullable String getProguardUuid() {
