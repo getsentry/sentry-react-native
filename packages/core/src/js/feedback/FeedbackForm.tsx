@@ -156,6 +156,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
       name: trimmedName,
       email: trimmedEmail,
       associatedEventId: eventId,
+      source: 'widget',
     };
 
     this._isSubmitting = true;
@@ -189,7 +190,9 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
         this.setState({ isVisible: false });
       }
 
-      captureFeedback(userFeedback, attachments ? { attachments } : undefined);
+      // Always request the replay: it links it when Session Replay is on, and is a no-op when off.
+      const hint = { includeReplay: true, ...(attachments ? { attachments } : {}) };
+      captureFeedback(userFeedback, hint);
     } catch (error) {
       const errorString = `Feedback form submission failed: ${error}`;
       debug.error(errorString);
@@ -314,6 +317,10 @@ export class FeedbackForm extends React.Component<FeedbackFormProps, FeedbackFor
     this._themeListener = Appearance.addChangeListener(() => {
       this.forceUpdate();
     });
+
+    // Signals the Session Replay integration to upload the buffered replay so it's ready to attach
+    // when the form is submitted.
+    getClient()?.emit('openFeedbackWidget');
   }
 
   /**
