@@ -17,6 +17,7 @@
 
 - Attach the on-error Session Replay buffer to feedback submitted from the feedback form ([#6870](https://github.com/getsentry/sentry-react-native/pull/6870))
 - Do not mark `sendDefaultPii` as deprecated in the React Native options ([#6864](https://github.com/getsentry/sentry-react-native/pull/6864))
+- Include CPU and memory measurements in Android profiles ([#6891](https://github.com/getsentry/sentry-react-native/pull/6891))
 
 ### Dependencies
 
