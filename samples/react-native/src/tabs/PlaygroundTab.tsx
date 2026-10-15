@@ -197,6 +197,10 @@ export default function getPlaygroundTab() {
                     source={require('../assets/sentry-announcement.png')}
                     style={styles.image}
                   />
+                  <Image
+                    source={require('../assets/size-analysis-test.png')}
+                    style={styles.image}
+                  />
                   <View style={styles.space} />
                   <Text>BackgroundImage:</Text>
                   <View style={styles.container}>
