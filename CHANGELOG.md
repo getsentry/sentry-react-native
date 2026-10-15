@@ -15,6 +15,7 @@
 
 ### Fixes
 
+- Attach the on-error Session Replay buffer to feedback submitted from the feedback form ([#6870](https://github.com/getsentry/sentry-react-native/pull/6870))
 - Do not mark `sendDefaultPii` as deprecated in the React Native options ([#6864](https://github.com/getsentry/sentry-react-native/pull/6864))
 - Fix duplicate HTTP breadcrumbs for requests with a query string or differently formatted URLs ([#6881](https://github.com/getsentry/sentry-react-native/pull/6881))
 
@@ -23,6 +24,12 @@
 - Bump JavaScript SDK from v10.76.0 to v10.76.2 ([#6866](https://github.com/getsentry/sentry-react-native/pull/6866))
   - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#10762)
   - [diff](https://github.com/getsentry/sentry-javascript/compare/10.76.0...10.76.2)
+- Bump Cocoa SDK from v9.30.1 to v9.30.2 ([#6888](https://github.com/getsentry/sentry-react-native/pull/6888))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9302)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.30.1...9.30.2)
+- Bump Android SDK from v8.60.0 to v8.61.0 ([#6889](https://github.com/getsentry/sentry-react-native/pull/6889))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8610)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.60.0...8.61.0)
 
 ## 8.30.0
 
