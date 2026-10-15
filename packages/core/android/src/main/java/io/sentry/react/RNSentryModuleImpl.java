@@ -33,6 +33,7 @@ import io.sentry.ILogger;
 import io.sentry.IScope;
 import io.sentry.ISentryExecutorService;
 import io.sentry.ISerializer;
+import io.sentry.PerformanceCollectionData;
 import io.sentry.PropagationContext;
 import io.sentry.ScopesAdapter;
 import io.sentry.Sentry;
@@ -82,6 +83,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -132,6 +134,10 @@ public class RNSentryModuleImpl {
   // invalidate runs on the NativeModules/teardown thread. Without atomicity, invalidate could
   // observe a stale false and skip disabling a running Hermes sampler.
   private final AtomicBoolean isProfiling = new AtomicBoolean(false);
+
+  // Id of the composite performance collection (CPU/memory) running alongside the Android
+  // profiler. Collections started by id never time out, so every exit path must stop it.
+  private final AtomicReference<String> performanceCollectionId = new AtomicReference<>();
 
   private boolean isProguardDebugMetaLoaded = false;
   private @Nullable String proguardUuid = null;
@@ -1008,6 +1014,7 @@ public class RNSentryModuleImpl {
       final AndroidProfiler profiler = androidProfiler.get();
       if (profiler != null) {
         profiler.start();
+        startPerformanceCollection();
       }
 
       result.putBoolean("started", true);
@@ -1015,6 +1022,7 @@ public class RNSentryModuleImpl {
       // Unwind Hermes if we enabled it but failed before returning. getAndSet(false) makes
       // this idempotent with a concurrent invalidate()/stopProfiling().
       if (isProfiling.getAndSet(false)) {
+        stopPerformanceCollection();
         try {
           HermesSamplingProfiler.disable();
         } catch (Throwable ignored) { // NOPMD - Best-effort unwind.
@@ -1038,11 +1046,13 @@ public class RNSentryModuleImpl {
     // Take sole ownership of the AndroidProfiler reference so a concurrent invalidate()
     // cannot also call endAndCollect() on the same instance.
     final AndroidProfiler profiler = androidProfiler.getAndSet(null);
+    final @Nullable List<PerformanceCollectionData> performanceCollectionData =
+        stopPerformanceCollection();
     File output = null;
     try {
       AndroidProfiler.ProfileEndData end = null;
       if (profiler != null) {
-        end = profiler.endAndCollect(false, null);
+        end = profiler.endAndCollect(false, performanceCollectionData);
       }
       HermesSamplingProfiler.disable();
 
@@ -1139,6 +1149,10 @@ public class RNSentryModuleImpl {
       logger.log(SentryLevel.WARNING, "Failed to stop Hermes sampling profiler on teardown: " + e);
     }
 
+    // The profile is discarded, but the collection must still be stopped or its timer keeps
+    // sampling forever. stopPerformanceCollection() never throws.
+    stopPerformanceCollection();
+
     // Android platform profiler is independent of Hermes; a failure here must not leak
     // back into the Hermes shutdown above. The profile is being discarded; delete the
     // trace file to avoid leaking it in cacheDir.
@@ -1154,6 +1168,39 @@ public class RNSentryModuleImpl {
       } catch (Throwable e) { // NOPMD - Android profiler cleanup is best-effort on teardown.
         logger.log(SentryLevel.WARNING, "AndroidProfiler cleanup failed during invalidate: " + e);
       }
+    }
+  }
+
+  /**
+   * Starts sampling CPU and memory via the SDK's composite performance collector so the Android
+   * profile carries {@code cpu_usage} and {@code memory_footprint} measurements. The collector
+   * samples on its own timer thread. Best-effort: the profile still records if this fails.
+   */
+  @VisibleForTesting
+  void startPerformanceCollection() {
+    // Stop a leftover collection (start without a matching stop) so its timer doesn't leak.
+    stopPerformanceCollection();
+    try {
+      final String id = UUID.randomUUID().toString();
+      ScopesAdapter.getInstance().getOptions().getCompositePerformanceCollector().start(id);
+      performanceCollectionId.set(id);
+    } catch (Throwable e) { // NOPMD - Measurements are best-effort; the profile still records.
+      logger.log(SentryLevel.WARNING, "Failed to start profile performance collection: " + e);
+    }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  List<PerformanceCollectionData> stopPerformanceCollection() {
+    final String id = performanceCollectionId.getAndSet(null);
+    if (id == null) {
+      return null; // NOPMD - null means no collection, as endAndCollect expects.
+    }
+    try {
+      return ScopesAdapter.getInstance().getOptions().getCompositePerformanceCollector().stop(id);
+    } catch (Throwable e) { // NOPMD - Measurements are best-effort; the profile still records.
+      logger.log(SentryLevel.WARNING, "Failed to stop profile performance collection: " + e);
+      return null; // NOPMD - null means no collection, as endAndCollect expects.
     }
   }
 
