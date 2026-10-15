@@ -1,3 +1,4 @@
+/* oxlint-disable eslint(max-lines) */
 import type {
   Breadcrumb,
   BreadcrumbHint,
@@ -6,6 +7,7 @@ import type {
   ErrorEvent,
   Event,
   EventHint,
+  FeedbackEvent,
   Metric,
 } from '@sentry/core';
 
@@ -381,6 +383,13 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
   // This will be updated when we know the replay ID changes (e.g., after captureReplay)
   let cachedReplayId: string | null = null;
 
+  // The replay upload started when the feedback widget opened. `openId` is the buffer id read
+  // before the flush (what it uploads, and the fallback for a submit before it resolves); `id` is
+  // the uploaded replay id once resolved (`null` on a sampling miss). A fresh object per open means
+  // a superseded or already-consumed flush can't affect a later feedback — its late resolution
+  // mutates an object no one reads any more.
+  let feedbackReplayFlush: { openId: string | null; id: string | null; resolved: boolean } | null = null;
+
   function updateCachedReplayId(replayId: string | null): void {
     cachedReplayId = replayId;
   }
@@ -514,6 +523,104 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
     }
   }
 
+  // Start uploading the buffer when the widget opens. Read the buffer id first (before capture may
+  // restart buffering) so the id we link matches what this flush uploads. A reopen is the same draft
+  // resumed (the screenshot flow closes and reopens the form, restoring the draft; only a submit
+  // discards it), so it continues the earlier flush: while its upload is still in flight the reopen
+  // reuses it, and once it has settled the reopen carries its uploaded id forward (upgrading to its
+  // own if that capture uploads a fresher replay). That keeps the replay already sent for this draft
+  // instead of dropping it on a reopen that uploads nothing (e.g. an on-error sampling miss). The
+  // flush is cleared on submit, so an unrelated later feedback never inherits it. Wrapped: a
+  // synchronous bridge throw must not propagate out of the widget's `componentDidMount`.
+  function flushReplayForFeedbackWidget(): void {
+    try {
+      if (feedbackReplayFlush && !feedbackReplayFlush.resolved) {
+        return;
+      }
+      const carried = feedbackReplayFlush?.resolved ? feedbackReplayFlush.id : null;
+      const flush: { openId: string | null; id: string | null; resolved: boolean } = {
+        // Prefer a carried id as the pre-resolve fallback: it is a replay already sent for this
+        // draft, so a submit while this reopen's capture is still in flight must not fall back to
+        // the current (unconfirmed, maybe-never-sent) buffer id instead.
+        openId: carried ?? NATIVE.getCurrentReplayId(),
+        id: carried,
+        resolved: false,
+      };
+      feedbackReplayFlush = flush;
+      // On settle, mark resolved and drop the cached id: capture may change the native replay
+      // identity, so the next DSC/metric re-reads the current id (as the runtime controls do) rather
+      // than caching the uploaded one.
+      const settle = (): void => {
+        flush.resolved = true;
+        invalidateCachedReplayId();
+      };
+      NATIVE.captureReplay(false)
+        .then(uploadedId => {
+          // Keep the carried id when this reopen uploaded nothing, so it isn't dropped.
+          if (uploadedId) {
+            flush.id = uploadedId;
+          }
+          settle();
+        })
+        .then(undefined, (error: unknown) => {
+          settle();
+          debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback widget`, error);
+        });
+    } catch (error) {
+      debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to start replay flush for feedback widget`, error);
+    }
+  }
+
+  // Emitted synchronously before the event is sent, so resolve the id synchronously. Widget
+  // feedback links the id the open flush uploaded — `null` on a sampling miss means no replay was
+  // sent, so nothing is linked; before it resolves, fall back to the id read at open. Other
+  // feedback (direct `captureFeedback`) ignores the widget flush and links the current recording,
+  // flushing it now. Wrapped: a synchronous bridge throw must not abort feedback capture.
+  function linkReplayToFeedback(feedback: FeedbackEvent, options?: { includeReplay?: boolean }): void {
+    if (!options?.includeReplay) {
+      return;
+    }
+
+    let replayId: string | null = null;
+    try {
+      if (feedback.contexts?.feedback?.source === 'widget') {
+        const flush = feedbackReplayFlush;
+        feedbackReplayFlush = null;
+        replayId = flush?.resolved ? flush.id : (flush?.openId ?? null);
+      } else {
+        replayId = NATIVE.getCurrentReplayId();
+        if (replayId) {
+          // Flush the current buffer and, like the widget flush, invalidate the cached id on settle:
+          // capture may change the native replay identity, so the next DSC/metric re-reads it.
+          NATIVE.captureReplay(false).then(
+            () => {
+              invalidateCachedReplayId();
+            },
+            (error: unknown) => {
+              invalidateCachedReplayId();
+              debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to flush replay for feedback`, error);
+            },
+          );
+        }
+      }
+    } catch (error) {
+      debug.error(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} Failed to resolve replay for feedback`, error);
+      return;
+    }
+
+    if (!replayId) {
+      debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} no active recording to link to feedback.`);
+      return;
+    }
+
+    feedback.contexts = feedback.contexts || {};
+    feedback.contexts.feedback = {
+      ...feedback.contexts.feedback,
+      replay_id: replayId,
+    };
+    debug.log(`[Sentry] ${MOBILE_REPLAY_INTEGRATION_NAME} linked replay ${replayId} to feedback ${feedback.event_id}.`);
+  }
+
   function setup(client: Client): void {
     if (!hasHooks(client)) {
       return;
@@ -626,6 +733,10 @@ export const mobileReplayIntegration = (initOptions: MobileReplayOptions = defau
       // errors are logged inside flushReplayForSentEvent
       flushReplayForSentEvent(event).then(undefined, () => {});
     });
+
+    // Attach the Session Replay to user feedback: upload on open, link on submit.
+    client.on('openFeedbackWidget', flushReplayForFeedbackWidget);
+    client.on('beforeSendFeedback', linkReplayToFeedback);
   }
 
   function getReplayId(): string | null {

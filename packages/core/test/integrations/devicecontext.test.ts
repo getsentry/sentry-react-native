@@ -614,6 +614,119 @@ describe('Device Context Integration', () => {
         },
       ]);
     });
+
+    it.each([
+      ['the js url has a query string', 'https://api.example.com/posts', 'https://api.example.com/posts?page=1'],
+      ['the js url has a fragment', 'https://api.example.com/posts', 'https://api.example.com/posts#top'],
+      [
+        'the native url keeps a filtered query',
+        'https://api.example.com/posts?page=1&token=[Filtered]',
+        'https://api.example.com/posts?page=1&token=abc',
+      ],
+      ['host casing and trailing slashes differ', 'https://API.Example.com/data/', 'https://api.example.com/data'],
+      ['the url is the root with a port', 'https://api.example.com:8080/', 'https://api.example.com:8080'],
+      [
+        'the native url is percent-decoded',
+        'https://api.example.com/users/john doe',
+        'https://api.example.com/users/john%20doe',
+      ],
+      ['the path has an encoded question mark', 'https://api.example.com/a?b', 'https://api.example.com/a%3Fb?x=1'],
+      [
+        'the native url has filtered credentials',
+        'https://[Filtered]:[Filtered]@api.example.com/data',
+        'https://user:Pass%2Fword@api.example.com/data',
+      ],
+      ['the url has malformed percent-encoding', 'https://api.example.com/100%', 'https://api.example.com/100%?x=1'],
+      [
+        'the urls are identical with a fragment',
+        'https://api.example.com/docs#intro',
+        'https://api.example.com/docs#intro',
+      ],
+    ])('deduplicates when %s', async (_name, nativeUrl, jsUrl) => {
+      const jsBreadcrumb = {
+        category: 'xhr',
+        type: 'http',
+        data: { method: 'GET', url: jsUrl, status_code: 200 },
+        timestamp: 1730985899,
+      };
+
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: nativeUrl, status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: { breadcrumbs: [jsBreadcrumb] },
+        },
+        mockClient,
+      );
+
+      expect(processedEvent?.breadcrumbs).toStrictEqual([jsBreadcrumb]);
+    });
+
+    it.each([
+      ['the paths differ only in case', 'https://api.example.com/Data', 'https://api.example.com/data'],
+      ['the native path is longer', 'https://api.example.com/data-archive', 'https://api.example.com/data'],
+    ])('keeps both breadcrumbs when %s', async (_name, nativeUrl, jsUrl) => {
+      const nativeBreadcrumb = {
+        category: 'http',
+        type: 'http',
+        data: { method: 'GET', url: nativeUrl, status_code: 200 },
+        timestamp: 1730985899,
+      };
+      const jsBreadcrumb = {
+        category: 'xhr',
+        type: 'http',
+        data: { method: 'GET', url: jsUrl, status_code: 200 },
+        timestamp: 1730985899,
+      };
+
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [{ ...nativeBreadcrumb, timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00' }],
+          },
+          mockEvent: { breadcrumbs: [jsBreadcrumb] },
+        },
+        mockClient,
+      );
+
+      expect(processedEvent?.breadcrumbs).toStrictEqual([nativeBreadcrumb, jsBreadcrumb]);
+    });
+
+    it('deduplicates when the native query differs, since the query is ignored', async () => {
+      const jsBreadcrumb = {
+        category: 'xhr',
+        type: 'http',
+        data: { method: 'GET', url: 'https://api.example.com/img?w=1', status_code: 200 },
+        timestamp: 1730985899,
+      };
+
+      const { processedEvent } = await processEventWith(
+        {
+          nativeContexts: {
+            breadcrumbs: [
+              {
+                category: 'http',
+                type: 'http',
+                data: { method: 'GET', url: 'https://api.example.com/img', 'http.query': 'w=2', status_code: 200 },
+                timestamp: 'Thursday, November 7, 2024 3:24:59 PM GMT+02:00',
+              },
+            ],
+          },
+          mockEvent: { breadcrumbs: [jsBreadcrumb] },
+        },
+        mockClient,
+      );
+
+      expect(processedEvent?.breadcrumbs).toStrictEqual([jsBreadcrumb]);
+    });
   });
 
   it('do not add in_foreground if unknown', async () => {

@@ -6,6 +6,7 @@ import type {
   ErrorEvent,
   Event,
   EventHint,
+  FeedbackEvent,
 } from '@sentry/core';
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
@@ -1305,6 +1306,354 @@ describe('Mobile Replay Integration', () => {
       expect(id1).toBe(cachedReplayId);
       expect(id2).toBe(cachedReplayId);
       expect(id3).toBe(cachedReplayId);
+    });
+  });
+
+  describe('feedback replay', () => {
+    const getOpenFeedbackWidget = (): (() => void) => {
+      const call = mockOn.mock.calls.find(c => c[0] === 'openFeedbackWidget');
+      return call![1] as () => void;
+    };
+
+    const getBeforeSendFeedback = (): ((feedback: FeedbackEvent, options?: { includeReplay?: boolean }) => void) => {
+      const call = mockOn.mock.calls.find(c => c[0] === 'beforeSendFeedback');
+      return call![1] as (feedback: FeedbackEvent, options?: { includeReplay?: boolean }) => void;
+    };
+
+    const makeFeedbackEvent = (source: string = 'widget'): FeedbackEvent =>
+      ({
+        event_id: 'test-feedback-id',
+        type: 'feedback',
+        contexts: { feedback: { message: 'hi', source } },
+      }) as unknown as FeedbackEvent;
+
+    it('registers the openFeedbackWidget and beforeSendFeedback hooks', () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      expect(mockOn.mock.calls.some(c => c[0] === 'openFeedbackWidget')).toBe(true);
+      expect(mockOn.mock.calls.some(c => c[0] === 'beforeSendFeedback')).toBe(true);
+    });
+
+    it('flushes the on-error buffer (not a hard crash) when the widget opens', async () => {
+      mockCaptureReplay.mockResolvedValue('feedback-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+
+      expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
+      expect(mockCaptureReplay).toHaveBeenCalledWith(false);
+    });
+
+    it('links the uploaded replay to widget feedback after the open flush resolves', async () => {
+      mockCaptureReplay.mockResolvedValue('uploaded-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+      mockCaptureReplay.mockClear();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('uploaded-id');
+      // The widget already flushed on open; a widget submit must not flush again.
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
+    });
+
+    it('does not link a replay when includeReplay is not set', async () => {
+      mockCaptureReplay.mockResolvedValue('uploaded-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback);
+
+      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
+    });
+
+    it('flushes at submit time for API feedback without a widget open', () => {
+      mockGetCurrentReplayId.mockReturnValue('buffer-replay-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+      mockCaptureReplay.mockClear();
+
+      const feedback = makeFeedbackEvent('api');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      // Current recording id linked synchronously ...
+      expect(feedback.contexts.feedback.replay_id).toBe('buffer-replay-id');
+      // ... and the upload is triggered fire-and-forget.
+      expect(mockCaptureReplay).toHaveBeenCalledWith(false);
+    });
+
+    it('does not link a replay when there is no active recording', () => {
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+      mockCaptureReplay.mockClear();
+
+      const feedback = makeFeedbackEvent('api');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
+    });
+
+    it('does not link a replay to widget feedback when the open flush is a sampling miss', async () => {
+      mockGetCurrentReplayId.mockReturnValue('buffer-id');
+      mockCaptureReplay.mockResolvedValue(null); // on-error sampling miss: nothing uploaded
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+      mockCaptureReplay.mockClear();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
+      expect(mockCaptureReplay).not.toHaveBeenCalled();
+    });
+
+    it('uses the latest open flush when the form remounts (e.g. screenshot flow)', async () => {
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockResolvedValueOnce('second-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // first open
+      await flushAsync();
+      getOpenFeedbackWidget()(); // remount supersedes the first flush
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('second-id');
+    });
+
+    it('does not leak a cancelled widget flush onto later API feedback', async () => {
+      mockCaptureReplay.mockResolvedValue('widget-upload-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // widget opens, starts a flush
+      await flushAsync();
+
+      // Widget cancelled (no submit). A later direct captureFeedback should use the CURRENT
+      // recording and flush it, not the widget flush.
+      mockGetCurrentReplayId.mockReturnValue('current-buffer-id');
+      mockCaptureReplay.mockClear();
+      const api = makeFeedbackEvent('api');
+      getBeforeSendFeedback()(api, { includeReplay: true });
+
+      expect(api.contexts.feedback.replay_id).toBe('current-buffer-id');
+      expect(mockCaptureReplay).toHaveBeenCalledWith(false);
+    });
+
+    it('uses the id read at open (not at submit) when the flush is still pending', () => {
+      mockGetCurrentReplayId.mockReturnValue('open-buffer');
+      mockCaptureReplay.mockReturnValueOnce(new Promise<string | null>(() => {})); // never resolves
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // openId = 'open-buffer'
+
+      // The native buffer rolls over before the user submits.
+      mockGetCurrentReplayId.mockReturnValue('new-buffer');
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('open-buffer');
+    });
+
+    it('does not revive a consumed widget flush after it resolves late', async () => {
+      mockGetCurrentReplayId.mockReturnValue('open-buffer');
+      let resolveOpenFlush!: (v: string | null) => void;
+      mockCaptureReplay.mockReturnValueOnce(
+        new Promise<string | null>(resolve => {
+          resolveOpenFlush = resolve;
+        }),
+      );
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // open flush pending (unresolved)
+
+      // Submit before the flush resolves: falls back to the id read at open.
+      const first = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(first, { includeReplay: true });
+      expect(first.contexts.feedback.replay_id).toBe('open-buffer');
+
+      // The open flush resolves late; it must not revive the consumed flush for a later feedback.
+      resolveOpenFlush('late-uploaded-id');
+      await flushAsync();
+
+      const second = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(second, { includeReplay: true });
+      expect(second.contexts.feedback.replay_id).toBeUndefined();
+    });
+
+    it('invalidates the cached replay id after a widget flush instead of caching the uploaded id', async () => {
+      mockGetCurrentReplayId.mockReturnValue('id-before');
+      mockCaptureReplay.mockResolvedValue('uploaded-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient); // cache initialized to 'id-before'
+
+      getOpenFeedbackWidget()();
+      // The native replay identity changes during the capture.
+      mockGetCurrentReplayId.mockReturnValue('id-after');
+      await flushAsync();
+
+      // The flush invalidated the cache, so the next read reflects the current native id — neither
+      // the stale pre-flush id nor the uploaded id.
+      expect(integration.getReplayId()).toBe('id-after');
+    });
+
+    it('invalidates the cached replay id after an API feedback flush', async () => {
+      mockGetCurrentReplayId.mockReturnValue('id-before');
+      mockCaptureReplay.mockResolvedValue('uploaded-id');
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient); // cache initialized to 'id-before'
+
+      const feedback = makeFeedbackEvent('api');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+      expect(feedback.contexts.feedback.replay_id).toBe('id-before');
+
+      // The native replay identity changes during the capture.
+      mockGetCurrentReplayId.mockReturnValue('id-after');
+      await flushAsync();
+
+      expect(integration.getReplayId()).toBe('id-after');
+    });
+
+    it('keeps the replay a draft already uploaded when a reopen flush uploads nothing', async () => {
+      // The form reopens for the same draft (e.g. the screenshot flow). The first open uploaded a
+      // replay; the reopen's flush uploads nothing (e.g. a sampling miss). The submission must still
+      // link the replay already sent for this draft rather than drop it.
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockResolvedValueOnce(null);
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // first open uploads 'first-id'
+      await flushAsync();
+      getOpenFeedbackWidget()(); // reopen (same draft), its own flush uploads nothing
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('first-id');
+    });
+
+    it('links the carried id, not the current buffer, when submitting during a reopen flush', async () => {
+      // First open uploads 'first-id'. The form reopens and its capture is still in flight when the
+      // user submits, while a current buffer id exists. The submission must link the replay already
+      // sent for this draft ('first-id'), not the unconfirmed current buffer.
+      let resolveReopen!: (v: string | null) => void;
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockReturnValueOnce(
+        new Promise<string | null>(resolve => {
+          resolveReopen = resolve;
+        }),
+      );
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // first open uploads 'first-id'
+      await flushAsync();
+
+      mockGetCurrentReplayId.mockReturnValue('current-buffer'); // a buffer exists at reopen
+      getOpenFeedbackWidget()(); // reopen, capture still pending
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true }); // submit before the reopen settles
+      expect(feedback.contexts.feedback.replay_id).toBe('first-id');
+
+      // The reopen's capture then uploads nothing; nothing to revive, nothing changes.
+      resolveReopen(null);
+      await flushAsync();
+    });
+
+    it('does not revive a consumed flush for an unrelated later feedback', async () => {
+      // A widget submit consumes (clears) the flush. A later widget feedback that uploads nothing
+      // must not inherit the previous submission's replay id.
+      mockCaptureReplay.mockResolvedValueOnce('first-id').mockResolvedValueOnce(null);
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()();
+      await flushAsync();
+      const first = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(first, { includeReplay: true }); // submit consumes the flush
+      expect(first.contexts.feedback.replay_id).toBe('first-id');
+
+      getOpenFeedbackWidget()(); // a fresh, unrelated open whose flush uploads nothing
+      await flushAsync();
+      const second = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(second, { includeReplay: true });
+      expect(second.contexts.feedback.replay_id).toBeUndefined();
+    });
+
+    it('keeps the in-flight open flush when the form remounts before it settles', async () => {
+      // The first open's capture is still pending when the form remounts.
+      let resolveFirst!: (v: string | null) => void;
+      mockCaptureReplay.mockReturnValueOnce(
+        new Promise<string | null>(resolve => {
+          resolveFirst = resolve;
+        }),
+      );
+      mockGetCurrentReplayId.mockReturnValue(null);
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      getOpenFeedbackWidget()(); // first open, flush in flight
+      getOpenFeedbackWidget()(); // remount before the first settles
+
+      // The remount reuses the in-flight flush instead of starting another.
+      expect(mockCaptureReplay).toHaveBeenCalledTimes(1);
+
+      resolveFirst('in-flight-id');
+      await flushAsync();
+
+      const feedback = makeFeedbackEvent('widget');
+      getBeforeSendFeedback()(feedback, { includeReplay: true });
+
+      expect(feedback.contexts.feedback.replay_id).toBe('in-flight-id');
+    });
+
+    it('does not propagate a synchronous bridge error when the widget opens', () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      // The bridge starts throwing only after setup (which reads the id once).
+      mockGetCurrentReplayId.mockImplementation(() => {
+        throw new Error('bridge boom');
+      });
+
+      expect(() => getOpenFeedbackWidget()()).not.toThrow();
+    });
+
+    it('does not abort feedback capture when a synchronous bridge error occurs', () => {
+      const integration = mobileReplayIntegration();
+      integration.setup?.(mockClient);
+
+      mockGetCurrentReplayId.mockImplementation(() => {
+        throw new Error('bridge boom');
+      });
+
+      const feedback = makeFeedbackEvent('api');
+      expect(() => getBeforeSendFeedback()(feedback, { includeReplay: true })).not.toThrow();
+      expect(feedback.contexts.feedback.replay_id).toBeUndefined();
     });
   });
 });
