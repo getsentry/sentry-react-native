@@ -17,6 +17,7 @@ import org.mockito.Mockito.mockStatic
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -132,6 +133,31 @@ class RNSentryProfilingPerformanceCollectionTest {
         verify(collector).start(startId.capture())
         verify(collector).stop(eq(startId.firstValue))
         verify(profiler).endAndCollect(eq(false), anyOrNull())
+    }
+
+    @Test
+    fun `profile collection keeps running while profiling is active`() {
+        seedRunningProfiler(mock())
+
+        module.startProfilePerformanceCollection()
+
+        verify(collector).start(any<String>())
+        verify(collector, never()).stop(any<String>())
+    }
+
+    @Test
+    fun `profile collection is stopped when invalidate races its start`() {
+        seedRunningProfiler(mock())
+        // invalidate() runs after the collector started but before the id is published, so it
+        // cannot see the collection; the re-check after publishing must stop it.
+        doAnswer { module.invalidate() }.whenever(collector).start(any<String>())
+
+        module.startProfilePerformanceCollection()
+
+        val startId = argumentCaptor<String>()
+        verify(collector).start(startId.capture())
+        verify(collector).stop(eq(startId.firstValue))
+        assertNull(module.stopPerformanceCollection())
     }
 
     private fun seedRunningProfiler(profiler: AndroidProfiler) {

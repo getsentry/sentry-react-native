@@ -1014,15 +1014,17 @@ public class RNSentryModuleImpl {
       final AndroidProfiler profiler = androidProfiler.get();
       if (profiler != null) {
         profiler.start();
-        startPerformanceCollection();
+        startProfilePerformanceCollection();
       }
 
       result.putBoolean("started", true);
     } catch (Throwable e) { // NOPMD - We don't want to crash in any case
+      // Unconditional: a concurrent invalidate() may already have claimed isProfiling, and
+      // stopping is idempotent.
+      stopPerformanceCollection();
       // Unwind Hermes if we enabled it but failed before returning. getAndSet(false) makes
       // this idempotent with a concurrent invalidate()/stopProfiling().
       if (isProfiling.getAndSet(false)) {
-        stopPerformanceCollection();
         try {
           HermesSamplingProfiler.disable();
         } catch (Throwable ignored) { // NOPMD - Best-effort unwind.
@@ -1168,6 +1170,20 @@ public class RNSentryModuleImpl {
       } catch (Throwable e) { // NOPMD - Android profiler cleanup is best-effort on teardown.
         logger.log(SentryLevel.WARNING, "AndroidProfiler cleanup failed during invalidate: " + e);
       }
+    }
+  }
+
+  /**
+   * Starts the performance collection for the profile being started. invalidate() can claim cleanup
+   * after isProfiling is set but before the collection id is published, and so miss the collection.
+   * Re-checking isProfiling after publishing guarantees that either invalidate() or this method
+   * stops it.
+   */
+  @VisibleForTesting
+  void startProfilePerformanceCollection() {
+    startPerformanceCollection();
+    if (!isProfiling.get()) {
+      stopPerformanceCollection();
     }
   }
 
