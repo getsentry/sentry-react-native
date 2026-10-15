@@ -628,4 +628,16 @@ describe('Upload Debug Symbols phase loads .xcode.env before it resolves the scr
 
     expect(stdout).toContain('debug files script ran');
   });
+
+  it('uses a NODE_BINARY path that contains spaces', () => {
+    const nodeDir = path.join(projectDir, 'dir with spaces');
+    fs.mkdirSync(nodeDir);
+    const nodePath = path.join(nodeDir, 'node');
+    fs.symlinkSync(process.execPath, nodePath);
+    fs.writeFileSync(path.join(iosDir, '.xcode.env.local'), `export NODE_BINARY="${nodePath}"\n`);
+
+    const stdout = runPhase(getDebugFilesUploadScript(), { PODFILE_DIR: iosDir });
+
+    expect(stdout).toContain('debug files script ran');
+  });
 });
