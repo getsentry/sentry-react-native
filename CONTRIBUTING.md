@@ -8,7 +8,6 @@ This repository contains mono repository structure with multiple React Native an
 - /samples -> sample application, expo, rn...
 - /packages -> RN SDK packages
 - /dev-packages -> dev packages, ts-3.8 test runner, e2e tests components and runner
-- /performance-tests -> applications used for measuring performance in CI
 
 # Setting up an Environment
 

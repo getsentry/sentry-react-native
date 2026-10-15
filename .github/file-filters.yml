@@ -70,10 +70,6 @@ sample_expo:
 e2e_tests:
   - 'dev-packages/e2e-tests/**'
 
-# Changes to performance test infrastructure
-perf_tests:
-  - 'performance-tests/**'
-
 # CI workflow or infrastructure changes (should trigger everything)
 ci:
   - '.github/workflows/**'
