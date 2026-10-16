@@ -4,8 +4,6 @@
 glob_patterns=(
     "samples/react-native/android/app/src/**/*.java"
     "packages/core/android/**/*.java"
-    "performance-tests/TestAppPlain/android/app/src/**/*.java"
-    "performance-tests/TestAppSentry/android/app/src/**/*.java"
 )
 
 # Check if an argument is provided

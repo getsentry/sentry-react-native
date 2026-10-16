@@ -3,16 +3,10 @@ included:
   - 'samples/react-native/ios/**'
   - 'packages/core/RNSentryCocoaTester/RNSentryCocoaTesterTests/**'
   - 'packages/core/ios/**'
-  - 'performance-tests/TestAppPlain/ios/**'
-  - 'performance-tests/TestAppSentry/ios/**'
 
 excluded:
   - 'samples/react-native/ios/Pods'
   - 'samples/react-native/ios/build'
-  - 'performance-tests/TestAppPlain/ios/Pods'
-  - 'performance-tests/TestAppPlain/ios/build'
-  - 'performance-tests/TestAppSentry/ios/Pods'
-  - 'performance-tests/TestAppSentry/ios/build'
 
 only_rules:
   - class_delegate_protocol

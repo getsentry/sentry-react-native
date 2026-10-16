@@ -4,8 +4,7 @@
   "packages": [
     "packages/*",
     "dev-packages/*",
-    "samples/*",
-    "performance-tests/*"
+    "samples/*"
   ],
   "npmClient": "yarn"
 }

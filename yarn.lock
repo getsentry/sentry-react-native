@@ -8406,7 +8406,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16.9.0, @types/react@npm:^19.0.0, @types/react@npm:^19.1.0, @types/react@npm:^19.1.1, @types/react@npm:^19.1.4, @types/react@npm:^19.2.0, @types/react@npm:~19.2.10":
+"@types/react@npm:*, @types/react@npm:>=16.9.0, @types/react@npm:^19.0.0, @types/react@npm:^19.1.0, @types/react@npm:^19.1.4, @types/react@npm:^19.2.0, @types/react@npm:~19.2.10":
   version: 19.2.18
   resolution: "@types/react@npm:19.2.18"
   dependencies:
@@ -8914,57 +8914,6 @@ __metadata:
   checksum: 10c0/0f54694da32224d57b715385d4a6b668d2117379d1f3223dc758459246cca58fdc4c628b83e8a8883334e454a0a30aa198ede77c788b55537c1844f686a751f2
   languageName: node
   linkType: hard
-
-"TestAppPlain@workspace:performance-tests/TestAppPlain":
-  version: 0.0.0-use.local
-  resolution: "TestAppPlain@workspace:performance-tests/TestAppPlain"
-  dependencies:
-    "@babel/core": "npm:^7.25.2"
-    "@babel/preset-env": "npm:^7.25.3"
-    "@babel/runtime": "npm:^7.25.0"
-    "@react-native-community/cli": "npm:20.1.3"
-    "@react-native-community/cli-platform-android": "npm:20.1.3"
-    "@react-native-community/cli-platform-ios": "npm:20.1.3"
-    "@react-native/babel-preset": "npm:0.87.1"
-    "@react-native/metro-config": "npm:0.87.1"
-    "@react-native/typescript-config": "npm:0.87.1"
-    "@types/jest": "npm:^29.5.13"
-    "@types/react": "npm:^19.1.1"
-    "@types/react-test-renderer": "npm:^19.1.0"
-    jest: "npm:^29.6.3"
-    react: "npm:19.2.3"
-    react-native: "npm:0.87.1"
-    react-test-renderer: "npm:19.2.3"
-    typescript: "npm:5.0.4"
-  languageName: unknown
-  linkType: soft
-
-"TestAppSentry@workspace:performance-tests/TestAppSentry":
-  version: 0.0.0-use.local
-  resolution: "TestAppSentry@workspace:performance-tests/TestAppSentry"
-  dependencies:
-    "@babel/core": "npm:^7.25.2"
-    "@babel/preset-env": "npm:^7.25.3"
-    "@babel/runtime": "npm:^7.25.0"
-    "@react-native-community/cli": "npm:20.1.3"
-    "@react-native-community/cli-platform-android": "npm:20.1.3"
-    "@react-native-community/cli-platform-ios": "npm:20.1.3"
-    "@react-native/babel-preset": "npm:0.87.1"
-    "@react-native/metro-config": "npm:0.87.1"
-    "@react-native/new-app-screen": "npm:0.87.1"
-    "@react-native/typescript-config": "npm:0.87.1"
-    "@sentry/react-native": "npm:8.31.0"
-    "@types/jest": "npm:^29.5.13"
-    "@types/react": "npm:^19.1.1"
-    "@types/react-test-renderer": "npm:^19.1.0"
-    jest: "npm:^29.6.3"
-    react: "npm:19.2.3"
-    react-native: "npm:0.87.1"
-    react-test-renderer: "npm:19.2.3"
-    sentry-react-native-samples-utils: "workspace:^"
-    typescript: "npm:5.0.4"
-  languageName: unknown
-  linkType: soft
 
 "abab@npm:^2.0.6":
   version: 2.0.6
