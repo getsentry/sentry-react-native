@@ -76,8 +76,13 @@ function buildDemoPage(dsn: string): string {
 }
 
 const WebviewScreen = () => {
-  // The trace active in React Native when the WebView mounts — this is what gets injected.
-  const rnTrace = getTraceData()['sentry-trace'];
+  // Capture the trace and the injection props once at mount. `getTraceData()` is
+  // read on every render, and the active `sentry-trace` changes (its `span_id`)
+  // once the navigation span ends — so re-reading it later would compare the
+  // WebView's readback against a different value and flip the status to "not
+  // connected" even though the page received the injected trace correctly.
+  const [rnTrace] = React.useState(() => getTraceData()['sentry-trace']);
+  const webViewProps = React.useMemo(() => Sentry.sentryWebViewProps({ allowedHosts: [ALLOWED_HOST] }), []);
   const [received, setReceived] = React.useState<string | null>(null);
 
   const matches = received != null && received === rnTrace;
@@ -104,7 +109,7 @@ const WebviewScreen = () => {
         </Text>
       </View>
       <WebView
-        {...Sentry.sentryWebViewProps({ allowedHosts: [ALLOWED_HOST] })}
+        {...webViewProps}
         source={{ html: demoPage, baseUrl: BASE_URL }}
         onMessage={event => {
           try {
