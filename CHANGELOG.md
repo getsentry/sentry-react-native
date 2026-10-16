@@ -6,9 +6,22 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## 8.31.0
+## Unreleased
 
 ### Features
+
+- Connect React Native traces with embedded WebViews via `sentryWebViewProps` ([#6794](https://github.com/getsentry/sentry-react-native/pull/6794))
+
+  ```jsx
+  import { sentryWebViewProps } from '@sentry/react-native';
+
+  <WebView
+    source={{ uri: 'https://example.com' }}
+    {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
+  />
+  ```
+
+## 8.31.0
 
 - Add the `applicationKey` and `moduleMetadata` options to `withSentryConfig` and `getSentryExpoConfig`, and export `thirdPartyErrorFilterIntegration` ([#6863](https://github.com/getsentry/sentry-react-native/pull/6863))
   - Set the same key in `applicationKey` and in the `filterKeys` option of `thirdPartyErrorFilterIntegration` to filter errors from third-party code, for example browser extensions on Expo web.

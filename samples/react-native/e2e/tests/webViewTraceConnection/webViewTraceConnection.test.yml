@@ -1,0 +1,29 @@
+appId: io.sentry.reactnative.sample
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      isE2ETest: true
+
+- tapOn:
+    id: 'playground-tab-icon'
+
+- extendedWaitUntil:
+    visible:
+      id: 'webview-example-button'
+    timeout: 30000
+
+- tapOn:
+    id: 'webview-example-button'
+
+# The WebView loads the demo page, which reads the injected `sentry-trace` meta
+# tag and posts it back to React Native. React Native compares it against the
+# trace that was active when the screen mounted and flips the status to connected.
+# If the trace context is not injected or not readable in the page, the status
+# stays "not connected" and this assertion times out (failing the flow).
+- extendedWaitUntil:
+    visible:
+      id: 'webview-trace-status'
+      text: 'WebView trace connected.*'
+    timeout: 30000
