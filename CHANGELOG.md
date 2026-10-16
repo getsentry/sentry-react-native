@@ -6,6 +6,14 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
+## Unreleased
+
+### Dependencies
+
+- Bump JavaScript SDK from v10.76.2 to v11.8.0 ([#6773](https://github.com/getsentry/sentry-react-native/pull/6773))
+  - [changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md#1180)
+  - [diff](https://github.com/getsentry/sentry-javascript/compare/10.76.2...11.8.0)
+
 ## 8.31.0
 
 ### Features
