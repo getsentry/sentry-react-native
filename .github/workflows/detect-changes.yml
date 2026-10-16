@@ -36,9 +36,6 @@ on:
       e2e_tests:
         description: 'Whether E2E test infrastructure changed'
         value: ${{ jobs.changes.outputs.e2e_tests }}
-      perf_tests:
-        description: 'Whether performance test infrastructure changed'
-        value: ${{ jobs.changes.outputs.perf_tests }}
       ci:
         description: 'Whether CI workflow/action files changed'
         value: ${{ jobs.changes.outputs.ci }}
@@ -71,7 +68,6 @@ jobs:
       sample_react_native: ${{ steps.filter.outputs.sample_react_native }}
       sample_expo: ${{ steps.filter.outputs.sample_expo }}
       e2e_tests: ${{ steps.filter.outputs.e2e_tests }}
-      perf_tests: ${{ steps.filter.outputs.perf_tests }}
       ci: ${{ steps.filter.outputs.ci }}
       needs_ios: ${{ steps.evaluate.outputs.needs_ios }}
       needs_android: ${{ steps.evaluate.outputs.needs_android }}
@@ -117,8 +113,6 @@ jobs:
           # - Push to main or release branch (always run everything)
           # Sample app changes do NOT trigger the full native test suite —
           # they only trigger their own sample-application workflows.
-          # Performance test changes do NOT trigger native tests either —
-          # they only trigger the metrics job in e2e-v2.yml.
           if [[ "$IOS_NATIVE" == "true" \
              || "$JS_SOURCE" == "true" \
              || "$CI_CHANGED" == "true" \
