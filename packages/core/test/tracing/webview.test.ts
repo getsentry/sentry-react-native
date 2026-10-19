@@ -142,6 +142,25 @@ describe('sentryWebViewProps', () => {
       // Assert
       expect(metas).toHaveLength(2);
     });
+
+    // `location.hostname` brackets IPv6 (e.g. `[::1]`), and a hextet must not be
+    // mistaken for a `:port`.
+    it.each([
+      ['an unbracketed IPv6 literal', '::1', '[::1]'],
+      ['a bracketed IPv6 literal', '[::1]', '[::1]'],
+      ['a bracketed IPv6 literal with a port', '[::1]:8080', '[::1]'],
+      ['a full unbracketed IPv6 literal', '2001:db8::1', '[2001:db8::1]'],
+      ['a bracketed IPv6 literal case-insensitively', '[2001:DB8::1]', '[2001:db8::1]'],
+    ])('injects on an IPv6 host for %s', (_name, entry, hostname) => {
+      // Arrange
+      const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: [entry] });
+
+      // Act
+      const metas = runInjection(injectedJavaScriptBeforeContentLoaded, hostname);
+
+      // Assert
+      expect(metas).toHaveLength(2);
+    });
   });
 
   describe('when allowedHosts is empty or invalid', () => {

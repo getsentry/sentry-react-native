@@ -152,6 +152,8 @@ true;`;
  * compared against the page's `location.hostname`. Tolerates entries that
  * accidentally include surrounding whitespace, a scheme, a path, a port, or a
  * trailing dot (e.g. `' https://App.Example.com:8080/x '` → `'app.example.com'`).
+ * IPv6 literals are bracketed to match `location.hostname` (`'::1'` → `'[::1]'`,
+ * `'[::1]:8080'` → `'[::1]'`).
  */
 function normalizeHost(host: string): string {
   const withoutScheme = host.trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, ''); // leading scheme://
@@ -159,9 +161,23 @@ function normalizeHost(host: string): string {
   // `search` + `slice` rather than a `.*`-anchored regex to avoid polynomial
   // backtracking (CodeQL flags `[/?#].*$`).
   const pathStart = withoutScheme.search(/[/?#]/);
-  const hostAndPort = pathStart === -1 ? withoutScheme : withoutScheme.slice(0, pathStart);
+  let hostAndPort = pathStart === -1 ? withoutScheme : withoutScheme.slice(0, pathStart);
+
+  // Strip the port without mistaking an IPv6 hextet for one. Browsers bracket IPv6
+  // in `location.hostname` (e.g. `[::1]`), so: a bracketed host keeps everything up
+  // to the closing bracket (dropping any `:port` after it); an unbracketed IPv6
+  // literal (more than one colon) is wrapped in brackets so it still matches; a
+  // regular hostname or IPv4 keeps its port-stripping.
+  const closingBracket = hostAndPort.indexOf(']');
+  if (closingBracket !== -1) {
+    hostAndPort = hostAndPort.slice(0, closingBracket + 1);
+  } else if ((hostAndPort.match(/:/g) ?? []).length > 1) {
+    hostAndPort = `[${hostAndPort}]`;
+  } else {
+    hostAndPort = hostAndPort.replace(/:\d+$/, '');
+  }
+
   return hostAndPort
-    .replace(/:\d+$/, '') // trailing :port
     .replace(/\.$/, '') // trailing dot
     .toLowerCase();
 }
