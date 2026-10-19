@@ -145,10 +145,13 @@ true;`;
  * trailing dot (e.g. `' https://App.Example.com:8080/x '` → `'app.example.com'`).
  */
 function normalizeHost(host: string): string {
-  return host
-    .trim()
-    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '') // leading scheme://
-    .replace(/[/?#].*$/, '') // path, query, or fragment
+  const withoutScheme = host.trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, ''); // leading scheme://
+  // Drop everything from the first path/query/fragment separator. Uses
+  // `search` + `slice` rather than a `.*`-anchored regex to avoid polynomial
+  // backtracking (CodeQL flags `[/?#].*$`).
+  const pathStart = withoutScheme.search(/[/?#]/);
+  const hostAndPort = pathStart === -1 ? withoutScheme : withoutScheme.slice(0, pathStart);
+  return hostAndPort
     .replace(/:\d+$/, '') // trailing :port
     .replace(/\.$/, '') // trailing dot
     .toLowerCase();
