@@ -629,6 +629,25 @@ describe('Upload Debug Symbols phase loads .xcode.env before it resolves the scr
     expect(stdout).toContain('debug files script ran');
   });
 
+  it('uses SRCROOT to find .xcode.env when the project has no CocoaPods', () => {
+    fs.writeFileSync(path.join(iosDir, '.xcode.env.local'), `export NODE_BINARY="${process.execPath}"\n`);
+
+    const stdout = runPhase(getDebugFilesUploadScript(), { SRCROOT: iosDir });
+
+    expect(stdout).toContain('debug files script ran');
+  });
+
+  it('uses PODS_ROOT before SRCROOT to find .xcode.env', () => {
+    fs.writeFileSync(path.join(iosDir, '.xcode.env.local'), `export NODE_BINARY="${process.execPath}"\n`);
+
+    const stdout = runPhase(getDebugFilesUploadScript(), {
+      PODS_ROOT: path.join(iosDir, 'Pods'),
+      SRCROOT: '/nonexistent',
+    });
+
+    expect(stdout).toContain('debug files script ran');
+  });
+
   it('uses a NODE_BINARY path that contains spaces', () => {
     const nodeDir = path.join(projectDir, 'dir with spaces');
     fs.mkdirSync(nodeDir);

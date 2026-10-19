@@ -16,7 +16,9 @@ const SENTRY_REACT_NATIVE_XCODE_DEBUG_FILES_PATH =
   "`\"${NODE_BINARY:-node}\" --print \"require('path').dirname(require.resolve('@sentry/react-native/package.json')) + '/scripts/sentry-xcode-debug-files.sh'\"`";
 const SENTRY_DISABLE_AUTO_UPLOAD_EXPORT = 'export SENTRY_DISABLE_AUTO_UPLOAD=true';
 // Xcode started from the Dock has no node on PATH, so load NODE_BINARY the same way as with-environment.sh.
-const LOAD_XCODE_ENV = `XCODE_ENV_PATH="\${PODFILE_DIR:-$PODS_ROOT/..}/.xcode.env"
+// Swift Package Manager projects have no PODS_ROOT, so use SRCROOT as React Native's SPM build phases do.
+const LOAD_XCODE_ENV = `XCODE_ENV_DIR="\${PODFILE_DIR:-\${PODS_ROOT:+$PODS_ROOT/..}}"
+XCODE_ENV_PATH="\${XCODE_ENV_DIR:-$SRCROOT}/.xcode.env"
 [ -f "$XCODE_ENV_PATH" ] && . "$XCODE_ENV_PATH"
 [ -f "$XCODE_ENV_PATH.local" ] && . "$XCODE_ENV_PATH.local"
 `;
