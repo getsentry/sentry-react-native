@@ -11,6 +11,7 @@
 ### Fixes
 
 - Show the feedback form above native-stack modals on iOS via the experimental `_experiments.presentOverNativeModals` feedback option ([#6882](https://github.com/getsentry/sentry-react-native/pull/6882))
+- Find `ios/.xcode.env` in the Expo plugin "Upload Debug Symbols to Sentry" phase when the iOS project uses Swift Package Manager instead of CocoaPods ([#6911](https://github.com/getsentry/sentry-react-native/pull/6911))
 
 ## 8.31.0
 
