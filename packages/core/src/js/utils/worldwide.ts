@@ -1,5 +1,5 @@
 import type { InternalGlobal } from '@sentry/core';
-import type { ErrorUtils } from 'react-native/types';
+import type { ErrorUtils } from 'react-native';
 
 import { GLOBAL_OBJ } from '@sentry/core';
 

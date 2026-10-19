@@ -47,9 +47,9 @@
       ],
       // react-native >=0.87 dropped its root `types` field; its type definitions are now only
       // reachable through the package `exports` map, which classic `node` resolution can't follow.
-      // Point directly at the shipped legacy type definitions (what earlier RN versions' root
+      // Point directly at the shipped legacy type definitions (`types_DEPRECATED` since 0.88; what earlier RN versions' root
       // `types` field resolved to).
-      "react-native": ["./node_modules/react-native/types/index.d.ts"]
+      "react-native": ["./node_modules/react-native/types_DEPRECATED/index.d.ts"]
     },
     "lib": ["es7"],
     "jsx": "react",
