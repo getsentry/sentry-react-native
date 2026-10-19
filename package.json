@@ -122,6 +122,7 @@
     "router@npm:2.2.0/path-to-regexp": "^8.4.0",
     "yaml": "^2.8.3",
     "react-native-build-config@^0.3.2": "patch:react-native-build-config@npm%3A0.3.2#./.yarn/patches/react-native-build-config-npm-0.3.2-0e671629bd.patch",
+    "react-native-reanimated@4.7.1": "patch:react-native-reanimated@npm%3A4.7.1#./.yarn/patches/react-native-reanimated-npm-4.7.1-dbfb143762.patch",
     "minimatch@npm:5.1.9/brace-expansion": "^2.1.4",
     "minimatch@npm:8.0.7/brace-expansion": "^2.1.4",
     "minimatch@npm:9.0.9/brace-expansion": "^2.1.4",
