@@ -130,7 +130,6 @@ Sentry.init({
         enableScreenshot: true,
         enableTakeScreenshot: true,
         enableShakeToReport: true,
-        _experiments: { presentOverNativeModals: true },
         styles: {
           submitButton: {
             backgroundColor: '#6a1b9a',
