@@ -8,7 +8,7 @@
 import type * as ReactNative from '../vendor/react-native';
 
 export type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
-export type { EmitterSubscription } from 'react-native/Libraries/vendor/emitter/EventEmitter';
+export type { EmitterSubscription } from 'react-native';
 
 export interface ReactNativeLibrariesInterface {
   Devtools?: {
