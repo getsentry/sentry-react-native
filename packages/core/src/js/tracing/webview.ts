@@ -31,10 +31,19 @@ export interface SentryWebViewOptions {
  * with the React Native app's trace.
  *
  * The returned `injectedJavaScriptBeforeContentLoaded` writes the current trace as
- * `sentry-trace` / `baggage` `<meta>` tags into the WebView document before its
- * `@sentry/browser` initializes, so the page's pageload transaction and errors
- * continue the same trace. The in-WebView page must run `@sentry/browser` for the
- * connection to take effect.
+ * `sentry-trace` / `baggage` `<meta>` tags into the WebView document during its
+ * initial load, so a `@sentry/browser` running in the page continues the same trace
+ * on pageload (its pageload transaction and errors share the trace). The in-WebView
+ * page must run `@sentry/browser` for the connection to take effect.
+ *
+ * Timing note: on iOS the tags are written before any page script runs. On Android
+ * `react-native-webview` injects the script asynchronously as the page starts, so
+ * the tags can land slightly after the page's first synchronous `<head>` scripts.
+ * `@sentry/browser` loaded the usual way — from a `<script>` tag, a bundle, or an
+ * `async`/deferred init — reads the tags after they're present and continues the
+ * trace; only a `@sentry/browser` initialized synchronously inline at the very top
+ * of `<head>` may run before the tags exist on Android and start a new trace. In
+ * that case the WebView simply gets its own trace; nothing else is affected.
  *
  * The root span name (`sentry-transaction`) is stripped from `baggage` before it
  * is injected, as it is free-form text that may carry user data.
