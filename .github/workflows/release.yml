@@ -51,4 +51,4 @@ jobs:
           force: ${{ inputs.force }}
           merge_target: ${{ inputs.merge_target }}
           # Craft cannot get its version from a SHA ref. Keep this value the same as the SHA tag.
-          craft_version: 2.34.1
+          craft_version: 2.35.0
