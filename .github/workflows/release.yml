@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Get auth token
         id: token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v2
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v2
         with:
           app-id: ${{ vars.SENTRY_RELEASE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.SENTRY_RELEASE_BOT_PRIVATE_KEY }}
@@ -43,7 +43,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Prepare release
-        uses: getsentry/craft@3f2abdc5703191d12ef2cc013f792f1bd220f44d # v2.34.1
+        uses: getsentry/craft@7a7857552e2cdc08b502de96e6076849c01fba32 # v2.35.0
         env:
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         with:
@@ -51,4 +51,4 @@ jobs:
           force: ${{ inputs.force }}
           merge_target: ${{ inputs.merge_target }}
           # Craft cannot get its version from a SHA ref. Keep this value the same as the SHA tag.
-          craft_version: 2.34.1
+          craft_version: 2.35.0

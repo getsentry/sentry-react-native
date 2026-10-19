@@ -1,0 +1,15 @@
+diff --git a/apple/reanimated/apple/REAReducedMotion.h b/apple/reanimated/apple/REAReducedMotion.h
+index 5e22e18c7abe91f6ca6b1a58a5ff14a0f4e97647..bbcc379465bf24fb72b8b81c693e3da7bc491a79 100644
+--- a/apple/reanimated/apple/REAReducedMotion.h
++++ b/apple/reanimated/apple/REAReducedMotion.h
+@@ -2,9 +2,7 @@
+ 
+ #if __has_include(<UIKit/UIAccessibility.h>)
+ #import <UIKit/UIAccessibility.h>
+-#endif
+-
+-#if __has_include(<AppKit/AppKit.h>)
++#elif __has_include(<AppKit/AppKit.h>)
+ #import <AppKit/AppKit.h>
+ #endif
+ 
