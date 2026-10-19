@@ -1,6 +1,6 @@
 import { getTraceData } from '@sentry/core';
 
-import { sentryWebViewProps } from '../../src/js/integrations/webview';
+import { sentryWebViewProps } from '../../src/js/tracing/webview';
 
 jest.mock('@sentry/core', () => {
   const actual = jest.requireActual('@sentry/core');
@@ -123,6 +123,44 @@ describe('sentryWebViewProps', () => {
 
       // Assert
       expect(metas).toHaveLength(0);
+    });
+
+    it.each([
+      ['surrounding whitespace', '  example.com  '],
+      ['a scheme', 'https://example.com'],
+      ['a port', 'example.com:8080'],
+      ['a path', 'example.com/some/path'],
+      ['a trailing dot', 'example.com.'],
+      ['scheme, port, and path', 'https://Example.com:443/x?y#z'],
+    ])('normalizes an allowedHosts entry with %s', (_name, entry) => {
+      // Arrange
+      const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: [entry] });
+
+      // Act
+      const metas = runInjection(injectedJavaScriptBeforeContentLoaded, 'example.com');
+
+      // Assert
+      expect(metas).toHaveLength(2);
+    });
+  });
+
+  describe('when allowedHosts is empty or invalid', () => {
+    beforeEach(() => {
+      mockGetTraceData.mockReturnValue({ 'sentry-trace': SENTRY_TRACE, baggage: BAGGAGE });
+    });
+
+    it.each([
+      ['an empty array', []],
+      ['only blank entries', ['   ', '']],
+      ['missing (undefined)', undefined],
+    ])('returns an empty injection script for %s', (_name, allowedHosts) => {
+      // Act
+      const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({
+        allowedHosts: allowedHosts as string[],
+      });
+
+      // Assert
+      expect(injectedJavaScriptBeforeContentLoaded).toBe('');
     });
   });
 
@@ -322,11 +360,19 @@ describe('sentryWebViewProps', () => {
     it('preserves arbitrary random sentry-trace values as inert content', () => {
       // Arrange — property-style fuzzing over a dangerous character set.
       const CHARS = '"\'`\\${}();/<>\n\r\t\u2028\u2029abc0= ,';
+      // Seeded PRNG (Park–Miller MINSTD) keeps the run deterministic, so a failing
+      // case is reproducible instead of depending on `Math.random()`. Uses only
+      // arithmetic (stays within safe-integer range) to satisfy the no-bitwise rule.
+      let seed = 123456789;
+      const rand = (): number => {
+        seed = (seed * 48271) % 2147483647;
+        return seed / 2147483647;
+      };
       for (let i = 0; i < 200; i++) {
-        const length = 1 + Math.floor(Math.random() * 40);
+        const length = 1 + Math.floor(rand() * 40);
         let payload = '';
         for (let c = 0; c < length; c++) {
-          payload += CHARS[Math.floor(Math.random() * CHARS.length)];
+          payload += CHARS[Math.floor(rand() * CHARS.length)];
         }
         mockGetTraceData.mockReturnValue({ 'sentry-trace': payload });
         const { injectedJavaScriptBeforeContentLoaded } = sentryWebViewProps({ allowedHosts: ['example.com'] });

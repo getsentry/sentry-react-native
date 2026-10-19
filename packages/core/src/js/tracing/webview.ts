@@ -15,12 +15,13 @@ export interface SentryWebViewOptions {
   /**
    * Hosts whose pages receive the injected Sentry trace context.
    *
-   * A page is matched when its hostname equals an entry or is a subdomain of it
-   * (e.g. `'example.com'` matches both `example.com` and `app.example.com`).
-   * Matching is case-insensitive. Only
-   * listed hosts are instrumented, so the trace context — which can carry release
-   * and environment data in `baggage` — never reaches third-party pages loaded in
-   * the WebView.
+   * Provide bare hostnames. A page is matched when its hostname equals an entry or
+   * is a subdomain of it (e.g. `'example.com'` matches both `example.com` and
+   * `app.example.com`). Entries are normalized before comparison — surrounding
+   * whitespace, a scheme, a path, a port, and a trailing dot are stripped, and
+   * matching is case-insensitive. Only listed hosts are instrumented, so the trace
+   * context — which can carry release and environment data in `baggage` — never
+   * reaches third-party pages loaded in the WebView.
    */
   allowedHosts: string[];
 }
@@ -90,11 +91,25 @@ export function sentryWebViewProps(options: SentryWebViewOptions): {
  * string when there is no active trace to propagate.
  */
 function createSentryWebViewInjection({ allowedHosts }: SentryWebViewOptions): string {
+  // `allowedHosts` is required, but validate at runtime so a misuse (or an empty
+  // list) degrades to a no-op with a warning instead of throwing during render.
+  // Entries are normalized to bare lowercase hostnames so they match the page's
+  // `location.hostname`.
+  const normalizedHosts = (Array.isArray(allowedHosts) ? allowedHosts : [])
+    .map(normalizeHost)
+    .filter(host => host.length > 0);
+  if (normalizedHosts.length === 0) {
+    debug.warn(`[${WEBVIEW_LABEL}] No valid allowedHosts provided; skipping WebView trace injection.`);
+    return '';
+  }
+
   const traceData: SerializedTraceData = getTraceData();
   const sentryTrace = traceData['sentry-trace'];
 
   if (!sentryTrace) {
-    debug.log(`[${WEBVIEW_LABEL}] No active trace found; skipping WebView trace injection.`);
+    debug.log(
+      `[${WEBVIEW_LABEL}] No trace data available (the SDK is disabled or not initialized); skipping WebView trace injection.`,
+    );
     return '';
   }
 
@@ -104,7 +119,7 @@ function createSentryWebViewInjection({ allowedHosts }: SentryWebViewOptions): s
   // gated on its own host rather than the one the WebView was opened with. The
   // script is idempotent — if a `sentry-trace` meta already exists (e.g. injected
   // by another path), it does nothing, so the trace context is never duplicated.
-  const allowedHostsLiteral = JSON.stringify((allowedHosts ?? []).map(host => host.toLowerCase()));
+  const allowedHostsLiteral = JSON.stringify(normalizedHosts);
   const sentryTraceLiteral = JSON.stringify(sentryTrace);
   const baggageLiteral = JSON.stringify(stripTransactionFromBaggage(traceData.baggage) ?? null);
 
@@ -121,6 +136,22 @@ set('sentry-trace',${sentryTraceLiteral});
 set('baggage',${baggageLiteral});
 }catch(e){}})();
 true;`;
+}
+
+/**
+ * Normalizes an `allowedHosts` entry to a bare lowercase hostname so it can be
+ * compared against the page's `location.hostname`. Tolerates entries that
+ * accidentally include surrounding whitespace, a scheme, a path, a port, or a
+ * trailing dot (e.g. `' https://App.Example.com:8080/x '` → `'app.example.com'`).
+ */
+function normalizeHost(host: string): string {
+  return host
+    .trim()
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '') // leading scheme://
+    .replace(/[/?#].*$/, '') // path, query, or fragment
+    .replace(/:\d+$/, '') // trailing :port
+    .replace(/\.$/, '') // trailing dot
+    .toLowerCase();
 }
 
 /**
