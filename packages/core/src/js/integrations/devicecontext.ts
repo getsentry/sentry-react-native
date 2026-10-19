@@ -119,19 +119,25 @@ function deduplicateNativeHttpBreadcrumbs(nativeBreadcrumbs: Breadcrumb[], jsBre
   }
 
   const consumedJsIndices = new Set<number>();
+  const jsUrls = jsHttpBreadcrumbs.map(b => normalizeJsHttpUrl(b.data?.url));
 
   return nativeBreadcrumbs.filter(nativeBreadcrumb => {
     if (nativeBreadcrumb.type !== 'http' || nativeBreadcrumb.category !== 'http') {
       return true;
     }
 
+    const nativeUrl = normalizeNativeHttpUrl(nativeBreadcrumb.data?.url);
+
     const matchIndex = jsHttpBreadcrumbs.findIndex((jsBreadcrumb, index) => {
       if (consumedJsIndices.has(index)) {
         return false;
       }
 
+      const jsUrl = jsUrls[index];
       const sameMethod = nativeBreadcrumb.data?.method === jsBreadcrumb.data?.method;
-      const sameUrl = nativeBreadcrumb.data?.url === jsBreadcrumb.data?.url;
+      const sameUrl =
+        nativeBreadcrumb.data?.url === jsBreadcrumb.data?.url ||
+        (nativeUrl !== undefined && jsUrl !== undefined && isSameHttpUrl(nativeUrl, jsUrl));
       const nativeStatus = nativeBreadcrumb.data?.status_code;
       const jsStatus = jsBreadcrumb.data?.status_code;
       const sameStatus =
@@ -154,4 +160,57 @@ function deduplicateNativeHttpBreadcrumbs(nativeBreadcrumbs: Breadcrumb[], jsBre
 
     return true;
   });
+}
+
+/*
+ * The JS breadcrumb keeps the raw request URL. The native one is sanitized: credentials are replaced,
+ * the fragment is removed, the query is moved to `data["http.query"]` or kept filtered, and the URL
+ * is percent-decoded. The query is ignored because native may filter or drop it.
+ */
+
+/** Returns the decoded JS URL without query, fragment or trailing slash. */
+function normalizeJsHttpUrl(url: unknown): string | undefined {
+  if (typeof url !== 'string') {
+    return undefined;
+  }
+
+  // Cut on the raw URL, where `?` and `#` are always delimiters.
+  const queryOrFragmentStart = url.search(/[?#]/);
+  const normalized = decodeUrl(
+    normalizeUrlAuthority(queryOrFragmentStart === -1 ? url : url.slice(0, queryOrFragmentStart)),
+  );
+
+  return normalized.length > 1 && normalized.endsWith('/') ? normalized.slice(0, -1) : normalized;
+}
+
+/** Returns the decoded native URL. It may still contain a (filtered) query. */
+function normalizeNativeHttpUrl(url: unknown): string | undefined {
+  return typeof url === 'string' ? decodeUrl(normalizeUrlAuthority(url)) : undefined;
+}
+
+/** Matches the native URL to the JS one, with or without a trailing slash or query. */
+function isSameHttpUrl(nativeUrl: string, jsUrl: string): boolean {
+  return (
+    nativeUrl === jsUrl ||
+    nativeUrl === `${jsUrl}/` ||
+    nativeUrl.startsWith(`${jsUrl}?`) ||
+    nativeUrl.startsWith(`${jsUrl}/?`)
+  );
+}
+
+/** Removes credentials and lowercases the scheme and host. */
+function normalizeUrlAuthority(url: string): string {
+  return url.replace(/^([a-zA-Z][a-zA-Z0-9+.-]*:\/\/)([^/?#]*)/, (_match, scheme: string, authority: string) => {
+    const host = authority.slice(authority.lastIndexOf('@') + 1);
+    return `${scheme}${host}`.toLowerCase();
+  });
+}
+
+function decodeUrl(url: string): string {
+  try {
+    return decodeURIComponent(url);
+  } catch {
+    // Malformed percent-encoding, compare as is.
+    return url;
+  }
 }
