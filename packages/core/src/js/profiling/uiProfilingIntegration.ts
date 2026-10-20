@@ -73,7 +73,12 @@ export const uiProfilingIntegration = ({
       if (!session) {
         const newSession: ProfileSession = { profilerId: NATIVE.startProfiler() };
         session = newSession;
-        activeRootSpanIds.forEach(spanId => sessionByRootSpanId.set(spanId, newSession));
+        activeRootSpanIds.forEach(spanId => {
+          // A root span that started under an earlier session keeps that profile.
+          if (!sessionByRootSpanId.has(spanId)) {
+            sessionByRootSpanId.set(spanId, newSession);
+          }
+        });
       }
     } else if (session && !stopTimeout) {
       if (lifecycle === 'trace') {
@@ -101,7 +106,8 @@ export const uiProfilingIntegration = ({
   };
 
   const onSpanEnd = (span: Span): void => {
-    if (!activeRootSpanIds.delete(span.spanContext().spanId)) {
+    // An unsampled root span also ends the app start profile, because it sends no transaction to profile.
+    if (!activeRootSpanIds.delete(span.spanContext().spanId) && span !== getRootSpan(span)) {
       return;
     }
     isAppStartPending = false;

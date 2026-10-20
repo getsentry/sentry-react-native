@@ -114,6 +114,16 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
     });
 
+    it('stops the app start profile when the first root span is not sampled', () => {
+      setupClient({ lifecycle: 'trace', startOnAppStart: true }, { tracesSampleRate: 0 });
+      expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
+
+      startInactiveSpan({ name: 'unsampled' }).end();
+      jest.advanceTimersByTime(TRACE_STOP_DELAY_MS);
+
+      expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
+    });
+
     it('stops the app start profile when tracing is disabled', () => {
       const warn = jest.spyOn(debug, 'warn');
 
@@ -187,6 +197,20 @@ describe('uiProfilingIntegration', () => {
       expect(client.eventQueue).toHaveLength(2);
       expect(getTransaction(client, 'profiled')?.contexts?.profile).toEqual({ profiler_id: 'profiler-id' });
       expect(getTransaction(client, 'not profiled')?.contexts?.profile).toBeUndefined();
+    });
+
+    it('keeps the profiler id of the session that was running when the root span started', async () => {
+      NATIVE.startProfiler.mockResolvedValueOnce('first-profiler-id').mockResolvedValueOnce('second-profiler-id');
+      const client = setupClient({ lifecycle: 'manual' });
+
+      profiler.startProfiler();
+      const span = startInactiveSpan({ name: 'root' });
+      profiler.stopProfiler();
+      profiler.startProfiler();
+      span.end();
+      await jest.runAllTimersAsync();
+
+      expect(getTransaction(client, 'root')?.contexts?.profile).toEqual({ profiler_id: 'first-profiler-id' });
     });
   });
 });
