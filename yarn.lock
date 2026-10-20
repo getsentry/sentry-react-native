@@ -8149,7 +8149,7 @@ __metadata:
     promise: "*"
     react: ">=17.0.0"
     react-native: ">=0.65.0"
-    react-native-screens: "*"
+    react-native-screens: ">=3.29.0"
   peerDependenciesMeta:
     "@babel/core":
       optional: true
