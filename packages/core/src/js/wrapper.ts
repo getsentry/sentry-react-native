@@ -136,6 +136,10 @@ interface SentryNativeWrapper {
    */
   startProfiler(): Promise<string | null>;
   stopProfiler(): Promise<void>;
+  /**
+   * Returns the native id of the calling thread, which is the JS thread, in the format of the native profiler.
+   */
+  getCurrentThreadId(): string | null;
 
   fetchNativePackageName(): string | null;
 
@@ -854,6 +858,19 @@ export const NATIVE: SentryNativeWrapper = {
       await RNSentry.stopProfiler();
     } catch (error) {
       debug.error('[NATIVE] Stop Profiler Failed', error);
+    }
+  },
+
+  getCurrentThreadId(): string | null {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.getCurrentThreadId !== 'function') {
+      return null;
+    }
+
+    try {
+      return RNSentry.getCurrentThreadId() ?? null;
+    } catch (error) {
+      debug.error('[NATIVE] Get Current Thread Id Failed', error);
+      return null;
     }
   },
 

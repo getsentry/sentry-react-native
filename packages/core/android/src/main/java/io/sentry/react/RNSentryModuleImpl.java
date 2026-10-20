@@ -11,6 +11,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.Process;
 import android.util.SparseIntArray;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.app.FrameMetricsAggregator;
@@ -566,6 +567,10 @@ public class RNSentryModuleImpl {
       logger.log(SentryLevel.ERROR, "Failed to start the profiler", e);
       promise.reject("SentryReactNative", e.getMessage(), e);
     }
+  }
+
+  public String getCurrentThreadId() {
+    return String.valueOf(Process.myTid());
   }
 
   public void stopProfiler(Promise promise) {

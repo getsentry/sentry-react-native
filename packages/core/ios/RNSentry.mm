@@ -1,6 +1,7 @@
 #import "RNSentry.h"
 #import "RNSentryTimeToDisplay.h"
 #import <dlfcn.h>
+#import <pthread.h>
 
 #if __has_include(<React/RCTConvert.h>)
 #    import <React/RCTConvert.h>
@@ -1227,6 +1228,12 @@ RCT_EXPORT_METHOD(
         NSLog(@"[RNSentry] Failed to call startProfiler: %@", exception);
         reject(@"SentryReactNative", exception.reason, nil);
     }
+}
+
+// sentry-cocoa profiles identify threads by their Mach thread port.
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentThreadId)
+{
+    return [NSString stringWithFormat:@"%u", pthread_mach_thread_np(pthread_self())];
 }
 
 RCT_EXPORT_METHOD(

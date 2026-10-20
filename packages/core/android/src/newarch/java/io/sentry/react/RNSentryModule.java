@@ -240,6 +240,11 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public String getCurrentThreadId() {
+    return this.impl.getCurrentThreadId();
+  }
+
+  @Override
   public void stopProfiler(Promise promise) {
     this.impl.stopProfiler(promise);
   }

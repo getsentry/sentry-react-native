@@ -59,6 +59,7 @@ const NATIVE: MockInterface<NativeType> = {
   stopProfiling: jest.fn(),
   startProfiler: jest.fn(),
   stopProfiler: jest.fn(),
+  getCurrentThreadId: jest.fn(),
 
   fetchNativePackageName: jest.fn(),
   fetchNativeStackFramesBy: jest.fn(),
@@ -104,6 +105,7 @@ NATIVE.startProfiling.mockReturnValue(false);
 NATIVE.stopProfiling.mockReturnValue(null);
 NATIVE.startProfiler.mockResolvedValue(null);
 NATIVE.stopProfiler.mockResolvedValue(undefined);
+NATIVE.getCurrentThreadId.mockReturnValue(null);
 NATIVE.fetchNativePackageName.mockReturnValue('mock-native-package-name');
 NATIVE.fetchNativeStackFramesBy.mockReturnValue(null);
 NATIVE.initNativeReactNavigationNewFrameTracking.mockReturnValue(Promise.resolve());

@@ -1,6 +1,14 @@
 import type { Event } from '@sentry/core';
 
-import { debug, getCurrentScope, profiler, setCurrentClient, startInactiveSpan, startSpan } from '@sentry/core';
+import {
+  debug,
+  getCurrentScope,
+  profiler,
+  setCurrentClient,
+  spanToJSON,
+  startInactiveSpan,
+  startSpan,
+} from '@sentry/core';
 
 import type { ProfilingOptions } from '../../src/js/options';
 
@@ -114,6 +122,28 @@ describe('uiProfilingIntegration', () => {
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('tracing is disabled'));
       expect(NATIVE.startProfiler).not.toHaveBeenCalled();
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('thread id', () => {
+    it('adds the native JS thread id to spans', async () => {
+      NATIVE.getCurrentThreadId.mockReturnValueOnce('4242');
+      const client = setupClient({ lifecycle: 'trace' });
+
+      startSpan({ name: 'root' }, () => startInactiveSpan({ name: 'child' }).end());
+      await jest.runAllTimersAsync();
+
+      expect(client.event?.contexts?.trace?.data?.['thread.id']).toBe('4242');
+      expect(client.event?.spans?.[0]?.data?.['thread.id']).toBe('4242');
+    });
+
+    it('keeps a thread id that the span already has', () => {
+      NATIVE.getCurrentThreadId.mockReturnValueOnce('4242');
+      setupClient({ lifecycle: 'trace' });
+
+      const span = startInactiveSpan({ name: 'root', attributes: { 'thread.id': '1' } });
+
+      expect(spanToJSON(span).data['thread.id']).toBe('1');
     });
   });
 

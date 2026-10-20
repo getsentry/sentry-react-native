@@ -239,6 +239,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     this.impl.startProfiler(promise);
   }
 
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  public String getCurrentThreadId() {
+    return this.impl.getCurrentThreadId();
+  }
+
   @ReactMethod
   public void stopProfiler(Promise promise) {
     this.impl.stopProfiler(promise);

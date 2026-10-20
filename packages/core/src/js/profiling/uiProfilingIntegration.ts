@@ -1,6 +1,6 @@
 import type { Event, Integration, Span } from '@sentry/core';
 
-import { debug, getRootSpan, hasSpansEnabled, spanIsSampled } from '@sentry/core';
+import { debug, getRootSpan, hasSpansEnabled, spanIsSampled, spanToJSON } from '@sentry/core';
 
 import type { ReactNativeClient } from '../client';
 import type { ProfilingOptions } from '../options';
@@ -9,6 +9,8 @@ import { NATIVE } from '../wrapper';
 
 // `Sentry.profiler` from `@sentry/core` looks the integration up by this name.
 const INTEGRATION_NAME = 'ProfilingIntegration';
+
+const SPAN_THREAD_ID = 'thread.id';
 
 /**
  * The native SDKs ignore a start call that comes before a requested stop takes effect at the end
@@ -45,6 +47,7 @@ export const uiProfilingIntegration = ({
   let isNativeReady = false;
   let isManualRequested = lifecycle === 'manual' && startOnAppStart;
   let isAppStartPending = lifecycle === 'trace' && startOnAppStart;
+  let jsThreadId: string | null = null;
 
   const shouldRun = (): boolean =>
     lifecycle === 'trace' ? isAppStartPending || activeRootSpanIds.size > 0 : isManualRequested;
@@ -82,6 +85,10 @@ export const uiProfilingIntegration = ({
   };
 
   const onSpanStart = (span: Span): void => {
+    // Sentry shows the profile of this thread for the span.
+    if (jsThreadId && spanToJSON(span).data[SPAN_THREAD_ID] === undefined) {
+      span.setAttribute(SPAN_THREAD_ID, jsThreadId);
+    }
     if (span !== getRootSpan(span) || !spanIsSampled(span)) {
       return;
     }
@@ -114,6 +121,7 @@ export const uiProfilingIntegration = ({
     name: INTEGRATION_NAME,
     setup(client: ReactNativeClient): void {
       if (hasSpansEnabled(client.getOptions())) {
+        jsThreadId = NATIVE.getCurrentThreadId();
         client.on('spanStart', onSpanStart);
         client.on('spanEnd', onSpanEnd);
       } else if (lifecycle === 'trace') {

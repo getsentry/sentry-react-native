@@ -72,6 +72,7 @@ jest.mock('react-native', () => {
     registerReplayTraceId: jest.fn(),
     startProfiler: jest.fn(() => Promise.resolve('profiler-id')),
     stopProfiler: jest.fn(() => Promise.resolve()),
+    getCurrentThreadId: jest.fn(() => '1234'),
   };
 
   return {
@@ -1746,7 +1747,7 @@ describe('Tests Native Wrapper', () => {
     });
   });
 
-  describe('startProfiler and stopProfiler', () => {
+  describe('startProfiler, stopProfiler and getCurrentThreadId', () => {
     beforeEach(async () => {
       await NATIVE.initNativeSdk({
         dsn: VALID_DSN,
@@ -1779,6 +1780,22 @@ describe('Tests Native Wrapper', () => {
       } finally {
         module.startProfiler = startProfiler;
         module.stopProfiler = stopProfiler;
+      }
+    });
+
+    it('returns the native thread id', () => {
+      expect(NATIVE.getCurrentThreadId()).toBe('1234');
+    });
+
+    it('returns null when getCurrentThreadId is missing on the binary', () => {
+      const module = RNSentry as unknown as Record<string, unknown>;
+      const { getCurrentThreadId } = module;
+      module.getCurrentThreadId = undefined;
+
+      try {
+        expect(NATIVE.getCurrentThreadId()).toBeNull();
+      } finally {
+        module.getCurrentThreadId = getCurrentThreadId;
       }
     });
 
