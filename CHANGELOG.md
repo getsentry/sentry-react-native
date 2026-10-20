@@ -15,7 +15,7 @@
 - Remove the `@sentry/browser` feedback modules and the server-only `@sentry/core` modules from native bundles built on Windows. Before this fix, `includeWebFeedback: false` made these bundles fail at launch ([#6915](https://github.com/getsentry/sentry-react-native/pull/6915))
 - Stop wrapping the SDK's own `RNSentry` module in `turboModuleContextIntegration` by default. Each wrapped call wrote to the native scope several times, which added CPU time to every SDK call on iOS ([#6921](https://github.com/getsentry/sentry-react-native/pull/6921))
   - To wrap `RNSentry` again, add `{ name: 'RNSentry' }` to the `modules` option.
-- Start and stop the native UI profiler for `_experiments.profilingOptions` in both the `trace` and `manual` lifecycles, and export `Sentry.profiler` ([#XXXX](https://github.com/getsentry/sentry-react-native/pull/XXXX))
+- Start and stop the native UI profiler for `_experiments.profilingOptions` in both the `trace` and `manual` lifecycles, and export `Sentry.profiler` ([#6916](https://github.com/getsentry/sentry-react-native/pull/6916))
   - Before, the profiler ran only for the app start profile, because native tracing is off in React Native and no API controlled the profiler from JS.
 
 ### Dependencies
