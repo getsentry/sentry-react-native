@@ -11,6 +11,7 @@
 ### Fixes
 
 - Find `ios/.xcode.env` in the Expo plugin "Upload Debug Symbols to Sentry" phase when the iOS project uses Swift Package Manager instead of CocoaPods ([#6911](https://github.com/getsentry/sentry-react-native/pull/6911))
+- Remove the `@sentry/browser` feedback modules and the server-only `@sentry/core` modules from native bundles built on Windows. Before this fix, `includeWebFeedback: false` made these bundles fail at launch ([#PLACEHOLDER](https://github.com/getsentry/sentry-react-native/pull/PLACEHOLDER))
 
 ## 8.31.0
 
