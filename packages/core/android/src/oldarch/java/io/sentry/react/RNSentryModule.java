@@ -235,6 +235,16 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void startProfiler(Promise promise) {
+    this.impl.startProfiler(promise);
+  }
+
+  @ReactMethod
+  public void stopProfiler(Promise promise) {
+    this.impl.stopProfiler(promise);
+  }
+
+  @ReactMethod
   public void registerReplayTraceId(String traceId) {
     this.impl.registerReplayTraceId(traceId);
   }

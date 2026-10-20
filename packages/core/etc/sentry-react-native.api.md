@@ -76,6 +76,7 @@ import { OpenAiClient } from '@sentry/core';
 import { OpenAiOptions } from '@sentry/core';
 import type { Options } from '@sentry/core';
 import { Profiler } from '@sentry/react';
+import { profiler } from '@sentry/core';
 import * as React_2 from 'react';
 import { replayIntegration } from '@sentry/react';
 import type { ReplayRecordingMode } from '@sentry/core';
@@ -825,6 +826,8 @@ export function popTurboModuleCall(callId: number): void;
 export const primitiveTagIntegration: () => Integration;
 
 export { Profiler }
+
+export { profiler }
 
 // @public
 export type ProfilingLifecycle = 'trace' | 'manual';

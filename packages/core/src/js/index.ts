@@ -57,6 +57,7 @@ export {
   instrumentStateGraph,
   instrumentStateGraphCompile,
   addConsoleInstrumentationFilter,
+  profiler,
 } from '@sentry/core';
 
 /** @deprecated Use `instrumentStateGraph` instead. `instrumentLangGraph` will be removed in a future major version. */

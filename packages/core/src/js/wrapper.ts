@@ -130,6 +130,13 @@ interface SentryNativeWrapper {
     androidProfile?: NativeAndroidProfileEvent;
   } | null;
 
+  /**
+   * Starts the native UI profiler and resolves its profiler id,
+   * or `null` when the profiler does not run or the platform does not report the id.
+   */
+  startProfiler(): Promise<string | null>;
+  stopProfiler(): Promise<void>;
+
   fetchNativePackageName(): string | null;
 
   /**
@@ -823,6 +830,31 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return !!started;
+  },
+
+  async startProfiler(): Promise<string | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.startProfiler !== 'function') {
+      return null;
+    }
+
+    try {
+      return (await RNSentry.startProfiler()) ?? null;
+    } catch (error) {
+      debug.error('[NATIVE] Start Profiler Failed', error);
+      return null;
+    }
+  },
+
+  async stopProfiler(): Promise<void> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.stopProfiler !== 'function') {
+      return;
+    }
+
+    try {
+      await RNSentry.stopProfiler();
+    } catch (error) {
+      debug.error('[NATIVE] Stop Profiler Failed', error);
+    }
   },
 
   stopProfiling(): {

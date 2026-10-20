@@ -644,7 +644,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
     actualOptions.configureProfiling(probe);
     XCTAssertEqual(probe.sessionSampleRate, 1.0f);
-    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleManual);
     XCTAssertTrue(probe.profileAppStarts);
 }
 
@@ -673,7 +673,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
     actualOptions.configureProfiling(probe);
     XCTAssertEqual(probe.sessionSampleRate, 1.0f);
-    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleManual);
     XCTAssertTrue(probe.profileAppStarts);
 }
 

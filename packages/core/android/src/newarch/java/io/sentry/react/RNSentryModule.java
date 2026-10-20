@@ -235,6 +235,16 @@ public class RNSentryModule extends NativeRNSentrySpec {
   }
 
   @Override
+  public void startProfiler(Promise promise) {
+    this.impl.startProfiler(promise);
+  }
+
+  @Override
+  public void stopProfiler(Promise promise) {
+    this.impl.stopProfiler(promise);
+  }
+
+  @Override
   public void registerReplayTraceId(String traceId) {
     this.impl.registerReplayTraceId(traceId);
   }

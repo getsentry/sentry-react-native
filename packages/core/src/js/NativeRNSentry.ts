@@ -50,6 +50,8 @@ export interface Spec extends TurboModule {
     androidProfile?: UnsafeObject;
     error?: string;
   };
+  startProfiler(): Promise<string | undefined | null>;
+  stopProfiler(): Promise<void>;
   fetchNativePackageName(): string | undefined | null;
   fetchNativeStackFramesBy(instructionsAddr: number[]): NativeStackFrames | undefined | null;
   initNativeReactNavigationNewFrameTracking(): Promise<void>;

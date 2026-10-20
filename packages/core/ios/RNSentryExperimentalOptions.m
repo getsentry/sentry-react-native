@@ -46,17 +46,8 @@
                 profiling.sessionSampleRate);
         }
 
-        // Set lifecycle mode
-        NSString *lifecycle = profilingOptions[@"lifecycle"];
-        if ([lifecycle isKindOfClass:[NSString class]]) {
-            if ([lifecycle caseInsensitiveCompare:@"manual"] == NSOrderedSame) {
-                profiling.lifecycle = SentryProfileLifecycleManual;
-                NSLog(@"Sentry: UI Profiling Lifecycle set to MANUAL");
-            } else if ([lifecycle caseInsensitiveCompare:@"trace"] == NSOrderedSame) {
-                profiling.lifecycle = SentryProfileLifecycleTrace;
-                NSLog(@"Sentry: UI Profiling Lifecycle set to TRACE");
-            }
-        }
+        // Native tracing is off, so JS drives both lifecycles through startProfiler/stopProfiler.
+        profiling.lifecycle = SentryProfileLifecycleManual;
 
         // Set profile app starts
         id startOnAppStart = profilingOptions[@"startOnAppStart"];

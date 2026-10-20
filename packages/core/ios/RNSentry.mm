@@ -1216,6 +1216,31 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 #endif
 }
 
+// sentry-cocoa has no public API for the current profiler id, so this resolves nil.
+RCT_EXPORT_METHOD(
+    startProfiler : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+    @try {
+        [SentrySDKWrapper startProfiler];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call startProfiler: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+}
+
+RCT_EXPORT_METHOD(
+    stopProfiler : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+    @try {
+        [SentrySDKWrapper stopProfiler];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call stopProfiler: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+}
+
 RCT_EXPORT_METHOD(
     crashedLastRun : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 {

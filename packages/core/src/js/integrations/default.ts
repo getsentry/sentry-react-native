@@ -5,6 +5,7 @@ import { browserSessionIntegration, consoleLoggingIntegration } from '@sentry/br
 
 import type { ReactNativeClientOptions } from '../options';
 
+import { uiProfilingIntegration } from '../profiling/uiProfilingIntegration';
 import { expoRouterIntegration, reactNativeTracingIntegration } from '../tracing';
 import { notWeb } from '../utils/environment';
 import {
@@ -113,6 +114,10 @@ export function getDefaultIntegrations(options: ReactNativeClientOptions): Integ
     }
     if (typeof options.profilesSampleRate === 'number') {
       integrations.push(hermesProfilingIntegration());
+    }
+    const profilingOptions = options._experiments?.profilingOptions ?? options._experiments?.androidProfilingOptions;
+    if (profilingOptions) {
+      integrations.push(uiProfilingIntegration(profilingOptions));
     }
   }
 

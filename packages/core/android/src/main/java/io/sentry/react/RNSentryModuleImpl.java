@@ -556,6 +556,28 @@ public class RNSentryModuleImpl {
     }
   }
 
+  public void startProfiler(Promise promise) {
+    try {
+      Sentry.startProfiler();
+      final SentryId profilerId =
+          Sentry.getCurrentScopes().getOptions().getContinuousProfiler().getProfilerId();
+      promise.resolve(SentryId.EMPTY_ID.equals(profilerId) ? null : profilerId.toString());
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to start the profiler", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void stopProfiler(Promise promise) {
+    try {
+      Sentry.stopProfiler();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to stop the profiler", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
   public void registerReplayTraceId(String traceId) {
     // Forward a trace id seen on a sent event to Session Replay so it lands in
     // the current segment's `trace_ids`. The controller owns dedup, the

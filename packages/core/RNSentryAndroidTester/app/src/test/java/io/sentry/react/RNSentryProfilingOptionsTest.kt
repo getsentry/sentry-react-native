@@ -16,7 +16,6 @@ import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
@@ -38,7 +37,7 @@ class RNSentryProfilingOptionsTest {
     }
 
     @Test
-    fun `profilingOptions wires sessionSampleRate, trace lifecycle, and startOnAppStart`() {
+    fun `profilingOptions wires sessionSampleRate, startOnAppStart, and a MANUAL native lifecycle`() {
         val rnOptions =
             JavaOnlyMap.of(
                 "_experiments",
@@ -59,42 +58,8 @@ class RNSentryProfilingOptionsTest {
         RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
 
         assertEquals(1.0, options.profileSessionSampleRate!!, 0.0)
-        assertEquals(ProfileLifecycle.TRACE, options.profileLifecycle)
-        assertTrue(options.isStartProfilerOnAppStart)
-    }
-
-    @Test
-    fun `profilingOptions lifecycle manual maps to ProfileLifecycle MANUAL`() {
-        val rnOptions =
-            JavaOnlyMap.of(
-                "_experiments",
-                JavaOnlyMap.of(
-                    "profilingOptions",
-                    JavaOnlyMap.of("lifecycle", "manual"),
-                ),
-            )
-        val options = SentryAndroidOptions()
-
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
-
         assertEquals(ProfileLifecycle.MANUAL, options.profileLifecycle)
-    }
-
-    @Test
-    fun `profilingOptions lifecycle is case-insensitive`() {
-        val rnOptions =
-            JavaOnlyMap.of(
-                "_experiments",
-                JavaOnlyMap.of(
-                    "profilingOptions",
-                    JavaOnlyMap.of("lifecycle", "TRACE"),
-                ),
-            )
-        val options = SentryAndroidOptions()
-
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
-
-        assertEquals(ProfileLifecycle.TRACE, options.profileLifecycle)
+        assertTrue(options.isStartProfilerOnAppStart)
     }
 
     @Test
@@ -173,24 +138,6 @@ class RNSentryProfilingOptionsTest {
     }
 
     @Test
-    fun `non-string lifecycle logs a warning and is ignored`() {
-        val rnOptions =
-            JavaOnlyMap.of(
-                "_experiments",
-                JavaOnlyMap.of(
-                    "profilingOptions",
-                    JavaOnlyMap.of("lifecycle", 1),
-                ),
-            )
-        val options = SentryAndroidOptions()
-
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
-
-        assertEquals(ProfileLifecycle.MANUAL, options.profileLifecycle)
-        verify(logger, times(1)).log(eq(SentryLevel.WARNING), anyString())
-    }
-
-    @Test
     fun `non-boolean startOnAppStart logs a warning and is ignored`() {
         val rnOptions =
             JavaOnlyMap.of(
@@ -206,25 +153,5 @@ class RNSentryProfilingOptionsTest {
 
         assertFalse(options.isStartProfilerOnAppStart)
         verify(logger, times(1)).log(eq(SentryLevel.WARNING), anyString())
-    }
-
-    @Test
-    fun `unknown lifecycle string is silently ignored without warning`() {
-        val rnOptions =
-            JavaOnlyMap.of(
-                "_experiments",
-                JavaOnlyMap.of(
-                    "profilingOptions",
-                    JavaOnlyMap.of("lifecycle", "not-a-real-mode"),
-                ),
-            )
-        val options = SentryAndroidOptions()
-
-        RNSentryStart.getSentryAndroidOptions(options, rnOptions, logger)
-
-        // Implementation only logs a warning for type mismatches, not unknown string values.
-        // Lifecycle stays at the default.
-        assertEquals(ProfileLifecycle.MANUAL, options.profileLifecycle)
-        verify(logger, never()).log(eq(SentryLevel.WARNING), anyString())
     }
 }
