@@ -57,6 +57,41 @@ const StackNavigator: TypedNavigator<any, any> = isMobileOs
   : createStackNavigator();
 const BottomTabNavigator = createBottomTabNavigator();
 
+// Kept as a reference so the Form Sheet demo can toggle the experimental
+// `presentOverNativeModals` option at runtime (see `FormSheetScreen`). Left
+// disabled by default so the regular feedback flow — and the Maestro e2e that
+// runs against this sample — exercise the stable `Modal` path.
+const feedbackIntegration = Sentry.feedbackIntegration({
+  imagePicker: ImagePicker,
+  enableScreenshot: true,
+  enableTakeScreenshot: true,
+  enableShakeToReport: true,
+  styles: {
+    submitButton: {
+      backgroundColor: '#6a1b9a',
+      paddingVertical: 15,
+      borderRadius: 5,
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+  },
+  namePlaceholder: 'Fullname',
+  buttonOptions: {
+    styles: {
+      triggerButton: {
+        marginBottom: 75, // Place above the tab bar
+      },
+    },
+  },
+  screenshotButtonOptions: {
+    styles: {
+      triggerButton: {
+        marginBottom: 75, // Place above the tab bar
+      },
+    },
+  },
+});
+
 Sentry.init({
   beforeSend: (event: Sentry.ErrorEvent) => {
     logWithoutTracing('Event beforeSend:', event.event_id);
@@ -125,36 +160,7 @@ Sentry.init({
               false
             : true,
       }),
-      Sentry.feedbackIntegration({
-        imagePicker: ImagePicker,
-        enableScreenshot: true,
-        enableTakeScreenshot: true,
-        enableShakeToReport: true,
-        styles: {
-          submitButton: {
-            backgroundColor: '#6a1b9a',
-            paddingVertical: 15,
-            borderRadius: 5,
-            alignItems: 'center',
-            marginBottom: 10,
-          },
-        },
-        namePlaceholder: 'Fullname',
-        buttonOptions: {
-          styles: {
-            triggerButton: {
-              marginBottom: 75, // Place above the tab bar
-            },
-          },
-        },
-        screenshotButtonOptions: {
-          styles: {
-            triggerButton: {
-              marginBottom: 75, // Place above the tab bar
-            },
-          },
-        },
-      }),
+      feedbackIntegration,
       Sentry.extraErrorDataIntegration(),
       sampleFeatureFlagsIntegration,
       sampleTurboModuleContextIntegration,
@@ -263,20 +269,35 @@ function BottomTabsNavigator() {
   );
 }
 
-// Demonstrates the feedback form presented over a native-stack `formSheet`.
-// Requires `feedbackIntegration({ _experiments: { presentOverNativeModals: true } })`
-// so the form is rendered above the presented sheet on iOS.
+// Demonstrates both feedback-form presentation paths over a native-stack
+// `formSheet`. The experimental `_experiments.presentOverNativeModals` option is
+// toggled at runtime on the shared `feedbackIntegration` instance so the sample
+// can exercise either flow without rebuilding (the provider reads the option
+// each time the form is shown):
+//
+// - Modal (default): on iOS UIKit refuses the second presentation over the
+//   already-presented sheet, so the form does not appear — this is #6875.
+// - Overlay (experimental): the form is drawn in react-native-screens'
+//   `FullWindowOverlay`, above the sheet.
 function FormSheetScreen() {
+  const showForm = (presentOverNativeModals: boolean) => {
+    feedbackIntegration.experiments.presentOverNativeModals =
+      presentOverNativeModals;
+    Sentry.showFeedbackForm();
+  };
   return (
     <View style={{ padding: 24, gap: 16 }}>
       <Text style={{ fontSize: 16 }}>
-        This screen is a native-stack `formSheet`. Tap below (or shake) to open
-        the feedback form — it appears above this sheet, and typing, submit,
-        Cancel and swipe-down all work.
+        This screen is a native-stack `formSheet`. Open the feedback form over
+        it with either presentation path:
       </Text>
       <Button
-        title="Show feedback form"
-        onPress={() => Sentry.showFeedbackForm()}
+        title="Show feedback form (Modal — default)"
+        onPress={() => showForm(false)}
+      />
+      <Button
+        title="Show feedback form (Overlay — experimental)"
+        onPress={() => showForm(true)}
       />
     </View>
   );
