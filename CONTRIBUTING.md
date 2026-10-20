@@ -15,7 +15,7 @@ This repository contains mono repository structure with multiple React Native an
 
 **TL;DR: Discuss your change in a GitHub issue before opening a pull request. We may close PRs that weren't discussed with a maintainer first.**
 
-Every line we merge is code we maintain long-term for thousands of apps, so we want to agree on the problem and the approach before anyone writes code. This saves time for you and for us.
+Every line we merge is code we maintain long-term for hundreds of thousands of apps, so we want to agree on the problem and the approach before anyone writes code. This saves time for you and for us.
 
 ## Before You Start
 
