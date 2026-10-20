@@ -269,36 +269,26 @@ function BottomTabsNavigator() {
   );
 }
 
-// Demonstrates both feedback-form presentation paths over a native-stack
-// `formSheet`. The experimental `_experiments.presentOverNativeModals` option is
-// toggled at runtime on the shared `feedbackIntegration` instance so the sample
-// can exercise either flow without rebuilding (the provider reads the option
-// each time the form is shown):
-//
-// - Modal (default): on iOS UIKit refuses the second presentation over the
-//   already-presented sheet, so the form does not appear — this is #6875.
-// - Overlay (experimental): the form is drawn in react-native-screens'
-//   `FullWindowOverlay`, above the sheet.
+// Demonstrates the experimental overlay presentation of the feedback form over a
+// native-stack `formSheet`. The default `Modal` path cannot present over an
+// already-presented sheet on iOS (UIKit refuses the second presentation — this
+// is #6875), so this screen enables `_experiments.presentOverNativeModals` at
+// runtime on the shared `feedbackIntegration` instance before opening the form,
+// which the provider reads each time the form is shown. The default `Modal` path
+// stays exercised by the regular feedback button and the Maestro e2e.
 function FormSheetScreen() {
-  const showForm = (presentOverNativeModals: boolean) => {
-    feedbackIntegration.experiments.presentOverNativeModals =
-      presentOverNativeModals;
+  const showForm = () => {
+    feedbackIntegration.experiments.presentOverNativeModals = true;
     Sentry.showFeedbackForm();
   };
   return (
     <View style={{ padding: 24, gap: 16 }}>
       <Text style={{ fontSize: 16 }}>
-        This screen is a native-stack `formSheet`. Open the feedback form over
-        it with either presentation path:
+        This screen is a native-stack `formSheet`. Tap below to open the
+        feedback form above it using the experimental `FullWindowOverlay`
+        presentation.
       </Text>
-      <Button
-        title="Show feedback form (Modal — default)"
-        onPress={() => showForm(false)}
-      />
-      <Button
-        title="Show feedback form (Overlay — experimental)"
-        onPress={() => showForm(true)}
-      />
+      <Button title="Show feedback form" onPress={showForm} />
     </View>
   );
 }
