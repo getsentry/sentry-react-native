@@ -444,7 +444,7 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes : (RCTPromiseResolveBlock)resolve rej
 
     [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         // Serialize to get contexts dictionary
-        NSDictionary *serializedScope = [scope serialize];
+        NSDictionary *serializedScope = [RNSentryInternalWrapper serializeScope:scope];
         NSDictionary *allContexts = serializedScope[@"context"]; // It's singular here, annoyingly
 
         NSMutableDictionary *contexts = [NSMutableDictionary new];
@@ -496,7 +496,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve re
     }
     __block NSMutableDictionary<NSString *, id> *serializedScope;
     [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        serializedScope = [[scope serialize] mutableCopy];
+        serializedScope = [[RNSentryInternalWrapper serializeScope:scope] mutableCopy];
 
         NSDictionary<NSString *, id> *user = [serializedScope valueForKey:@"user"];
         if (user == nil) {
