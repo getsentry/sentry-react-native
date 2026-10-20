@@ -10,11 +10,22 @@ import { NATIVE } from '../wrapper';
 // `Sentry.profiler` from `@sentry/core` looks the integration up by this name.
 const INTEGRATION_NAME = 'ProfilingIntegration';
 
+/**
+ * The native SDKs ignore a start call that comes before a requested stop takes effect at the end
+ * of the current 60 second chunk. Waiting one chunk before the stop call keeps back-to-back root
+ * spans in one profile.
+ */
+export const TRACE_STOP_DELAY_MS = 60_000;
+
 interface UIProfilingIntegration extends Integration {
   _profiler: {
     start: () => void;
     stop: () => void;
   };
+}
+
+interface ProfileSession {
+  profilerId: Promise<string | null>;
 }
 
 /**
@@ -28,36 +39,45 @@ export const uiProfilingIntegration = ({
   startOnAppStart = false,
 }: ProfilingOptions): UIProfilingIntegration => {
   const activeRootSpanIds = new Set<string>();
+  const sessionByRootSpanId = new Map<string, ProfileSession>();
+  let session: ProfileSession | undefined;
+  let stopTimeout: ReturnType<typeof setTimeout> | undefined;
   let isNativeReady = false;
-  let isRunning = false;
   let isManualRequested = lifecycle === 'manual' && startOnAppStart;
   let isAppStartPending = lifecycle === 'trace' && startOnAppStart;
-  let profilerId: string | undefined;
 
   const shouldRun = (): boolean =>
     lifecycle === 'trace' ? isAppStartPending || activeRootSpanIds.size > 0 : isManualRequested;
 
+  const clearStopTimeout = (): void => {
+    clearTimeout(stopTimeout);
+    stopTimeout = undefined;
+  };
+
+  const stopNativeProfiler = (): void => {
+    clearStopTimeout();
+    session = undefined;
+    NATIVE.stopProfiler().then(undefined, () => {});
+  };
+
   const syncNativeProfiler = (): void => {
-    if (!isNativeReady || shouldRun() === isRunning) {
+    if (!isNativeReady) {
       return;
     }
 
-    isRunning = !isRunning;
-    if (isRunning) {
-      NATIVE.startProfiler().then(
-        id => {
-          if (isRunning) {
-            profilerId = id ?? undefined;
-          }
-        },
-        () => {},
-      );
-    } else {
-      // In trace mode, the transaction that ended the profile is processed after this call and must keep the id.
-      if (lifecycle === 'manual') {
-        profilerId = undefined;
+    if (shouldRun()) {
+      clearStopTimeout();
+      if (!session) {
+        const newSession: ProfileSession = { profilerId: NATIVE.startProfiler() };
+        session = newSession;
+        activeRootSpanIds.forEach(spanId => sessionByRootSpanId.set(spanId, newSession));
       }
-      NATIVE.stopProfiler().then(undefined, () => {});
+    } else if (session && !stopTimeout) {
+      if (lifecycle === 'trace') {
+        stopTimeout = setTimeout(stopNativeProfiler, TRACE_STOP_DELAY_MS);
+      } else {
+        stopNativeProfiler();
+      }
     }
   };
 
@@ -65,7 +85,11 @@ export const uiProfilingIntegration = ({
     if (span !== getRootSpan(span) || !spanIsSampled(span)) {
       return;
     }
-    activeRootSpanIds.add(span.spanContext().spanId);
+    const { spanId } = span.spanContext();
+    activeRootSpanIds.add(spanId);
+    if (session) {
+      sessionByRootSpanId.set(spanId, session);
+    }
     syncNativeProfiler();
   };
 
@@ -89,35 +113,46 @@ export const uiProfilingIntegration = ({
   return {
     name: INTEGRATION_NAME,
     setup(client: ReactNativeClient): void {
-      if (lifecycle === 'trace') {
-        if (hasSpansEnabled(client.getOptions())) {
-          client.on('spanStart', onSpanStart);
-          client.on('spanEnd', onSpanEnd);
-        } else {
-          debug.warn('[Profiling] `lifecycle` is set to "trace", but tracing is disabled. The profiler will not run.');
-          isAppStartPending = false;
-        }
+      if (hasSpansEnabled(client.getOptions())) {
+        client.on('spanStart', onSpanStart);
+        client.on('spanEnd', onSpanEnd);
+      } else if (lifecycle === 'trace') {
+        debug.warn('[Profiling] `lifecycle` is set to "trace", but tracing is disabled. The profiler will not run.');
+        isAppStartPending = false;
       }
 
       client.on('afterInit', () => {
         isNativeReady = true;
         if (startOnAppStart && !shouldRun()) {
           // The native SDK started the app start profile before JS ran.
-          NATIVE.stopProfiler().then(undefined, () => {});
+          stopNativeProfiler();
           return;
         }
         syncNativeProfiler();
       });
+
+      client.on('close', clearStopTimeout);
     },
-    processEvent(event: Event): Event {
-      if (event.type === 'transaction' && profilerId) {
-        event.contexts = {
-          ...event.contexts,
-          // `ProfileContext` only types the `profile_id` of transaction-based profiles.
-          profile: { ...event.contexts?.profile, profiler_id: profilerId } as NonNullable<Event['contexts']>['profile'],
-        };
+    processEvent(event: Event): Event | PromiseLike<Event> {
+      const rootSpanId = event.type === 'transaction' ? event.contexts?.trace?.span_id : undefined;
+      const rootSpanSession = rootSpanId ? sessionByRootSpanId.get(rootSpanId) : undefined;
+      if (!rootSpanId || !rootSpanSession) {
+        return event;
       }
-      return event;
+
+      sessionByRootSpanId.delete(rootSpanId);
+      return rootSpanSession.profilerId.then(profilerId => {
+        if (profilerId) {
+          event.contexts = {
+            ...event.contexts,
+            // `ProfileContext` only types the `profile_id` of transaction-based profiles.
+            profile: { ...event.contexts?.profile, profiler_id: profilerId } as NonNullable<
+              Event['contexts']
+            >['profile'],
+          };
+        }
+        return event;
+      });
     },
     _profiler: {
       start: () => setManualRequested(true),

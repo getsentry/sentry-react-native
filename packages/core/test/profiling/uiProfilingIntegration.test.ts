@@ -1,14 +1,14 @@
+import type { Event } from '@sentry/core';
+
 import { debug, getCurrentScope, profiler, setCurrentClient, startInactiveSpan, startSpan } from '@sentry/core';
 
 import type { ProfilingOptions } from '../../src/js/options';
 
-import { uiProfilingIntegration } from '../../src/js/profiling/uiProfilingIntegration';
+import { TRACE_STOP_DELAY_MS, uiProfilingIntegration } from '../../src/js/profiling/uiProfilingIntegration';
 import { getDefaultTestClientOptions, setupTestClient, TestClient } from '../mocks/client';
 import { NATIVE } from '../mockWrapper';
 
 jest.mock('../../src/js/wrapper', () => jest.requireActual('../mockWrapper'));
-
-const flushPromises = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
 
 function setupClient(
   profilingOptions: ProfilingOptions,
@@ -17,33 +17,47 @@ function setupClient(
   return setupTestClient({ ...clientOptions, integrations: [uiProfilingIntegration(profilingOptions)] });
 }
 
+function getTransaction(client: TestClient, name: string): Event | undefined {
+  return client.eventQueue.find(event => event.transaction === name);
+}
+
 describe('uiProfilingIntegration', () => {
+  beforeEach(() => {
+    jest.useFakeTimers({ doNotFake: ['performance'] });
+  });
+
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
     getCurrentScope().setClient(undefined);
   });
 
   describe('trace lifecycle', () => {
-    it('runs the native profiler while a sampled root span is active', () => {
+    it('stops the native profiler one chunk after the last root span ends', () => {
       setupClient({ lifecycle: 'trace' });
 
       const span = startInactiveSpan({ name: 'root' });
       expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
-      expect(NATIVE.stopProfiler).not.toHaveBeenCalled();
 
       span.end();
+      jest.advanceTimersByTime(TRACE_STOP_DELAY_MS - 1);
+      expect(NATIVE.stopProfiler).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(1);
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the profiler running until the last root span ends', () => {
+    it('keeps one profile for root spans that start before the stop delay ends', () => {
       setupClient({ lifecycle: 'trace' });
 
-      const first = startInactiveSpan({ name: 'first', forceTransaction: true });
-      const second = startInactiveSpan({ name: 'second', forceTransaction: true });
-      first.end();
+      startInactiveSpan({ name: 'first' }).end();
+      jest.advanceTimersByTime(TRACE_STOP_DELAY_MS - 1);
+      const second = startInactiveSpan({ name: 'second' });
+      jest.advanceTimersByTime(TRACE_STOP_DELAY_MS);
       expect(NATIVE.stopProfiler).not.toHaveBeenCalled();
 
       second.end();
+      jest.advanceTimersByTime(TRACE_STOP_DELAY_MS);
       expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
     });
@@ -56,16 +70,29 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.startProfiler).not.toHaveBeenCalled();
     });
 
-    it('adds the native profiler id to transactions', async () => {
+    it('adds the profiler id to a transaction that ends before the native start resolves', async () => {
       NATIVE.startProfiler.mockResolvedValueOnce('profiler-id');
       const client = setupClient({ lifecycle: 'trace' });
 
-      const span = startInactiveSpan({ name: 'root' });
-      await flushPromises();
-      span.end();
-      await client.flush();
+      startInactiveSpan({ name: 'root' }).end();
+      await jest.runAllTimersAsync();
 
+      expect(client.eventQueue).toHaveLength(1);
       expect(client.event?.contexts?.profile).toEqual({ profiler_id: 'profiler-id' });
+    });
+
+    it('does not add the id of a stopped profile to later transactions', async () => {
+      NATIVE.startProfiler.mockResolvedValueOnce('profiler-id').mockResolvedValueOnce(null);
+      const client = setupClient({ lifecycle: 'trace' });
+
+      startInactiveSpan({ name: 'first' }).end();
+      jest.advanceTimersByTime(TRACE_STOP_DELAY_MS);
+      startInactiveSpan({ name: 'second' }).end();
+      await jest.runAllTimersAsync();
+
+      expect(client.eventQueue).toHaveLength(2);
+      expect(getTransaction(client, 'first')?.contexts?.profile).toEqual({ profiler_id: 'profiler-id' });
+      expect(getTransaction(client, 'second')?.contexts?.profile).toBeUndefined();
     });
 
     it('stops the app start profile after the first root span ends', () => {
@@ -73,6 +100,7 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
 
       startInactiveSpan({ name: 'root' }).end();
+      jest.advanceTimersByTime(TRACE_STOP_DELAY_MS);
 
       expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
@@ -115,18 +143,20 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
     });
 
-    it('does not add the profiler id to transactions after the profiler stops', async () => {
+    it('adds the profiler id only to transactions that start while the profiler runs', async () => {
       NATIVE.startProfiler.mockResolvedValueOnce('profiler-id');
       const client = setupClient({ lifecycle: 'manual' });
 
       profiler.startProfiler();
-      await flushPromises();
+      const profiled = startInactiveSpan({ name: 'profiled' });
       profiler.stopProfiler();
-      startInactiveSpan({ name: 'root' }).end();
-      await client.flush();
+      profiled.end();
+      startInactiveSpan({ name: 'not profiled' }).end();
+      await jest.runAllTimersAsync();
 
-      expect(client.event?.type).toBe('transaction');
-      expect(client.event?.contexts?.profile).toBeUndefined();
+      expect(client.eventQueue).toHaveLength(2);
+      expect(getTransaction(client, 'profiled')?.contexts?.profile).toEqual({ profiler_id: 'profiler-id' });
+      expect(getTransaction(client, 'not profiled')?.contexts?.profile).toBeUndefined();
     });
   });
 });
