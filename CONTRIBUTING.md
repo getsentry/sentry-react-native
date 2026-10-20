@@ -28,7 +28,7 @@ Every line we merge is code we maintain long-term for hundreds of thousands of a
 - Fork the repo and make your changes on a branch.
 - Add tests. Non-trivial PRs won't be accepted without them.
 - Don't bump version numbers. We do that when we release.
-- Open a [draft PR](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests) that links the issue (e.g. `Fixes #123`), and mark it ready for review once CI passes.
+- Open a PR that links the issue (e.g. `Fixes #123`)
 - Name your PR according to our [commit message format](https://develop.sentry.dev/commit-messages/#commit-message-format).
 - Keep PRs focused: one change per PR, no unrelated refactors.
 
