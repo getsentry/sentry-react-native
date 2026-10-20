@@ -56,17 +56,17 @@ for runtime, devices in sorted(data.items()):
 echo "Simulator: $SIM_ID"
 xcrun simctl boot "$SIM_ID" 2>/dev/null || true
 
-# ---- 2. Prebuild the sample (the withIosSceneLifecycle plugin adopts the UIScene lifecycle) -------
+# ---- 2. Prebuild the sample (the Expo template adopts the UIScene lifecycle) ----------------------
 log "Prebuilding Expo sample"
 ( cd "$EXPO_DIR" && CI=1 npx expo prebuild --clean --no-install -p ios )
 
 # Guard: fail loudly if the scene lifecycle did not get wired up (otherwise the check would pass
 # trivially against a non-scene app that cannot hit the bug).
 /usr/libexec/PlistBuddy -c "Print :UIApplicationSceneManifest:UISceneConfigurations:UIWindowSceneSessionRoleApplication:0:UISceneDelegateClassName" \
-  "$IOS_DIR/sentryreactnativeexposample/Info.plist" 2>/dev/null | grep -q EXExpoAppSceneDelegate \
-  || fail "Scene manifest not injected — withIosSceneLifecycle did not apply (Expo template drift?)."
-grep -q "ExpoReactNativeFactoryProvider" "$IOS_DIR/sentryreactnativeexposample/AppDelegate.swift" \
-  || fail "AppDelegate not wired for the scene lifecycle — withIosSceneLifecycle did not apply."
+  "$IOS_DIR/sentryreactnativeexposample/Info.plist" 2>/dev/null | grep -q SceneDelegate \
+  || fail "Scene manifest missing from Info.plist (Expo template drift?)."
+grep -q "ExpoAppSceneDelegate" "$IOS_DIR/sentryreactnativeexposample/SceneDelegate.swift" 2>/dev/null \
+  || fail "SceneDelegate is not an ExpoAppSceneDelegate (Expo template drift?)."
 grep -q 'SENTRY_TEST_ABORT' "$IOS_DIR/sentryreactnativeexposample/AppDelegate.swift" \
   || fail "AppDelegate is missing the SENTRY_TEST_ABORT hook — withIosSceneLifecycle did not apply."
 
