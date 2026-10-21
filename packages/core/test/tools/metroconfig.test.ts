@@ -549,6 +549,18 @@ describe('metroconfig', () => {
           ExpectToBeCalledWithMetroParameters(originalResolverMock, browserContextMock, wrapperModule, 'web');
         });
 
+        test('removes wrapper when origin path uses Windows separators', () => {
+          const windowsContextMock = {
+            resolveRequest: jest.fn(),
+            originModulePath: 'C:\\project\\node_modules\\@sentry\\browser\\build\\npm\\esm\\prod\\index.js',
+          };
+          const modifiedConfig = withSentryFeedbackResolver(config, false);
+          const result = resolveRequest(modifiedConfig, windowsContextMock, wrapperModule, 'ios');
+
+          expect(result).toEqual({ type: 'empty' });
+          expect(originalResolverMock).not.toHaveBeenCalled();
+        });
+
         test('keeps wrapper when origin is not @sentry/browser', () => {
           const nonBrowserContextMock = {
             resolveRequest: jest.fn(),
@@ -711,6 +723,18 @@ describe('metroconfig', () => {
 
         expect(originalResolverMock).toHaveBeenCalledWith(contextMock, serverOnlyModule, null);
       });
+    });
+
+    test('removes module when origin path uses Windows separators', () => {
+      const windowsContext = {
+        ...contextMock,
+        originModulePath: 'C:\\project\\node_modules\\@sentry\\core\\build\\esm\\index.js',
+      };
+      const modifiedConfig = withSentryExcludeServerOnlyResolver(config);
+      const result = modifiedConfig.resolver?.resolveRequest?.(windowsContext, './tracing/openai/index.js', 'android');
+
+      expect(result).toEqual({ type: 'empty' });
+      expect(originalResolverMock).not.toHaveBeenCalled();
     });
 
     test('does not exclude modules when origin is not @sentry/core', () => {
