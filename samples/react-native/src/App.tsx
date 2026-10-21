@@ -39,7 +39,7 @@ const sampleFeatureFlagsIntegration = Sentry.featureFlagsIntegration();
 sampleFeatureFlagsIntegration.addFeatureFlag('sample-test-flag', true);
 
 // Replaces the default `TurboModuleContext` integration so the sample's own
-// TurboModules are instrumented too, not just `RNSentry`. Exercised by the
+// TurboModules are instrumented. Exercised by the
 // "TurboModule Playground" screen on the Errors tab.
 const sampleTurboModuleContextIntegration =
   Sentry.turboModuleContextIntegration({
