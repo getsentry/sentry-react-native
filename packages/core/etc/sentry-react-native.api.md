@@ -1259,7 +1259,7 @@ export interface TurboModuleContextOptions {
     maxTopModulesPerSpan?: number;
     modules?: Array<{
         name: string;
-        module: object | null | undefined;
+        module?: object | null;
         skipMethods?: ReadonlyArray<string>;
     }>;
     slowCallThresholdMs?: number;

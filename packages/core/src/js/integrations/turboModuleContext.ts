@@ -49,8 +49,12 @@ export const MAX_PENDING_CALL_WINDOWS = 1024;
 export const MAX_PENDING_SPAN_ATTRIBUTES = 256;
 
 export interface TurboModuleContextOptions {
-  /** Additional TurboModules to wrap. `RNSentry` is wrapped only when it is removed from `ignoreTurboModules`. */
-  modules?: Array<{ name: string; module: object | null | undefined; skipMethods?: ReadonlyArray<string> }>;
+  /**
+   * TurboModules to wrap. The SDK's own `RNSentry` module is not wrapped by default;
+   * add `{ name: 'RNSentry' }` to opt in. The SDK resolves the module itself and always
+   * skips its scope-sync methods.
+   */
+  modules?: Array<{ name: string; module?: object | null; skipMethods?: ReadonlyArray<string> }>;
 
   /** Per-(module, method, kind) counters, flushed on transaction finish and on a periodic timer. Default: `true`. */
   enableAggregateStats?: boolean;
@@ -62,8 +66,6 @@ export interface TurboModuleContextOptions {
    * Modules opted out of the aggregate (still wrapped for crash context).
    * Default `['RNSentry']` — the SDK's own transport calls would otherwise
    * pollute the signal and self-re-arm the periodic timer indefinitely.
-   *
-   * `RNSentry` is the exception: while it is in this list, it is not wrapped at all.
    */
   ignoreTurboModules?: ReadonlyArray<string>;
 
@@ -149,15 +151,15 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   return {
     name: INTEGRATION_NAME,
     setupOnce() {
-      const ignoredModules = options.ignoreTurboModules ?? ['RNSentry'];
-
-      // Each wrapped call costs about six native scope writes, which sentry-cocoa persists to disk.
-      if (!ignoredModules.includes('RNSentry')) {
-        wrapTurboModule('RNSentry', getRNSentryModule(), { skip: RNSENTRY_SKIP, arch: contextArch });
-      }
-
+      // RNSentry is wrapped only on request: each wrapped call costs about six
+      // native scope writes, which sentry-cocoa persists to disk.
       for (const entry of options.modules ?? []) {
-        wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods, arch: contextArch });
+        if (entry.name === 'RNSentry') {
+          const skip = [...RNSENTRY_SKIP, ...(entry.skipMethods ?? [])];
+          wrapTurboModule(entry.name, entry.module ?? getRNSentryModule(), { skip, arch: contextArch });
+        } else {
+          wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods, arch: contextArch });
+        }
       }
 
       if (options.enableLegacyNativeModules === true) {
@@ -169,7 +171,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
 
       setAggregateRecordingEnabled(enableAggregate);
       if (enableAggregate || enableSpanAttribution || slowCallThresholdMs > 0) {
-        setIgnoredTurboModules(ignoredModules);
+        setIgnoredTurboModules(options.ignoreTurboModules ?? ['RNSentry']);
       }
     },
     setup(client: Client): void {

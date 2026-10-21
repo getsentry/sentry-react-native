@@ -134,7 +134,17 @@ describe('turboModuleContextIntegration', () => {
     expect(setTagSpy).not.toHaveBeenCalled();
   });
 
-  it('wraps the live RNSentry TurboModule when it is removed from ignoreTurboModules', () => {
+  it('does not wrap RNSentry when the user passes a custom ignoreTurboModules list', () => {
+    const fakeModule = { fetchNativeFrames: jest.fn() };
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
+    const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
+
+    turboModuleContextIntegration({ ignoreTurboModules: [] }).setupOnce!();
+
+    expect(wrapSpy).not.toHaveBeenCalled();
+  });
+
+  it('wraps the live RNSentry TurboModule when it is listed in modules', () => {
     const fakeModule = {
       addListener: jest.fn(),
       removeListeners: jest.fn(),
@@ -144,7 +154,7 @@ describe('turboModuleContextIntegration', () => {
 
     const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
 
-    turboModuleContextIntegration({ ignoreTurboModules: [] }).setupOnce!();
+    turboModuleContextIntegration({ modules: [{ name: 'RNSentry' }] }).setupOnce!();
 
     expect(wrapSpy).toHaveBeenCalledWith(
       'RNSentry',
@@ -169,6 +179,22 @@ describe('turboModuleContextIntegration', () => {
     );
   });
 
+  it('merges user skipMethods with the RNSentry skip list', () => {
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
+    const fakeModule = { crash: jest.fn(), fetchNativeFrames: jest.fn(), setTag: jest.fn() };
+    const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
+
+    turboModuleContextIntegration({
+      modules: [{ name: 'RNSentry', module: fakeModule, skipMethods: ['fetchNativeFrames'] }],
+    }).setupOnce!();
+
+    expect(wrapSpy).toHaveBeenCalledWith(
+      'RNSentry',
+      fakeModule,
+      expect.objectContaining({ skip: expect.arrayContaining(['setTag', 'fetchNativeFrames']) }),
+    );
+  });
+
   it('does not wrap scope-sync methods on RNSentry (would recurse infinitely)', () => {
     // Sanity check: every method `scopeSync.ts` forwards to NATIVE.* via
     // RNSentry must be in the skip list, otherwise scope writes recurse.
@@ -188,7 +214,7 @@ describe('turboModuleContextIntegration', () => {
     jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
 
     const originalCrash = fakeModule.crash;
-    turboModuleContextIntegration({ ignoreTurboModules: [] }).setupOnce!();
+    turboModuleContextIntegration({ modules: [{ name: 'RNSentry', module: fakeModule }] }).setupOnce!();
 
     // crash is wrapped (replaced with sentryTurboModuleWrapper, which is a plain
     // function and therefore lacks the `_isMockFunction` marker the jest mocks carry).
