@@ -226,6 +226,11 @@ export const reactNavigationIntegration = ({
    * supply the canonical route info on every state change. Use `undefined` to clear.
    */
   _setRouteOverrideProvider: (provider: RouteOverrideProvider | undefined) => void;
+  /**
+   * @internal API: start a navigation span for a dispatched action, for navigators that do not
+   * emit `__unsafe_action__` (for example, Expo Router 58 and later).
+   */
+  _startIdleNavigationSpan: (event: UnsafeAction) => void;
   options: ReactNavigationIntegrationOptions;
 } => {
   let navigationContainer: NavigationContainer | undefined;
@@ -896,6 +901,7 @@ export const reactNavigationIntegration = ({
     afterAllSetup,
     registerNavigationContainer,
     _setRouteOverrideProvider,
+    _startIdleNavigationSpan: event => startIdleNavigationSpan(event),
     options: {
       routeChangeTimeoutMs,
       enableTimeToInitialDisplay,
