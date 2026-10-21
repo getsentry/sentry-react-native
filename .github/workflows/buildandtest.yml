@@ -70,6 +70,10 @@ jobs:
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Install Dependencies
         run: yarn install
 
@@ -92,7 +96,7 @@ jobs:
         run: |
           # Install Swift dependencies first
           sudo apt-get update
-          sudo apt-get -y install libcurl4-openssl-dev libz3-dev libncurses-dev libedit-dev libxml2-dev
+          sudo apt-get -y install libcurl4-openssl-dev libz3-dev libncurses-dev libedit-dev libxml2-dev binutils-gold
 
           ARCH=$(uname -m)
           SWIFTLY_FILE="swiftly-${ARCH}.tar.gz"
@@ -103,8 +107,8 @@ jobs:
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
 
-          # Install Swift 6.0 (compatible with SwiftLint 0.63.2)
-          swiftly install 6.0
+          # Swift 6.4 is the first release with Ubuntu 26.04 toolchains
+          swiftly install 6.4.1
           swift --version
 
           # Export Swift toolchain path for SwiftLint's SourceKit
@@ -161,6 +165,10 @@ jobs:
           node-version: 18
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Install Dependencies
         run: yarn install
       - name: Build
@@ -378,6 +386,10 @@ jobs:
           node-version: 22
           cache: 'yarn'
           cache-dependency-path: yarn.lock
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Install Dependencies
         run: yarn install
       - name: Build
