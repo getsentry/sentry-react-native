@@ -48,6 +48,7 @@ export const uiProfilingIntegration = ({
   let isManualRequested = lifecycle === 'manual' && startOnAppStart;
   let isAppStartPending = lifecycle === 'trace' && startOnAppStart;
   let jsThreadId: string | null = null;
+  let resolveAppStartSession: ((profilerId: string | null) => void) | undefined;
 
   const shouldRun = (): boolean =>
     lifecycle === 'trace' ? isAppStartPending || activeRootSpanIds.size > 0 : isManualRequested;
@@ -126,7 +127,8 @@ export const uiProfilingIntegration = ({
   return {
     name: INTEGRATION_NAME,
     setup(client: ReactNativeClient): void {
-      if (hasSpansEnabled(client.getOptions())) {
+      const tracingEnabled = hasSpansEnabled(client.getOptions());
+      if (tracingEnabled) {
         jsThreadId = NATIVE.getCurrentThreadId();
         client.on('spanStart', onSpanStart);
         client.on('spanEnd', onSpanEnd);
@@ -135,17 +137,34 @@ export const uiProfilingIntegration = ({
         isAppStartPending = false;
       }
 
+      // The native SDK starts the app start profile before JS runs, so root spans that start before
+      // native init belong to it. Its id is only available after native init.
+      if (startOnAppStart && (lifecycle === 'manual' || tracingEnabled)) {
+        session = {
+          profilerId: new Promise(resolve => {
+            resolveAppStartSession = resolve;
+          }),
+        };
+      }
+
       client.on('afterInit', () => {
         isNativeReady = true;
-        if (startOnAppStart && !shouldRun()) {
-          // The native SDK started the app start profile before JS ran.
+        const resolve = resolveAppStartSession;
+        resolveAppStartSession = undefined;
+        if (resolve) {
+          // The profiler already runs, so this call only returns its id.
+          NATIVE.startProfiler().then(resolve, () => resolve(null));
+        } else if (startOnAppStart) {
           stopNativeProfiler();
           return;
         }
         syncNativeProfiler();
       });
 
-      client.on('close', clearStopTimeout);
+      client.on('close', () => {
+        clearStopTimeout();
+        resolveAppStartSession?.(null);
+      });
     },
     processEvent(event: Event): Event | PromiseLike<Event> {
       const rootSpanId = event.type === 'transaction' ? event.contexts?.trace?.span_id : undefined;

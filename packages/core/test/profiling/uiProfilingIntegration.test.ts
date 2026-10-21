@@ -124,6 +124,50 @@ describe('uiProfilingIntegration', () => {
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
     });
 
+    it('links a root span that ends before native init to the app start profile', async () => {
+      NATIVE.startProfiler.mockResolvedValueOnce('app-start-profiler-id');
+      const client = new TestClient(
+        getDefaultTestClientOptions({
+          tracesSampleRate: 1.0,
+          integrations: [uiProfilingIntegration({ lifecycle: 'trace', startOnAppStart: true })],
+        }),
+      );
+      setCurrentClient(client);
+      client.init();
+
+      startInactiveSpan({ name: 'early' }).end();
+      // @ts-expect-error Only available on ReactNativeClient
+      client.emit('afterInit');
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(getTransaction(client, 'early')?.contexts?.profile).toEqual({ profiler_id: 'app-start-profiler-id' });
+      expect(NATIVE.stopProfiler).not.toHaveBeenCalled();
+
+      await jest.advanceTimersByTimeAsync(TRACE_STOP_DELAY_MS);
+      expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops the app start profile after the profiler id call when manual stop comes before native init', async () => {
+      const client = new TestClient(
+        getDefaultTestClientOptions({
+          integrations: [uiProfilingIntegration({ lifecycle: 'manual', startOnAppStart: true })],
+        }),
+      );
+      setCurrentClient(client);
+      client.init();
+
+      profiler.stopProfiler();
+      // @ts-expect-error Only available on ReactNativeClient
+      client.emit('afterInit');
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(NATIVE.startProfiler).toHaveBeenCalledTimes(1);
+      expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
+      expect(NATIVE.startProfiler.mock.invocationCallOrder[0]).toBeLessThan(
+        NATIVE.stopProfiler.mock.invocationCallOrder[0] ?? 0,
+      );
+    });
+
     it('stops the app start profile when tracing is disabled', () => {
       const warn = jest.spyOn(debug, 'warn');
 
