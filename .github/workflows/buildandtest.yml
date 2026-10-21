@@ -58,7 +58,8 @@ jobs:
 
   job_lint:
     name: Lint
-    runs-on: ubuntu-latest
+    # SwiftLint's Linux binary needs libxml2.so.2, which Ubuntu 26.04 no longer ships
+    runs-on: ubuntu-24.04
     needs: [diff_check]
     if: ${{ needs.diff_check.outputs.skip_ci != 'true' }}
     steps:
@@ -96,7 +97,7 @@ jobs:
         run: |
           # Install Swift dependencies first
           sudo apt-get update
-          sudo apt-get -y install libcurl4-openssl-dev libz3-dev libncurses-dev libedit-dev libxml2-dev binutils-gold
+          sudo apt-get -y install libcurl4-openssl-dev libz3-dev libncurses-dev libedit-dev libxml2-dev
 
           ARCH=$(uname -m)
           SWIFTLY_FILE="swiftly-${ARCH}.tar.gz"
@@ -107,8 +108,8 @@ jobs:
           . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
           hash -r
 
-          # Swift 6.4 is the first release with Ubuntu 26.04 toolchains
-          swiftly install 6.4.1
+          # Install Swift 6.0 (compatible with SwiftLint 0.63.2)
+          swiftly install 6.0
           swift --version
 
           # Export Swift toolchain path for SwiftLint's SourceKit
