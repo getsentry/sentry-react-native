@@ -107,7 +107,34 @@ describe('turboModuleContextIntegration', () => {
     _resetTurboModuleAggregator();
   });
 
-  it('wraps the live RNSentry TurboModule on setup', () => {
+  it('does not wrap RNSentry by default', () => {
+    const fakeModule = { fetchNativeFrames: jest.fn() };
+    const originalFetchNativeFrames = fakeModule.fetchNativeFrames;
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
+    const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
+
+    turboModuleContextIntegration().setupOnce!();
+
+    expect(wrapSpy).not.toHaveBeenCalledWith('RNSentry', expect.anything(), expect.anything());
+    expect(fakeModule.fetchNativeFrames).toBe(originalFetchNativeFrames);
+  });
+
+  it('does not write turbo_module scope data for RNSentry calls by default', () => {
+    const fakeModule = { fetchNativeFrames: jest.fn() };
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
+    const isolationScope = new Scope();
+    jest.spyOn(SentryCore, 'getIsolationScope').mockReturnValue(isolationScope);
+    const setContextSpy = jest.spyOn(isolationScope, 'setContext');
+    const setTagSpy = jest.spyOn(isolationScope, 'setTag');
+    turboModuleContextIntegration().setupOnce!();
+
+    fakeModule.fetchNativeFrames();
+
+    expect(setContextSpy).not.toHaveBeenCalled();
+    expect(setTagSpy).not.toHaveBeenCalled();
+  });
+
+  it('wraps the live RNSentry TurboModule when it is removed from ignoreTurboModules', () => {
     const fakeModule = {
       addListener: jest.fn(),
       removeListeners: jest.fn(),
@@ -117,7 +144,7 @@ describe('turboModuleContextIntegration', () => {
 
     const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
 
-    turboModuleContextIntegration().setupOnce!();
+    turboModuleContextIntegration({ ignoreTurboModules: [] }).setupOnce!();
 
     expect(wrapSpy).toHaveBeenCalledWith(
       'RNSentry',
@@ -161,7 +188,7 @@ describe('turboModuleContextIntegration', () => {
     jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
 
     const originalCrash = fakeModule.crash;
-    turboModuleContextIntegration().setupOnce!();
+    turboModuleContextIntegration({ ignoreTurboModules: [] }).setupOnce!();
 
     // crash is wrapped (replaced with sentryTurboModuleWrapper, which is a plain
     // function and therefore lacks the `_isMockFunction` marker the jest mocks carry).

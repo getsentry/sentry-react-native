@@ -49,7 +49,7 @@ export const MAX_PENDING_CALL_WINDOWS = 1024;
 export const MAX_PENDING_SPAN_ATTRIBUTES = 256;
 
 export interface TurboModuleContextOptions {
-  /** Additional TurboModules to wrap. `RNSentry` is always tracked. */
+  /** Additional TurboModules to wrap. `RNSentry` is wrapped only when it is removed from `ignoreTurboModules`. */
   modules?: Array<{ name: string; module: object | null | undefined; skipMethods?: ReadonlyArray<string> }>;
 
   /** Per-(module, method, kind) counters, flushed on transaction finish and on a periodic timer. Default: `true`. */
@@ -62,6 +62,8 @@ export interface TurboModuleContextOptions {
    * Modules opted out of the aggregate (still wrapped for crash context).
    * Default `['RNSentry']` — the SDK's own transport calls would otherwise
    * pollute the signal and self-re-arm the periodic timer indefinitely.
+   *
+   * `RNSentry` is the exception: while it is in this list, it is not wrapped at all.
    */
   ignoreTurboModules?: ReadonlyArray<string>;
 
@@ -147,9 +149,12 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   return {
     name: INTEGRATION_NAME,
     setupOnce() {
-      // Wrap RNSentry first with its curated skip list; `wrapAllNativeModules`
-      // then skips it implicitly to avoid double-wrapping with a wider surface.
-      wrapTurboModule('RNSentry', getRNSentryModule(), { skip: RNSENTRY_SKIP, arch: contextArch });
+      const ignoredModules = options.ignoreTurboModules ?? ['RNSentry'];
+
+      // Each wrapped call costs about six native scope writes, which sentry-cocoa persists to disk.
+      if (!ignoredModules.includes('RNSentry')) {
+        wrapTurboModule('RNSentry', getRNSentryModule(), { skip: RNSENTRY_SKIP, arch: contextArch });
+      }
 
       for (const entry of options.modules ?? []) {
         wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods, arch: contextArch });
@@ -164,7 +169,7 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
 
       setAggregateRecordingEnabled(enableAggregate);
       if (enableAggregate || enableSpanAttribution || slowCallThresholdMs > 0) {
-        setIgnoredTurboModules(options.ignoreTurboModules ?? ['RNSentry']);
+        setIgnoredTurboModules(ignoredModules);
       }
     },
     setup(client: Client): void {
