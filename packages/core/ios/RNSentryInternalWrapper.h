@@ -2,6 +2,7 @@
 
 @class SentryEnvelope;
 @class SentryId;
+@class SentryScope;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -39,6 +40,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (class, readonly, nullable) NSDictionary<NSString *, id> *appStartMeasurementWithSpans;
 
 @property (class, readonly) BOOL isFramesTrackingRunning;
+
+// MARK: - Serialization
+
++ (NSDictionary<NSString *, id> *)serializeScope:(SentryScope *)scope;
 
 // MARK: - Envelopes
 
