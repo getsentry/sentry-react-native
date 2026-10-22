@@ -1270,7 +1270,7 @@ export interface TurboModuleContextOptions {
     maxTopModulesPerSpan?: number;
     modules?: Array<{
         name: string;
-        module: object | null | undefined;
+        module?: object | null;
         skipMethods?: ReadonlyArray<string>;
     }>;
     slowCallThresholdMs?: number;
@@ -1329,7 +1329,7 @@ export function wrapTurboModule<T extends object>(name: string, module: T | null
 
 // Warnings were encountered during analysis:
 //
-// src/js/tracing/reactnativetracing.ts:90:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
+// src/js/tracing/reactnativetracing.ts:93:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnavigation.ts:228:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)

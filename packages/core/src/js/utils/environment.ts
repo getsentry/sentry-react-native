@@ -72,6 +72,18 @@ export function isExpoFetchEnabled(): boolean {
   );
 }
 
+/**
+ * Checks if React Native reports `resource` performance entries for its network requests.
+ * Reported by default since React Native 0.83 (0.81 and 0.82 have it behind a feature flag).
+ */
+export function isResourceTimingSupported(): boolean {
+  const { major, minor } = ReactNativeLibraries.ReactNativeVersion?.version || {};
+  if (major === undefined || minor === undefined) {
+    return false;
+  }
+  return major > 0 || minor >= 83;
+}
+
 /** Checks if the current platform is not web */
 export function notWeb(): boolean {
   return Platform.OS !== 'web';

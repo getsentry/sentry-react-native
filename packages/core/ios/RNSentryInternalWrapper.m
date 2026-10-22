@@ -44,6 +44,13 @@
     return RNSentryInternal.isFramesTrackingRunning;
 }
 
+// MARK: - Serialization
+
++ (NSDictionary<NSString *, id> *)serializeScope:(SentryScope *)scope
+{
+    return [RNSentryInternal serializeScope:scope];
+}
+
 // MARK: - Envelopes
 
 + (SentryEnvelope *)envelopeFromData:(NSData *)data

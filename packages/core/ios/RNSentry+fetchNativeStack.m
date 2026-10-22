@@ -2,6 +2,7 @@
 #import "RNSentryBreadcrumb.h"
 #import "RNSentryHexFormatter.h"
 #import "RNSentryId.h"
+#import "RNSentrySwiftBridge.h"
 #import "SentrySDKWrapper.h"
 @import Sentry;
 
@@ -75,7 +76,7 @@
                 getDebugImagesForImageAddressesFromCache:imagesAddrToRetrieveDebugMetaImages];
 
         for (SentryDebugMeta *debugImage in debugMetaImages) {
-            [serializedDebugMetaImages addObject:[debugImage serialize]];
+            [serializedDebugMetaImages addObject:[RNSentryInternal serializeDebugMeta:debugImage]];
         }
 
         return @{
