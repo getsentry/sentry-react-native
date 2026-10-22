@@ -16,6 +16,12 @@
 - Stop wrapping the SDK's own `RNSentry` module in `turboModuleContextIntegration` by default. Each wrapped call wrote to the native scope several times, which added CPU time to every SDK call on iOS ([#6921](https://github.com/getsentry/sentry-react-native/pull/6921))
   - To wrap `RNSentry` again, add `{ name: 'RNSentry' }` to the `modules` option.
 
+### Dependencies
+
+- Bump Cocoa SDK from v9.30.2 to v9.31.0 ([#6925](https://github.com/getsentry/sentry-react-native/pull/6925))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9310)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.30.2...9.31.0)
+
 ## 8.31.0
 
 ### Features
