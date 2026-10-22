@@ -28,7 +28,7 @@
 - Remove the `@sentry/browser` feedback modules and the server-only `@sentry/core` modules from native bundles built on Windows. Before this fix, `includeWebFeedback: false` made these bundles fail at launch ([#6915](https://github.com/getsentry/sentry-react-native/pull/6915))
 - Stop wrapping the SDK's own `RNSentry` module in `turboModuleContextIntegration` by default. Each wrapped call wrote to the native scope several times, which added CPU time to every SDK call on iOS ([#6921](https://github.com/getsentry/sentry-react-native/pull/6921))
   - To wrap `RNSentry` again, add `{ name: 'RNSentry' }` to the `modules` option.
-- Apply `screenshot` masking options to Android error and feedback screenshots ([#6900](https://github.com/getsentry/sentry-react-native/issues/6900))
+- Apply `screenshot` masking options to Android error and feedback screenshots ([#6930](https://github.com/getsentry/sentry-react-native/pull/6930))
 
 ### Dependencies
 
