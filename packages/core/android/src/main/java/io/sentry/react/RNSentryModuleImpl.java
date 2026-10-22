@@ -676,7 +676,7 @@ public class RNSentryModuleImpl {
       // Without the native options the masking configuration is unknown, so don't risk an
       // unmasked screenshot
       logger.log(SentryLevel.WARNING, "SentryAndroidOptions not available, can't take screenshot.");
-      return null;
+      return new byte[0];
     }
     final SentryAndroidOptions androidOptions = (SentryAndroidOptions) options;
 
