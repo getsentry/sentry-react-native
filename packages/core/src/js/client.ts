@@ -28,6 +28,7 @@ import { getDevServer } from './integrations/debugsymbolicatorutils';
 import { defaultSdkInfo } from './integrations/sdkinfo';
 import { getDefaultSidecarUrl } from './integrations/spotlight';
 import { defaultNativeLogHandler, setupNativeLogListener } from './NativeLogListener';
+import { getProfilingOptions, UI_PROFILING_INTEGRATION_NAME } from './profiling/uiProfilingIntegration';
 import { MOBILE_REPLAY_INTEGRATION_NAME, serializeNetworkDetailUrlsForNative } from './replay/mobilereplay';
 import { createUserFeedbackEnvelope, items } from './utils/envelope';
 import { ignoreRequireCycleLogs } from './utils/ignorerequirecyclelogs';
@@ -238,8 +239,26 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
         ? (this._integrations[MOBILE_REPLAY_INTEGRATION_NAME] as ReturnType<typeof mobileReplayIntegration>)
         : undefined;
 
+    let profilingOptions = getProfilingOptions(this._options);
+    if (profilingOptions && !this._integrations[UI_PROFILING_INTEGRATION_NAME]) {
+      // Without the integration, nothing would stop a profile that the native SDK starts.
+      debug.warn(
+        '[Profiling] `_experiments.profilingOptions` is set, but `uiProfilingIntegration` is not installed. UI profiling is disabled. Add `Sentry.uiProfilingIntegration()` to `integrations`.',
+      );
+      profilingOptions = undefined;
+    }
+    // `profilingOptions` below is the only source of profiling options for the native SDK.
+    /* oxlint-disable typescript-eslint(no-unused-vars) */
+    const {
+      profilingOptions: _profilingOptions,
+      androidProfilingOptions: _androidProfilingOptions,
+      ...experiments
+    } = this._options._experiments ?? {};
+    /* oxlint-enable typescript-eslint(no-unused-vars) */
+
     NATIVE.initNativeSdk({
       ...this._options,
+      _experiments: experiments,
       defaultSidecarUrl: getDefaultSidecarUrl(),
       devServerUrl: getDevServer()?.url || '',
       mobileReplayOptions: mobileReplay
@@ -251,8 +270,7 @@ export class ReactNativeClient extends Client<ReactNativeClientOptions> {
             networkDetailDenyUrls: serializeNetworkDetailUrlsForNative(mobileReplay.options.networkDetailDenyUrls),
           }
         : undefined,
-      profilingOptions:
-        this._options._experiments?.profilingOptions ?? this._options._experiments?.androidProfilingOptions,
+      profilingOptions,
     })
       .then(
         (result: boolean) => {

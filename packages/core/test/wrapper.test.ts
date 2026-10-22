@@ -70,6 +70,9 @@ jest.mock('react-native', () => {
     resumeReplay: jest.fn(() => Promise.resolve()),
     flushReplay: jest.fn(() => Promise.resolve()),
     registerReplayTraceId: jest.fn(),
+    startProfiler: jest.fn(() => Promise.resolve('profiler-id')),
+    stopProfiler: jest.fn(() => Promise.resolve()),
+    getCurrentThreadId: jest.fn(() => '1234'),
   };
 
   return {
@@ -1741,6 +1744,67 @@ describe('Tests Native Wrapper', () => {
       });
 
       expect(() => NATIVE.registerReplayTraceId(TRACE_ID)).not.toThrow();
+    });
+  });
+
+  describe('startProfiler, stopProfiler and getCurrentThreadId', () => {
+    beforeEach(async () => {
+      await NATIVE.initNativeSdk({
+        dsn: VALID_DSN,
+        enableNative: true,
+        devServerUrl: undefined,
+        defaultSidecarUrl: undefined,
+        mobileReplayOptions: undefined,
+      });
+    });
+
+    it('resolves the native profiler id', async () => {
+      await expect(NATIVE.startProfiler()).resolves.toBe('profiler-id');
+    });
+
+    it('calls the native stopProfiler', async () => {
+      await NATIVE.stopProfiler();
+
+      expect(RNSentry.stopProfiler).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolves null when the methods are missing on the binary', async () => {
+      const module = RNSentry as unknown as Record<string, unknown>;
+      const { startProfiler, stopProfiler } = module;
+      module.startProfiler = undefined;
+      module.stopProfiler = undefined;
+
+      try {
+        await expect(NATIVE.startProfiler()).resolves.toBeNull();
+        await expect(NATIVE.stopProfiler()).resolves.toBeUndefined();
+      } finally {
+        module.startProfiler = startProfiler;
+        module.stopProfiler = stopProfiler;
+      }
+    });
+
+    it('returns the native thread id', () => {
+      expect(NATIVE.getCurrentThreadId()).toBe('1234');
+    });
+
+    it('returns null when getCurrentThreadId is missing on the binary', () => {
+      const module = RNSentry as unknown as Record<string, unknown>;
+      const { getCurrentThreadId } = module;
+      module.getCurrentThreadId = undefined;
+
+      try {
+        expect(NATIVE.getCurrentThreadId()).toBeNull();
+      } finally {
+        module.getCurrentThreadId = getCurrentThreadId;
+      }
+    });
+
+    it('swallows native rejections', async () => {
+      (RNSentry.startProfiler as jest.Mock).mockRejectedValueOnce(new Error('native boom'));
+      (RNSentry.stopProfiler as jest.Mock).mockRejectedValueOnce(new Error('native boom'));
+
+      await expect(NATIVE.startProfiler()).resolves.toBeNull();
+      await expect(NATIVE.stopProfiler()).resolves.toBeUndefined();
     });
   });
 

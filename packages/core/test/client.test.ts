@@ -21,6 +21,7 @@ import * as RN from 'react-native';
 import type { ReactNativeClientOptions } from '../src/js/options';
 
 import { ReactNativeClient } from '../src/js/client';
+import { uiProfilingIntegration } from '../src/js/profiling/uiProfilingIntegration';
 import { NativeTransport } from '../src/js/transports/native';
 import { SDK_NAME, SDK_PACKAGE_NAME, SDK_VERSION } from '../src/js/version';
 import { NATIVE } from '../src/js/wrapper';
@@ -161,6 +162,45 @@ describe('Tests ReactNativeClient', () => {
       });
       expect(client.getTransport()?.flush).toBe(myFlush);
       expect(client.getTransport()?.send).toBe(mySend);
+    });
+  });
+
+  describe('UI profiling options', () => {
+    const profilingOptions = { profileSessionSampleRate: 1, lifecycle: 'trace' as const };
+
+    const initClient = (integrations: ReactNativeClientOptions['integrations']): ReactNativeClient => {
+      const client = new ReactNativeClient({
+        ...DEFAULT_OPTIONS,
+        dsn: EXAMPLE_DSN,
+        _experiments: { profilingOptions, enableUnhandledCPPExceptionsV2: true },
+        integrations,
+      } as ReactNativeClientOptions);
+      client.init();
+      return client;
+    };
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    test('passes profilingOptions to native when uiProfilingIntegration is installed', () => {
+      const initNativeSdk = jest.spyOn(NATIVE, 'initNativeSdk');
+
+      initClient([uiProfilingIntegration()]);
+
+      expect(initNativeSdk).toHaveBeenCalledWith(expect.objectContaining({ profilingOptions }));
+    });
+
+    test('does not pass profilingOptions to native and warns when uiProfilingIntegration is missing', () => {
+      const initNativeSdk = jest.spyOn(NATIVE, 'initNativeSdk');
+      const warn = jest.spyOn(SentryCore.debug, 'warn');
+
+      initClient([]);
+
+      const nativeOptions = initNativeSdk.mock.calls[0]?.[0];
+      expect(nativeOptions?.profilingOptions).toBeUndefined();
+      expect(nativeOptions?._experiments).toEqual({ enableUnhandledCPPExceptionsV2: true });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('`uiProfilingIntegration` is not installed'));
     });
   });
 
