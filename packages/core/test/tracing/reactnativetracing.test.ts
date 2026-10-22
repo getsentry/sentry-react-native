@@ -17,7 +17,7 @@ jest.mock('../../src/js/wrapper', () => {
 import type { TestClient } from '../mocks/client';
 
 import { reactNativeTracingIntegration } from '../../src/js/tracing/reactnativetracing';
-import { isExpoFetchEnabled, isWeb } from '../../src/js/utils/environment';
+import { isExpoFetchEnabled, isResourceTimingSupported, isWeb } from '../../src/js/utils/environment';
 import { setupTestClient } from '../mocks/client';
 
 jest.mock('../../src/js/tracing/utils', () => {
@@ -134,10 +134,11 @@ describe('ReactNativeTracing', () => {
 
       expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({
-          traceFetch: true,
-          traceXHR: true,
-        }),
+        expect.objectContaining({ traceFetch: true, traceXHR: false }),
+      );
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ traceFetch: false, traceXHR: true }),
       );
     });
 
@@ -173,6 +174,105 @@ describe('ReactNativeTracing', () => {
           traceFetch: false,
         }),
       );
+    });
+  });
+
+  describe('enableHTTPTimings default', () => {
+    const fetchCall = (enableHTTPTimings: boolean): unknown =>
+      expect.objectContaining({ traceFetch: true, traceXHR: false, enableHTTPTimings });
+    const xhrCall = (enableHTTPTimings: boolean): unknown =>
+      expect.objectContaining({ traceFetch: false, traceXHR: true, enableHTTPTimings });
+
+    const mockEnvironment = ({
+      web = false,
+      resourceTiming,
+      expoFetch,
+    }: {
+      web?: boolean;
+      resourceTiming: boolean;
+      expoFetch: boolean;
+    }): void => {
+      (isWeb as jest.MockedFunction<typeof isWeb>).mockReturnValue(web);
+      (isResourceTimingSupported as jest.MockedFunction<typeof isResourceTimingSupported>).mockReturnValue(
+        resourceTiming,
+      );
+      (isExpoFetchEnabled as jest.MockedFunction<typeof isExpoFetchEnabled>).mockReturnValue(expoFetch);
+    };
+
+    it('enables HTTP timings for fetch and XHR on web', () => {
+      mockEnvironment({ web: true, resourceTiming: false, expoFetch: false });
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), fetchCall(true));
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), xhrCall(true));
+    });
+
+    it('enables HTTP timings for XHR on mobile when resource timing is supported', () => {
+      mockEnvironment({ resourceTiming: true, expoFetch: false });
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), xhrCall(true));
+    });
+
+    it('disables HTTP timings for XHR on mobile when resource timing is not supported', () => {
+      mockEnvironment({ resourceTiming: false, expoFetch: false });
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), xhrCall(false));
+    });
+
+    it('disables HTTP timings for expo/fetch and keeps them for XHR when resource timing is supported', () => {
+      mockEnvironment({ resourceTiming: true, expoFetch: true });
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), fetchCall(false));
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), xhrCall(true));
+    });
+
+    it('disables HTTP timings for expo/fetch and XHR when resource timing is not supported', () => {
+      mockEnvironment({ resourceTiming: false, expoFetch: true });
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration()],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), fetchCall(false));
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), xhrCall(false));
+    });
+
+    it.each([true, false])('applies the explicit user option %s to fetch and XHR', enableHTTPTimings => {
+      mockEnvironment({ resourceTiming: !enableHTTPTimings, expoFetch: !enableHTTPTimings });
+      const instrumentOutgoingRequests = jest.spyOn(SentryBrowser, 'instrumentOutgoingRequests');
+
+      setupTestClient({
+        enableStallTracking: false,
+        integrations: [reactNativeTracingIntegration({ enableHTTPTimings, traceFetch: true })],
+      });
+
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), fetchCall(enableHTTPTimings));
+      expect(instrumentOutgoingRequests).toHaveBeenCalledWith(expect.anything(), xhrCall(enableHTTPTimings));
     });
   });
 

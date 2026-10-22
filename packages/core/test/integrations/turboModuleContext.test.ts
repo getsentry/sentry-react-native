@@ -107,7 +107,44 @@ describe('turboModuleContextIntegration', () => {
     _resetTurboModuleAggregator();
   });
 
-  it('wraps the live RNSentry TurboModule on setup', () => {
+  it('does not wrap RNSentry by default', () => {
+    const fakeModule = { fetchNativeFrames: jest.fn() };
+    const originalFetchNativeFrames = fakeModule.fetchNativeFrames;
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
+    const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
+
+    turboModuleContextIntegration().setupOnce!();
+
+    expect(wrapSpy).not.toHaveBeenCalledWith('RNSentry', expect.anything(), expect.anything());
+    expect(fakeModule.fetchNativeFrames).toBe(originalFetchNativeFrames);
+  });
+
+  it('does not write turbo_module scope data for RNSentry calls by default', () => {
+    const fakeModule = { fetchNativeFrames: jest.fn() };
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
+    const isolationScope = new Scope();
+    jest.spyOn(SentryCore, 'getIsolationScope').mockReturnValue(isolationScope);
+    const setContextSpy = jest.spyOn(isolationScope, 'setContext');
+    const setTagSpy = jest.spyOn(isolationScope, 'setTag');
+    turboModuleContextIntegration().setupOnce!();
+
+    fakeModule.fetchNativeFrames();
+
+    expect(setContextSpy).not.toHaveBeenCalled();
+    expect(setTagSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not wrap RNSentry when the user passes a custom ignoreTurboModules list', () => {
+    const fakeModule = { fetchNativeFrames: jest.fn() };
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
+    const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
+
+    turboModuleContextIntegration({ ignoreTurboModules: [] }).setupOnce!();
+
+    expect(wrapSpy).not.toHaveBeenCalled();
+  });
+
+  it('wraps the live RNSentry TurboModule when it is listed in modules', () => {
     const fakeModule = {
       addListener: jest.fn(),
       removeListeners: jest.fn(),
@@ -117,7 +154,7 @@ describe('turboModuleContextIntegration', () => {
 
     const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
 
-    turboModuleContextIntegration().setupOnce!();
+    turboModuleContextIntegration({ modules: [{ name: 'RNSentry' }] }).setupOnce!();
 
     expect(wrapSpy).toHaveBeenCalledWith(
       'RNSentry',
@@ -142,6 +179,22 @@ describe('turboModuleContextIntegration', () => {
     );
   });
 
+  it('merges user skipMethods with the RNSentry skip list', () => {
+    jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(undefined);
+    const fakeModule = { crash: jest.fn(), fetchNativeFrames: jest.fn(), setTag: jest.fn() };
+    const wrapSpy = jest.spyOn(turboModule, 'wrapTurboModule');
+
+    turboModuleContextIntegration({
+      modules: [{ name: 'RNSentry', module: fakeModule, skipMethods: ['fetchNativeFrames'] }],
+    }).setupOnce!();
+
+    expect(wrapSpy).toHaveBeenCalledWith(
+      'RNSentry',
+      fakeModule,
+      expect.objectContaining({ skip: expect.arrayContaining(['setTag', 'fetchNativeFrames']) }),
+    );
+  });
+
   it('does not wrap scope-sync methods on RNSentry (would recurse infinitely)', () => {
     // Sanity check: every method `scopeSync.ts` forwards to NATIVE.* via
     // RNSentry must be in the skip list, otherwise scope writes recurse.
@@ -161,7 +214,7 @@ describe('turboModuleContextIntegration', () => {
     jest.spyOn(wrapper, 'getRNSentryModule').mockReturnValue(fakeModule as never);
 
     const originalCrash = fakeModule.crash;
-    turboModuleContextIntegration().setupOnce!();
+    turboModuleContextIntegration({ modules: [{ name: 'RNSentry', module: fakeModule }] }).setupOnce!();
 
     // crash is wrapped (replaced with sentryTurboModuleWrapper, which is a plain
     // function and therefore lacks the `_isMockFunction` marker the jest mocks carry).

@@ -384,7 +384,7 @@ export function withSentryResolver(config: MetroConfig, includeWebReplay: boolea
 const SENTRY_BROWSER_FEEDBACK_WRAPPER_RE = /\/feedback(Sync|Async)/;
 
 function isFromSentryBrowser(originModulePath: string): boolean {
-  return originModulePath.includes('@sentry/browser');
+  return /[\\/]@sentry[\\/]browser[\\/]/.test(originModulePath);
 }
 
 /**
@@ -413,7 +413,7 @@ const SERVER_ONLY_MODULE_RE =
   /\/(mcp-server|integrations\/(http|express|postgresjs|requestdata|consola|spanStreaming)|tracing\/(vercel-ai|openai|anthropic-ai|google-genai|langchain|langgraph)|utils\/ai)(\/|\.js|$)/;
 
 function isFromSentryCore(originModulePath: string): boolean {
-  return originModulePath.includes('@sentry/core');
+  return /[\\/]@sentry[\\/]core[\\/]/.test(originModulePath);
 }
 
 /**
