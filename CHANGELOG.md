@@ -8,6 +8,19 @@
 
 ## Unreleased
 
+### Features
+
+- Connect React Native traces with embedded WebViews via `sentryWebViewProps` ([#6794](https://github.com/getsentry/sentry-react-native/pull/6794))
+
+  ```jsx
+  import { sentryWebViewProps } from '@sentry/react-native';
+
+  <WebView
+    source={{ uri: 'https://example.com' }}
+    {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
+  />
+  ```
+
 ### Fixes
 
 - Find `ios/.xcode.env` in the Expo plugin "Upload Debug Symbols to Sentry" phase when the iOS project uses Swift Package Manager instead of CocoaPods ([#6911](https://github.com/getsentry/sentry-react-native/pull/6911))
@@ -29,8 +42,6 @@
   - [diff](https://github.com/getsentry/sentry-cli/compare/3.8.0...3.8.1)
 
 ## 8.31.0
-
-### Features
 
 - Add the `applicationKey` and `moduleMetadata` options to `withSentryConfig` and `getSentryExpoConfig`, and export `thirdPartyErrorFilterIntegration` ([#6863](https://github.com/getsentry/sentry-react-native/pull/6863))
   - Set the same key in `applicationKey` and in the `filterKeys` option of `thirdPartyErrorFilterIntegration` to filter errors from third-party code, for example browser extensions on Expo web.
