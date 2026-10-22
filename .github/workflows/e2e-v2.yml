@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false # keeps matrix running if one fails
       matrix:
-        rn-version: ["0.71.19", "0.88.0"]
+        rn-version: ["0.73.11", "0.88.0"]
         rn-architecture: ["legacy", "new"]
         platform: ["android", "ios"]
         build-type: ["production"]
@@ -63,7 +63,7 @@ jobs:
         include:
           # Use Xcode 16 (macos-15) for older RN versions
           - platform: ios
-            rn-version: "0.71.19"
+            rn-version: "0.73.11"
             runs-on: macos-15-xlarge
           # Use Xcode 26 (macos-26) for newer RN versions
           - platform: ios
@@ -73,13 +73,13 @@ jobs:
             runs-on: ubuntu-24.04
         exclude:
           # exclude all rn versions lower than 0.80.0 for new architecture
-          - rn-version: "0.71.19"
+          - rn-version: "0.73.11"
             rn-architecture: "new"
           # exlude old rn version for use frameworks builds (to minimalize the matrix)
-          - rn-version: "0.71.19"
+          - rn-version: "0.73.11"
             platform: "ios"
             ios-use-frameworks: "static"
-          - rn-version: "0.71.19"
+          - rn-version: "0.73.11"
             platform: "ios"
             ios-use-frameworks: "dynamic"
           # use frameworks is ios only feature
