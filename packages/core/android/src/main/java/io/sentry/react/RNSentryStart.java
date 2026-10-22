@@ -21,6 +21,8 @@ import io.sentry.android.core.CurrentActivityHolder;
 import io.sentry.android.core.NdkIntegration;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.android.core.SentryAndroidOptions;
+import io.sentry.android.core.SentryScreenshotOptions;
+import io.sentry.android.core.internal.util.ScreenshotMasking;
 import io.sentry.protocol.SdkVersion;
 import io.sentry.react.replay.RNSentryReplayMask;
 import io.sentry.react.replay.RNSentryReplayUnmask;
@@ -141,35 +143,10 @@ final class RNSentryStart {
     if (rnOptions.hasKey("attachScreenshot")) {
       options.setAttachScreenshot(rnOptions.getBoolean("attachScreenshot"));
     }
-    if (rnOptions.hasKey("screenshot")) {
-      @Nullable final ReadableMap screenshotOptions = rnOptions.getMap("screenshot");
-      if (screenshotOptions != null) {
-        if (screenshotOptions.hasKey("maskAllText")) {
-          options.getScreenshot().setMaskAllText(screenshotOptions.getBoolean("maskAllText"));
-        }
-        if (screenshotOptions.hasKey("maskAllImages")) {
-          options.getScreenshot().setMaskAllImages(screenshotOptions.getBoolean("maskAllImages"));
-        }
-        if (screenshotOptions.hasKey("maskedViewClasses")) {
-          @Nullable
-          final ReadableArray maskedClasses = screenshotOptions.getArray("maskedViewClasses");
-          if (maskedClasses != null) {
-            for (int i = 0; i < maskedClasses.size(); i++) {
-              options.getScreenshot().addMaskViewClass(maskedClasses.getString(i));
-            }
-          }
-        }
-        if (screenshotOptions.hasKey("unmaskedViewClasses")) {
-          @Nullable
-          final ReadableArray unmaskedClasses = screenshotOptions.getArray("unmaskedViewClasses");
-          if (unmaskedClasses != null) {
-            for (int i = 0; i < unmaskedClasses.size(); i++) {
-              options.getScreenshot().addUnmaskViewClass(unmaskedClasses.getString(i));
-            }
-          }
-        }
-      }
-    }
+    configureScreenshotMasking(
+        options.getScreenshot(),
+        rnOptions.hasKey("screenshot") ? rnOptions.getMap("screenshot") : null,
+        ScreenshotMasking.isAvailable(logger));
     if (rnOptions.hasKey("attachViewHierarchy")) {
       options.setAttachViewHierarchy(rnOptions.getBoolean("attachViewHierarchy"));
     }
@@ -421,6 +398,56 @@ final class RNSentryStart {
   private static boolean isReplayEnabled(SentryReplayOptions replayOptions) {
     return replayOptions.getSessionSampleRate() != null
         || replayOptions.getOnErrorSampleRate() != null;
+  }
+
+  /**
+   * Masking is enabled by default, as documented in the JS options, while the native Android SDK
+   * leaves it off until its next major. Package-private for unit testing.
+   */
+  static void configureScreenshotMasking(
+      final @NotNull SentryScreenshotOptions screenshot,
+      final @Nullable ReadableMap rnScreenshotOptions,
+      final boolean isReplayAvailable) {
+    final boolean maskAllText =
+        rnScreenshotOptions == null
+            || !rnScreenshotOptions.hasKey("maskAllText")
+            || rnScreenshotOptions.getBoolean("maskAllText");
+    final boolean maskAllImages =
+        rnScreenshotOptions == null
+            || !rnScreenshotOptions.hasKey("maskAllImages")
+            || rnScreenshotOptions.getBoolean("maskAllImages");
+    screenshot.setMaskAllText(maskAllText);
+    screenshot.setMaskAllImages(maskAllImages);
+    if (maskAllImages) {
+      screenshot.addMaskViewClass("com.horcrux.svg.SvgView"); // react-native-svg
+    }
+
+    if (rnScreenshotOptions != null && rnScreenshotOptions.hasKey("maskedViewClasses")) {
+      @Nullable
+      final ReadableArray maskedClasses = rnScreenshotOptions.getArray("maskedViewClasses");
+      if (maskedClasses != null) {
+        for (int i = 0; i < maskedClasses.size(); i++) {
+          screenshot.addMaskViewClass(maskedClasses.getString(i));
+        }
+      }
+    }
+    if (rnScreenshotOptions != null && rnScreenshotOptions.hasKey("unmaskedViewClasses")) {
+      @Nullable
+      final ReadableArray unmaskedClasses = rnScreenshotOptions.getArray("unmaskedViewClasses");
+      if (unmaskedClasses != null) {
+        for (int i = 0; i < unmaskedClasses.size(); i++) {
+          screenshot.addUnmaskViewClass(unmaskedClasses.getString(i));
+        }
+      }
+    }
+
+    // Honor <Sentry.Mask> and <Sentry.Unmask> in error screenshots, the same as in Session Replay.
+    // Setting the mask container also turns masking on, which needs the replay module. Without it
+    // no screenshot is taken at all, so skip it to keep the masking opt-out working.
+    if (isReplayAvailable) {
+      screenshot.setMaskViewContainerClass(RNSentryReplayMask.class.getName());
+      screenshot.setUnmaskViewContainerClass(RNSentryReplayUnmask.class.getName());
+    }
   }
 
   // Package-private for unit testing (see RNSentryReplayOptionsTest), matching the other

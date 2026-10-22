@@ -1,6 +1,6 @@
 package io.sentry.react;
 
-import static io.sentry.android.core.internal.util.ScreenshotUtils.takeScreenshot;
+import static io.sentry.android.core.internal.util.ScreenshotUtils.takeMaskedScreenshot;
 import static io.sentry.vendor.Base64.NO_PADDING;
 import static io.sentry.vendor.Base64.NO_WRAP;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -644,11 +644,20 @@ public class RNSentryModuleImpl {
   }
 
   private static byte[] takeScreenshotOnUiThread(Activity activity) {
+    final SentryOptions options = Sentry.getCurrentScopes().getOptions();
+    if (!(options instanceof SentryAndroidOptions)) {
+      // Without the native options the masking configuration is unknown, so don't risk an
+      // unmasked screenshot
+      logger.log(SentryLevel.WARNING, "SentryAndroidOptions not available, can't take screenshot.");
+      return null;
+    }
+    final SentryAndroidOptions androidOptions = (SentryAndroidOptions) options;
+
     CountDownLatch doneSignal = new CountDownLatch(1);
     final byte[][] bytesWrapper = {{}}; // wrapper to be able to set the value in the runnable
     final Runnable runTakeScreenshot =
         () -> {
-          bytesWrapper[0] = takeScreenshot(activity, logger, buildInfo);
+          bytesWrapper[0] = takeMaskedScreenshot(activity, androidOptions, buildInfo);
           doneSignal.countDown();
         };
 
