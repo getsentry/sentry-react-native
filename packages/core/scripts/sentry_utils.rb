@@ -60,8 +60,8 @@ SENTRY_COCOA_XCFRAMEWORK_CHECKSUMS = {
   # `Sentry` module. `Sentry-Dynamic.xcframework` would ship the same
   # `Sentry.framework` inside but under a mismatched enclosing name, so
   # CocoaPods generates `-framework Sentry-Dynamic` and fails at link.
-  '9.30.2' => {
-    'Sentry' => '593897dbdee24febeef45208b13960a4b389c5dbd25f64b1b3cb94c30291ed55',
+  '9.31.0' => {
+    'Sentry' => '86dde13e6145ea3049ee2eb0b07ccb66e137a4d3af0d0dfe0b9d895f80b43237',
   },
 }.freeze
 
