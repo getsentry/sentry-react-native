@@ -3,7 +3,7 @@ import type { Client, Event, EventHint, Integration, StartSpanOptions } from '@s
 import { instrumentOutgoingRequests } from '@sentry/browser';
 import { debug, getClient } from '@sentry/core';
 
-import { isExpoFetchEnabled, isWeb } from '../utils/environment';
+import { isExpoFetchEnabled, isResourceTimingSupported, isWeb } from '../utils/environment';
 import { getDevServer } from './../integrations/debugsymbolicatorutils';
 import { getTransactionEventDiscardReason } from './onSpanEndUtils';
 import { addDefaultOpForSpanFrom, addThreadInfoToSpan, defaultIdleOptions } from './span';
@@ -47,7 +47,10 @@ export interface ReactNativeTracingOptions {
   /**
    * If true, Sentry will capture http timings and add them to the corresponding http spans.
    *
-   * @default true
+   * Requires `resource` performance entries, which React Native reports since 0.83.
+   * Requests made with Expo's native fetch (`expo/fetch`) don't report them.
+   *
+   * @default true on web and on React Native 0.83+, except for `expo/fetch` requests
    */
   enableHTTPTimings: boolean;
 
@@ -100,9 +103,15 @@ export const reactNativeTracingIntegration = (
   // Computed here (not at module level) to ensure expo/fetch polyfill is installed before detection.
   const traceFetchDefault = isWeb() || isExpoFetchEnabled();
 
+  // Each traced request keeps a `resource` listener until a matching timing entry arrives.
+  // Without timing entries (RN < 0.83, `expo/fetch`), listeners accumulate for the whole session.
+  const xhrHTTPTimingsDefault = isWeb() || isResourceTimingSupported();
+  const fetchHTTPTimingsDefault = isWeb() || (isResourceTimingSupported() && !isExpoFetchEnabled());
+
   const finalOptions = {
     ...defaultReactNativeTracingOptions,
     traceFetch: traceFetchDefault,
+    enableHTTPTimings: xhrHTTPTimingsDefault,
     ...options,
     beforeStartSpan: options.beforeStartSpan ?? ((options: StartSpanOptions) => options),
     finalTimeoutMs: options.finalTimeoutMs ?? defaultIdleOptions.finalTimeout,
@@ -132,11 +141,23 @@ export const reactNativeTracingIntegration = (
     addDefaultOpForSpanFrom(client);
     addThreadInfoToSpan(client);
 
-    instrumentOutgoingRequests(client, {
-      traceFetch: finalOptions.traceFetch,
-      traceXHR: finalOptions.traceXHR,
+    const requestOptions = {
       shouldCreateSpanForRequest: finalOptions.shouldCreateSpanForRequest,
       tracePropagationTargets: client.getOptions().tracePropagationTargets || getDefaultTracePropagationTargets(),
+    };
+
+    // Instrumented separately so `expo/fetch` can skip HTTP timings while XHR keeps them.
+    instrumentOutgoingRequests(client, {
+      ...requestOptions,
+      traceFetch: finalOptions.traceFetch,
+      traceXHR: false,
+      enableHTTPTimings: options.enableHTTPTimings ?? fetchHTTPTimingsDefault,
+    });
+    instrumentOutgoingRequests(client, {
+      ...requestOptions,
+      traceFetch: false,
+      traceXHR: finalOptions.traceXHR,
+      enableHTTPTimings: finalOptions.enableHTTPTimings,
     });
   };
 

@@ -49,8 +49,12 @@ export const MAX_PENDING_CALL_WINDOWS = 1024;
 export const MAX_PENDING_SPAN_ATTRIBUTES = 256;
 
 export interface TurboModuleContextOptions {
-  /** Additional TurboModules to wrap. `RNSentry` is always tracked. */
-  modules?: Array<{ name: string; module: object | null | undefined; skipMethods?: ReadonlyArray<string> }>;
+  /**
+   * TurboModules to wrap. The SDK's own `RNSentry` module is not wrapped by default;
+   * add `{ name: 'RNSentry' }` to opt in. The SDK resolves the module itself and always
+   * skips its scope-sync methods.
+   */
+  modules?: Array<{ name: string; module?: object | null; skipMethods?: ReadonlyArray<string> }>;
 
   /** Per-(module, method, kind) counters, flushed on transaction finish and on a periodic timer. Default: `true`. */
   enableAggregateStats?: boolean;
@@ -147,12 +151,15 @@ export const turboModuleContextIntegration = (options: TurboModuleContextOptions
   return {
     name: INTEGRATION_NAME,
     setupOnce() {
-      // Wrap RNSentry first with its curated skip list; `wrapAllNativeModules`
-      // then skips it implicitly to avoid double-wrapping with a wider surface.
-      wrapTurboModule('RNSentry', getRNSentryModule(), { skip: RNSENTRY_SKIP, arch: contextArch });
-
+      // RNSentry is wrapped only on request: each wrapped call costs about six
+      // native scope writes, which sentry-cocoa persists to disk.
       for (const entry of options.modules ?? []) {
-        wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods, arch: contextArch });
+        if (entry.name === 'RNSentry') {
+          const skip = [...RNSENTRY_SKIP, ...(entry.skipMethods ?? [])];
+          wrapTurboModule(entry.name, entry.module ?? getRNSentryModule(), { skip, arch: contextArch });
+        } else {
+          wrapTurboModule(entry.name, entry.module, { skip: entry.skipMethods, arch: contextArch });
+        }
       }
 
       if (options.enableLegacyNativeModules === true) {

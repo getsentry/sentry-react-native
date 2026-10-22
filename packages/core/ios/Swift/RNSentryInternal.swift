@@ -95,6 +95,16 @@ import Foundation
     // stub on macOS/watchOS.
     #endif
 
+    // MARK: - Serialization
+
+    @_spi(Private) @objc public static func serializeScope(_ scope: Scope) -> [String: Any] {
+        SentrySDK.internal.serializer.serialize(scope: scope)
+    }
+
+    @_spi(Private) @objc public static func serializeDebugMeta(_ debugMeta: DebugMeta) -> [String: Any] {
+        SentrySDK.internal.serializer.serialize(debugMeta: debugMeta)
+    }
+
     // MARK: - Envelope
 
     // Accepts `Data?` (nil-safe) rather than `Data` so the ObjC bridge boundary
