@@ -2,7 +2,7 @@
   "name": "@sentry/react-native",
   "homepage": "https://github.com/getsentry/sentry-react-native",
   "repository": "https://github.com/getsentry/sentry-react-native",
-  "version": "8.31.0",
+  "version": "8.32.0",
   "description": "Official Sentry SDK for react-native",
   "typings": "dist/js/index.d.ts",
   "types": "dist/js/index.d.ts",
@@ -91,7 +91,7 @@
   "dependencies": {
     "@sentry/browser": "10.76.2",
     "@sentry/bundler-plugins": "10.76.2",
-    "@sentry/cli": "3.8.0",
+    "@sentry/cli": "3.8.1",
     "@sentry/core": "10.76.2",
     "@sentry/expo-upload-sourcemaps": "workspace:*",
     "@sentry/react": "10.76.2"

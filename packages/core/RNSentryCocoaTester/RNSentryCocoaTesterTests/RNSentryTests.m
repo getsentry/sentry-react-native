@@ -94,20 +94,16 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     OCMStub([sentryBinaryImageCacheMock imageByAddress:[@456 unsignedLongLongValue]])
         .andReturn(sentryBinaryImageInfoMockTwo);
 
-    NSDictionary *serializedDebugImage = @{
-        @"uuid" : @"mockuuid",
-        @"debug_id" : @"mockdebugid",
-        @"type" : @"macho",
-        @"image_addr" : @"0x000000000001b669",
-    };
-    id sentryDebugImageMock = OCMClassMock([SentryDebugMeta class]);
-    OCMStub([sentryDebugImageMock serialize]).andReturn(serializedDebugImage);
+    SentryDebugMeta *sentryDebugImage = [[SentryDebugMeta alloc] init];
+    sentryDebugImage.debugID = @"mockdebugid";
+    sentryDebugImage.type = @"macho";
+    sentryDebugImage.imageAddress = @"0x000000000001b669";
 
     id sentryDebugImageProviderMock = OCMClassMock([SentryDebugImageProvider class]);
     OCMStub(
         [sentryDebugImageProviderMock
             getDebugImagesForImageAddressesFromCache:[NSSet setWithObject:@"0x000000000001b669"]])
-        .andReturn(@[ sentryDebugImageMock ]);
+        .andReturn(@[ sentryDebugImage ]);
 
     OCMStub([sentryDependencyContainerMock debugImageProvider])
         .andReturn(sentryDebugImageProviderMock);
@@ -123,7 +119,6 @@ sucessfulSymbolicate(const void *, Dl_info *info)
     NSDictionary *expected = @{
         @"debugMetaImages" : @[
             @{
-                @"uuid" : @"mockuuid",
                 @"debug_id" : @"mockdebugid",
                 @"type" : @"macho",
                 @"image_addr" : @"0x000000000001b669",
@@ -649,7 +644,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
     actualOptions.configureProfiling(probe);
     XCTAssertEqual(probe.sessionSampleRate, 1.0f);
-    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleManual);
     XCTAssertTrue(probe.profileAppStarts);
 }
 
@@ -678,7 +673,7 @@ XCTAssertEqual(actualOptions.tracesSampler, nil, @"Traces sampler should not be 
     SentryProfileOptions *probe = [[SentryProfileOptions alloc] init];
     actualOptions.configureProfiling(probe);
     XCTAssertEqual(probe.sessionSampleRate, 1.0f);
-    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleTrace);
+    XCTAssertEqual(probe.lifecycle, SentryProfileLifecycleManual);
     XCTAssertTrue(probe.profileAppStarts);
 }
 

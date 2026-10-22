@@ -1,6 +1,7 @@
 #import "RNSentry.h"
 #import "RNSentryTimeToDisplay.h"
 #import <dlfcn.h>
+#import <pthread.h>
 
 #if __has_include(<React/RCTConvert.h>)
 #    import <React/RCTConvert.h>
@@ -444,7 +445,7 @@ RCT_EXPORT_METHOD(fetchNativeLogAttributes : (RCTPromiseResolveBlock)resolve rej
 
     [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
         // Serialize to get contexts dictionary
-        NSDictionary *serializedScope = [scope serialize];
+        NSDictionary *serializedScope = [RNSentryInternalWrapper serializeScope:scope];
         NSDictionary *allContexts = serializedScope[@"context"]; // It's singular here, annoyingly
 
         NSMutableDictionary *contexts = [NSMutableDictionary new];
@@ -496,7 +497,7 @@ RCT_EXPORT_METHOD(fetchNativeDeviceContexts : (RCTPromiseResolveBlock)resolve re
     }
     __block NSMutableDictionary<NSString *, id> *serializedScope;
     [SentrySDKWrapper configureScope:^(SentryScope *_Nonnull scope) {
-        serializedScope = [[scope serialize] mutableCopy];
+        serializedScope = [[RNSentryInternalWrapper serializeScope:scope] mutableCopy];
 
         NSDictionary<NSString *, id> *user = [serializedScope valueForKey:@"user"];
         if (user == nil) {
@@ -1214,6 +1215,37 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, stopProfiling)
 #else
     return @ { @"error" : enabledProfilingMessage };
 #endif
+}
+
+// sentry-cocoa has no public API for the current profiler id, so this resolves nil.
+RCT_EXPORT_METHOD(
+    startProfiler : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+    @try {
+        [SentrySDKWrapper startProfiler];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call startProfiler: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
+}
+
+// sentry-cocoa profiles identify threads by their Mach thread port.
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getCurrentThreadId)
+{
+    return [NSString stringWithFormat:@"%u", pthread_mach_thread_np(pthread_self())];
+}
+
+RCT_EXPORT_METHOD(
+    stopProfiler : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+{
+    @try {
+        [SentrySDKWrapper stopProfiler];
+        resolve(nil);
+    } @catch (NSException *exception) {
+        NSLog(@"[RNSentry] Failed to call stopProfiler: %@", exception);
+        reject(@"SentryReactNative", exception.reason, nil);
+    }
 }
 
 RCT_EXPORT_METHOD(

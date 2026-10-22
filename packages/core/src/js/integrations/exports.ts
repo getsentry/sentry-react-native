@@ -10,6 +10,7 @@ export { sdkInfoIntegration } from './sdkinfo';
 export { reactNativeInfoIntegration } from './reactnativeinfo';
 export { modulesLoaderIntegration } from './modulesloader';
 export { hermesProfilingIntegration } from '../profiling/integration';
+export { uiProfilingIntegration } from '../profiling/uiProfilingIntegration';
 export { screenshotIntegration } from './screenshot';
 export { viewHierarchyIntegration } from './viewhierarchy';
 export { expoContextIntegration } from './expocontext';

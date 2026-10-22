@@ -6,16 +6,43 @@
 > make sure you follow our [migration guide](https://docs.sentry.io/platforms/react-native/migration/) first.
 <!-- prettier-ignore-end -->
 
-## Unreleased
+## 8.32.0
+
+### Features
+
+- Connect React Native traces with embedded WebViews via `sentryWebViewProps` ([#6794](https://github.com/getsentry/sentry-react-native/pull/6794))
+
+  ```jsx
+  import { sentryWebViewProps } from '@sentry/react-native';
+
+  <WebView
+    source={{ uri: 'https://example.com' }}
+    {...sentryWebViewProps({ allowedHosts: ['example.com'] })}
+  />
+  ```
 
 ### Fixes
 
 - Show the feedback form above native-stack modals on iOS via the experimental `_experiments.presentOverNativeModals` feedback option ([#6882](https://github.com/getsentry/sentry-react-native/pull/6882))
 - Find `ios/.xcode.env` in the Expo plugin "Upload Debug Symbols to Sentry" phase when the iOS project uses Swift Package Manager instead of CocoaPods ([#6911](https://github.com/getsentry/sentry-react-native/pull/6911))
+- Fix HTTP timing listeners leaking on React Native below 0.83 and when `expo/fetch` is detected, and respect the `enableHTTPTimings` option ([#6912](https://github.com/getsentry/sentry-react-native/pull/6912))
+- Remove the `@sentry/browser` feedback modules and the server-only `@sentry/core` modules from native bundles built on Windows. Before this fix, `includeWebFeedback: false` made these bundles fail at launch ([#6915](https://github.com/getsentry/sentry-react-native/pull/6915))
+- Stop wrapping the SDK's own `RNSentry` module in `turboModuleContextIntegration` by default. Each wrapped call wrote to the native scope several times, which added CPU time to every SDK call on iOS ([#6921](https://github.com/getsentry/sentry-react-native/pull/6921))
+  - To wrap `RNSentry` again, add `{ name: 'RNSentry' }` to the `modules` option.
+- Start and stop the native UI profiler for `_experiments.profilingOptions` in both the `trace` and `manual` lifecycles, and export `Sentry.profiler` ([#6916](https://github.com/getsentry/sentry-react-native/pull/6916))
+  - Before, the profiler ran only for the app start profile, because native tracing is off in React Native and no API controlled the profiler from JS.
+  - The SDK adds the new `uiProfilingIntegration` by default when `profilingOptions` is set. If you set `defaultIntegrations: false`, add `Sentry.uiProfilingIntegration()` to `integrations`, because the SDK ignores `profilingOptions` without it.
+
+### Dependencies
+
+- Bump Cocoa SDK from v9.30.2 to v9.31.0 ([#6925](https://github.com/getsentry/sentry-react-native/pull/6925))
+  - [changelog](https://github.com/getsentry/sentry-cocoa/blob/main/CHANGELOG.md#9310)
+  - [diff](https://github.com/getsentry/sentry-cocoa/compare/9.30.2...9.31.0)
+- Bump CLI from v3.8.0 to v3.8.1 ([#6924](https://github.com/getsentry/sentry-react-native/pull/6924))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#381)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.8.0...3.8.1)
 
 ## 8.31.0
-
-### Features
 
 - Add the `applicationKey` and `moduleMetadata` options to `withSentryConfig` and `getSentryExpoConfig`, and export `thirdPartyErrorFilterIntegration` ([#6863](https://github.com/getsentry/sentry-react-native/pull/6863))
   - Set the same key in `applicationKey` and in the `filterKeys` option of `thirdPartyErrorFilterIntegration` to filter errors from third-party code, for example browser extensions on Expo web.

@@ -137,7 +137,7 @@ jobs:
         if: ${{ steps.platform-check.outputs.skip != 'true' }}
         with:
           package-manager-cache: false
-          node-version: ${{ startsWith(matrix.rn-version, '0.71') && '20' || '22' }}
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
 

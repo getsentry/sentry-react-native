@@ -57,6 +57,7 @@ export {
   instrumentStateGraph,
   instrumentStateGraphCompile,
   addConsoleInstrumentationFilter,
+  profiler,
 } from '@sentry/core';
 
 /** @deprecated Use `instrumentStateGraph` instead. `instrumentLangGraph` will be removed in a future major version. */
@@ -149,9 +150,17 @@ export {
   wrapExpoRouterErrorBoundary,
   wrapExpoImage,
   wrapExpoAsset,
+  sentryWebViewProps,
 } from './tracing';
 
-export type { TimeToDisplayProps, ExpoRouter, ExpoRouterErrorBoundaryProps, ExpoImage, ExpoAsset } from './tracing';
+export type {
+  TimeToDisplayProps,
+  ExpoRouter,
+  ExpoRouterErrorBoundaryProps,
+  ExpoImage,
+  ExpoAsset,
+  SentryWebViewOptions,
+} from './tracing';
 
 export type { ReactNativeTracingOptions } from './tracing/reactnativetracing';
 export type { ReactNativeNavigationOptions } from './tracing/reactnativenavigation';

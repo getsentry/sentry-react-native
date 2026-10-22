@@ -60,7 +60,7 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           package-manager-cache: false
-          node-version: 20
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
@@ -157,7 +157,7 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           package-manager-cache: false
-          node-version: 20
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
 
@@ -182,7 +182,7 @@ jobs:
       - name: Build Android App
         working-directory: samples/expo/android
         env:
-          # Increase memory for Expo SDK 57 lint tasks
+          # Increase memory for Expo SDK 58 lint tasks
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
         run: |
           [[ "${{ matrix.build-type }}" == "production" ]] && CONFIG='Release' || CONFIG='Debug'
@@ -226,9 +226,14 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           package-manager-cache: false
-          node-version: 20
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: yarn.lock
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Install SDK Dependencies
         run: yarn install

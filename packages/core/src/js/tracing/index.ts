@@ -31,6 +31,9 @@ export { ReactNativeProfiler } from './reactnativeprofiler';
 
 export { sentryTraceGesture } from './gesturetracing';
 
+export { sentryWebViewProps } from './webview';
+export type { SentryWebViewOptions } from './webview';
+
 export * from './ops';
 
 export * from './timetodisplay';

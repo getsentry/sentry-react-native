@@ -130,6 +130,17 @@ interface SentryNativeWrapper {
     androidProfile?: NativeAndroidProfileEvent;
   } | null;
 
+  /**
+   * Starts the native UI profiler and resolves its profiler id,
+   * or `null` when the profiler does not run or the platform does not report the id.
+   */
+  startProfiler(): Promise<string | null>;
+  stopProfiler(): Promise<void>;
+  /**
+   * Returns the native id of the calling thread, which is the JS thread, in the format of the native profiler.
+   */
+  getCurrentThreadId(): string | null;
+
   fetchNativePackageName(): string | null;
 
   /**
@@ -823,6 +834,44 @@ export const NATIVE: SentryNativeWrapper = {
     }
 
     return !!started;
+  },
+
+  async startProfiler(): Promise<string | null> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.startProfiler !== 'function') {
+      return null;
+    }
+
+    try {
+      return (await RNSentry.startProfiler()) ?? null;
+    } catch (error) {
+      debug.error('[NATIVE] Start Profiler Failed', error);
+      return null;
+    }
+  },
+
+  async stopProfiler(): Promise<void> {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.stopProfiler !== 'function') {
+      return;
+    }
+
+    try {
+      await RNSentry.stopProfiler();
+    } catch (error) {
+      debug.error('[NATIVE] Stop Profiler Failed', error);
+    }
+  },
+
+  getCurrentThreadId(): string | null {
+    if (!this.enableNative || !this._isModuleLoaded(RNSentry) || typeof RNSentry.getCurrentThreadId !== 'function') {
+      return null;
+    }
+
+    try {
+      return RNSentry.getCurrentThreadId() ?? null;
+    } catch (error) {
+      debug.error('[NATIVE] Get Current Thread Id Failed', error);
+      return null;
+    }
   },
 
   stopProfiling(): {

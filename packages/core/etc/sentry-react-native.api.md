@@ -76,6 +76,7 @@ import { OpenAiClient } from '@sentry/core';
 import { OpenAiOptions } from '@sentry/core';
 import type { Options } from '@sentry/core';
 import { Profiler } from '@sentry/react';
+import { profiler } from '@sentry/core';
 import * as React_2 from 'react';
 import { replayIntegration } from '@sentry/react';
 import type { ReplayRecordingMode } from '@sentry/core';
@@ -832,6 +833,8 @@ export const primitiveTagIntegration: () => Integration;
 
 export { Profiler }
 
+export { profiler }
+
 // @public
 export type ProfilingLifecycle = 'trace' | 'manual';
 
@@ -1087,6 +1090,17 @@ export type SentryReplayQuality = 'low' | 'medium' | 'high';
 export function sentryTraceGesture<GestureT>(
 label: string, gesture: GestureT): GestureT;
 
+// @public (undocumented)
+export interface SentryWebViewOptions {
+    allowedHosts: string[];
+}
+
+// @public
+export function sentryWebViewProps(options: SentryWebViewOptions): {
+    injectedJavaScriptBeforeContentLoaded: string;
+    onMessage: () => void;
+};
+
 export { setAttribute }
 
 export { setAttributes }
@@ -1265,11 +1279,14 @@ export interface TurboModuleContextOptions {
     maxTopModulesPerSpan?: number;
     modules?: Array<{
         name: string;
-        module: object | null | undefined;
+        module?: object | null;
         skipMethods?: ReadonlyArray<string>;
     }>;
     slowCallThresholdMs?: number;
 }
+
+// @public
+export const uiProfilingIntegration: () => Integration;
 
 // @public (undocumented)
 export const Unmask: HostComponent<ViewProps> | React_2.ComponentType<ViewProps>;
@@ -1324,7 +1341,7 @@ export function wrapTurboModule<T extends object>(name: string, module: T | null
 
 // Warnings were encountered during analysis:
 //
-// src/js/tracing/reactnativetracing.ts:90:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
+// src/js/tracing/reactnativetracing.ts:93:3 - (ae-forgotten-export) The symbol "ReactNativeTracingState" needs to be exported by the entry point index.d.ts
 // src/js/tracing/reactnavigation.ts:228:3 - (ae-forgotten-export) The symbol "RouteOverrideProvider" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
