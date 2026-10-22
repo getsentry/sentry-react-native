@@ -11,6 +11,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.Process;
 import android.util.SparseIntArray;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.app.FrameMetricsAggregator;
@@ -552,6 +553,32 @@ public class RNSentryModuleImpl {
       promise.resolve(null);
     } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
       logger.log(SentryLevel.ERROR, "Failed to flush replay", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public void startProfiler(Promise promise) {
+    try {
+      Sentry.startProfiler();
+      final SentryId profilerId =
+          Sentry.getCurrentScopes().getOptions().getContinuousProfiler().getProfilerId();
+      promise.resolve(SentryId.EMPTY_ID.equals(profilerId) ? null : profilerId.toString());
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to start the profiler", e);
+      promise.reject("SentryReactNative", e.getMessage(), e);
+    }
+  }
+
+  public String getCurrentThreadId() {
+    return String.valueOf(Process.myTid());
+  }
+
+  public void stopProfiler(Promise promise) {
+    try {
+      Sentry.stopProfiler();
+      promise.resolve(null);
+    } catch (Throwable e) { // NOPMD - degrade at the bridge boundary, never crash the host app
+      logger.log(SentryLevel.ERROR, "Failed to stop the profiler", e);
       promise.reject("SentryReactNative", e.getMessage(), e);
     }
   }

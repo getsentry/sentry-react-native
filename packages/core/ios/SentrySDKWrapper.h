@@ -16,6 +16,10 @@
 
 + (void)resumeAppHangTracking;
 
++ (void)startProfiler;
+
++ (void)stopProfiler;
+
 + (BOOL)debug;
 
 + (NSString *)releaseName;

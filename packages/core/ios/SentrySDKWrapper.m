@@ -1,5 +1,6 @@
 #import "SentrySDKWrapper.h"
 #import "RNSentrySwiftBridge.h"
+#import <Sentry/SentryProfilingConditionals.h>
 @import Sentry;
 
 @implementation SentrySDKWrapper
@@ -27,6 +28,20 @@
 + (void)resumeAppHangTracking
 {
     [SentrySDK resumeAppHangTracking];
+}
+
++ (void)startProfiler
+{
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+    [SentrySDK startProfiler];
+#endif
+}
+
++ (void)stopProfiler
+{
+#if SENTRY_TARGET_PROFILING_SUPPORTED
+    [SentrySDK stopProfiler];
+#endif
 }
 
 + (void)configureScope:(void (^)(SentryScope *scope))callback

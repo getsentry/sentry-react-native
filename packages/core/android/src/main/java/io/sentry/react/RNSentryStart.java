@@ -295,22 +295,8 @@ final class RNSentryStart {
       }
     }
 
-    // Set profiling lifecycle mode
-    if (profilingOptions.hasKey("lifecycle")) {
-      if (profilingOptions.getType("lifecycle") == ReadableType.String) {
-        final String lifecycle = profilingOptions.getString("lifecycle");
-        if ("manual".equalsIgnoreCase(lifecycle)) {
-          options.setProfileLifecycle(ProfileLifecycle.MANUAL);
-          logger.log(SentryLevel.INFO, "UI Profile Lifecycle set to MANUAL");
-        } else if ("trace".equalsIgnoreCase(lifecycle)) {
-          options.setProfileLifecycle(ProfileLifecycle.TRACE);
-          logger.log(SentryLevel.INFO, "UI Profile Lifecycle set to TRACE");
-        }
-      } else {
-        logger.log(
-            SentryLevel.WARNING, "UI Profiling lifecycle must be a string, ignoring invalid value");
-      }
-    }
+    // Native tracing is off, so JS drives both lifecycles through startProfiler/stopProfiler.
+    options.setProfileLifecycle(ProfileLifecycle.MANUAL);
 
     // Set start on app start
     if (profilingOptions.hasKey("startOnAppStart")) {
