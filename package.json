@@ -54,8 +54,8 @@
     "samples/expo"
   ],
   "volta": {
-    "node": "18.20.8",
-    "yarn": "3.6.4"
+    "node": "22.22.2",
+    "yarn": "4.17.0"
   },
   "//": [
     "Appium has a dependency on @xmldom/xmldom@^0.x, which causes chromedrive build to fail yarn install",
