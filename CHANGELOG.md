@@ -12,6 +12,12 @@
 
 - Show the feedback form above native-stack modals on iOS via the experimental `_experiments.presentOverNativeModals` feedback option ([#6882](https://github.com/getsentry/sentry-react-native/pull/6882))
 
+### Dependencies
+
+- Bump CLI from v3.8.1 to v3.8.2 ([#6933](https://github.com/getsentry/sentry-react-native/pull/6933))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#382)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.8.1...3.8.2)
+
 ## 8.32.0
 
 ### Features
