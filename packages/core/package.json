@@ -90,7 +90,7 @@
   "dependencies": {
     "@sentry/browser": "10.76.2",
     "@sentry/bundler-plugins": "10.76.2",
-    "@sentry/cli": "3.8.1",
+    "@sentry/cli": "3.8.2",
     "@sentry/core": "10.76.2",
     "@sentry/expo-upload-sourcemaps": "workspace:*",
     "@sentry/react": "10.76.2"
