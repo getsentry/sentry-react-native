@@ -1268,6 +1268,9 @@ export interface TurboModuleContextOptions {
     slowCallThresholdMs?: number;
 }
 
+// @public
+export const uiProfilingIntegration: () => Integration;
+
 // @public (undocumented)
 export const Unmask: HostComponent<ViewProps> | React_2.ComponentType<ViewProps>;
 

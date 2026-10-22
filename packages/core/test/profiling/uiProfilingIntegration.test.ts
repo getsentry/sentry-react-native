@@ -22,7 +22,11 @@ function setupClient(
   profilingOptions: ProfilingOptions,
   clientOptions: { tracesSampleRate?: number } = {},
 ): TestClient {
-  return setupTestClient({ ...clientOptions, integrations: [uiProfilingIntegration(profilingOptions)] });
+  return setupTestClient({
+    ...clientOptions,
+    _experiments: { profilingOptions },
+    integrations: [uiProfilingIntegration()],
+  });
 }
 
 function getTransaction(client: TestClient, name: string): Event | undefined {
@@ -129,7 +133,8 @@ describe('uiProfilingIntegration', () => {
       const client = new TestClient(
         getDefaultTestClientOptions({
           tracesSampleRate: 1.0,
-          integrations: [uiProfilingIntegration({ lifecycle: 'trace', startOnAppStart: true })],
+          _experiments: { profilingOptions: { lifecycle: 'trace', startOnAppStart: true } },
+          integrations: [uiProfilingIntegration()],
         }),
       );
       setCurrentClient(client);
@@ -150,7 +155,8 @@ describe('uiProfilingIntegration', () => {
     it('stops the app start profile after the profiler id call when manual stop comes before native init', async () => {
       const client = new TestClient(
         getDefaultTestClientOptions({
-          integrations: [uiProfilingIntegration({ lifecycle: 'manual', startOnAppStart: true })],
+          _experiments: { profilingOptions: { lifecycle: 'manual', startOnAppStart: true } },
+          integrations: [uiProfilingIntegration()],
         }),
       );
       setCurrentClient(client);
@@ -176,6 +182,19 @@ describe('uiProfilingIntegration', () => {
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('tracing is disabled'));
       expect(NATIVE.startProfiler).not.toHaveBeenCalled();
       expect(NATIVE.stopProfiler).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('without profilingOptions', () => {
+    it('warns and does not control the native profiler', () => {
+      const warn = jest.spyOn(debug, 'warn');
+
+      setupTestClient({ integrations: [uiProfilingIntegration()] });
+      startInactiveSpan({ name: 'root' }).end();
+      profiler.startProfiler();
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('`_experiments.profilingOptions` is not set'));
+      expect(NATIVE.startProfiler).not.toHaveBeenCalled();
     });
   });
 
@@ -214,7 +233,10 @@ describe('uiProfilingIntegration', () => {
 
     it('waits for the native SDK before it starts the profiler', () => {
       const client = new TestClient(
-        getDefaultTestClientOptions({ integrations: [uiProfilingIntegration({ lifecycle: 'manual' })] }),
+        getDefaultTestClientOptions({
+          _experiments: { profilingOptions: { lifecycle: 'manual' } },
+          integrations: [uiProfilingIntegration()],
+        }),
       );
       setCurrentClient(client);
       client.init();

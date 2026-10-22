@@ -3,12 +3,12 @@ import type { Event, Integration, Span } from '@sentry/core';
 import { debug, getRootSpan, hasSpansEnabled, spanIsSampled, spanToJSON } from '@sentry/core';
 
 import type { ReactNativeClient } from '../client';
-import type { ProfilingOptions } from '../options';
+import type { ProfilingLifecycle, ProfilingOptions, ReactNativeClientOptions } from '../options';
 
 import { NATIVE } from '../wrapper';
 
 // `Sentry.profiler` from `@sentry/core` looks the integration up by this name.
-const INTEGRATION_NAME = 'ProfilingIntegration';
+export const UI_PROFILING_INTEGRATION_NAME = 'ProfilingIntegration';
 
 const SPAN_THREAD_ID = 'thread.id';
 
@@ -30,23 +30,29 @@ interface ProfileSession {
   profilerId: Promise<string | null>;
 }
 
+/** Returns the UI profiling options, including the deprecated `androidProfilingOptions`. */
+export function getProfilingOptions(options: ReactNativeClientOptions): ProfilingOptions | undefined {
+  return options._experiments?.profilingOptions ?? options._experiments?.androidProfilingOptions;
+}
+
 /**
- * Starts and stops the native UI profiler from JS.
+ * Starts and stops the native UI profiler for `_experiments.profilingOptions`.
  *
- * Native tracing is off in React Native, so the native SDKs cannot follow the `trace` lifecycle.
- * They run in manual mode, and this integration decides when the profiler runs.
+ * The SDK adds this integration by default when `profilingOptions` is set. If you set
+ * `defaultIntegrations: false`, add it to `integrations` to use UI profiling.
+ *
+ * @experimental
  */
-export const uiProfilingIntegration = ({
-  lifecycle = 'manual',
-  startOnAppStart = false,
-}: ProfilingOptions): UIProfilingIntegration => {
+export const uiProfilingIntegration = (): Integration => {
   const activeRootSpanIds = new Set<string>();
   const sessionByRootSpanId = new Map<string, ProfileSession>();
+  let lifecycle: ProfilingLifecycle = 'manual';
+  let startOnAppStart = false;
   let session: ProfileSession | undefined;
   let stopTimeout: ReturnType<typeof setTimeout> | undefined;
   let isNativeReady = false;
-  let isManualRequested = lifecycle === 'manual' && startOnAppStart;
-  let isAppStartPending = lifecycle === 'trace' && startOnAppStart;
+  let isManualRequested = false;
+  let isAppStartPending = false;
   let jsThreadId: string | null = null;
   let resolveAppStartSession: ((profilerId: string | null) => void) | undefined;
 
@@ -124,9 +130,21 @@ export const uiProfilingIntegration = ({
     syncNativeProfiler();
   };
 
-  return {
-    name: INTEGRATION_NAME,
+  const integration: UIProfilingIntegration = {
+    name: UI_PROFILING_INTEGRATION_NAME,
     setup(client: ReactNativeClient): void {
+      const profilingOptions = getProfilingOptions(client.getOptions());
+      if (!profilingOptions) {
+        debug.warn('[Profiling] `_experiments.profilingOptions` is not set. UI profiling is disabled.');
+        return;
+      }
+      // Native tracing is off in React Native, so the native SDKs run in manual mode and this
+      // integration decides when the profiler runs, also for the `trace` lifecycle.
+      lifecycle = profilingOptions.lifecycle ?? 'manual';
+      startOnAppStart = profilingOptions.startOnAppStart ?? false;
+      isManualRequested = lifecycle === 'manual' && startOnAppStart;
+      isAppStartPending = lifecycle === 'trace' && startOnAppStart;
+
       const tracingEnabled = hasSpansEnabled(client.getOptions());
       if (tracingEnabled) {
         jsThreadId = NATIVE.getCurrentThreadId();
@@ -192,4 +210,5 @@ export const uiProfilingIntegration = ({
       stop: () => setManualRequested(false),
     },
   };
+  return integration;
 };
