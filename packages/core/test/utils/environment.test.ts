@@ -1,4 +1,5 @@
-import { isExpoFetchEnabled } from '../../src/js/utils/environment';
+import { isExpoFetchEnabled, isResourceTimingSupported } from '../../src/js/utils/environment';
+import { ReactNativeLibraries } from '../../src/js/utils/rnlibraries';
 
 describe('isExpoFetchEnabled', () => {
   const originalFetch = globalThis.fetch;
@@ -41,5 +42,37 @@ describe('isExpoFetchEnabled', () => {
     });
     globalThis.fetch = expoFetch;
     expect(isExpoFetchEnabled()).toBe(false);
+  });
+});
+
+describe('isResourceTimingSupported', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it.each([
+    [0, 83],
+    [0, 87],
+    [1, 0],
+  ])('returns true on React Native %i.%i', (major, minor) => {
+    jest.replaceProperty(ReactNativeLibraries, 'ReactNativeVersion', { version: { major, minor, patch: 0 } });
+
+    expect(isResourceTimingSupported()).toBe(true);
+  });
+
+  it.each([
+    [0, 80],
+    [0, 81],
+    [0, 82],
+  ])('returns false on React Native %i.%i', (major, minor) => {
+    jest.replaceProperty(ReactNativeLibraries, 'ReactNativeVersion', { version: { major, minor, patch: 0 } });
+
+    expect(isResourceTimingSupported()).toBe(false);
+  });
+
+  it('returns false when the React Native version is unknown', () => {
+    jest.replaceProperty(ReactNativeLibraries, 'ReactNativeVersion', { version: undefined });
+
+    expect(isResourceTimingSupported()).toBe(false);
   });
 });

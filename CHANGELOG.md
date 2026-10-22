@@ -11,6 +11,7 @@
 ### Fixes
 
 - Find `ios/.xcode.env` in the Expo plugin "Upload Debug Symbols to Sentry" phase when the iOS project uses Swift Package Manager instead of CocoaPods ([#6911](https://github.com/getsentry/sentry-react-native/pull/6911))
+- Fix HTTP timing listeners leaking on React Native below 0.83 and when `expo/fetch` is detected, and respect the `enableHTTPTimings` option ([#6912](https://github.com/getsentry/sentry-react-native/pull/6912))
 - Remove the `@sentry/browser` feedback modules and the server-only `@sentry/core` modules from native bundles built on Windows. Before this fix, `includeWebFeedback: false` made these bundles fail at launch ([#6915](https://github.com/getsentry/sentry-react-native/pull/6915))
 - Stop wrapping the SDK's own `RNSentry` module in `turboModuleContextIntegration` by default. Each wrapped call wrote to the native scope several times, which added CPU time to every SDK call on iOS ([#6921](https://github.com/getsentry/sentry-react-native/pull/6921))
   - To wrap `RNSentry` again, add `{ name: 'RNSentry' }` to the `modules` option.
