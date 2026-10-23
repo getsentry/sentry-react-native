@@ -2,7 +2,17 @@ import type { SerializedTraceData } from '@sentry/core';
 
 import { debug, getTraceData, objectToBaggageHeader, parseBaggageHeader } from '@sentry/core';
 
+import { registerFeatureMarker } from '../utils/featureMarkers';
+
 const WEBVIEW_LABEL = 'Sentry WebView';
+
+/**
+ * Name registered as a no-op integration when the WebView helper is used, so the
+ * feature flows through to `event.sdk.integrations` — the channel Sentry uses to
+ * measure feature adoption across SDKs. Kept in sync with the equivalent marker on
+ * the other SDKs (Apple, Android, Flutter).
+ */
+export const WEBVIEW_INTEGRATION_NAME = 'WebViewTracePropagation';
 
 /**
  * `baggage` key carrying the root span's name. It is free-form text and can
@@ -85,6 +95,12 @@ export function sentryWebViewProps(options: SentryWebViewOptions): {
   injectedJavaScriptBeforeContentLoaded: string;
   onMessage: () => void;
 } {
+  // Record feature adoption. `sentryWebViewProps` is a helper rather than an
+  // integration, so without this it would be invisible to adoption telemetry. The
+  // marker is registered on use (not on injection success) so it reflects that the
+  // app wired up the feature. Idempotent and fails quietly — never breaks rendering.
+  registerFeatureMarker(WEBVIEW_INTEGRATION_NAME);
+
   return {
     injectedJavaScriptBeforeContentLoaded: createSentryWebViewInjection(options),
     // Required on Android: `react-native-webview` only runs injected JavaScript
